@@ -476,6 +476,7 @@ export default class btse extends Exchange {
                     // 400 Bad Request {"code":-11,"msg":"System error","success":false,"time":1770451790797,"data":[]}
                     // {"code":400,"msg":"BADREQUEST: resolution too small for the requested time range. Records returned exceeds 300","success":false,"time":1770452248292,"data":[]}
                     // {"status":400,"errorCode":-2,"message":"Can't support count more than 500","extraData":null}
+                    // {"status":400,"errorCode":33199101,"message":"Available balance is insufficient to meet this order.","extraData":["0.013553333"]}
                     '-1': OrderNotFound,
                     '-2': BadRequest,
                     '-7': AuthenticationError,
@@ -485,6 +486,7 @@ export default class btse extends Exchange {
                     '51523': InsufficientFunds,
                     '33001001': InvalidOrder,
                     '33001003': InvalidOrder,
+                    '33199101': InsufficientFunds,
                 },
                 'broad': {
                     'Insufficient wallet balance': InsufficientFunds,
