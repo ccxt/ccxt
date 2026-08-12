@@ -1461,11 +1461,19 @@ fn side_store_array(side: &Value, delta: Value) {
             let price = delta_field(&delta, 0, as_f64, 0.0);
             let size  = delta_field(&delta, 1, as_f64, 0.0);
             let count = delta_field(&delta, 2, as_f64, 0.0);
+            // JS gates a counted store on `size && count`, but some venues drive
+            // a counted book with no numeric count in slot 2 — bitget stores
+            // `[price, size, [rawPrice, rawSize]]` (the raw pair, for checksums).
+            // Only treat slot 2 as a count when it's actually a number; otherwise
+            // gate on size alone so the entry stores.
+            let has_count = matches!(&delta,
+                Value::Arr(a) if matches!(a.get(2), Some(Value::Int(_)) | Some(Value::Float(_))));
+            let store_it = if has_count { size != 0.0 && count != 0.0 } else { size != 0.0 };
             let target = if is_bid { -price } else { price };
             let entries = &mut cell.entries;
             let entries_view: Vec<Value> = entries.iter().cloned().collect();
             let idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(&entries_view));
-            if size != 0.0 && count != 0.0 {
+            if store_it {
                 if idx < entries.len()
                     && {
                         let p = match &entries[idx] {

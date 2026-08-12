@@ -1104,8 +1104,10 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                 None => panic!("[NetworkError] {} websocket connection closed", url),
             };
             if std::env::var("CCXT_WS_DEBUG").is_ok() {
+                let n: usize = std::env::var("CCXT_WS_DEBUG").ok()
+                    .and_then(|v| v.parse().ok()).filter(|v| *v > 1).unwrap_or(220);
                 let s = msg.to_json().to_string();
-                eprintln!("[wsmsg] {}", s.chars().take(220).collect::<String>());
+                eprintln!("[wsmsg] {}", s.chars().take(n).collect::<String>());
             }
             let client_value = crate::pro::ws_client::client_value(&url);
             let _ = self
