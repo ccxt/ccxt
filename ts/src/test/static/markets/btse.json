@@ -126,7 +126,7 @@
         "optionType": null,
         "precision": {
             "amount": 0.1,
-            "price": 0.00001
+            "price": 1e-05
         },
         "limits": {
             "leverage": {
@@ -138,7 +138,7 @@
                 "max": 5000000
             },
             "price": {
-                "min": 0.00001,
+                "min": 1e-05,
                 "max": null
             },
             "cost": {
@@ -439,13 +439,13 @@
         "subType": "linear",
         "taker": 0.00055,
         "maker": 0.0002,
-        "contractSize": 0.00001,
+        "contractSize": 1e-05,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 0.00001,
+            "amount": 1e-05,
             "price": 0.1
         },
         "limits": {
@@ -522,6 +522,118 @@
                 "SGD",
                 "SOL",
                 "XRP"
+            ]
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "RAVE/USDT:USDT": {
+        "id": "RAVE-PERP",
+        "lowercaseId": null,
+        "symbol": "RAVE/USDT:USDT",
+        "base": "RAVE",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "RAVE",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.00055,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1,
+                "max": 50000
+            },
+            "price": {
+                "min": 0.001,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "RAVE-PERP",
+            "last": 0.315,
+            "lowestAsk": 0.318,
+            "highestBid": 0.314,
+            "openInterest": 19318104,
+            "openInterestUSD": 6101911.18,
+            "percentageChange": 0,
+            "volume": 6270.037,
+            "high24Hr": 0.324,
+            "low24Hr": 0.299,
+            "base": "RAVE",
+            "quote": "USDT",
+            "contractStart": 0,
+            "contractEnd": 0,
+            "active": true,
+            "timeBasedContract": false,
+            "openTime": 0,
+            "closeTime": 0,
+            "startMatching": 0,
+            "inactiveTime": 0,
+            "fundingRate": 5e-05,
+            "contractSize": 1,
+            "maxPosition": 6000000,
+            "minValidPrice": 0.001,
+            "minPriceIncrement": 0.001,
+            "minOrderSize": 1,
+            "maxOrderSize": 50000,
+            "minRiskLimit": 2500,
+            "maxRiskLimit": 6000000,
+            "minSizeIncrement": 1,
+            "availableSettlement": [
+                "USD",
+                "USDT",
+                "USDC",
+                "BTC",
+                "ETH",
+                "SOL",
+                "XRP",
+                "AED",
+                "AUD",
+                "CAD",
+                "CHF",
+                "EUR",
+                "GBP",
+                "HKD",
+                "INR",
+                "JPY",
+                "MYR",
+                "NZD",
+                "SGD"
             ]
         },
         "tierBased": true,
