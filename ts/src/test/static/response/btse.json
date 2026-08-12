@@ -2046,6 +2046,85 @@
                     }
                 }
             }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "btse fetchTradingFees - live-captured 2026-08-12, httpResponse and parsedResponse trimmed to 4 console-verbatim rows: three mapped through the markets snapshot (BTC-USD, TRUMPSOL-USD, K_SATS-USD incl. the K_ prefix path) and FUSD-USD as the unmapped-market case",
+                "method": "fetchTradingFees",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "symbol": "FUSD-USD",
+                        "makerFee": 0.002,
+                        "takerFee": 0.002
+                    },
+                    {
+                        "symbol": "TRUMPSOL-USD",
+                        "makerFee": 0.002,
+                        "takerFee": 0.002
+                    },
+                    {
+                        "symbol": "K_SATS-USD",
+                        "makerFee": 0.002,
+                        "takerFee": 0.002
+                    },
+                    {
+                        "symbol": "BTC-USD",
+                        "makerFee": 0.002,
+                        "takerFee": 0.002
+                    }
+                ],
+                "parsedResponse": {
+                    "FUSD-USD": {
+                        "info": {
+                            "symbol": "FUSD-USD",
+                            "makerFee": 0.002,
+                            "takerFee": 0.002
+                        },
+                        "symbol": "FUSD-USD",
+                        "maker": 0.002,
+                        "taker": 0.002,
+                        "percentage": true,
+                        "tierBased": true
+                    },
+                    "TRUMPSOL/USD": {
+                        "info": {
+                            "symbol": "TRUMPSOL-USD",
+                            "makerFee": 0.002,
+                            "takerFee": 0.002
+                        },
+                        "symbol": "TRUMPSOL/USD",
+                        "maker": 0.002,
+                        "taker": 0.002,
+                        "percentage": true,
+                        "tierBased": true
+                    },
+                    "SATS/USD": {
+                        "info": {
+                            "symbol": "K_SATS-USD",
+                            "makerFee": 0.002,
+                            "takerFee": 0.002
+                        },
+                        "symbol": "SATS/USD",
+                        "maker": 0.002,
+                        "taker": 0.002,
+                        "percentage": true,
+                        "tierBased": true
+                    },
+                    "BTC/USD": {
+                        "info": {
+                            "symbol": "BTC-USD",
+                            "makerFee": 0.002,
+                            "takerFee": 0.002
+                        },
+                        "symbol": "BTC/USD",
+                        "maker": 0.002,
+                        "taker": 0.002,
+                        "percentage": true,
+                        "tierBased": true
+                    }
+                }
+            }
         ]
     }
 }
