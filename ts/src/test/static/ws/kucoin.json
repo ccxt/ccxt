@@ -385,7 +385,8 @@
                         }
                     }
                 ],
-                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately"
+                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately",
+                "disabledJava": "java: watchTicker missing on kucoinfutures (falls to base NotSupported) and the kucoin ws url negotiation can bypass the mock and connect live, keeping the jvm alive - investigate separately"
             }
         ],
         "watchOHLCV": [
@@ -487,7 +488,8 @@
                         ]
                     ]
                 ],
-                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately"
+                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately",
+                "disabledJava": "java: watchTicker missing on kucoinfutures (falls to base NotSupported) and the kucoin ws url negotiation can bypass the mock and connect live, keeping the jvm alive - investigate separately"
             }
         ],
         "watchTrades": [
@@ -630,7 +632,8 @@
                         }
                     ]
                 ],
-                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately"
+                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately",
+                "disabledJava": "java: watchTicker missing on kucoinfutures (falls to base NotSupported) and the kucoin ws url negotiation can bypass the mock and connect live, keeping the jvm alive - investigate separately"
             }
         ],
         "watchOrderBook": [
@@ -880,7 +883,8 @@
                         "symbol": "BTC/USDT"
                     }
                 ],
-                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately"
+                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately",
+                "disabledJava": "java: watchTicker missing on kucoinfutures (falls to base NotSupported) and the kucoin ws url negotiation can bypass the mock and connect live, keeping the jvm alive - investigate separately"
             }
         ]
     }
