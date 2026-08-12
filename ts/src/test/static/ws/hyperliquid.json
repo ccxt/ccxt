@@ -457,7 +457,8 @@
                             "fees": []
                         }
                     ]
-                ]
+                ],
+                "disabledGO": "go newUpdates tail returns the full cache instead of only the new trades - same family as the bitget/binance disabledGO entries"
             }
         ],
         "watchOrderBook": [

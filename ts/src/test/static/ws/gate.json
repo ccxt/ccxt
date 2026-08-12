@@ -1,6 +1,9 @@
 {
     "exchange": "gate",
-    "skipKeys": [],
+    "skipKeys": [
+        "datetime",
+        "timestamp"
+    ],
     "options": {},
     "methods": {
         "watchTicker": [

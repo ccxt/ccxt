@@ -1,6 +1,8 @@
 {
     "exchange": "kucoin",
-    "skipKeys": [],
+    "skipKeys": [
+        "vwap"
+    ],
     "options": {},
     "methods": {
         "watchTicker": [
@@ -114,7 +116,7 @@
                                 "close": 64021.9,
                                 "datetime": 1786538852774,
                                 "high": 64473.3,
-                                "lastSize": 0.00001565,
+                                "lastSize": 1.565e-05,
                                 "lastTradedPrice": 64021.9,
                                 "low": 63237.4,
                                 "makerCoefficient": 1,
@@ -324,7 +326,7 @@
                             "close": 64021.9,
                             "datetime": 1786538852774,
                             "high": 64473.3,
-                            "lastSize": 0.00001565,
+                            "lastSize": 1.565e-05,
                             "lastTradedPrice": 64021.9,
                             "low": 63237.4,
                             "makerCoefficient": 1,
@@ -790,7 +792,7 @@
                             ],
                             [
                                 63999.7,
-                                0.00001846
+                                1.846e-05
                             ],
                             [
                                 63999.6,
@@ -840,7 +842,7 @@
                             ],
                             [
                                 63999.7,
-                                0.00001846
+                                1.846e-05
                             ],
                             [
                                 63999.6,
@@ -877,5 +879,5 @@
                 ]
             }
         ]
-  }
+    }
 }

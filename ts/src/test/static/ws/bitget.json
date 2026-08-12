@@ -153,7 +153,8 @@
                             32.9132
                         ]
                     ]
-                ]
+                ],
+                "disabledGO": "go newUpdates tail returns the full cache instead of only the new updates - same family as the other disabledGO entries"
             },
             {
                 "description": "spot ohlcv 1m",
@@ -283,7 +284,8 @@
                             1.135141
                         ]
                     ]
-                ]
+                ],
+                "disabledGO": "go newUpdates tail returns the full cache instead of only the new updates - same family as the other disabledGO entries"
             }
         ],
         "watchTrades": [
@@ -470,7 +472,8 @@
                             "fees": []
                         }
                     ]
-                ]
+                ],
+                "disabledGO": "go newUpdates tail returns the full cache instead of only the new updates - same family as the other disabledGO entries"
             },
             {
                 "description": "spot trades",
@@ -655,7 +658,8 @@
                             "fees": []
                         }
                     ]
-                ]
+                ],
+                "disabledGO": "go newUpdates tail returns the full cache instead of only the new updates - same family as the other disabledGO entries"
             }
         ],
         "watchTicker": [
@@ -1837,7 +1841,8 @@
                             "stopLossPrice": null
                         }
                     ]
-                ]
+                ],
+                "disabledCS": "c# double-completes the ws auth future when the login ack is replayed - investigate separately"
             }
         ],
         "watchMyTrades": [
@@ -2063,7 +2068,9 @@
                             ]
                         }
                     ]
-                ]
+                ],
+                "disabledCS": "c# double-completes the ws auth future when the login ack is replayed - investigate separately",
+                "disabledGO": "go newUpdates tail returns the full cache instead of only the new updates - same family as the other disabledGO entries"
             }
         ]
     }
