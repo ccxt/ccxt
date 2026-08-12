@@ -1916,6 +1916,136 @@
                     }
                 }
             }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "btse fetchOpenInterests linear swap - live-captured 2026-08-12, httpResponse trimmed to the BTC-PERP row consumed by the parser",
+                "method": "fetchOpenInterests",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTC-PERP",
+                        "last": 63471.5,
+                        "lowestAsk": 63467.2,
+                        "highestBid": 63466.8,
+                        "openInterest": 31078414,
+                        "openInterestUSD": 19725935.54,
+                        "percentageChange": 0.1941,
+                        "volume": 495884101.67239606,
+                        "high24Hr": 64446.7,
+                        "low24Hr": 63221.3,
+                        "base": "BTC",
+                        "quote": "USDT",
+                        "contractStart": 0,
+                        "contractEnd": 0,
+                        "active": true,
+                        "timeBasedContract": false,
+                        "openTime": 0,
+                        "closeTime": 0,
+                        "startMatching": 0,
+                        "inactiveTime": 0,
+                        "fundingRate": 9.992e-05,
+                        "contractSize": 1e-05,
+                        "maxPosition": 1100000000,
+                        "minValidPrice": 0.1,
+                        "minPriceIncrement": 0.1,
+                        "minOrderSize": 1,
+                        "maxOrderSize": 7500000,
+                        "minRiskLimit": 3000000,
+                        "maxRiskLimit": 1100000000,
+                        "minSizeIncrement": 1,
+                        "availableSettlement": [
+                            "USD",
+                            "USDT",
+                            "USDC",
+                            "BTC",
+                            "ETH",
+                            "AED",
+                            "AUD",
+                            "CAD",
+                            "CHF",
+                            "EUR",
+                            "GBP",
+                            "HKD",
+                            "INR",
+                            "JPY",
+                            "MYR",
+                            "NZD",
+                            "SGD",
+                            "SOL",
+                            "XRP"
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "openInterestAmount": 31078414,
+                        "openInterestValue": 19725935.54,
+                        "timestamp": null,
+                        "datetime": null,
+                        "info": {
+                            "symbol": "BTC-PERP",
+                            "last": 63471.5,
+                            "lowestAsk": 63467.2,
+                            "highestBid": 63466.8,
+                            "openInterest": 31078414,
+                            "openInterestUSD": 19725935.54,
+                            "percentageChange": 0.1941,
+                            "volume": 495884101.67239606,
+                            "high24Hr": 64446.7,
+                            "low24Hr": 63221.3,
+                            "base": "BTC",
+                            "quote": "USDT",
+                            "contractStart": 0,
+                            "contractEnd": 0,
+                            "active": true,
+                            "timeBasedContract": false,
+                            "openTime": 0,
+                            "closeTime": 0,
+                            "startMatching": 0,
+                            "inactiveTime": 0,
+                            "fundingRate": 9.992e-05,
+                            "contractSize": 1e-05,
+                            "maxPosition": 1100000000,
+                            "minValidPrice": 0.1,
+                            "minPriceIncrement": 0.1,
+                            "minOrderSize": 1,
+                            "maxOrderSize": 7500000,
+                            "minRiskLimit": 3000000,
+                            "maxRiskLimit": 1100000000,
+                            "minSizeIncrement": 1,
+                            "availableSettlement": [
+                                "USD",
+                                "USDT",
+                                "USDC",
+                                "BTC",
+                                "ETH",
+                                "AED",
+                                "AUD",
+                                "CAD",
+                                "CHF",
+                                "EUR",
+                                "GBP",
+                                "HKD",
+                                "INR",
+                                "JPY",
+                                "MYR",
+                                "NZD",
+                                "SGD",
+                                "SOL",
+                                "XRP"
+                            ]
+                        },
+                        "baseVolume": null,
+                        "quoteVolume": null
+                    }
+                }
+            }
         ]
     }
 }
