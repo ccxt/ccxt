@@ -66,7 +66,14 @@ async fn watch_probe<T: ExchangeBase + Send + 'static>(mut ex: Box<T>) -> String
     });
     let sym = match sym {
         Some(s) => s,
-        None => return "NO_BTC_SYMBOL".to_string(),
+        None => {
+            let sample: Vec<String> = match &markets {
+                Value::Dict(d) => d.keys().take(12).cloned().collect(),
+                _ => vec![],
+            };
+            return format!("NO_BTC_SYMBOL (n={}, sample={:?})",
+                match &markets { Value::Dict(d) => d.len(), _ => 0 }, sample);
+        }
     };
     let sym: &str = &sym;
     // Loop like real usage: many venues resolve an empty book first and fill via

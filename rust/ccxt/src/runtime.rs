@@ -397,7 +397,9 @@ pub fn add_element_to_object(obj: &mut Value, key: &Value, val: Value) {
     match (obj, key) {
         (Value::Dict(m), Value::Str(k)) => {
             if crate::value::try_book_meta_write(m, k, &val) { return; }
-            if crate::value::try_ws_subs_write(m, k, &val) { return; }
+            // Persist to the live client AND update the local snapshot (see
+            // set_value) so a read-back of client.subscriptions is coherent.
+            crate::value::try_ws_subs_write(m, k, &val);
             Arc::make_mut(m).insert(k.clone(), val);
         }
         (Value::Dict(m), other) => { Arc::make_mut(m).insert(stringify_simple(other), val); }
@@ -414,7 +416,7 @@ pub fn add_element_to_object(obj: &mut Value, key: &Value, val: Value) {
 pub fn remove(obj: &mut Value, key: &Value) {
     match (obj, key) {
         (Value::Dict(m), Value::Str(k)) => {
-            if crate::value::try_ws_subs_remove(m, k) { return; }
+            crate::value::try_ws_subs_remove(m, k);
             Arc::make_mut(m).shift_remove(k);
         }
         (Value::Arr(a), Value::Int(i)) => {
@@ -446,16 +448,26 @@ pub fn in_op(obj: &Value, key: &Value) -> bool {
     }
 }
 
+/// Synthetic key that tags a live-subscriptions snapshot with its client URL
+/// (see `try_ws_subs_write`). It must never surface to transpiled code that
+/// enumerates `client.subscriptions` (upbit builds its subscribe frame from
+/// those keys), so filter it out of key/value enumeration.
+const WS_SUBS_TAG: &str = "__ws_subs_url";
+
 pub fn object_keys(v: &Value) -> Value {
     match v {
-        Value::Dict(m) => Value::Array(m.keys().map(|k| Value::Str(k.clone())).collect()),
+        Value::Dict(m) => Value::Array(
+            m.keys().filter(|k| k.as_str() != WS_SUBS_TAG)
+                .map(|k| Value::Str(k.clone())).collect()),
         _ => Value::Array(vec![]),
     }
 }
 
 pub fn object_values(v: &Value) -> Value {
     match v {
-        Value::Dict(m) => Value::Array(m.values().cloned().collect()),
+        Value::Dict(m) => Value::Array(
+            m.iter().filter(|(k, _)| k.as_str() != WS_SUBS_TAG)
+                .map(|(_, val)| val.clone()).collect()),
         _ => Value::Array(vec![]),
     }
 }

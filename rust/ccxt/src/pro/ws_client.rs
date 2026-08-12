@@ -190,6 +190,7 @@ impl ClientState {
     }
 
     pub fn send_text(&self, s: String) -> bool {
+        if std::env::var("CCXT_WS_DEBUG").is_ok() { eprintln!("[wssend] {}", s.chars().take(200).collect::<String>()); }
         self.outgoing.send(Message::Text(s)).is_ok()
     }
 

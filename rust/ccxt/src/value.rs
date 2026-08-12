@@ -692,7 +692,10 @@ pub fn set_value(obj: &mut Value, key: &Value, val: Value) {
     match (obj, key) {
         (Value::Dict(m), Value::Str(k)) => {
             if try_book_meta_write(m, k, &val) { return; }
-            if try_ws_subs_write(m, k, &val) { return; }
+            // Persist to the live client AND keep the local snapshot coherent so
+            // code that reads back what it just wrote (upbit builds its subscribe
+            // frame from `object_keys(client.subscriptions)`) sees the new entry.
+            try_ws_subs_write(m, k, &val);
             Arc::make_mut(m).insert(k.clone(), val);
         }
         (Value::Arr(a), Value::Int(i)) => {
