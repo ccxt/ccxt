@@ -4965,6 +4965,13 @@ class binance(ccxt.async_support.binance):
                         orderTrades = self.safe_list(order, 'trades', [])
                         orderTrades.append(trade)
                         order['trades'] = orderTrades
+                        # write the updated order back into the cache: php
+                        # arrays are value types, so the fee/trades mutations
+                        # above only touched a local copy there — the cache
+                        # hashmap rows are wired by reference, so self
+                        # assignment reaches the cached row(and is a no-op
+                        # in the reference-semantics runtimes)
+                        orders[orderId] = order
                         # don't append twice cause it breaks newUpdates mode
                         # self order already exists in the cache
             if self.myTrades is None:
