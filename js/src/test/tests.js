@@ -12,14 +12,16 @@ AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, O
 // shared
 getCliArgValue, 
 //
-getRootDir, isSync, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, getRootException, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFilesSync, getTestFiles, setFetchResponse, isNullValue, close, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, } from './tests.helpers.js';
+getRootDir, isSync, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, getRootException, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFilesSync, getTestFiles, setFetchResponse, setupWsMockTransport, injectWsMessage, rejectPendingWsFutures, isNullValue, close, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, } from './tests.helpers.js';
 class testMainClass {
     constructor() {
         this.idTests = false;
         this.requestTestsFailed = false;
         this.responseTestsFailed = false;
+        this.staticWsTestsFailed = false;
         this.requestTests = false;
         this.wsTests = false;
+        this.staticWsTests = false;
         this.responseTests = false;
         this.predictionTests = false;
         this.info = false;
@@ -51,6 +53,7 @@ class testMainClass {
         this.sandbox = getCliArgValue('--sandbox');
         this.loadKeys = getCliArgValue('--loadKeys');
         this.wsTests = getCliArgValue('--ws');
+        this.staticWsTests = getCliArgValue('--wsTests');
         // when set, static request/response tests are read from the static/<type>/prediction/ subfolder
         this.predictionTests = getCliArgValue('--prediction');
         this.lang = getLang();
@@ -75,6 +78,10 @@ class testMainClass {
         }
         if (this.responseTests) {
             await this.runStaticResponseTests(exchangeId, symbolArgv);
+            return true;
+        }
+        if (this.staticWsTests) {
+            await this.runStaticWsTests(exchangeId, symbolArgv);
             return true;
         }
         if (this.requestTests) {
@@ -1676,7 +1683,81 @@ class testMainClass {
         setFetchResponse(exchange, undefined); // reset state
         return true;
     }
-    initOfflineExchange(exchangeName) {
+    async injectWsMessages(exchange, url, messages) {
+        // wait for the watch method to register its subscription future
+        // before replaying the frames, then yield between frames so the
+        // handlers run in arrival order in every runtime
+        await exchange.sleep(50);
+        for (let i = 0; i < messages.length; i++) {
+            injectWsMessage(exchange, url, messages[i]);
+            await exchange.sleep(20);
+        }
+        await exchange.sleep(50);
+        // reject anything still pending so a wrong fixture fails fast
+        // instead of hanging the test run forever
+        rejectPendingWsFutures(exchange, url);
+        return true; // c# methods used with promiseAll need to return something
+    }
+    async testWsStatically(exchange, method, skipKeys, data) {
+        const expectedResult = exchange.safeValue(data, 'parsedResponse');
+        const url = exchange.safeString(data, 'url');
+        setupWsMockTransport(exchange, url);
+        const httpResponse = exchange.safeValue(data, 'httpResponse');
+        if (httpResponse !== undefined) {
+            // some watch methods fetch a rest snapshot (e.g. watchOrderBook)
+            setFetchResponse(exchange, httpResponse);
+        }
+        if (this.info) {
+            dump('[INFO] STATIC WS TEST:', method, ':', data['description']);
+        }
+        try {
+            const messages = exchange.safeList(data, 'messages', []);
+            const promises = [
+                callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(data['input'])),
+                this.injectWsMessages(exchange, url, messages),
+            ];
+            const results = await Promise.all(promises);
+            const unifiedResult = results[0];
+            this.assertStaticResponseOutput(exchange, skipKeys, unifiedResult, expectedResult);
+        }
+        catch (e) {
+            this.staticWsTestsFailed = true;
+            const errorMessage = '[' + this.lang + '][STATIC_WS]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + exceptionMessage(e);
+            dump('[TEST_FAILURE]' + errorMessage);
+        }
+        setFetchResponse(exchange, undefined); // reset state
+        return true;
+    }
+    async testExchangeWsStatically(exchangeName, exchangeData, testName = undefined) {
+        const globalOptions = exchangeData['options'] === undefined ? {} : exchangeData['options'];
+        const methods = exchangeData['methods'] === undefined ? {} : exchangeData['methods'];
+        const methodsNames = Object.keys(methods);
+        for (let i = 0; i < methodsNames.length; i++) {
+            const method = methodsNames[i];
+            const results = methods[method];
+            for (let j = 0; j < results.length; j++) {
+                const result = results[j];
+                const description = result['description'];
+                if ((testName !== undefined) && (testName !== description)) {
+                    continue;
+                }
+                // a fresh exchange per entry: ws caches (trades, orderbooks,
+                // ohlcvs) and request-id counters survive between watch calls
+                // and would leak state across entries otherwise
+                const exchange = this.initOfflineExchange(exchangeName, true);
+                exchange.extendExchangeOptions(globalOptions);
+                const testExchangeOptions = exchange.safeValue(result, 'options', {});
+                exchange.extendExchangeOptions(testExchangeOptions);
+                const skipKeys = exchange.safeValue(exchangeData, 'skipKeys', []);
+                await this.testWsStatically(exchange, method, skipKeys, result);
+                if (!isSync()) {
+                    await close(exchange);
+                }
+            }
+        }
+        return true; // in c# methods that will be used with promiseAll need to return something
+    }
+    initOfflineExchange(exchangeName, isWs = false) {
         // prediction exchanges load their outcome markets from an event -> markets -> outcomes
         // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
         // standard prediction path (kalshi/limitless/myriad/polymarket/hyperliquid all ship one) and
@@ -1768,7 +1849,7 @@ class testMainClass {
             options['apiKey'] = "";
             options['secret'] = "";
         }
-        const exchange = initExchange(exchangeName, options);
+        const exchange = initExchange(exchangeName, options, isWs);
         if (currencies !== undefined) {
             exchange.currencies = currencies;
         }
@@ -2036,6 +2117,9 @@ class testMainClass {
             if (type === 'request') {
                 promises.push(this.testExchangeRequestStatically(exchangeName, exchangeData, testName));
             }
+            else if (type === 'ws') {
+                promises.push(this.testExchangeWsStatically(exchangeName, exchangeData, testName));
+            }
             else {
                 promises.push(this.testExchangeResponseStatically(exchangeName, exchangeData, testName));
             }
@@ -2047,13 +2131,16 @@ class testMainClass {
             if (type === 'request') {
                 this.requestTestsFailed = true;
             }
+            else if (type === 'ws') {
+                this.staticWsTestsFailed = true;
+            }
             else {
                 this.responseTestsFailed = true;
             }
             const errorMessage = '[' + this.lang + '][STATIC_REQUEST]' + exceptionMessage(e);
             dump('[TEST_FAILURE]' + errorMessage);
         }
-        if (this.requestTestsFailed || this.responseTestsFailed) {
+        if (this.requestTestsFailed || this.responseTestsFailed || this.staticWsTestsFailed) {
             exitScript(1);
         }
         else {
@@ -2068,6 +2155,18 @@ class testMainClass {
         //  --- Init of mockResponses tests functions------------------------------------
         //  -----------------------------------------------------------------------------
         await this.runStaticTests('response', exchangeName, test);
+        return true;
+    }
+    async runStaticWsTests(exchangeName = undefined, test = undefined) {
+        //  -----------------------------------------------------------------------------
+        //  --- static ws tests: replay canned frames into the ws message handlers ------
+        //  -----------------------------------------------------------------------------
+        if (isSync()) {
+            // watch methods are async-only, there is nothing to test in the
+            // synchronous python/php flavours
+            return true;
+        }
+        await this.runStaticTests('ws', exchangeName, test);
         return true;
     }
     async runBrokerIdTests() {

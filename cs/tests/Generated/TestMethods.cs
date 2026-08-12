@@ -9,8 +9,10 @@ public partial class testMainClass
     public bool idTests = false;
     public bool requestTestsFailed = false;
     public bool responseTestsFailed = false;
+    public bool staticWsTestsFailed = false;
     public bool requestTests = false;
     public bool wsTests = false;
+    public bool staticWsTests = false;
     public bool responseTests = false;
     public bool predictionTests = false;
     public bool info = false;
@@ -43,6 +45,7 @@ public partial class testMainClass
         this.sandbox = getCliArgValue("--sandbox");
         this.loadKeys = getCliArgValue("--loadKeys");
         this.wsTests = getCliArgValue("--ws");
+        this.staticWsTests = getCliArgValue("--wsTests");
         // when set, static request/response tests are read from the static/<type>/prediction/ subfolder
         this.predictionTests = getCliArgValue("--prediction");
         this.lang = getLang();
@@ -74,6 +77,11 @@ public partial class testMainClass
         if (isTrue(this.responseTests))
         {
             await this.runStaticResponseTests(exchangeId, symbolArgv);
+            return true;
+        }
+        if (isTrue(this.staticWsTests))
+        {
+            await this.runStaticWsTests(exchangeId, symbolArgv);
             return true;
         }
         if (isTrue(this.requestTests))
@@ -1900,7 +1908,92 @@ public partial class testMainClass
         return true;
     }
 
-    public virtual BaseExchange initOfflineExchange(object exchangeName)
+    public async virtual Task<object> injectWsMessages(BaseExchange exchange, object url, object messages)
+    {
+        // wait for the watch method to register its subscription future
+        // before replaying the frames, then yield between frames so the
+        // handlers run in arrival order in every runtime
+        await exchange.sleep(50);
+        for (object i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
+        {
+            injectWsMessage(exchange, url, getValue(messages, i));
+            await exchange.sleep(20);
+        }
+        await exchange.sleep(50);
+        // reject anything still pending so a wrong fixture fails fast
+        // instead of hanging the test run forever
+        rejectPendingWsFutures(exchange, url);
+        return true;  // c# methods used with promiseAll need to return something
+    }
+
+    public async virtual Task<object> testWsStatically(BaseExchange exchange, object method, object skipKeys, object data)
+    {
+        object expectedResult = exchange.safeValue(data, "parsedResponse");
+        object url = exchange.safeString(data, "url");
+        setupWsMockTransport(exchange, url);
+        object httpResponse = exchange.safeValue(data, "httpResponse");
+        if (isTrue(!isEqual(httpResponse, null)))
+        {
+            // some watch methods fetch a rest snapshot (e.g. watchOrderBook)
+            setFetchResponse(exchange, httpResponse);
+        }
+        if (isTrue(this.info))
+        {
+            dump("[INFO] STATIC WS TEST:", method, ":", getValue(data, "description"));
+        }
+        try
+        {
+            object messages = exchange.safeList(data, "messages", new List<object>() {});
+            object promises = new List<object> {callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(getValue(data, "input"))), this.injectWsMessages(exchange, url, messages)};
+            object results = await promiseAll(promises);
+            object unifiedResult = getValue(results, 0);
+            this.assertStaticResponseOutput(exchange, skipKeys, unifiedResult, expectedResult);
+        } catch(Exception e)
+        {
+            this.staticWsTestsFailed = true;
+            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_WS]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), exceptionMessage(e));
+            dump(add("[TEST_FAILURE]", errorMessage));
+        }
+        setFetchResponse(exchange, null); // reset state
+        return true;
+    }
+
+    public async virtual Task<object> testExchangeWsStatically(object exchangeName, object exchangeData, object testName = null)
+    {
+        object globalOptions = ((bool) isTrue(isEqual(getValue(exchangeData, "options"), null))) ? new Dictionary<string, object>() {} : getValue(exchangeData, "options");
+        object methods = ((bool) isTrue(isEqual(getValue(exchangeData, "methods"), null))) ? new Dictionary<string, object>() {} : getValue(exchangeData, "methods");
+        object methodsNames = new List<object>(((IDictionary<string,object>)methods).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(methodsNames)); postFixIncrement(ref i))
+        {
+            object method = getValue(methodsNames, i);
+            object results = getValue(methods, method);
+            for (object j = 0; isLessThan(j, getArrayLength(results)); postFixIncrement(ref j))
+            {
+                object result = getValue(results, j);
+                object description = getValue(result, "description");
+                if (isTrue(isTrue((!isEqual(testName, null))) && isTrue((!isEqual(testName, description)))))
+                {
+                    continue;
+                }
+                // a fresh exchange per entry: ws caches (trades, orderbooks,
+                // ohlcvs) and request-id counters survive between watch calls
+                // and would leak state across entries otherwise
+                BaseExchange exchange = this.initOfflineExchange(exchangeName, true);
+                exchange.extendExchangeOptions(globalOptions);
+                object testExchangeOptions = exchange.safeValue(result, "options", new Dictionary<string, object>() {});
+                exchange.extendExchangeOptions(testExchangeOptions);
+                object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new List<object>() {});
+                await this.testWsStatically(exchange, method, skipKeys, result);
+                if (!isTrue(isSync()))
+                {
+                    await close(exchange);
+                }
+            }
+        }
+        return true;  // in c# methods that will be used with promiseAll need to return something
+    }
+
+    public virtual BaseExchange initOfflineExchange(object exchangeName, object isWs = null)
     {
         // prediction exchanges load their outcome markets from an event -> markets -> outcomes
         // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
@@ -1908,6 +2001,7 @@ public partial class testMainClass
         // is required for ids present in both namespaces (e.g. hyperliquid), whose markets/<id>.json
         // holds the crypto markets. when a fixture is present, skip markets/currencies entirely so
         // setMarkets rebuilds cleanly from the outcome markets
+        isWs ??= false;
         object predictionEvents = null;
         if (isTrue(this.predictionTests))
         {
@@ -1997,7 +2091,7 @@ public partial class testMainClass
             ((IDictionary<string,object>)options)["apiKey"] = "";
             ((IDictionary<string,object>)options)["secret"] = "";
         }
-        BaseExchange exchange = initExchange(exchangeName, options);
+        BaseExchange exchange = initExchange(exchangeName, options, isWs);
         if (isTrue(!isEqual(currencies, null)))
         {
             exchange.currencies = currencies;
@@ -2322,6 +2416,9 @@ public partial class testMainClass
             if (isTrue(isEqual(type, "request")))
             {
                 ((IList<object>)promises).Add(this.testExchangeRequestStatically(exchangeName, exchangeData, testName));
+            } else if (isTrue(isEqual(type, "ws")))
+            {
+                ((IList<object>)promises).Add(this.testExchangeWsStatically(exchangeName, exchangeData, testName));
             } else
             {
                 ((IList<object>)promises).Add(this.testExchangeResponseStatically(exchangeName, exchangeData, testName));
@@ -2335,6 +2432,9 @@ public partial class testMainClass
             if (isTrue(isEqual(type, "request")))
             {
                 this.requestTestsFailed = true;
+            } else if (isTrue(isEqual(type, "ws")))
+            {
+                this.staticWsTestsFailed = true;
             } else
             {
                 this.responseTestsFailed = true;
@@ -2342,7 +2442,7 @@ public partial class testMainClass
             object errorMessage = add(add(add("[", this.lang), "][STATIC_REQUEST]"), exceptionMessage(e));
             dump(add("[TEST_FAILURE]", errorMessage));
         }
-        if (isTrue(isTrue(this.requestTestsFailed) || isTrue(this.responseTestsFailed)))
+        if (isTrue(isTrue(isTrue(this.requestTestsFailed) || isTrue(this.responseTestsFailed)) || isTrue(this.staticWsTestsFailed)))
         {
             exitScript(1);
         } else
@@ -2360,6 +2460,21 @@ public partial class testMainClass
         //  --- Init of mockResponses tests functions------------------------------------
         //  -----------------------------------------------------------------------------
         await this.runStaticTests("response", exchangeName, test);
+        return true;
+    }
+
+    public async virtual Task<object> runStaticWsTests(object exchangeName = null, object test = null)
+    {
+        //  -----------------------------------------------------------------------------
+        //  --- static ws tests: replay canned frames into the ws message handlers ------
+        //  -----------------------------------------------------------------------------
+        if (isTrue(isSync()))
+        {
+            // watch methods are async-only, there is nothing to test in the
+            // synchronous python/php flavours
+            return true;
+        }
+        await this.runStaticTests("ws", exchangeName, test);
         return true;
     }
 

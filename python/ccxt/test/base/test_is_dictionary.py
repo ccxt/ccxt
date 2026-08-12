@@ -33,3 +33,4 @@ def test_is_dictionary():
     assert exchange.is_dictionary('str') is False
     assert exchange.is_dictionary(5) is False
     assert exchange.is_dictionary(True) is False
+    assert exchange.is_dictionary({})

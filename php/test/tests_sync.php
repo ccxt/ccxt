@@ -19,8 +19,10 @@ class testMainClass {
     public $id_tests = false;
     public $request_tests_failed = false;
     public $response_tests_failed = false;
+    public $static_ws_tests_failed = false;
     public $request_tests = false;
     public $ws_tests = false;
+    public $static_ws_tests = false;
     public $response_tests = false;
     public $prediction_tests = false;
     public $info = false;
@@ -52,6 +54,7 @@ class testMainClass {
         $this->sandbox = get_cli_arg_value('--sandbox');
         $this->load_keys = get_cli_arg_value('--loadKeys');
         $this->ws_tests = get_cli_arg_value('--ws');
+        $this->static_ws_tests = get_cli_arg_value('--wsTests');
         // when set, static request/response tests are read from the static/<type>/prediction/ subfolder
         $this->prediction_tests = get_cli_arg_value('--prediction');
         $this->lang = get_lang();
@@ -77,6 +80,10 @@ class testMainClass {
         }
         if ($this->response_tests) {
             $this->run_static_response_tests($exchange_id, $symbol_argv);
+            return true;
+        }
+        if ($this->static_ws_tests) {
+            $this->run_static_ws_tests($exchange_id, $symbol_argv);
             return true;
         }
         if ($this->request_tests) {
@@ -1585,7 +1592,80 @@ class testMainClass {
         return true;
     }
 
-    public function init_offline_exchange($exchange_name) {
+    public function inject_ws_messages($exchange, $url, $messages) {
+        // wait for the watch method to register its subscription future
+        // before replaying the frames, then yield between frames so the
+        // handlers run in arrival order in every runtime
+        $exchange->sleep(50);
+        for ($i = 0; $i < count($messages); $i++) {
+            inject_ws_message($exchange, $url, $messages[$i]);
+            $exchange->sleep(20);
+        }
+        $exchange->sleep(50);
+        // reject anything still pending so a wrong fixture fails fast
+        // instead of hanging the test run forever
+        reject_pending_ws_futures($exchange, $url);
+        return true;  // c# methods used with promiseAll need to return something
+    }
+
+    public function test_ws_statically($exchange, $method, $skip_keys, $data) {
+        $expected_result = $exchange->safe_value($data, 'parsedResponse');
+        $url = $exchange->safe_string($data, 'url');
+        setup_ws_mock_transport($exchange, $url);
+        $http_response = $exchange->safe_value($data, 'httpResponse');
+        if ($http_response !== null) {
+            // some watch methods fetch a rest snapshot (e.g. watchOrderBook)
+            set_fetch_response($exchange, $http_response);
+        }
+        if ($this->info) {
+            dump('[INFO] STATIC WS TEST:', $method, ':', $data['description']);
+        }
+        try {
+            $messages = $exchange->safe_list($data, 'messages', []);
+            $promises = [call_exchange_method_dynamically($exchange, $method, $this->sanitize_data_input($data['input'])), $this->inject_ws_messages($exchange, $url, $messages)];
+            $results = ($promises);
+            $unified_result = $results[0];
+            $this->assert_static_response_output($exchange, $skip_keys, $unified_result, $expected_result);
+        } catch(\Throwable $e) {
+            $this->static_ws_tests_failed = true;
+            $error_message = '[' . $this->lang . '][STATIC_WS]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . exception_message($e);
+            dump('[TEST_FAILURE]' . $error_message);
+        }
+        set_fetch_response($exchange, null); // reset state
+        return true;
+    }
+
+    public function test_exchange_ws_statically($exchange_name, $exchange_data, $test_name = null) {
+        $global_options = $exchange_data['options'] === null ? array() : $exchange_data['options'];
+        $methods = $exchange_data['methods'] === null ? array() : $exchange_data['methods'];
+        $methods_names = is_array($methods) ? array_keys($methods) : array();
+        for ($i = 0; $i < count($methods_names); $i++) {
+            $method = $methods_names[$i];
+            $results = $methods[$method];
+            for ($j = 0; $j < count($results); $j++) {
+                $result = $results[$j];
+                $description = $result['description'];
+                if (($test_name !== null) && ($test_name !== $description)) {
+                    continue;
+                }
+                // a fresh exchange per entry: ws caches (trades, orderbooks,
+                // ohlcvs) and request-id counters survive between watch calls
+                // and would leak state across entries otherwise
+                $exchange = $this->init_offline_exchange($exchange_name, true);
+                $exchange->extend_exchange_options($global_options);
+                $test_exchange_options = $exchange->safe_value($result, 'options', array());
+                $exchange->extend_exchange_options($test_exchange_options);
+                $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
+                $this->test_ws_statically($exchange, $method, $skip_keys, $result);
+                if (!is_sync()) {
+                    close($exchange);
+                }
+            }
+        }
+        return true;  // in c# methods that will be used with promiseAll need to return something
+    }
+
+    public function init_offline_exchange($exchange_name, $is_ws = false) {
         // prediction exchanges load their outcome markets from an event -> markets -> outcomes
         // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
         // standard prediction path (kalshi/limitless/myriad/polymarket/hyperliquid all ship one) and
@@ -1667,7 +1747,7 @@ class testMainClass {
             $options['apiKey'] = '';
             $options['secret'] = '';
         }
-        $exchange = init_exchange($exchange_name, $options);
+        $exchange = init_exchange($exchange_name, $options, $is_ws);
         if ($currencies !== null) {
             $exchange->currencies = $currencies;
         }
@@ -1930,6 +2010,8 @@ class testMainClass {
             $sum = $exchange->sum($sum, $number_of_tests);
             if ($type === 'request') {
                 $promises[] = $this->test_exchange_request_statically($exchange_name, $exchange_data, $test_name);
+            } elseif ($type === 'ws') {
+                $promises[] = $this->test_exchange_ws_statically($exchange_name, $exchange_data, $test_name);
             } else {
                 $promises[] = $this->test_exchange_response_statically($exchange_name, $exchange_data, $test_name);
             }
@@ -1939,13 +2021,15 @@ class testMainClass {
         } catch(\Throwable $e) {
             if ($type === 'request') {
                 $this->request_tests_failed = true;
+            } elseif ($type === 'ws') {
+                $this->static_ws_tests_failed = true;
             } else {
                 $this->response_tests_failed = true;
             }
             $error_message = '[' . $this->lang . '][STATIC_REQUEST]' . exception_message($e);
             dump('[TEST_FAILURE]' . $error_message);
         }
-        if ($this->request_tests_failed || $this->response_tests_failed) {
+        if ($this->request_tests_failed || $this->response_tests_failed || $this->static_ws_tests_failed) {
             exit_script(1);
         } else {
             $prefix = (is_sync()) ? '[SYNC]' : '';
@@ -1959,6 +2043,19 @@ class testMainClass {
         //  --- Init of mockResponses tests functions------------------------------------
         //  -----------------------------------------------------------------------------
         $this->run_static_tests('response', $exchange_name, $test);
+        return true;
+    }
+
+    public function run_static_ws_tests($exchange_name = null, $test = null) {
+        //  -----------------------------------------------------------------------------
+        //  --- static ws tests: replay canned frames into the ws message handlers ------
+        //  -----------------------------------------------------------------------------
+        if (is_sync()) {
+            // watch methods are async-only, there is nothing to test in the
+            // synchronous python/php flavours
+            return true;
+        }
+        $this->run_static_tests('ws', $exchange_name, $test);
         return true;
     }
 
