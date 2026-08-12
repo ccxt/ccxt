@@ -1597,12 +1597,17 @@ class testMainClass {
     }
 
     public function inject_ws_messages($exchange, $url, $messages) {
-        // wait for the watch method to register its subscription future
-        // before replaying the frames, then yield between frames so the
-        // handlers run in arrival order in every runtime
-        $exchange->sleep(50);
+        // before every frame, wait until the watch flow is actually awaiting
+        // something — a fixed head-start sleep is not enough on slow ci
+        // runners and the frame's resolution would be dropped
         for ($i = 0; $i < count($messages); $i++) {
+            $waited = 0;
+            while (!ws_client_has_pending_futures($exchange, $url) && ($waited < 5000)) {
+                $exchange->sleep(50);
+                $waited = $waited + 50;
+            }
             inject_ws_message($exchange, $url, $messages[$i]);
+            // yield between frames so the handlers run in arrival order
             $exchange->sleep(20);
         }
         $exchange->sleep(50);
