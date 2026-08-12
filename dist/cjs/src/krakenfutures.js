@@ -3018,8 +3018,8 @@ class krakenfutures extends krakenfutures$1["default"] {
         // a degraded response missing openPositions must fail loudly - a flat
         // account and "could not read positions" are not interchangeable for
         // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
-        // (the crash guarded against in #19896 is still avoided, since we no
-        // longer call .length on a non-list value)
+        // the crash guarded against in #19896 is still avoided, since we no
+        // longer call .length on a non-list value
         const positions = this.safeList(response, 'openPositions');
         if (positions === undefined) {
             throw new errors.ExchangeError(this.id + ' fetchPositions() returned a response without an "openPositions" list');
