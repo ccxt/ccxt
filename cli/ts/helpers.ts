@@ -116,7 +116,12 @@ function injectMissingUndefined (fn, args) {
         const paramsObj = args[args.length - 1];
         args.pop ();
         const newArgsArray = args;
-        const isPartialFunction = fn.toString ().startsWith ('(params = {}, context = {})');
+        // implicit api methods stringify differently depending on the loader:
+        // built js produces '(params = {}, context = {})' while the ts-sources
+        // loader produces 'async(params={},context={})=>...' - normalize the
+        // whitespace and the async prefix before matching the partial signature
+        const fnStr = fn.toString ().replace (/\s+/g, '').replace (/^async/, '');
+        const isPartialFunction = fnStr.startsWith ('(params={},context={})');
         for (let j = 0; j < missingParams; j++) {
             newArgsArray.push (undefined);
         }
