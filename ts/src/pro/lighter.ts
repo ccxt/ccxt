@@ -1218,40 +1218,10 @@ export default class lighter extends lighterRest {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrderWs() requires a symbol argument');
-        }
-        const market = this.market (symbol);
         const url = this.urls['api']['ws'];
         const requestId = this.requestId (url);
         const messageHash = 'jsonapi/sendtx:' + requestId;
-        let apiKeyIndex: Int = undefined;
-        [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'cancelOrderWs', 'apiKeyIndex', 'api_key_index');
-        const clientOrderId = this.safeString2 (params, 'client_order_index', 'clientOrderId');
-        params = this.omit (params, [ 'client_order_index', 'clientOrderId' ]);
-        let accountIndex: Int = undefined;
-        [ accountIndex, params ] = await this.handleAccountIndex (params, 'cancelOrderWs', 'accountIndex', 'account_index');
-        const strAccountIndex = this.numberToString (accountIndex) as string;
-        const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
-        const signer = await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
-        const nonce = await this.fetchNonce (accountIndex, apiKeyIndex, params);
-        const signRaw: Dict = {
-            'market_index': this.parseToInt (market['id']),
-            'nonce': nonce,
-            'api_key_index': apiKeyIndex,
-            'account_index': accountIndex,
-        };
-        if (clientOrderId !== undefined) {
-            signRaw['order_index'] = this.parseToInt (clientOrderId);
-        } else if (id !== undefined) {
-            signRaw['order_index'] = this.parseToInt (id);
-        } else {
-            throw new ArgumentsRequired (this.id + ' cancelOrderWs requires order id or client order id');
-        }
-        const [ txType, txInfo ] = this.lighterSignCancelOrder (signer, this.extend (signRaw, params));
+        const [ txType, txInfo, market ] = await this.signAndCancelOrder ('cancelOrderWs', id, symbol, params);
         const parsedTx = this.parseJson (txInfo);
         const message: Dict = {
             'type': 'jsonapi/sendtx',
