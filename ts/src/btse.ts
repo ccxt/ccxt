@@ -471,6 +471,7 @@ export default class btse extends Exchange {
                     '-2': BadRequest, // {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
                     '-7': AuthenticationError, // {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
                     '-11': ExchangeNotAvailable, // 400 Bad Request {"code":-11,"msg":"System error","success":false,"time":1770451790797,"data":[]}
+                    '133': InvalidOrder, // {"status":400,"errorCode":133,"message":"Position mode invalid","extraData":["0","150"]}
                     '134': BadRequest, // {"status":400,"errorCode":134,"message":"failure","extraData":"Remaining positions."}
                     '4003': InvalidOrder, // {"code":4003,"msg":"BADREQUEST: The order amount cannot surpass 100.0 BTC. Please adjust your order size and try again.","time":1786509292895,"data":null,"success":false}
                     '4051': InvalidOrder, // {"status":400,"errorCode":4051,"message":"[RAVE-PERP] The order size cannot surpass 50000.0 contracts. Please adjust your order size and try again.","extraData":null}
@@ -479,6 +480,7 @@ export default class btse extends Exchange {
                     '33001001': InvalidOrder, // {"code":33001001,"msg":"BADREQUEST: The distance between Trigger Price and Limit Price cannot exceed 5.0 %","time":1770815167145,"data":["5.0 %"],"success":false}
                     '33001003': InvalidOrder, // {"status":400,"errorCode":33001003,"message":"You can not SELL ETH lower than 1825.24 USDT","extraData":["SELL","ETH","lower","1825.24","USDT"]}
                     '33199101': InsufficientFunds, // {"status":400,"errorCode":33199101,"message":"Available balance is insufficient to meet this order.","extraData":["0.013553333"]}
+                    '33199120': InvalidOrder, // {"status":400,"errorCode":33199120,"message":"Reduce only open order canceled because no active position exists","extraData":null}
                 },
                 'broad': {
                     'Insufficient wallet balance': InsufficientFunds,
