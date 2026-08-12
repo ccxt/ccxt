@@ -42,7 +42,6 @@ const getValueFromKeysInArray = <T>(
     keys: any[],
 ): T | undefined => {
     if (object === null || typeof object !== 'object') return undefined;
-
     for (const k of keys) {
         if (k == null) continue; // skips both null and undefined
         const v = object[k];
