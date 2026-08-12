@@ -719,7 +719,16 @@ function startWsRecording (exchange, methodName: string, args: any[], cliOptions
             wrappedClients.add (client);
             const origSend = client.send.bind (client);
             client.send = (message) => {
-                const parsed = (typeof message === 'string') ? JSON.parse (message) : JSON.parse (jsonStringify (message));
+                let parsed = message;
+                if (typeof message === 'string') {
+                    try {
+                        parsed = JSON.parse (message);
+                    } catch (e) {
+                        // raw non-json frames (e.g. plaintext pongs) are kept as-is
+                    }
+                } else {
+                    parsed = JSON.parse (jsonStringify (message));
+                }
                 wsRecording.sent.push ({ 'url': client.url, 'message': parsed });
                 return origSend (message);
             };
@@ -740,7 +749,12 @@ function startWsRecording (exchange, methodName: string, args: any[], cliOptions
  * @param result
  */
 function recordWsResult (exchange, result) {
-    wsRecording.results.push (JSON.parse (jsonStringify (result)));
+    wsRecording.results.push ({
+        'result': JSON.parse (jsonStringify (result)),
+        // remember how many frames had arrived when this resolution fired so
+        // the saved entry keeps a consistent frames/resolutions pairing
+        'framesSeen': wsRecording.frames.length,
+    });
     if (exchange.last_http_response) {
         // e.g. the orderbook snapshot fetched by watchOrderBook
         wsRecording.httpResponse = exchange.parseJson (exchange.last_http_response);
@@ -760,10 +774,24 @@ function saveWsRecording (exchange, methodName: string, args: any[], cliOptions)
         log.red ('no ws frames were recorded, nothing to save');
         return;
     }
+    // --recordLimit <n> keeps only the first n watch resolutions and cuts the
+    // frame list right after the frame that produced the last kept one (fast
+    // streams like orderbook deltas would otherwise store hundreds of frames
+    // and full book states) — without the option the full session is saved
+    const recordLimit = cliOptions.recordLimit ? parseInt (cliOptions.recordLimit, 10) : undefined;
+    let keptResultEntries = wsRecording.results;
+    let framesCutoff = wsRecording.frames.length;
+    if (recordLimit !== undefined) {
+        keptResultEntries = wsRecording.results.slice (0, recordLimit);
+        const lastKept = keptResultEntries[keptResultEntries.length - 1];
+        framesCutoff = (lastKept !== undefined) ? lastKept.framesSeen : Math.min (wsRecording.frames.length, 10);
+    }
+    const keptFrames = wsRecording.frames.slice (0, framesCutoff);
+    const keptResults = keptResultEntries.map ((r) => r.result);
     // the watch method may fan out over several clients — keep the url that
     // received the most frames (the stream under test)
     const counts = {};
-    for (const frame of wsRecording.frames) {
+    for (const frame of keptFrames) {
         counts[frame.url] = (counts[frame.url] || 0) + 1;
     }
     const mainUrl = Object.keys (counts).sort ((a, b) => counts[b] - counts[a])[0];
@@ -771,7 +799,7 @@ function saveWsRecording (exchange, methodName: string, args: any[], cliOptions)
         'description': cliOptions.name || 'Fill this with a description of the method call',
         'input': args,
         'url': mainUrl,
-        'messages': wsRecording.frames.filter ((f) => f.url === mainUrl).map ((f) => f.message),
+        'messages': keptFrames.filter ((f) => f.url === mainUrl).map ((f) => f.message),
     };
     if (wsRecording.httpResponse !== undefined) {
         entry['httpResponse'] = wsRecording.httpResponse;
@@ -785,7 +813,7 @@ function saveWsRecording (exchange, methodName: string, args: any[], cliOptions)
     // one expected result per watch resolution; trim to a single
     // 'parsedResponse' manually for live structures like orderbooks where
     // only the final state is deterministic
-    entry['parsedResponses'] = wsRecording.results;
+    entry['parsedResponses'] = keptResults;
     log ('Report: (paste inside static/ws/' + exchange.id + '.json -> ' + methodName + ')');
     log.green ('-------------------------------------------');
     log (jsonStringify (entry, 2));

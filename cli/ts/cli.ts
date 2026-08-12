@@ -147,6 +147,7 @@ program.addOption (new Option ('--request').hideHelp ());
 program.addOption (new Option ('--table').hideHelp ());
 program.addOption (new Option ('--details').hideHelp ());
 program.addOption (new Option ('--static').hideHelp ());
+program.addOption (new Option ('--recordLimit <n>', 'keep only the first n watch resolutions when recording a static ws test').hideHelp ());
 program.addOption (new Option ('--response').hideHelp ());
 program.addOption (new Option ('--name <description>', 'Description of static test').hideHelp ());
 
