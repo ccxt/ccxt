@@ -204,6 +204,13 @@ function injectWsMessage(exchange, url, message) {
     const client = exchange.client(url);
     exchange.handleMessage(client, message);
 }
+function wsClientHasPendingFutures(exchange, url) {
+    // whether the watch flow is currently awaiting a message — the frame
+    // injector polls this instead of relying on a fixed head-start sleep
+    const client = exchange.client(url);
+    const messageHashes = Object.keys(client.futures);
+    return messageHashes.length > 0;
+}
 function rejectPendingWsFutures(exchange, url) {
     // reject any futures the injected frames did not resolve, so a broken
     // fixture fails the test instead of hanging it; settled js promises
@@ -250,5 +257,5 @@ AuthenticationError, NotSupported, ExchangeError, InvalidProxySettings, Exchange
 // shared
 getCliArgValue, 
 //
-dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, setupWsMockTransport, injectWsMessage, rejectPendingWsFutures, getWsSentMessages, isNullValue, close, getRootDir, argvExchange, argvSymbol, argvMethod, isSync, LANG, ENV_VARS, NEW_LINE, EXT, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, };
+dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, setupWsMockTransport, injectWsMessage, rejectPendingWsFutures, wsClientHasPendingFutures, getWsSentMessages, isNullValue, close, getRootDir, argvExchange, argvSymbol, argvMethod, isSync, LANG, ENV_VARS, NEW_LINE, EXT, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, };
 export default {};
