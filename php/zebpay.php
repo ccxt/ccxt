@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\zebpay as Exchange;
 
 class zebpay extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'zebpay',
@@ -57,10 +56,13 @@ class zebpay extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
                 'fetchPositions' => true,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
+                'fetchTradingFees' => true,
                 'reduceMargin' => true,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
@@ -79,7 +81,7 @@ class zebpay extends Exchange {
                 '1w' => 10080,
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/8094e7be-55a7-46f4-a087-0ca31b48ecad',
+                'logo' => 'https://github.com/user-attachments/assets/0e88d86a-a1cd-49df-a826-054cd8caafa6',
                 'api' => array(
                     'spot' => 'https://sapi.zebpay.com',
                     'swap' => 'https://futuresbe.zebpay.com',
@@ -96,72 +98,72 @@ class zebpay extends Exchange {
                 'public' => array(
                     'spot' => array(
                         'get' => array(
-                            'v2/system/time' => 10,
-                            'v2/system/status' => 10,
-                            'v2/market/orderbook' => 10,
-                            'v2/market/trades' => 10,
-                            'v2/market/ticker' => 10,
-                            'v2/market/allTickers' => 10,
-                            'v2/ex/exchangeInfo' => 10,
-                            'v2/ex/currencies' => 10,
-                            'v2/market/klines' => 10,
-                            'v2/ex/tradefees' => 10,
+                            'v2/system/time' => array( 'cost' => 10 ),
+                            'v2/system/status' => array( 'cost' => 10 ),
+                            'v2/market/orderbook' => array( 'cost' => 10 ),
+                            'v2/market/trades' => array( 'cost' => 10 ),
+                            'v2/market/ticker' => array( 'cost' => 10 ),
+                            'v2/market/allTickers' => array( 'cost' => 10 ),
+                            'v2/ex/exchangeInfo' => array( 'cost' => 10 ),
+                            'v2/ex/currencies' => array( 'cost' => 10 ),
+                            'v2/market/klines' => array( 'cost' => 10 ),
+                            'v2/ex/tradefees' => array( 'cost' => 10 ),
                         ),
                     ),
                     'swap' => array(
                         'get' => array(
-                            'v1/system/time' => 10,
-                            'v1/system/status' => 10,
-                            'v1/exchange/tradefee' => 10,
-                            'v1/exchange/tradefees' => 10,
-                            'v1/market/orderBook' => 10,
-                            'v1/market/ticker24Hr' => 10,
-                            'v1/market/markets' => 10,
-                            'v1/market/aggTrade' => 10,
+                            'v1/system/time' => array( 'cost' => 10 ),
+                            'v1/system/status' => array( 'cost' => 10 ),
+                            'v1/exchange/tradefee' => array( 'cost' => 10 ),
+                            'v1/exchange/tradefees' => array( 'cost' => 10 ),
+                            'v1/market/orderBook' => array( 'cost' => 10 ),
+                            'v1/market/ticker24Hr' => array( 'cost' => 10 ),
+                            'v1/market/markets' => array( 'cost' => 10 ),
+                            'v1/market/aggTrade' => array( 'cost' => 10 ),
                         ),
                         'post' => array(
-                            'v1/market/klines' => 10,
+                            'v1/market/klines' => array( 'cost' => 10 ),
                         ),
                     ),
                 ),
                 'private' => array(
                     'spot' => array(
                         'post' => array(
-                            'v2/ex/orders' => 10,
+                            'v2/ex/orders' => array( 'cost' => 10 ),
                         ),
                         'get' => array(
-                            'v2/ex/orders' => 10,
-                            'v2/account/balance' => 10,
-                            'v2/ex/tradefee' => 10,
-                            'v2/ex/order' => 10,
-                            'v2/ex/order/fills' => 10,
+                            'v2/ex/orders' => array( 'cost' => 10 ),
+                            'v2/account/balance' => array( 'cost' => 10 ),
+                            'v2/ex/tradefee' => array( 'cost' => 10 ),
+                            'v2/ex/order' => array( 'cost' => 10 ),
+                            'v2/ex/order/fills' => array( 'cost' => 10 ),
                         ),
                         'delete' => array(
-                            'v2/ex/order' => 10,
-                            'v2/ex/orders' => 10,
-                            'v2/ex/orders/cancelAll' => 10,
+                            'v2/ex/order' => array( 'cost' => 10 ),
+                            'v2/ex/orders' => array( 'cost' => 10 ),
+                            'v2/ex/orders/cancelAll' => array( 'cost' => 10 ),
                         ),
                     ),
                     'swap' => array(
                         'get' => array(
-                            'v1/wallet/balance' => 10,
-                            'v1/trade/order' => 10,
-                            'v1/trade/order/open-orders' => 10,
-                            'v1/trade/userLeverages' => 10,
-                            'v1/trade/userLeverage' => 10,
-                            'v1/trade/positions' => 10,
-                            'v1/trade/history' => 10,
+                            'v1/wallet/balance' => array( 'cost' => 10 ),
+                            'v1/trade/order' => array( 'cost' => 10 ),
+                            'v1/trade/order/open-orders' => array( 'cost' => 10 ),
+                            'v1/trade/userLeverages' => array( 'cost' => 10 ),
+                            'v1/trade/userLeverage' => array( 'cost' => 10 ),
+                            'v1/trade/positions' => array( 'cost' => 10 ),
+                            'v1/trade/history' => array( 'cost' => 10 ),
                         ),
                         'post' => array(
-                            'v1/trade/order' => 10,
-                            'v1/trade/order/addTPSL' => 10,
-                            'v1/trade/addMargin' => 10,
-                            'v1/trade/reduceMargin' => 10,
-                            'v1/trade/position/close' => 10,
-                            'v1/trade/update/userLeverage' => 10,
+                            'v1/trade/order' => array( 'cost' => 10 ),
+                            'v1/trade/order/addTPSL' => array( 'cost' => 10 ),
+                            'v1/trade/addMargin' => array( 'cost' => 10 ),
+                            'v1/trade/reduceMargin' => array( 'cost' => 10 ),
+                            'v1/trade/position/close' => array( 'cost' => 10 ),
+                            'v1/trade/update/userLeverage' => array( 'cost' => 10 ),
                         ),
                         'delete' => array(
-                            'v1/trade/order' => 10,
+                            'v1/trade/order' => array( 'cost' => 10 ),
                         ),
                     ),
                 ),
@@ -212,7 +214,7 @@ class zebpay extends Exchange {
         ));
     }
 
-    public function fetch_status($params = array ()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -228,10 +230,10 @@ class zebpay extends Exchange {
         $response = null;
         $data = array();
         if ($isSpot) {
-            $response = $this->publicSpotGetV2SystemStatus ($params);
+            $response = $this->publicSpotGetV2SystemStatus($params);
             $data = $response;
         } else {
-            $response = $this->publicSwapGetV1SystemStatus ($params);
+            $response = $this->publicSwapGetV1SystemStatus($params);
             $data = $this->safe_dict($response, 'data', array());
         }
         //
@@ -255,7 +257,7 @@ class zebpay extends Exchange {
         );
     }
 
-    public function fetch_time($params = array ()): ?int {
+    public function fetch_time($params = array()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the poloniexfutures server
          *
@@ -271,10 +273,10 @@ class zebpay extends Exchange {
         $response = null;
         $data = array();
         if ($isSpot) {
-            $response = $this->publicSpotGetV2SystemTime ($params);
+            $response = $this->publicSpotGetV2SystemTime($params);
             $data = $response;
         } else {
-            $response = $this->publicSwapGetV1SystemTime ($params);
+            $response = $this->publicSwapGetV1SystemTime($params);
             $data = $this->safe_dict($response, 'data', array());
         }
         //
@@ -292,14 +294,14 @@ class zebpay extends Exchange {
         return $time;
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all markets for zebpay
          *
          * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
          * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
          *
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
         $promisesUnresolved = array();
@@ -322,7 +324,7 @@ class zebpay extends Exchange {
         return $this->array_concat($spotMarkets, $futureMarkets);
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -331,10 +333,10 @@ class zebpay extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $response = $this->publicSpotGetV2ExCurrencies ($params);
+        $response = $this->publicSpotGetV2ExCurrencies($params);
         //
         //     {
-        //             "data" => [
+        //             "data" => array(
         //                 {
         //                     "currency" => "BTC",
         //                     "name" => "BTC",
@@ -342,7 +344,7 @@ class zebpay extends Exchange {
         //                     "precision" => "0.2",
         //                     "type" => "fiat",
         //                     "isDebitEnabled" => false,
-        //                     "chains" => [
+        //                     "chains" => array(
         //                         {
         //                             "chainName" => "Bitcoin",
         //                             "withdrawalMinSize" => "0.000482",
@@ -358,46 +360,48 @@ class zebpay extends Exchange {
         //                             "chainId" => "bitcoin",
         //                             "AddressRegex" => "^tb1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]array(39,59)|m[a-zA-Z0-9]array(25,34)|n[a-zA-Z0-9]array(25,34)|^2[a-zA-Z0-9]array(25,34)$"
         //                          }
-        //                     ]
+        //                     )
         //                 }
-        //             ]
+        //             )
         //     }
         //
         $rows = $this->safe_list($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($rows); $i++) {
-            $currency = $rows[$i];
-            $currencyId = $this->safe_string($currency, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $name = $this->safe_string($currency, 'name');
-            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision')));
-            $chains = $this->safe_list($currency, 'chains', array());
-            $networks = array();
-            $minWithdrawFeeString = null;
-            $minWithdrawString = null;
-            $minDepositString = null;
-            $deposit = false;
-            $withdraw = false;
-            for ($j = 0; $j < count($chains); $j++) {
-                $chain = $chains[$j];
-                $networkId = $this->safe_string($chain, 'chainId');
-                $networkCode = $this->network_id_to_code($networkId);
-                $depositAllowed = $this->safe_bool($chain, 'isDepositEnabled') === true;
-                $deposit = ($depositAllowed) ? $depositAllowed : $deposit;
-                $withdrawAllowed = $this->safe_bool($chain, 'isWithdrawEnabled') === true;
-                $withdraw = ($withdrawAllowed) ? $withdrawAllowed : $withdraw;
-                $withdrawFeeString = $this->safe_string($chain, 'withdrawalFee');
-                if ($withdrawFeeString !== null) {
-                    $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $withdrawFeeString : Precise::string_min($withdrawFeeString, $minWithdrawFeeString);
-                }
-                $minNetworkWithdrawString = $this->safe_string($chain, 'withdrawalMinSize');
-                if ($minNetworkWithdrawString !== null) {
-                    $minWithdrawString = ($minWithdrawString === null) ? $minNetworkWithdrawString : Precise::string_min($minNetworkWithdrawString, $minWithdrawString);
-                }
-                $minNetworkDepositString = $this->safe_string($chain, 'depositMinSize');
-                if ($minNetworkDepositString !== null) {
-                    $minDepositString = ($minDepositString === null) ? $minNetworkDepositString : Precise::string_min($minNetworkDepositString, $minDepositString);
-                }
+        return $this->parse_currencies($rows);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, 'currency');
+        $code = $this->safe_currency_code($currencyId);
+        $name = $this->safe_string($rawCurrency, 'name');
+        $precision = $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'precision')));
+        $chains = $this->safe_list($rawCurrency, 'chains', array());
+        $networks = array();
+        $minWithdrawFeeString = null;
+        $minWithdrawString = null;
+        $minDepositString = null;
+        $deposit = false;
+        $withdraw = false;
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $chains[$j];
+            $networkId = $this->safe_string($chain, 'chainId');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $depositAllowed = $this->safe_bool($chain, 'isDepositEnabled') === true;
+            $deposit = ($depositAllowed) ? $depositAllowed : $deposit;
+            $withdrawAllowed = $this->safe_bool($chain, 'isWithdrawEnabled') === true;
+            $withdraw = ($withdrawAllowed) ? $withdrawAllowed : $withdraw;
+            $withdrawFeeString = $this->safe_string($chain, 'withdrawalFee');
+            if ($withdrawFeeString !== null) {
+                $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $withdrawFeeString : Precise::string_min($withdrawFeeString, $minWithdrawFeeString);
+            }
+            $minNetworkWithdrawString = $this->safe_string($chain, 'withdrawalMinSize');
+            if ($minNetworkWithdrawString !== null) {
+                $minWithdrawString = ($minWithdrawString === null) ? $minNetworkWithdrawString : Precise::string_min($minNetworkWithdrawString, $minWithdrawString);
+            }
+            $minNetworkDepositString = $this->safe_string($chain, 'depositMinSize');
+            if ($minNetworkDepositString !== null) {
+                $minDepositString = ($minDepositString === null) ? $minNetworkDepositString : Precise::string_min($minNetworkDepositString, $minDepositString);
+            }
+            if ($networkCode !== null) {
                 $networks[$networkCode] = array(
                     'info' => $chain,
                     'id' => $networkId,
@@ -419,37 +423,36 @@ class zebpay extends Exchange {
                     ),
                 );
             }
-            $result[$code] = $this->safe_currency_structure(array(
-                'info' => $currency,
-                'code' => $code,
-                'id' => $currencyId,
-                'name' => $name,
-                'active' => $deposit && $withdraw,
-                'deposit' => $deposit,
-                'withdraw' => $withdraw,
-                'fee' => $this->parse_number($minWithdrawFeeString),
-                'precision' => $precision,
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => $this->parse_number($minWithdrawString),
-                        'max' => null,
-                    ),
-                    'deposit' => array(
-                        'min' => $this->parse_number($minDepositString),
-                        'max' => null,
-                    ),
-                ),
-                'networks' => $networks,
-            ));
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'info' => $rawCurrency,
+            'code' => $code,
+            'id' => $currencyId,
+            'name' => $name,
+            'active' => $deposit && $withdraw,
+            'deposit' => $deposit,
+            'withdraw' => $withdraw,
+            'fee' => $this->parse_number($minWithdrawFeeString),
+            'precision' => $precision,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $this->parse_number($minWithdrawString),
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => $this->parse_number($minDepositString),
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+        ));
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): array {
+    public function fetch_trading_fee(string $symbol, $params = array()): array {
         /**
          * fetch the trading fees for a $market
          *
@@ -461,7 +464,9 @@ class zebpay extends Exchange {
          * @param {array} [$params->side] side to fetch trading fee
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $response = null;
         $data;
@@ -469,7 +474,7 @@ class zebpay extends Exchange {
             'symbol' => $market['id'],
         );
         if ($market['spot']) {
-            $response = $this->privateSpotGetV2ExTradefee ($this->extend($request, $params));
+            $response = $this->privateSpotGetV2ExTradefee($this->extend($request, $params));
             //
             // {
             //     "statusDescription" => "Success",
@@ -484,7 +489,7 @@ class zebpay extends Exchange {
             // }
             $data = $this->safe_dict($response, 'data', array());
         } else {
-            $response = $this->publicSwapGetV1ExchangeTradefee ($this->extend($request, $params));
+            $response = $this->publicSwapGetV1ExchangeTradefee($this->extend($request, $params));
             //
             // {
             //     "statusDescription" => "OK",
@@ -501,12 +506,12 @@ class zebpay extends Exchange {
             // }
             //
             $responseData = $this->safe_list($response, 'data', array());
-            $data = $this->safe_dict($responseData, 0);
+            $data = $this->safe_dict($responseData, 0, array());
         }
         return $this->parse_trading_fee($data, $market);
     }
 
-    public function fetch_trading_fees($params = array ()): array {
+    public function fetch_trading_fees($params = array()): array {
         /**
          * fetch the trading $fees for multiple markets
          *
@@ -519,9 +524,9 @@ class zebpay extends Exchange {
         list($type, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
         $response = null;
         if ($type === 'spot') {
-            $response = $this->publicSpotGetV2ExTradefees ($params);
+            $response = $this->publicSpotGetV2ExTradefees($params);
         } else {
-            $response = $this->publicSwapGetV1ExchangeTradefees ($params);
+            $response = $this->publicSwapGetV1ExchangeTradefees($params);
         }
         //
         // {
@@ -542,12 +547,14 @@ class zebpay extends Exchange {
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $this->parse_trading_fee($fees[$i]);
             $symbol = $fee['symbol'];
-            $result[$symbol] = $fee;
+            if ($symbol !== null) {
+                $result[$symbol] = $fee;
+            }
         }
         return $result;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -557,9 +564,11 @@ class zebpay extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -571,19 +580,19 @@ class zebpay extends Exchange {
             }
             //
             //       {
-            //         "asks" => [
+            //         "asks" => array(
             //                 [5000, 1000],           //Price, quantity
             //                 [6000, 1983]            //Price, quantity
-            //         ],
-            //         "bids" => [
+            //         ),
+            //         "bids" => array(
             //                 [3200, 800],            //Price, quantity
             //                 [3100, 100]             //Price, quantity
-            //         ],
+            //         ),
             //       }
             // }
-            $response = $this->publicSpotGetV2MarketOrderbook ($this->extend($request, $params));
+            $response = $this->publicSpotGetV2MarketOrderbook($this->extend($request, $params));
         } else {
-            $response = $this->publicSwapGetV1MarketOrderBook ($this->extend($request, $params));
+            $response = $this->publicSwapGetV1MarketOrderBook($this->extend($request, $params));
         }
         $bookData = $this->safe_dict($response, 'data', array());
         $orderbook = $this->parse_order_book($bookData, $market['symbol'], null, 'bids', 'asks', 0, 1);
@@ -591,7 +600,7 @@ class zebpay extends Exchange {
         return $orderbook;
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -602,14 +611,16 @@ class zebpay extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
         $response = null;
         if ($market['spot']) {
-            $response = $this->publicSpotGetV2MarketTicker ($this->extend($request, $params));
+            $response = $this->publicSpotGetV2MarketTicker($this->extend($request, $params));
             //
             //     array(
             //        {
@@ -629,13 +640,13 @@ class zebpay extends Exchange {
             //     )
             //
         } else {
-            $response = $this->publicSwapGetV1MarketTicker24Hr ($this->extend($request, $params));
+            $response = $this->publicSwapGetV1MarketTicker24Hr($this->extend($request, $params));
         }
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_ticker($data, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          *
@@ -650,9 +661,11 @@ class zebpay extends Exchange {
         if ($type !== 'spot') {
             throw new NotSupported($this->id . ' fetchTickers() does not support ' . $type . ' markets');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
-        $response = $this->publicSpotGetV2MarketAllTickers ($params);
+        $response = $this->publicSpotGetV2MarketAllTickers($params);
         //
         //     array(
         //        {
@@ -675,7 +688,7 @@ class zebpay extends Exchange {
         return $this->parse_tickers($tickerList, $symbols);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -690,7 +703,9 @@ class zebpay extends Exchange {
          * @param {int} [$params->endtime] the latest time in ms to fetch orders for
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if ($limit === null) {
             $limit = 100; // default is 200
@@ -723,9 +738,9 @@ class zebpay extends Exchange {
             if ($until === null || $since === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a both a $since and until/endtime parameter for spot markets');
             }
-            $response = $this->publicSpotGetV2MarketKlines ($this->extend($request, $params));
+            $response = $this->publicSpotGetV2MarketKlines($this->extend($request, $params));
         } else {
-            $response = $this->publicSwapPostV1MarketKlines ($this->extend($request, $params));
+            $response = $this->publicSwapPostV1MarketKlines($this->extend($request, $params));
         }
         //
         //             array(
@@ -762,7 +777,7 @@ class zebpay extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -775,7 +790,9 @@ class zebpay extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -785,9 +802,9 @@ class zebpay extends Exchange {
         }
         $response = null;
         if ($market['spot']) {
-            $response = $this->publicSpotGetV2MarketTrades ($this->extend($request, $params));
+            $response = $this->publicSpotGetV2MarketTrades($this->extend($request, $params));
         } else {
-            $response = $this->publicSwapGetV1MarketAggTrade ($this->extend($request, $params));
+            $response = $this->publicSwapGetV1MarketAggTrade($this->extend($request, $params));
         }
         //
         //     array(
@@ -805,7 +822,7 @@ class zebpay extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -817,7 +834,9 @@ class zebpay extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -828,14 +847,14 @@ class zebpay extends Exchange {
         if ($type === 'spot') {
             throw new NotSupported($this->id . ' fetchMyTrades() does not support spot markets');
         } else {
-            $response = $this->privateSwapGetV1TradeHistory ($params);
+            $response = $this->privateSwapGetV1TradeHistory($params);
         }
         $data = $this->safe_dict($response, 'data', array());
         $items = $this->safe_list($data, 'items', array());
         return $this->parse_trades($items, $market, $since, $limit);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all the $trades made from a single order
          *
@@ -853,11 +872,13 @@ class zebpay extends Exchange {
         if ($type !== 'spot') {
             throw new NotSupported($this->id . ' fetchOrderTrades() does not support ' . $type . ' markets');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'orderId' => $id,
         );
-        $response = $this->privateSpotGetV2ExOrderFills ($this->extend($request, $params));
+        $response = $this->privateSpotGetV2ExOrderFills($this->extend($request, $params));
         //
         //         {
         //             "orderId" => "456789",
@@ -939,7 +960,7 @@ class zebpay extends Exchange {
         ), $market);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -949,15 +970,17 @@ class zebpay extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $isSpot = ($type === 'spot');
         $response = null;
         if ($isSpot) {
-            $response = $this->privateSpotGetV2AccountBalance ($params);
+            $response = $this->privateSpotGetV2AccountBalance($params);
         } else {
-            $response = $this->privateSwapGetV1WalletBalance ($params);
+            $response = $this->privateSwapGetV1WalletBalance($params);
         }
         //
         //     {
@@ -980,7 +1003,7 @@ class zebpay extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * Create an order on the exchange
          *
@@ -1000,12 +1023,17 @@ class zebpay extends Exchange {
          * @param {string} [$params->positionId] PositionId of the order.
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $upperCaseType = strtoupper($type);
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
         $params = $this->omit($params, array( 'marginAsset', 'takeProfitPrice', 'takeProfitPrice' ));
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+        }
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
@@ -1013,7 +1041,7 @@ class zebpay extends Exchange {
         $response = null;
         if ($market['spot']) {
             list($request, $params) = $this->order_request($symbol, $type, $amount, $request, $price, $params);
-            $response = $this->privateSpotPostV2ExOrders ($this->extend($request, $params));
+            $response = $this->privateSpotPostV2ExOrders($this->extend($request, $params));
         } else {
             $marginAsset = $this->safe_string($params, 'marginAsset', 'INR');
             $formType = $this->safe_string_upper($params, 'formType', 'ORDER_FORM');
@@ -1029,7 +1057,7 @@ class zebpay extends Exchange {
                 if ($hasSL) {
                     $request['stopLossPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $stopLossPrice));
                 }
-                $response = $this->privateSwapPostV1TradeOrderAddTPSL ($this->extend($request, $params));
+                $response = $this->privateSwapPostV1TradeOrderAddTPSL($this->extend($request, $params));
             } else {
                 $request['type'] = $upperCaseType;
                 if ($type === 'limit') {
@@ -1038,7 +1066,7 @@ class zebpay extends Exchange {
                     }
                     $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
                 }
-                $response = $this->privateSwapPostV1TradeOrder ($this->extend($request, $params));
+                $response = $this->privateSwapPostV1TradeOrder($this->extend($request, $params));
             }
         }
         //
@@ -1052,9 +1080,9 @@ class zebpay extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function order_request($symbol, $type, $amount, $request, $price = null, $params = array ()) {
+    public function order_request(mixed $symbol, mixed $type, mixed $amount, mixed $request, ?float $price = null, $params = array()) {
         $upperCaseType = strtoupper($type);
-        $triggerPrice = $this->safe_string($params, 'stopLossPrice', null);
+        $triggerPrice = $this->safe_string($params, 'stopLossPrice');
         $quoteOrderQty = $this->safe_string_2($params, 'quoteOrderQty', 'cost', null);
         $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
         $clientOrderId = $this->safe_string($params, 'clientOrderId', $this->uuid());
@@ -1077,7 +1105,7 @@ class zebpay extends Exchange {
         return array( $request, $params );
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open order
          *
@@ -1090,13 +1118,15 @@ class zebpay extends Exchange {
          * @param {array} [$params->timestamp] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $response = null;
         $request = array();
         if ($market['spot']) {
             $request['orderId'] = $id;
-            $response = $this->privateSpotDeleteV2ExOrder ($this->extend($request, $params));
+            $response = $this->privateSpotDeleteV2ExOrder($this->extend($request, $params));
         } else {
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
             if ($clientOrderId === null) {
@@ -1104,7 +1134,7 @@ class zebpay extends Exchange {
             }
             $request['clientOrderId'] = $clientOrderId;
             $request['symbol'] = $market['id'];
-            $response = $this->privateSwapDeleteV1TradeOrder ($this->extend($request, $params));
+            $response = $this->privateSwapDeleteV1TradeOrder($this->extend($request, $params));
         }
         //
         //    {
@@ -1114,27 +1144,29 @@ class zebpay extends Exchange {
         //        ),
         //    }
         //
-        return $this->parse_order($this->safe_dict($response, 'data'));
+        return $this->parse_order($this->safe_dict($response, 'data', array()));
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * cancels all open orders
          *
          * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders
          *
-         * @param {string} $symbol unified $symbol of the market the order was made in
+         * @param {string} [$symbol] unified $symbol of the market the orders were made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {array} [$params->timestamp] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         * @param {int} [$params->timestamp] the timestamp of the request in ms
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('cancelAllOrders', null, $params);
         if ($type !== 'spot') {
             throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $type . ' markets');
         }
-        $this->load_markets();
-        $response = $this->privateSpotDeleteV2ExOrdersCancelAll ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privateSpotDeleteV2ExOrdersCancelAll($params);
         //
         //    {
         //        "data" => array(
@@ -1148,7 +1180,7 @@ class zebpay extends Exchange {
         return array( $parsedOrder );
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple open $orders made by the user
          *
@@ -1161,7 +1193,9 @@ class zebpay extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1173,7 +1207,7 @@ class zebpay extends Exchange {
             if ($limit !== null) {
                 $request['pageSize'] = $limit;
             }
-            $response = $this->privateSpotGetV2ExOrders ($this->extend($request, $params));
+            $response = $this->privateSpotGetV2ExOrders($this->extend($request, $params));
             $responseData = $this->safe_dict($response, 'data', array());
             $orders = $this->safe_list($responseData, 'items', array());
         } else {
@@ -1183,7 +1217,7 @@ class zebpay extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = $this->privateSwapGetV1TradeOrderOpenOrders ($this->extend($request, $params));
+            $response = $this->privateSwapGetV1TradeOrderOpenOrders($this->extend($request, $params));
             $responseData = $this->safe_dict($response, 'data', array());
             $orders = $this->safe_list($responseData, 'data', array());
         }
@@ -1215,7 +1249,7 @@ class zebpay extends Exchange {
         return $this->parse_orders($orders, $market, null, $limit);
     }
 
-    public function fetch_order(?string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an order made by the user
          *
@@ -1229,16 +1263,18 @@ class zebpay extends Exchange {
          * @param {string} [$params->timestamp] cancel order by client order $id
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array();
         $response = null;
         if ($market['spot']) {
             $request['orderId'] = $id;
-            $response = $this->privateSpotGetV2ExOrder ($this->extend($request, $params));
+            $response = $this->privateSpotGetV2ExOrder($this->extend($request, $params));
         } else {
             $request['id'] = $id;
-            $response = $this->privateSwapGetV1TradeOrder ($this->extend($request, $params));
+            $response = $this->privateSwapGetV1TradeOrder($this->extend($request, $params));
         }
         //
         //     {
@@ -1265,7 +1301,7 @@ class zebpay extends Exchange {
         //         }
         //     }
         //
-        $responseData = $this->safe_dict($response, 'data');
+        $responseData = $this->safe_dict($response, 'data', array());
         return $this->parse_order($responseData, $market);
     }
 
@@ -1299,7 +1335,7 @@ class zebpay extends Exchange {
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $status = $this->safe_string_lower($order, 'status');
-        $orderId = $this->safe_string($order, 'orderId', null);
+        $orderId = $this->safe_string($order, 'orderId');
         $parsedOrder = $this->safe_order(array(
             'id' => $orderId,
             'clientOrderId' => $clientOrderId,
@@ -1328,7 +1364,7 @@ class zebpay extends Exchange {
         return $parsedOrder;
     }
 
-    public function close_position(string $symbol, ?string $side = null, $params = array ()): array {
+    public function close_position(string $symbol, ?string $side = null, $params = array()): array {
         /**
          * closes open positions for a $market
          *
@@ -1336,21 +1372,23 @@ class zebpay extends Exchange {
          *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} $side not used by kucoinfutures closePositions
-         * @param {array} [$params] extra parameters specific to the okx api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->positionId] client order id of the order
          * @return {array[]} ~@link https://docs.ccxt.com/?id=position-structure A list of position structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->privateSwapPostV1TradePositionClose ($this->extend($request, $params));
+        $response = $this->privateSwapPostV1TradePositionClose($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_leverages(?array $symbols = null, $params = array ()): array {
+    public function fetch_leverages(?array $symbols = null, $params = array()): array {
         /**
          * fetch the set leverage for all contract and margin markets
          *
@@ -1360,8 +1398,10 @@ class zebpay extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=leverage-structure leverage structures~
          */
-        $this->load_markets();
-        $response = $this->privateSwapGetV1TradeUserLeverages ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privateSwapGetV1TradeUserLeverages($params);
         //
         //     {
         //         "leveragePreferences" => array(
@@ -1378,7 +1418,7 @@ class zebpay extends Exchange {
         return $this->parse_leverages($leveragePreferences, $symbols, 'symbol');
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): array {
+    public function fetch_leverage(string $symbol, $params = array()): array {
         /**
          * fetch the set leverage for a $market
          *
@@ -1388,12 +1428,14 @@ class zebpay extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
-            'symbol' => strtoupper($market['id']),
+            'symbol' => $this->safe_string_upper($market, 'id'),
         );
-        $response = $this->privateSwapGetV1TradeUserLeverage ($this->extend($request, $params));
+        $response = $this->privateSwapGetV1TradeUserLeverage($this->extend($request, $params));
         //
         //     {
         //         "data" => array( $symbol => "ETHINR", longLeverage => 1, shortLeverage => 1, marginMode => "isolated" )
@@ -1403,7 +1445,7 @@ class zebpay extends Exchange {
         return $this->parse_leverage($data, $market);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -1417,7 +1459,9 @@ class zebpay extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'leverage' => $leverage,
@@ -1426,11 +1470,11 @@ class zebpay extends Exchange {
         //
         // array( data => { "symbol", "longLeverage" => 10, "shortLeverage" => 1, "marginMode" => "isolated" )
         //
-        $response = $this->privateSwapPostV1TradeUpdateUserLeverage ($this->extend($request, $params));
+        $response = $this->privateSwapPostV1TradeUpdateUserLeverage($this->extend($request, $params));
         return $response;
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array()) {
         /**
          *
          * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#--get-$positions
@@ -1440,12 +1484,14 @@ class zebpay extends Exchange {
          * @param {array} [$params] Not used by krakenfutures
          * @return Parsed exchange $response for $positions
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         if ($symbols !== null) {
             $request['symbols'] = $this->market_ids($symbols);
         }
-        $response = $this->privateSwapGetV1TradePositions ($this->extend($request, $params));
+        $response = $this->privateSwapGetV1TradePositions($this->extend($request, $params));
         //
         //    {
         //        "data" => array(
@@ -1464,7 +1510,7 @@ class zebpay extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function add_margin(string $symbol, float $amount, $params = array ()): array {
+    public function add_margin(string $symbol, float $amount, $params = array()): array {
         /**
          * add margin
          *
@@ -1477,13 +1523,15 @@ class zebpay extends Exchange {
          * @param {string} [$params->timestamp] Tiemstamp.
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'amount' => $amount,
         );
-        $response = $this->privateSwapPostV1TradeAddMargin ($this->extend($request, $params));
+        $response = $this->privateSwapPostV1TradeAddMargin($this->extend($request, $params));
         //
         //    {
         //        "code" => "200000",
@@ -1509,7 +1557,7 @@ class zebpay extends Exchange {
         ));
     }
 
-    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
+    public function reduce_margin(string $symbol, float $amount, $params = array()): array {
         /**
          * add margin
          *
@@ -1522,13 +1570,15 @@ class zebpay extends Exchange {
          * @param {string} [$params->timestamp] Tiemstamp.
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'amount' => $amount,
         );
-        $response = $this->privateSwapPostV1TradeReduceMargin ($this->extend($request, $params));
+        $response = $this->privateSwapPostV1TradeReduceMargin($this->extend($request, $params));
         //
         //    {
         //        "code" => "200000",
@@ -1548,8 +1598,8 @@ class zebpay extends Exchange {
         ));
     }
 
-    public function fetch_spot_markets($params = array ()): array {
-        $response = $this->publicSpotGetV2ExExchangeInfo ($params);
+    public function fetch_spot_markets($params = array()): array {
+        $response = $this->publicSpotGetV2ExExchangeInfo($params);
         //
         //    {
         //        "data" => {
@@ -1622,8 +1672,8 @@ class zebpay extends Exchange {
         return $result;
     }
 
-    public function fetch_swap_markets($params = array ()): array {
-        $response = $this->publicSwapGetV1MarketMarkets ($params);
+    public function fetch_swap_markets($params = array()): array {
+        $response = $this->publicSwapGetV1MarketMarkets($params);
         //
         //    {
         //        "data" => {
@@ -1695,7 +1745,7 @@ class zebpay extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1710,7 +1760,9 @@ class zebpay extends Exchange {
             $account['used'] = $this->safe_string($entry, 'used');
             $currencyId = $this->safe_string($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1803,11 +1855,11 @@ class zebpay extends Exchange {
         //        }
         //     )
         //
-        $timestamp = $this->safe_integer_2($ticker, 'timestamp', 'ts', null);
+        $timestamp = $this->safe_integer_2($ticker, 'timestamp', 'ts');
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId);
-        $close = $this->safe_string($ticker, 'close', null);
-        $last = $this->safe_string($ticker, 'last', null);
+        $close = $this->safe_string($ticker, 'close');
+        $last = $this->safe_string($ticker, 'last');
         $percentage = $this->safe_string($ticker, 'percentage');
         $bidVolume = $this->safe_string($ticker, 'bidVolume');
         $askVolume = $this->safe_string($ticker, 'askVolume');
@@ -1837,7 +1889,7 @@ class zebpay extends Exchange {
         ), $market);
     }
 
-    public function parse_margin_modification($info, ?array $market = null): array {
+    public function parse_margin_modification(mixed $info, ?array $market = null): array {
         //
         //    {
         //         "symbol" => "BTCINR",
@@ -1850,7 +1902,7 @@ class zebpay extends Exchange {
         $timestamp = $this->milliseconds();
         return array(
             'info' => $info,
-            'symbol' => $market['id'],
+            'symbol' => $this->safe_string($market, 'id'),
             'type' => null,
             'marginMode' => null,
             'amount' => $this->safe_number($info, 'amount'),
@@ -1862,7 +1914,7 @@ class zebpay extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $params = $this->omit($params, 'defaultType');
         $isV1 = mb_strpos($path, 'v1/') > -1;
         $marketType = $isV1 ? 'swap' : 'spot';
@@ -1880,7 +1932,7 @@ class zebpay extends Exchange {
                     $url .= '?' . $this->urlencode($query);
                 }
             } else {
-                $body = json_encode ($params);
+                $body = json_encode($params);
                 $headers = array(
                     'Referrer' => 'ccxt',
                     'Content-Type' => 'application/json',
@@ -1910,7 +1962,7 @@ class zebpay extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $body);
             return null;

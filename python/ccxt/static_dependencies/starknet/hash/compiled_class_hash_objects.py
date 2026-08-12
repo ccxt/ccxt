@@ -6,7 +6,7 @@ import itertools
 from abc import ABC, abstractmethod
 from typing import Any, List, Union
 
-from poseidon_py.poseidon_hash import poseidon_hash_many
+from .poseidon import poseidon_hash_many
 
 
 class BytecodeSegmentStructure(ABC):

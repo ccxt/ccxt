@@ -1,6 +1,7 @@
 package ccxt
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -43,30 +44,48 @@ func init() {
 }
 
 type IOrderBookSide interface {
-	Store(price interface{}, size interface{}) error
-	StoreArray(delta interface{})
+	Store(price any, size any) error
+	StoreArray(delta any)
 	Limit()
 	Len() int
 	SetLen(length int)
-	GetData() [][]interface{}
-	GetDataCopy() [][]interface{}
-	SetData(data [][]interface{})
+	GetData() [][]any
+	GetDataCopy() [][]any
+	SetData(data [][]any)
 	GetIndex() *[]float64
 	String() string
 	SetDepth(depth int)
-	GetValue(key string, defaultValue interface{}) interface{}
+	GetValue(key string, defaultValue any) any
+	CopySide() IOrderBookSide
 }
 
 type OrderBookSide struct {
-	Data   [][]interface{} `json:"data"` // equivalent to extending Array
-	Index  []float64       `json:"-"`    // string-keyed dictionary of price levels / ids / indices
-	Depth  int             `json:"-"`    // depth limit
-	Length int             `json:"-"`    // current Length
-	Side   bool            `json:"-"`    // false is asks, true is bids
-	Mutex  sync.RWMutex    `json:"-"`    // protects concurrent access
+	Data   [][]any      `json:"data"` // equivalent to extending Array
+	Index  []float64    `json:"-"`    // string-keyed dictionary of price levels / ids / indices
+	Depth  int          `json:"-"`    // depth limit
+	Length int          `json:"-"`    // current Length
+	Side   bool         `json:"-"`    // false is asks, true is bids
+	Mutex  sync.RWMutex `json:"-"`    // protects concurrent access
 }
 
-func (obs *OrderBookSide) GetValue(key string, defaultValue interface{}) interface{} {
+// MarshalJSON emits the side as a plain array of price levels instead of the
+// default struct shape {"data":[...]}, which leaked into serialized orderbooks,
+// see https://github.com/ccxt/ccxt/issues/29586
+// promoted via embedding into CountedOrderBookSide, whose embed is set;
+// IndexedOrderBookSide keeps a nil embed and carries its own MarshalJSON
+func (obs *OrderBookSide) MarshalJSON() ([]byte, error) {
+	if obs == nil {
+		return []byte("[]"), nil
+	}
+	obs.Mutex.RLock()
+	defer obs.Mutex.RUnlock()
+	if obs.Data == nil {
+		return []byte("[]"), nil
+	}
+	return json.Marshal(obs.Data)
+}
+
+func (obs *OrderBookSide) GetValue(key string, defaultValue any) any {
 	switch key {
 	case "Data":
 		return obs.Data
@@ -83,10 +102,10 @@ func (obs *OrderBookSide) GetValue(key string, defaultValue interface{}) interfa
 	}
 }
 
-func NewOrderBookSide(side bool, deltas interface{}, depth interface{}) *OrderBookSide {
+func NewOrderBookSide(side bool, deltas any, depth any) *OrderBookSide {
 
 	orderBookSide := &OrderBookSide{
-		Data:   make([][]interface{}, 0),
+		Data:   make([][]any, 0),
 		Index:  make([]float64, len(SEED)),
 		Length: 0,
 		Depth:  math.MaxInt32,
@@ -96,7 +115,7 @@ func NewOrderBookSide(side bool, deltas interface{}, depth interface{}) *OrderBo
 	return result.(*OrderBookSide)
 }
 
-func Init(obs IOrderBookSide, deltas interface{}, depth interface{}) IOrderBookSide {
+func Init(obs IOrderBookSide, deltas any, depth any) IOrderBookSide {
 	copy(*obs.GetIndex(), SEED)
 
 	// Set depth
@@ -127,26 +146,26 @@ func Init(obs IOrderBookSide, deltas interface{}, depth interface{}) IOrderBookS
 			// 		iobs.SetLen(i)
 			// 	}
 			original := (d.GetData())[i]
-			deltaCopy := append([]interface{}(nil), original...)
+			deltaCopy := append([]any(nil), original...)
 			obs.StoreArray(deltaCopy)
 		}
-	case [][]interface{}:
+	case [][]any:
 		for i := 0; i < len(d); i++ {
 			// 	if iobs, ok := obs.(*IndexedOrderBookSide); ok {
 			// 		iobs.SetLen(i)
 			// 	}
 			original := d[i]
-			deltaCopy := append([]interface{}(nil), original...)
+			deltaCopy := append([]any(nil), original...)
 			obs.StoreArray(deltaCopy)
 		}
-	case []interface{}:
+	case []any:
 		for i := 0; i < len(d); i++ {
 			// if iobs, ok := obs.(*IndexedOrderBookSide); ok {
 			// 	iobs.SetLen(i)
 			// }
 			original := d[i]
-			if originalArray, ok := original.([]interface{}); ok {
-				deltaCopy := append([]interface{}(nil), originalArray...)
+			if originalArray, ok := original.([]any); ok {
+				deltaCopy := append([]any(nil), originalArray...)
 				obs.StoreArray(deltaCopy)
 			}
 			//     panic(fmt.Sprintf("NewOrderBookSide: invalid delta type %v", reflect.TypeOf(original)))
@@ -156,14 +175,14 @@ func Init(obs IOrderBookSide, deltas interface{}, depth interface{}) IOrderBookS
 	return obs
 }
 
-func (obs *OrderBookSide) StoreArray(delta interface{}) {
+func (obs *OrderBookSide) StoreArray(delta any) {
 
 	obs.Mutex.Lock()
 	defer obs.Mutex.Unlock()
 
 	deltaArray, isArray := delta.([]float64)
 	deltaOB, isOB := delta.(IOrderBookSide)
-	deltaInterface, isInterface := delta.([]interface{})
+	deltaInterface, isInterface := delta.([]any)
 	var price float64
 	var size float64
 	if isArray {
@@ -200,9 +219,9 @@ func (obs *OrderBookSide) StoreArray(delta interface{}) {
 			obs.Data = append(obs.Data, nil)
 			copy(obs.Data[index+1:], obs.Data[index:obs.Len()-1])
 			if isArray {
-				obs.Data[index] = []interface{}{deltaArray[0], deltaArray[1]}
+				obs.Data[index] = []any{deltaArray[0], deltaArray[1]}
 			} else if isOB {
-				obs.Data[index] = []interface{}{(deltaOB.GetData())[0][0], (deltaOB.GetData())[0][1]}
+				obs.Data[index] = []any{(deltaOB.GetData())[0][0], (deltaOB.GetData())[0][1]}
 			} else if isInterface {
 				obs.Data[index] = deltaInterface
 			}
@@ -228,7 +247,7 @@ func (obs *OrderBookSide) StoreArray(delta interface{}) {
 	}
 }
 
-func normalizeNumber(value interface{}) float64 {
+func normalizeNumber(value any) float64 {
 	switch v := value.(type) {
 	case float64:
 		return v
@@ -248,7 +267,7 @@ func normalizeNumber(value interface{}) float64 {
 }
 
 // Store indexes an incoming delta in the string-price-keyed dictionary
-func (obs *OrderBookSide) Store(price interface{}, size interface{}) error {
+func (obs *OrderBookSide) Store(price any, size any) error {
 	obs.StoreArray([]float64{normalizeNumber(price), normalizeNumber(size)})
 	return nil
 }
@@ -276,13 +295,13 @@ type CountedOrderBookSide struct {
 }
 
 // NewCountedOrderBookSide constructor
-func NewCountedOrderBookSide(side bool, deltas interface{}, depth interface{}) *CountedOrderBookSide {
+func NewCountedOrderBookSide(side bool, deltas any, depth any) *CountedOrderBookSide {
 
 	// orderBookSide := &CountedOrderBookSide{
 	// 	OrderBookSide: NewOrderBookSide(side, deltas, depth),
 	// }
 	orderBookSide := &OrderBookSide{
-		Data:   make([][]interface{}, 0),
+		Data:   make([][]any, 0),
 		Index:  make([]float64, len(SEED)),
 		Length: 0,
 		Depth:  math.MaxInt32,
@@ -296,22 +315,22 @@ func NewCountedOrderBookSide(side bool, deltas interface{}, depth interface{}) *
 	return result.(*CountedOrderBookSide)
 }
 
-func (cobs *CountedOrderBookSide) Store(price interface{}, size interface{}) error {
+func (cobs *CountedOrderBookSide) Store(price any, size any) error {
 	return errors.New("CountedOrderBookSide.Store() is not supported, use StoreArray([price, size, count]) instead")
 }
 
 // StoreArray handles deltas with count (3 elements: price, size, count)
-func (obs *CountedOrderBookSide) StoreArray(delta interface{}) {
+func (obs *CountedOrderBookSide) StoreArray(delta any) {
 
 	obs.OrderBookSide.Mutex.Lock()
 	defer obs.OrderBookSide.Mutex.Unlock()
 
-	deltaArray, isArray := delta.([]interface{})
+	deltaArray, isArray := delta.([]any)
 	deltaOB, isOB := delta.(IOrderBookSide)
-	deltaInterface, isInterface := delta.([]interface{})
+	deltaInterface, isInterface := delta.([]any)
 	var price float64
 	var size float64
-	var count interface{}
+	var count any
 	if isArray {
 		price = normalizeNumber(deltaArray[0])
 		size = normalizeNumber(deltaArray[1])
@@ -348,9 +367,9 @@ func (obs *CountedOrderBookSide) StoreArray(delta interface{}) {
 			obs.Data = append(obs.Data, nil)
 			copy(obs.Data[index+1:], obs.Data[index:obs.Len()-1])
 			if isArray {
-				obs.Data[index] = []interface{}{deltaArray[0], deltaArray[1], deltaArray[2]}
+				obs.Data[index] = []any{deltaArray[0], deltaArray[1], deltaArray[2]}
 			} else if isOB {
-				obs.Data[index] = []interface{}{(deltaOB.GetData())[0][0], (deltaOB.GetData())[0][1], (deltaOB.GetData())[0][2]}
+				obs.Data[index] = []any{(deltaOB.GetData())[0][0], (deltaOB.GetData())[0][1], (deltaOB.GetData())[0][2]}
 			} else if isInterface {
 				obs.Data[index] = deltaInterface
 			}
@@ -378,118 +397,180 @@ func (obs *CountedOrderBookSide) StoreArray(delta interface{}) {
 
 type IndexedOrderBookSide struct {
 	*OrderBookSide
-	Hashmap map[interface{}]float64 // string-keyed dictionary of price levels / ids / indices
-	Data    [][]interface{}         // equivalent to extending Array
-	Index   []float64               // string-keyed dictionary of price levels / ids / indices
-	Depth   int                     // depth limit
-	Length  int                     // current Length
-	Side    bool                    // false is asks, true is bids
-	Mutex   sync.RWMutex            // protects concurrent access
+	Hashmap map[any]float64 // string-keyed dictionary of price levels / ids / indices
+	Data    [][]any         // equivalent to extending Array
+	Index   []float64       // string-keyed dictionary of price levels / ids / indices
+	Depth   int             // depth limit
+	Length  int             // current Length
+	Side    bool            // false is asks, true is bids
+	Mutex   sync.RWMutex    // protects concurrent access
 }
 
-func NewIndexedOrderBookSide(side bool, deltas interface{}, depth interface{}) *IndexedOrderBookSide {
+func NewIndexedOrderBookSide(side bool, deltas any, depth any) *IndexedOrderBookSide {
 	dataLength := 0
 	switch d := deltas.(type) {
 	case []float64:
 		dataLength = len(d)
-	case []interface{}:
+	case []any:
 		dataLength = len(d)
 	case IOrderBookSide:
 		dataLength = d.Len()
 	}
 
 	orderBookSide := &IndexedOrderBookSide{
-		Data:    make([][]interface{}, dataLength),
+		Data:    make([][]any, dataLength),
 		Index:   make([]float64, len(SEED)),
 		Length:  0,
 		Depth:   math.MaxInt32,
-		Hashmap: make(map[interface{}]float64),
+		Hashmap: make(map[any]float64),
 		Side:    side,
 	}
 	result := Init(orderBookSide, deltas, depth)
 	return result.(*IndexedOrderBookSide)
 }
 
-func (iobs *IndexedOrderBookSide) Store(price interface{}, size interface{}) error {
+func (iobs *IndexedOrderBookSide) Store(price any, size any) error {
 	return errors.New("IndexedOrderBook.Store() is not supported, use StoreArray([price, size, id]) instead")
 }
 
+// ids arrive as freshly parsed json values whose dynamic type can differ from
+// delta to delta (json number vs string), and go interface equality is type
+// sensitive, so hashmap keys and row-id comparisons are normalized through a
+// single string form, mirroring the C# lane of
+// https://github.com/ccxt/ccxt/pull/29749
+func normalizeId(id any) string {
+	switch v := id.(type) {
+	case string:
+		return v
+	case float64:
+		return strconv.FormatFloat(v, 'f', -1, 64)
+	default:
+		return fmt.Sprint(v)
+	}
+}
+
+// bounded row lookup by normalized id from a bisect position, -1 when the row
+// is gone, so a stale hashmap entry degrades gracefully instead of walking off
+// the slice with an index-out-of-range panic that would kill the ws read
+// goroutine, see https://github.com/ccxt/ccxt/pull/29749
+func (obs *IndexedOrderBookSide) findRowById(start int, id string) int {
+	index := start
+	for index < obs.Length && index < len(obs.Data) {
+		row := obs.Data[index]
+		if len(row) > 2 && normalizeId(row[2]) == id {
+			return index
+		}
+		index++
+	}
+	return -1
+}
+
 // StoreArray handles deltas with id (3 elements: price, size, id)
-// StoreArray handles deltas with id (3 elements: price, size, id)
-func (obs *IndexedOrderBookSide) StoreArray(delta interface{}) {
+func (obs *IndexedOrderBookSide) StoreArray(delta any) {
 
 	obs.Mutex.Lock()
 	defer obs.Mutex.Unlock()
 
-	deltaArray, isArray := delta.([]interface{})
+	deltaArray, isArray := delta.([]any)
 	deltaOB, isOB := delta.(IOrderBookSide)
-	deltaInterface, isInterface := delta.([]interface{})
+	deltaInterface, isInterface := delta.([]any)
 	var price float64
 	var size float64
-	var id interface{}
+	var id any
+	// price and size can legitimately arrive as nil, e.g. bitmex sends its
+	// orderBookL2 updates and deletes without a price, and normalizeNumber
+	// panics on nil, so nil is tracked instead of converted; a nil size is a
+	// removal, a nil price is recovered from the hashmap below,
+	// see https://github.com/ccxt/ccxt/pull/29749
+	priceMissing := false
+	var rawPrice any
+	var rawSize any
 	if isArray {
-		price = normalizeNumber(deltaArray[0])
-		size = normalizeNumber(deltaArray[1])
+		rawPrice = deltaArray[0]
+		rawSize = deltaArray[1]
 		id = deltaArray[2]
 	} else if isOB {
 		if len(deltaOB.GetData()) > 0 && len((deltaOB.GetData())[0]) >= 2 {
-			price = normalizeNumber((deltaOB.GetData())[0][0])
-			size = normalizeNumber((deltaOB.GetData())[0][1])
+			rawPrice = (deltaOB.GetData())[0][0]
+			rawSize = (deltaOB.GetData())[0][1]
 			id = (deltaOB.GetData())[0][2]
 		}
 	} else if isInterface {
-		price = normalizeNumber(deltaInterface[0])
-		size = normalizeNumber(deltaInterface[1])
+		rawPrice = deltaInterface[0]
+		rawSize = deltaInterface[1]
 		id = deltaInterface[2]
 	}
+	if rawPrice == nil {
+		priceMissing = true
+	} else {
+		price = normalizeNumber(rawPrice)
+	}
+	if rawSize != nil {
+		size = normalizeNumber(rawSize)
+	}
 	var indexPrice float64
-	if price != 0 {
+	if !priceMissing && price != 0 {
 		if obs.Side {
-			indexPrice = -normalizeNumber(price)
+			indexPrice = -price
 		} else {
-			indexPrice = normalizeNumber(price)
+			indexPrice = price
 		}
 	} else {
-		indexPrice = math.MaxFloat64
+		// no usable price on this delta: recovered from the hashmap below for
+		// known ids, unknown ids without a price cannot be placed
+		priceMissing = true
 	}
 
-	oldIdPrice, idInHashmap := obs.Hashmap[id]
+	stringId := normalizeId(id)
+	oldIdPrice, idInHashmap := obs.Hashmap[stringId]
 	if size != 0 {
 		if idInHashmap {
-			if indexPrice == 0 {
+			if priceMissing {
+				// the former check here compared against 0 while the missing
+				// price sentinel was MaxFloat64, so this recovery never fired
+				// and a price-less update corrupted the row,
+				// see https://github.com/ccxt/ccxt/pull/29749
 				indexPrice = oldIdPrice
+				priceMissing = false
 			}
-			deltaArray[0] = math.Abs(indexPrice) // ? TODO: all types
+			if deltaArray != nil {
+				deltaArray[0] = math.Abs(indexPrice)
+			}
 			if indexPrice == oldIdPrice {
-				var index int = bisectLeft(obs.Index, indexPrice)
-				for obs.Data[index][2] != id {
-					index++
+				index := obs.findRowById(bisectLeft(obs.Index, indexPrice), stringId)
+				if index >= 0 {
+					obs.Index[index] = indexPrice
+					// Store the entire delta array like TypeScript does
+					if isArray {
+						obs.Data[index] = []any{deltaArray[0], deltaArray[1], deltaArray[2]}
+					} else if isInterface {
+						obs.Data[index] = deltaInterface
+					} else if isOB {
+						obs.Data[index] = (deltaOB.GetData())[0]
+					}
+					return
 				}
-				obs.Index[index] = indexPrice
-				// Store the entire delta array like TypeScript does
-				if isArray {
-					obs.Data[index] = []interface{}{deltaArray[0], deltaArray[1], deltaArray[2]}
-				} else if isInterface {
-					obs.Data[index] = deltaInterface
-				} else if isOB {
-					// Convert float64 array to interface array
-					obs.Data[index] = (deltaOB.GetData())[0] // TODO: correct?
-				}
-				return
+				// stale hashmap entry, the row is gone: fall through and
+				// insert as new, see https://github.com/ccxt/ccxt/pull/29749
 			} else {
-				var oldIndex int = bisectLeft(obs.Index, oldIdPrice)
-				for obs.Data[oldIndex][2] != id {
-					oldIndex++
+				oldIndex := obs.findRowById(bisectLeft(obs.Index, oldIdPrice), stringId)
+				if oldIndex >= 0 {
+					copy(obs.Index[oldIndex:], obs.Index[oldIndex+1:])
+					obs.Index = obs.Index[:len(obs.Index)-1]
+					obs.Index[obs.Length-1] = math.MaxFloat64
+					copy(obs.Data[oldIndex:], obs.Data[oldIndex+1:])
+					obs.Data = obs.Data[:obs.Length-1]
+					obs.Length--
 				}
-				copy(obs.Index[oldIndex:], obs.Index[oldIndex+1:])
-				obs.Index = obs.Index[:len(obs.Index)-1]
-				obs.Index[obs.Length-1] = math.MaxFloat64
-				copy(obs.Data[oldIndex:], obs.Data[oldIndex+1:])
-				obs.Data = obs.Data[:obs.Length-1]
-				obs.Length--
+				// stale entry: nothing to move, fall through and insert as new
 			}
 		}
-		obs.Hashmap[id] = indexPrice
+		if priceMissing {
+			// unknown id with no price on the delta: there is nowhere to
+			// place the level, drop it instead of inserting at the sentinel
+			return
+		}
+		obs.Hashmap[stringId] = indexPrice
 		var index int = bisectLeft(obs.Index, indexPrice)
 		// for index < obs.Length && obs.Index[index] == indexPrice && obs.Index[2] < id.(float64) { // TODO: this makes no sense, id is type [string, string]
 		for index < obs.Length && obs.Index[index] == indexPrice { // TODO: this makes no sense, id is type [string, string]
@@ -504,13 +585,13 @@ func (obs *IndexedOrderBookSide) StoreArray(delta interface{}) {
 		copy(obs.Data[index+1:], obs.Data[index:obs.Length-1])
 		// Store the entire delta array like TypeScript does
 		if isArray {
-			obs.Data[index] = []interface{}{deltaArray[0], deltaArray[1], deltaArray[2]}
+			obs.Data[index] = []any{deltaArray[0], deltaArray[1], deltaArray[2]}
 		} else if isInterface {
 			obs.Data[index] = deltaInterface
 		} else if isOB {
 			// Convert interface array to float64 array
 			data := deltaOB.GetData()
-			floatArray := make([]interface{}, len(data))
+			floatArray := make([]any, len(data))
 			for i, v := range data[0] { // TODO: correct?
 				if f, ok := v.(float64); ok {
 					floatArray[i] = f
@@ -533,17 +614,18 @@ func (obs *IndexedOrderBookSide) StoreArray(delta interface{}) {
 			obs.Index = newIndex
 		}
 	} else if idInHashmap {
-		index := bisectLeft(obs.Index, oldIdPrice)
-		for obs.Data[index][2] != id {
-			index++
-		}
-		copy(obs.Index[index:], obs.Index[index+1:])
-		obs.Index[obs.Length-1] = math.MaxFloat64
+		index := obs.findRowById(bisectLeft(obs.Index, oldIdPrice), stringId)
+		if index >= 0 {
+			copy(obs.Index[index:], obs.Index[index+1:])
+			obs.Index[obs.Length-1] = math.MaxFloat64
 
-		copy(obs.Data[index:], obs.Data[index+1:])
-		obs.Data = obs.Data[:obs.Length-1]
-		obs.Length--
-		delete(obs.Hashmap, id)
+			copy(obs.Data[index:], obs.Data[index+1:])
+			obs.Data = obs.Data[:obs.Length-1]
+			obs.Length--
+		}
+		// a stale entry has no row to remove, just heal the hashmap,
+		// see https://github.com/ccxt/ccxt/pull/29749
+		delete(obs.Hashmap, stringId)
 	}
 
 }
@@ -554,8 +636,10 @@ func (iobs *IndexedOrderBookSide) Limit() {
 	defer iobs.Mutex.Unlock()
 
 	if iobs.Length > iobs.Depth {
-		for i := iobs.Depth; i < iobs.Length; i++ {
-			delete(iobs.Hashmap, iobs.Data[i][2])
+		for i := iobs.Depth; i < iobs.Length && i < len(iobs.Data); i++ {
+			if len(iobs.Data[i]) > 2 {
+				delete(iobs.Hashmap, normalizeId(iobs.Data[i][2]))
+			}
 			iobs.Index[i] = math.MaxFloat64
 		}
 	}
@@ -586,34 +670,34 @@ type IndexedBids struct {
 	*IndexedOrderBookSide
 }
 
-func NewAsks(deltas interface{}, depth interface{}) *OrderBookSide {
+func NewAsks(deltas any, depth any) *OrderBookSide {
 	obs := NewOrderBookSide(false, deltas, depth)
 	return obs
 }
 
-func NewBids(deltas interface{}, depth interface{}) *OrderBookSide {
+func NewBids(deltas any, depth any) *OrderBookSide {
 	obs := NewOrderBookSide(true, deltas, depth)
 	return obs
 }
 
-func NewCountedAsks(deltas interface{}, depth interface{}) *CountedOrderBookSide {
+func NewCountedAsks(deltas any, depth any) *CountedOrderBookSide {
 	cobs := NewCountedOrderBookSide(false, deltas, depth)
 	// cobs.Side = false
 	return cobs
 }
 
-func NewCountedBids(deltas interface{}, depth interface{}) *CountedOrderBookSide {
+func NewCountedBids(deltas any, depth any) *CountedOrderBookSide {
 	cobs := NewCountedOrderBookSide(true, deltas, depth)
 	return cobs
 }
 
-func NewIndexedAsks(deltas interface{}, depth interface{}) *IndexedOrderBookSide {
+func NewIndexedAsks(deltas any, depth any) *IndexedOrderBookSide {
 	iobs := NewIndexedOrderBookSide(false, deltas, depth)
 	// iobs.Side = false
 	return iobs
 }
 
-func NewIndexedBids(deltas interface{}, depth interface{}) *IndexedOrderBookSide {
+func NewIndexedBids(deltas any, depth any) *IndexedOrderBookSide {
 	iobs := NewIndexedOrderBookSide(true, deltas, depth)
 	// iobs.Side = true
 	return iobs
@@ -657,42 +741,42 @@ func (obs *OrderBookSide) String() string {
 func (obs *OrderBookSide) Len() int {
 	return obs.Length
 }
-func (obs *OrderBookSide) GetData() [][]interface{} {
+func (obs *OrderBookSide) GetData() [][]any {
 	return obs.Data
 }
 
 // assumes the first two elements are float64 and the third element is a primitive
-func (obs *OrderBookSide) GetDataCopy() [][]interface{} {
+func (obs *OrderBookSide) GetDataCopy() [][]any {
 	if obs == nil {
-		return [][]interface{}{}
+		return [][]any{}
 	}
 
 	obs.Mutex.RLock() // read lock prevents writes while copying
 	defer obs.Mutex.RUnlock()
 
 	if obs.Data == nil {
-		return [][]interface{}{}
+		return [][]any{}
 	}
 
-	out := make([][]interface{}, len(obs.Data))
+	out := make([][]any, len(obs.Data))
 
 	for i, slice := range obs.Data {
 		if slice == nil {
-			out[i] = []interface{}{}
+			out[i] = []any{}
 			continue
 		}
 
-		newSlice := make([]interface{}, len(slice))
+		newSlice := make([]any, len(slice))
 		for j, val := range slice {
 			switch v := val.(type) {
-			case map[string]interface{}:
-				newMap := make(map[string]interface{}, len(v))
+			case map[string]any:
+				newMap := make(map[string]any, len(v))
 				for key, value := range v {
 					newMap[key] = value
 				}
 				newSlice[j] = newMap
-			case []interface{}:
-				newSlice[j] = append([]interface{}{}, v...)
+			case []any:
+				newSlice[j] = append([]any{}, v...)
 			default:
 				newSlice[j] = v
 			}
@@ -706,10 +790,61 @@ func (obs *OrderBookSide) GetDataCopy() [][]interface{} {
 func (ords *OrderBookSide) GetSide() bool {
 	return ords.Side
 }
+
+func (obs *OrderBookSide) CopySide() IOrderBookSide {
+	obs.Mutex.RLock()
+	defer obs.Mutex.RUnlock()
+
+	out := NewOrderBookSide(obs.Side, [][]any{}, obs.Depth)
+	base := out
+	base.Length = obs.Length
+	base.Index = make([]float64, len(obs.Index))
+	copy(base.Index, obs.Index)
+	base.Data = make([][]any, len(obs.Data))
+	for i, row := range obs.Data {
+		base.Data[i] = append([]any(nil), row...)
+	}
+	return out
+}
+
+func (cobs *CountedOrderBookSide) CopySide() IOrderBookSide {
+	cobs.OrderBookSide.Mutex.RLock()
+	defer cobs.OrderBookSide.Mutex.RUnlock()
+
+	out := NewCountedOrderBookSide(cobs.OrderBookSide.Side, [][]any{}, cobs.OrderBookSide.Depth)
+	base := out.OrderBookSide
+	base.Length = cobs.OrderBookSide.Length
+	base.Index = make([]float64, len(cobs.OrderBookSide.Index))
+	copy(base.Index, cobs.OrderBookSide.Index)
+	base.Data = make([][]any, len(cobs.OrderBookSide.Data))
+	for i, row := range cobs.OrderBookSide.Data {
+		base.Data[i] = append([]any(nil), row...)
+	}
+	return out
+}
+
+func (iobs *IndexedOrderBookSide) CopySide() IOrderBookSide {
+	iobs.Mutex.RLock()
+	defer iobs.Mutex.RUnlock()
+
+	out := NewIndexedOrderBookSide(iobs.OrderBookSide.Side, [][]any{}, iobs.OrderBookSide.Depth)
+	out.Length = iobs.Length
+	out.Index = make([]float64, len(iobs.Index))
+	copy(out.Index, iobs.Index)
+	out.Data = make([][]any, len(iobs.Data))
+	for i, row := range iobs.Data {
+		out.Data[i] = append([]any(nil), row...)
+	}
+	out.Hashmap = make(map[any]float64, len(iobs.Hashmap))
+	for k, v := range iobs.Hashmap {
+		out.Hashmap[k] = v
+	}
+	return out
+}
 func (obs *OrderBookSide) SetLen(length int) {
 	obs.Length = length
 }
-func (obs *OrderBookSide) SetData(data [][]interface{}) {
+func (obs *OrderBookSide) SetData(data [][]any) {
 	obs.Data = data
 }
 func (obs *OrderBookSide) GetIndex() *[]float64 {
@@ -722,13 +857,13 @@ func (obs *OrderBookSide) SetDepth(depth int) {
 func (obs *CountedOrderBookSide) SetLen(length int) {
 	obs.OrderBookSide.SetLen(length)
 }
-func (obs *CountedOrderBookSide) GetData() [][]interface{} {
+func (obs *CountedOrderBookSide) GetData() [][]any {
 	return obs.OrderBookSide.GetData()
 }
-func (obs *CountedOrderBookSide) GetDataCopy() [][]interface{} {
+func (obs *CountedOrderBookSide) GetDataCopy() [][]any {
 	return obs.OrderBookSide.GetDataCopy()
 }
-func (obs *CountedOrderBookSide) SetData(data [][]interface{}) {
+func (obs *CountedOrderBookSide) SetData(data [][]any) {
 	obs.OrderBookSide.SetData(data)
 }
 func (obs *CountedOrderBookSide) GetIndex() *[]float64 {
@@ -743,13 +878,13 @@ func (obs *CountedOrderBookSide) Len() int {
 func (obs *CountedOrderBookSide) SetDepth(depth int) {
 	obs.OrderBookSide.SetDepth(depth)
 }
-func (obs *CountedOrderBookSide) GetValue(key string, defaultValue interface{}) interface{} {
+func (obs *CountedOrderBookSide) GetValue(key string, defaultValue any) any {
 	return obs.OrderBookSide.GetValue(key, defaultValue)
 }
 func (obs *IndexedOrderBookSide) SetLen(length int) {
 	obs.Length = length
 }
-func (obs *IndexedOrderBookSide) SetData(data [][]interface{}) {
+func (obs *IndexedOrderBookSide) SetData(data [][]any) {
 	obs.Data = data
 }
 func (obs *IndexedOrderBookSide) GetIndex() *[]float64 {
@@ -758,11 +893,67 @@ func (obs *IndexedOrderBookSide) GetIndex() *[]float64 {
 func (obs *IndexedOrderBookSide) String() string {
 	return obs.OrderBookSide.String()
 }
-func (obs *IndexedOrderBookSide) GetData() [][]interface{} {
+func (obs *IndexedOrderBookSide) GetData() [][]any {
 	return obs.Data
 }
-func (obs *IndexedOrderBookSide) GetDataCopy() [][]interface{} {
-	return obs.OrderBookSide.GetDataCopy()
+
+// MarshalJSON emits the side as a plain array of price levels, the promoted
+// method from the embedded OrderBookSide would see a nil receiver because the
+// embedded pointer is never set for indexed sides and the data lives in the
+// shadowing Data field, see https://github.com/ccxt/ccxt/issues/29586
+func (obs *IndexedOrderBookSide) MarshalJSON() ([]byte, error) {
+	if obs == nil {
+		return []byte("[]"), nil
+	}
+	obs.Mutex.RLock()
+	defer obs.Mutex.RUnlock()
+	if obs.Data == nil {
+		return []byte("[]"), nil
+	}
+	return json.Marshal(obs.Data)
+}
+func (obs *IndexedOrderBookSide) GetDataCopy() [][]any {
+	// data lives in the shadowing Data field guarded by the shadowing Mutex,
+	// the embedded OrderBookSide pointer is nil for indexed sides, so delegating
+	// upward always returned an empty copy, see https://github.com/ccxt/ccxt/issues/29586
+	if obs == nil {
+		return [][]any{}
+	}
+
+	obs.Mutex.RLock()
+	defer obs.Mutex.RUnlock()
+
+	if obs.Data == nil {
+		return [][]any{}
+	}
+
+	out := make([][]any, len(obs.Data))
+
+	for i, slice := range obs.Data {
+		if slice == nil {
+			out[i] = []any{}
+			continue
+		}
+
+		newSlice := make([]any, len(slice))
+		for j, val := range slice {
+			switch v := val.(type) {
+			case map[string]any:
+				newMap := make(map[string]any, len(v))
+				for key, value := range v {
+					newMap[key] = value
+				}
+				newSlice[j] = newMap
+			case []any:
+				newSlice[j] = append([]any{}, v...)
+			default:
+				newSlice[j] = v
+			}
+		}
+		out[i] = newSlice
+	}
+
+	return out
 }
 func (obs *IndexedOrderBookSide) Len() int {
 	return obs.Length
@@ -770,7 +961,7 @@ func (obs *IndexedOrderBookSide) Len() int {
 func (obs *IndexedOrderBookSide) SetDepth(depth int) {
 	obs.Depth = depth
 }
-func (iobs *IndexedOrderBookSide) GetValue(key string, defaultValue interface{}) interface{} {
+func (iobs *IndexedOrderBookSide) GetValue(key string, defaultValue any) any {
 	switch key {
 	case "Data":
 		return iobs.Data

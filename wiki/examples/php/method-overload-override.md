@@ -1,8 +1,5 @@
-- [Method Overload Override](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 
@@ -34,5 +31,5 @@ function example_2() {
     };
     var_dump($ex->fetch_ticker('fetch_ticker', ['BTC/USDT']));
 }
-example_2(); 
+example_2();
 ```

@@ -25,10 +25,10 @@ async function testWatchPosition(exchange, skippedProperties, symbol) {
             // continue;
             success = false;
         }
-        if (success === true) {
-            assert(typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(response));
+        if ((success === true) && (response !== undefined)) {
+            assert(exchange.isDictionary(response), exchange.id + ' ' + method + ' ' + symbol + ' must return a dictionary. ' + exchange.json(response));
             now = exchange.milliseconds();
-            testPosition(exchange, skippedProperties, method, response, undefined, now);
+            testPosition(exchange, skippedProperties, method, response, symbol, now);
         }
     }
     return true;

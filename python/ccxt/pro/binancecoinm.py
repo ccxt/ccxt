@@ -15,7 +15,8 @@ class binancecoinm(binance):
         # eslint-disable-next-line new-cap
         restInstance = binancecoinmRest()
         restDescribe = restInstance.describe()
-        extended = self.deep_extend(super(binancecoinm, self).describe(), restDescribe)
+        parentWsDescribe = super(binancecoinm, self).describe_data()
+        extended = self.deep_extend(restDescribe, parentWsDescribe)
         return self.deep_extend(extended, {
             'id': 'binancecoinm',
             'name': 'Binance COIN-M',

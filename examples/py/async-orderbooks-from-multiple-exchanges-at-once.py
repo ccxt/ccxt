@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import ccxt
 import ccxt.async_support as ccxta  # noqa: E402
 import time
@@ -47,10 +51,10 @@ async def multi_orderbooks(exchanges):
 if __name__ == '__main__':
 
     # Consider review request rate limit in the methods you call
-    exchanges = ["kucoin", "bittrex", "bitfinex", "poloniex", "huobipro"]
+    exchanges = ["kucoin", "bitfinex", "poloniex", "htx"]
 
     tic = time.time()
-    a = asyncio.run(multi_orderbooks(exchanges))
+    a = run(multi_orderbooks(exchanges))
     print("async call spend:", time.time() - tic)
 
     time.sleep(1)

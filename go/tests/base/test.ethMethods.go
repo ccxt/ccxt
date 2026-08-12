@@ -8,11 +8,11 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestEthMethods() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	var privateKey interface{} = "0x27c9c557bd398e354b57ba58046b055035c47788926eb53fcdb394769ef80e1b"
-	var publicKey interface{} = "0x3096cD9827766E03f8b6DF58996399406DC270Af"
-	var generatedAddress interface{} = exchange.EthGetAddressFromPrivateKey(privateKey)
+	}, map[string]any{}, exchange)
+	var privateKey any = "0x27c9c557bd398e354b57ba58046b055035c47788926eb53fcdb394769ef80e1b"
+	var publicKey any = "0x3096cD9827766E03f8b6DF58996399406DC270Af"
+	var generatedAddress any = exchange.EthGetAddressFromPrivateKey(privateKey)
 	assert(ccxt.IsEqual(ccxt.ToLower(generatedAddress), ccxt.ToLower(publicKey)), ccxt.Add(ccxt.Add(ccxt.Add("ethGetAddressFromPrivateKey did not generate the expected address: ", generatedAddress), " != "), publicKey))
 }

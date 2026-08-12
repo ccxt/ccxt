@@ -1,8 +1,5 @@
-- [Watch Ohlcv For Symbols](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -20,19 +17,18 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 function example() {
     return Async\async(function () {
         $binance = new \ccxt\pro\binance(array());
         $subscriptions = [['BTC/USDT', '5m'], ['ETH/USDT', '5m'], ['BTC/USDT', '1h']];
         while (true) {
-            $ohlcv = Async\await($binance->watch_ohlcv_for_symbols($subscriptions));
+            $ohlcv = \React\Async\await($binance->watch_ohlcv_for_symbols($subscriptions));
             var_dump($ohlcv);
         }
     }) ();
 }
 
 
-Async\await(example());
- 
+\React\Async\await(example());
+
 ```

@@ -1,3 +1,5 @@
+// @NO_AUTO_TRANSPILE
+
 import { hibachi } from '../../js/ccxt.js';
 import fs from 'fs';
 

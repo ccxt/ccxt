@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitfinex.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, FundingRate, FundingRates, DepositAddress, OpenInterests, Position } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, NullableDict, int, Status } from './base/types.js';
 /**
  * @class bitfinex
  * @augments Exchange
@@ -8,8 +8,8 @@ export default class bitfinex extends Exchange {
     describe(): any;
     isFiat(code: any): boolean;
     getCurrencyName(code: any): any;
-    amountToPrecision(symbol: any, amount: any): string;
-    priceToPrecision(symbol: any, price: any): string;
+    amountToPrecision(symbol: Str, amount: any): string;
+    priceToPrecision(symbol: Str, price: any): string;
     /**
      * @method
      * @name bitfinex#fetchStatus
@@ -18,13 +18,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: any;
-        eta: any;
-        url: any;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name bitfinex#fetchMarkets
@@ -43,6 +37,8 @@ export default class bitfinex extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrenciesCustom(ids: any, indexed: any, indexedNetworks: any): Dict;
+    parseCurrencyCustom(id: any, indexed: any, indexedNetworks: any): Currency;
     /**
      * @method
      * @name bitfinex#fetchBalance
@@ -67,7 +63,7 @@ export default class bitfinex extends Exchange {
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;
-    convertDerivativesId(currency: any, type: any): any;
+    convertDerivativesId(currency: any, type: any): Str;
     /**
      * @method
      * @name bitfinex#fetchOrderBook
@@ -76,7 +72,7 @@ export default class bitfinex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return, bitfinex only allows 1, 25, or 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
@@ -131,11 +127,11 @@ export default class bitfinex extends Exchange {
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
-    parseOrderStatus(status: Str): string;
+    parseOrderStatus(status: Str): string | undefined;
     parseOrderFlags(flags: any): any;
     parseTimeInForce(orderType: any): string;
     parseOrder(order: Dict, market?: Market): Order;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
     /**
      * @method
      * @name bitfinex#createOrder
@@ -174,7 +170,7 @@ export default class bitfinex extends Exchange {
      * @name bitfinex#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.bitfinex.com/reference/rest-auth-cancel-orders-multiple
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -212,7 +208,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    fetchOpenOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
      * @name bitfinex#fetchClosedOrder
@@ -224,7 +220,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchClosedOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    fetchClosedOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
      * @name bitfinex#fetchOpenOrders
@@ -299,7 +295,7 @@ export default class bitfinex extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -348,14 +344,14 @@ export default class bitfinex extends Exchange {
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: Str;
+        headers: NullableDict;
     };
-    handleErrors(statusCode: any, statusText: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
-    parseLedgerEntryType(type: Str): string;
+    handleErrors(statusCode: int, statusText: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    parseLedgerEntryType(type: Str): string | undefined;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     /**
      * @method
@@ -399,21 +395,21 @@ export default class bitfinex extends Exchange {
     parseFundingRateHistory(contract: any, market?: Market): {
         info: any;
         symbol: string;
-        markPrice: number;
-        indexPrice: number;
-        interestRate: any;
-        estimatedSettlePrice: any;
-        timestamp: number;
-        datetime: string;
-        fundingRate: number;
-        fundingTimestamp: any;
-        fundingDatetime: any;
-        nextFundingRate: number;
-        nextFundingTimestamp: number;
-        nextFundingDatetime: string;
-        previousFundingRate: any;
-        previousFundingTimestamp: any;
-        previousFundingDatetime: any;
+        markPrice: Num;
+        indexPrice: Num;
+        interestRate: undefined;
+        estimatedSettlePrice: undefined;
+        timestamp: Int;
+        datetime: string | undefined;
+        fundingRate: Num;
+        fundingTimestamp: undefined;
+        fundingDatetime: undefined;
+        nextFundingRate: Num;
+        nextFundingTimestamp: Int;
+        nextFundingDatetime: string | undefined;
+        previousFundingRate: undefined;
+        previousFundingTimestamp: undefined;
+        previousFundingDatetime: undefined;
     };
     /**
      * @method
@@ -477,7 +473,7 @@ export default class bitfinex extends Exchange {
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
     setMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
-    parseMarginModification(data: any, market?: any): MarginModification;
+    parseMarginModification(data: any, market?: Market): MarginModification;
     /**
      * @method
      * @name bitfinex#fetchOrder

@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -63,15 +64,15 @@ class hibachi(Exchange, ImplicitAPI):
                 'editOrders': True,
                 'fetchAccounts': False,
                 'fetchBalance': True,
-                'fetchCanceledOrders': False,
+                'fetchCanceledOrders': True,
                 'fetchClosedOrder': False,
-                'fetchClosedOrders': False,
+                'fetchClosedOrders': True,
                 'fetchConvertCurrencies': False,
                 'fetchConvertQuote': False,
                 'fetchCurrencies': False,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchDepositsWithdrawals': False,
+                'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
                 'fetchFundingInterval': False,
                 'fetchFundingIntervals': False,
@@ -84,6 +85,7 @@ class hibachi(Exchange, ImplicitAPI):
                 'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
+                'fetchMySettlementHistory': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
@@ -93,6 +95,7 @@ class hibachi(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': False,
+                'fetchOrdersByStatus': True,
                 'fetchOrderTrades': False,
                 'fetchPosition': False,
                 'fetchPositionMode': False,
@@ -126,51 +129,57 @@ class hibachi(Exchange, ImplicitAPI):
                 '1w': '1w',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/7301bbb1-4f27-4167-8a55-75f74b14e973',
+                'logo': 'https://github.com/user-attachments/assets/f267bf5b-5c6c-45e2-9ce4-fb0af8a9d9ab',
                 'api': {
                     'public': 'https://data-api.hibachi.xyz',
                     'private': 'https://api.hibachi.xyz',
                 },
                 'www': 'https://www.hibachi.xyz/',
                 'referral': {
-                    'url': 'hibachi.xyz/r/ZBL2YFWIHU',
+                    'url': 'https://hibachi.xyz/r/ZBL2YFWIHU',
                 },
             },
             'api': {
                 'public': {
                     'get': {
-                        'market/exchange-info': 1,
-                        'market/data/trades': 1,
-                        'market/data/prices': 1,
-                        'market/data/stats': 1,
-                        'market/data/klines': 1,
-                        'market/data/orderbook': 1,
-                        'market/data/open-interest': 1,
-                        'market/data/funding-rates': 1,
-                        'exchange/utc-timestamp': 1,
+                        'market/exchange-info': {'cost': 1},
+                        'market/inventory': {'cost': 1},
+                        'market/data/prices': {'cost': 1},
+                        'market/data/stats': {'cost': 1},
+                        'market/data/trades': {'cost': 1},
+                        'market/data/klines': {'cost': 1},
+                        'market/data/open-interest': {'cost': 1},
+                        'market/data/orderbook': {'cost': 1},
+                        'market/data/funding-rates': {'cost': 1},
+                        'exchange/utc-timestamp': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
-                        'capital/deposit-info': 1,
-                        'capital/history': 1,
-                        'trade/account/trading_history': 1,
-                        'trade/account/info': 1,
-                        'trade/order': 1,
-                        'trade/account/trades': 1,
-                        'trade/orders': 1,
+                        'capital/balance': {'cost': 1},
+                        'capital/history': {'cost': 1},
+                        'capital/deposit-info': {'cost': 1},
+                        'trade/account/info': {'cost': 1},
+                        'trade/account/trades': {'cost': 1},
+                        'trade/account/trading_history': {'cost': 1},  # not in current docs, used by fetchLedger
+                        'trade/account/settlements_history': {'cost': 1},
+                        'trade/orders': {'cost': 1},
+                        'trade/order': {'cost': 1},
+                        'trade/orders/history': {'cost': 1},
                     },
                     'put': {
-                        'trade/order': 1,
+                        'trade/order': {'cost': 1},
                     },
                     'delete': {
-                        'trade/order': 1,
-                        'trade/orders': 1,
+                        'trade/order': {'cost': 1},
+                        'trade/orders': {'cost': 1},
                     },
                     'post': {
-                        'trade/order': 1,
-                        'trade/orders': 1,
-                        'capital/withdraw': 1,
+                        'trade/order': {'cost': 1},
+                        'trade/orders': {'cost': 1},
+                        'capital/withdraw': {'cost': 1},
+                        'capital/transfer': {'cost': 1},
+                        'trade/account/leverage': {'cost': 1},
                     },
                 },
             },
@@ -282,11 +291,11 @@ class hibachi(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'settlementSymbol')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        settleId: Str = self.safe_string(market, 'settlementSymbol')
-        settle: Str = self.safe_currency_code(settleId)
+        settleId = self.safe_string(market, 'settlementSymbol')
+        settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
         created = self.safe_integer_product(market, 'marketCreationTimestamp', 1000)
-        return {
+        return self.safe_market_structure({
             'id': marketId,
             'numericId': numericId,
             'symbol': symbol,
@@ -313,7 +322,7 @@ class hibachi(Exchange, ImplicitAPI):
             'optionType': None,
             'precision': {
                 'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'underlyingDecimals'))),
-                'price': self.parse_number(self.safe_list(market, 'orderbookGranularities')[0]) / 10000.0,
+                'price': self.parse_number(self.safe_value(self.safe_list(market, 'orderbookGranularities', []), 0)) / 10000.0,
             },
             'limits': {
                 'leverage': {
@@ -335,7 +344,7 @@ class hibachi(Exchange, ImplicitAPI):
             },
             'created': created,
             'info': market,
-        }
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -378,8 +387,8 @@ class hibachi(Exchange, ImplicitAPI):
     def hardcoded_currencies(self) -> Currencies:
         # Hibachi only supports USDT on Arbitrum at self time
         # We don't have an API endpoint to expose self information yet
-        result: dict = {}
-        networks: dict = {}
+        result = {}
+        networks = {}
         networkId = 'ARBITRUM'
         networks[networkId] = {
             'id': networkId,
@@ -400,33 +409,34 @@ class hibachi(Exchange, ImplicitAPI):
             'info': {},
         }
         code = self.safe_currency_code('USDT')
-        result[code] = self.safe_currency_structure({
-            'id': 'USDT',
-            'name': 'USDT',
-            'type': 'fiat',
-            'code': code,
-            'precision': self.parse_number('0.000001'),
-            'active': True,
-            'fee': None,
-            'networks': networks,
-            'deposit': True,
-            'withdraw': True,
-            'limits': {
-                'deposit': {
-                    'min': None,
-                    'max': None,
+        if code is not None:
+            result[code] = self.safe_currency_structure({
+                'id': 'USDT',
+                'name': 'USDT',
+                'type': 'fiat',
+                'code': code,
+                'precision': self.parse_number('0.000001'),
+                'active': True,
+                'fee': None,
+                'networks': networks,
+                'deposit': True,
+                'withdraw': True,
+                'limits': {
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
                 },
-                'withdraw': {
-                    'min': None,
-                    'max': None,
-                },
-            },
-            'info': {},
-        })
+                'info': {},
+            })
         return result
 
-    def parse_balance(self, response) -> Balances:
-        result: dict = {
+    def parse_balance(self, response: Any) -> Balances:
+        result = {
             'info': response,
         }
         # Hibachi only supports USDT on Arbitrum at self time
@@ -434,7 +444,8 @@ class hibachi(Exchange, ImplicitAPI):
         account = self.account()
         account['total'] = self.safe_string(response, 'balance')
         account['free'] = self.safe_string(response, 'maximalWithdraw')
-        result[code] = account
+        if code is not None:
+            result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -446,7 +457,7 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        request: dict = {
+        request = {
             'accountId': self.get_account_id(),
         }
         response = self.privateGetTradeAccountInfo(self.extend(request, params))
@@ -576,10 +587,11 @@ class hibachi(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch(maximum value is 100)
-        :param dict [params]: extra parameters specific to the hibachi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of recent [trade structures]
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -598,21 +610,26 @@ class hibachi(Exchange, ImplicitAPI):
         # }
         #
         trades = self.safe_list(response, 'trades', [])
-        return self.parse_trades(trades, market)
+        tradesList = []
+        if trades is not None:
+            tradesList = trades
+        return self.parse_trades(tradesList, market)
 
-    def fetch_ticker(self, symbol: Str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
 
-        https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+        https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e
+        https://api-doc.hibachi.xyz/#0064ca53-a2d0-41b9-8ade-6b2abf4ccb12
 
         fetches a price ticker and the related information for the past 24h
         :param str symbol: unified symbol of the market
-        :param dict [params]: extra parameters specific to the hibachi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         rawPromises = [
@@ -646,8 +663,9 @@ class hibachi(Exchange, ImplicitAPI):
         }
         return self.parse_ticker(ticker, market)
 
-    def parse_order_status(self, status: str) -> str:
-        statuses: dict = {
+    def parse_order_status(self, status: Str) -> Str:
+        uppercaseStatus = None if (status is None) else status.upper()
+        statuses = {
             'PENDING': 'open',
             'CHILD_PENDING': 'open',
             'SCHEDULED_TWAP': 'open',
@@ -655,16 +673,17 @@ class hibachi(Exchange, ImplicitAPI):
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
+            'PARTIAL_CANCELLED': 'canceled',
             'REJECTED': 'rejected',
         }
-        return self.safe_string(statuses, status, status)
+        return self.safe_string(statuses, uppercaseStatus, status)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         status = self.safe_string(order, 'status')
         type = self.safe_string_lower(order, 'orderType')
-        price = self.safe_string(order, 'price')
+        price = self.safe_string_2(order, 'price', 'avgFillPrice')
         rawSide = self.safe_string(order, 'side')
         side = None
         if rawSide == 'BID':
@@ -675,9 +694,12 @@ class hibachi(Exchange, ImplicitAPI):
         remaining = self.safe_string(order, 'availableQuantity')
         totalQuantity = self.safe_string(order, 'totalQuantity')
         availableQuantity = self.safe_string(order, 'availableQuantity')
-        filled = None
+        filled = self.safe_string(order, 'filledQuantity')
         if totalQuantity is not None and availableQuantity is not None:
             filled = Precise.string_sub(totalQuantity, availableQuantity)
+        remainingString = remaining
+        if remainingString is None and totalQuantity is not None and filled is not None:
+            remainingString = Precise.string_sub(totalQuantity, filled)
         timeInForce = 'GTC'
         orderFlags = self.safe_value(order, 'orderFlags')
         postOnly = False
@@ -689,24 +711,28 @@ class hibachi(Exchange, ImplicitAPI):
             timeInForce = 'IOC'
         elif orderFlags == 'REDUCE_ONLY':
             reduceOnly = True
+        timestamp = self.safe_integer(order, 'createdAt')
+        if timestamp is None:
+            timestamp = self.safe_integer_product(order, 'creationTime', 1000)
+        lastUpdateTimestamp = self.safe_integer(order, 'closedAt')
         return self.safe_order({
             'info': order,
             'id': self.safe_string(order, 'orderId'),
             'clientOrderId': None,
-            'datetime': None,
-            'timestamp': None,
+            'datetime': self.iso8601(timestamp),
+            'timestamp': timestamp,
             'lastTradeTimestamp': None,
-            'lastUpdateTimestamp': None,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'status': self.parse_order_status(status),
             'symbol': market['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
-            'average': None,
+            'average': self.safe_string(order, 'avgFillPrice'),
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': remainingString,
             'cost': None,
             'trades': None,
             'fee': None,
@@ -726,11 +752,12 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {
+        request = {
             'orderId': id,
             'accountId': self.get_account_id(),
         }
@@ -740,11 +767,15 @@ class hibachi(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fee
- @param params extra parameters
+
+        https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a map of market symbols to `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'accountId': self.get_account_id(),
         }
         response = self.privateGetTradeAccountInfo(self.extend(request, params))
@@ -754,9 +785,10 @@ class hibachi(Exchange, ImplicitAPI):
         #    },
         makerFeeRate = self.safe_number(response, 'tradeMakerFeeRate')
         takerFeeRate = self.safe_number(response, 'tradeTakerFeeRate')
-        result: dict = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        result = {}
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -766,7 +798,11 @@ class hibachi(Exchange, ImplicitAPI):
             }
         return result
 
-    def order_message(self, market, nonce: float, feeRate: float, type: OrderType, side: OrderSide, amount: float, price: Num = None):
+    def order_message(self, market: Any, nonce: float, feeRate: float, type: Str, side: Str, amount: Num, price: Num = None):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         sideInternal = 0
         if side == 'sell':
             sideInternal = 0
@@ -808,13 +844,22 @@ class hibachi(Exchange, ImplicitAPI):
             priceInternal = Precise.string_div(Precise.string_div(Precise.string_mul(Precise.string_mul(priceStr, priceFactor), settlement), underlying), one, 0)
             price16 = self.int_to_base16(self.parse_to_int(priceInternal))
             pricePadded = price16.rjust(16, '0')
+            # @ts-expect-error
             encodedPrice = self.base16_to_binary(pricePadded)
         message = self.binary_concat(encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate)
         return message
 
-    def create_order_request(self, nonce: float, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, nonce: float, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
-        feeRate = max(self.safe_number(market, 'taker', self.safe_number(self.options, 'defaultTakerFee', 0.00045)), self.safe_number(market, 'maker', self.safe_number(self.options, 'defaultMakerFee', 0.00015)))
+        takerFee = self.safe_number(market, 'taker', self.safe_number(self.options, 'defaultTakerFee', 0.00045))
+        makerFee = self.safe_number(market, 'maker', self.safe_number(self.options, 'defaultMakerFee', 0.00015))
+        takerFeeValue = 0 if (takerFee is None) else takerFee
+        makerFeeValue = 0 if (makerFee is None) else makerFee
+        feeRate = max(takerFeeValue, makerFeeValue)
         sideInternal = ''
         if side == 'sell':
             sideInternal = 'ASK'
@@ -864,7 +909,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         nonce = self.nonce()
         request = self.create_order_request(nonce, symbol, type, side, amount, price, params)
         request['accountId'] = self.get_account_id()
@@ -889,7 +935,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         nonce = self.nonce()
         requestOrders = []
         for i in range(0, len(orders)):
@@ -903,7 +950,7 @@ class hibachi(Exchange, ImplicitAPI):
             orderRequest = self.create_order_request(nonce + i, symbol, type, side, amount, price, orderParams)
             orderRequest['action'] = 'place'
             requestOrders.append(orderRequest)
-        request: dict = {
+        request = {
             'accountId': self.get_account_id(),
             'orders': requestOrders,
         }
@@ -912,7 +959,7 @@ class hibachi(Exchange, ImplicitAPI):
         # {"orders": [{nonce: '1754349993908', orderId: '589642085255349248'}]}
         #
         ret = []
-        responseOrders = self.safe_list(response, 'orders')
+        responseOrders = self.safe_list(response, 'orders', [])
         for i in range(0, len(responseOrders)):
             responseOrder = responseOrders[i]
             ret.append(self.safe_order({
@@ -922,9 +969,17 @@ class hibachi(Exchange, ImplicitAPI):
             }))
         return ret
 
-    def edit_order_request(self, nonce: float, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    def edit_order_request(self, nonce: float, id: Str, symbol: Str, type: Str, side: Str, amount: Num = None, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
-        feeRate = max(self.safe_number(market, 'taker'), self.safe_number(market, 'maker'))
+        takerFee = self.safe_number(market, 'taker', 0)
+        makerFee = self.safe_number(market, 'maker', 0)
+        takerFeeValue = 0 if (takerFee is None) else takerFee
+        makerFeeValue = 0 if (makerFee is None) else makerFee
+        feeRate = max(takerFeeValue, makerFeeValue)
         message = self.order_message(market, nonce, feeRate, type, side, amount, price)
         signature = self.sign_message(message, self.privateKey)
         request = {
@@ -952,7 +1007,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         nonce = self.nonce()
         request = self.edit_order_request(nonce, id, symbol, type, side, amount, price, params)
         request['accountId'] = self.get_account_id()
@@ -976,7 +1032,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         nonce = self.nonce()
         requestOrders = []
         for i in range(0, len(orders)):
@@ -991,7 +1048,7 @@ class hibachi(Exchange, ImplicitAPI):
             orderRequest = self.edit_order_request(nonce + i, id, symbol, type, side, amount, price, orderParams)
             orderRequest['action'] = 'modify'
             requestOrders.append(orderRequest)
-        request: dict = {
+        request = {
             'accountId': self.get_account_id(),
             'orders': requestOrders,
         }
@@ -1000,7 +1057,7 @@ class hibachi(Exchange, ImplicitAPI):
         # {"orders": [{"orderId": "589636801329628160"}]}
         #
         ret = []
-        responseOrders = self.safe_list(response, 'orders')
+        responseOrders = self.safe_list(response, 'orders', [])
         for i in range(0, len(responseOrders)):
             responseOrder = responseOrders[i]
             ret.append(self.safe_order({
@@ -1032,7 +1089,7 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = self.cancel_order_request(id)
+        request = self.cancel_order_request(id)
         request['accountId'] = self.get_account_id()
         response = self.privateDeleteTradeOrder(self.extend(request, params))
         # At self time the response body is empty. A 200 response means the cancel request is accepted and sent to cancel
@@ -1061,7 +1118,7 @@ class hibachi(Exchange, ImplicitAPI):
             orderRequest = self.cancel_order_request(ids[i])
             orderRequest['action'] = 'cancel'
             orders.append(orderRequest)
-        request: dict = {
+        request = {
             'accountId': self.get_account_id(),
             'orders': orders,
         }
@@ -1070,7 +1127,7 @@ class hibachi(Exchange, ImplicitAPI):
         # {"orders": [{"orderId": "589636801329628160"}]}
         #
         ret = []
-        responseOrders = self.safe_list(response, 'orders')
+        responseOrders = self.safe_list(response, 'orders', [])
         for i in range(0, len(responseOrders)):
             responseOrder = responseOrders[i]
             ret.append(self.safe_order({
@@ -1086,17 +1143,18 @@ class hibachi(Exchange, ImplicitAPI):
         https://api-doc.hibachi.xyz/#8ed24695-016e-49b2-a72d-7511ca921fee
 
         cancel all open orders in a market
-        :param str symbol: unified market symbol
+        :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         nonce = self.nonce()
         nonce16 = self.int_to_base16(nonce)
         noncePadded = nonce16.rjust(16, '0')
         message = self.base16_to_binary(noncePadded)
         signature = self.sign_message(message, self.privateKey)
-        request: dict = {
+        request = {
             'accountId': self.get_account_id(),
             'nonce': nonce,
             'signature': signature,
@@ -1115,7 +1173,7 @@ class hibachi(Exchange, ImplicitAPI):
             }),
         ]
 
-    def encode_withdraw_message(self, amount: float, maxFees: float, address: str):
+    def encode_withdraw_message(self, amount: Num, maxFees: Num, address: str):
         # Converting them to internal representation:
         # - Quantity: Internal = External * (10^6)
         # - maxFees: Internal = External * (10^6)
@@ -1212,7 +1270,7 @@ class hibachi(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign_message(self, message, privateKey):
+    def sign_message(self, message: Any, privateKey: Any):
         if len(privateKey) == 44:
             # For Exchange Managed account, the key length is 44 and we use HMAC to sign the message
             return self.hmac(message, self.encode(privateKey), hashlib.sha256, 'hex')
@@ -1229,16 +1287,17 @@ class hibachi(Exchange, ImplicitAPI):
         """
         fetches the state of the open orders on the orderbook
 
-        https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+        https://api-doc.hibachi.xyz/#c7a64b0d-9e37-4009-93e5-2aa12e8d7e9b
 
         :param str symbol: unified symbol of the market
         :param int [limit]: currently unused
         :param dict [params]: extra parameters to be passed -- see documentation link above
-        :returns dict: A dictionary containg `orderbook information <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
-        market: Market = self.market(symbol)
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
             'symbol': market['id'],
         }
         response = self.publicGetMarketDataOrderbook(self.extend(request, params))
@@ -1297,8 +1356,9 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
-        market: Market = None
+        if self.markets is None:
+            self.load_markets()
+        market = None
         if symbol is not None:
             market = self.market(symbol)
         request = {'accountId': self.get_account_id()}
@@ -1325,9 +1385,12 @@ class hibachi(Exchange, ImplicitAPI):
         # }
         #
         trades = self.safe_list(response, 'trades')
-        return self.parse_trades(trades, market, since, limit, params)
+        tradesList = []
+        if trades is not None:
+            tradesList = trades
+        return self.parse_trades(tradesList, market, since, limit, params)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         # [
         #     {
@@ -1350,7 +1413,7 @@ class hibachi(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volumeNotional'),
         ]
 
-    def fetch_open_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches all current open orders
 
@@ -1362,7 +1425,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1400,10 +1464,109 @@ class hibachi(Exchange, ImplicitAPI):
         # ]
         return self.parse_orders(response, market, since, limit)
 
+    def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+ @ignore
+        fetch orders filtered by terminal status
+
+        https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
+
+        :param str status: exchange specific terminal status
+        :param str [symbol]: unified market symbol to filter by
+        :param int [since]: timestamp in ms of the earliest order
+        :param int [limit]: the maximum number of orders to return
+        :param dict [params]: extra parameters
+        :param int [params.until]: timestamp in ms of the latest order
+        :param str [params.cursorOrderId]: pagination cursor, returns orders with orderId strictly less than self value
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = None
+        request = {
+            'accountId': self.get_account_id(),
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+        if status is not None:
+            request['status'] = status
+        if since is not None:
+            request['startTime'] = since
+        until = None
+        until, params = self.handle_option_and_params(params, 'fetchOrdersByStatus', 'until')
+        if until is not None:
+            request['endTime'] = until
+        response = self.privateGetTradeOrdersHistory(self.extend(request, params))
+        #
+        #     {
+        #         "hasMore": False,
+        #         "orders": [
+        #             {
+        #                 "accountId": 128,
+        #                 "avgFillPrice": "2900.000000",
+        #                 "closedAt": 1777811627000,
+        #                 "createdAt": 1777811620000,
+        #                 "filledQuantity": "1.200000000",
+        #                 "orderFlags": null,
+        #                 "orderId": "596002791293190100",
+        #                 "orderType": "MARKET",
+        #                 "parentOrderId": null,
+        #                 "price": null,
+        #                 "side": "BID",
+        #                 "sourceType": "regular",
+        #                 "status": "Filled",
+        #                 "symbol": "ETH/USDT-P",
+        #                 "totalQuantity": "1.200000000",
+        #                 "triggerDirection": null,
+        #                 "triggerPrice": null
+        #             }
+        #         ]
+        #     }
+        #
+        orders = self.safe_list(response, 'orders', [])
+        parsedOrders = self.parse_orders(orders, market)
+        return self.filter_by_symbol_since_limit(parsedOrders, symbol, since, limit)
+
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetches information on multiple closed orders made by the user
+
+        https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
+
+        :param str [symbol]: unified market symbol of the orders
+        :param int [since]: timestamp in ms of the earliest order
+        :param int [limit]: the maximum number of closed order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest order
+        :param str [params.cursorOrderId]: pagination cursor, returns orders with orderId strictly less than self value
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        orders = self.fetch_orders_by_status('filled', symbol, since, limit, params)
+        filtered = self.filter_by(orders, 'status', 'closed')
+        return self.filter_by_since_limit(filtered, since, limit)
+
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetches information on multiple canceled orders made by the user
+
+        https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
+
+        :param str [symbol]: unified market symbol of the orders
+        :param int [since]: timestamp in ms of the earliest order
+        :param int [limit]: the maximum number of canceled order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest order
+        :param str [params.cursorOrderId]: pagination cursor, returns orders with orderId strictly less than self value
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        orders = self.fetch_orders_by_status(None, symbol, since, limit, params)
+        filtered = self.filter_by(orders, 'status', 'canceled')
+        return self.filter_by_since_limit(filtered, since, limit)
+
     def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
-         https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
+        https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
 
         fetches historical candlestick data containing the close, high, low, open prices, interval and the volumeNotional
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1414,16 +1577,17 @@ class hibachi(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         timeframe = self.safe_string(self.timeframes, timeframe, timeframe)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'interval': timeframe,
         }
         if since is not None:
             request['fromMs'] = since
-        until: Int = None
+        until = None
         until, params = self.handle_option_and_params(params, 'fetchOHLCV', 'until')
         if until is not None:
             request['toMs'] = until
@@ -1454,9 +1618,10 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
-        request: dict = {
+        request = {
             'accountId': self.get_account_id(),
         }
         response = self.privateGetTradeAccountInfo(self.extend(request, params))
@@ -1551,7 +1716,7 @@ class hibachi(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint
         headers = {'Hibachi-Client': 'HibachiCCXT/unversioned'}
@@ -1568,7 +1733,7 @@ class hibachi(Exchange, ImplicitAPI):
             headers['Authorization'] = self.apiKey
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         if 'status' in response:
@@ -1586,8 +1751,8 @@ class hibachi(Exchange, ImplicitAPI):
                 raise ExchangeError(feedback)
         return None
 
-    def parse_transaction_type(self, type):
-        types: dict = {
+    def parse_transaction_type(self, type: Any):
+        types = {
             'deposit': 'transaction',
             'withdrawal': 'transaction',
             'transfer-in': 'transfer',
@@ -1595,8 +1760,8 @@ class hibachi(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_transaction_status(self, status):
-        statuses: dict = {
+    def parse_transaction_status(self, status: Str):
+        statuses = {
             'pending': 'pending',
             'claimable': 'pending',
             'completed': 'ok',
@@ -1669,7 +1834,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency('USDT')
         request = {'accountId': self.get_account_id()}
         rawPromises = [
@@ -1691,7 +1857,7 @@ class hibachi(Exchange, ImplicitAPI):
         #             "status": "pending",
         #             "timestampSec": 1752692872,
         #             "token": "USDT",
-        #             "transactionHash": "0x408e48881e0ba77d8638e3fe57bc06bdec513ddaa8b672e0aefa7e22e2f18b5e",
+        #             "transactionHash": "0x408e48881e0ba77d8638e3fe57bc06bdec513ddaa8b672e0aefa7e22e2f18b4e",
         #             "transactionType": "deposit"
         #         },
         #         {
@@ -1731,7 +1897,7 @@ class hibachi(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        rowsCapitalHistory = self.safe_list(responseCapitalHistory, 'transactions')
+        rowsCapitalHistory = self.safe_list(responseCapitalHistory, 'transactions', [])
         responseTradingHistory = promises[1]
         #
         # {
@@ -1759,13 +1925,16 @@ class hibachi(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        rowsTradingHistory = self.safe_list(responseTradingHistory, 'tradingHistory')
+        rowsTradingHistory = self.safe_list(responseTradingHistory, 'tradingHistory', [])
         rows = self.array_concat(rowsCapitalHistory, rowsTradingHistory)
         return self.parse_ledger(rows, currency, since, limit, params)
 
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch deposit address for given currency and chain. currently, we have a single EVM address across multiple EVM chains. Note: This method is currently only supported for trustless accounts
+
+        https://api-doc.hibachi.xyz/#6fa35580-3d45-4b59-854d-c9326db06af5
+
         :param str code: unified currency code
         :param dict [params]: extra parameters for API
         :param str [params.publicKey]: your public key, you can get it from UI after creating API key
@@ -1816,16 +1985,16 @@ class hibachi(Exchange, ImplicitAPI):
             'fee': None,
         }
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
-        fetch deposits made to account
+        fetch deposit and withdrawal history for the account
 
         https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
 
         :param str [code]: unified currency code
-        :param int [since]: filter by earliest timestamp(ms)
-        :param int [limit]: maximum number of deposits to be returned
-        :param dict [params]: extra parameters to be passed to API
+        :param int [since]: timestamp in ms of the earliest transaction
+        :param int [limit]: the maximum number of transactions to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         currency = self.safe_currency(code)
@@ -1864,13 +2033,24 @@ class hibachi(Exchange, ImplicitAPI):
         #         },
         #     ]
         # }
-        transactions = self.safe_list(response, 'transactions')
-        deposits = []
-        for i in range(0, len(transactions)):
-            transaction = transactions[i]
-            if self.safe_string(transaction, 'transactionType') == 'deposit':
-                deposits.append(transaction)
-        return self.parse_transactions(deposits, currency, since, limit, params)
+        transactions = self.safe_list(response, 'transactions', [])
+        return self.parse_transactions(transactions, currency, since, limit, params)
+
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+        """
+        fetch deposits made to account
+
+        https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+
+        :param str [code]: unified currency code
+        :param int [since]: filter by earliest timestamp(ms)
+        :param int [limit]: maximum number of deposits to be returned
+        :param dict [params]: extra parameters to be passed to API
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
+        """
+        transactions = self.fetch_deposits_withdrawals(code, since, None, params)
+        deposits = self.filter_by(transactions, 'type', 'deposit')
+        return self.filter_by_since_limit(deposits, since, limit, 'timestamp')
 
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
@@ -1884,55 +2064,94 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters to be passed to API
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        currency = self.safe_currency(code)
+        transactions = self.fetch_deposits_withdrawals(code, since, None, params)
+        withdrawals = self.filter_by(transactions, 'type', 'withdrawal')
+        return self.filter_by_since_limit(withdrawals, since, limit, 'timestamp')
+
+    def parse_settlement(self, settlement: Any, market: Market = None):
+        #
+        #     {
+        #         "direction": "Long",
+        #         "indexPrice": "81.8781761",
+        #         "quantity": "0.10000000",
+        #         "settledAmount": "0.00005994405060281047",
+        #         "symbol": "SOL/USDT-P",
+        #         "timestamp": 1783389600,
+        #         "timestampNsPartial": 0
+        #     }
+        #
+        timestamp = self.safe_timestamp(settlement, 'timestamp')
+        marketId = self.safe_string(settlement, 'symbol')
+        return {
+            'info': settlement,
+            'symbol': self.safe_symbol(marketId, market),
+            'price': self.safe_number(settlement, 'indexPrice'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+
+    def parse_settlements(self, settlements: Any, market: Market = None):
+        result = []
+        for i in range(0, len(settlements)):
+            result.append(self.parse_settlement(settlements[i], market))
+        return result
+
+    def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches historical settlement records of the user
+
+        https://api-doc.hibachi.xyz/#28185336-04b7-4480-bcc8-a33516ad458b
+
+        :param str [symbol]: unified market symbol of the settlement history
+        :param int [since]: timestamp in ms of the earliest settlement
+        :param int [limit]: the maximum number of settlements to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest settlement
+        :returns dict[]: a list of `settlement history objects <https://docs.ccxt.com/#/?id=settlement-history-structure>`
+        """
+        self.load_markets()
+        market = None
         request = {
             'accountId': self.get_account_id(),
         }
-        response = self.privateGetCapitalHistory(self.extend(request, params))
-        # {
-        #     "transactions": [
-        #         {
-        #             "assetId": 1,
-        #             "blockNumber": 0,
-        #             "chain": null,
-        #             "etaTsSec": 1752758789,
-        #             "id": 42688,
-        #             "quantity": "6.130000",
-        #             "status": "completed",
-        #             "timestampSec": 1752758788,
-        #             "token": null,
-        #             "transactionHash": "0x8dcd7bd1155b5624fb5e38a1365888f712ec633a57434340e05080c70b0e3bba",
-        #             "transactionType": "deposit"
-        #         },
-        #         {
-        #             "assetId": 1,
-        #             "etaTsSec": null,
-        #             "id": 12993,
-        #             "instantWithdrawalChain": null,
-        #             "instantWithdrawalToken": null,
-        #             "isInstantWithdrawal": False,
-        #             "quantity": "0.111930",
-        #             "status": "completed",
-        #             "timestampSec": 1752387891,
-        #             "transactionHash": "0x32ab5fe5b90f6d753bab83523ebc8465eb9daef54580e13cb9ff031d400c5620",
-        #             "transactionType": "withdrawal",
-        #             "withdrawalAddress": "0x43f15ef2ef2ab5e61e987ee3d652a5872aea8a6c"
-        #         },
-        #     ]
-        # }
-        transactions = self.safe_list(response, 'transactions')
-        withdrawals = []
-        for i in range(0, len(transactions)):
-            transaction = transactions[i]
-            if self.safe_string(transaction, 'transactionType') == 'withdrawal':
-                withdrawals.append(transaction)
-        return self.parse_transactions(withdrawals, currency, since, limit, params)
+        if symbol is not None:
+            market = self.market(symbol)
+            request['contractId'] = market['numericId']
+            symbol = market['symbol']
+        if since is not None:
+            request['startTime'] = self.parse_to_int(since / 1000)
+        if limit is not None:
+            request['limit'] = limit
+        until = None
+        until, params = self.handle_option_and_params(params, 'fetchMySettlementHistory', 'until')
+        if until is not None:
+            request['endTime'] = self.parse_to_int(until / 1000)
+        response = self.privateGetTradeAccountSettlementsHistory(self.extend(request, params))
+        #
+        #     {
+        #         "settlements": [
+        #             {
+        #                 "direction": "Long",
+        #                 "indexPrice": "81.8781761",
+        #                 "quantity": "0.10000000",
+        #                 "settledAmount": "0.00005994405060281047",
+        #                 "symbol": "SOL/USDT-P",
+        #                 "timestamp": 1783389600,
+        #                 "timestampNsPartial": 0
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'settlements', [])
+        settlements = self.parse_settlements(data, market)
+        sorted = self.sort_by(settlements, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
-        http://api-doc.hibachi.xyz/#b5c6a3bc-243d-4d35-b6d4-a74c92495434
+        https://api-doc.hibachi.xyz/#3277e546-4cb0-4d30-a832-717af0de9b20
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -1953,9 +2172,10 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = self.publicGetMarketDataOpenInterest(self.extend(request, params))
@@ -1982,9 +2202,10 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = self.publicGetMarketDataPrices(self.extend(request, params))
@@ -2030,7 +2251,7 @@ class hibachi(Exchange, ImplicitAPI):
         """
         fetches historical funding rate prices
 
-        https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+        https://api-doc.hibachi.xyz/#079586af-0d94-41ea-99bb-7afcd93bf438
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
@@ -2038,9 +2259,10 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = self.publicGetMarketDataFundingRates(self.extend(request, params))
@@ -2056,7 +2278,7 @@ class hibachi(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        data = self.safe_list(response, 'data')
+        data = self.safe_list(response, 'data', [])
         rates = []
         for i in range(0, len(data)):
             entry = data[i]

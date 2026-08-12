@@ -48,3 +48,12 @@ try
 trrigger!
 go!!!
 build
+!
+go
+.
+!!
+.
+!!
+!
+!!1
+!!!!

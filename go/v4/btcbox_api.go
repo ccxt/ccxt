@@ -7,46 +7,57 @@
 
 package ccxt
 
-func (this *BtcboxCore) PublicGetDepth(args ...interface{}) <-chan interface{} {
+// PublicGetDepth returns a channel that yields a JSON object.
+func (this *BtcboxCore) PublicGetDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetDepth", args...)
 }
 
-func (this *BtcboxCore) PublicGetOrders(args ...interface{}) <-chan interface{} {
+// PublicGetOrders returns a channel that yields a JSON array.
+func (this *BtcboxCore) PublicGetOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrders", args...)
 }
 
-func (this *BtcboxCore) PublicGetTicker(args ...interface{}) <-chan interface{} {
+// PublicGetTicker returns a channel that yields a JSON object.
+func (this *BtcboxCore) PublicGetTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *BtcboxCore) PublicGetTickers(args ...interface{}) <-chan interface{} {
+// PublicGetTickers returns a channel that yields a JSON object.
+func (this *BtcboxCore) PublicGetTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *BtcboxCore) PrivatePostBalance(args ...interface{}) <-chan interface{} {
+// PrivatePostBalance returns a channel that yields a JSON object.
+func (this *BtcboxCore) PrivatePostBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBalance", args...)
 }
 
-func (this *BtcboxCore) PrivatePostTradeAdd(args ...interface{}) <-chan interface{} {
+// PrivatePostTradeAdd returns a channel that yields a JSON object.
+func (this *BtcboxCore) PrivatePostTradeAdd(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeAdd", args...)
 }
 
-func (this *BtcboxCore) PrivatePostTradeCancel(args ...interface{}) <-chan interface{} {
+// PrivatePostTradeCancel returns a channel that yields a JSON object.
+func (this *BtcboxCore) PrivatePostTradeCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeCancel", args...)
 }
 
-func (this *BtcboxCore) PrivatePostTradeList(args ...interface{}) <-chan interface{} {
+// PrivatePostTradeList returns a channel that yields a JSON array.
+func (this *BtcboxCore) PrivatePostTradeList(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeList", args...)
 }
 
-func (this *BtcboxCore) PrivatePostTradeView(args ...interface{}) <-chan interface{} {
+// PrivatePostTradeView returns a channel that yields a JSON object.
+func (this *BtcboxCore) PrivatePostTradeView(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeView", args...)
 }
 
-func (this *BtcboxCore) PrivatePostWallet(args ...interface{}) <-chan interface{} {
+// PrivatePostWallet returns a channel that yields a JSON object.
+func (this *BtcboxCore) PrivatePostWallet(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWallet", args...)
 }
 
-func (this *BtcboxCore) WebApiGetAjaxCoinCoinInfo(args ...interface{}) <-chan interface{} {
+// WebApiGetAjaxCoinCoinInfo returns a channel that yields a JSON object.
+func (this *BtcboxCore) WebApiGetAjaxCoinCoinInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("webApiGetAjaxCoinCoinInfo", args...)
 }

@@ -21,7 +21,7 @@ public partial class cryptocom : Exchange
                 { "margin", true },
                 { "swap", true },
                 { "future", true },
-                { "option", true },
+                { "option", false },
                 { "addMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
@@ -146,167 +146,425 @@ public partial class cryptocom : Exchange
                 { "base", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "v1/public/get-announcements", 1 },
+                            { "v1/public/get-announcements", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
                 { "v1", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "public/auth", divide(10, 3) },
-                            { "public/get-instruments", divide(10, 3) },
-                            { "public/get-book", 1 },
-                            { "public/get-candlestick", 1 },
-                            { "public/get-trades", 1 },
-                            { "public/get-tickers", 1 },
-                            { "public/get-valuations", 1 },
-                            { "public/get-expired-settlement-price", divide(10, 3) },
-                            { "public/get-insurance", 1 },
-                            { "public/get-announcements", 1 },
-                            { "public/get-risk-parameters", 1 },
+                            { "public/auth", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "public/get-instruments", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "public/get-book", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-candlestick", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-tickers", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-valuations", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-expired-settlement-price", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "public/get-insurance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-announcements", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-risk-parameters", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "public/staking/get-conversion-rate", 2 },
+                            { "public/staking/get-conversion-rate", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
-                            { "private/set-cancel-on-disconnect", divide(10, 3) },
-                            { "private/get-cancel-on-disconnect", divide(10, 3) },
-                            { "private/user-balance", divide(10, 3) },
-                            { "private/user-balance-history", divide(10, 3) },
-                            { "private/get-positions", divide(10, 3) },
-                            { "private/create-order", divide(2, 3) },
-                            { "private/amend-order", divide(4, 3) },
-                            { "private/create-order-list", divide(10, 3) },
-                            { "private/cancel-order", divide(2, 3) },
-                            { "private/cancel-order-list", divide(10, 3) },
-                            { "private/cancel-all-orders", divide(2, 3) },
-                            { "private/close-position", divide(10, 3) },
-                            { "private/get-order-history", 100 },
-                            { "private/get-open-orders", divide(10, 3) },
-                            { "private/get-order-detail", divide(1, 3) },
-                            { "private/get-trades", 100 },
-                            { "private/change-account-leverage", divide(10, 3) },
-                            { "private/get-transactions", divide(10, 3) },
-                            { "private/create-subaccount-transfer", divide(10, 3) },
-                            { "private/get-subaccount-balances", divide(10, 3) },
-                            { "private/get-order-list", divide(10, 3) },
-                            { "private/create-withdrawal", divide(10, 3) },
-                            { "private/get-currency-networks", divide(10, 3) },
-                            { "private/get-deposit-address", divide(10, 3) },
-                            { "private/get-accounts", divide(10, 3) },
-                            { "private/get-withdrawal-history", divide(10, 3) },
-                            { "private/get-deposit-history", divide(10, 3) },
-                            { "private/get-fee-rate", 2 },
-                            { "private/get-instrument-fee-rate", 2 },
-                            { "private/fiat/fiat-deposit-info", divide(10, 3) },
-                            { "private/fiat/fiat-deposit-history", divide(10, 3) },
-                            { "private/fiat/fiat-withdraw-history", divide(10, 3) },
-                            { "private/fiat/fiat-create-withdraw", divide(10, 3) },
-                            { "private/fiat/fiat-transaction-quota", divide(10, 3) },
-                            { "private/fiat/fiat-transaction-limit", divide(10, 3) },
-                            { "private/fiat/fiat-get-bank-accounts", divide(10, 3) },
-                            { "private/staking/stake", 2 },
-                            { "private/staking/unstake", 2 },
-                            { "private/staking/get-staking-position", 2 },
-                            { "private/staking/get-staking-instruments", 2 },
-                            { "private/staking/get-open-stake", 2 },
-                            { "private/staking/get-stake-history", 2 },
-                            { "private/staking/get-reward-history", 2 },
-                            { "private/staking/convert", 2 },
-                            { "private/staking/get-open-convert", 2 },
-                            { "private/staking/get-convert-history", 2 },
-                            { "private/create-isolated-margin-transfer", divide(10, 3) },
-                            { "private/change-isolated-margin-leverage", divide(10, 3) },
+                            { "private/set-cancel-on-disconnect", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-cancel-on-disconnect", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/user-balance", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/user-balance-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-positions", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/create-order", new Dictionary<string, object>() {
+                                { "cost", divide(2, 3) },
+                            } },
+                            { "private/amend-order", new Dictionary<string, object>() {
+                                { "cost", divide(4, 3) },
+                            } },
+                            { "private/create-order-list", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/cancel-order", new Dictionary<string, object>() {
+                                { "cost", divide(2, 3) },
+                            } },
+                            { "private/cancel-order-list", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/cancel-all-orders", new Dictionary<string, object>() {
+                                { "cost", divide(2, 3) },
+                            } },
+                            { "private/close-position", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-order-history", new Dictionary<string, object>() {
+                                { "cost", 100 },
+                            } },
+                            { "private/get-open-orders", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-order-detail", new Dictionary<string, object>() {
+                                { "cost", divide(1, 3) },
+                            } },
+                            { "private/get-trades", new Dictionary<string, object>() {
+                                { "cost", 100 },
+                            } },
+                            { "private/change-account-leverage", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-transactions", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/create-subaccount-transfer", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-subaccount-balances", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-order-list", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/create-withdrawal", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-currency-networks", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-deposit-address", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-accounts", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-withdrawal-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-deposit-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-fee-rate", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/get-instrument-fee-rate", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/fiat/fiat-deposit-info", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/fiat/fiat-deposit-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/fiat/fiat-withdraw-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/fiat/fiat-create-withdraw", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/fiat/fiat-transaction-quota", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/fiat/fiat-transaction-limit", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/fiat/fiat-get-bank-accounts", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/staking/stake", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/staking/unstake", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/staking/get-staking-position", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/staking/get-staking-instruments", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/staking/get-open-stake", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/staking/get-stake-history", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/staking/get-reward-history", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/staking/convert", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/staking/get-open-convert", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/staking/get-convert-history", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "private/create-isolated-margin-transfer", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/change-isolated-margin-leverage", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
                         } },
                     } },
                 } },
                 { "v2", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "public/auth", 1 },
-                            { "public/get-instruments", 1 },
-                            { "public/get-book", 1 },
-                            { "public/get-candlestick", 1 },
-                            { "public/get-ticker", 1 },
-                            { "public/get-trades", 1 },
-                            { "public/margin/get-transfer-currencies", 1 },
-                            { "public/margin/get-load-currenices", 1 },
-                            { "public/respond-heartbeat", 1 },
+                            { "public/auth", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-instruments", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-book", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-candlestick", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-ticker", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/margin/get-transfer-currencies", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/margin/get-load-currenices", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/respond-heartbeat", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
-                            { "private/set-cancel-on-disconnect", divide(10, 3) },
-                            { "private/get-cancel-on-disconnect", divide(10, 3) },
-                            { "private/create-withdrawal", divide(10, 3) },
-                            { "private/get-withdrawal-history", divide(10, 3) },
-                            { "private/get-currency-networks", divide(10, 3) },
-                            { "private/get-deposit-history", divide(10, 3) },
-                            { "private/get-deposit-address", divide(10, 3) },
-                            { "private/export/create-export-request", divide(10, 3) },
-                            { "private/export/get-export-requests", divide(10, 3) },
-                            { "private/export/download-export-output", divide(10, 3) },
-                            { "private/get-account-summary", divide(10, 3) },
-                            { "private/create-order", divide(2, 3) },
-                            { "private/cancel-order", divide(2, 3) },
-                            { "private/cancel-all-orders", divide(2, 3) },
-                            { "private/create-order-list", divide(10, 3) },
-                            { "private/get-order-history", divide(10, 3) },
-                            { "private/get-open-orders", divide(10, 3) },
-                            { "private/get-order-detail", divide(1, 3) },
-                            { "private/get-trades", 100 },
-                            { "private/get-accounts", divide(10, 3) },
-                            { "private/get-subaccount-balances", divide(10, 3) },
-                            { "private/create-subaccount-transfer", divide(10, 3) },
-                            { "private/otc/get-otc-user", divide(10, 3) },
-                            { "private/otc/get-instruments", divide(10, 3) },
-                            { "private/otc/request-quote", 100 },
-                            { "private/otc/accept-quote", 100 },
-                            { "private/otc/get-quote-history", divide(10, 3) },
-                            { "private/otc/get-trade-history", divide(10, 3) },
-                            { "private/otc/create-order", divide(10, 3) },
+                            { "private/set-cancel-on-disconnect", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-cancel-on-disconnect", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/create-withdrawal", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-withdrawal-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-currency-networks", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-deposit-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-deposit-address", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/export/create-export-request", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/export/get-export-requests", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/export/download-export-output", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-account-summary", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/create-order", new Dictionary<string, object>() {
+                                { "cost", divide(2, 3) },
+                            } },
+                            { "private/cancel-order", new Dictionary<string, object>() {
+                                { "cost", divide(2, 3) },
+                            } },
+                            { "private/cancel-all-orders", new Dictionary<string, object>() {
+                                { "cost", divide(2, 3) },
+                            } },
+                            { "private/create-order-list", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-order-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-open-orders", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-order-detail", new Dictionary<string, object>() {
+                                { "cost", divide(1, 3) },
+                            } },
+                            { "private/get-trades", new Dictionary<string, object>() {
+                                { "cost", 100 },
+                            } },
+                            { "private/get-accounts", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-subaccount-balances", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/create-subaccount-transfer", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/otc/get-otc-user", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/otc/get-instruments", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/otc/request-quote", new Dictionary<string, object>() {
+                                { "cost", 100 },
+                            } },
+                            { "private/otc/accept-quote", new Dictionary<string, object>() {
+                                { "cost", 100 },
+                            } },
+                            { "private/otc/get-quote-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/otc/get-trade-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/otc/create-order", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
                         } },
                     } },
                 } },
                 { "derivatives", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "public/auth", divide(10, 3) },
-                            { "public/get-instruments", divide(10, 3) },
-                            { "public/get-book", 1 },
-                            { "public/get-candlestick", 1 },
-                            { "public/get-trades", 1 },
-                            { "public/get-tickers", 1 },
-                            { "public/get-valuations", 1 },
-                            { "public/get-expired-settlement-price", divide(10, 3) },
-                            { "public/get-insurance", 1 },
+                            { "public/auth", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "public/get-instruments", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "public/get-book", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-candlestick", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-tickers", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-valuations", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/get-expired-settlement-price", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "public/get-insurance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
-                            { "private/set-cancel-on-disconnect", divide(10, 3) },
-                            { "private/get-cancel-on-disconnect", divide(10, 3) },
-                            { "private/user-balance", divide(10, 3) },
-                            { "private/user-balance-history", divide(10, 3) },
-                            { "private/get-positions", divide(10, 3) },
-                            { "private/create-order", divide(2, 3) },
-                            { "private/create-order-list", divide(10, 3) },
-                            { "private/cancel-order", divide(2, 3) },
-                            { "private/cancel-order-list", divide(10, 3) },
-                            { "private/cancel-all-orders", divide(2, 3) },
-                            { "private/close-position", divide(10, 3) },
-                            { "private/convert-collateral", divide(10, 3) },
-                            { "private/get-order-history", 100 },
-                            { "private/get-open-orders", divide(10, 3) },
-                            { "private/get-order-detail", divide(1, 3) },
-                            { "private/get-trades", 100 },
-                            { "private/change-account-leverage", divide(10, 3) },
-                            { "private/get-transactions", divide(10, 3) },
-                            { "private/create-subaccount-transfer", divide(10, 3) },
-                            { "private/get-subaccount-balances", divide(10, 3) },
-                            { "private/get-order-list", divide(10, 3) },
+                            { "private/set-cancel-on-disconnect", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-cancel-on-disconnect", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/user-balance", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/user-balance-history", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-positions", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/create-order", new Dictionary<string, object>() {
+                                { "cost", divide(2, 3) },
+                            } },
+                            { "private/create-order-list", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/cancel-order", new Dictionary<string, object>() {
+                                { "cost", divide(2, 3) },
+                            } },
+                            { "private/cancel-order-list", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/cancel-all-orders", new Dictionary<string, object>() {
+                                { "cost", divide(2, 3) },
+                            } },
+                            { "private/close-position", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/convert-collateral", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-order-history", new Dictionary<string, object>() {
+                                { "cost", 100 },
+                            } },
+                            { "private/get-open-orders", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-order-detail", new Dictionary<string, object>() {
+                                { "cost", divide(1, 3) },
+                            } },
+                            { "private/get-trades", new Dictionary<string, object>() {
+                                { "cost", 100 },
+                            } },
+                            { "private/change-account-leverage", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-transactions", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/create-subaccount-transfer", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-subaccount-balances", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/get-order-list", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
                         } },
                     } },
                 } },
@@ -335,6 +593,7 @@ public partial class cryptocom : Exchange
                     { "BEP20", "BSC" },
                     { "ERC20", "ETH" },
                     { "TRC20", "TRON" },
+                    { "ARBITRUM", "ARB" },
                 } },
                 { "broker", "CCXT" },
             } },
@@ -442,6 +701,7 @@ public partial class cryptocom : Exchange
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
+                    { "213", typeof(InvalidOrder) },
                     { "219", typeof(InvalidOrder) },
                     { "306", typeof(InsufficientFunds) },
                     { "314", typeof(InvalidOrder) },
@@ -533,7 +793,8 @@ public partial class cryptocom : Exchange
             response = await this.v1PrivatePostPrivateGetCurrencyNetworks(parameters);
         } catch(Exception e)
         {
-            if (isTrue(e is ExchangeError))
+            object erString = this.exceptionMessage(e);
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(erString, "SYS_ERROR"), 0)))
             {
                 // sub-accounts can't access this endpoint
                 // {"code":"10001","msg":"SYS_ERROR"}
@@ -585,21 +846,23 @@ public partial class cryptocom : Exchange
         //
         object resultData = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object currencyMap = this.safeDict(resultData, "currency_map", new Dictionary<string, object>() {});
-        object keys = new List<object>(((IDictionary<string,object>)currencyMap).Keys);
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        object enhancedArray = this.addKeyInArrayItems(currencyMap, "_coin_id");
+        return this.parseCurrencies(enhancedArray);
+    }
+
+    public override object parseCurrency(object currency)
+    {
+        object id = this.safeString(currency, "_coin_id");
+        object code = this.safeCurrencyCode(id);
+        object networks = new Dictionary<string, object>() {};
+        object chains = this.safeList(currency, "network_list", new List<object>() {});
+        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
-            object key = getValue(keys, i);
-            object currency = getValue(currencyMap, key);
-            object id = key;
-            object code = this.safeCurrencyCode(id);
-            object networks = new Dictionary<string, object>() {};
-            object chains = this.safeList(currency, "network_list", new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+            object chain = getValue(chains, j);
+            object networkId = this.safeString(chain, "network_id");
+            object network = this.networkIdToCode(networkId, code);
+            if (isTrue(!isEqual(network, null)))
             {
-                object chain = getValue(chains, j);
-                object networkId = this.safeString(chain, "network_id");
-                object network = this.networkIdToCode(networkId);
                 ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
                     { "info", chain },
                     { "id", networkId },
@@ -617,27 +880,26 @@ public partial class cryptocom : Exchange
                     } },
                 };
             }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", currency },
-                { "id", id },
-                { "code", code },
-                { "name", this.safeString(currency, "full_name") },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "precision", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "type", "crypto" },
-                { "networks", networks },
-            });
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", currency },
+            { "id", id },
+            { "code", code },
+            { "name", this.safeString(currency, "full_name") },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", null },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "type", "crypto" },
+            { "networks", networks },
+        });
     }
 
     /**
@@ -786,6 +1048,8 @@ public partial class cryptocom : Exchange
                 symbol = add(add(add(add(add(add(add(add(symbol, ":"), quote), "-"), this.yymmdd(expiry)), "-"), strike), "-"), symbolOptionType);
                 contract = true;
             }
+            object isLinear = ((bool) isTrue((contract))) ? true : null;
+            object isInverse = ((bool) isTrue((contract))) ? false : null;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "symbol") },
                 { "symbol", symbol },
@@ -803,8 +1067,8 @@ public partial class cryptocom : Exchange
                 { "option", option },
                 { "active", this.safeBool(market, "tradable") },
                 { "contract", contract },
-                { "linear", ((bool) isTrue((contract))) ? true : null },
-                { "inverse", ((bool) isTrue((contract))) ? false : null },
+                { "linear", isLinear },
+                { "inverse", isInverse },
                 { "contractSize", this.safeNumber(market, "contract_size") },
                 { "expiry", expiry },
                 { "expiryDatetime", this.iso8601(expiry) },
@@ -852,7 +1116,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
@@ -915,7 +1182,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object tickers = await this.fetchTickers(new List<object>() {symbol}, parameters);
         return this.safeValue(tickers, symbol);
@@ -937,7 +1207,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -1028,7 +1301,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -1099,7 +1375,10 @@ public partial class cryptocom : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -1174,12 +1453,15 @@ public partial class cryptocom : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the number of order book entries to return, max 50
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
@@ -1230,7 +1512,10 @@ public partial class cryptocom : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "quantity");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "reserved_qty");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1246,7 +1531,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.v1PrivatePostPrivateUserBalance(parameters);
         //
         //     {
@@ -1307,7 +1595,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -1357,11 +1648,19 @@ public partial class cryptocom : Exchange
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
         object uppercaseType = ((string)type).ToUpper();
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
-            { "side", ((string)side).ToUpper() },
+            { "side", ((string)((string)side)).ToUpper() },
             { "quantity", this.amountToPrecision(symbol, amount) },
         };
         if (isTrue(isTrue(isTrue((isEqual(uppercaseType, "LIMIT"))) || isTrue((isEqual(uppercaseType, "STOP_LIMIT")))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))))
@@ -1510,7 +1809,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = await this.v1PrivatePostPrivateCreateOrder(request);
@@ -1542,7 +1844,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object ordersRequests = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
@@ -1617,16 +1922,24 @@ public partial class cryptocom : Exchange
 
     public virtual object createAdvancedOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         // differs slightly from createOrderRequest
         // since the advanced order endpoint requires a different set of parameters
         // namely here we don't support ref_price or spot_margin
         // and market-buy orders need to send notional instead of quantity
-        parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
         object uppercaseType = ((string)type).ToUpper();
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
-            { "side", ((string)side).ToUpper() },
+            { "side", ((string)((string)side)).ToUpper() },
         };
         if (isTrue(isTrue(isTrue((isEqual(uppercaseType, "LIMIT"))) || isTrue((isEqual(uppercaseType, "STOP_LIMIT")))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))))
         {
@@ -1787,7 +2100,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = this.editOrderRequest(id, symbol, amount, price, parameters);
         object response = await this.v1PrivatePostPrivateAmendOrder(request);
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
@@ -1827,14 +2143,17 @@ public partial class cryptocom : Exchange
      * @name cryptocom#cancelAllOrders
      * @description cancel all open orders
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
-     * @param {string} symbol unified market symbol of the orders to cancel
+     * @param {string} [symbol] unified market symbol of the orders to cancel
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} Returns exchange raw message{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
@@ -1861,7 +2180,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -1904,7 +2226,10 @@ public partial class cryptocom : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object orderRequests = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
@@ -1937,7 +2262,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> cancelOrdersForSymbols(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object orderRequests = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
@@ -1947,7 +2275,7 @@ public partial class cryptocom : Exchange
             object market = this.market(symbol);
             object orderItem = new Dictionary<string, object>() {
                 { "instrument_name", getValue(market, "id") },
-                { "order_id", ((object)id).ToString() },
+                { "order_id", ((object)((string)id)).ToString() },
             };
             ((IList<object>)orderRequests).Add(orderItem);
         }
@@ -1974,7 +2302,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
@@ -2041,7 +2372,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -2116,7 +2450,7 @@ public partial class cryptocom : Exchange
             var addressrawTagVariable = ((string)addressString).Split(new [] {((string)"?")}, StringSplitOptions.None).ToList<object>();
             address = ((IList<object>)addressrawTagVariable)[0];
             rawTag = ((IList<object>)addressrawTagVariable)[1];
-            object splitted = ((string)rawTag).Split(new [] {((string)"=")}, StringSplitOptions.None).ToList<object>();
+            object splitted = ((string)((string)rawTag)).Split(new [] {((string)"=")}, StringSplitOptions.None).ToList<object>();
             tag = getValue(splitted, 1);
         } else
         {
@@ -2143,7 +2477,10 @@ public partial class cryptocom : Exchange
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.safeCurrency(code); // for instance, USDC is not inferred from markets but it's still available
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
@@ -2158,7 +2495,7 @@ public partial class cryptocom : Exchange
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
-        object networkId = this.networkCodeToId(networkCode);
+        object networkId = this.networkCodeToId(networkCode, code);
         if (isTrue(!isEqual(networkId, null)))
         {
             ((IDictionary<string,object>)request)["network_id"] = networkId;
@@ -2196,7 +2533,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.safeCurrency(code);
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
@@ -2241,13 +2581,16 @@ public partial class cryptocom : Exchange
             this.checkAddress(address);
             object networkId = this.safeString(value, "network");
             object network = this.networkIdToCode(networkId, responseCode);
-            ((IDictionary<string,object>)result)[(string)network] = new Dictionary<string, object>() {
-                { "info", value },
-                { "currency", responseCode },
-                { "network", network },
-                { "address", address },
-                { "tag", tag },
-            };
+            if (isTrue(!isEqual(network, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)network] = new Dictionary<string, object>() {
+                    { "info", value },
+                    { "currency", responseCode },
+                    { "network", network },
+                    { "address", address },
+                    { "tag", tag },
+                };
+            }
         }
         return result;
     }
@@ -2266,15 +2609,14 @@ public partial class cryptocom : Exchange
         parameters ??= new Dictionary<string, object>();
         object network = this.safeStringUpper(parameters, "network");
         parameters = this.omit(parameters, new List<object>() {"network"});
-        object depositAddresses = await this.fetchDepositAddressesByNetwork(code, parameters);
-        if (isTrue(inOp(depositAddresses, network)))
+        object depositAddressesRaw = await this.fetchDepositAddressesByNetwork(code, parameters);
+        object depositAddresses = depositAddressesRaw;
+        if (isTrue(inOp(depositAddresses, ((string)network))))
         {
-            return getValue(depositAddresses, network);
-        } else
-        {
-            object keys = new List<object>(((IDictionary<string,object>)depositAddresses).Keys);
-            return getValue(depositAddresses, getValue(keys, 0));
+            return getValue(depositAddresses, ((string)network));
         }
+        object keys = new List<object>(((IDictionary<string,object>)depositAddresses).Keys);
+        return getValue(depositAddresses, getValue(keys, 0));
     }
 
     /**
@@ -2292,7 +2634,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
@@ -2358,7 +2703,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
@@ -2448,7 +2796,6 @@ public partial class cryptocom : Exchange
         object timestamp = this.safeInteger(ticker, "t");
         object marketId = this.safeString(ticker, "i");
         market = this.safeMarket(marketId, market, "_");
-        object quote = this.safeString(market, "quote");
         object last = this.safeString(ticker, "a");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
@@ -2469,7 +2816,7 @@ public partial class cryptocom : Exchange
             { "percentage", this.safeString(ticker, "c") },
             { "average", null },
             { "baseVolume", this.safeString(ticker, "v") },
-            { "quoteVolume", ((bool) isTrue((isEqual(quote, "USD")))) ? this.safeString(ticker, "vv") : null },
+            { "quoteVolume", ((bool) isTrue((isEqual(getValue(market, "quote"), "USD")))) ? this.safeString(ticker, "vv") : null },
             { "info", ticker },
         }, market);
     }
@@ -2559,7 +2906,7 @@ public partial class cryptocom : Exchange
             { "REJECTED", "rejected" },
             { "EXPIRED", "expired" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public virtual object parseTimeInForce(object timeInForce)
@@ -2569,7 +2916,7 @@ public partial class cryptocom : Exchange
             { "IMMEDIATE_OR_CANCEL", "IOC" },
             { "FILL_OR_KILL", "FOK" },
         };
-        return this.safeString(timeInForces, timeInForce, timeInForce);
+        return this.safeString(timeInForces, ((string)timeInForce), timeInForce);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -2871,16 +3218,19 @@ public partial class cryptocom : Exchange
                 object networkId = this.safeString(networkInfo, "network_id");
                 object currencyCode = this.safeString(currency, "code");
                 object networkCode = this.networkIdToCode(networkId, currencyCode);
-                ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                    { "deposit", new Dictionary<string, object>() {
-                        { "fee", null },
-                        { "percentage", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "fee", this.safeNumber(networkInfo, "withdrawal_fee") },
-                        { "percentage", false },
-                    } },
-                };
+                if (isTrue(!isEqual(networkCode, null)))
+                {
+                    ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                        { "deposit", new Dictionary<string, object>() {
+                            { "fee", null },
+                            { "percentage", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "fee", this.safeNumber(networkInfo, "withdrawal_fee") },
+                            { "percentage", false },
+                        } },
+                    };
+                }
                 if (isTrue(isEqual(networkListLength, 1)))
                 {
                     ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.safeNumber(networkInfo, "withdrawal_fee");
@@ -2903,7 +3253,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.v1PrivatePostPrivateGetCurrencyNetworks(parameters);
         object data = this.safeValue(response, "result");
         object currencyMap = this.safeList(data, "currency_map");
@@ -2925,7 +3278,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
@@ -3064,7 +3420,7 @@ public partial class cryptocom : Exchange
             { "AUTO_CONVERSION", "conversion" },
             { "MANUAL_CONVERSION", "conversion" },
         };
-        return this.safeString(ledgerType, type, type);
+        return this.safeString(ledgerType, ((string)type), type);
     }
 
     /**
@@ -3078,7 +3434,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> fetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.v1PrivatePostPrivateGetAccounts(parameters);
         //
         //     {
@@ -3168,7 +3527,10 @@ public partial class cryptocom : Exchange
     public async virtual Task<object> fetchSettlementHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -3264,7 +3626,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "swap")))
         {
@@ -3354,7 +3719,10 @@ public partial class cryptocom : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -3435,7 +3803,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
@@ -3480,7 +3851,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object request = new Dictionary<string, object>() {};
         object market = null;
@@ -3610,8 +3984,8 @@ public partial class cryptocom : Exchange
             paramsKeys = obj;
         } else
         {
-            object sorted = this.keysort(obj);
-            paramsKeys = new List<object>(((IDictionary<string,object>)sorted).Keys);
+            object objectKeys = new List<object>(((IDictionary<string,object>)obj).Keys);
+            paramsKeys = this.sort(objectKeys);
         }
         for (object i = 0; isLessThan(i, getArrayLength(paramsKeys)); postFixIncrement(ref i))
         {
@@ -3642,7 +4016,7 @@ public partial class cryptocom : Exchange
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by cryptocom.closePositions
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.type] LIMIT or MARKET
@@ -3652,7 +4026,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
@@ -3696,7 +4073,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
@@ -3732,7 +4112,10 @@ public partial class cryptocom : Exchange
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.v1PrivatePostPrivateGetFeeRate(parameters);
         //
         //   {
@@ -3815,7 +4198,7 @@ public partial class cryptocom : Exchange
         parameters ??= new Dictionary<string, object>();
         object type = this.safeString(api, 0);
         object access = this.safeString(api, 1);
-        object url = add(add(getValue(getValue(this.urls, "api"), type), "/"), path);
+        object url = add(add(getValue(getValue(this.urls, "api"), ((string)type)), "/"), path);
         object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(access, "public")))
         {

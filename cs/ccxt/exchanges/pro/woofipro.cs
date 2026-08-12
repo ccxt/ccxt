@@ -95,17 +95,20 @@ public partial class woofipro : ccxt.woofipro
     /**
      * @method
      * @name woofipro#watchOrderBook
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/orderbook
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/orderbook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "orderbook";
         object market = this.market(symbol);
         object topic = add(add(getValue(market, "id"), "@"), name);
@@ -160,7 +163,7 @@ public partial class woofipro : ccxt.woofipro
     /**
      * @method
      * @name woofipro#watchTicker
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/24-hour-ticker
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-ticker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -169,7 +172,10 @@ public partial class woofipro : ccxt.woofipro
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "ticker";
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
@@ -254,7 +260,7 @@ public partial class woofipro : ccxt.woofipro
     /**
      * @method
      * @name woofipro#watchTickers
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/24-hour-tickers
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-tickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -263,7 +269,10 @@ public partial class woofipro : ccxt.woofipro
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object name = "tickers";
         object topic = name;
@@ -317,7 +326,7 @@ public partial class woofipro : ccxt.woofipro
     /**
      * @method
      * @name woofipro#watchBidsAsks
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/bbos
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/bbos
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -326,7 +335,10 @@ public partial class woofipro : ccxt.woofipro
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object name = "bbos";
         object topic = name;
@@ -365,7 +377,10 @@ public partial class woofipro : ccxt.woofipro
             object ticker = this.parseWsBidAsk(this.extend(getValue(data, i), new Dictionary<string, object>() {
                 { "ts", timestamp },
             }));
-            ((IDictionary<string,object>)this.tickers)[(string)getValue(ticker, "symbol")] = ticker;
+            if (isTrue(!isEqual(getValue(ticker, "symbol"), null)))
+            {
+                ((IDictionary<string,object>)this.tickers)[(string)getValue(ticker, "symbol")] = ticker;
+            }
             ((IList<object>)result).Add(ticker);
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {result, topic});
@@ -393,7 +408,7 @@ public partial class woofipro : ccxt.woofipro
      * @method
      * @name woofipro#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/k-line
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/k-line
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -405,7 +420,10 @@ public partial class woofipro : ccxt.woofipro
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((!isEqual(timeframe, "1m"))) && isTrue((!isEqual(timeframe, "5m")))) && isTrue((!isEqual(timeframe, "15m")))) && isTrue((!isEqual(timeframe, "30m")))) && isTrue((!isEqual(timeframe, "1h")))) && isTrue((!isEqual(timeframe, "1d")))) && isTrue((!isEqual(timeframe, "1w")))) && isTrue((!isEqual(timeframe, "1M")))))
         {
             throw new NotSupported ((string)add(this.id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")) ;
@@ -456,23 +474,25 @@ public partial class woofipro : ccxt.woofipro
         object timeframe = this.findTimeframe(interval);
         object parsed = new List<object> {this.safeInteger(data, "startTime"), this.safeNumber(data, "open"), this.safeNumber(data, "high"), this.safeNumber(data, "low"), this.safeNumber(data, "close"), this.safeNumber(data, "volume")};
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
+        object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (isTrue(isEqual(stored, null)))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
+            if (isTrue(isTrue((!isEqual(symbol, null))) && isTrue((!isEqual(timeframe, null)))))
+            {
+                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
+            }
         }
-        object ohlcvCache = getValue(getValue(this.ohlcvs, symbol), timeframe);
-        callDynamically(ohlcvCache, "append", new object[] {parsed});
-        callDynamically(client as WebSocketClient, "resolve", new object[] {ohlcvCache, topic});
+        callDynamically(stored, "append", new object[] {parsed});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, topic});
     }
 
     /**
      * @method
      * @name woofipro#watchTrades
      * @description watches information on multiple trades made in a market
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/trade
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/trade
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -482,7 +502,10 @@ public partial class woofipro : ccxt.woofipro
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object topic = add(getValue(market, "id"), "@trade");
@@ -705,8 +728,8 @@ public partial class woofipro : ccxt.woofipro
      * @method
      * @name woofipro#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/execution-report
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/algo-execution-report
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -717,7 +740,10 @@ public partial class woofipro : ccxt.woofipro
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object trigger = this.safeBool2(parameters, "stop", "trigger", false);
         object topic = ((bool) isTrue((trigger))) ? "algoexecutionreport" : "executionreport";
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
@@ -745,8 +771,8 @@ public partial class woofipro : ccxt.woofipro
      * @method
      * @name woofipro#watchMyTrades
      * @description watches information on multiple trades made by the user
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/execution-report
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/algo-execution-report
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -757,7 +783,10 @@ public partial class woofipro : ccxt.woofipro
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object trigger = this.safeBool2(parameters, "stop", "trigger", false);
         object topic = ((bool) isTrue((trigger))) ? "algoexecutionreport" : "executionreport";
         parameters = this.omit(parameters, "stop");
@@ -803,7 +832,7 @@ public partial class woofipro : ccxt.woofipro
         //         "orderTag": "default",
         //         "totalFee": 0,
         //         "visible": 0.01,
-        //         "timestamp": 1657515556799,
+        //         "timestamp": 1657515556798,
         //         "reduceOnly": false,
         //         "maker": false
         //     }
@@ -989,7 +1018,7 @@ public partial class woofipro : ccxt.woofipro
                 {
                     ((IDictionary<string,object>)parsed)["fees"] = fees;
                 }
-                ((IDictionary<string,object>)parsed)["trades"] = this.safeList(order, "trades");
+                ((IDictionary<string,object>)parsed)["trades"] = this.safeList(order, "trades", new List<object>() {});
                 ((IDictionary<string,object>)parsed)["timestamp"] = this.safeInteger(order, "timestamp");
                 ((IDictionary<string,object>)parsed)["datetime"] = this.safeString(order, "datetime");
             }
@@ -1051,24 +1080,35 @@ public partial class woofipro : ccxt.woofipro
     /**
      * @method
      * @name woofipro#watchPositions
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/position-push
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/position-push
      * @description watch all open positions
      * @param {string[]} [symbols] list of unified market symbols
-     * @param since timestamp in ms of the earliest position to fetch
-     * @param limit the maximum number of positions to fetch
-     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object messageHashes = new List<object>() {};
         symbols = this.marketSymbols(symbols);
         if (!isTrue(this.isEmpty(symbols)))
         {
+            if (isTrue(isEqual(symbols, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " watchPositions() symbols is required")) ;
+            }
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
+                if (isTrue(isEqual(symbols, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " watchPositions() symbols is required")) ;
+                }
                 object symbol = getValue(symbols, i);
                 ((IList<object>)messageHashes).Add(add("positions::", symbol));
             }
@@ -1098,7 +1138,7 @@ public partial class woofipro : ccxt.woofipro
         return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object type, object symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, object symbols = null)
     {
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
         if (isTrue(fetchPositionsSnapshot))
@@ -1274,14 +1314,17 @@ public partial class woofipro : ccxt.woofipro
      * @method
      * @name woofipro#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/balance
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object topic = "balance";
         object messageHash = topic;
         object request = new Dictionary<string, object>() {
@@ -1333,13 +1376,20 @@ public partial class woofipro : ccxt.woofipro
             object key = getValue(keys, i);
             object value = getValue(balances, key);
             object code = this.safeCurrencyCode(key);
-            object account = ((bool) isTrue((inOp(this.balance, code)))) ? getValue(this.balance, code) : this.account();
+            object account = this.account();
+            if (isTrue(isTrue((!isEqual(code, null))) && isTrue((inOp(this.balance, code)))))
+            {
+                account = getValue(this.balance, code);
+            }
             object total = this.safeString(value, "holding");
             object used = this.safeString(value, "frozen");
             ((IDictionary<string,object>)account)["total"] = total;
             ((IDictionary<string,object>)account)["used"] = used;
             ((IDictionary<string,object>)account)["free"] = Precise.stringSub(total, used);
-            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            }
         }
         this.balance = this.safeBalance(this.balance);
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, "balance"});
@@ -1429,6 +1479,10 @@ public partial class woofipro : ccxt.woofipro
             if (isTrue(isEqual(splitLength, 2)))
             {
                 object name = this.safeString(splitTopic, 1);
+                if (isTrue(isEqual(name, null)))
+                {
+                    return;
+                }
                 method = this.safeValue(methods, name);
                 if (isTrue(!isEqual(method, null)))
                 {
@@ -1456,11 +1510,16 @@ public partial class woofipro : ccxt.woofipro
         };
     }
 
-    public virtual object handlePing(WebSocketClient client, object message)
+    public async virtual Task pong(WebSocketClient client, object message)
     {
-        return new Dictionary<string, object>() {
+        await client.send(new Dictionary<string, object>() {
             { "event", "pong" },
-        };
+        });
+    }
+
+    public virtual void handlePing(WebSocketClient client, object message)
+    {
+        this.spawn(this.pong, new object[] { client, message});
     }
 
     public virtual object handlePong(WebSocketClient client, object message)

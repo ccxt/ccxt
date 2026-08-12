@@ -8,6 +8,7 @@
 * [enableDemoTrading](#enabledemotrading)
 * [isUnifiedEnabled](#isunifiedenabled)
 * [upgradeUnifiedTradeAccount](#upgradeunifiedtradeaccount)
+* [fetchStatus](#fetchstatus)
 * [fetchTime](#fetchtime)
 * [fetchCurrencies](#fetchcurrencies)
 * [fetchMarkets](#fetchmarkets)
@@ -85,6 +86,7 @@
 * [fetchConvertTrade](#fetchconverttrade)
 * [fetchConvertTradeHistory](#fetchconverttradehistory)
 * [fetchLongShortRatioHistory](#fetchlongshortratiohistory)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
 * [fetchMarginMode](#fetchmarginmode)
 * [createOrderWs](#createorderws)
 * [editOrderWs](#editorderws)
@@ -130,7 +132,7 @@ enables or disables demo trading mode
 
 
 ```javascript
-bybit.enableDemoTrading ([enable])
+bybit.enableDemoTrading (enable?)
 ```
 
 
@@ -154,7 +156,7 @@ returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if uni
 
 
 ```javascript
-bybit.isUnifiedEnabled ([params])
+bybit.isUnifiedEnabled (params?)
 ```
 
 
@@ -174,7 +176,27 @@ upgrades the account to unified trade account *warning* this is irreversible
 
 
 ```javascript
-bybit.upgradeUnifiedTradeAccount ([params])
+bybit.upgradeUnifiedTradeAccount (params?)
+```
+
+
+<a name="fetchStatus" id="fetchstatus"></a>
+
+### fetchStatus{docsify-ignore}
+the latest known information on the availability of the exchange API
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/system-status  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bybit.fetchStatus (params?)
 ```
 
 
@@ -194,7 +216,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-bybit.fetchTime ([params])
+bybit.fetchTime (params?)
 ```
 
 
@@ -214,7 +236,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bybit.fetchCurrencies ([params])
+bybit.fetchCurrencies (params?)
 ```
 
 
@@ -234,7 +256,7 @@ retrieves data on all markets for bybit
 
 
 ```javascript
-bybit.fetchMarkets ([params])
+bybit.fetchMarkets (params?)
 ```
 
 
@@ -255,7 +277,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bybit.fetchTicker (symbol[, params])
+bybit.fetchTicker (symbol, params?)
 ```
 
 
@@ -278,7 +300,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bybit.fetchTickers (symbols[, params])
+bybit.fetchTickers (symbols, params?)
 ```
 
 
@@ -301,7 +323,7 @@ fetches the bid and ask price and volume for multiple markets
 
 
 ```javascript
-bybit.fetchBidsAsks (symbols[, params])
+bybit.fetchBidsAsks (symbols, params?)
 ```
 
 
@@ -333,7 +355,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bybit.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bybit.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -354,7 +376,7 @@ fetches funding rates for multiple markets
 
 
 ```javascript
-bybit.fetchFundingRates (symbols[, params])
+bybit.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -379,7 +401,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-bybit.fetchFundingRateHistory (symbol[, since, limit, params])
+bybit.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -404,7 +426,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bybit.fetchTrades (symbol[, since, limit, params])
+bybit.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -414,7 +436,7 @@ bybit.fetchTrades (symbol[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/market/orderbook  
 
@@ -426,7 +448,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bybit.fetchOrderBook (symbol[, limit, params])
+bybit.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -452,7 +474,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bybit.fetchBalance ([params])
+bybit.fetchBalance (params?)
 ```
 
 
@@ -474,7 +496,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-bybit.createMarketBuyOrderWithCost (symbol, cost[, params])
+bybit.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -496,7 +518,7 @@ create a market sell order by providing the symbol and cost
 
 
 ```javascript
-bybit.createMarkeSellOrderWithCost (symbol, cost[, params])
+bybit.createMarkeSellOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -546,7 +568,7 @@ create a trade order
 
 
 ```javascript
-bybit.createOrder (symbol, type, side, amount[, price, params])
+bybit.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -567,7 +589,7 @@ create a list of trade orders
 
 
 ```javascript
-bybit.createOrders (orders[, params])
+bybit.createOrders (orders, params?)
 ```
 
 
@@ -609,7 +631,7 @@ edit a trade order
 
 
 ```javascript
-bybit.editOrder (id, symbol, type, side, amount, price[, params])
+bybit.editOrder (id, symbol, type, side, amount, price, params?)
 ```
 
 
@@ -630,7 +652,7 @@ edit a list of trade orders
 
 
 ```javascript
-bybit.editOrders (orders[, params])
+bybit.editOrders (orders, params?)
 ```
 
 
@@ -655,7 +677,7 @@ cancels an open order
 
 
 ```javascript
-bybit.cancelOrder (id, symbol[, params])
+bybit.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -678,7 +700,7 @@ cancel multiple orders
 
 
 ```javascript
-bybit.cancelOrders (ids, symbol[, params])
+bybit.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -700,7 +722,7 @@ dead man's switch, cancel all orders after the given timeout
 
 
 ```javascript
-bybit.cancelAllOrdersAfter (timeout[, params])
+bybit.cancelAllOrdersAfter (timeout, params?)
 ```
 
 
@@ -721,7 +743,7 @@ cancel multiple orders for multiple symbols
 
 
 ```javascript
-bybit.cancelOrdersForSymbols (orders[, params])
+bybit.cancelOrdersForSymbols (orders, params?)
 ```
 
 
@@ -737,7 +759,7 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>boolean</code> | No | true if trigger order |
 | params.stop | <code>boolean</code> | No | alias for trigger |
@@ -748,7 +770,7 @@ cancel all open orders
 
 
 ```javascript
-bybit.cancelAllOrders (symbol[, params])
+bybit.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -770,7 +792,7 @@ fetches information on an order made by the user *classic accounts only*
 
 
 ```javascript
-bybit.fetchOrderClassic (id, symbol[, params])
+bybit.fetchOrderClassic (id, symbol, params?)
 ```
 
 
@@ -793,7 +815,7 @@ bybit.fetchOrderClassic (id, symbol[, params])
 
 
 ```javascript
-bybit.fetchOrder (id, symbol[, params])
+bybit.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -823,7 +845,7 @@ bybit.fetchOrder (id, symbol[, params])
 
 
 ```javascript
-bybit.fetchOrders (symbol[, since, limit, params])
+bybit.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -853,7 +875,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 
 
 ```javascript
-bybit.fetchOrdersClassic (symbol[, since, limit, params])
+bybit.fetchOrdersClassic (symbol, since?, limit?, params?)
 ```
 
 
@@ -880,7 +902,7 @@ fetches information on a closed order made by the user
 
 
 ```javascript
-bybit.fetchClosedOrder (id[, symbol, params])
+bybit.fetchClosedOrder (id, symbol?, params?)
 ```
 
 
@@ -909,7 +931,7 @@ fetches information on an open order made by the user
 
 
 ```javascript
-bybit.fetchOpenOrder (id[, symbol, params])
+bybit.fetchOpenOrder (id, symbol?, params?)
 ```
 
 
@@ -939,7 +961,7 @@ fetches information on multiple canceled and closed orders made by the user
 
 
 ```javascript
-bybit.fetchCanceledAndClosedOrders ([symbol, since, limit, params])
+bybit.fetchCanceledAndClosedOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -969,7 +991,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bybit.fetchClosedOrders ([symbol, since, limit, params])
+bybit.fetchClosedOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -999,7 +1021,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-bybit.fetchCanceledOrders ([symbol, since, limit, params])
+bybit.fetchCanceledOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1030,7 +1052,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bybit.fetchOpenOrders (symbol[, since, limit, params])
+bybit.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1054,7 +1076,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-bybit.fetchOrderTrades (id, symbol[, since, limit, params])
+bybit.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -1080,7 +1102,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bybit.fetchMyTrades (symbol[, since, limit, params])
+bybit.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1101,7 +1123,7 @@ fetch a dictionary of addresses for a currency, indexed by network
 
 
 ```javascript
-bybit.fetchDepositAddressesByNetwork (code[, params])
+bybit.fetchDepositAddressesByNetwork (code, params?)
 ```
 
 
@@ -1122,7 +1144,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bybit.fetchDepositAddress (code[, params])
+bybit.fetchDepositAddress (code, params?)
 ```
 
 
@@ -1148,7 +1170,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-bybit.fetchDeposits (code[, since, limit, params])
+bybit.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -1173,7 +1195,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-bybit.fetchWithdrawals (code[, since, limit, params])
+bybit.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -1202,7 +1224,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-bybit.fetchLedger ([code, since, limit, params])
+bybit.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -1227,7 +1249,7 @@ make a withdrawal
 
 
 ```javascript
-bybit.withdraw (code, amount, address, tag[, params])
+bybit.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -1248,7 +1270,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-bybit.fetchPosition (symbol[, params])
+bybit.fetchPosition (symbol, params?)
 ```
 
 
@@ -1274,7 +1296,7 @@ fetch all open positions
 
 
 ```javascript
-bybit.fetchPositions (symbols[, params])
+bybit.fetchPositions (symbols, params?)
 ```
 
 
@@ -1295,7 +1317,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-bybit.fetchLeverage (symbol[, params])
+bybit.fetchLeverage (symbol, params?)
 ```
 
 
@@ -1322,7 +1344,7 @@ set margin mode (account) or trade mode (symbol)
 
 
 ```javascript
-bybit.setMarginMode (marginMode, symbol[, params])
+bybit.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -1346,7 +1368,7 @@ set the level of leverage for a market
 
 
 ```javascript
-bybit.setLeverage (leverage, symbol[, params])
+bybit.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -1368,7 +1390,7 @@ set hedged to true or false for a market
 
 
 ```javascript
-bybit.setPositionMode (hedged, symbol[, params])
+bybit.setPositionMode (hedged, symbol, params?)
 ```
 
 
@@ -1391,7 +1413,7 @@ Retrieves the open interest of a derivative trading pair
 
 
 ```javascript
-bybit.fetchOpenInterest (symbol[, params])
+bybit.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -1416,7 +1438,7 @@ Gets the total amount of unsettled contracts. In other words, the total number o
 
 
 ```javascript
-bybit.fetchOpenInterestHistory (symbol, timeframe[, since, limit, params])
+bybit.fetchOpenInterestHistory (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1437,7 +1459,7 @@ fetch the rate of interest to borrow a currency for margin trading
 
 
 ```javascript
-bybit.fetchCrossBorrowRate (code[, params])
+bybit.fetchCrossBorrowRate (code, params?)
 ```
 
 
@@ -1461,7 +1483,7 @@ fetch the interest owed by the user for borrowing currency for margin trading
 
 
 ```javascript
-bybit.fetchBorrowInterest (code, symbol[, since, limit, params])
+bybit.fetchBorrowInterest (code, symbol, since?, limit?, params?)
 ```
 
 
@@ -1485,7 +1507,7 @@ retrieves a history of a currencies borrow interest rate at specific time slots
 
 
 ```javascript
-bybit.fetchBorrowRateHistory (code[, since, limit, params])
+bybit.fetchBorrowRateHistory (code, since?, limit?, params?)
 ```
 
 
@@ -1510,7 +1532,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-bybit.transfer (code, amount, fromAccount, toAccount[, params])
+bybit.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -1535,7 +1557,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-bybit.fetchTransfers (code[, since, limit, params])
+bybit.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -1557,7 +1579,7 @@ create a loan to borrow margin
 
 
 ```javascript
-bybit.borrowCrossMargin (code, amount[, params])
+bybit.borrowCrossMargin (code, amount, params?)
 ```
 
 
@@ -1579,7 +1601,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-bybit.repayCrossMargin (code, amount[, params])
+bybit.repayCrossMargin (code, amount, params?)
 ```
 
 
@@ -1600,7 +1622,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 
 
 ```javascript
-bybit.fetchMarketLeverageTiers (symbol[, params])
+bybit.fetchMarketLeverageTiers (symbol, params?)
 ```
 
 
@@ -1621,7 +1643,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-bybit.fetchTradingFee (symbol[, params])
+bybit.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -1642,7 +1664,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-bybit.fetchTradingFees ([params])
+bybit.fetchTradingFees (params?)
 ```
 
 
@@ -1663,7 +1685,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-bybit.fetchDepositWithdrawFees (codes[, params])
+bybit.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -1688,7 +1710,7 @@ fetches historical settlement records
 
 
 ```javascript
-bybit.fetchSettlementHistory (symbol[, since, limit, params])
+bybit.fetchSettlementHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1713,7 +1735,7 @@ fetches historical settlement records of the user
 
 
 ```javascript
-bybit.fetchMySettlementHistory (symbol[, since, limit, params])
+bybit.fetchMySettlementHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1735,7 +1757,7 @@ fetch the historical volatility of an option market based on an underlying asset
 
 
 ```javascript
-bybit.fetchVolatilityHistory (code[, params])
+bybit.fetchVolatilityHistory (code, params?)
 ```
 
 
@@ -1756,7 +1778,7 @@ fetches an option contracts greeks, financial metrics used to measure the factor
 
 
 ```javascript
-bybit.fetchGreeks (symbol[, params])
+bybit.fetchGreeks (symbol, params?)
 ```
 
 
@@ -1778,7 +1800,7 @@ fetches all option contracts greeks, financial metrics used to measure the facto
 
 
 ```javascript
-bybit.fetchAllGreeks ([symbols, params])
+bybit.fetchAllGreeks (symbols?, params?)
 ```
 
 
@@ -1804,7 +1826,7 @@ retrieves the users liquidated positions
 
 
 ```javascript
-bybit.fetchMyLiquidations ([symbol, since, limit, params])
+bybit.fetchMyLiquidations (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1827,7 +1849,7 @@ retrieve information on the maximum leverage, for different trade sizes
 
 
 ```javascript
-bybit.fetchLeverageTiers ([symbols, params])
+bybit.fetchLeverageTiers (symbols?, params?)
 ```
 
 
@@ -1851,7 +1873,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-bybit.fetchFundingHistory ([symbol, since, limit, params])
+bybit.fetchFundingHistory (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1872,7 +1894,7 @@ fetches option data that is commonly found in an option chain
 
 
 ```javascript
-bybit.fetchOption (symbol[, params])
+bybit.fetchOption (symbol, params?)
 ```
 
 
@@ -1893,7 +1915,7 @@ fetches data for an underlying asset that is commonly found in an option chain
 
 
 ```javascript
-bybit.fetchOptionChain (code[, params])
+bybit.fetchOptionChain (code, params?)
 ```
 
 
@@ -1912,13 +1934,13 @@ fetches historical positions
 | symbols | <code>Array&lt;string&gt;</code> | Yes | a list of unified market symbols |
 | since | <code>int</code> | No | timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days |
 | limit | <code>int</code> | No | the maximum amount of records to fetch, default=50, max=100 |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days |
 | params.subType | <code>string</code> | No | 'linear' or 'inverse' |
 
 
 ```javascript
-bybit.fetchPositionsHistory (symbols[, since, limit, params])
+bybit.fetchPositionsHistory (symbols, since?, limit?, params)
 ```
 
 
@@ -1939,7 +1961,7 @@ fetches all available currencies that can be converted
 
 
 ```javascript
-bybit.fetchConvertCurrencies ([params])
+bybit.fetchConvertCurrencies (params?)
 ```
 
 
@@ -1963,7 +1985,7 @@ fetch a quote for converting from one currency to another
 
 
 ```javascript
-bybit.fetchConvertQuote (fromCode, toCode[, amount, params])
+bybit.fetchConvertQuote (fromCode, toCode, amount?, params?)
 ```
 
 
@@ -1987,7 +2009,7 @@ convert from one currency to another
 
 
 ```javascript
-bybit.createConvertTrade (id, fromCode, toCode, amount[, params])
+bybit.createConvertTrade (id, fromCode, toCode, amount, params?)
 ```
 
 
@@ -2010,7 +2032,7 @@ fetch the data for a conversion trade
 
 
 ```javascript
-bybit.fetchConvertTrade (id[, code, params])
+bybit.fetchConvertTrade (id, code?, params?)
 ```
 
 
@@ -2034,7 +2056,7 @@ fetch the users history of conversion trades
 
 
 ```javascript
-bybit.fetchConvertTradeHistory ([code, since, limit, params])
+bybit.fetchConvertTradeHistory (code?, since?, limit?, params?)
 ```
 
 
@@ -2058,7 +2080,28 @@ fetches the long short ratio history for a unified market symbol
 
 
 ```javascript
-bybit.fetchLongShortRatioHistory (symbol[, timeframe, since, limit, params])
+bybit.fetchLongShortRatioHistory (symbol, timeframe?, since?, limit?, params?)
+```
+
+
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+### fetchPositionsADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/position#response-parameters  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bybit.fetchPositionsADLRank (symbols?, params?)
 ```
 
 
@@ -2079,7 +2122,7 @@ fetches the margin mode of the trading pair
 
 
 ```javascript
-bybit.fetchMarginMode ([symbol, params])
+bybit.fetchMarginMode (symbol?, params?)
 ```
 
 
@@ -2125,7 +2168,7 @@ create a trade order
 
 
 ```javascript
-bybit.createOrderWs (symbol, type, side, amount[, price, params])
+bybit.createOrderWs (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -2165,7 +2208,7 @@ edit a trade order
 
 
 ```javascript
-bybit.editOrderWs (id, symbol, type, side, amount, price[, params])
+bybit.editOrderWs (id, symbol, type, side, amount, price, params?)
 ```
 
 
@@ -2193,7 +2236,7 @@ cancels an open order
 
 
 ```javascript
-bybit.cancelOrderWs (id, symbol[, params])
+bybit.cancelOrderWs (id, symbol, params?)
 ```
 
 
@@ -2218,7 +2261,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bybit.watchTicker (symbol[, params])
+bybit.watchTicker (symbol, params?)
 ```
 
 
@@ -2243,7 +2286,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bybit.watchTickers (symbols[, params])
+bybit.watchTickers (symbols, params?)
 ```
 
 
@@ -2268,7 +2311,7 @@ unWatches a price ticker
 
 
 ```javascript
-bybit.unWatchTickers (symbols[, params])
+bybit.unWatchTickers (symbols, params?)
 ```
 
 
@@ -2293,7 +2336,7 @@ unWatches a price ticker
 
 
 ```javascript
-bybit.unWatchTicker (symbol[, params])
+bybit.unWatchTicker (symbol, params?)
 ```
 
 
@@ -2314,7 +2357,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-bybit.watchBidsAsks (symbols[, params])
+bybit.watchBidsAsks (symbols, params?)
 ```
 
 
@@ -2342,7 +2385,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bybit.watchOHLCV (symbol, timeframe[, since, limit, params])
+bybit.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -2369,7 +2412,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bybit.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
+bybit.watchOHLCVForSymbols (symbolsAndTimeframes, since?, limit?, params?)
 ```
 
 
@@ -2394,7 +2437,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 
 ```javascript
-bybit.unWatchOHLCVForSymbols (symbolsAndTimeframes[, params])
+bybit.unWatchOHLCVForSymbols (symbolsAndTimeframes, params?)
 ```
 
 
@@ -2420,7 +2463,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 
 ```javascript
-bybit.unWatchOHLCV (symbol, timeframe[, params])
+bybit.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 
@@ -2430,7 +2473,7 @@ bybit.unWatchOHLCV (symbol, timeframe[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook  
 
@@ -2442,7 +2485,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bybit.watchOrderBook (symbol[, limit, params])
+bybit.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -2452,7 +2495,7 @@ bybit.watchOrderBook (symbol[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook  
 
@@ -2464,7 +2507,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bybit.watchOrderBookForSymbols (symbols[, limit, params])
+bybit.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -2474,7 +2517,7 @@ bybit.watchOrderBookForSymbols (symbols[, limit, params])
 unsubscribe from the orderbook channel
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook  
 
@@ -2486,7 +2529,7 @@ unsubscribe from the orderbook channel
 
 
 ```javascript
-bybit.unWatchOrderBookForSymbols (symbols[, params])
+bybit.unWatchOrderBookForSymbols (symbols, params?)
 ```
 
 
@@ -2496,7 +2539,7 @@ bybit.unWatchOrderBookForSymbols (symbols[, params])
 unsubscribe from the orderbook channel
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook  
 
@@ -2508,7 +2551,7 @@ unsubscribe from the orderbook channel
 
 
 ```javascript
-bybit.unWatchOrderBook (symbol[, params])
+bybit.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -2531,7 +2574,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-bybit.watchTrades (symbol[, since, limit, params])
+bybit.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -2554,7 +2597,7 @@ get the list of most recent trades for a list of symbols
 
 
 ```javascript
-bybit.watchTradesForSymbols (symbols[, since, limit, params])
+bybit.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -2575,7 +2618,7 @@ unsubscribe from the trades channel
 
 
 ```javascript
-bybit.unWatchTradesForSymbols (symbols[, params])
+bybit.unWatchTradesForSymbols (symbols, params?)
 ```
 
 
@@ -2596,7 +2639,7 @@ unsubscribe from the trades channel
 
 
 ```javascript
-bybit.unWatchTrades (symbol[, params])
+bybit.unWatchTrades (symbol, params?)
 ```
 
 
@@ -2625,7 +2668,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-bybit.watchMyTrades (symbol[, since, limit, params])
+bybit.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -2652,7 +2695,7 @@ unWatches information on multiple trades made by the user
 
 
 ```javascript
-bybit.unWatchMyTrades (symbol[, params])
+bybit.unWatchMyTrades (symbol, params?)
 ```
 
 
@@ -2675,7 +2718,7 @@ watch all open positions
 
 
 ```javascript
-bybit.watchPositions ([symbols, since, limit, params])
+bybit.watchPositions (symbols?, since?, limit?, params)
 ```
 
 
@@ -2696,7 +2739,7 @@ unWatches all open positions
 
 
 ```javascript
-bybit.unWatchPositions ([symbols, params])
+bybit.unWatchPositions (symbols?, params?)
 ```
 
 
@@ -2708,7 +2751,7 @@ watch the public liquidations of a trading pair
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
 **Returns**: <code>object</code> - an array of [liquidation structures](https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure)
 
-**See**: https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation  
+**See**: https://bybit-exchange.github.io/docs/v5/websocket/public/all-liquidation  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -2720,7 +2763,7 @@ watch the public liquidations of a trading pair
 
 
 ```javascript
-bybit.watchLiquidations (symbol[, since, limit, params])
+bybit.watchLiquidations (symbol, since?, limit?, params?)
 ```
 
 
@@ -2743,7 +2786,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-bybit.watchOrders (symbol[, since, limit, params])
+bybit.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -2765,7 +2808,7 @@ unWatches information on multiple orders made by the user
 
 
 ```javascript
-bybit.unWatchOrders (symbol[, params])
+bybit.unWatchOrders (symbol, params?)
 ```
 
 
@@ -2785,6 +2828,6 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-bybit.watchBalance ([params])
+bybit.watchBalance (params?)
 ```
 

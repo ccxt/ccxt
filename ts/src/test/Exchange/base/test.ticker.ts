@@ -1,9 +1,16 @@
 import assert from 'assert';
-import { Exchange, Ticker } from "../../../../ccxt";
+import { Exchange, Ticker, Market, Str } from "../../../../ccxt.js";
 import Precise from '../../../base/Precise.js';
 import testSharedMethods from './test.sharedMethods.js';
 
-function testTicker (exchange: Exchange, skippedProperties: object, method: string, entry: Ticker, symbol: string) {
+function testTicker (exchange: Exchange, skippedProperties: object, method: string, entry: Ticker, symbol: Str) {
+    // prediction outcomes are keyed by an outcome handle (not a `symbol`) and trade thin 0..1
+    // books where bid==ask and a stale `last` far from the median are normal — skip the
+    // crypto-oriented price-relationship checks for them. the PredictionTicker type also
+    // omits vwap/previousClose entirely, so their presence must not be asserted
+    if (exchange.safeBool (exchange.has, 'prediction', false)) {
+        skippedProperties = exchange.extend ({ 'symbol': true, 'spread': true, 'lastBetweenBidAsk': true, 'maxIncrease': true, 'vwap': true, 'previousClose': true }, skippedProperties);
+    }
     const format = {
         'info': {},
         'symbol': 'ETH/BTC',
@@ -37,10 +44,16 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, entry);
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
     // check market
-    let market = undefined;
+    let market: Market = undefined;
+    let isUnrecognizedSymbol = false;
+    const isFetchTickerCalled = method === 'fetchTicker';
     const symbolForMarket = (symbol !== undefined) ? symbol : exchange.safeString (entry, 'symbol');
-    if (symbolForMarket !== undefined && (symbolForMarket in exchange.markets)) {
-        market = exchange.market (symbolForMarket);
+    if (symbolForMarket !== undefined) {
+        if ((exchange.markets !== undefined) && (symbolForMarket in exchange.markets)) {
+            market = exchange.market (symbolForMarket);
+        } else {
+            isUnrecognizedSymbol = true;
+        }
     }
     // temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
     if (!('checkInactiveMarkets' in skippedProperties)) {
@@ -89,7 +102,12 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     const close = exchange.omitZero (exchange.safeString (entry, 'close'));
     if (!('compareQuoteVolumeBaseVolume' in skippedProperties)) {
         // assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
-        if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined)) {
+        // skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their
+        // volumes carry contract-denominated units (e.g. binance DOGEUSD_PERP reports quoteVolume
+        // far above baseVolume * high), so the spot-derived invariant does not hold there,
+        // see https://github.com/ccxt/ccxt/pull/29563
+        const isInverse = exchange.safeBool (market, 'inverse', false);
+        if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined) && !isInverse) {
             let baseLow = Precise.stringMul (baseVolume, low);
             let baseHigh = Precise.stringMul (baseVolume, high);
             // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
@@ -143,15 +161,24 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     const askString = exchange.safeString (entry, 'ask');
     const bidString = exchange.safeString (entry, 'bid');
     if ((askString !== undefined) && (bidString !== undefined) && !('spread' in skippedProperties)) {
-        testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'ask', exchange.safeString (entry, 'bid'));
+        // greater-or-equal: a locked book (bid == ask) is legitimate on thin markets, only a crossed book (ask < bid) is anomalous
+        testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'ask', exchange.safeString (entry, 'bid') as string);
+    }
+    // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
+    const allowedPercentageVariation = '0.01';
+    if (isFetchTickerCalled && lastString !== undefined && bidString !== undefined && askString !== undefined && !('lastBetweenBidAsk' in skippedProperties)) {
+        const medianPrice = Precise.stringDiv (Precise.stringAdd (bidString, askString), '2');
+        const medianLow = Precise.stringMul (medianPrice, Precise.stringSub ('1', allowedPercentageVariation));
+        const medianHigh = Precise.stringMul (medianPrice, Precise.stringAdd ('1', allowedPercentageVariation));
+        assert (Precise.stringGe (lastString, medianLow) && Precise.stringLe (lastString, medianHigh), 'last price should be within 1% of the bid/ask median price' + logText);
     }
     const percentage = exchange.safeString (entry, 'percentage');
     const change = exchange.safeString (entry, 'change');
-    if (!('maxIncrease' in skippedProperties)) {
+    if (!('maxIncrease' in skippedProperties) && !isUnrecognizedSymbol) {
         //
         // percentage
         //
-        const maxIncrease = '100'; // for testing purposes, if "increased" value is more than 100x, tests should break as implementation might be wrong. however, if something rarest event happens and some coin really had that huge increase, the tests will shortly recover in few hours, as new 24-hour cycle would stabilize tests)
+        const maxIncrease = '1000'; // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
         if (percentage !== undefined) {
         // - should be above -100 and below MAX
             assert (Precise.stringGe (percentage, '-100'), 'percentage should be above -100% ' + logText);

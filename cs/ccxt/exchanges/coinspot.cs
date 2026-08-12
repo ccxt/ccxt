@@ -114,29 +114,258 @@ public partial class coinspot : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"latest"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "latest", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "post", new List<object>() {"orders", "orders/history", "my/coin/deposit", "my/coin/send", "quote/buy", "quote/sell", "my/balances", "my/orders", "my/buy", "my/sell", "my/buy/cancel", "my/sell/cancel", "ro/my/balances", "ro/my/balances/{cointype}", "ro/my/deposits", "ro/my/withdrawals", "ro/my/transactions", "ro/my/transactions/{cointype}", "ro/my/transactions/open", "ro/my/transactions/{cointype}/open", "ro/my/sendreceive", "ro/my/affiliatepayments", "ro/my/referralpayments"} },
+                    { "post", new Dictionary<string, object>() {
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "my/coin/deposit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "my/coin/send", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quote/buy", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quote/sell", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "my/balances", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "my/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "my/buy", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "my/sell", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "my/buy/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "my/sell/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/balances", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/balances/{cointype}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/deposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/transactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/transactions/{cointype}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/transactions/open", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/transactions/{cointype}/open", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/sendreceive", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/affiliatepayments", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ro/my/referralpayments", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                } },
+                { "v2", new Dictionary<string, object>() {
+                    { "public", new Dictionary<string, object>() {
+                        { "get", new Dictionary<string, object>() {
+                            { "latest", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "latest/{cointype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "latest/{cointype}/{markettype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "buyprice/{cointype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "buyprice/{cointype}/{markettype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sellprice/{cointype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "sellprice/{cointype}/{markettype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/open/{cointype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/open/{cointype}/{markettype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/completed/{cointype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/completed/{cointype}/{markettype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/summary/completed/{cointype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/summary/completed/{cointype}/{markettype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                    } },
+                    { "private", new Dictionary<string, object>() {
+                        { "post", new Dictionary<string, object>() {
+                            { "status", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/coin/deposit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "quote/buy/now", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "quote/sell/now", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "quote/swap/now", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/buy", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/buy/edit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/sell", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/sell/edit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/buy/now", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/sell/now", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/swap/now", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/buy/cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/buy/cancel/all", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/sell/cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/sell/cancel/all", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/coin/withdraw/senddetails", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/coin/withdraw/send", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/status", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/orders/market/open", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/orders/market/completed", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/balances", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/balance/{cointype}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/orders/market/open", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/orders/limit/open", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/orders/completed", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/orders/market/completed", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/sendreceive", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/deposits", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/withdrawals", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/affiliatepayments", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "ro/my/referralpayments", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                    } },
                 } },
             } },
             { "markets", new Dictionary<string, object>() {
-                { "ADA/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
-                    { "id", "ada" },
-                    { "symbol", "ADA/AUD" },
-                    { "base", "ADA" },
-                    { "quote", "AUD" },
-                    { "baseId", "ada" },
-                    { "quoteId", "aud" },
-                    { "type", "spot" },
-                    { "spot", true },
-                }) },
                 { "BTC/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
                     { "id", "btc" },
                     { "symbol", "BTC/AUD" },
                     { "base", "BTC" },
                     { "quote", "AUD" },
                     { "baseId", "btc" },
+                    { "quoteId", "aud" },
+                    { "type", "spot" },
+                    { "spot", true },
+                }) },
+                { "BTC/USDT", this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "id", "btc" },
+                    { "symbol", "BTC/USDT" },
+                    { "base", "BTC" },
+                    { "quote", "USDT" },
+                    { "baseId", "btc" },
+                    { "quoteId", "usdt" },
+                    { "type", "spot" },
+                    { "spot", true },
+                }) },
+                { "USDT/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "id", "usdt" },
+                    { "symbol", "USDT/AUD" },
+                    { "base", "USDT" },
+                    { "quote", "AUD" },
+                    { "baseId", "usdt" },
                     { "quoteId", "aud" },
                     { "type", "spot" },
                     { "spot", true },
@@ -151,22 +380,32 @@ public partial class coinspot : Exchange
                     { "type", "spot" },
                     { "spot", true },
                 }) },
+                { "ADA/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "id", "ada" },
+                    { "symbol", "ADA/AUD" },
+                    { "base", "ADA" },
+                    { "quote", "AUD" },
+                    { "baseId", "ada" },
+                    { "quoteId", "aud" },
+                    { "type", "spot" },
+                    { "spot", true },
+                }) },
+                { "SOL/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "id", "sol" },
+                    { "symbol", "SOL/AUD" },
+                    { "base", "SOL" },
+                    { "quote", "AUD" },
+                    { "baseId", "sol" },
+                    { "quoteId", "aud" },
+                    { "type", "spot" },
+                    { "spot", true },
+                }) },
                 { "XRP/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
                     { "id", "xrp" },
                     { "symbol", "XRP/AUD" },
                     { "base", "XRP" },
                     { "quote", "AUD" },
                     { "baseId", "xrp" },
-                    { "quoteId", "aud" },
-                    { "type", "spot" },
-                    { "spot", true },
-                }) },
-                { "LTC/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
-                    { "id", "ltc" },
-                    { "symbol", "LTC/AUD" },
-                    { "base", "LTC" },
-                    { "quote", "AUD" },
-                    { "baseId", "ltc" },
                     { "quoteId", "aud" },
                     { "type", "spot" },
                     { "spot", true },
@@ -181,32 +420,22 @@ public partial class coinspot : Exchange
                     { "type", "spot" },
                     { "spot", true },
                 }) },
-                { "RFOX/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
-                    { "id", "rfox" },
-                    { "symbol", "RFOX/AUD" },
-                    { "base", "RFOX" },
+                { "LTC/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "id", "ltc" },
+                    { "symbol", "LTC/AUD" },
+                    { "base", "LTC" },
                     { "quote", "AUD" },
-                    { "baseId", "rfox" },
+                    { "baseId", "ltc" },
                     { "quoteId", "aud" },
                     { "type", "spot" },
                     { "spot", true },
                 }) },
-                { "POWR/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
-                    { "id", "powr" },
-                    { "symbol", "POWR/AUD" },
-                    { "base", "POWR" },
+                { "XLM/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "id", "xlm" },
+                    { "symbol", "XLM/AUD" },
+                    { "base", "XLM" },
                     { "quote", "AUD" },
-                    { "baseId", "powr" },
-                    { "quoteId", "aud" },
-                    { "type", "spot" },
-                    { "spot", true },
-                }) },
-                { "NEO/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
-                    { "id", "neo" },
-                    { "symbol", "NEO/AUD" },
-                    { "base", "NEO" },
-                    { "quote", "AUD" },
-                    { "baseId", "neo" },
+                    { "baseId", "xlm" },
                     { "quoteId", "aud" },
                     { "type", "spot" },
                     { "spot", true },
@@ -231,22 +460,32 @@ public partial class coinspot : Exchange
                     { "type", "spot" },
                     { "spot", true },
                 }) },
-                { "XLM/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
-                    { "id", "xlm" },
-                    { "symbol", "XLM/AUD" },
-                    { "base", "XLM" },
+                { "A/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "id", "eos" },
+                    { "symbol", "A/AUD" },
+                    { "base", "A" },
                     { "quote", "AUD" },
-                    { "baseId", "xlm" },
+                    { "baseId", "eos" },
                     { "quoteId", "aud" },
                     { "type", "spot" },
                     { "spot", true },
                 }) },
-                { "RHOC/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
-                    { "id", "rhoc" },
-                    { "symbol", "RHOC/AUD" },
-                    { "base", "RHOC" },
+                { "NEO/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "id", "neo" },
+                    { "symbol", "NEO/AUD" },
+                    { "base", "NEO" },
                     { "quote", "AUD" },
-                    { "baseId", "rhoc" },
+                    { "baseId", "ans" },
+                    { "quoteId", "aud" },
+                    { "type", "spot" },
+                    { "spot", true },
+                }) },
+                { "POWR/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "id", "powr" },
+                    { "symbol", "POWR/AUD" },
+                    { "base", "POWR" },
+                    { "quote", "AUD" },
+                    { "baseId", "powr" },
                     { "quoteId", "aud" },
                     { "type", "spot" },
                     { "spot", true },
@@ -257,6 +496,16 @@ public partial class coinspot : Exchange
                     { "base", "GAS" },
                     { "quote", "AUD" },
                     { "baseId", "gas" },
+                    { "quoteId", "aud" },
+                    { "type", "spot" },
+                    { "spot", true },
+                }) },
+                { "RHOC/AUD", this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "id", "rhoc" },
+                    { "symbol", "RHOC/AUD" },
+                    { "base", "RHOC" },
+                    { "quote", "AUD" },
+                    { "baseId", "rhoc" },
                     { "quoteId", "aud" },
                     { "type", "spot" },
                     { "spot", true },
@@ -339,7 +588,10 @@ public partial class coinspot : Exchange
                     object code = this.safeCurrencyCode(currencyId);
                     object account = this.account();
                     ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
-                    ((IDictionary<string,object>)result)[(string)code] = account;
+                    if (isTrue(!isEqual(code, null)))
+                    {
+                        ((IDictionary<string,object>)result)[(string)code] = account;
+                    }
                 }
             }
         } else
@@ -351,7 +603,10 @@ public partial class coinspot : Exchange
                 object code = this.safeCurrencyCode(currencyId);
                 object account = this.account();
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balances, currencyId);
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -368,7 +623,10 @@ public partial class coinspot : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object method = this.safeString(this.options, "fetchBalance", "private_post_my_balances");
         object response = await ((Task<object>)callDynamically(this, method, new object[] { parameters }));
         //
@@ -398,12 +656,15 @@ public partial class coinspot : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "cointype", getValue(market, "id") },
@@ -461,10 +722,13 @@ public partial class coinspot : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object response = await this.publicGetLatest(parameters);
-        object id = getValue(market, "id");
+        object id = this.safeString(market, "id", "");
         id = ((string)id).ToLower();
         object prices = this.safeDict(response, "prices", new Dictionary<string, object>() {});
         //
@@ -479,7 +743,7 @@ public partial class coinspot : Exchange
         //         }
         //     }
         //
-        object ticker = this.safeDict(prices, id);
+        object ticker = this.safeDict(prices, id, new Dictionary<string, object>() {});
         return this.parseTicker(ticker, market);
     }
 
@@ -495,7 +759,10 @@ public partial class coinspot : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.publicGetLatest(parameters);
         //
         //    {
@@ -545,7 +812,10 @@ public partial class coinspot : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "cointype", getValue(market, "id") },
@@ -577,7 +847,10 @@ public partial class coinspot : Exchange
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -718,8 +991,15 @@ public partial class coinspot : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object method = add("privatePostMy", this.capitalize(side));
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
+        object sideUpper = ((string)side).ToUpper();
         if (isTrue(isEqual(type, "market")))
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() allows limit orders only")) ;
@@ -730,8 +1010,23 @@ public partial class coinspot : Exchange
             { "amount", amount },
             { "rate", price },
         };
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
-        return this.parseOrder(response);
+        object response = null;
+        if (isTrue(isEqual(sideUpper, "BUY")))
+        {
+            response = await this.privatePostMyBuy(this.extend(request, parameters));
+        } else if (isTrue(isEqual(sideUpper, "SELL")))
+        {
+            response = await this.privatePostMySell(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " createOrder only support buy/sell side")) ;
+        }
+        //
+        // status - ok, error
+        //
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     /**
@@ -741,7 +1036,7 @@ public partial class coinspot : Exchange
      * @see https://www.coinspot.com.au/api#cancelbuyorder
      * @see https://www.coinspot.com.au/api#cancelsellorder
      * @param {string} id order id
-     * @param {string} symbol not used by coinspot cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -773,13 +1068,33 @@ public partial class coinspot : Exchange
         });
     }
 
+    public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
+    {
+        if (!isTrue(response))
+        {
+            return null;  // fallback to default error handler
+        }
+        object status = this.safeString(response, "status");
+        if (isTrue(isEqual(status, "error")))
+        {
+            object feedback = add(add(this.id, " "), this.json(response));
+            throw new ExchangeError ((string)feedback) ;
+        }
+        return null;
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), path);
-        if (isTrue(isEqual(api, "private")))
+        object isVersionedApi = ((api is IList<object>) || (api.GetType().IsGenericType && api.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        object version = ((bool) isTrue(isVersionedApi)) ? getValue(api, 0) : null;
+        object accessType = ((bool) isTrue(isVersionedApi)) ? getValue(api, 1) : api;
+        object endpoint = add("/", this.implodeParams(path, parameters));
+        object fullPath = ((bool) isTrue((!isEqual(version, null)))) ? add(add("/", version), endpoint) : endpoint;
+        object url = add(getValue(getValue(this.urls, "api"), accessType), fullPath);
+        if (isTrue(isEqual(accessType, "private")))
         {
             this.checkRequiredCredentials();
             object nonce = this.nonce();

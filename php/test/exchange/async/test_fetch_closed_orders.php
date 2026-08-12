@@ -14,7 +14,7 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_order.php';
 function test_fetch_closed_orders($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchClosedOrders';
-        $orders = Async\await($exchange->fetch_closed_orders($symbol));
+        $orders = \React\Async\await($exchange->fetch_closed_orders($symbol));
         assert_non_emtpy_array($exchange, $skipped_properties, $method, $orders, $symbol);
         $now = $exchange->milliseconds();
         for ($i = 0; $i < count($orders); $i++) {

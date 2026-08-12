@@ -33,16 +33,19 @@ const precisionConstants = {
     PAD_WITH_ZERO,
 };
 
-const assert = (x, y) => { if (!x) throw new Error (y || 'assertion failed'); };
+const assert = (x: any, y: string | undefined = undefined) => { if (!x) throw new Error (y || 'assertion failed'); };
 
 /*  ------------------------------------------------------------------------ */
 
 // See https://stackoverflow.com/questions/1685680/how-to-avoid-scientific-notation-for-large-numbers-in-javascript for discussion
 
+function numberToString (x: number | string): string;
+function numberToString (x: any): string | undefined;
 function numberToString (x: any): string | undefined { // avoids scientific notation for too large and too small numbers
     if (x === undefined) return undefined;
     if (typeof x !== 'number') return x.toString ();
     const s = x.toString ();
+    if (s.indexOf ('e') < 0) return s; // fast path: nothing to expand without scientific notation
     if (Math.abs (x) < 1.0) {
         const n_e = s.split ('e-');
         const n = n_e[0].replace ('.', '');
@@ -83,7 +86,10 @@ const truncate_to_string = (num: number | string, precision = 0) => {
 };
 const truncate = (num: number | string, precision = 0): number => parseFloat (truncate_to_string (num, precision));
 
-function precisionFromString (str: string) {
+function precisionFromString (str: string | undefined): number {
+    if (str === undefined) {
+        return 0;
+    }
     // support string formats like '1e-4'
     if (str.indexOf ('e') > -1 || str.indexOf ('E') > -1) {
         const numStr = str.replace (/\d\.?\d*[eE]/, '')
@@ -94,14 +100,34 @@ function precisionFromString (str: string) {
     //     return str.length * -1
     // }
     // default strings like '0.0001'
-    const split = str.replace (/0+$/g, '').split ('.')
-    return (split.length > 1) ? (split[1].length) : 0
+    // equivalent to str.replace (/0+$/g, '').split ('.') but without the intermediate allocations
+    let dot = -1;
+    let secondDot = -1;
+    let lastNonZero = -1;
+    const strLength = str.length;
+    for (let i = 0; i < strLength; i++) {
+        const c = str.charCodeAt (i);
+        if (c !== 48) {              // '0'
+            lastNonZero = i;
+            if (c === 46) {          // '.'
+                if (dot < 0) {
+                    dot = i;
+                } else if (secondDot < 0) {
+                    secondDot = i;
+                }
+            }
+        }
+    }
+    if (dot < 0) {
+        return 0
+    }
+    return ((secondDot < 0) ? (lastNonZero + 1) : secondDot) - dot - 1
 }
 
 /*  ------------------------------------------------------------------------ */
 
 const decimalToPrecision = (
-    x: string,
+    x: string | number | undefined,
     roundingMode: number,
     numPrecisionDigits: any,
     countingMode: number = DECIMAL_PLACES,
@@ -110,7 +136,7 @@ const decimalToPrecision = (
     return _decimalToPrecision (x, roundingMode, numPrecisionDigits, countingMode, paddingMode);
 }
 
-const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: any, countingMode: number = DECIMAL_PLACES, paddingMode: number = NO_PADDING) => {
+const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: any, countingMode: number = DECIMAL_PLACES, paddingMode: number = NO_PADDING): string => {
     assert (numPrecisionDigits !== undefined, 'numPrecisionDigits should not be undefined');
 
     if (typeof numPrecisionDigits === 'string') {
@@ -131,7 +157,7 @@ const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: a
     if (numPrecisionDigits < 0) {
         const toNearest = Math.pow (10, -numPrecisionDigits);
         if (roundingMode === ROUND) {
-            return (toNearest * _decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ();
+            return (toNearest * parseFloat (_decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode))).toString ();
         }
         if (roundingMode === TRUNCATE) {
             return (x - (x % toNearest)).toString ();
@@ -145,7 +171,7 @@ const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: a
         if (roundingMode === TRUNCATE) {
             // First, truncate the string to avoid floating-point precision issues
             const xStr = numberToString(x);
-            const truncatedX = truncate_to_string(xStr, Math.max(0, newNumPrecisionDigits));
+            const truncatedX = truncate_to_string((xStr === undefined) ? '' : xStr, Math.max(0, newNumPrecisionDigits));
             const xNum = Number(truncatedX);
             const scale = Math.pow (10, newNumPrecisionDigits);
             const xScaled = Math.round (xNum * scale);
@@ -197,7 +223,6 @@ const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: a
 
     /*  Char code constants         */
 
-    const MINUS = 45;
     const DOT = 46;
     const ZERO = 48;
     const ONE = (ZERO + 1);
@@ -299,22 +324,18 @@ const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: a
     const padEnd = (padStart + pad);                    //  -123.456     ( )
     const isInteger = (nAfterDot + pad) === 0;             //  -123
 
-    /*  Fill the output buffer with characters    */
+    /*  Build the output string from characters    */
 
-    const out = new Uint8Array (nBeforeDot + (isInteger ? 0 : 1) + nAfterDot + pad);
-    // ------------------------------------------------------------------------------------------ // ---------------------
-    if (signNeeded) out[0] = MINUS;     // -     minus sign
-    for (i = nSign, j = readStart; i < nBeforeDot; i++, j++) out[i] = chars[j];  // 123   before dot
-    if (!isInteger) out[nBeforeDot] = DOT;       // .     dot
-    for (i = nBeforeDot + 1, j = afterDot; i < padStart; i++, j++) out[i] = chars[j];  // 456   after dot
-    for (i = padStart; i < padEnd; i++) out[i] = ZERO;      // 000   padding
+    let out = signNeeded ? '-' : '';                                                                // -     minus sign
+    for (i = nSign, j = readStart; i < nBeforeDot; i++, j++) out += String.fromCharCode (chars[j]);  // 123   before dot
+    if (!isInteger) out += '.';       // .     dot
+    for (i = nBeforeDot + 1, j = afterDot; i < padStart; i++, j++) out += String.fromCharCode (chars[j]);  // 456   after dot
+    for (i = padStart; i < padEnd; i++) out += '0';      // 000   padding
 
-    /*  Build a string from the output buffer     */
-
-    return String.fromCharCode (...out);
+    return out;
 };
 
-function omitZero (stringNumber: string) {
+function omitZero (stringNumber: string | undefined) {
     try {
         if (stringNumber === undefined || stringNumber === '') {
             return undefined;

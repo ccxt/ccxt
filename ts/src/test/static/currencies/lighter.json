@@ -1,0 +1,108 @@
+{
+    "USDC": {
+        "info": {
+            "asset_id": "3",
+            "symbol": "USDC",
+            "l1_decimals": "6",
+            "decimals": "6",
+            "min_transfer_amount": "1.000000",
+            "min_withdrawal_amount": "1.000000",
+            "margin_mode": "enabled",
+            "index_price": "1.000000",
+            "l1_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+        },
+        "id": "3",
+        "numericId": null,
+        "code": "USDC",
+        "precision": 0.000001,
+        "type": "crypto",
+        "name": "USDC",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": 1,
+                "max": null
+            },
+            "withdraw": {
+                "min": 1,
+                "max": null
+            }
+        }
+    },
+    "LTC": null,
+    "ETH": {
+        "info": {
+            "asset_id": "1",
+            "symbol": "ETH",
+            "l1_decimals": "18",
+            "decimals": "8",
+            "min_transfer_amount": "0.00100000",
+            "min_withdrawal_amount": "0.00100000",
+            "margin_mode": "disabled",
+            "index_price": "2036.541816",
+            "l1_address": "0x0000000000000000000000000000000000000000"
+        },
+        "id": "1",
+        "numericId": null,
+        "code": "ETH",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "ETH",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
+        "limits": {
+            "deposit": {
+                "min": 0.001,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.001,
+                "max": null
+            }
+        }
+    },
+    "LIT": {
+        "info": {
+            "asset_id": "2",
+            "symbol": "LIT",
+            "l1_decimals": "18",
+            "decimals": "8",
+            "min_transfer_amount": "0.00000001",
+            "min_withdrawal_amount": "1.00000000",
+            "margin_mode": "disabled",
+            "index_price": "0.981950",
+            "l1_address": "0x232CE3bd40fCd6f80f3d55A522d03f25Df784Ee2"
+        },
+        "id": "2",
+        "numericId": null,
+        "code": "LIT",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "LIT",
+        "active": true,
+        "deposit": false,
+        "withdraw": false,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    }
+}

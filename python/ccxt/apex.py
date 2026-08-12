@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.apex import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, MarketInterface, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, FundingRateHistory, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -131,7 +131,7 @@ class apex(Exchange, ImplicitAPI):
                 'setLeverage': True,
                 'setMarginMode': False,
                 'setPositionMode': False,
-                'transfer': False,
+                'transfer': True,
                 'withdraw': False,
             },
             'timeframes': {
@@ -150,7 +150,7 @@ class apex(Exchange, ImplicitAPI):
             },
             'hostname': 'omni.apex.exchange',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/fef8f2f7-4265-46aa-965e-33a91881cb00',
+                'logo': 'https://github.com/user-attachments/assets/8ba7fbfa-0dd0-4ab9-8b72-ff60abe08ac6',
                 'api': {
                     'public': 'https://{hostname}/api',
                     'private': 'https://{hostname}/api',
@@ -160,46 +160,46 @@ class apex(Exchange, ImplicitAPI):
                     'private': 'https://testnet.omni.apex.exchange/api',
                 },
                 'www': 'https://apex.exchange/',
-                'doc': 'https://api-docs.pro.apex.exchange',
+                'doc': 'https://api-docs.omni.apex.exchange',
                 'fees': 'https://apex-pro.gitbook.io/apex-pro/apex-omni-live-now/trading-perpetual-contracts/trading-fees',
                 'referral': 'https://omni.apex.exchange/trade',
             },
             'api': {
                 'public': {
                     'get': {
-                        'v3/symbols': 1,
-                        'v3/history-funding': 1,
-                        'v3/ticker': 1,
-                        'v3/klines': 1,
-                        'v3/trades': 1,
-                        'v3/depth': 1,
-                        'v3/time': 1,
-                        'v3/data/all-ticker-info': 1,
+                        'v3/symbols': {'cost': 1},
+                        'v3/history-funding': {'cost': 1},
+                        'v3/ticker': {'cost': 1},
+                        'v3/klines': {'cost': 1},
+                        'v3/trades': {'cost': 1},
+                        'v3/depth': {'cost': 1},
+                        'v3/time': {'cost': 1},
+                        'v3/data/all-ticker-info': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
-                        'v3/account': 1,
-                        'v3/account-balance': 1,
-                        'v3/fills': 1,
-                        'v3/order-fills': 1,
-                        'v3/order': 1,
-                        'v3/history-orders': 1,
-                        'v3/order-by-client-order-id': 1,
-                        'v3/funding': 1,
-                        'v3/historical-pnl': 1,
-                        'v3/open-orders': 1,
-                        'v3/transfers': 1,
-                        'v3/transfer': 1,
+                        'v3/account': {'cost': 1},
+                        'v3/account-balance': {'cost': 1},
+                        'v3/fills': {'cost': 1},
+                        'v3/order-fills': {'cost': 1},
+                        'v3/order': {'cost': 1},
+                        'v3/history-orders': {'cost': 1},
+                        'v3/order-by-client-order-id': {'cost': 1},
+                        'v3/funding': {'cost': 1},
+                        'v3/historical-pnl': {'cost': 1},
+                        'v3/open-orders': {'cost': 1},
+                        'v3/transfers': {'cost': 1},
+                        'v3/transfer': {'cost': 1},
                     },
                     'post': {
-                        'v3/delete-open-orders': 1,
-                        'v3/delete-client-order-id': 1,
-                        'v3/delete-order': 1,
-                        'v3/order': 1,
-                        'v3/set-initial-margin-rate': 1,
-                        'v3/transfer-out': 1,
-                        'v3/contract-transfer-out': 1,
+                        'v3/delete-open-orders': {'cost': 1},
+                        'v3/delete-client-order-id': {'cost': 1},
+                        'v3/delete-order': {'cost': 1},
+                        'v3/order': {'cost': 1},
+                        'v3/set-initial-margin-rate': {'cost': 1},
+                        'v3/transfer-out': {'cost': 1},
+                        'v3/contract-transfer-out': {'cost': 1},
                     },
                 },
             },
@@ -240,7 +240,6 @@ class apex(Exchange, ImplicitAPI):
             'commonCurrencies': {},
             'options': {
                 'defaultType': 'swap',
-                'defaultSlippage': 0.05,
                 'brokerId': '6956',
             },
             'features': {
@@ -316,7 +315,7 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
-        https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -331,7 +330,7 @@ class apex(Exchange, ImplicitAPI):
         # }
         return self.safe_integer(data, 'time')
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         #
         # {
         #     "totalEquityValue": "100.000000",
@@ -347,7 +346,7 @@ class apex(Exchange, ImplicitAPI):
         # }
         #
         timestamp = self.milliseconds()
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -363,12 +362,13 @@ class apex(Exchange, ImplicitAPI):
         """
         query for account info
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetV3AccountBalance(params)
         data = self.safe_dict(response, 'data', {})
         return self.parse_balance(data)
@@ -386,12 +386,13 @@ class apex(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetV3Account(params)
         data = self.safe_dict(response, 'data', {})
         return self.parse_account(data)
@@ -400,7 +401,7 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches all available currencies on an exchange
 
-        https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
@@ -417,7 +418,7 @@ class apex(Exchange, ImplicitAPI):
         #             "displayName": "Tether USD Coin",
         #             "decimals": 18,
         #             "showStep": "0.01",
-        #             "iconUrl": "https://static-pro.apex.exchange/chains/chain_tokens/Ethereum/Ethereum_USDT.svg",
+        #             "iconUrl": "https://static-omni.apex.exchange/chains/chain_tokens/Ethereum/Ethereum_USDT.svg",
         #             "l2WithdrawFee": "0",
         #             "enableCollateral": True,
         #             "enableCrossCollateral": False,
@@ -432,7 +433,7 @@ class apex(Exchange, ImplicitAPI):
         #          "chainId": "9",
         #          "chainType": "0",
         #          "l1ChainId": "42161",
-        #          "chainIconUrl": "https://static-pro.apex.exchange/chains/chain_logos/Arbitrum.svg",
+        #          "chainIconUrl": "https://static-omni.apex.exchange/chains/chain_logos/Arbitrum.svg",
         #          "contractAddress": "0x3169844a120c0f517b4eb4a750c08d8518c8466a",
         #          "swapContractAddress": "0x9e07b6Aef1bbD9E513fc2Eb8873e311E80B4f855",
         #          "stopDeposit": False,
@@ -443,10 +444,10 @@ class apex(Exchange, ImplicitAPI):
         #          "gasTokenDecimals": 18,
         #          "feeGasLimit": 300000,
         #          "blockTimeSeconds": 2,
-        #          "rpcUrl": "https://arb.pro.apex.exchange",
+        #          "rpcUrl": "https://arb.omni.apex.exchange",
         #          "minSwapUsdtAmount": "",
         #          "maxSwapUsdtAmount": "",
-        #          "webRpcUrl": "https://arb.pro.apex.exchange",
+        #          "webRpcUrl": "https://arb.omni.apex.exchange",
         #          "webTxUrl": "https://arbiscan.io/tx/",
         #          "backupRpcUrl": "https://arb-mainnet.g.alchemy.com/v2/rGlYUbRHtUav5mfeThCPtsV9GLPt2Xq5",
         #          "txConfirm": 20,
@@ -454,7 +455,7 @@ class apex(Exchange, ImplicitAPI):
         #          "tokens": [
         #              {
         #                  "decimals": 6,
-        #                  "iconUrl": "https://static-pro.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDT.svg",
+        #                  "iconUrl": "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDT.svg",
         #                  "token": "USDT",
         #                  "tokenAddress": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
         #                  "pullOff": False,
@@ -475,7 +476,7 @@ class apex(Exchange, ImplicitAPI):
         #              },
         #              {
         #                  "decimals": 6,
-        #                  "iconUrl": "https://static-pro.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDC.svg",
+        #                  "iconUrl": "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDC.svg",
         #                  "token": "USDC",
         #                  "tokenAddress": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
         #                  "pullOff": False,
@@ -500,22 +501,27 @@ class apex(Exchange, ImplicitAPI):
         # }
         rows = self.safe_list(spotConfig, 'assets', [])
         chains = self.safe_list(multiChain, 'chains', [])
-        result: dict = {}
-        for i in range(0, len(rows)):
-            currency = rows[i]
-            currencyId = self.safe_string(currency, 'token')
-            code = self.safe_currency_code(currencyId)
-            name = self.safe_string(currency, 'displayName')
-            networks: dict = {}
-            for j in range(0, len(chains)):
-                chain = chains[j]
-                tokens = self.safe_list(chain, 'tokens', [])
-                for f in range(0, len(tokens)):
-                    token = tokens[f]
-                    tokenName = self.safe_string(token, 'token')
-                    if tokenName == currencyId:
-                        networkId = self.safe_string(chain, 'chainId')
-                        networkCode = self.network_id_to_code(networkId)
+        self.options['_temp_currencies_chains'] = chains
+        result = self.parse_currencies(rows)
+        del self.options['_temp_currencies_chains']
+        return result
+
+    def parse_currency(self, currency: dict) -> CurrencyInterface:
+        currencyId = self.safe_string(currency, 'token')
+        code = self.safe_currency_code(currencyId)
+        name = self.safe_string(currency, 'displayName')
+        networks = {}
+        chains = self.options['_temp_currencies_chains']
+        for j in range(0, len(chains)):
+            chain = chains[j]
+            tokens = self.safe_list(chain, 'tokens', [])
+            for f in range(0, len(tokens)):
+                token = tokens[f]
+                tokenName = self.safe_string(token, 'token')
+                if tokenName == currencyId:
+                    networkId = self.safe_string(chain, 'chainId')
+                    networkCode = self.network_id_to_code(networkId, code)
+                    if networkCode is not None:
                         networks[networkCode] = {
                             'info': chain,
                             'id': networkId,
@@ -536,44 +542,43 @@ class apex(Exchange, ImplicitAPI):
                                 },
                             },
                         }
-            networkKeys = list(networks.keys())
-            networksLength = len(networkKeys)
-            emptyChains = networksLength == 0  # non-functional coins
-            valueForEmpty = False if emptyChains else None
-            result[code] = self.safe_currency_structure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'type': 'crypto',
-                'name': name,
-                'active': None,
-                'deposit': valueForEmpty,
-                'withdraw': valueForEmpty,
-                'fee': None,
-                'precision': None,
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
+        networkKeys = list(networks.keys())
+        networksLength = len(networkKeys)
+        emptyChains = networksLength == 0  # non-functional coins
+        valueForEmpty = False if emptyChains else None
+        return self.safe_currency_structure({
+            'info': currency,
+            'code': code,
+            'id': currencyId,
+            'type': 'crypto',
+            'name': name,
+            'active': None,
+            'deposit': valueForEmpty,
+            'withdraw': valueForEmpty,
+            'fee': None,
+            'precision': None,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
                 },
-                'networks': networks,
-            })
-        return result
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': networks,
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for apex
 
-        https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -614,7 +619,7 @@ class apex(Exchange, ImplicitAPI):
         #             "tickSize": "0.1",
         #             "maxMaintenanceMarginRate": "0.5000",
         #             "maxPositionValue": "5000000.0000",
-        #             "tagIconUrl": "https://static-pro.apex.exchange/icon/LABLE_HOT.svg",
+        #             "tagIconUrl": "https://static-omni.apex.exchange/icon/LABLE_HOT.svg",
         #             "tag": "HOT",
         #             "riskTip": False,
         #             "defaultInitialMarginRate": "0.05",
@@ -762,16 +767,17 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
-            'symbol': market['id2'],
+        request = {
+            'symbol': self.safe_string(market, 'id2'),
         }
         response = self.publicGetV3Ticker(self.extend(request, params))
         tickers = self.safe_list(response, 'data', [])
@@ -782,13 +788,14 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
 
         :param str symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.publicGetV3DataAllTickerInfo(params)
         tickers = self.safe_list(response, 'data', [])
         return self.parse_tickers(tickers, symbols)
@@ -797,7 +804,7 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-data-v3
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-data-v3
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -807,11 +814,12 @@ class apex(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
-            'symbol': market['id2'],
+            'symbol': self.safe_string(market, 'id2'),
         }
         if limit is None:
             limit = 200  # default is 200 when requested with `since`
@@ -821,10 +829,10 @@ class apex(Exchange, ImplicitAPI):
             request['start'] = int(math.floor(since / 1000))
         response = self.publicGetV3Klines(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
-        OHLCVs = self.safe_list(data, market['id2'], [])
+        OHLCVs = self.safe_list(data, self.safe_string(market, 'id2'), [])
         return self.parse_ohlcvs(OHLCVs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #  {
         #     "start": 1647511440000,
@@ -839,29 +847,30 @@ class apex(Exchange, ImplicitAPI):
         #  } {"s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466"}
         #
         return [
-            self.safe_integer_n(ohlcv, ['start', 't']),
-            self.safe_number_n(ohlcv, ['open', 'o']),
-            self.safe_number_n(ohlcv, ['high', 'h']),
-            self.safe_number_n(ohlcv, ['low', 'l']),
-            self.safe_number_n(ohlcv, ['close', 'c']),
-            self.safe_number_n(ohlcv, ['volume', 'v']),
+            self.safe_integer_2(ohlcv, 'start', 't'),
+            self.safe_number_2(ohlcv, 'open', 'o'),
+            self.safe_number_2(ohlcv, 'high', 'h'),
+            self.safe_number_2(ohlcv, 'low', 'l'),
+            self.safe_number_2(ohlcv, 'close', 'c'),
+            self.safe_number_2(ohlcv, 'volume', 'v'),
         ]
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-market-depth-v3
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-market-depth-v3
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
-            'symbol': market['id2'],
+        request = {
+            'symbol': self.safe_string(market, 'id2'),
         }
         if limit is None:
             limit = 100  # default is 200 when requested with `since`
@@ -903,7 +912,7 @@ class apex(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
 
-        https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -913,10 +922,11 @@ class apex(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
-            'symbol': market['id2'],
+        request = {
+            'symbol': self.safe_string(market, 'id2'),
         }
         if limit is None:
             limit = 500  # default is 50
@@ -958,15 +968,15 @@ class apex(Exchange, ImplicitAPI):
         #  }
         #  ]
         #
-        marketId = self.safe_string_n(trade, ['s', 'symbol'])
+        marketId = self.safe_string_2(trade, 's', 'symbol')
         market = self.safe_market(marketId, market)
-        id = self.safe_string_n(trade, ['i', 'id'])
+        id = self.safe_string_2(trade, 'i', 'id')
         timestamp = self.safe_integer_n(trade, ['t', 'T', 'createdAt'])
-        priceString = self.safe_string_n(trade, ['p', 'price'])
-        amountString = self.safe_string_n(trade, ['v', 'size'])
-        side = self.safe_string_lower_n(trade, ['S', 'side'])
-        type = self.safe_string_n(trade, ['type'])
-        fee = self.safe_string_n(trade, ['fee'])
+        priceString = self.safe_string_2(trade, 'p', 'price')
+        amountString = self.safe_string_2(trade, 'v', 'size')
+        side = self.safe_string_lower_2(trade, 'S', 'side')
+        type = self.safe_string(trade, 'type')
+        fee = self.safe_string(trade, 'fee')
         return self.safe_trade({
             'info': trade,
             'id': id,
@@ -987,23 +997,24 @@ class apex(Exchange, ImplicitAPI):
         """
         retrieves the open interest of a contract trading pair
 
-        https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
 
         :param str symbol: unified CCXT market symbol
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
-            'symbol': market['id2'],
+        request = {
+            'symbol': self.safe_string(market, 'id2'),
         }
         response = self.publicGetV3Ticker(self.extend(request, params))
         tickers = self.safe_list(response, 'data', [])
         rawTicker = self.safe_dict(tickers, 0, {})
         return self.parse_open_interest(rawTicker, market)
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: Any, market: Market = None):
         #
         # {
         #     "symbol": "BTCUSDT",
@@ -1035,11 +1046,11 @@ class apex(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
-        https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
@@ -1051,8 +1062,9 @@ class apex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         market = self.market(symbol)
         request['symbol'] = market['id']
         if since is not None:
@@ -1198,17 +1210,17 @@ class apex(Exchange, ImplicitAPI):
         }, market)
 
     def parse_time_in_force(self, timeInForce: Str):
-        timeInForces: dict = {
+        timeInForces = {
             'GOOD_TIL_CANCEL': 'GOOD_TIL_CANCEL',
             'FILL_OR_KILL': 'FILL_OR_KILL',
             'IMMEDIATE_OR_CANCEL': 'IMMEDIATE_OR_CANCEL',
             'POST_ONLY': 'POST_ONLY',
         }
-        return self.safe_string(timeInForces, timeInForce, None)
+        return self.safe_string(timeInForces, timeInForce)
 
     def parse_order_status(self, status: Str):
         if status is not None:
-            statuses: dict = {
+            statuses = {
                 'PENDING': 'open',
                 'OPEN': 'open',
                 'FILLED': 'filled',
@@ -1220,7 +1232,7 @@ class apex(Exchange, ImplicitAPI):
         return status
 
     def parse_order_type(self, type: Str):
-        types: dict = {
+        types = {
             'LIMIT': 'limit',
             'MARKET': 'market',
             'STOP_LIMIT': 'limit',
@@ -1232,21 +1244,23 @@ class apex(Exchange, ImplicitAPI):
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         if market is None and marketId is not None:
-            if marketId in self.markets:
-                market = self.markets[marketId]
-            elif marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
+            marketsMap = self.markets
+            marketsById = self.markets_by_id
+            if (marketsMap is not None) and (marketId in marketsMap):
+                market = marketsMap[marketId]
+            elif (marketsById is not None) and (marketId in marketsById):
+                market = marketsById[marketId]
             else:
                 newMarketId = self.add_hyphen_before_usdt(marketId)
-                if newMarketId in self.markets_by_id:
-                    markets = self.markets_by_id[newMarketId]
+                if (marketsById is not None) and (newMarketId in marketsById):
+                    markets = marketsById[newMarketId]
                     numMarkets = len(markets)
                     if numMarkets > 0:
-                        if self.markets_by_id[newMarketId][0]['id2'] == marketId:
-                            market = self.markets_by_id[newMarketId][0]
+                        if marketsById[newMarketId][0]['id2'] == marketId:
+                            market = marketsById[newMarketId][0]
         return super(apex, self).safe_market(marketId, market, delimiter, marketType)
 
-    def generate_random_client_id_omni(self, _accountId: str):
+    def generate_random_client_id_omni(self, _accountId: Str):
         accountId = _accountId or str(self.rand_number(12))
         return 'apexomni-' + accountId + '-' + str(self.milliseconds()) + '-' + str(self.rand_number(6))
 
@@ -1275,7 +1289,7 @@ class apex(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-creating-orders
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-creating-orders
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1292,9 +1306,12 @@ class apex(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: a unique id for the order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         orderType = type.upper()
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         orderSide = side.upper()
         orderSize = self.amount_to_precision(symbol, amount)
         orderPrice = '0'
@@ -1332,14 +1349,16 @@ class apex(Exchange, ImplicitAPI):
         accountId = self.get_account_id()
         if clientOrderId is None:
             clientOrderId = self.generate_random_client_id_omni(accountId)
+        finalClientOrderId = clientOrderId  # java req
         params = self.omit(params, ['clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice'])
+        finalOrderPrice = orderPrice  # java req
         orderToSign = {
             'accountId': accountId,
-            'slotId': clientOrderId,
-            'nonce': clientOrderId,
+            'slotId': finalClientOrderId,
+            'nonce': finalClientOrderId,
             'pairId': market['quoteId'],
             'size': orderSize,
-            'price': orderPrice,
+            'price': finalOrderPrice,
             'direction': orderSide,
             'makerFeeRate': maker,
             'takerFeeRate': taker,
@@ -1347,16 +1366,16 @@ class apex(Exchange, ImplicitAPI):
         if triggerPrice is not None:
             orderToSign['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         signature = self.get_zk_contract_signature_obj(self.remove0x_prefix(self.get_seeds()), orderToSign)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'side': orderSide,
             'type': orderType,  # LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
             'size': orderSize,
-            'price': orderPrice,
+            'price': finalOrderPrice,
             'limitFee': limitFee,
             'expiration': int(math.floor(timeNow / 1000 + 30 * 24 * 60 * 60)),
             'timeInForce': timeInForce,
-            'clientId': clientOrderId,
+            'clientId': finalClientOrderId,
             'brokerId': self.safe_string(self.options, 'brokerId', '6956'),
         }
         if triggerPrice is not None:
@@ -1377,7 +1396,8 @@ class apex(Exchange, ImplicitAPI):
         :param str [params.transferId]: UUID, which is unique across the platform
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         configResponse = self.publicGetV3Symbols(params)
         configData = self.safe_dict(configResponse, 'data', {})
         contractConfig = self.safe_dict(configData, 'contractConfig', {})
@@ -1398,6 +1418,7 @@ class apex(Exchange, ImplicitAPI):
         nonce = '0'
         if len(subAccounts) > 0:
             nonce = self.safe_string(subAccounts[0], 'nonce', '0')
+        finalNonce = nonce  # java req
         ethAddress = self.safe_string(accountData, 'ethereumAddress', '')
         accountId = self.safe_string(accountData, 'id', '')
         currency = {}
@@ -1410,11 +1431,15 @@ class apex(Exchange, ImplicitAPI):
             if self.safe_string(assets[i], 'token', '') == code:
                 currency = assets[i]
         tokenId = self.safe_string(currency, 'tokenId', '')
-        amountNumber = self.parse_to_int(amount * (math.pow(10, self.safe_number(currency, 'decimals', 0))))
+        decimalsNum = self.safe_number(currency, 'decimals', 0)
+        decimalsNumber = 0 if (decimalsNum is None) else decimalsNum
+        mathPowResult = (math.pow(10, decimalsNumber))
+        amountNumber = self.parse_to_int(amount * mathPowResult)
         timestampSeconds = self.parse_to_int(self.milliseconds() / 1000)
         clientOrderId = self.safe_string_n(params, ['clientId', 'clientOrderId', 'client_order_id'])
         if clientOrderId is None:
             clientOrderId = self.generate_random_client_id_omni(self.safe_string(self.options, 'accountId'))
+        finalClientOrderId = clientOrderId  # java req
         params = self.omit(params, ['clientId', 'clientOrderId', 'client_order_id'])
         if fromAccount is not None and fromAccount.lower() == 'contract':
             formattedUint32 = '4294967295'
@@ -1428,15 +1453,15 @@ class apex(Exchange, ImplicitAPI):
                 'tokenId': tokenId,
                 'amount': str(amountNumber),
                 'fee': '0',
-                'nonce': clientOrderId,
+                'nonce': finalClientOrderId,
                 'timestampSeconds': expireTime,
                 'isContract': True,
             }
             signature = self.get_zk_transfer_signature_obj(self.remove0x_prefix(self.get_seeds()), orderToSign)
-            request: dict = {
+            request = {
                 'amount': amount,
                 'expireTime': expireTime,
-                'clientWithdrawId': clientOrderId,
+                'clientWithdrawId': finalClientOrderId,
                 'signature': signature,
                 'token': code,
                 'ethAddress': ethAddress,
@@ -1444,10 +1469,11 @@ class apex(Exchange, ImplicitAPI):
             response = self.privatePostV3ContractTransferOut(self.extend(request, params))
             data = self.safe_dict(response, 'data', {})
             currentTime = self.milliseconds()
+            parsedAmount = self.parse_number(amount)
             return self.extend(self.parse_transfer(data, self.currency(code)), {
                 'timestamp': currentTime,
                 'datetime': self.iso8601(currentTime),
-                'amount': self.parse_number(amount),
+                'amount': parsedAmount,
                 'fromAccount': 'contract',
                 'toAccount': 'spot',
             })
@@ -1460,14 +1486,16 @@ class apex(Exchange, ImplicitAPI):
                 'tokenId': tokenId,
                 'amount': str(amountNumber),
                 'fee': '0',
-                'nonce': nonce,
+                'nonce': finalNonce,
                 'timestampSeconds': timestampSeconds,
             }
             signature = self.get_zk_transfer_signature_obj(self.remove0x_prefix(self.get_seeds()), orderToSign)
-            request: dict = {
-                'amount': str(amount),
-                'timestamp': timestampSeconds,
-                'clientTransferId': clientOrderId,
+            amountStr = str(amount)
+            ts = timestampSeconds  # java req
+            request = {
+                'amount': amountStr,
+                'timestamp': ts,
+                'clientTransferId': finalClientOrderId,
                 'signature': signature,
                 'zkAccountId': zkAccountId,
                 'subAccountId': subAccountId,
@@ -1478,7 +1506,7 @@ class apex(Exchange, ImplicitAPI):
                 'receiverZkAccountId': receiverZkAccountId,
                 'receiverSubAccountId': receiverSubAccountId,
                 'receiverAddress': receiverAddress,
-                'nonce': nonce,
+                'nonce': finalNonce,
             }
             response = self.privatePostV3TransferOut(self.extend(request, params))
             data = self.safe_dict(response, 'data', {})
@@ -1498,7 +1526,7 @@ class apex(Exchange, ImplicitAPI):
         toAccount = self.safe_string(transfer, 'toAccount')
         return {
             'info': transfer,
-            'id': self.safe_string_n(transfer, ['transferId', 'id']),
+            'id': self.safe_string_2(transfer, 'transferId', 'id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'currency': self.safe_currency_code(currencyId, currency),
@@ -1512,15 +1540,16 @@ class apex(Exchange, ImplicitAPI):
         """
         cancel all open orders in a market
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
 
-        :param str symbol: unified market symbol of the market to cancel orders in
+        :param str [symbol]: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1532,14 +1561,14 @@ class apex(Exchange, ImplicitAPI):
         """
         cancels an open order
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
 
         :param str id: order id
- @param symbol
+        :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {}
+        request = {}
         clientOrderId = self.safe_string_n(params, ['clientId', 'clientOrderId', 'client_order_id'])
         response = None
         if clientOrderId is not None:
@@ -1556,8 +1585,8 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-order-id
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-id
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid
 
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
@@ -1565,8 +1594,9 @@ class apex(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: a unique id for the order
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         clientOrderId = self.safe_string_n(params, ['clientId', 'clientOrderId', 'client_order_id'])
         response = None
         if clientOrderId is not None:
@@ -1583,7 +1613,7 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-open-orders
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-open-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1591,7 +1621,8 @@ class apex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetV3OpenOrders(params)
         orders = self.safe_list(response, 'data', [])
         return self.parse_orders(orders, None, since, limit)
@@ -1600,7 +1631,7 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user *classic accounts only*
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-all-order-history
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-all-order-history
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1614,8 +1645,9 @@ class apex(Exchange, ImplicitAPI):
         :param boolean [params.page]: Page numbers start from 0
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1637,7 +1669,7 @@ class apex(Exchange, ImplicitAPI):
         """
         fetch all the trades made from a single order
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
 
         :param str id: order id
         :param str symbol: unified market symbol
@@ -1646,8 +1678,9 @@ class apex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientId')
         if clientOrderId is not None:
             request['clientOrderId'] = clientOrderId
@@ -1663,7 +1696,7 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user *classic accounts only*
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1675,8 +1708,9 @@ class apex(Exchange, ImplicitAPI):
         :param boolean [params.page]: Page numbers start from 0
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1698,7 +1732,7 @@ class apex(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user *classic accounts only*
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-funding-rate
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-funding-rate
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1709,8 +1743,9 @@ class apex(Exchange, ImplicitAPI):
         :param boolean [params.page]: Page numbers start from 0
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=funding-history-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1728,7 +1763,7 @@ class apex(Exchange, ImplicitAPI):
         fundingValues = self.safe_list(data, 'fundingValues', [])
         return self.parse_incomes(fundingValues, market, since, limit)
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: Any, market: Market = None):
         #
         # {
         #     "id": "1234",
@@ -1762,7 +1797,7 @@ class apex(Exchange, ImplicitAPI):
         """
         set the level of leverage for a market
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract
 
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
@@ -1771,11 +1806,12 @@ class apex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         leverageString = self.number_to_string(leverage)
         initialMarginRate = Precise.string_div('1', leverageString, 4)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'initialMarginRate': initialMarginRate,
         }
@@ -1787,13 +1823,14 @@ class apex(Exchange, ImplicitAPI):
         """
         fetch all open positions
 
-        https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
+        https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetV3Account(params)
         data = self.safe_dict(response, 'data', {})
         positions = self.safe_list(data, 'positions', [])
@@ -1822,7 +1859,7 @@ class apex(Exchange, ImplicitAPI):
         quantity = self.safe_string(position, 'size')
         timestamp = self.safe_integer(position, 'updatedTime')
         leverage = 20
-        customInitialMarginRate = self.safe_string_n(position, ['customInitialMarginRate', 'customImr'], '0')
+        customInitialMarginRate = self.safe_string_2(position, 'customInitialMarginRate', 'customImr', '0')
         if self.precision_from_string(customInitialMarginRate) != 0:
             leverage = self.parse_to_int(Precise.string_div('1', customInitialMarginRate, 4))
         return self.safe_position({
@@ -1851,7 +1888,7 @@ class apex(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path
         headers = {
             'User-Agent': 'apex-CCXT',
@@ -1880,7 +1917,7 @@ class apex(Exchange, ImplicitAPI):
             headers['APEX-PASSPHRASE'] = self.password
         return {'url': url, 'method': method, 'body': signBody, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         #
         # {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
         # {"code":400,"msg":"strconv.ParseInt: parsing \"dsfdfsd\": invalid syntax","timeCost":5320995}

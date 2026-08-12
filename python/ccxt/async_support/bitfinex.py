@@ -5,9 +5,8 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitfinex import ImplicitAPI
-import asyncio
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, FundingRateHistory, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -58,6 +57,7 @@ class bitfinex(Exchange, ImplicitAPI):
                 'createLimitOrder': True,
                 'createMarketOrder': True,
                 'createOrder': True,
+                'createOrders': True,
                 'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
@@ -98,6 +98,7 @@ class bitfinex(Exchange, ImplicitAPI):
                 'fetchLiquidations': True,
                 'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': False,
+                'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -117,8 +118,10 @@ class bitfinex(Exchange, ImplicitAPI):
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': False,
+                'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactionFees': None,
@@ -169,150 +172,150 @@ class bitfinex(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'conf/{config}': 2.7,  # 90 requests a minute, 90/60 = 1.5, 1000 / (250 * 2.66) = 1.503, use 2.7 instead of 2.66 to ensure rateLimitExceeded is not triggered
-                        'conf/pub:{action}:{object}': 2.7,
-                        'conf/pub:{action}:{object}:{detail}': 2.7,
-                        'conf/pub:map:{object}': 2.7,
-                        'conf/pub:map:{object}:{detail}': 2.7,
-                        'conf/pub:map:currency:{detail}': 2.7,
-                        'conf/pub:map:currency:sym': 2.7,  # maps symbols to their API symbols, BAB > BCH
-                        'conf/pub:map:currency:label': 2.7,  # verbose friendly names, BNT > Bancor
-                        'conf/pub:map:currency:unit': 2.7,  # maps symbols to unit of measure where applicable
-                        'conf/pub:map:currency:undl': 2.7,  # maps derivatives symbols to their underlying currency
-                        'conf/pub:map:currency:pool': 2.7,  # maps symbols to underlying network/protocol they operate on
-                        'conf/pub:map:currency:explorer': 2.7,  # maps symbols to their recognised block explorer URLs
-                        'conf/pub:map:currency:tx:fee': 2.7,  # maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
-                        'conf/pub:map:tx:method': 2.7,
-                        'conf/pub:list:{object}': 2.7,
-                        'conf/pub:list:{object}:{detail}': 2.7,
-                        'conf/pub:list:currency': 2.7,
-                        'conf/pub:list:pair:exchange': 2.7,
-                        'conf/pub:list:pair:margin': 2.7,
-                        'conf/pub:list:pair:futures': 2.7,
-                        'conf/pub:list:competitions': 2.7,
-                        'conf/pub:info:{object}': 2.7,
-                        'conf/pub:info:{object}:{detail}': 2.7,
-                        'conf/pub:info:pair': 2.7,
-                        'conf/pub:info:pair:futures': 2.7,
-                        'conf/pub:info:tx:status': 2.7,  # [deposit, withdrawal] statuses 1 = active, 0 = maintenance
-                        'conf/pub:fees': 2.7,
-                        'platform/status': 8,  # 30 requests per minute = 0.5 requests per second =>( 1000ms / rateLimit ) / 0.5 = 8
-                        'tickers': 2.7,  # 90 requests a minute = 1.5 requests per second =>( 1000 / rateLimit ) / 1.5 = 2.666666666
-                        'ticker/{symbol}': 2.7,
-                        'tickers/hist': 2.7,
-                        'trades/{symbol}/hist': 2.7,
-                        'book/{symbol}/{precision}': 1,  # 240 requests a minute
-                        'book/{symbol}/P0': 1,
-                        'book/{symbol}/P1': 1,
-                        'book/{symbol}/P2': 1,
-                        'book/{symbol}/P3': 1,
-                        'book/{symbol}/R0': 1,
-                        'stats1/{key}:{size}:{symbol}:{side}/{section}': 2.7,
-                        'stats1/{key}:{size}:{symbol}:{side}/last': 2.7,
-                        'stats1/{key}:{size}:{symbol}:{side}/hist': 2.7,
-                        'stats1/{key}:{size}:{symbol}/{section}': 2.7,
-                        'stats1/{key}:{size}:{symbol}/last': 2.7,
-                        'stats1/{key}:{size}:{symbol}/hist': 2.7,
-                        'stats1/{key}:{size}:{symbol}:long/last': 2.7,
-                        'stats1/{key}:{size}:{symbol}:long/hist': 2.7,
-                        'stats1/{key}:{size}:{symbol}:short/last': 2.7,
-                        'stats1/{key}:{size}:{symbol}:short/hist': 2.7,
-                        'candles/trade:{timeframe}:{symbol}:{period}/{section}': 2.7,
-                        'candles/trade:{timeframe}:{symbol}/{section}': 2.7,
-                        'candles/trade:{timeframe}:{symbol}/last': 2.7,
-                        'candles/trade:{timeframe}:{symbol}/hist': 2.7,
-                        'status/{type}': 2.7,
-                        'status/deriv': 2.7,
-                        'status/deriv/{symbol}/hist': 2.7,
-                        'liquidations/hist': 80,  # 3 requests a minute = 0.05 requests a second =>( 1000ms / rateLimit ) / 0.05 = 80
-                        'rankings/{key}:{timeframe}:{symbol}/{section}': 2.7,
-                        'rankings/{key}:{timeframe}:{symbol}/hist': 2.7,
-                        'pulse/hist': 2.7,
-                        'pulse/profile/{nickname}': 2.7,
-                        'funding/stats/{symbol}/hist': 10,  # ratelimit not in docs
-                        'ext/vasps': 1,
+                        'conf/{config}': {'cost': 2.7},  # 90 requests a minute, 90/60 = 1.5, 1000 / (250 * 2.66) = 1.503, use 2.7 instead of 2.66 to ensure rateLimitExceeded is not triggered
+                        'conf/pub:{action}:{object}': {'cost': 2.7},
+                        'conf/pub:{action}:{object}:{detail}': {'cost': 2.7},
+                        'conf/pub:map:{object}': {'cost': 2.7},
+                        'conf/pub:map:{object}:{detail}': {'cost': 2.7},
+                        'conf/pub:map:currency:{detail}': {'cost': 2.7},
+                        'conf/pub:map:currency:sym': {'cost': 2.7},  # maps symbols to their API symbols, BAB > BCH
+                        'conf/pub:map:currency:label': {'cost': 2.7},  # verbose friendly names, BNT > Bancor
+                        'conf/pub:map:currency:unit': {'cost': 2.7},  # maps symbols to unit of measure where applicable
+                        'conf/pub:map:currency:undl': {'cost': 2.7},  # maps derivatives symbols to their underlying currency
+                        'conf/pub:map:currency:pool': {'cost': 2.7},  # maps symbols to underlying network/protocol they operate on
+                        'conf/pub:map:currency:explorer': {'cost': 2.7},  # maps symbols to their recognised block explorer URLs
+                        'conf/pub:map:currency:tx:fee': {'cost': 2.7},  # maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
+                        'conf/pub:map:tx:method': {'cost': 2.7},
+                        'conf/pub:list:{object}': {'cost': 2.7},
+                        'conf/pub:list:{object}:{detail}': {'cost': 2.7},
+                        'conf/pub:list:currency': {'cost': 2.7},
+                        'conf/pub:list:pair:exchange': {'cost': 2.7},
+                        'conf/pub:list:pair:margin': {'cost': 2.7},
+                        'conf/pub:list:pair:futures': {'cost': 2.7},
+                        'conf/pub:list:competitions': {'cost': 2.7},
+                        'conf/pub:info:{object}': {'cost': 2.7},
+                        'conf/pub:info:{object}:{detail}': {'cost': 2.7},
+                        'conf/pub:info:pair': {'cost': 2.7},
+                        'conf/pub:info:pair:futures': {'cost': 2.7},
+                        'conf/pub:info:tx:status': {'cost': 2.7},  # [deposit, withdrawal] statuses 1 = active, 0 = maintenance
+                        'conf/pub:fees': {'cost': 2.7},
+                        'platform/status': {'cost': 8},  # 30 requests per minute = 0.5 requests per second =>( 1000ms / rateLimit ) / 0.5 = 8
+                        'tickers': {'cost': 2.7},  # 90 requests a minute = 1.5 requests per second =>( 1000 / rateLimit ) / 1.5 = 2.666666666
+                        'ticker/{symbol}': {'cost': 2.7},
+                        'tickers/hist': {'cost': 2.7},
+                        'trades/{symbol}/hist': {'cost': 2.7},
+                        'book/{symbol}/{precision}': {'cost': 1},  # 240 requests a minute
+                        'book/{symbol}/P0': {'cost': 1},
+                        'book/{symbol}/P1': {'cost': 1},
+                        'book/{symbol}/P2': {'cost': 1},
+                        'book/{symbol}/P3': {'cost': 1},
+                        'book/{symbol}/R0': {'cost': 1},
+                        'stats1/{key}:{size}:{symbol}:{side}/{section}': {'cost': 2.7},
+                        'stats1/{key}:{size}:{symbol}:{side}/last': {'cost': 2.7},
+                        'stats1/{key}:{size}:{symbol}:{side}/hist': {'cost': 2.7},
+                        'stats1/{key}:{size}:{symbol}/{section}': {'cost': 2.7},
+                        'stats1/{key}:{size}:{symbol}/last': {'cost': 2.7},
+                        'stats1/{key}:{size}:{symbol}/hist': {'cost': 2.7},
+                        'stats1/{key}:{size}:{symbol}:long/last': {'cost': 2.7},
+                        'stats1/{key}:{size}:{symbol}:long/hist': {'cost': 2.7},
+                        'stats1/{key}:{size}:{symbol}:short/last': {'cost': 2.7},
+                        'stats1/{key}:{size}:{symbol}:short/hist': {'cost': 2.7},
+                        'candles/trade:{timeframe}:{symbol}:{period}/{section}': {'cost': 2.7},
+                        'candles/trade:{timeframe}:{symbol}/{section}': {'cost': 2.7},
+                        'candles/trade:{timeframe}:{symbol}/last': {'cost': 2.7},
+                        'candles/trade:{timeframe}:{symbol}/hist': {'cost': 2.7},
+                        'status/{type}': {'cost': 2.7},
+                        'status/deriv': {'cost': 2.7},
+                        'status/deriv/{symbol}/hist': {'cost': 2.7},
+                        'liquidations/hist': {'cost': 80},  # 3 requests a minute = 0.05 requests a second =>( 1000ms / rateLimit ) / 0.05 = 80
+                        'rankings/{key}:{timeframe}:{symbol}/{section}': {'cost': 2.7},
+                        'rankings/{key}:{timeframe}:{symbol}/hist': {'cost': 2.7},
+                        'pulse/hist': {'cost': 2.7},
+                        'pulse/profile/{nickname}': {'cost': 2.7},
+                        'funding/stats/{symbol}/hist': {'cost': 10},  # ratelimit not in docs
+                        'ext/vasps': {'cost': 1},
                     },
                     'post': {
-                        'calc/trade/avg': 2.7,
-                        'calc/fx': 2.7,
+                        'calc/trade/avg': {'cost': 2.7},
+                        'calc/fx': {'cost': 2.7},
                     },
                 },
                 'private': {
                     'post': {
                         # 'auth/r/orders/{symbol}/new',  # outdated
                         # 'auth/r/stats/perf:{timeframe}/hist',  # outdated
-                        'auth/r/wallets': 2.7,
-                        'auth/r/wallets/hist': 2.7,
-                        'auth/r/orders': 2.7,
-                        'auth/r/orders/{symbol}': 2.7,
-                        'auth/w/order/submit': 2.7,
-                        'auth/w/order/update': 2.7,
-                        'auth/w/order/cancel': 2.7,
-                        'auth/w/order/multi': 2.7,
-                        'auth/w/order/cancel/multi': 2.7,
-                        'auth/r/orders/{symbol}/hist': 2.7,
-                        'auth/r/orders/hist': 2.7,
-                        'auth/r/order/{symbol}:{id}/trades': 2.7,
-                        'auth/r/trades/{symbol}/hist': 2.7,
-                        'auth/r/trades/hist': 2.7,
-                        'auth/r/ledgers/{currency}/hist': 2.7,
-                        'auth/r/ledgers/hist': 2.7,
-                        'auth/r/info/margin/{key}': 2.7,
-                        'auth/r/info/margin/base': 2.7,
-                        'auth/r/info/margin/sym_all': 2.7,
-                        'auth/r/positions': 2.7,
-                        'auth/w/position/claim': 2.7,
-                        'auth/w/position/increase:': 2.7,
-                        'auth/r/position/increase/info': 2.7,
-                        'auth/r/positions/hist': 2.7,
-                        'auth/r/positions/audit': 2.7,
-                        'auth/r/positions/snap': 2.7,
-                        'auth/w/deriv/collateral/set': 2.7,
-                        'auth/w/deriv/collateral/limits': 2.7,
-                        'auth/r/funding/offers': 2.7,
-                        'auth/r/funding/offers/{symbol}': 2.7,
-                        'auth/w/funding/offer/submit': 2.7,
-                        'auth/w/funding/offer/cancel': 2.7,
-                        'auth/w/funding/offer/cancel/all': 2.7,
-                        'auth/w/funding/close': 2.7,
-                        'auth/w/funding/auto': 2.7,
-                        'auth/w/funding/keep': 2.7,
-                        'auth/r/funding/offers/{symbol}/hist': 2.7,
-                        'auth/r/funding/offers/hist': 2.7,
-                        'auth/r/funding/loans': 2.7,
-                        'auth/r/funding/loans/hist': 2.7,
-                        'auth/r/funding/loans/{symbol}': 2.7,
-                        'auth/r/funding/loans/{symbol}/hist': 2.7,
-                        'auth/r/funding/credits': 2.7,
-                        'auth/r/funding/credits/hist': 2.7,
-                        'auth/r/funding/credits/{symbol}': 2.7,
-                        'auth/r/funding/credits/{symbol}/hist': 2.7,
-                        'auth/r/funding/trades/{symbol}/hist': 2.7,
-                        'auth/r/funding/trades/hist': 2.7,
-                        'auth/r/info/funding/{key}': 2.7,
-                        'auth/r/info/user': 2.7,
-                        'auth/r/summary': 2.7,
-                        'auth/r/logins/hist': 2.7,
-                        'auth/r/permissions': 2.7,
-                        'auth/w/token': 2.7,
-                        'auth/r/audit/hist': 2.7,
-                        'auth/w/transfer': 2.7,  # ratelimit not in docs...
-                        'auth/w/deposit/address': 24,  # 10 requests a minute = 0.166 requests per second =>( 1000ms / rateLimit ) / 0.166 = 24
-                        'auth/w/deposit/invoice': 24,  # ratelimit not in docs
-                        'auth/w/withdraw': 24,  # ratelimit not in docs
-                        'auth/r/movements/{currency}/hist': 2.7,
-                        'auth/r/movements/hist': 2.7,
-                        'auth/r/alerts': 5.34,  # 45 requests a minute = 0.75 requests per second =>( 1000ms / rateLimit ) / 0.749 => 5.34
-                        'auth/w/alert/set': 2.7,
-                        'auth/w/alert/price:{symbol}:{price}/del': 2.7,
-                        'auth/w/alert/{type}:{symbol}:{price}/del': 2.7,
-                        'auth/calc/order/avail': 2.7,
-                        'auth/w/settings/set': 2.7,
-                        'auth/r/settings': 2.7,
-                        'auth/w/settings/del': 2.7,
-                        'auth/r/pulse/hist': 2.7,
-                        'auth/w/pulse/add': 16,  # 15 requests a minute = 0.25 requests per second =>( 1000ms / rateLimit ) / 0.25 => 16
-                        'auth/w/pulse/del': 2.7,
+                        'auth/r/wallets': {'cost': 2.7},
+                        'auth/r/wallets/hist': {'cost': 2.7},
+                        'auth/r/orders': {'cost': 2.7},
+                        'auth/r/orders/{symbol}': {'cost': 2.7},
+                        'auth/w/order/submit': {'cost': 2.7},
+                        'auth/w/order/update': {'cost': 2.7},
+                        'auth/w/order/cancel': {'cost': 2.7},
+                        'auth/w/order/multi': {'cost': 2.7},
+                        'auth/w/order/cancel/multi': {'cost': 2.7},
+                        'auth/r/orders/{symbol}/hist': {'cost': 2.7},
+                        'auth/r/orders/hist': {'cost': 2.7},
+                        'auth/r/order/{symbol}:{id}/trades': {'cost': 2.7},
+                        'auth/r/trades/{symbol}/hist': {'cost': 2.7},
+                        'auth/r/trades/hist': {'cost': 2.7},
+                        'auth/r/ledgers/{currency}/hist': {'cost': 2.7},
+                        'auth/r/ledgers/hist': {'cost': 2.7},
+                        'auth/r/info/margin/{key}': {'cost': 2.7},
+                        'auth/r/info/margin/base': {'cost': 2.7},
+                        'auth/r/info/margin/sym_all': {'cost': 2.7},
+                        'auth/r/positions': {'cost': 2.7},
+                        'auth/w/position/claim': {'cost': 2.7},
+                        'auth/w/position/increase:': {'cost': 2.7},
+                        'auth/r/position/increase/info': {'cost': 2.7},
+                        'auth/r/positions/hist': {'cost': 2.7},
+                        'auth/r/positions/audit': {'cost': 2.7},
+                        'auth/r/positions/snap': {'cost': 2.7},
+                        'auth/w/deriv/collateral/set': {'cost': 2.7},
+                        'auth/w/deriv/collateral/limits': {'cost': 2.7},
+                        'auth/r/funding/offers': {'cost': 2.7},
+                        'auth/r/funding/offers/{symbol}': {'cost': 2.7},
+                        'auth/w/funding/offer/submit': {'cost': 2.7},
+                        'auth/w/funding/offer/cancel': {'cost': 2.7},
+                        'auth/w/funding/offer/cancel/all': {'cost': 2.7},
+                        'auth/w/funding/close': {'cost': 2.7},
+                        'auth/w/funding/auto': {'cost': 2.7},
+                        'auth/w/funding/keep': {'cost': 2.7},
+                        'auth/r/funding/offers/{symbol}/hist': {'cost': 2.7},
+                        'auth/r/funding/offers/hist': {'cost': 2.7},
+                        'auth/r/funding/loans': {'cost': 2.7},
+                        'auth/r/funding/loans/hist': {'cost': 2.7},
+                        'auth/r/funding/loans/{symbol}': {'cost': 2.7},
+                        'auth/r/funding/loans/{symbol}/hist': {'cost': 2.7},
+                        'auth/r/funding/credits': {'cost': 2.7},
+                        'auth/r/funding/credits/hist': {'cost': 2.7},
+                        'auth/r/funding/credits/{symbol}': {'cost': 2.7},
+                        'auth/r/funding/credits/{symbol}/hist': {'cost': 2.7},
+                        'auth/r/funding/trades/{symbol}/hist': {'cost': 2.7},
+                        'auth/r/funding/trades/hist': {'cost': 2.7},
+                        'auth/r/info/funding/{key}': {'cost': 2.7},
+                        'auth/r/info/user': {'cost': 2.7},
+                        'auth/r/summary': {'cost': 2.7},
+                        'auth/r/logins/hist': {'cost': 2.7},
+                        'auth/r/permissions': {'cost': 2.7},
+                        'auth/w/token': {'cost': 2.7},
+                        'auth/r/audit/hist': {'cost': 2.7},
+                        'auth/w/transfer': {'cost': 2.7},  # ratelimit not in docs...
+                        'auth/w/deposit/address': {'cost': 24},  # 10 requests a minute = 0.166 requests per second =>( 1000ms / rateLimit ) / 0.166 = 24
+                        'auth/w/deposit/invoice': {'cost': 24},  # ratelimit not in docs
+                        'auth/w/withdraw': {'cost': 24},  # ratelimit not in docs
+                        'auth/r/movements/{currency}/hist': {'cost': 2.7},
+                        'auth/r/movements/hist': {'cost': 2.7},
+                        'auth/r/alerts': {'cost': 5.34},  # 45 requests a minute = 0.75 requests per second =>( 1000ms / rateLimit ) / 0.749 => 5.34
+                        'auth/w/alert/set': {'cost': 2.7},
+                        'auth/w/alert/price:{symbol}:{price}/del': {'cost': 2.7},
+                        'auth/w/alert/{type}:{symbol}:{price}/del': {'cost': 2.7},
+                        'auth/calc/order/avail': {'cost': 2.7},
+                        'auth/w/settings/set': {'cost': 2.7},
+                        'auth/r/settings': {'cost': 2.7},
+                        'auth/w/settings/del': {'cost': 2.7},
+                        'auth/r/pulse/hist': {'cost': 2.7},
+                        'auth/w/pulse/add': {'cost': 16},  # 15 requests a minute = 0.25 requests per second =>( 1000ms / rateLimit ) / 0.25 => 16
+                        'auth/w/pulse/del': {'cost': 2.7},
                     },
                 },
             },
@@ -358,7 +361,12 @@ class bitfinex(Exchange, ImplicitAPI):
             },
             'precisionMode': SIGNIFICANT_DIGITS,
             'options': {
-                'precision': 'R0',  # P0, P1, P2, P3, P4, R0
+                'fetchOrderBook': {
+                    'precision': 'R0',  # P0, P1, P2, P3, P4, R0
+                },
+                'fetchCurrencies': {
+                    'defaultPrecision': 8,  # default currency precision
+                },
                 # convert 'EXCHANGE MARKET' to lowercase 'market'
                 # convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 # everything else remains uppercase
@@ -562,32 +570,34 @@ class bitfinex(Exchange, ImplicitAPI):
             },
         })
 
-    def is_fiat(self, code):
+    def is_fiat(self, code: Any):
         return(code in self.options['fiat'])
 
-    def get_currency_name(self, code):
+    def get_currency_name(self, code: Any):
         # temporary fix for transpiler recognition, even though self is in parent class
         if code in self.options['currencyNames']:
             return self.options['currencyNames'][code]
         raise NotSupported(self.id + ' ' + code + ' not supported for withdrawal')
 
-    def amount_to_precision(self, symbol, amount):
+    def amount_to_precision(self, symbol: Str, amount: Any):
         # https://docs.bitfinex.com/docs/introduction#amount-precision
         # The amount field allows up to 8 decimals.
         # Anything exceeding self will be rounded to the 8th decimal.
         symbol = self.safe_symbol(symbol)
-        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
+        market = self.market(symbol)
+        return self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES)
 
-    def price_to_precision(self, symbol, price):
+    def price_to_precision(self, symbol: Str, price: Any):
         symbol = self.safe_symbol(symbol)
-        price = self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+        market = self.market(symbol)
+        price = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode)
         # https://docs.bitfinex.com/docs/introduction#price-precision
         # The precision level of all trading prices is based on significant figures.
         # All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals(e.g. 1.2345, 123.45, 1234.5, 0.00012345).
         # Prices submit with a precision larger than 5 will be cut by the API.
         return self.decimal_to_precision(price, TRUNCATE, 8, DECIMAL_PLACES)
 
-    async def fetch_status(self, params={}):
+    async def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -619,42 +629,39 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        spotMarketsInfoPromise = self.publicGetConfPubInfoPair(params)
-        futuresMarketsInfoPromise = self.publicGetConfPubInfoPairFutures(params)
-        marginIdsPromise = self.publicGetConfPubListPairMargin(params)
-        spotMarketsInfo, futuresMarketsInfo, marginIds = await asyncio.gather(*[spotMarketsInfoPromise, futuresMarketsInfoPromise, marginIdsPromise])
-        spotMarketsInfo = self.safe_list(spotMarketsInfo, 0, [])
-        futuresMarketsInfo = self.safe_list(futuresMarketsInfo, 0, [])
+        labels = [
+            'pub:info:pair',
+            # sample: 'AAVE:USD' with fields null,null,null,"0.02","5000.0",null,null,null,null,null,null,null
+            'pub:info:pair:futures',
+            # sample: 'AAVEF0:USTF0' with fields null,null,null,"0.02","5000.0",null,null,null,0.01,0.005
+            'pub:list:pair:securities',
+            # sample: "ALT2612:USD","ALT2612:UST","BMN2:BTC","BMN2:USD","TITAN1:GBP","TITAN1:USD","TITAN2:GBP","TITAN2:USD","USTBL:USD","USTBL:UST"
+            'pub:list:pair:margin',
+            # sample: 'ADABTC', 'AVAX:BTC', ...  # delimiter inconsistency
+        ]
+        config = ','.join(labels)
+        request = {
+            'config': config,
+        }
+        response = await self.publicGetConfConfig(self.extend(request, params))
+        spotMarketsInfo = self.safe_list(response, 0, [])
+        futuresMarketsInfo = self.safe_list(response, 1, [])
+        securitiesMarketsIds = self.safe_list(response, 2, [])
+        marginIds = self.safe_list(response, 3, [])
         markets = self.array_concat(spotMarketsInfo, futuresMarketsInfo)
-        marginIds = self.safe_value(marginIds, 0, [])
-        #
-        #    [
-        #        "1INCH:USD",
-        #        [
-        #           null,
-        #           null,
-        #           null,
-        #           "2.0",
-        #           "100000.0",
-        #           null,
-        #           null,
-        #           null,
-        #           null,
-        #           null,
-        #           null,
-        #           null
-        #        ]
-        #    ]
-        #
         result = []
         for i in range(0, len(markets)):
-            pair = markets[i]
-            id = self.safe_string_upper(pair, 0)
-            market = self.safe_value(pair, 1, {})
+            pairObj = markets[i]
+            id = self.safe_string_upper(pairObj, 0)
+            market = self.safe_value(pairObj, 1, {})
             spot = True
+            type = None
             if id.find('F0') >= 0:
                 spot = False
-            swap = not spot
+                type = 'swap'
+            else:
+                type = 'spot'
+            swap = type == 'swap'
             baseId = None
             quoteId = None
             if id.find(':') >= 0:
@@ -681,9 +688,6 @@ class bitfinex(Exchange, ImplicitAPI):
                 symbol = symbol + ':' + settle
             minOrderSizeString = self.safe_string(market, 3)
             maxOrderSizeString = self.safe_string(market, 4)
-            margin = False
-            if spot and self.in_array(id, marginIds):
-                margin = True
             result.append({
                 'id': 't' + id,
                 'symbol': symbol,
@@ -693,14 +697,15 @@ class bitfinex(Exchange, ImplicitAPI):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': 'spot' if spot else 'swap',
+                'type': type,
                 'spot': spot,
-                'margin': margin,
+                'tradfi': self.in_array(id, securitiesMarketsIds),
+                'margin': (spot and self.in_array(id, marginIds)),
                 'swap': swap,
                 'future': False,
                 'option': False,
                 'active': True,
-                'contract': swap,
+                'contract': not spot,
                 'linear': True if swap else None,
                 'inverse': False if swap else None,
                 'contractSize': self.parse_number('1') if swap else None,
@@ -755,9 +760,10 @@ class bitfinex(Exchange, ImplicitAPI):
             'pub:map:currency:tx:fee',  # maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745,
             'pub:map:tx:method',  # maps withdrawal/deposit methods to their API symbols
             'pub:info:tx:status',  # maps withdrawal/deposit statuses, coins: 1 = enabled, 0 = maintenance
+            'pub:list:currency:margin',  # margin enabled currencies
         ]
         config = ','.join(labels)
-        request: dict = {
+        request = {
             'config': config,
         }
         response = await self.publicGetConfConfig(self.extend(request, params))
@@ -844,7 +850,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
-        indexed: dict = {
+        indexed = {
             'sym': self.index_by(self.safe_list(response, 1, []), 0),
             'label': self.index_by(self.safe_list(response, 2, []), 0),
             'unit': self.index_by(self.safe_list(response, 3, []), 0),
@@ -854,8 +860,9 @@ class bitfinex(Exchange, ImplicitAPI):
             'fees': self.index_by(self.safe_list(response, 7, []), 0),
             'networks': self.safe_list(response, 8, []),
             'statuses': self.index_by(self.safe_list(response, 9, []), 0),
+            'marginables': self.safe_list(response, 10, []),
         }
-        indexedNetworks: dict = {}
+        indexedNetworks = {}
         for i in range(0, len(indexed['networks'])):
             networkObj = indexed['networks'][i]
             networkId = self.safe_string(networkObj, 0)
@@ -866,41 +873,60 @@ class bitfinex(Exchange, ImplicitAPI):
             networksList.append(networkId)
             indexedNetworks[networkName] = networksList
         ids = self.safe_list(response, 0, [])
-        result: dict = {}
+        return self.parse_currencies_custom(ids, indexed, indexedNetworks)
+
+    def parse_currencies_custom(self, ids: Any, indexed: Any, indexedNetworks: Any):
+        allowedIds = []
         for i in range(0, len(ids)):
             id = ids[i]
             if id.endswith('F0'):
                 # we get a lot of F0 currencies, skip those
                 continue
-            code = self.safe_currency_code(id)
-            label = self.safe_list(indexed['label'], id, [])
-            name = self.safe_string(label, 1)
-            pool = self.safe_list(indexed['pool'], id, [])
-            rawType = self.safe_string(pool, 1)
-            isCryptoCoin = (rawType is not None) or (id in indexed['explorer'])  # "hacky" solution
-            type = None
-            if isCryptoCoin:
-                type = 'crypto'
-            feeValues = self.safe_list(indexed['fees'], id, [])
-            fees = self.safe_list(feeValues, 1, [])
-            fee = self.safe_number(fees, 1)
-            undl = self.safe_list(indexed['undl'], id, [])
-            precision = '8'  # default precision, todo: fix "magic constants"
-            dwStatuses = self.safe_list(indexed['statuses'], id, [])
-            depositEnabled = self.safe_integer(dwStatuses, 1) == 1
-            withdrawEnabled = self.safe_integer(dwStatuses, 2) == 1
-            networks: dict = {}
-            netwokIds = self.safe_list(indexedNetworks, id, [])
-            for j in range(0, len(netwokIds)):
-                networkId = netwokIds[j]
-                network = self.network_id_to_code(networkId)
+            allowedIds.append(id)
+        result = {}
+        arr = self.to_array(allowedIds)
+        for i in range(0, len(arr)):
+            parsed = self.parse_currency_custom(arr[i], indexed, indexedNetworks)
+            code = parsed['code']
+            result[code] = parsed
+        return result
+
+    def parse_currency_custom(self, id: Any, indexed: Any, indexedNetworks: Any) -> Currency:
+        code = self.safe_currency_code(id)
+        label = self.safe_list(indexed['label'], id, [])
+        name = self.safe_string(label, 1)
+        pool = self.safe_list(indexed['pool'], id, [])
+        rawType = self.safe_string(pool, 1)
+        isCryptoCoin = (rawType is not None) or (id in indexed['explorer'])  # "hacky" solution
+        type = 'crypto' if isCryptoCoin else None
+        feeValues = self.safe_list(indexed['fees'], id, [])
+        fees = self.safe_list(feeValues, 1, [])
+        fee = self.safe_number(fees, 1)
+        undl = self.safe_list(indexed['undl'], id, [])
+        defaultCurrencyPrecision = self.safe_string(self.options, 'defaultCurrencyPrecision', '8')  # kept here for backward-compatibility
+        # numberToString instead of an `as string` cast: the describe() default for self option is the
+        # NUMBER 8(and users may override with numbers too), and the hard cast makes the C# build throw
+        # InvalidCastException Int32 to str here, breaking bitfinex loadMarkets entirely in C#
+        precision = self.number_to_string(self.handle_option('fetchCurrencies', 'defaultPrecision', defaultCurrencyPrecision))
+        networks = {}
+        networkIds = self.safe_list(indexedNetworks, id, [])
+        for j in range(0, len(networkIds)):
+            # safeString instead of raw access: the venue config payload can carry numeric
+            # network ids, and the raw value flows into toLowerCase and a dictionary key,
+            # which hard-casts to string in the C# build and throws InvalidCastException
+            networkId = self.safe_string(networkIds, j)
+            if networkId is None:
+                continue
+            network = self.network_id_to_code(networkId, code)
+            dwStatuses = self.safe_list(indexed['statuses'], networkId, [])
+            if network is not None:
                 networks[network] = {
                     'info': networkId,
                     'id': networkId.lower(),
                     'network': networkId,
                     'active': None,
-                    'deposit': None,
-                    'withdraw': None,
+                    'deposit': self.safe_integer(dwStatuses, 1) == 1,
+                    'withdraw': self.safe_integer(dwStatuses, 2) == 1,
                     'fee': None,
                     'precision': None,
                     'limits': {
@@ -910,30 +936,30 @@ class bitfinex(Exchange, ImplicitAPI):
                         },
                     },
                 }
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'info': [id, label, pool, feeValues, undl],
-                'type': type,
-                'name': name,
-                'active': True,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': fee,
-                'precision': int(precision),
-                'limits': {
-                    'amount': {
-                        'min': self.parse_number(self.parse_precision(precision)),
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': fee,
-                        'max': None,
-                    },
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': [id, label, pool, feeValues, undl],
+            'type': type,
+            'name': name,
+            'active': True,
+            'deposit': None,
+            'withdraw': None,
+            'fee': fee,
+            'precision': self.parse_number(precision),
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
                 },
-                'networks': networks,
-            })
-        return result
+                'withdraw': {
+                    'min': fee,
+                    'max': None,
+                },
+            },
+            'networks': networks,
+            'margin': self.in_array(id, indexed['marginables']),
+        })
 
     async def fetch_balance(self, params={}) -> Balances:
         """
@@ -946,7 +972,8 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         # self api call does not return the 'used' amount - use the v1 version instead(which also returns zero balances)
         # there is a difference between self and the v1 api, namely trading wallet is called margin in v2
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         accountsByType = self.safe_value(self.options, 'v2AccountsByType', {})
         requestedType = self.safe_string(params, 'type', 'exchange')
         accountType = self.safe_string(accountsByType, requestedType, requestedType)
@@ -956,9 +983,10 @@ class bitfinex(Exchange, ImplicitAPI):
         isDerivative = requestedType == 'derivatives'
         query = self.omit(params, 'type')
         response = await self.privatePostAuthRWallets(query)
-        result: dict = {'info': response}
-        for i in range(0, len(response)):
-            balance = response[i]
+        balances = self.to_array(response)
+        result = {'info': response}
+        for i in range(0, len(balances)):
+            balance = balances[i]
             account = self.account()
             interest = self.safe_string(balance, 3)
             if interest != '0':
@@ -973,7 +1001,8 @@ class bitfinex(Exchange, ImplicitAPI):
                 code = self.safe_currency_code(currencyId)
                 account['total'] = self.safe_string(balance, 2)
                 account['free'] = self.safe_string(balance, 4)
-                result[code] = account
+                if code is not None:
+                    result[code] = account
         return self.safe_balance(result)
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
@@ -991,7 +1020,8 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         # transferring between derivatives wallet and regular wallet is not documented in their API
         # however we support it in CCXT(from just looking at web inspector)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         accountsByType = self.safe_value(self.options, 'v2AccountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount)
         if fromId is None:
@@ -1006,7 +1036,7 @@ class bitfinex(Exchange, ImplicitAPI):
         toCurrencyId = self.convert_derivatives_id(currency, toAccount)
         requestedAmount = self.currency_to_precision(code, amount)
         # self request is slightly different from v1 fromAccount -> from
-        request: dict = {
+        request = {
             'amount': requestedAmount,
             'currency': fromCurrencyId,
             'currency_to': toCurrencyId,
@@ -1087,14 +1117,14 @@ class bitfinex(Exchange, ImplicitAPI):
         }
 
     def parse_transfer_status(self, status: Str) -> Str:
-        statuses: dict = {
+        statuses = {
             'SUCCESS': 'ok',
             'ERROR': 'failed',
             'FAILURE': 'failed',
         }
         return self.safe_string(statuses, status, status)
 
-    def convert_derivatives_id(self, currency, type):
+    def convert_derivatives_id(self, currency: Any, type: Any):
         # there is a difference between self and the v1 api, namely trading wallet is called margin in v2
         # {
         #   "id": "fUSTF0",
@@ -1125,12 +1155,13 @@ class bitfinex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return, bitfinex only allows 1, 25, or 100
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
-        precision = self.safe_value(self.options, 'precision', 'R0')
+        if self.markets is None:
+            await self.load_markets()
+        precision = self.handle_option('fetchOrderBook', 'precision', 'R0')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'precision': precision,
         }
@@ -1139,7 +1170,7 @@ class bitfinex(Exchange, ImplicitAPI):
         fullRequest = self.extend(request, params)
         orderbook = await self.publicGetBookSymbolPrecision(fullRequest)
         timestamp = self.milliseconds()
-        result: dict = {
+        result = {
             'symbol': market['symbol'],
             'bids': [],
             'asks': [],
@@ -1148,14 +1179,14 @@ class bitfinex(Exchange, ImplicitAPI):
             'nonce': None,
         }
         priceIndex = 1 if (fullRequest['precision'] == 'R0') else 0
-        for i in range(0, len(orderbook)):
-            order = orderbook[i]
+        orders = self.to_array(orderbook)
+        for i in range(0, len(orders)):
+            order = orders[i]
             price = self.safe_number(order, priceIndex)
             signedAmount = self.safe_string(order, 2)
             amount = Precise.string_abs(signedAmount)
             side = 'bids' if Precise.string_gt(signedAmount, '0') else 'asks'
-            resultSide = result[side]
-            resultSide.append([price, self.parse_number(amount)])
+            result[side].append([price, self.parse_number(amount)])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
@@ -1202,26 +1233,25 @@ class bitfinex(Exchange, ImplicitAPI):
         #     ]
         #
         length = len(ticker)
-        isFetchTicker = (length == 10) or (length == 16)
-        symbol: Str = None
+        firstValue = self.safe_number(ticker, 0)
+        isFetchTicker = firstValue is not None  # if it's Nan, then it's string(symbol)
+        symbol = None
         minusIndex = 0
-        isFundingCurrency = False
         if isFetchTicker:
             minusIndex = 1
-            isFundingCurrency = (length == 16)
         else:
             marketId = self.safe_string(ticker, 0)
             market = self.safe_market(marketId, market)
-            isFundingCurrency = (length == 17)
+        isFundingCurrency = length >= 17
         symbol = self.safe_symbol(None, market)
-        last: Str = None
-        bid: Str = None
-        ask: Str = None
-        change: Str = None
-        percentage: Str = None
-        volume: Str = None
-        high: Str = None
-        low: Str = None
+        last = None
+        bid = None
+        ask = None
+        change = None
+        percentage = None
+        volume = None
+        high = None
+        low = None
         if isFundingCurrency:
             # per api docs, they are different array type
             last = self.safe_string(ticker, 10 - minusIndex)
@@ -1276,9 +1306,10 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
-        request: dict = {}
+        request = {}
         if symbols is not None:
             ids = self.market_ids(symbols)
             request['symbols'] = ','.join(ids)
@@ -1336,9 +1367,10 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         ticker = await self.publicGetTickerSymbol(self.extend(request, params))
@@ -1439,14 +1471,15 @@ class bitfinex(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch entries for
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params, 10000)
         market = self.market(symbol)
         sort = '-1'
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if since is not None:
@@ -1467,7 +1500,8 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
-        trades = self.sort_by(response, 1)
+        rawTrades = self.to_array(response)
+        trades = self.sort_by(rawTrades, 1)
         tradesList = []
         for i in range(0, len(trades)):
             tradesList.append({'result': trades[i]})  # convert to array of dicts to match parseOrder signature
@@ -1488,7 +1522,8 @@ class bitfinex(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
@@ -1498,14 +1533,14 @@ class bitfinex(Exchange, ImplicitAPI):
             limit = 10000
         else:
             limit = min(limit, 10000)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
-            'sort': 1,
             'limit': limit,
         }
         if since is not None:
             request['start'] = since
+            request['sort'] = 1
         request, params = self.handle_until_option('end', request, params)
         response = await self.publicGetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
         #
@@ -1515,9 +1550,9 @@ class bitfinex(Exchange, ImplicitAPI):
         #         [1591504620000,0.025062,0.025062,0.025062,0.025062,0.5],
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     [
         #         1457539800000,
@@ -1542,7 +1577,7 @@ class bitfinex(Exchange, ImplicitAPI):
             return status
         parts = status.split(' ')
         state = self.safe_string(parts, 0)
-        statuses: dict = {
+        statuses = {
             'ACTIVE': 'open',
             'PARTIALLY': 'open',
             'EXECUTED': 'closed',
@@ -1556,9 +1591,9 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, state, status)
 
-    def parse_order_flags(self, flags):
+    def parse_order_flags(self, flags: Any):
         # flags can be added to each other...
-        flagValues: dict = {
+        flagValues = {
             '1024': ['reduceOnly'],
             '4096': ['postOnly'],
             '5120': ['reduceOnly', 'postOnly'],
@@ -1569,8 +1604,8 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         return self.safe_value(flagValues, flags, None)
 
-    def parse_time_in_force(self, orderType):
-        orderTypes: dict = {
+    def parse_time_in_force(self, orderType: Any):
+        orderTypes = {
             'EXCHANGE IOC': 'IOC',
             'EXCHANGE FOK': 'FOK',
             'IOC': 'IOC',  # Margin
@@ -1638,7 +1673,11 @@ class bitfinex(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         """
  @ignore
         helper function to build an order request
@@ -1661,8 +1700,8 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         market = self.market(symbol)
         amountString = self.amount_to_precision(symbol, amount)
-        amountString = amountString if (side == 'buy') else Precise.string_neg(amountString)
-        request: dict = {
+        amountString = amountString if (side == 'buy') else (Precise.string_neg(amountString))
+        request = {
             'symbol': market['id'],
             'amount': amountString,
         }
@@ -1739,7 +1778,8 @@ class bitfinex(Exchange, ImplicitAPI):
         :param str [params.trailingAmount]: *swap only* the quote amount to trail away from the current market price
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = self.create_order_request(symbol, type, side, amount, price, params)
         response = await self.privatePostAuthWOrderSubmit(request)
@@ -1792,9 +1832,9 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         status = self.safe_string(response, 6)
         if status != 'SUCCESS':
-            errorCode = response[5]
-            errorText = response[7]
-            raise ExchangeError(self.id + ' ' + response[6] + ': ' + errorText + '(#' + errorCode + ')')
+            errorCode = self.safe_string(response, 5)
+            errorText = self.safe_string(response, 7)
+            raise ExchangeError(self.id + ' ' + status + ': ' + errorText + '(#' + errorCode + ')')
         orders = self.safe_list(response, 4, [])
         order = self.safe_list(orders, 0)
         newOrder = {'result': order}
@@ -1810,7 +1850,8 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         ordersRequests = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
@@ -1822,7 +1863,7 @@ class bitfinex(Exchange, ImplicitAPI):
             orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_order_request(symbol, type, side, amount, price, orderParams)
             ordersRequests.append(['on', orderRequest])
-        request: dict = {
+        request = {
             'ops': ordersRequests,
         }
         response = await self.privatePostAuthWOrderMulti(request)
@@ -1865,12 +1906,13 @@ class bitfinex(Exchange, ImplicitAPI):
 
         https://docs.bitfinex.com/reference/rest-auth-cancel-orders-multiple
 
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             'all': 1,
         }
         response = await self.privatePostAuthWOrderCancelMulti(self.extend(request, params))
@@ -1891,9 +1933,10 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         cid = self.safe_value_2(params, 'cid', 'clientOrderId')  # client order id
-        request = None
+        request: dict
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1926,12 +1969,13 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an array of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         numericIds = []
         for i in range(0, len(ids)):
             # numericIds[i] = self.parse_to_numeric(ids[i])
             numericIds.append(self.parse_to_numeric(ids[i]))
-        request: dict = {
+        request = {
             'id': numericIds,
         }
         market = None
@@ -1994,7 +2038,7 @@ class bitfinex(Exchange, ImplicitAPI):
             ordersList.append({'result': orders[i]})
         return self.parse_orders(ordersList, market)
 
-    async def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch an open order by it's id
 
@@ -2006,7 +2050,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'id': [int(id)],
         }
         orders = await self.fetch_open_orders(symbol, None, None, self.extend(request, params))
@@ -2015,7 +2059,7 @@ class bitfinex(Exchange, ImplicitAPI):
             raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return order
 
-    async def fetch_closed_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_closed_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch an open order by it's id
 
@@ -2027,7 +2071,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'id': [int(id)],
         }
         orders = await self.fetch_closed_orders(symbol, None, None, self.extend(request, params))
@@ -2049,10 +2093,11 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        request = {}
         market = None
-        response = None
+        response: dict
         if symbol is None:
             response = await self.privatePostAuthROrders(self.extend(request, params))
         else:
@@ -2118,19 +2163,20 @@ class bitfinex(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         # returns the most recent closed or canceled orders up to circa two weeks ago
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params)
-        request: dict = {}
+        request = {}
         if since is not None:
             request['start'] = since
         if limit is not None:
             request['limit'] = limit  # default 25, max 2500
         request, params = self.handle_until_option('end', request, params)
         market = None
-        response = None
+        response: dict
         if symbol is None:
             response = await self.privatePostAuthROrdersHist(self.extend(request, params))
         else:
@@ -2195,18 +2241,20 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         orderId = int(id)
-        request: dict = {
+        request = {
             'id': orderId,
             'symbol': market['id'],
         }
-        # valid for trades upto 10 days old
+        # valid for trades up to 10 days old
         response = await self.privatePostAuthROrderSymbolIdTrades(self.extend(request, params))
+        rawTrades = self.to_array(response)
         tradesList = []
-        for i in range(0, len(response)):
-            tradesList.append({'result': response[i]})  # convert to array of dicts to match parseOrder signature
+        for i in range(0, len(rawTrades)):
+            tradesList.append({'result': rawTrades[i]})  # convert to array of dicts to match parseOrder signature
         return self.parse_trades(tradesList, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -2222,16 +2270,17 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
-        request: dict = {
+        request = {
             'end': self.milliseconds(),
         }
         if since is not None:
             request['start'] = since
         if limit is not None:
             request['limit'] = limit  # default 25, max 1000
-        response = None
+        response: dict
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -2253,8 +2302,9 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             'op_renew': 1,
         }
         return await self.fetch_deposit_address(code, self.extend(request, params))
@@ -2269,7 +2319,8 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         # if not provided explicitly we will try to match using the currency name
         network = self.safe_string(params, 'network', code)
@@ -2280,7 +2331,7 @@ class bitfinex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + " fetchDepositAddress() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params")
         wallet = self.safe_string(params, 'wallet', 'exchange')  # 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         params = self.omit(params, 'network', 'wallet')
-        request: dict = {
+        request = {
             'method': networkId,
             'wallet': wallet,
             'op_renew': 0,  # a value of 1 will generate a new address
@@ -2319,7 +2370,7 @@ class bitfinex(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'SUCCESS': 'ok',
             'COMPLETED': 'ok',
             'ERROR': 'failed',
@@ -2417,13 +2468,13 @@ class bitfinex(Exchange, ImplicitAPI):
             tag = self.safe_string(data, 3)
             type = 'withdrawal'
             networkId = self.safe_string(data, 2)
-            network = self.network_id_to_code(networkId.upper())  # withdraw returns in lowercase
+            network = self.network_id_to_code(networkId.upper(), code)  # withdraw returns in lowercase
         elif transactionLength == 22:
             id = self.safe_string(transaction, 0)
             currencyId = self.safe_string(transaction, 1)
             code = self.safe_currency_code(currencyId, currency)
             networkId = self.safe_string(transaction, 2)
-            network = self.network_id_to_code(networkId)
+            network = self.network_id_to_code(networkId, code)
             timestamp = self.safe_integer(transaction, 5)
             updated = self.safe_integer(transaction, 6)
             status = self.parse_transaction_status(self.safe_string(transaction, 9))
@@ -2476,7 +2527,8 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privatePostAuthRSummary(params)
         #
         #      Response Spec:
@@ -2545,7 +2597,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #         {leo_lev: "0", leo_amount_avg: "0"}
         #     ]
         #
-        result: dict = {}
+        result = {}
         fiat = self.safe_value(self.options, 'fiat', {})
         feeData = self.safe_value(response, 4, [])
         makerData = self.safe_value(feeData, 0, [])
@@ -2590,20 +2642,23 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = None
-        request: dict = {}
+        request = {}
         if since is not None:
             request['start'] = since
         if limit is not None:
             request['limit'] = limit  # max 1000
-        response = None
+        response: List
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
-            response = await self.privatePostAuthRMovementsCurrencyHist(self.extend(request, params))
+            currencyMovements = await self.privatePostAuthRMovementsCurrencyHist(self.extend(request, params))
+            response = self.to_array(currencyMovements)
         else:
-            response = await self.privatePostAuthRMovementsHist(self.extend(request, params))
+            movements = await self.privatePostAuthRMovementsHist(self.extend(request, params))
+            response = self.to_array(movements)
         #
         #     [
         #         [
@@ -2648,7 +2703,8 @@ class bitfinex(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.check_address(address)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         # if not provided explicitly we will try to match using the currency name
         network = self.safe_string(params, 'network', code)
@@ -2660,7 +2716,7 @@ class bitfinex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + " withdraw() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params")
         wallet = self.safe_string(params, 'wallet', 'exchange')  # 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         params = self.omit(params, 'network', 'wallet')
-        request: dict = {
+        request = {
             'method': networkId,
             'wallet': wallet,
             'amount': self.number_to_string(amount),
@@ -2726,7 +2782,8 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         response = await self.privatePostAuthRPositions(params)
         #
@@ -2763,9 +2820,10 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
+        rawPositions = self.to_array(response)
         positionsList = []
-        for i in range(0, len(response)):
-            positionsList.append({'result': response[i]})
+        for i in range(0, len(rawPositions)):
+            positionsList.append({'result': rawPositions[i]})
         return self.parse_positions(positionsList, symbols)
 
     def parse_position(self, position: dict, market: Market = None):
@@ -2841,7 +2899,7 @@ class bitfinex(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'v1':
@@ -2866,7 +2924,7 @@ class bitfinex(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, statusCode, statusText, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, statusCode: int, statusText: Any, url: Any, method: Any, headers: Any, body: Any, response: Any, requestHeaders: Any, requestBody: Any):
         # ["error", 11010, "ratelimit: error"]
         if response is not None:
             if not isinstance(response, list):
@@ -2970,19 +3028,20 @@ class bitfinex(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params, 2500)
         currency = None
-        request: dict = {}
+        request = {}
         if since is not None:
             request['start'] = since
         if limit is not None:
             request['limit'] = limit
         request, params = self.handle_until_option('end', request, params)
-        response = None
+        response: dict
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -3022,9 +3081,10 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         if symbols is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRates() requires a symbols argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         marketIds = self.market_ids(symbols)
-        request: dict = {
+        request = {
             'keys': ','.join(marketIds),
         }
         response = await self.publicGetStatusDeriv(self.extend(request, params))
@@ -3060,7 +3120,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rates(response, symbols)
 
-    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -3076,13 +3136,14 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 5000)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if since is not None:
@@ -3119,9 +3180,10 @@ class bitfinex(Exchange, ImplicitAPI):
         #       ]
         #   ]
         #
+        rawRatesData = self.to_array(response)
         rates = []
-        for i in range(0, len(response)):
-            fr = response[i]
+        for i in range(0, len(rawRatesData)):
+            fr = rawRatesData[i]
             rate = self.parse_funding_rate_history(fr, market)
             rates.append(rate)
         reversedArray = []
@@ -3133,7 +3195,7 @@ class bitfinex(Exchange, ImplicitAPI):
             reversedArray.append(valueAtIndex)
         return reversedArray
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         #
         #       [
         #          "tBTCF0:USTF0",
@@ -3186,7 +3248,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def parse_funding_rate_history(self, contract, market: Market = None):
+    def parse_funding_rate_history(self, contract: Any, market: Market = None):
         #
         # [
         #     1691165494000,
@@ -3246,12 +3308,13 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific parameters
         :returns dict[]: a list of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         marketIds = ['ALL']
         if symbols is not None:
             marketIds = self.market_ids(symbols)
-        request: dict = {
+        request = {
             'keys': ','.join(marketIds),
         }
         response = await self.publicGetStatusDeriv(self.extend(request, params))
@@ -3297,9 +3360,10 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific parameters
         :returns dict: an `open interest structure <https://docs.ccxt.com/?id=open-interest-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'keys': market['id'],
         }
         response = await self.publicGetStatusDeriv(self.extend(request, params))
@@ -3351,13 +3415,14 @@ class bitfinex(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns: An array of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOpenInterestHistory', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchOpenInterestHistory', symbol, since, limit, '8h', params, 5000)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if since is not None:
@@ -3397,7 +3462,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         return self.parse_open_interests_history(response, market, since, limit)
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: Any, market: Market = None):
         #
         # fetchOpenInterest:
         #
@@ -3483,13 +3548,14 @@ class bitfinex(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchLiquidations', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchLiquidations', symbol, since, limit, '8h', params, 500)
         market = self.market(symbol)
-        request: dict = {}
+        request = {}
         if since is not None:
             request['start'] = since
         if limit is not None:
@@ -3516,9 +3582,9 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ],
         #     ]
         #
-        return self.parse_liquidations(response, market, since, limit)
+        return self.parse_liquidations(self.to_array(response), market, since, limit)
 
-    def parse_liquidation(self, liquidation, market: Market = None):
+    def parse_liquidation(self, liquidation: Any, market: Market = None):
         #
         #     [
         #         [
@@ -3570,11 +3636,12 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: parameters specific to the exchange API endpoint
         :returns dict: A `margin structure <https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
             raise NotSupported(self.id + ' setMargin() only support swap markets')
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'collateral': self.parse_to_numeric(amount),
         }
@@ -3589,7 +3656,7 @@ class bitfinex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 0)
         return self.parse_margin_modification(data, market)
 
-    def parse_margin_modification(self, data, market=None) -> MarginModification:
+    def parse_margin_modification(self, data: Any, market: Market = None) -> MarginModification:
         #
         # setMargin
         #
@@ -3603,7 +3670,7 @@ class bitfinex(Exchange, ImplicitAPI):
         marginStatus = 'ok' if (marginStatusRaw == 1) else 'failed'
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'type': None,
             'marginMode': 'isolated',
             'amount': None,
@@ -3626,12 +3693,13 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             'id': [self.parse_to_numeric(id)],
         }
         market = None
-        response = None
+        response: dict
         if symbol is None:
             response = await self.privatePostAuthROrders(self.extend(request, params))
         else:
@@ -3702,14 +3770,15 @@ class bitfinex(Exchange, ImplicitAPI):
         :param float [params.trailingAmount]: *swap only* the quote amount to trail away from the current market price
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'id': self.parse_to_numeric(id),
         }
         if amount is not None:
             amountString = self.amount_to_precision(symbol, amount)
-            amountString = amountString if (side == 'buy') else Precise.string_neg(amountString)
+            amountString = amountString if (side == 'buy') else (Precise.string_neg(amountString))
             request['amount'] = amountString
         triggerPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
         trailingAmount = self.safe_string(params, 'trailingAmount')
@@ -3789,9 +3858,9 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         status = self.safe_string(response, 6)
         if status != 'SUCCESS':
-            errorCode = response[5]
-            errorText = response[7]
-            raise ExchangeError(self.id + ' ' + response[6] + ': ' + errorText + '(#' + errorCode + ')')
+            errorCode = self.safe_string(response, 5)
+            errorText = self.safe_string(response, 7)
+            raise ExchangeError(self.id + ' ' + status + ': ' + errorText + '(#' + errorCode + ')')
         order = self.safe_list(response, 4, [])
         newOrder = {'result': order}
         return self.parse_order(newOrder, market)

@@ -1,0 +1,210 @@
+{
+    "exchange": "polymarket",
+    "asyncOnly": true,
+    "skipKeys": [
+        "owner"
+    ],
+    "outputType": "json",
+    "options": {
+        "l2ApiKey": "0xabc123",
+        "l2Secret": "0xdef456"
+    },
+    "methods": {
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook for a yes outcome",
+                "method": "fetchOrderBook",
+                "url": "https://clob.polymarket.com/book?token_id=16040015440196279900485035793550429453516625694844857319147506590755961451627",
+                "input": [
+                    "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades with limit",
+                "method": "fetchTrades",
+                "url": "https://data-api.polymarket.com/trades?market=0x7ad403c3508f8e3912940fd1a913f227591145ca0614074208e0b962d5fcc422&limit=500",
+                "input": [
+                    "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
+                    null,
+                    5
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV with since and limit",
+                "method": "fetchOHLCV",
+                "url": "https://clob.polymarket.com/prices-history?market=16040015440196279900485035793550429453516625694844857319147506590755961451627&fidelity=1&startTs=1740000000&endTs=1740006000",
+                "input": [
+                    "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
+                    "1m",
+                    1740000000000,
+                    100
+                ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://clob.polymarket.com/time",
+                "input": []
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance reads the COLLATERAL balance-allowance for the default signature type",
+                "method": "fetchBalance",
+                "url": "https://clob.polymarket.com/balance-allowance?asset_type=COLLATERAL&signature_type=0",
+                "input": [
+                    {
+                        "signatureType": 0
+                    }
+                ]
+            },
+            {
+                "description": "fetchBalance with a deposit-wallet signature type (POLY_1271)",
+                "method": "fetchBalance",
+                "url": "https://clob.polymarket.com/balance-allowance?asset_type=COLLATERAL&signature_type=3",
+                "input": [
+                    {
+                        "signatureType": 3
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades reads the authenticated user's CLOB trade history",
+                "method": "fetchMyTrades",
+                "url": "https://clob.polymarket.com/data/trades",
+                "input": []
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder sends the orderID body key to DELETE /order",
+                "method": "cancelOrder",
+                "url": "https://clob.polymarket.com/order",
+                "input": [
+                    "0xabc123"
+                ],
+                "output": "{\"orderID\":\"0xabc123\"}"
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancelOrders sends the bare array of order ids to DELETE /orders",
+                "method": "cancelOrders",
+                "url": "https://clob.polymarket.com/orders",
+                "input": [
+                    [
+                        "0xaaa",
+                        "0xbbb"
+                    ]
+                ],
+                "output": "[\"0xaaa\",\"0xbbb\"]"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders with no symbol hits DELETE /cancel-all with no body",
+                "method": "cancelAllOrders",
+                "url": "https://clob.polymarket.com/cancel-all",
+                "input": []
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder limit buy from a POLY_1271 deposit wallet (ERC-7739 signature)",
+                "method": "createOrder",
+                "url": "https://clob.polymarket.com/order",
+                "input": [
+                    "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
+                    "limit",
+                    "buy",
+                    5,
+                    0.5,
+                    {
+                        "signatureType": 3,
+                        "funder": "0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB",
+                        "tickSize": "0.01",
+                        "negRisk": false,
+                        "salt": "1700000000000",
+                        "timestamp": "1700000000000"
+                    }
+                ],
+                "output": "{\"deferExec\":false,\"postOnly\":false,\"order\":{\"salt\":1700000000000,\"maker\":\"0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB\",\"signer\":\"0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB\",\"taker\":\"0x0000000000000000000000000000000000000000\",\"tokenId\":\"16040015440196279900485035793550429453516625694844857319147506590755961451627\",\"makerAmount\":\"2500000\",\"takerAmount\":\"5000000\",\"side\":\"BUY\",\"signatureType\":3,\"timestamp\":\"1700000000000\",\"expiration\":\"0\",\"metadata\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"builder\":\"0x000000000000000000000000ea409de8b037bb6ac664b6d12d6831b03cb04a37\",\"signature\":\"0x47162d18e5c3c193cb4d9ec60043aa36ecf94fabc89310cb0c5f0a3e2876247c5179c61625de80f35c239de5f1e830f4efb687763a11052fb1fceca847f1eeca1c3264e159346253e26a64e00b69032db0e7d32f94628de3e6eecb50304d7af3d2118c02d059d8cdfc17b1add1ca7a5a47d42989de6abe3dc03d663576ba3ea4454f726465722875696e743235362073616c742c61646472657373206d616b65722c61646472657373207369676e65722c75696e7432353620746f6b656e49642c75696e74323536206d616b6572416d6f756e742c75696e743235362074616b6572416d6f756e742c75696e743820736964652c75696e7438207369676e6174757265547970652c75696e743235362074696d657374616d702c62797465733332206d657461646174612c62797465733332206275696c6465722900ba\"},\"owner\":\"key\",\"orderType\":\"GTC\"}"
+            }
+        ],
+        "createOrders": [
+            {
+                "description": "createOrders batches signed order bodies into POST /orders (array)",
+                "method": "createOrders",
+                "url": "https://clob.polymarket.com/orders",
+                "input": [
+                    [
+                        {
+                            "outcome": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 5,
+                            "price": 0.5,
+                            "params": {
+                                "signatureType": 3,
+                                "funder": "0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB",
+                                "tickSize": "0.01",
+                                "negRisk": false,
+                                "salt": "1700000000000",
+                                "timestamp": "1700000000000"
+                            }
+                        }
+                    ]
+                ],
+                "output": "[{\"deferExec\":false,\"postOnly\":false,\"order\":{\"salt\":1700000000000,\"maker\":\"0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB\",\"signer\":\"0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB\",\"taker\":\"0x0000000000000000000000000000000000000000\",\"tokenId\":\"16040015440196279900485035793550429453516625694844857319147506590755961451627\",\"makerAmount\":\"2500000\",\"takerAmount\":\"5000000\",\"side\":\"BUY\",\"signatureType\":3,\"timestamp\":\"1700000000000\",\"expiration\":\"0\",\"metadata\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"builder\":\"0x000000000000000000000000ea409de8b037bb6ac664b6d12d6831b03cb04a37\",\"signature\":\"0x47162d18e5c3c193cb4d9ec60043aa36ecf94fabc89310cb0c5f0a3e2876247c5179c61625de80f35c239de5f1e830f4efb687763a11052fb1fceca847f1eeca1c3264e159346253e26a64e00b69032db0e7d32f94628de3e6eecb50304d7af3d2118c02d059d8cdfc17b1add1ca7a5a47d42989de6abe3dc03d663576ba3ea4454f726465722875696e743235362073616c742c61646472657373206d616b65722c61646472657373207369676e65722c75696e7432353620746f6b656e49642c75696e74323536206d616b6572416d6f756e742c75696e743235362074616b6572416d6f756e742c75696e743820736964652c75696e7438207369676e6174757265547970652c75696e743235362074696d657374616d702c62797465733332206d657461646174612c62797465733332206275696c6465722900ba\"},\"owner\":\"key\",\"orderType\":\"GTC\"}]"
+            }
+        ],
+        "fetchEvents": [
+            {
+                "description": "fetchEvents scoped by multiple tags pushes the first tag_slug server-side (one listing per tag)",
+                "method": "fetchEvents",
+                "url": "https://gamma-api.polymarket.com/events?limit=100&order=volume&ascending=false&tag_slug=crypto&active=true&closed=false&offset=0",
+                "input": [
+                    {
+                        "tags": [
+                            "crypto",
+                            "politics"
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "fetchEvents scoped by a human-readable tag label slugifies it for gamma tag_slug",
+                "method": "fetchEvents",
+                "url": "https://gamma-api.polymarket.com/events?limit=100&order=volume&ascending=false&tag_slug=fed-rates&active=true&closed=false&offset=0",
+                "input": [
+                    {
+                        "tags": [
+                            "Fed Rates"
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers batch-resolves uncached token ids through one gamma request with repeated clob_token_ids params",
+                "method": "fetchTickers",
+                "url": "https://gamma-api.polymarket.com/markets?clob_token_ids=11110001&clob_token_ids=22220002&limit=50",
+                "input": [
+                    [
+                        "11110001",
+                        "22220002"
+                    ]
+                ]
+            }
+        ]
+    }
+}

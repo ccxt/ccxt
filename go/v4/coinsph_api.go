@@ -7,286 +7,392 @@
 
 package ccxt
 
-func (this *CoinsphCore) PublicGetOpenapiV1Ping(args ...interface{}) <-chan interface{} {
+// PublicGetOpenapiV1Ping returns a channel that yields a JSON object.
+func (this *CoinsphCore) PublicGetOpenapiV1Ping(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOpenapiV1Ping", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiV1Time(args ...interface{}) <-chan interface{} {
+// PublicGetOpenapiV1Time returns a channel that yields a JSON object.
+func (this *CoinsphCore) PublicGetOpenapiV1Time(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOpenapiV1Time", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiV1UserIp(args ...interface{}) <-chan interface{} {
+// PublicGetOpenapiV1UserIp returns a channel that yields a JSON object.
+func (this *CoinsphCore) PublicGetOpenapiV1UserIp(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOpenapiV1UserIp", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiQuoteV1Ticker24hr(args ...interface{}) <-chan interface{} {
+// PublicGetOpenapiQuoteV1Ticker24hr returns a channel that yields a JSON object or a JSON array.
+func (this *CoinsphCore) PublicGetOpenapiQuoteV1Ticker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOpenapiQuoteV1Ticker24hr", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiQuoteV1TickerPrice(args ...interface{}) <-chan interface{} {
+// PublicGetOpenapiQuoteV1TickerPrice returns a channel that yields a JSON object.
+func (this *CoinsphCore) PublicGetOpenapiQuoteV1TickerPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOpenapiQuoteV1TickerPrice", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiQuoteV1TickerBookTicker(args ...interface{}) <-chan interface{} {
+// PublicGetOpenapiQuoteV1TickerBookTicker returns a channel that yields a JSON array.
+func (this *CoinsphCore) PublicGetOpenapiQuoteV1TickerBookTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOpenapiQuoteV1TickerBookTicker", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiV1ExchangeInfo(args ...interface{}) <-chan interface{} {
+// PublicGetOpenapiV1ExchangeInfo returns a channel that yields a JSON object.
+func (this *CoinsphCore) PublicGetOpenapiV1ExchangeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOpenapiV1ExchangeInfo", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiQuoteV1Depth(args ...interface{}) <-chan interface{} {
+// PublicGetOpenapiQuoteV1Depth returns a channel that yields a JSON object.
+func (this *CoinsphCore) PublicGetOpenapiQuoteV1Depth(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOpenapiQuoteV1Depth", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiQuoteV1Klines(args ...interface{}) <-chan interface{} {
+// PublicGetOpenapiQuoteV1Klines returns a channel that yields a JSON array.
+func (this *CoinsphCore) PublicGetOpenapiQuoteV1Klines(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOpenapiQuoteV1Klines", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiQuoteV1Trades(args ...interface{}) <-chan interface{} {
+// PublicGetOpenapiQuoteV1Trades returns a channel that yields a JSON array.
+func (this *CoinsphCore) PublicGetOpenapiQuoteV1Trades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOpenapiQuoteV1Trades", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiV1Pairs(args ...interface{}) <-chan interface{} {
+// PublicGetOpenapiV1Pairs returns a channel that yields a JSON array.
+func (this *CoinsphCore) PublicGetOpenapiV1Pairs(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOpenapiV1Pairs", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiQuoteV1AvgPrice(args ...interface{}) <-chan interface{} {
+// PublicGetOpenapiQuoteV1AvgPrice returns a channel that yields a JSON object.
+func (this *CoinsphCore) PublicGetOpenapiQuoteV1AvgPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOpenapiQuoteV1AvgPrice", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1CheckSysStatus(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiV1CheckSysStatus returns a channel that yields a JSON array.
+func (this *CoinsphCore) PrivateGetOpenapiV1CheckSysStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiV1CheckSysStatus", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiWalletV1ConfigGetall(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiWalletV1ConfigGetall returns a channel that yields a JSON array.
+func (this *CoinsphCore) PrivateGetOpenapiWalletV1ConfigGetall(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiWalletV1ConfigGetall", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiWalletV1DepositAddress(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiWalletV1DepositAddress returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivateGetOpenapiWalletV1DepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiWalletV1DepositAddress", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiWalletV1DepositHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiWalletV1DepositHistory returns a channel that yields a JSON array.
+func (this *CoinsphCore) PrivateGetOpenapiWalletV1DepositHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiWalletV1DepositHistory", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiWalletV1WithdrawHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiWalletV1WithdrawHistory returns a channel that yields a JSON array.
+func (this *CoinsphCore) PrivateGetOpenapiWalletV1WithdrawHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiWalletV1WithdrawHistory", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiWalletV1WithdrawAddressWhitelist(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiWalletV1WithdrawAddressWhitelist returns a channel that yields a JSON array.
+func (this *CoinsphCore) PrivateGetOpenapiWalletV1WithdrawAddressWhitelist(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiWalletV1WithdrawAddressWhitelist", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1Account(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiV1Account returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivateGetOpenapiV1Account(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiV1Account", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1ApiKeys(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiV1ApiKeys returns a channel that yields a JSON array.
+func (this *CoinsphCore) PrivateGetOpenapiV1ApiKeys(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiV1ApiKeys", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1OpenOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiV1OpenOrders returns a channel that yields a JSON array.
+func (this *CoinsphCore) PrivateGetOpenapiV1OpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiV1OpenOrders", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1AssetTradeFee(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiV1AssetTradeFee returns a channel that yields a JSON array.
+func (this *CoinsphCore) PrivateGetOpenapiV1AssetTradeFee(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiV1AssetTradeFee", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1Order(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiV1Order returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivateGetOpenapiV1Order(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiV1Order", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1HistoryOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiV1HistoryOrders returns a channel that yields a JSON array.
+func (this *CoinsphCore) PrivateGetOpenapiV1HistoryOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiV1HistoryOrders", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1MyTrades(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiV1MyTrades returns a channel that yields a JSON array.
+func (this *CoinsphCore) PrivateGetOpenapiV1MyTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiV1MyTrades", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1CapitalDepositHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiV1CapitalDepositHistory returns a channel that yields a JSON array.
+func (this *CoinsphCore) PrivateGetOpenapiV1CapitalDepositHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiV1CapitalDepositHistory", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1CapitalWithdrawHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiV1CapitalWithdrawHistory returns a channel that yields a JSON array.
+func (this *CoinsphCore) PrivateGetOpenapiV1CapitalWithdrawHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiV1CapitalWithdrawHistory", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV3PaymentRequestGetPaymentRequest(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiV3PaymentRequestGetPaymentRequest returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivateGetOpenapiV3PaymentRequestGetPaymentRequest(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiV3PaymentRequestGetPaymentRequest", args...)
 }
 
-func (this *CoinsphCore) PrivateGetMerchantApiV1GetInvoices(args ...interface{}) <-chan interface{} {
+// PrivateGetMerchantApiV1GetInvoices returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivateGetMerchantApiV1GetInvoices(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetMerchantApiV1GetInvoices", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiAccountV3CryptoAccounts(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiAccountV3CryptoAccounts returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivateGetOpenapiAccountV3CryptoAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiAccountV3CryptoAccounts", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiTransferV3TransfersId(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiTransferV3TransfersId returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivateGetOpenapiTransferV3TransfersId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiTransferV3TransfersId", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountList(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiV1SubAccountList returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiV1SubAccountList", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountAsset(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiV1SubAccountAsset returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountAsset(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiV1SubAccountAsset", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountTransferUniversalTransferHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiV1SubAccountTransferUniversalTransferHistory returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountTransferUniversalTransferHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiV1SubAccountTransferUniversalTransferHistory", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountTransferSubHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiV1SubAccountTransferSubHistory returns a channel that yields a JSON array.
+func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountTransferSubHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiV1SubAccountTransferSubHistory", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountApikeyIpRestriction(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiV1SubAccountApikeyIpRestriction returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountApikeyIpRestriction(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiV1SubAccountApikeyIpRestriction", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountWalletDepositAddress(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiV1SubAccountWalletDepositAddress returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountWalletDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiV1SubAccountWalletDepositAddress", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountWalletDepositHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiV1SubAccountWalletDepositHistory returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountWalletDepositHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiV1SubAccountWalletDepositHistory", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1FundCollectGetFundRecord(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiV1FundCollectGetFundRecord returns a channel that yields a JSON array.
+func (this *CoinsphCore) PrivateGetOpenapiV1FundCollectGetFundRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiV1FundCollectGetFundRecord", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1AssetTransactionHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetOpenapiV1AssetTransactionHistory returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivateGetOpenapiV1AssetTransactionHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenapiV1AssetTransactionHistory", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiWalletV1WithdrawApply(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiWalletV1WithdrawApply returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiWalletV1WithdrawApply(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiWalletV1WithdrawApply", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1OrderTest(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiV1OrderTest returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiV1OrderTest(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiV1OrderTest", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1Order(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiV1Order returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiV1Order(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiV1Order", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1CapitalWithdrawApply(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiV1OrderCancelReplace returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiV1OrderCancelReplace(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenapiV1OrderCancelReplace", args...)
+}
+
+// PrivatePostOpenapiV1CapitalWithdrawApply returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiV1CapitalWithdrawApply(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiV1CapitalWithdrawApply", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1CapitalDepositApply(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiV1CapitalDepositApply returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiV1CapitalDepositApply(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiV1CapitalDepositApply", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV3PaymentRequestPaymentRequests(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiV3PaymentRequestPaymentRequests returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiV3PaymentRequestPaymentRequests(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiV3PaymentRequestPaymentRequests", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV3PaymentRequestDeletePaymentRequest(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiV3PaymentRequestDeletePaymentRequest returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiV3PaymentRequestDeletePaymentRequest(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiV3PaymentRequestDeletePaymentRequest", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV3PaymentRequestPaymentRequestReminder(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiV3PaymentRequestPaymentRequestReminder returns a channel that yields a JSON scalar.
+func (this *CoinsphCore) PrivatePostOpenapiV3PaymentRequestPaymentRequestReminder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiV3PaymentRequestPaymentRequestReminder", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1UserDataStream(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiV1UserDataStream returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiV1UserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiV1UserDataStream", args...)
 }
 
-func (this *CoinsphCore) PrivatePostMerchantApiV1Invoices(args ...interface{}) <-chan interface{} {
+// PrivatePostMerchantApiV1Invoices returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostMerchantApiV1Invoices(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMerchantApiV1Invoices", args...)
 }
 
-func (this *CoinsphCore) PrivatePostMerchantApiV1InvoicesCancel(args ...interface{}) <-chan interface{} {
+// PrivatePostMerchantApiV1InvoicesCancel returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostMerchantApiV1InvoicesCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMerchantApiV1InvoicesCancel", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiConvertV1GetSupportedTradingPairs(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiConvertV1GetSupportedTradingPairs returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiConvertV1GetSupportedTradingPairs(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiConvertV1GetSupportedTradingPairs", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiConvertV1GetQuote(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiConvertV1GetQuote returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiConvertV1GetQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiConvertV1GetQuote", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiConvertV1AccpetQuote(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiConvertV1AccpetQuote", args...)
+// PrivatePostOpenapiConvertV1AcceptQuote returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiConvertV1AcceptQuote(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenapiConvertV1AcceptQuote", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiConvertV1QueryOrderHistory(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiConvertV1QueryOrderHistory returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiConvertV1QueryOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiConvertV1QueryOrderHistory", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiFiatV1SupportChannel(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiOtcTradeV1GetSupportedTradingPairs returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiOtcTradeV1GetSupportedTradingPairs(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenapiOtcTradeV1GetSupportedTradingPairs", args...)
+}
+
+// PrivatePostOpenapiOtcTradeV1CreateRfq returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiOtcTradeV1CreateRfq(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenapiOtcTradeV1CreateRfq", args...)
+}
+
+// PrivatePostOpenapiOtcTradeV1AcceptRfq returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiOtcTradeV1AcceptRfq(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenapiOtcTradeV1AcceptRfq", args...)
+}
+
+// PrivatePostOpenapiOtcTradeV1ManualSettle returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiOtcTradeV1ManualSettle(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenapiOtcTradeV1ManualSettle", args...)
+}
+
+// PrivatePostOpenapiOtcTradeV1QueryOrderHistory returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiOtcTradeV1QueryOrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenapiOtcTradeV1QueryOrderHistory", args...)
+}
+
+// PrivatePostOpenapiFiatV1SupportChannel returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiFiatV1SupportChannel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiFiatV1SupportChannel", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiFiatV1CashOut(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiFiatV1CashOut returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiFiatV1CashOut(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiFiatV1CashOut", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiFiatV1History(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiFiatV1History returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiFiatV1History(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiFiatV1History", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiMigrationV4Sellorder(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiMigrationV4Sellorder returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiMigrationV4Sellorder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiMigrationV4Sellorder", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiMigrationV4ValidateField(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiMigrationV4ValidateField returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiMigrationV4ValidateField(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiMigrationV4ValidateField", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiTransferV3Transfers(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiTransferV3Transfers returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiTransferV3Transfers(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiTransferV3Transfers", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountCreate(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiTransferV4Transfers returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiTransferV4Transfers(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenapiTransferV4Transfers", args...)
+}
+
+// PrivatePostOpenapiV1SubAccountCreate returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiV1SubAccountCreate", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountTransferUniversalTransfer(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiV1SubAccountTransferUniversalTransfer returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountTransferUniversalTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiV1SubAccountTransferUniversalTransfer", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountTransferSubToMaster(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiV1SubAccountTransferSubToMaster returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountTransferSubToMaster(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiV1SubAccountTransferSubToMaster", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountApikeyAddIpRestriction(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiV1SubAccountApikeyAddIpRestriction returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountApikeyAddIpRestriction(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiV1SubAccountApikeyAddIpRestriction", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountApikeyDeleteIpRestriction(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiV1SubAccountApikeyDeleteIpRestriction returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountApikeyDeleteIpRestriction(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiV1SubAccountApikeyDeleteIpRestriction", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1FundCollectCollectFromSubAccount(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenapiV1FundCollectCollectFromSubAccount returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiV1FundCollectCollectFromSubAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiV1FundCollectCollectFromSubAccount", args...)
 }
 
-func (this *CoinsphCore) PrivatePutOpenapiV1UserDataStream(args ...interface{}) <-chan interface{} {
+// PrivatePutOpenapiV1UserDataStream returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePutOpenapiV1UserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutOpenapiV1UserDataStream", args...)
 }
 
-func (this *CoinsphCore) PrivateDeleteOpenapiV1Order(args ...interface{}) <-chan interface{} {
+// PrivateDeleteOpenapiV1Order returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivateDeleteOpenapiV1Order(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOpenapiV1Order", args...)
 }
 
-func (this *CoinsphCore) PrivateDeleteOpenapiV1OpenOrders(args ...interface{}) <-chan interface{} {
+// PrivateDeleteOpenapiV1OpenOrders returns a channel that yields a JSON array.
+func (this *CoinsphCore) PrivateDeleteOpenapiV1OpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOpenapiV1OpenOrders", args...)
 }
 
-func (this *CoinsphCore) PrivateDeleteOpenapiV1UserDataStream(args ...interface{}) <-chan interface{} {
+// PrivateDeleteOpenapiV1UserDataStream returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivateDeleteOpenapiV1UserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOpenapiV1UserDataStream", args...)
 }

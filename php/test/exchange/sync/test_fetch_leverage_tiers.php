@@ -17,7 +17,7 @@ function test_fetch_leverage_tiers($exchange, $skipped_properties, $symbol) {
     //       {},
     //     ],
     // };
-    assert(is_array($tiers), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an object. ' . $exchange->json($tiers));
+    assert_dictionary_response($exchange, $method, $tiers, $symbol);
     $tier_keys = is_array($tiers) ? array_keys($tiers) : array();
     assert_non_emtpy_array($exchange, $skipped_properties, $method, $tier_keys, $symbol);
     for ($i = 0; $i < count($tier_keys); $i++) {

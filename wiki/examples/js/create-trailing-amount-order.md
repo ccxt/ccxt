@@ -1,9 +1,5 @@
-- [Create Trailing Amount Order](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
-// AUTO-TRANSPILE //
+```javascript
+import ccxt from '../../js/ccxt.js';
 async function example() {
     const exchange = new ccxt.bingx({
         'apiKey': 'MY_API_KEY',
@@ -38,5 +34,5 @@ async function example() {
     }
 }
 await example();
- 
+
 ```

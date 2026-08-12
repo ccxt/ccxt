@@ -1,8 +1,5 @@
-- [Krakenfutures Basic](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -24,5 +21,5 @@ for symbol in exchange.symbols:
     print(symbol)
 symbol = 'BTC/USD:USD'
 orderbook = exchange.fetch_order_book(symbol)
-pprint(orderbook) 
+pprint(orderbook)
 ```

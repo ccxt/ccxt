@@ -1,16 +1,16 @@
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import coinbaseinternationalRest from '../coinbaseinternational.js';
-import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
-import { Ticker, Int, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV, Bool } from '../base/types.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { AuthenticationError, ExchangeError, NotSupported, ArgumentsRequired } from '../base/errors.js';
+import { Ticker, Int, Str, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class coinbaseinternational extends coinbaseinternationalRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -80,16 +80,18 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @returns {object} subscription to a websocket channel
      */
     async subscribe (name: string, symbols: Strings = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         this.checkRequiredCredentials ();
-        let market = undefined;
+        let market: Market = undefined;
         let messageHash = name;
-        let productIds = undefined;
+        let productIds: Strings = undefined;
         if (symbols === undefined) {
             symbols = this.getActiveSymbols ();
         }
         const symbolsLength = symbols.length;
-        const messageHashes = [];
+        const messageHashes: string[] = [];
         if (symbolsLength > 1) {
             const parsedSymbols = this.marketSymbols (symbols);
             const marketIds = this.marketIds (parsedSymbols);
@@ -101,7 +103,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         } else if (symbolsLength === 1) {
             market = this.market (symbols[0]);
             messageHash = name + '::' + market['symbol'];
-            productIds = [ market['id'] ];
+            productIds = [ (market['id'] as string) ];
         }
         const url = this.urls['api']['ws'];
         if (url === undefined) {
@@ -139,17 +141,19 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @returns {object} subscription to a websocket channel
      */
     async subscribeMultiple (name: string, symbols: Strings = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         this.checkRequiredCredentials ();
         if (this.isEmpty (symbols)) {
             symbols = this.symbols;
         } else {
             symbols = this.marketSymbols (symbols);
         }
-        const messageHashes = [];
-        const productIds = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const marketId = this.marketId (symbols[i]);
+        const messageHashes: string[] = [];
+        const productIds: any[] = [];
+        for (let i = 0; i < (symbols as string[]).length; i++) {
+            const marketId = this.marketId ((symbols as string[])[i]);
             const symbol = this.symbol (marketId);
             productIds.push (marketId);
             messageHashes.push (name + '::' + symbol);
@@ -182,9 +186,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
-        await this.loadMarkets ();
-        return await this.subscribe ('RISK', [ symbol ], params);
+    override watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        return this.subscribe ('RISK', [ symbol ], params);
     }
 
     /**
@@ -192,17 +195,22 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#watchFundingRates
      * @description watch the funding rate for multiple markets
      * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
-     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {string[]} symbols a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
      */
-    async watchFundingRates (symbols: string[], params = {}): Promise<FundingRates> {
-        await this.loadMarkets ();
+    override async watchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchFundingRates() requires an array of symbols');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const fundingRate = await this.subscribeMultiple ('RISK', symbols, params);
         const symbol = this.safeString (fundingRate, 'symbol');
         if (this.newUpdates) {
             const result: Dict = {};
-            result[symbol] = fundingRate;
+            result[(symbol as string)] = fundingRate;
             return result;
         }
         return this.filterByArray (this.fundingRates, 'symbol', symbols);
@@ -218,19 +226,21 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.channel] the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'LEVEL1'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
-        let channel = undefined;
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTicker', 'channel', 'LEVEL1');
-        return await this.subscribe (channel, [ symbol ], params);
+        return await this.subscribe ((channel as string), [ symbol ], params);
     }
 
     getActiveSymbols () {
         const symbols = this.symbols;
-        const output = [];
+        const output: any[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const market = this.markets[symbol];
+            const market = this.market (symbol);
             if (market['active']) {
                 output.push (symbol);
             }
@@ -248,9 +258,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.channel] the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'INSTLEVEL1UMENTS'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
-        let channel = undefined;
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'LEVEL1');
         const ticker = await this.subscribe (channel, symbols, params);
         if (this.newUpdates) {
@@ -261,7 +273,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleInstrument (client: Client, message) {
+    handleInstrument (client: Client, message: any) {
         //
         //    {
         //        "sequence": 1,
@@ -293,7 +305,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         client.resolve (ticker, channel + '::' + ticker['symbol']);
     }
 
-    parseWsInstrument (ticker: Dict, market = undefined) {
+    parseWsInstrument (ticker: Dict, market: Market = undefined) {
         //
         //    {
         //        "sequence": 1,
@@ -373,7 +385,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         });
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         // snapshot
         //    {
@@ -456,8 +468,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const options = this.safeDict (this.options, 'timeframes', {});
@@ -469,7 +483,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         // {
         //     "sequence": 0,
@@ -496,9 +510,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         if (this.safeValue (this.ohlcvs[symbol], timeframe) === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][(timeframe as string)] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][timeframe];
+        const stored = this.ohlcvs[symbol][(timeframe as string)];
         const data = this.safeList (message, 'candles', []);
         for (let i = 0; i < data.length; i++) {
             const tick = data[i];
@@ -519,8 +533,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     /**
@@ -533,8 +547,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const trades = await this.subscribeMultiple ('MATCH', symbols, params);
         if (this.newUpdates) {
@@ -545,7 +561,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: any, message: any) {
         //
         //    {
         //       "sequence": 0,
@@ -562,20 +578,20 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const trade = this.parseWsTrade (message);
         const symbol = trade['symbol'];
         const channel = this.safeString (message, 'channel');
-        if (!(symbol in this.trades)) {
+        if (!((symbol as string) in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const tradesArrayCache = new ArrayCache (limit);
-            this.trades[symbol] = tradesArrayCache;
+            this.trades[(symbol as string)] = tradesArrayCache;
         }
-        const tradesArray = this.trades[symbol];
+        const tradesArray = this.trades[(symbol as string)];
         tradesArray.append (trade);
-        this.trades[symbol] = tradesArray;
+        this.trades[(symbol as string)] = tradesArray;
         client.resolve (tradesArray, channel);
         client.resolve (tradesArray, channel + '::' + trade['symbol']);
         return message;
     }
 
-    parseWsTrade (trade, market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         //    {
         //       "sequence": 0,
@@ -615,10 +631,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    override watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        return this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
     /**
@@ -629,14 +645,13 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string[]} symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
-        return await this.subscribeMultiple ('LEVEL2', symbols, params);
+    override watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        return this.subscribeMultiple ('LEVEL2', symbols, params);
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: any, message: any) {
         //
         // snapshot
         //    {
@@ -697,7 +712,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         client.resolve (orderbook, channel + '::' + symbol);
     }
 
-    handleDelta (orderbook, delta) {
+    override handleDelta (orderbook: any, delta: any) {
         const rawSide = this.safeStringLower (delta, 0);
         const side = (rawSide === 'buy') ? 'bids' : 'asks';
         const price = this.safeFloat (delta, 1);
@@ -706,13 +721,13 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         bookside.store (price, amount);
     }
 
-    handleDeltas (orderbook, deltas) {
+    override handleDeltas (orderbook: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (orderbook, deltas[i]);
         }
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         //    {
         //       "channels": [
@@ -740,7 +755,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return message;
     }
 
-    handleFundingRate (client: Client, message) {
+    handleFundingRate (client: Client, message: any) {
         //
         // snapshot
         //    {
@@ -769,7 +784,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         client.resolve (fundingRate, channel + '::' + fundingRate['symbol']);
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //    {
         //        message: 'Failed to subscribe',
@@ -795,7 +810,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return true;
     }
 
-    handleMessage (client, message) {
+    override handleMessage (client: any, message: any) {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
@@ -812,7 +827,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const type = this.safeString (message, 'type');
         if (type === 'error') {
             const errorMessage = this.safeString (message, 'message');
-            throw new ExchangeError (errorMessage);
+            throw new ExchangeError ((errorMessage as string));
         }
         if (channel.indexOf ('CANDLES') > -1) {
             this.handleOHLCV (client, message);

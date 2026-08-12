@@ -27,10 +27,6 @@ trait ClientTrait {
         return \ccxt\pro\inflate($data); // zlib_decode($data);
     }
 
-    public function inflate64($data) {
-        return \ccxt\pro\inflate64($data); // zlib_decode(base64_decode($data));
-    }
-
     public function gunzip($data) {
         return \ccxt\pro\gunzip($data);
     }
@@ -225,7 +221,7 @@ trait ClientTrait {
         }
     }
 
-    public function close() {
+    public function close_ws_clients() {
         // make sure to close the exchange once you are finished using the websocket connections
         // so that the event loop can complete it's work and go to sleep
         foreach ($this->clients as $client) {
@@ -235,23 +231,19 @@ trait ClientTrait {
         array_splice($this->clients, 0);
     }
 
-    public function __destruct() {
-        parent::__destruct();
-        $this->close();
-    }
-
     public function load_order_book($client, $messageHash, $symbol, $limit = null, $params = array()) {
         return Async\async(function () use ($client, $messageHash, $symbol, $limit, $params) {
             if (!array_key_exists($symbol, $this->orderbooks)) {
                 $client->reject(new ExchangeError($this->id . ' loadOrderBook() orderbook is not initiated'), $messageHash);
                 return;
             }
+            $error = null;
             try {
                 $stored = $this->orderbooks[$symbol];
                 $maxRetries = $this->handle_option('watchOrderBook', 'maxRetries', 3);
                 $tries = 0;
                 while ($tries < $maxRetries) {
-                    $orderBook = Async\await($this->fetch_order_book($symbol, $limit, $params));
+                    $orderBook = Async\await($this->fetch_rest_order_book_safe($symbol, $limit, $params));
                     $index = $this->get_cache_index($orderBook, $stored->cache);
                     if ($index >= 0) {
                         $stored->reset($orderBook);
@@ -262,12 +254,19 @@ trait ClientTrait {
                     }
                     $tries++;
                 }
-                $client->reject (new ExchangeError ($this->id . ' nonce is behind the cache after ' . strval($tries) . ' tries.' ), $messageHash);
-                unset($this->clients[$client->url]);
-            } catch (BaseError $e) {
-                $client->reject($e, $messageHash);
-                Async\await($this->load_order_book($client, $messageHash, $symbol, $limit, $params));
+                $error = new ExchangeError ($this->id . ' nonce is behind the cache after ' . strval($tries) . ' tries.' );
+            } catch (\Throwable $e) {
+                $error = $e;
             }
+            // a failed synchronization must not recurse into another attempt with the
+            // same broken state - previously the catch invoked load_order_book again,
+            // recursing endlessly when the snapshot request kept failing, see
+            // https://github.com/ccxt/ccxt/pull/24224 and https://github.com/ccxt/ccxt/issues/14567
+            // instead, reject the watcher and drop the connection and the cached
+            // orderbook, so the next watch_order_book() call resubscribes cleanly
+            $client->reject($error, $messageHash);
+            unset($this->clients[$client->url]);
+            $this->orderbooks[$symbol] = $this->order_book(); // clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
         }) ();
     }
 }

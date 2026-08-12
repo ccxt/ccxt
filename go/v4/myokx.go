@@ -13,51 +13,57 @@ func NewMyokxCore() *MyokxCore {
 	return p
 }
 
-func (this *MyokxCore) Describe() interface{} {
-	return this.DeepExtend(this.OkxCore.Describe(), map[string]interface{}{
+func (this *MyokxCore) Describe() any {
+	return this.DeepExtend(this.OkxCore.Describe(), map[string]any{
 		"id":        "myokx",
 		"name":      "MyOKX (EEA)",
 		"certified": false,
 		"pro":       true,
 		"hostname":  "eea.okx.com",
-		"urls": map[string]interface{}{
+		"urls": map[string]any{
 			"logo": "https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg",
-			"api": map[string]interface{}{
+			"api": map[string]any{
 				"rest": "https://{hostname}",
 			},
 			"www":  "https://my.okx.com",
 			"doc":  "https://my.okx.com/docs-v5/en/#overview",
 			"fees": "https://my.okx.com/pages/products/fees.html",
-			"referral": map[string]interface{}{
+			"referral": map[string]any{
 				"url":      "https://www.my.okx.com/join/CCXT2023",
 				"discount": 0.2,
 			},
-			"test": map[string]interface{}{
+			"test": map[string]any{
 				"rest": "https://{hostname}",
 			},
 		},
-		"has": map[string]interface{}{
+		"has": map[string]any{
 			"CORS":   nil,
 			"spot":   true,
 			"margin": nil,
-			"swap":   false,
+			"swap":   true,
 			"future": false,
 			"option": false,
 		},
-		"features": map[string]interface{}{
-			"swap": map[string]interface{}{
+		"features": map[string]any{
+			"swap": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
 			},
-			"future": map[string]interface{}{
+			"future": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
+			},
+		},
+		"options": map[string]any{
+			"mica": true,
+			"fetchMarkets": map[string]any{
+				"types": []any{"spot", "swap"},
 			},
 		},
 	})
 }
 
-func (this *MyokxCore) Init(userConfig map[string]interface{}) {
+func (this *MyokxCore) Init(userConfig map[string]any) {
 	this.OkxCore.Init(this.DeepExtend(this.Describe(), userConfig))
 	this.Itf = this
 	this.Exchange.DerivedExchange = this

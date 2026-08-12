@@ -1,8 +1,5 @@
-- [Kraken Query Ledgers](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 // include 'Console/Table.php';
@@ -30,5 +27,5 @@ $ledger_entries = $exchange->privatePostQueryLedgers(array(
 
 var_dump ($ledger_entries);
 
-?> 
+?>
 ```

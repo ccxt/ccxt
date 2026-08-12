@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var hollaex$1 = require('../hollaex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -20,7 +20,7 @@ class hollaex extends hollaex$1["default"] {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': false,
-                'watchTickers': false,
+                'watchTickers': false, // for now
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
             },
@@ -46,7 +46,7 @@ class hollaex extends hollaex$1["default"] {
             'exceptions': {
                 'ws': {
                     'exact': {
-                        'Bearer or HMAC authentication required': errors.BadSymbol,
+                        'Bearer or HMAC authentication required': errors.BadSymbol, // { error: 'Bearer or HMAC authentication required' }
                         'Error: wrong input': errors.BadRequest, // { error: 'Error: wrong input' }
                     },
                 },
@@ -61,10 +61,12 @@ class hollaex extends hollaex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'orderbook' + ':' + market['id'];
         const orderbook = await this.watchPublic(messageHash, params);
@@ -96,6 +98,9 @@ class hollaex extends hollaex$1["default"] {
         const channel = this.safeString(message, 'topic');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
+        if (symbol === undefined) {
+            return;
+        }
         const data = this.safeValue(message, 'data');
         const timestamp = this.safeString(data, 'timestamp');
         const timestampMs = this.parse8601(timestamp);
@@ -107,6 +112,9 @@ class hollaex extends hollaex$1["default"] {
         }
         else {
             orderbook = this.orderbooks[symbol];
+            if (orderbook === undefined) {
+                return;
+            }
             orderbook.reset(snapshot);
         }
         const messageHash = channel + ':' + marketId;
@@ -124,7 +132,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'trade' + ':' + market['id'];
@@ -181,7 +191,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'usertrade';
         let market = undefined;
         if (symbol !== undefined) {
@@ -239,7 +251,9 @@ class hollaex extends hollaex$1["default"] {
             const symbol = trade['symbol'];
             const market = this.market(symbol);
             const marketId = market['id'];
-            marketIds[marketId] = true;
+            if (marketId !== undefined) {
+                marketIds[marketId] = true;
+            }
         }
         // non-symbol specific
         client.resolve(this.myTrades, channel);
@@ -262,7 +276,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'order';
         let market = undefined;
         if (symbol !== undefined) {
@@ -361,7 +377,9 @@ class hollaex extends hollaex$1["default"] {
             const symbol = order['symbol'];
             const market = this.market(symbol);
             const marketId = market['id'];
-            marketIds[marketId] = true;
+            if (marketId !== undefined) {
+                marketIds[marketId] = true;
+            }
         }
         // non-symbol specific
         client.resolve(this.orders, channel);
@@ -413,11 +431,16 @@ class hollaex extends hollaex$1["default"] {
             const parts = key.split('_');
             const currencyId = this.safeString(parts, 0);
             const code = this.safeCurrencyCode(currencyId);
-            const account = (code in this.balance) ? this.balance[code] : this.account();
+            let account = this.account();
+            if ((code !== undefined) && (code in this.balance)) {
+                account = this.balance[code];
+            }
             const second = this.safeString(parts, 1);
             const freeOrTotal = (second === 'available') ? 'free' : 'total';
             account[freeOrTotal] = this.safeString(data, key);
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, messageHash);
@@ -437,6 +460,9 @@ class hollaex extends hollaex$1["default"] {
         if (expires === undefined) {
             const timeout = parseInt((this.timeout / 1000).toString());
             expires = this.sum(this.seconds(), timeout);
+            if (expires === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' watchPrivate() expires is required');
+            }
             expires = expires.toString();
             // we need to memoize these values to avoid generating a new url on each method execution
             // that would trigger a new connection on each received message
@@ -444,7 +470,7 @@ class hollaex extends hollaex$1["default"] {
         }
         const url = this.urls['api']['ws'];
         const auth = 'CONNECT' + '/stream' + expires;
-        const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+        const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
         const authParams = {
             'api-key': this.apiKey,
             'api-signature': signature,
@@ -475,7 +501,7 @@ class hollaex extends hollaex$1["default"] {
                 return false;
             }
         }
-        return message;
+        return true;
     }
     handleMessage(client, message) {
         //

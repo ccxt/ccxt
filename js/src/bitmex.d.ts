@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitmex.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, Strings, Currency, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, OpenInterests, ADL, NullableDict, DepositWithdrawFees } from './base/types.js';
 /**
  * @class bitmex
  * @augments Exchange
@@ -15,9 +15,10 @@ export default class bitmex extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(currency: Dict): CurrencyInterface;
     convertFromRealAmount(code: any, amount: any): number;
-    convertToRealAmount(code: Str, amount: Str): string;
-    amountToPrecision(symbol: any, amount: any): string;
+    convertToRealAmount(code: Str, amount: Str): Str;
+    amountToPrecision(symbol: Str, amount: any): string | undefined;
     convertFromRawQuantity(symbol: any, rawQuantity: any, currencySide?: string): number;
     convertFromRawCost(symbol: any, rawQuantity: any): number;
     /**
@@ -48,7 +49,7 @@ export default class bitmex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -139,7 +140,7 @@ export default class bitmex extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -178,8 +179,8 @@ export default class bitmex extends Exchange {
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
-    parseOrderStatus(status: Str): string;
-    parseTimeInForce(timeInForce: Str): string;
+    parseOrderStatus(status: Str): Str;
+    parseTimeInForce(timeInForce: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -218,7 +219,7 @@ export default class bitmex extends Exchange {
      * @description cancels an open order
      * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
      * @param {string} id order id
-     * @param {string} symbol not used by bitmex cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -229,7 +230,7 @@ export default class bitmex extends Exchange {
      * @description cancel multiple orders
      * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by bitmex cancelOrders ()
+     * @param {string} symbol not used by cancelOrders ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -239,7 +240,7 @@ export default class bitmex extends Exchange {
      * @name bitmex#cancelAllOrders
      * @description cancel all open orders
      * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAll
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -253,7 +254,7 @@ export default class bitmex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bitmex#fetchLeverages
@@ -320,9 +321,9 @@ export default class bitmex extends Exchange {
     parseFundingRateHistory(info: any, market?: Market): {
         info: any;
         symbol: string;
-        fundingRate: number;
-        timestamp: number;
-        datetime: string;
+        fundingRate: Num;
+        timestamp: number | undefined;
+        datetime: Str;
     };
     /**
      * @method
@@ -334,7 +335,7 @@ export default class bitmex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bitmex#setMarginMode
@@ -345,7 +346,7 @@ export default class bitmex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bitmex#fetchDepositAddress
@@ -367,7 +368,18 @@ export default class bitmex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<DepositWithdrawFees>;
+    /**
+     * @method
+     * @name bitmex#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://docs.bitmex.com/api-explorer/get-stats
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    fetchOpenInterests(symbols?: Strings, params?: {}): Promise<OpenInterests>;
+    parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
     /**
      * @method
@@ -384,12 +396,62 @@ export default class bitmex extends Exchange {
      */
     fetchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     parseLiquidation(liquidation: any, market?: Market): Liquidation;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    /**
+     * @method
+     * @name bitmex#fetchPositionsADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+     * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    fetchPositionsADLRank(symbols?: Strings, params?: {}): Promise<ADL[]>;
+    parseADLRank(info: Dict, market?: Market): ADL;
+    /**
+     * @method
+     * @name bitmex#fetchSettlementHistory
+     * @description fetches historical settlement records
+     * @see https://docs.bitmex.com/api-explorer/get-settlements
+     * @param {string} symbol unified market symbol of the settlement history
+     * @param {int} [since] timestamp in ms
+     * @param {int} [limit] number of records
+     * @param {object} [params] exchange specific params
+     * @param {int} [params.until] timestamp in ms
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {string} [params.filter] generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the timestamp docs for more details, default value = {}
+     * @param {string} [params.columns] array of column names to fetch, if omitted, will return all columns, note that this method will always return item keys, even when not specified, so you may receive more columns that you expect
+     * @param {int} [params.start] possible values are >= 0 starting point for results, default value = 0
+     * @param {boolean} [params.reverse] if true, will sort results newest first, default value = false
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+     */
+    fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Dict[]>;
+    parseSettlements(settlements: any, market?: Market, since?: Int, limit?: Int): any;
+    parseSettlement(settlement: any, market?: Market): {
+        info: any;
+        symbol: string;
+        price: Num;
+        timestamp: number | undefined;
+        datetime: Str;
+    };
+    /**
+     * @method
+     * @name bitmex#closePosition
+     * @description closes open positions for a market
+     * @see https://docs.bitmex.com/api-explorer/order-new
+     * @see https://docs.bitmex.com/api-explorer/order-close-position
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} side the buy or sell side of the closing order, if the position is long set the side to sell, reduceOnly is implied
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: Str;
+        headers: NullableDict;
     };
 }

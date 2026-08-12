@@ -74,6 +74,27 @@ public partial class krakenfutures
         return new Tickers(res);
     }
     /// <summary>
+    /// fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
+    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTradingFees(parameters);
+        return new TradingFees(res);
+    }
+    /// <summary>
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
@@ -342,6 +363,12 @@ public partial class krakenfutures
     /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : Unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// dict : Exchange specific params
@@ -467,7 +494,8 @@ public partial class krakenfutures
     /// Gets all closed orders, including trigger orders, for an account from the exchange api
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/account-history/get-order-events"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/account-history/get-trigger-events"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -582,6 +610,52 @@ public partial class krakenfutures
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchMyTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+    }
+    /// <summary>
+    /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.kraken.com/api-reference/account-history/get-account-log"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest ledger entry, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : max number of ledger entries to return, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest ledger entry
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}.</returns>
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchLedger(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
     /// <summary>
     /// Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response

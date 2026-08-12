@@ -134,40 +134,40 @@ class bithumb(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'ticker/ALL_{quoteId}',
-                        'ticker/{baseId}_{quoteId}',
-                        'orderbook/ALL_{quoteId}',
-                        'orderbook/{baseId}_{quoteId}',
-                        'transaction_history/{baseId}_{quoteId}',
-                        'network-info',
-                        'assetsstatus/multichain/ALL',
-                        'assetsstatus/multichain/{currency}',
-                        'withdraw/minimum/ALL',
-                        'withdraw/minimum/{currency}',
-                        'assetsstatus/ALL',
-                        'assetsstatus/{baseId}',
-                        'candlestick/{baseId}_{quoteId}/{interval}',
-                    ],
+                    'get': {
+                        'ticker/ALL_{quoteId}': {'cost': 1},
+                        'ticker/{baseId}_{quoteId}': {'cost': 1},
+                        'orderbook/ALL_{quoteId}': {'cost': 1},
+                        'orderbook/{baseId}_{quoteId}': {'cost': 1},
+                        'transaction_history/{baseId}_{quoteId}': {'cost': 1},
+                        'network-info': {'cost': 1},
+                        'assetsstatus/multichain/ALL': {'cost': 1},
+                        'assetsstatus/multichain/{currency}': {'cost': 1},
+                        'withdraw/minimum/ALL': {'cost': 1},
+                        'withdraw/minimum/{currency}': {'cost': 1},
+                        'assetsstatus/ALL': {'cost': 1},
+                        'assetsstatus/{baseId}': {'cost': 1},
+                        'candlestick/{baseId}_{quoteId}/{interval}': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'post': [
-                        'info/account',
-                        'info/balance',
-                        'info/wallet_address',
-                        'info/ticker',
-                        'info/orders',
-                        'info/user_transactions',
-                        'info/order_detail',
-                        'trade/place',
-                        'trade/cancel',
-                        'trade/btc_withdrawal',
-                        'trade/krw_deposit',
-                        'trade/krw_withdrawal',
-                        'trade/market_buy',
-                        'trade/market_sell',
-                        'trade/stop_limit',
-                    ],
+                    'post': {
+                        'info/account': {'cost': 1},
+                        'info/balance': {'cost': 1},
+                        'info/wallet_address': {'cost': 1},
+                        'info/ticker': {'cost': 1},
+                        'info/orders': {'cost': 1},
+                        'info/user_transactions': {'cost': 1},
+                        'info/order_detail': {'cost': 1},
+                        'trade/place': {'cost': 1},
+                        'trade/cancel': {'cost': 1},
+                        'trade/btc_withdrawal': {'cost': 1},
+                        'trade/krw_deposit': {'cost': 1},
+                        'trade/krw_withdrawal': {'cost': 1},
+                        'trade/market_buy': {'cost': 1},
+                        'trade/market_sell': {'cost': 1},
+                        'trade/stop_limit': {'cost': 1},
+                    },
                 },
             },
             'fees': {
@@ -277,14 +277,6 @@ class bithumb(Exchange, ImplicitAPI):
                             },
                         },
                     },
-                    'USDT': {
-                        'limits': {
-                            'cost': {
-                                'min': None,
-                                'max': None,
-                            },
-                        },
-                    },
                 },
             },
             'commonCurrencies': {
@@ -301,8 +293,9 @@ class bithumb(Exchange, ImplicitAPI):
         # since they're the same we just need to return one
         return super(bithumb, self).safe_market(marketId, market, delimiter, 'spot')
 
-    def amount_to_precision(self, symbol, amount):
-        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
+    def amount_to_precision(self, symbol: Str, amount: Any):
+        market = self.market(symbol)
+        return self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES)
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -362,7 +355,7 @@ class bithumb(Exchange, ImplicitAPI):
             quote = quotes[i]
             quoteId = quote
             response = results[i]
-            data = self.safe_dict(response, 'data')
+            data = self.safe_dict(response, 'data', {})
             extension = self.safe_dict(quoteCurrencies, quote, {})
             currencyIds = list(data.keys())
             for j in range(0, len(currencyIds)):
@@ -425,8 +418,8 @@ class bithumb(Exchange, ImplicitAPI):
                 result.append(entry)
         return result
 
-    def parse_balance(self, response) -> Balances:
-        result: dict = {'info': response}
+    def parse_balance(self, response: Any) -> Balances:
+        result = {'info': response}
         balances = self.safe_dict(response, 'data')
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
@@ -449,8 +442,9 @@ class bithumb(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             'currency': 'ALL',
         }
         response = await self.privatePostInfoBalance(self.extend(request, params))
@@ -465,11 +459,12 @@ class bithumb(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
         }
@@ -558,13 +553,14 @@ class bithumb(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
-        result: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        result = {}
         quoteCurrencies = self.safe_dict(self.options, 'quoteCurrencies', {})
         quotes = list(quoteCurrencies.keys())
         promises = []
         for i in range(0, len(quotes)):
-            request: dict = {
+            request = {
                 'quoteId': quotes[i],
             }
             promises.append(self.publicGetTickerALLQuoteId(self.extend(request, params)))
@@ -617,9 +613,10 @@ class bithumb(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
         }
@@ -646,7 +643,7 @@ class bithumb(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_ticker(data, market)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     [
         #         1576823400000,  # 기준 시간
@@ -679,9 +676,10 @@ class bithumb(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
@@ -797,9 +795,10 @@ class bithumb(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
         }
@@ -839,9 +838,10 @@ class bithumb(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'order_currency': market['id'],
             'payment_currency': market['quote'],
             'units': amount,
@@ -877,9 +877,10 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'order_id': id,
             'count': 1,
             'order_currency': market['base'],
@@ -917,7 +918,7 @@ class bithumb(Exchange, ImplicitAPI):
         return self.parse_order(self.extend(data, {'order_id': id}), market)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'Pending': 'open',
             'Completed': 'closed',
             'Cancel': 'canceled',
@@ -1030,11 +1031,12 @@ class bithumb(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if limit is None:
             limit = 100
-        request: dict = {
+        request = {
             'count': limit,
             'order_currency': market['base'],
             'payment_currency': market['quote'],
@@ -1062,7 +1064,7 @@ class bithumb(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}):
         """
         cancels an open order
 
@@ -1082,7 +1084,7 @@ class bithumb(Exchange, ImplicitAPI):
         side = 'bid' if (params['side'] == 'buy') else 'ask'
         params = self.omit(params, ['side', 'currency'])
         # https://github.com/ccxt/ccxt/issues/6771
-        request: dict = {
+        request = {
             'order_id': id,
             'type': side,
             'order_currency': market['base'],
@@ -1098,11 +1100,11 @@ class bithumb(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    async def cancel_unified_order(self, order: Order, params={}):
-        request: dict = {
+    async def cancel_unified_order(self, order: Order, params={}) -> Order:
+        request = {
             'side': order['side'],
         }
-        return await self.cancel_order(order['id'], order['symbol'], self.extend(request, params))
+        return await self.cancel_order((order['id']), order['symbol'], self.extend(request, params))
 
     async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
@@ -1119,9 +1121,10 @@ class bithumb(Exchange, ImplicitAPI):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'units': amount,
             'address': address,
             'currency': currency['id'],
@@ -1168,7 +1171,7 @@ class bithumb(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def fix_comma_number(self, numberStr):
+    def fix_comma_number(self, numberStr: Any):
         # some endpoints need self https://github.com/ccxt/ccxt/issues/11031
         if numberStr is None:
             return None
@@ -1180,7 +1183,7 @@ class bithumb(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = '/' + self.implode_params(path, params)
         url = self.implode_hostname(self.urls['api'][api]) + endpoint
         query = self.omit(params, self.extract_params(path))
@@ -1192,6 +1195,9 @@ class bithumb(Exchange, ImplicitAPI):
             body = self.urlencode(self.extend({
                 'endpoint': endpoint,
             }, query))
+            # bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
+            bodyParts = body.split('%20')
+            body = '+'.join(bodyParts)
             nonce = str(self.nonce())
             auth = endpoint + "\0" + body + "\0" + nonce  # eslint-disable-line quotes
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
@@ -1205,7 +1211,7 @@ class bithumb(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         if 'status' in response:

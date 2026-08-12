@@ -7,110 +7,137 @@
 
 package ccxt
 
-func (this *ApexCore) PublicGetV3Symbols(args ...interface{}) <-chan interface{} {
+// PublicGetV3Symbols returns a channel that yields a JSON object.
+func (this *ApexCore) PublicGetV3Symbols(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV3Symbols", args...)
 }
 
-func (this *ApexCore) PublicGetV3HistoryFunding(args ...interface{}) <-chan interface{} {
+// PublicGetV3HistoryFunding returns a channel that yields a JSON object.
+func (this *ApexCore) PublicGetV3HistoryFunding(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV3HistoryFunding", args...)
 }
 
-func (this *ApexCore) PublicGetV3Ticker(args ...interface{}) <-chan interface{} {
+// PublicGetV3Ticker returns a channel that yields a JSON object.
+func (this *ApexCore) PublicGetV3Ticker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV3Ticker", args...)
 }
 
-func (this *ApexCore) PublicGetV3Klines(args ...interface{}) <-chan interface{} {
+// PublicGetV3Klines returns a channel that yields a JSON object.
+func (this *ApexCore) PublicGetV3Klines(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV3Klines", args...)
 }
 
-func (this *ApexCore) PublicGetV3Trades(args ...interface{}) <-chan interface{} {
+// PublicGetV3Trades returns a channel that yields a JSON object.
+func (this *ApexCore) PublicGetV3Trades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV3Trades", args...)
 }
 
-func (this *ApexCore) PublicGetV3Depth(args ...interface{}) <-chan interface{} {
+// PublicGetV3Depth returns a channel that yields a JSON object.
+func (this *ApexCore) PublicGetV3Depth(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV3Depth", args...)
 }
 
-func (this *ApexCore) PublicGetV3Time(args ...interface{}) <-chan interface{} {
+// PublicGetV3Time returns a channel that yields a JSON object.
+func (this *ApexCore) PublicGetV3Time(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV3Time", args...)
 }
 
-func (this *ApexCore) PublicGetV3DataAllTickerInfo(args ...interface{}) <-chan interface{} {
+// PublicGetV3DataAllTickerInfo returns a channel that yields a JSON object.
+func (this *ApexCore) PublicGetV3DataAllTickerInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV3DataAllTickerInfo", args...)
 }
 
-func (this *ApexCore) PrivateGetV3Account(args ...interface{}) <-chan interface{} {
+// PrivateGetV3Account returns a channel that yields a JSON object.
+func (this *ApexCore) PrivateGetV3Account(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV3Account", args...)
 }
 
-func (this *ApexCore) PrivateGetV3AccountBalance(args ...interface{}) <-chan interface{} {
+// PrivateGetV3AccountBalance returns a channel that yields a JSON object.
+func (this *ApexCore) PrivateGetV3AccountBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV3AccountBalance", args...)
 }
 
-func (this *ApexCore) PrivateGetV3Fills(args ...interface{}) <-chan interface{} {
+// PrivateGetV3Fills returns a channel that yields a JSON object.
+func (this *ApexCore) PrivateGetV3Fills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV3Fills", args...)
 }
 
-func (this *ApexCore) PrivateGetV3OrderFills(args ...interface{}) <-chan interface{} {
+// PrivateGetV3OrderFills returns a channel that yields a JSON object.
+func (this *ApexCore) PrivateGetV3OrderFills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV3OrderFills", args...)
 }
 
-func (this *ApexCore) PrivateGetV3Order(args ...interface{}) <-chan interface{} {
+// PrivateGetV3Order returns a channel that yields a JSON object.
+func (this *ApexCore) PrivateGetV3Order(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV3Order", args...)
 }
 
-func (this *ApexCore) PrivateGetV3HistoryOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetV3HistoryOrders returns a channel that yields a JSON object.
+func (this *ApexCore) PrivateGetV3HistoryOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV3HistoryOrders", args...)
 }
 
-func (this *ApexCore) PrivateGetV3OrderByClientOrderId(args ...interface{}) <-chan interface{} {
+// PrivateGetV3OrderByClientOrderId returns a channel that yields a JSON object.
+func (this *ApexCore) PrivateGetV3OrderByClientOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV3OrderByClientOrderId", args...)
 }
 
-func (this *ApexCore) PrivateGetV3Funding(args ...interface{}) <-chan interface{} {
+// PrivateGetV3Funding returns a channel that yields a JSON object.
+func (this *ApexCore) PrivateGetV3Funding(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV3Funding", args...)
 }
 
-func (this *ApexCore) PrivateGetV3HistoricalPnl(args ...interface{}) <-chan interface{} {
+// PrivateGetV3HistoricalPnl returns a channel that yields a JSON object.
+func (this *ApexCore) PrivateGetV3HistoricalPnl(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV3HistoricalPnl", args...)
 }
 
-func (this *ApexCore) PrivateGetV3OpenOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetV3OpenOrders returns a channel that yields a JSON object.
+func (this *ApexCore) PrivateGetV3OpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV3OpenOrders", args...)
 }
 
-func (this *ApexCore) PrivateGetV3Transfers(args ...interface{}) <-chan interface{} {
+// PrivateGetV3Transfers returns a channel that yields a JSON object.
+func (this *ApexCore) PrivateGetV3Transfers(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV3Transfers", args...)
 }
 
-func (this *ApexCore) PrivateGetV3Transfer(args ...interface{}) <-chan interface{} {
+// PrivateGetV3Transfer returns a channel that yields a JSON object.
+func (this *ApexCore) PrivateGetV3Transfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV3Transfer", args...)
 }
 
-func (this *ApexCore) PrivatePostV3DeleteOpenOrders(args ...interface{}) <-chan interface{} {
+// PrivatePostV3DeleteOpenOrders returns a channel that yields a JSON object.
+func (this *ApexCore) PrivatePostV3DeleteOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV3DeleteOpenOrders", args...)
 }
 
-func (this *ApexCore) PrivatePostV3DeleteClientOrderId(args ...interface{}) <-chan interface{} {
+// PrivatePostV3DeleteClientOrderId returns a channel that yields a JSON object.
+func (this *ApexCore) PrivatePostV3DeleteClientOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV3DeleteClientOrderId", args...)
 }
 
-func (this *ApexCore) PrivatePostV3DeleteOrder(args ...interface{}) <-chan interface{} {
+// PrivatePostV3DeleteOrder returns a channel that yields a JSON object.
+func (this *ApexCore) PrivatePostV3DeleteOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV3DeleteOrder", args...)
 }
 
-func (this *ApexCore) PrivatePostV3Order(args ...interface{}) <-chan interface{} {
+// PrivatePostV3Order returns a channel that yields a JSON object.
+func (this *ApexCore) PrivatePostV3Order(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV3Order", args...)
 }
 
-func (this *ApexCore) PrivatePostV3SetInitialMarginRate(args ...interface{}) <-chan interface{} {
+// PrivatePostV3SetInitialMarginRate returns a channel that yields a JSON object.
+func (this *ApexCore) PrivatePostV3SetInitialMarginRate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV3SetInitialMarginRate", args...)
 }
 
-func (this *ApexCore) PrivatePostV3TransferOut(args ...interface{}) <-chan interface{} {
+// PrivatePostV3TransferOut returns a channel that yields a JSON object.
+func (this *ApexCore) PrivatePostV3TransferOut(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV3TransferOut", args...)
 }
 
-func (this *ApexCore) PrivatePostV3ContractTransferOut(args ...interface{}) <-chan interface{} {
+// PrivatePostV3ContractTransferOut returns a channel that yields a JSON object.
+func (this *ApexCore) PrivatePostV3ContractTransferOut(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV3ContractTransferOut", args...)
 }

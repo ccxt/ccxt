@@ -1,17 +1,17 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import bitmexRest from '../bitmex.js';
 import { AuthenticationError, ExchangeError, RateLimitExceeded } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, Bool } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, List, Liquidation, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class bitmex extends bitmexRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -68,8 +68,10 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbol = this.symbol (symbol);
         const tickers = await this.watchTickers ([ symbol ], params);
         return tickers[symbol];
@@ -84,13 +86,15 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, true);
         const name = 'instrument';
         const url = this.urls['api']['ws'];
-        const messageHashes = [];
-        const rawSubscriptions = [];
+        const messageHashes: List = [];
+        const rawSubscriptions: List = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
@@ -117,7 +121,7 @@ export default class bitmex extends bitmexRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //     {
         //         "table": "instrument",
@@ -375,7 +379,7 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+    override watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         return this.watchLiquidationsForSymbols ([ symbol ], since, limit, params);
     }
 
@@ -390,11 +394,13 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
-        await this.loadMarkets ();
+    override async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, true, true);
-        const messageHashes = [];
-        const subscriptionHashes = [];
+        const messageHashes: List = [];
+        const subscriptionHashes: List = [];
         if (this.isEmpty (symbols)) {
             subscriptionHashes.push ('liquidation');
             messageHashes.push ('liquidations');
@@ -418,7 +424,7 @@ export default class bitmex extends bitmexRest {
         return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit, true);
     }
 
-    handleLiquidation (client: Client, message) {
+    handleLiquidation (client: Client, message: any) {
         //
         //    {
         //        "table":"liquidation",
@@ -446,9 +452,10 @@ export default class bitmex extends bitmexRest {
         //    }
         //
         const rawLiquidations = this.safeValue (message, 'data', []);
-        const newLiquidations = [];
+        const newLiquidations: List = [];
         if (this.liquidations === undefined) {
-            this.liquidations = new ArrayCacheBySymbolBySide ();
+            const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
+            this.liquidations = new ArrayCache (limit);
         }
         const cache = this.liquidations;
         for (let i = 0; i < rawLiquidations.length; i++) {
@@ -474,8 +481,10 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+    override async watchBalance (params = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const messageHash = 'margin';
         const url = this.urls['api']['ws'];
@@ -488,7 +497,7 @@ export default class bitmex extends bitmexRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //     {
         //         "table": "margin",
@@ -594,7 +603,7 @@ export default class bitmex extends bitmexRest {
         client.resolve (this.balance, messageHash);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         // initial snapshot
         //
@@ -688,8 +697,8 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     async authenticate (params = {}) {
@@ -717,7 +726,7 @@ export default class bitmex extends bitmexRest {
         return await future;
     }
 
-    handleAuthenticationMessage (client: Client, message) {
+    handleAuthenticationMessage (client: Client, message: any) {
         const authenticated = this.safeBool (message, 'success', false);
         const messageHash = 'authenticated';
         if (authenticated) {
@@ -744,13 +753,15 @@ export default class bitmex extends bitmexRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const subscriptionHash = 'position';
         let messageHash = 'positions';
         if (!this.isEmpty (symbols)) {
-            messageHash = '::' + symbols.join (',');
+            messageHash = '::' + (symbols as string[]).join (',');
         }
         const url = this.urls['api']['ws'];
         const request: Dict = {
@@ -766,7 +777,7 @@ export default class bitmex extends bitmexRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    handlePositions (client, message) {
+    handlePositions (client: any, message: any) {
         //
         // partial
         //    {
@@ -920,10 +931,30 @@ export default class bitmex extends bitmexRest {
         }
         const cache = this.positions;
         const rawPositions = this.safeValue (message, 'data', []);
-        const newPositions = [];
+        const newPositions: List = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);
+            let side = this.safeString (position, 'side');
+            if (side === undefined) {
+                // BitMEX 'update' rows are deltas and may omit homeNotional, so
+                // parsePosition returns side = undefined. Carry the side forward from
+                // the cached position for this symbol, otherwise appending would break
+                // the ArrayCacheBySymbolBySide index (see issue #29001).
+                const symbol = this.safeString (position, 'symbol');
+                const cachedBySide = this.safeDict (cache.hashmap, symbol, {});
+                const cachedSides = Object.keys (cachedBySide);
+                const sidesLength = cachedSides.length;
+                if (sidesLength === 1) {
+                    side = cachedSides[0];
+                    position['side'] = side;
+                }
+            }
+            if (side === undefined) {
+                // still unresolved (e.g. the very first message is a partial without
+                // homeNotional); skip this row rather than corrupt the cache
+                continue;
+            }
             newPositions.push (position);
             cache.append (position);
         }
@@ -952,8 +983,10 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const name = 'order';
         const subscriptionHash = name;
@@ -976,7 +1009,7 @@ export default class bitmex extends bitmexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message) {
+    handleOrders (client: Client, message: any) {
         //
         //     {
         //         "table": "order",
@@ -1148,7 +1181,7 @@ export default class bitmex extends bitmexRest {
                 const order = this.parseOrder (rawOrder);
                 stored.append (order);
                 const symbol = order['symbol'];
-                symbols[symbol] = true;
+                symbols[(symbol as string)] = true;
             }
             client.resolve (this.orders, messageHash);
             const keys = Object.keys (symbols);
@@ -1170,8 +1203,10 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const name = 'execution';
         const subscriptionHash = name;
@@ -1194,7 +1229,7 @@ export default class bitmex extends bitmexRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: any) {
         //
         //     {
         //         "table":"execution",
@@ -1267,7 +1302,7 @@ export default class bitmex extends bitmexRest {
             const trade = trades[j];
             const symbol = trade['symbol'];
             stored.append (trade);
-            symbols[symbol] = trade;
+            symbols[(symbol as string)] = trade;
         }
         const numTrades = trades.length;
         if (numTrades > 0) {
@@ -1287,10 +1322,10 @@ export default class bitmex extends bitmexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    override watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        return this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
     /**
@@ -1301,10 +1336,10 @@ export default class bitmex extends bitmexRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        let table = undefined;
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        let table: Str = undefined;
         if (limit === undefined) {
             table = this.safeString (this.options, 'watchOrderBookLevel', 'orderBookL2');
         } else if (limit === 25) {
@@ -1314,10 +1349,12 @@ export default class bitmex extends bitmexRest {
         } else {
             throw new ExchangeError (this.id + ' watchOrderBookForSymbols limit argument must be undefined (L2), 25 (L2) or 10 (L3)');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
-        const topics = [];
-        const messageHashes = [];
+        const topics: List = [];
+        const messageHashes: List = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -1346,12 +1383,14 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
         const table = 'trade';
-        const topics = [];
-        const messageHashes = [];
+        const topics: List = [];
+        const messageHashes: List = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -1386,8 +1425,10 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const table = 'tradeBin' + this.safeString (this.timeframes, timeframe, timeframe);
@@ -1406,7 +1447,7 @@ export default class bitmex extends bitmexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         "table": "tradeBin1m",
@@ -1473,7 +1514,7 @@ export default class bitmex extends bitmexRest {
         //     }
         //
         const table = this.safeString (message, 'table');
-        const interval = table.replace ('tradeBin', '');
+        const interval = (table as string).replace ('tradeBin', '');
         const timeframe = this.findTimeframe (interval);
         const duration = this.parseTimeframe (timeframe);
         const candles = this.safeValue (message, 'data', []);
@@ -1485,7 +1526,7 @@ export default class bitmex extends bitmexRest {
             const symbol = market['symbol'];
             const messageHash = table + ':' + market['id'];
             const result = [
-                this.parse8601 (this.safeString (candle, 'timestamp')) - duration * 1000,
+                this.parseToInt (this.parse8601 (this.safeString (candle, 'timestamp'))) - duration * 1000,
                 undefined, // set open price to undefined, see: https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862
                 this.safeFloat (candle, 'high'),
                 this.safeFloat (candle, 'low'),
@@ -1497,7 +1538,7 @@ export default class bitmex extends bitmexRest {
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                this.ohlcvs[symbol][(timeframe as string)] = stored;
             }
             stored.append (result);
             results[messageHash] = stored;
@@ -1510,13 +1551,15 @@ export default class bitmex extends bitmexRest {
     }
 
     async watchHeartbeat (params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const event = 'heartbeat';
         const url = this.urls['api']['ws'];
         return await this.watch (url, event);
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         // first snapshot
         //
@@ -1596,7 +1639,7 @@ export default class bitmex extends bitmexRest {
                 const id = this.safeString (data[i], 'id');
                 let side = this.safeString (data[i], 'side');
                 side = (side === 'Buy') ? 'bids' : 'asks';
-                const bookside = orderbook[side];
+                const bookside = (orderbook as Dict)[side];
                 bookside.storeArray ([ price, size, id ]);
                 const datetime = this.safeString (data[i], 'timestamp');
                 orderbook['timestamp'] = this.parse8601 (datetime);
@@ -1614,7 +1657,7 @@ export default class bitmex extends bitmexRest {
                 if (!(marketId in numUpdatesByMarketId)) {
                     numUpdatesByMarketId[marketId] = 0;
                 }
-                numUpdatesByMarketId[marketId] = this.sum (numUpdatesByMarketId, 1);
+                numUpdatesByMarketId[marketId] = this.sum (numUpdatesByMarketId[marketId], 1);
                 const market = this.safeMarket (marketId);
                 const symbol = market['symbol'];
                 const orderbook = this.orderbooks[symbol];
@@ -1623,7 +1666,7 @@ export default class bitmex extends bitmexRest {
                 const id = this.safeString (data[i], 'id');
                 let side = this.safeString (data[i], 'side');
                 side = (side === 'Buy') ? 'bids' : 'asks';
-                const bookside = orderbook[side];
+                const bookside = (orderbook as Dict)[side];
                 bookside.storeArray ([ price, size, id ]);
                 const datetime = this.safeString (data[i], 'timestamp');
                 orderbook['timestamp'] = this.parse8601 (datetime);
@@ -1641,7 +1684,7 @@ export default class bitmex extends bitmexRest {
         }
     }
 
-    handleSystemStatus (client: Client, message) {
+    handleSystemStatus (client: Client, message: any) {
         //
         // todo answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -1658,7 +1701,7 @@ export default class bitmex extends bitmexRest {
         return message;
     }
 
-    handleSubscriptionStatus (client: Client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         //     {
         //         "success": true,
@@ -1669,7 +1712,7 @@ export default class bitmex extends bitmexRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         // generic error format
         //
@@ -1695,7 +1738,7 @@ export default class bitmex extends bitmexRest {
                 const messageHash = args[0];
                 const broad = this.exceptions['ws']['broad'];
                 const broadKey = this.findBroadlyMatchedKey (broad, error);
-                let exception = undefined;
+                let exception: ExchangeError | undefined = undefined;
                 if (broadKey === undefined) {
                     exception = new ExchangeError ((error as string)); // c# requirement for now
                 } else {
@@ -1708,7 +1751,7 @@ export default class bitmex extends bitmexRest {
         return true;
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         //
         //     {
         //         "info": "Welcome to the BitMEX Realtime API.",

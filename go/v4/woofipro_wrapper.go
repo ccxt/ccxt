@@ -6,7 +6,7 @@ type Woofipro struct {
 	exchangeTyped *ExchangeTyped
 }
 
-func NewWoofipro(userConfig map[string]interface{}) *Woofipro {
+func NewWoofipro(userConfig map[string]any) *Woofipro {
 	p := NewWoofiproCore()
 	p.Init(userConfig)
 	return &Woofipro{
@@ -30,27 +30,27 @@ func NewWoofiproFromCore(core *WoofiproCore) *Woofipro {
  * @method
  * @name woofipro#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Woofipro) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
+func (this *Woofipro) FetchStatus(params ...any) (Status, error) {
 	res := <-this.Core.FetchStatus(params...)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return Status{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return NewStatus(res), nil
 }
 
 /**
  * @method
  * @name woofipro#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Woofipro) FetchTime(params ...interface{}) (int64, error) {
+func (this *Woofipro) FetchTime(params ...any) (int64, error) {
 	res := <-this.Core.FetchTime(params...)
 	if IsError(res) {
 		return -1, CreateReturnError(res)
@@ -62,11 +62,11 @@ func (this *Woofipro) FetchTime(params ...interface{}) (int64, error) {
  * @method
  * @name woofipro#fetchMarkets
  * @description retrieves data on all markets for woofipro
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-available-symbols
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Woofipro) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Woofipro) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -78,12 +78,12 @@ func (this *Woofipro) FetchMarkets(params ...interface{}) ([]MarketInterface, er
  * @method
  * @name woofipro#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Woofipro) FetchCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Woofipro) FetchCurrencies(params ...any) (Currencies, error) {
 	res := <-this.Core.FetchCurrencies(params...)
 	if IsError(res) {
 		return Currencies{}, CreateReturnError(res)
@@ -95,7 +95,7 @@ func (this *Woofipro) FetchCurrencies(params ...interface{}) (Currencies, error)
  * @method
  * @name woofipro#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-market-trades
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-trades
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -110,17 +110,17 @@ func (this *Woofipro) FetchTrades(symbol string, options ...FetchTradesOptions) 
 		opt(&opts)
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -135,7 +135,7 @@ func (this *Woofipro) FetchTrades(symbol string, options ...FetchTradesOptions) 
  * @method
  * @name woofipro#fetchFundingInterval
  * @description fetch the current funding rate interval
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -148,7 +148,7 @@ func (this *Woofipro) FetchFundingInterval(symbol string, options ...FetchFundin
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -163,7 +163,7 @@ func (this *Woofipro) FetchFundingInterval(symbol string, options ...FetchFundin
  * @method
  * @name woofipro#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -176,7 +176,7 @@ func (this *Woofipro) FetchFundingRate(symbol string, options ...FetchFundingRat
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -191,7 +191,7 @@ func (this *Woofipro) FetchFundingRate(symbol string, options ...FetchFundingRat
  * @method
  * @name woofipro#fetchFundingRates
  * @description fetch the current funding rate for multiple markets
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
  * @param {string[]} symbols unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -204,12 +204,12 @@ func (this *Woofipro) FetchFundingRates(options ...FetchFundingRatesOptions) (Fu
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -222,9 +222,131 @@ func (this *Woofipro) FetchFundingRates(options ...FetchFundingRatesOptions) (Fu
 
 /**
  * @method
+ * @name woofipro#fetchTicker
+ * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Woofipro) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
+
+	opts := FetchTickerOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchTicker(symbol, params)
+	if IsError(res) {
+		return Ticker{}, CreateReturnError(res)
+	}
+	return NewTicker(res), nil
+}
+
+/**
+ * @method
+ * @name woofipro#fetchTickers
+ * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Woofipro) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
+
+	opts := FetchTickersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchTickers(symbols, params)
+	if IsError(res) {
+		return Tickers{}, CreateReturnError(res)
+	}
+	return NewTickers(res), nil
+}
+
+/**
+ * @method
+ * @name woofipro#fetchOpenInterest
+ * @description retrieves the open interest of a contract trading pair
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+ * @param {string} symbol unified CCXT market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *Woofipro) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
+
+	opts := FetchOpenInterestOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchOpenInterest(symbol, params)
+	if IsError(res) {
+		return OpenInterest{}, CreateReturnError(res)
+	}
+	return NewOpenInterest(res), nil
+}
+
+/**
+ * @method
+ * @name woofipro#fetchOpenInterests
+ * @description retrieves the open interest for a list of contract trading pairs
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+ * @param {string[]} [symbols] a list of unified CCXT market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *Woofipro) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
+
+	opts := FetchOpenInterestsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchOpenInterests(symbols, params)
+	if IsError(res) {
+		return OpenInterests{}, CreateReturnError(res)
+	}
+	return NewOpenInterests(res), nil
+}
+
+/**
+ * @method
  * @name woofipro#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-funding-rate-history-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-market
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -241,22 +363,22 @@ func (this *Woofipro) FetchFundingRateHistory(options ...FetchFundingRateHistory
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -271,7 +393,7 @@ func (this *Woofipro) FetchFundingRateHistory(options ...FetchFundingRateHistory
  * @method
  * @name woofipro#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -287,22 +409,22 @@ func (this *Woofipro) FetchFundingHistory(options ...FetchFundingHistoryOptions)
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -317,11 +439,11 @@ func (this *Woofipro) FetchFundingHistory(options ...FetchFundingHistoryOptions)
  * @method
  * @name woofipro#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *Woofipro) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+func (this *Woofipro) FetchTradingFees(params ...any) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
 	if IsError(res) {
 		return TradingFees{}, CreateReturnError(res)
@@ -333,11 +455,11 @@ func (this *Woofipro) FetchTradingFees(params ...interface{}) (TradingFees, erro
  * @method
  * @name woofipro#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/orderbook-snapshot
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Woofipro) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -347,12 +469,12 @@ func (this *Woofipro) FetchOrderBook(symbol string, options ...FetchOrderBookOpt
 		opt(&opts)
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -366,7 +488,7 @@ func (this *Woofipro) FetchOrderBook(symbol string, options ...FetchOrderBookOpt
 /**
  * @method
  * @name woofipro#fetchOHLCV
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-kline
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -383,22 +505,22 @@ func (this *Woofipro) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([
 		opt(&opts)
 	}
 
-	var timeframe interface{} = nil
+	var timeframe any = nil
 	if opts.Timeframe != nil {
 		timeframe = *opts.Timeframe
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -413,8 +535,8 @@ func (this *Woofipro) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([
  * @method
  * @name woofipro#createOrder
  * @description create a trade order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -439,12 +561,12 @@ func (this *Woofipro) CreateOrder(symbol string, typeVar string, side string, am
 		opt(&opts)
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -459,7 +581,7 @@ func (this *Woofipro) CreateOrder(symbol string, typeVar string, side string, am
  * @method
  * @name woofipro#createOrders
  * @description *contract only* create a list of trade orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-create-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -472,7 +594,7 @@ func (this *Woofipro) CreateOrders(orders []OrderRequest, options ...CreateOrder
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -487,8 +609,8 @@ func (this *Woofipro) CreateOrders(orders []OrderRequest, options ...CreateOrder
  * @method
  * @name woofipro#editOrder
  * @description edit a trade order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -509,17 +631,17 @@ func (this *Woofipro) EditOrder(id string, symbol string, typeVar string, side s
 		opt(&opts)
 	}
 
-	var amount interface{} = nil
+	var amount any = nil
 	if opts.Amount != nil {
 		amount = *opts.Amount
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -533,10 +655,10 @@ func (this *Woofipro) EditOrder(id string, symbol string, typeVar string, side s
 /**
  * @method
  * @name woofipro#cancelOrder
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order-by-client_order_id
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
  * @description cancels an open order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
@@ -553,12 +675,12 @@ func (this *Woofipro) CancelOrder(id string, options ...CancelOrderOptions) (Ord
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -573,8 +695,8 @@ func (this *Woofipro) CancelOrder(id string, options ...CancelOrderOptions) (Ord
  * @method
  * @name woofipro#cancelOrders
  * @description cancel multiple orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -589,12 +711,12 @@ func (this *Woofipro) CancelOrders(ids []string, options ...CancelOrdersOptions)
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -608,10 +730,10 @@ func (this *Woofipro) CancelOrders(ids []string, options ...CancelOrdersOptions)
 /**
  * @method
  * @name woofipro#cancelAllOrders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-all-pending-algo-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
  * @description cancel all open orders in a market
- * @param {string} symbol unified market symbol
+ * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -624,12 +746,12 @@ func (this *Woofipro) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Orde
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -643,10 +765,10 @@ func (this *Woofipro) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Orde
 /**
  * @method
  * @name woofipro#fetchOrder
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-order_id
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-client_order_id
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-order_id
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
  * @description fetches information on an order made by the user
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
@@ -663,12 +785,12 @@ func (this *Woofipro) FetchOrder(id string, options ...FetchOrderOptions) (Order
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -683,8 +805,8 @@ func (this *Woofipro) FetchOrder(id string, options ...FetchOrderOptions) (Order
  * @method
  * @name woofipro#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -704,22 +826,22 @@ func (this *Woofipro) FetchOrders(options ...FetchOrdersOptions) ([]Order, error
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -734,8 +856,8 @@ func (this *Woofipro) FetchOrders(options ...FetchOrdersOptions) ([]Order, error
  * @method
  * @name woofipro#fetchOpenOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -755,22 +877,22 @@ func (this *Woofipro) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Orde
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -785,8 +907,8 @@ func (this *Woofipro) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Orde
  * @method
  * @name woofipro#fetchClosedOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -806,22 +928,22 @@ func (this *Woofipro) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -836,7 +958,7 @@ func (this *Woofipro) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]
  * @method
  * @name woofipro#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-trades-of-specific-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-trades-of-specific-order
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -852,22 +974,22 @@ func (this *Woofipro) FetchOrderTrades(id string, options ...FetchOrderTradesOpt
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -881,7 +1003,7 @@ func (this *Woofipro) FetchOrderTrades(id string, options ...FetchOrderTradesOpt
 /**
  * @method
  * @name woofipro#fetchMyTrades
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-trades
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-trades
  * @description fetch all trades made by the user
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -899,22 +1021,22 @@ func (this *Woofipro) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -929,11 +1051,11 @@ func (this *Woofipro) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
  * @method
  * @name woofipro#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-current-holding
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Woofipro) FetchBalance(params ...interface{}) (Balances, error) {
+func (this *Woofipro) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
@@ -945,7 +1067,7 @@ func (this *Woofipro) FetchBalance(params ...interface{}) (Balances, error) {
  * @method
  * @name woofipro#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -960,22 +1082,22 @@ func (this *Woofipro) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry,
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -990,7 +1112,7 @@ func (this *Woofipro) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry,
  * @method
  * @name woofipro#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -1005,22 +1127,22 @@ func (this *Woofipro) FetchDeposits(options ...FetchDepositsOptions) ([]Transact
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1035,7 +1157,7 @@ func (this *Woofipro) FetchDeposits(options ...FetchDepositsOptions) ([]Transact
  * @method
  * @name woofipro#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -1050,22 +1172,22 @@ func (this *Woofipro) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tr
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1080,7 +1202,7 @@ func (this *Woofipro) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tr
  * @method
  * @name woofipro#fetchDepositsWithdrawals
  * @description fetch history of deposits and withdrawals
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
  * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -1095,22 +1217,22 @@ func (this *Woofipro) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawa
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1125,7 +1247,7 @@ func (this *Woofipro) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawa
  * @method
  * @name woofipro#withdraw
  * @description make a withdrawal
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-withdraw-request
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-request
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
@@ -1141,12 +1263,12 @@ func (this *Woofipro) Withdraw(code string, amount float64, address string, opti
 		opt(&opts)
 	}
 
-	var tag interface{} = nil
+	var tag any = nil
 	if opts.Tag != nil {
 		tag = *opts.Tag
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1161,7 +1283,7 @@ func (this *Woofipro) Withdraw(code string, amount float64, address string, opti
  * @method
  * @name woofipro#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
@@ -1174,7 +1296,7 @@ func (this *Woofipro) FetchLeverage(symbol string, options ...FetchLeverageOptio
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1189,13 +1311,13 @@ func (this *Woofipro) FetchLeverage(symbol string, options ...FetchLeverageOptio
  * @method
  * @name woofipro#setLeverage
  * @description set the level of leverage for a market
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/update-leverage-setting
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-leverage-setting
  * @param {int} [leverage] the rate of leverage
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Woofipro) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]interface{}, error) {
+func (this *Woofipro) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]any, error) {
 
 	opts := SetLeverageOptionsStruct{}
 
@@ -1203,26 +1325,26 @@ func (this *Woofipro) SetLeverage(leverage int64, options ...SetLeverageOptions)
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.SetLeverage(leverage, symbol, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
  * @method
  * @name woofipro#fetchPosition
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
  * @description fetch data on an open position
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1236,7 +1358,7 @@ func (this *Woofipro) FetchPosition(symbol string, options ...FetchPositionOptio
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1251,7 +1373,7 @@ func (this *Woofipro) FetchPosition(symbol string, options ...FetchPositionOptio
  * @method
  * @name woofipro#fetchPositions
  * @description fetch all open positions
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-positions-info
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-positions-info
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -1264,12 +1386,12 @@ func (this *Woofipro) FetchPositions(options ...FetchPositionsOptions) ([]Positi
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1282,13 +1404,13 @@ func (this *Woofipro) FetchPositions(options ...FetchPositionsOptions) ([]Positi
 
 // missing typed methods from base
 // nolint
-func (this *Woofipro) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+func (this *Woofipro) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
 func (this *Woofipro) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
 }
-func (this *Woofipro) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
+func (this *Woofipro) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }
 func (this *Woofipro) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
@@ -1378,7 +1500,7 @@ func (this *Woofipro) EditOrderWithClientOrderId(clientOrderId string, symbol st
 func (this *Woofipro) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Woofipro) FetchAccounts(params ...interface{}) ([]Account, error) {
+func (this *Woofipro) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
 func (this *Woofipro) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
@@ -1390,13 +1512,13 @@ func (this *Woofipro) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, e
 func (this *Woofipro) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 	return this.exchangeTyped.FetchBorrowInterest(options...)
 }
-func (this *Woofipro) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
+func (this *Woofipro) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
 func (this *Woofipro) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)
 }
-func (this *Woofipro) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Woofipro) FetchConvertCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchConvertCurrencies(params...)
 }
 func (this *Woofipro) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
@@ -1411,7 +1533,7 @@ func (this *Woofipro) FetchConvertTradeHistory(options ...FetchConvertTradeHisto
 func (this *Woofipro) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
-func (this *Woofipro) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
+func (this *Woofipro) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
 }
 func (this *Woofipro) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
@@ -1423,13 +1545,13 @@ func (this *Woofipro) FetchDepositAddresses(options ...FetchDepositAddressesOpti
 func (this *Woofipro) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
-func (this *Woofipro) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
+func (this *Woofipro) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Woofipro) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+func (this *Woofipro) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
-func (this *Woofipro) FetchFreeBalance(params ...interface{}) (Balance, error) {
+func (this *Woofipro) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
 func (this *Woofipro) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
@@ -1444,7 +1566,7 @@ func (this *Woofipro) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVO
 func (this *Woofipro) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
 }
-func (this *Woofipro) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
+func (this *Woofipro) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
 }
 func (this *Woofipro) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
@@ -1492,14 +1614,8 @@ func (this *Woofipro) FetchMarkPrices(options ...FetchMarkPricesOptions) (Ticker
 func (this *Woofipro) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
 	return this.exchangeTyped.FetchMyLiquidations(options...)
 }
-func (this *Woofipro) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterest(symbol, options...)
-}
 func (this *Woofipro) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
 	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)
-}
-func (this *Woofipro) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
-	return this.exchangeTyped.FetchOpenInterests(options...)
 }
 func (this *Woofipro) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
 	return this.exchangeTyped.FetchOption(symbol, options...)
@@ -1516,13 +1632,13 @@ func (this *Woofipro) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderB
 func (this *Woofipro) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Woofipro) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
+func (this *Woofipro) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Woofipro) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Woofipro) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+func (this *Woofipro) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Woofipro) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1537,22 +1653,16 @@ func (this *Woofipro) FetchPositionsRisk(options ...FetchPositionsRiskOptions) (
 func (this *Woofipro) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Woofipro) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchTicker(symbol, options...)
-}
-func (this *Woofipro) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchTickers(options...)
-}
 func (this *Woofipro) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 	return this.exchangeTyped.FetchTradingFee(symbol, options...)
 }
-func (this *Woofipro) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+func (this *Woofipro) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
-func (this *Woofipro) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
+func (this *Woofipro) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFee(code, options...)
 }
-func (this *Woofipro) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
+func (this *Woofipro) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFees(options...)
 }
 func (this *Woofipro) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -1567,10 +1677,10 @@ func (this *Woofipro) FetchTransfers(options ...FetchTransfersOptions) ([]Transf
 func (this *Woofipro) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
-func (this *Woofipro) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+func (this *Woofipro) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetMarginMode(marginMode, options...)
 }
-func (this *Woofipro) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+func (this *Woofipro) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)
 }
 func (this *Woofipro) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
@@ -1648,13 +1758,13 @@ func (this *Woofipro) CreateTriggerOrderWs(symbol string, typeVar string, side s
 func (this *Woofipro) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
 }
-func (this *Woofipro) FetchBalanceWs(params ...interface{}) (Balances, error) {
+func (this *Woofipro) FetchBalanceWs(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
 func (this *Woofipro) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Woofipro) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+func (this *Woofipro) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Woofipro) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1696,46 +1806,46 @@ func (this *Woofipro) FetchTickerWs(symbol string, options ...FetchTickerWsOptio
 func (this *Woofipro) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchTradesWs(symbol, options...)
 }
-func (this *Woofipro) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+func (this *Woofipro) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Woofipro) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+func (this *Woofipro) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
-func (this *Woofipro) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+func (this *Woofipro) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
 	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
-func (this *Woofipro) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+func (this *Woofipro) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)
 }
-func (this *Woofipro) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+func (this *Woofipro) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
 }
-func (this *Woofipro) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+func (this *Woofipro) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
-func (this *Woofipro) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Woofipro) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
 }
-func (this *Woofipro) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+func (this *Woofipro) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
 }
-func (this *Woofipro) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+func (this *Woofipro) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrders(options...)
 }
-func (this *Woofipro) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+func (this *Woofipro) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTicker(symbol, options...)
 }
-func (this *Woofipro) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+func (this *Woofipro) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTickers(options...)
 }
-func (this *Woofipro) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+func (this *Woofipro) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTrades(symbol, options...)
 }
-func (this *Woofipro) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+func (this *Woofipro) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
 }
-func (this *Woofipro) WatchBalance(params ...interface{}) (Balances, error) {
+func (this *Woofipro) WatchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.WatchBalance(params...)
 }
 func (this *Woofipro) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {

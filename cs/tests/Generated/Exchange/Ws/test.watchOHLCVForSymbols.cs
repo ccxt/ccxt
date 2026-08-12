@@ -31,6 +31,10 @@ public partial class testMainClass : BaseTest
             try
             {
                 response = await exchange.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, chosenTimeframeKey}}, since, limit);
+                if (isTrue(isEqual(response, null)))
+                {
+                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
+                }
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
@@ -43,11 +47,15 @@ public partial class testMainClass : BaseTest
             }
             if (isTrue(isEqual(success, true)))
             {
+                if (isTrue(isEqual(response, null)))
+                {
+                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
+                }
                 object assertionMessage = add(add(add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " "), chosenTimeframeKey), " | "), exchange.json(response));
-                assert((response is IDictionary<string, object>), add("Response must be a dictionary. ", assertionMessage));
+                assert(exchange.isDictionary(response), add("Response must be a dictionary. ", assertionMessage));
                 assert(inOp(response, symbol), add("Response should contain the symbol as key. ", assertionMessage));
                 object symbolObj = getValue(response, symbol);
-                assert((symbolObj is IDictionary<string, object>), add("Response.Symbol should be a dictionary. ", assertionMessage));
+                assert(exchange.isDictionary(symbolObj), add("Response.Symbol should be a dictionary. ", assertionMessage));
                 assert(inOp(symbolObj, chosenTimeframeKey), add("Response.symbol should contain the timeframe key. ", assertionMessage));
                 object ohlcvs = getValue(symbolObj, chosenTimeframeKey);
                 assert(((ohlcvs is IList<object>) || (ohlcvs.GetType().IsGenericType && ohlcvs.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add("Response.symbol.timeframe should be an array. ", assertionMessage));

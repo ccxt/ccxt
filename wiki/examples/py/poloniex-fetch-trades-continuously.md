@@ -1,8 +1,5 @@
-- [Poloniex Fetch Trades Continuously](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -36,5 +33,5 @@ while end_time > exchange.milliseconds():
 
 all_trades = exchange.sort_by(all_trades.values(), 'id')
 print('Fetched', len(all_trades), 'trades since', all_trades[0]['datetime'], 'till', all_trades[-1]['datetime'])
- 
+
 ```

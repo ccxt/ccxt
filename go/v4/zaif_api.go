@@ -7,138 +7,172 @@
 
 package ccxt
 
-func (this *ZaifCore) PublicGetDepthPair(args ...interface{}) <-chan interface{} {
+// PublicGetDepthPair returns a channel that yields a JSON object.
+func (this *ZaifCore) PublicGetDepthPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetDepthPair", args...)
 }
 
-func (this *ZaifCore) PublicGetCurrenciesPair(args ...interface{}) <-chan interface{} {
+// PublicGetCurrenciesPair returns a channel that yields a JSON array.
+func (this *ZaifCore) PublicGetCurrenciesPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCurrenciesPair", args...)
 }
 
-func (this *ZaifCore) PublicGetCurrenciesAll(args ...interface{}) <-chan interface{} {
+// PublicGetCurrenciesAll returns a channel that yields a JSON array.
+func (this *ZaifCore) PublicGetCurrenciesAll(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCurrenciesAll", args...)
 }
 
-func (this *ZaifCore) PublicGetCurrencyPairsPair(args ...interface{}) <-chan interface{} {
+// PublicGetCurrencyPairsPair returns a channel that yields a JSON array.
+func (this *ZaifCore) PublicGetCurrencyPairsPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCurrencyPairsPair", args...)
 }
 
-func (this *ZaifCore) PublicGetCurrencyPairsAll(args ...interface{}) <-chan interface{} {
+// PublicGetCurrencyPairsAll returns a channel that yields a JSON array.
+func (this *ZaifCore) PublicGetCurrencyPairsAll(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCurrencyPairsAll", args...)
 }
 
-func (this *ZaifCore) PublicGetLastPricePair(args ...interface{}) <-chan interface{} {
+// PublicGetLastPricePair returns a channel that yields a JSON object.
+func (this *ZaifCore) PublicGetLastPricePair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetLastPricePair", args...)
 }
 
-func (this *ZaifCore) PublicGetTickerPair(args ...interface{}) <-chan interface{} {
+// PublicGetTickerPair returns a channel that yields a JSON object.
+func (this *ZaifCore) PublicGetTickerPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickerPair", args...)
 }
 
-func (this *ZaifCore) PublicGetTradesPair(args ...interface{}) <-chan interface{} {
+// PublicGetTradesPair returns a channel that yields a JSON array.
+func (this *ZaifCore) PublicGetTradesPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradesPair", args...)
 }
 
-func (this *ZaifCore) PrivatePostActiveOrders(args ...interface{}) <-chan interface{} {
+// PrivatePostActiveOrders returns a channel that yields a JSON object.
+func (this *ZaifCore) PrivatePostActiveOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostActiveOrders", args...)
 }
 
-func (this *ZaifCore) PrivatePostCancelOrder(args ...interface{}) <-chan interface{} {
+// PrivatePostCancelOrder returns a channel that yields a JSON object.
+func (this *ZaifCore) PrivatePostCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelOrder", args...)
 }
 
-func (this *ZaifCore) PrivatePostDepositHistory(args ...interface{}) <-chan interface{} {
+// PrivatePostDepositHistory returns a channel that yields a JSON object.
+func (this *ZaifCore) PrivatePostDepositHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDepositHistory", args...)
 }
 
-func (this *ZaifCore) PrivatePostGetIdInfo(args ...interface{}) <-chan interface{} {
+// PrivatePostGetIdInfo returns a channel that yields a JSON object.
+func (this *ZaifCore) PrivatePostGetIdInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetIdInfo", args...)
 }
 
-func (this *ZaifCore) PrivatePostGetInfo(args ...interface{}) <-chan interface{} {
+// PrivatePostGetInfo returns a channel that yields a JSON object.
+func (this *ZaifCore) PrivatePostGetInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetInfo", args...)
 }
 
-func (this *ZaifCore) PrivatePostGetInfo2(args ...interface{}) <-chan interface{} {
+// PrivatePostGetInfo2 returns a channel that yields a JSON object.
+func (this *ZaifCore) PrivatePostGetInfo2(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetInfo2", args...)
 }
 
-func (this *ZaifCore) PrivatePostGetPersonalInfo(args ...interface{}) <-chan interface{} {
+// PrivatePostGetPersonalInfo returns a channel that yields a JSON object.
+func (this *ZaifCore) PrivatePostGetPersonalInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetPersonalInfo", args...)
 }
 
-func (this *ZaifCore) PrivatePostTrade(args ...interface{}) <-chan interface{} {
+// PrivatePostTrade returns a channel that yields a JSON object.
+func (this *ZaifCore) PrivatePostTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTrade", args...)
 }
 
-func (this *ZaifCore) PrivatePostTradeHistory(args ...interface{}) <-chan interface{} {
+// PrivatePostTradeHistory returns a channel that yields a JSON object.
+func (this *ZaifCore) PrivatePostTradeHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeHistory", args...)
 }
 
-func (this *ZaifCore) PrivatePostWithdraw(args ...interface{}) <-chan interface{} {
+// PrivatePostWithdraw returns a channel that yields a JSON object.
+func (this *ZaifCore) PrivatePostWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdraw", args...)
 }
 
-func (this *ZaifCore) PrivatePostWithdrawHistory(args ...interface{}) <-chan interface{} {
+// PrivatePostWithdrawHistory returns a channel that yields a JSON object.
+func (this *ZaifCore) PrivatePostWithdrawHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawHistory", args...)
 }
 
-func (this *ZaifCore) EcapiPostCreateInvoice(args ...interface{}) <-chan interface{} {
+// EcapiPostCreateInvoice returns a channel that yields a JSON object.
+func (this *ZaifCore) EcapiPostCreateInvoice(args ...any) <-chan any {
 	return this.callEndpointAsync("ecapiPostCreateInvoice", args...)
 }
 
-func (this *ZaifCore) EcapiPostGetInvoice(args ...interface{}) <-chan interface{} {
+// EcapiPostGetInvoice returns a channel that yields a JSON object.
+func (this *ZaifCore) EcapiPostGetInvoice(args ...any) <-chan any {
 	return this.callEndpointAsync("ecapiPostGetInvoice", args...)
 }
 
-func (this *ZaifCore) EcapiPostGetInvoiceIdsByOrderNumber(args ...interface{}) <-chan interface{} {
+// EcapiPostGetInvoiceIdsByOrderNumber returns a channel that yields a JSON object.
+func (this *ZaifCore) EcapiPostGetInvoiceIdsByOrderNumber(args ...any) <-chan any {
 	return this.callEndpointAsync("ecapiPostGetInvoiceIdsByOrderNumber", args...)
 }
 
-func (this *ZaifCore) EcapiPostCancelInvoice(args ...interface{}) <-chan interface{} {
+// EcapiPostCancelInvoice returns a channel that yields a JSON object.
+func (this *ZaifCore) EcapiPostCancelInvoice(args ...any) <-chan any {
 	return this.callEndpointAsync("ecapiPostCancelInvoice", args...)
 }
 
-func (this *ZaifCore) TlapiPostGetPositions(args ...interface{}) <-chan interface{} {
+// TlapiPostGetPositions returns a channel that yields a JSON object.
+func (this *ZaifCore) TlapiPostGetPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("tlapiPostGetPositions", args...)
 }
 
-func (this *ZaifCore) TlapiPostPositionHistory(args ...interface{}) <-chan interface{} {
+// TlapiPostPositionHistory returns a channel that yields a JSON object.
+func (this *ZaifCore) TlapiPostPositionHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("tlapiPostPositionHistory", args...)
 }
 
-func (this *ZaifCore) TlapiPostActivePositions(args ...interface{}) <-chan interface{} {
+// TlapiPostActivePositions returns a channel that yields a JSON object.
+func (this *ZaifCore) TlapiPostActivePositions(args ...any) <-chan any {
 	return this.callEndpointAsync("tlapiPostActivePositions", args...)
 }
 
-func (this *ZaifCore) TlapiPostCreatePosition(args ...interface{}) <-chan interface{} {
+// TlapiPostCreatePosition returns a channel that yields a JSON object.
+func (this *ZaifCore) TlapiPostCreatePosition(args ...any) <-chan any {
 	return this.callEndpointAsync("tlapiPostCreatePosition", args...)
 }
 
-func (this *ZaifCore) TlapiPostChangePosition(args ...interface{}) <-chan interface{} {
+// TlapiPostChangePosition returns a channel that yields a JSON object.
+func (this *ZaifCore) TlapiPostChangePosition(args ...any) <-chan any {
 	return this.callEndpointAsync("tlapiPostChangePosition", args...)
 }
 
-func (this *ZaifCore) TlapiPostCancelPosition(args ...interface{}) <-chan interface{} {
+// TlapiPostCancelPosition returns a channel that yields a JSON object.
+func (this *ZaifCore) TlapiPostCancelPosition(args ...any) <-chan any {
 	return this.callEndpointAsync("tlapiPostCancelPosition", args...)
 }
 
-func (this *ZaifCore) FapiGetGroupsGroupId(args ...interface{}) <-chan interface{} {
+// FapiGetGroupsGroupId returns a channel that yields a JSON array.
+func (this *ZaifCore) FapiGetGroupsGroupId(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiGetGroupsGroupId", args...)
 }
 
-func (this *ZaifCore) FapiGetLastPriceGroupIdPair(args ...interface{}) <-chan interface{} {
+// FapiGetLastPriceGroupIdPair returns a channel that yields a JSON object.
+func (this *ZaifCore) FapiGetLastPriceGroupIdPair(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiGetLastPriceGroupIdPair", args...)
 }
 
-func (this *ZaifCore) FapiGetTickerGroupIdPair(args ...interface{}) <-chan interface{} {
+// FapiGetTickerGroupIdPair returns a channel that yields a JSON object.
+func (this *ZaifCore) FapiGetTickerGroupIdPair(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiGetTickerGroupIdPair", args...)
 }
 
-func (this *ZaifCore) FapiGetTradesGroupIdPair(args ...interface{}) <-chan interface{} {
+// FapiGetTradesGroupIdPair returns a channel that yields a JSON array.
+func (this *ZaifCore) FapiGetTradesGroupIdPair(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiGetTradesGroupIdPair", args...)
 }
 
-func (this *ZaifCore) FapiGetDepthGroupIdPair(args ...interface{}) <-chan interface{} {
+// FapiGetDepthGroupIdPair returns a channel that yields a JSON object.
+func (this *ZaifCore) FapiGetDepthGroupIdPair(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiGetDepthGroupIdPair", args...)
 }

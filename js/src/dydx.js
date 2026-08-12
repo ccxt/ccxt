@@ -5,12 +5,12 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/dydx.js';
 import { ArgumentsRequired, NotSupported, ExchangeError, InsufficientFunds, InvalidOrder, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
-import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
 // ---------------------------------------------------------------------------
 /**
@@ -131,7 +131,7 @@ export default class dydx extends Exchange {
                 '1d': '1DAY',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/617ea0c1-f05a-4d26-9fcb-a0d1d4091ae1',
+                'logo': 'https://github.com/user-attachments/assets/def0a54a-020a-4286-ba95-0f84e50a944d',
                 'api': {
                     'indexer': 'https://indexer.dydx.trade/v4',
                     'nodeRpc': 'https://dydx-ops-rpc.kingnodes.com',
@@ -149,76 +149,76 @@ export default class dydx extends Exchange {
                 'fees': [
                     'https://docs.dydx.exchange/introduction-trading_fees',
                 ],
-                'referral': 'dydx.trade?ref=ccxt',
+                'referral': 'https://dydx.trade?ref=ccxt',
             },
             'api': {
                 'indexer': {
                     'get': {
-                        'addresses/{address}': 1,
-                        'addresses/{address}/parentSubaccountNumber/{number}': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}': 1,
-                        'assetPositions': 1,
-                        'assetPositions/parentSubaccountNumber': 1,
-                        'candles/perpetualMarkets/{market}': 1,
-                        'compliance/screen/{address}': 1,
-                        'fills': 1,
-                        'fills/parentSubaccountNumber': 1,
-                        'fundingPayments': 1,
-                        'fundingPayments/parentSubaccount': 1,
-                        'height': 0.1,
-                        'historical-pnl': 1,
-                        'historical-pnl/parentSubaccountNumber': 1,
-                        'historicalBlockTradingRewards/{address}': 1,
-                        'historicalFunding/{market}': 1,
-                        'historicalTradingRewardAggregations/{address}': 1,
-                        'orderbooks/perpetualMarket/{market}': 1,
-                        'orders': 1,
-                        'orders/parentSubaccountNumber': 1,
-                        'orders/{orderId}': 1,
-                        'perpetualMarkets': 1,
-                        'perpetualPositions': 1,
-                        'perpetualPositions/parentSubaccountNumber': 1,
-                        'screen': 1,
-                        'sparklines': 1,
-                        'time': 1,
-                        'trades/perpetualMarket/{market}': 1,
-                        'transfers': 1,
-                        'transfers/between': 1,
-                        'transfers/parentSubaccountNumber': 1,
-                        'vault/v1/megavault/historicalPnl': 1,
-                        'vault/v1/megavault/positions': 1,
-                        'vault/v1/vaults/historicalPnl': 1,
+                        'addresses/{address}': { 'cost': 1 },
+                        'addresses/{address}/parentSubaccountNumber/{number}': { 'cost': 1 },
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}': { 'cost': 1 },
+                        'assetPositions': { 'cost': 1 },
+                        'assetPositions/parentSubaccountNumber': { 'cost': 1 },
+                        'candles/perpetualMarkets/{market}': { 'cost': 1 },
+                        'compliance/screen/{address}': { 'cost': 1 },
+                        'fills': { 'cost': 1 },
+                        'fills/parentSubaccountNumber': { 'cost': 1 },
+                        'fundingPayments': { 'cost': 1 },
+                        'fundingPayments/parentSubaccount': { 'cost': 1 },
+                        'height': { 'cost': 0.1 },
+                        'historical-pnl': { 'cost': 1 },
+                        'historical-pnl/parentSubaccountNumber': { 'cost': 1 },
+                        'historicalBlockTradingRewards/{address}': { 'cost': 1 },
+                        'historicalFunding/{market}': { 'cost': 1 },
+                        'historicalTradingRewardAggregations/{address}': { 'cost': 1 },
+                        'orderbooks/perpetualMarket/{market}': { 'cost': 1 },
+                        'orders': { 'cost': 1 },
+                        'orders/parentSubaccountNumber': { 'cost': 1 },
+                        'orders/{orderId}': { 'cost': 1 },
+                        'perpetualMarkets': { 'cost': 1 },
+                        'perpetualPositions': { 'cost': 1 },
+                        'perpetualPositions/parentSubaccountNumber': { 'cost': 1 },
+                        'screen': { 'cost': 1 },
+                        'sparklines': { 'cost': 1 },
+                        'time': { 'cost': 1 },
+                        'trades/perpetualMarket/{market}': { 'cost': 1 },
+                        'transfers': { 'cost': 1 },
+                        'transfers/between': { 'cost': 1 },
+                        'transfers/parentSubaccountNumber': { 'cost': 1 },
+                        'vault/v1/megavault/historicalPnl': { 'cost': 1 },
+                        'vault/v1/megavault/positions': { 'cost': 1 },
+                        'vault/v1/vaults/historicalPnl': { 'cost': 1 },
                         //
-                        'perpetualMarketSparklines': 1,
-                        'perpetualMarkets/{ticker}': 1,
-                        'perpetualMarkets/{ticker}/orderbook': 1,
-                        'trades/perpetualMarket/{ticker}': 1,
-                        'historicalFunding/{ticker}': 1,
-                        'candles/{ticker}/{resolution}': 1,
-                        'addresses/{address}/subaccounts': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/orders': 1,
-                        'fills/parentSubaccount': 1,
-                        'historical-pnl/parentSubaccount': 1,
+                        'perpetualMarketSparklines': { 'cost': 1 },
+                        'perpetualMarkets/{ticker}': { 'cost': 1 },
+                        'perpetualMarkets/{ticker}/orderbook': { 'cost': 1 },
+                        'trades/perpetualMarket/{ticker}': { 'cost': 1 },
+                        'historicalFunding/{ticker}': { 'cost': 1 },
+                        'candles/{ticker}/{resolution}': { 'cost': 1 },
+                        'addresses/{address}/subaccounts': { 'cost': 1 },
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions': { 'cost': 1 },
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions': { 'cost': 1 },
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/orders': { 'cost': 1 },
+                        'fills/parentSubaccount': { 'cost': 1 },
+                        'historical-pnl/parentSubaccount': { 'cost': 1 },
                     },
                 },
                 'nodeRpc': {
                     'get': {
-                        'abci_info': 1,
-                        'block': 1,
-                        'broadcast_tx_async': 1,
-                        'broadcast_tx_sync': 1,
-                        'tx': 1,
+                        'abci_info': { 'cost': 1 },
+                        'block': { 'cost': 1 },
+                        'broadcast_tx_async': { 'cost': 1 },
+                        'broadcast_tx_sync': { 'cost': 1 },
+                        'tx': { 'cost': 1 },
                     },
                 },
                 'nodeRest': {
                     'get': {
-                        'cosmos/auth/v1beta1/account_info/{dydxAddress}': 1,
+                        'cosmos/auth/v1beta1/account_info/{dydxAddress}': { 'cost': 1 },
                     },
                     'post': {
-                        'cosmos/tx/v1beta1/encode': 1,
-                        'cosmos/tx/v1beta1/simulate': 1,
+                        'cosmos/tx/v1beta1/encode': { 'cost': 1 },
+                        'cosmos/tx/v1beta1/simulate': { 'cost': 1 },
                     },
                 },
             },
@@ -236,7 +236,7 @@ export default class dydx extends Exchange {
                 'privateKey': false,
             },
             'options': {
-                'mnemonic': undefined,
+                'privateKey': undefined, // specify a hex-encoded secp256k1 private key
                 'chainName': 'dydx-mainnet-1',
                 'chainId': 1,
                 'sandboxMode': false,
@@ -264,8 +264,8 @@ export default class dydx extends Exchange {
                             'index': false,
                         },
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo by triggerPrice
+                        'takeProfitPrice': false, // todo by triggerPrice
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -348,106 +348,106 @@ export default class dydx extends Exchange {
                     // error collision for clob and sending modules from 2 - 8
                     // https://github.com/dydxprotocol/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/clob/types/errors.go#L320
                     // https://github.com/dydxprotocol/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/sending/types/errors.go
-                    '9': InvalidOrder,
-                    '10': InvalidOrder,
-                    '11': InvalidOrder,
-                    '12': InvalidOrder,
-                    '13': InvalidOrder,
-                    '14': InvalidOrder,
-                    '15': InvalidOrder,
-                    '16': InvalidOrder,
-                    '17': InvalidOrder,
-                    '18': InvalidOrder,
-                    '19': InvalidOrder,
-                    '20': InvalidOrder,
-                    '21': InvalidOrder,
-                    '22': InvalidOrder,
-                    '23': InvalidOrder,
-                    '24': InvalidOrder,
-                    '25': InvalidOrder,
-                    '26': InvalidOrder,
-                    '27': InvalidOrder,
-                    '28': InvalidOrder,
-                    '29': InvalidOrder,
-                    '30': InvalidOrder,
-                    '31': InvalidOrder,
-                    '32': InvalidOrder,
-                    '33': InvalidOrder,
-                    '34': InvalidOrder,
-                    '35': InvalidOrder,
-                    '36': InvalidOrder,
-                    '37': InvalidOrder,
-                    '39': InvalidOrder,
-                    '40': InvalidOrder,
-                    '41': InvalidOrder,
-                    '42': InvalidOrder,
-                    '43': InvalidOrder,
-                    '44': InvalidOrder,
-                    '45': InvalidOrder,
-                    '46': InvalidOrder,
-                    '47': InvalidOrder,
-                    '48': InvalidOrder,
-                    '49': InvalidOrder,
-                    '50': InvalidOrder,
-                    '1000': BadRequest,
-                    '1001': BadRequest,
-                    '1002': BadRequest,
-                    '1003': InvalidOrder,
-                    '1004': InvalidOrder,
-                    '1005': InvalidOrder,
-                    '1006': InvalidOrder,
-                    '1007': InvalidOrder,
-                    '1008': InvalidOrder,
-                    '1009': InvalidOrder,
-                    '1010': InvalidOrder,
-                    '1011': InvalidOrder,
-                    '1012': InvalidOrder,
-                    '1013': InvalidOrder,
-                    '1014': InvalidOrder,
-                    '1015': InvalidOrder,
-                    '1017': InvalidOrder,
-                    '1018': InvalidOrder,
-                    '1019': InvalidOrder,
-                    '1020': InvalidOrder,
-                    '1021': InvalidOrder,
-                    '1022': InvalidOrder,
-                    '2000': InvalidOrder,
-                    '2001': InvalidOrder,
-                    '2002': InvalidOrder,
-                    '2003': InvalidOrder,
-                    '2004': InvalidOrder,
-                    '2005': InvalidOrder,
-                    '3000': InvalidOrder,
-                    '3001': InvalidOrder,
-                    '3002': InvalidOrder,
-                    '3003': InvalidOrder,
-                    '3004': InvalidOrder,
-                    '3005': InvalidOrder,
-                    '3006': InvalidOrder,
-                    '3007': InvalidOrder,
-                    '3008': InvalidOrder,
-                    '3009': InvalidOrder,
-                    '3010': InvalidOrder,
-                    '4000': InvalidOrder,
-                    '4001': InvalidOrder,
-                    '4002': InvalidOrder,
-                    '4003': InvalidOrder,
-                    '4004': InvalidOrder,
-                    '4005': InvalidOrder,
-                    '4006': InvalidOrder,
-                    '4007': InvalidOrder,
-                    '4008': InvalidOrder,
-                    '5000': InvalidOrder,
-                    '5001': InvalidOrder,
-                    '6000': InvalidOrder,
-                    '6001': InvalidOrder,
-                    '6002': InvalidOrder,
-                    '9000': InvalidOrder,
-                    '9001': InvalidOrder,
-                    '9002': InvalidOrder,
-                    '9003': InvalidOrder,
-                    '10000': InvalidOrder,
-                    '10001': InvalidOrder,
+                    '9': InvalidOrder, // A cancel already exists in the memclob for this order with a greater than or equal GoodTilBlock
+                    '10': InvalidOrder, // The next block height is greater than the GoodTilBlock of the message
+                    '11': InvalidOrder, // The GoodTilBlock of the message is further than ShortBlockWindow blocks into the future
+                    '12': InvalidOrder, // MsgPlaceOrder is invalid
+                    '13': InvalidOrder, // MsgProposedMatchOrders is invalid
+                    '14': InvalidOrder, // State filled amount cannot be unchanged
+                    '15': InvalidOrder, // State filled amount cannot decrease
+                    '16': InvalidOrder, // Cannot prune state fill amount that does not exist
+                    '17': InvalidOrder, // Subaccount cannot open more than 20 orders on a given CLOB and side
+                    '18': InvalidOrder, // `FillAmount` is not divisible by `StepBaseQuantums` of the specified `ClobPairId`
+                    '19': InvalidOrder, // The provided perpetual ID does not have any associated CLOB pairs
+                    '20': InvalidOrder, // Replacing an existing order failed
+                    '21': InvalidOrder, // Clob pair and perpetual ids do not match
+                    '22': InvalidOrder, // Matched order has negative fee
+                    '23': InvalidOrder, // Subaccounts updated for a matched order, but fee transfer to fee-collector failed
+                    '24': InvalidOrder, // Order is fully filled
+                    '25': InvalidOrder, // Attempting to get price premium with a non-perpetual CLOB pair
+                    '26': InvalidOrder, // Index price is zero when calculating price premium
+                    '27': InvalidOrder, // Invalid ClobPair parameter
+                    '28': InvalidOrder, // Oracle price must be > 0.
+                    '29': InvalidOrder, // Invalid stateful order cancellation
+                    '30': InvalidOrder, // An order with the same `OrderId` and `OrderHash` has already been processed for this CLOB
+                    '31': InvalidOrder, // Missing mid price for ClobPair
+                    '32': InvalidOrder, // Existing stateful order cancellation has higher-or-equal priority than the new one
+                    '33': InvalidOrder, // ClobPair with id already exists
+                    '34': InvalidOrder, // Order conflicts with ClobPair status
+                    '35': InvalidOrder, // Invalid ClobPair status transition
+                    '36': InvalidOrder, // Operation conflicts with ClobPair status
+                    '37': InvalidOrder, // Perpetual does not exist in state
+                    '39': InvalidOrder, // ClobPair update is invalid
+                    '40': InvalidOrder, // Authority is invalid
+                    '41': InvalidOrder, // perpetual ID is already associated with an existing CLOB pair
+                    '42': InvalidOrder, // Unexpected time in force
+                    '43': InvalidOrder, // Order has remaining size
+                    '44': InvalidOrder, // invalid time in force
+                    '45': InvalidOrder, // Invalid batch cancel message
+                    '46': InvalidOrder, // Batch cancel has failed
+                    '47': InvalidOrder, // CLOB has not been initialized
+                    '48': InvalidOrder, // This field has been deprecated
+                    '49': InvalidOrder, // Invalid TWAP order placement
+                    '50': InvalidOrder, // Invalid builder code
+                    '1000': BadRequest, // Proposed LiquidationsConfig is invalid
+                    '1001': BadRequest, // Subaccount has no perpetual positions to liquidate
+                    '1002': BadRequest, // Subaccount is not liquidatable
+                    '1003': InvalidOrder, // Subaccount does not have an open position for perpetual
+                    '1004': InvalidOrder, // Liquidation order has invalid size
+                    '1005': InvalidOrder, // Liquidation order is on the wrong side
+                    '1006': InvalidOrder, // Total fills amount exceeds size of liquidation order
+                    '1007': InvalidOrder, // Liquidation order does not contain any fills
+                    '1008': InvalidOrder, // Subaccount has previously liquidated this perpetual in the current block
+                    '1009': InvalidOrder, // Liquidation order has size smaller than min position notional specified in the liquidation config
+                    '1010': InvalidOrder, // Liquidation order has size greater than max position notional specified in the liquidation config
+                    '1011': InvalidOrder, // Liquidation exceeds the maximum notional amount that a single subaccount can have liquidated per block
+                    '1012': InvalidOrder, // Liquidation exceeds the maximum insurance fund payout amount for a given subaccount per block
+                    '1013': InvalidOrder, // Insurance fund does not have sufficient funds to cover liquidation losses
+                    '1014': InvalidOrder, // Invalid perpetual position size delta
+                    '1015': InvalidOrder, // Invalid delta base and/or quote quantums for insurance fund delta calculation
+                    '1017': InvalidOrder, // Cannot deleverage subaccount against itself
+                    '1018': InvalidOrder, // Deleveraging match cannot have fills with same id
+                    '1019': InvalidOrder, // Deleveraging match cannot have fills with zero amount
+                    '1020': InvalidOrder, // Position cannot be fully offset
+                    '1021': InvalidOrder, // Deleveraging match has incorrect value for isFinalSettlement flag
+                    '1022': InvalidOrder, // Liquidation conflicts with ClobPair status
+                    '2000': InvalidOrder, // FillOrKill order could not be fully filled
+                    '2001': InvalidOrder, // Reduce-only orders cannot increase the position size
+                    '2002': InvalidOrder, // Reduce-only orders cannot change the position side
+                    '2003': InvalidOrder, // Post-only order would cross one or more maker orders
+                    '2004': InvalidOrder, // IOC order is already filled, remaining size is cancelled.
+                    '2005': InvalidOrder, // Order would violate isolated subaccount constraints.
+                    '3000': InvalidOrder, // Invalid order flags
+                    '3001': InvalidOrder, // Invalid order goodTilBlockTime
+                    '3002': InvalidOrder, // Stateful orders cannot require immediate execution
+                    '3003': InvalidOrder, // The block time is greater than the GoodTilBlockTime of the message
+                    '3004': InvalidOrder, // The GoodTilBlockTime of the message is further than StatefulOrderTimeWindow into the future
+                    '3005': InvalidOrder, // Existing stateful order has higher-or-equal priority than the new one
+                    '3006': InvalidOrder, // Stateful order does not exist
+                    '3007': InvalidOrder, // Stateful order collateralization check failed
+                    '3008': InvalidOrder, // Stateful order was previously cancelled and therefore cannot be placed
+                    '3009': InvalidOrder, // Stateful order was previously removed and therefore cannot be placed
+                    '3010': InvalidOrder, // Stateful order cancellation failed because the order was already removed from state
+                    '4000': InvalidOrder, // MsgProposedOperations is invalid
+                    '4001': InvalidOrder, // Match Order is invalid
+                    '4002': InvalidOrder, // Order was not previously placed in operations queue
+                    '4003': InvalidOrder, // Fill amount cannot be zero
+                    '4004': InvalidOrder, // Deleveraging fill is invalid
+                    '4005': InvalidOrder, // Deleveraged subaccount in proposed deleveraged operation failed deleveraging validation
+                    '4006': InvalidOrder, // Order Removal is invalid
+                    '4007': InvalidOrder, // Order Removal reason is invalid
+                    '4008': InvalidOrder, // Zero-fill deleveraging operation included in block for non-negative TNC subaccount
+                    '5000': InvalidOrder, // Proposed BlockRateLimitConfig is invalid
+                    '5001': InvalidOrder, // Block rate limit exceeded
+                    '6000': InvalidOrder, // Conditional type is invalid
+                    '6001': InvalidOrder, // Conditional order trigger subticks is invalid
+                    '6002': InvalidOrder, // Conditional order is untriggered
+                    '9000': InvalidOrder, // Asset orders are not implemented
+                    '9001': InvalidOrder, // Updates for assets other than USDC are not implemented
+                    '9002': InvalidOrder, // This function is not implemented
+                    '9003': InvalidOrder, // Reduce-only is currently disabled for non-IOC orders
+                    '10000': InvalidOrder, // Proposed EquityTierLimitConfig is invalid
+                    '10001': InvalidOrder, // Subaccount cannot open more orders due to equity tier limit.
                     '11000': InvalidOrder, // Invalid order router address
                 },
                 'broad': {
@@ -504,6 +504,9 @@ export default class dydx extends Exchange {
         //
         const quoteId = 'USDC';
         const marketId = this.safeString(market, 'ticker');
+        if (marketId === undefined) {
+            throw new ExchangeError(this.id + ' parseMarket() missing marketId');
+        }
         const parts = marketId.split('-');
         const baseName = this.safeString(parts, 0);
         const baseId = this.safeString(market, 'baseId', baseName); // idk where 'baseId' comes from, but leaving as is
@@ -539,7 +542,7 @@ export default class dydx extends Exchange {
             'option': false,
             'active': active,
             'contract': contract,
-            'contractSize': this.parseNumber('1'),
+            'contractSize': this.parseNumber('1'), // trades seem in absolute size
             'linear': true,
             'inverse': false,
             'taker': undefined,
@@ -577,7 +580,7 @@ export default class dydx extends Exchange {
     /**
      * @method
      * @name dydx#fetchMarkets
-     * @description retrieves data on all markets for hyperliquid
+     * @description retrieves data on all markets for dydx
      * @see https://docs.dydx.xyz/indexer-client/http#get-perpetual-markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
@@ -634,7 +637,7 @@ export default class dydx extends Exchange {
         // }
         //
         const timestamp = this.parse8601(this.safeString(trade, 'createdAt'));
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol');
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'size');
         const side = this.safeStringLower(trade, 'side');
@@ -659,7 +662,7 @@ export default class dydx extends Exchange {
      * @method
      * @name dydx#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
+     * @see https://docs.dydx.xyz/indexer-client/http#get-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -667,13 +670,15 @@ export default class dydx extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
         }
         const response = await this.indexerGetTradesPerpetualMarketMarket(this.extend(request, params));
         //
@@ -735,7 +740,9 @@ export default class dydx extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -793,7 +800,9 @@ export default class dydx extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -944,7 +953,9 @@ export default class dydx extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'orderId': id,
         };
@@ -969,7 +980,9 @@ export default class dydx extends Exchange {
         let subAccountNumber = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchOrders', params);
         [subAccountNumber, params] = this.handleOptionAndParams(params, 'fetchOrders', 'subAccountNumber', '0');
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'address': userAddress,
             'subaccountNumber': subAccountNumber,
@@ -1136,8 +1149,10 @@ export default class dydx extends Exchange {
         let userAddress = undefined;
         let subAccountNumber = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchPositions', params);
-        [subAccountNumber, params] = this.handleOptionAndParams(params, 'fetchOrders', 'subAccountNumber', '0');
-        await this.loadMarkets();
+        [subAccountNumber, params] = this.handleOptionAndParams(params, 'fetchPositions', 'subAccountNumber', '0');
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'address': userAddress,
             'subaccountNumber': subAccountNumber,
@@ -1216,12 +1231,12 @@ export default class dydx extends Exchange {
         if (credentials !== undefined) {
             return credentials;
         }
-        let entropy = this.safeString(this.options, 'mnemonic');
-        if (entropy === undefined) {
+        let privateKey = this.safeString(this.options, 'privateKey');
+        if (privateKey === undefined) {
             const signature = this.signOnboardingAction();
-            entropy = this.hashMessage(this.base16ToBinary(signature['r'] + signature['s']));
+            privateKey = this.hashMessage(this.base16ToBinary(signature['r'] + signature['s']));
         }
-        credentials = this.retrieveDydxCredentials(entropy);
+        credentials = this.retrieveDydxCredentials(privateKey);
         credentials['privateKey'] = this.binaryToBase16(credentials['privateKey']);
         credentials['publicKey'] = this.binaryToBase16(credentials['publicKey']);
         this.options['dydxCredentials'] = credentials;
@@ -1257,7 +1272,7 @@ export default class dydx extends Exchange {
         // }
         //
         const response = await this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request);
-        const account = this.safeDict(response, 'info');
+        const account = this.safeDict(response, 'info', {});
         account['pub_key'] = {
             // encode with binary key would fail in python
             'key': account['pub_key']['key'],
@@ -1275,9 +1290,18 @@ export default class dydx extends Exchange {
         return r;
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only', false);
         const orderType = type.toUpperCase();
         const market = this.market(symbol);
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrderRequest() requires a side argument');
+        }
         const orderSide = side.toUpperCase();
         let subaccountId = 0;
         [subaccountId, params] = this.handleOptionAndParams(params, 'createOrder', 'subAccountId', subaccountId);
@@ -1290,7 +1314,7 @@ export default class dydx extends Exchange {
         const postOnly = this.isPostOnly(isMarket, undefined, params);
         const amountStr = this.amountToPrecision(symbol, amount);
         const priceStr = this.priceToPrecision(symbol, price);
-        const marketInfo = this.safeDict(market, 'info');
+        const marketInfo = this.safeDict(market, 'info', {});
         const atomicResolution = marketInfo['atomicResolution'];
         const quantumScale = this.pow('10', Precise.stringNeg(atomicResolution));
         const quantums = Precise.stringMul(amountStr, quantumScale);
@@ -1356,6 +1380,9 @@ export default class dydx extends Exchange {
         if (orderFlag === 0) {
             if (goodTillBlock === undefined) {
                 // short term order
+                if (latestBlockHeight === undefined) {
+                    throw new ExchangeError(this.id + ' method() missing latestBlockHeight');
+                }
                 goodTillBlock = latestBlockHeight + 20;
             }
         }
@@ -1397,7 +1424,13 @@ export default class dydx extends Exchange {
             'value': orderPayload,
         };
         params = this.omit(params, ['reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId']);
-        const orderId = this.createOrderIdFromParts(this.getWalletAddress(), subaccountId, clientOrderId, orderFlag, marketInfo['clobPairId']);
+        const walletAddress = this.getWalletAddress();
+        const clobPairId = this.safeInteger(marketInfo, 'clobPairId', 0);
+        const subaccountIdValue = (subaccountId === undefined) ? 0 : subaccountId;
+        const clientOrderIdValue = (clientOrderId === undefined) ? 0 : clientOrderId;
+        const orderFlagValue = (orderFlag === undefined) ? 0 : orderFlag;
+        const clobPairIdValue = (clobPairId === undefined) ? 0 : clobPairId;
+        const orderId = this.createOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
         return [orderId, this.extend(signingPayload, params)];
     }
     createOrderIdFromParts(address, subAccountNumber, clientOrderId, orderFlags, clobPairId) {
@@ -1425,7 +1458,11 @@ export default class dydx extends Exchange {
         //
         const result = this.safeDict(response, 'result');
         const info = this.safeDict(result, 'response');
-        return this.safeInteger(info, 'last_block_height');
+        const height = this.safeInteger(info, 'last_block_height');
+        if (height === undefined) {
+            throw new ExchangeError(this.id + ' fetchLatestBlockHeight() could not parse last_block_height');
+        }
+        return height;
     }
     /**
      * @method
@@ -1450,7 +1487,9 @@ export default class dydx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const credentials = this.retrieveCredentials();
         const account = await this.fetchDydxAccount();
         const lastBlockHeight = await this.fetchLatestBlockHeight();
@@ -1508,7 +1547,9 @@ export default class dydx extends Exchange {
         if (!isTrigger && (symbol === undefined)) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'clientId', id);
         if (clientOrderId === undefined) {
@@ -1601,7 +1642,9 @@ export default class dydx extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const clientOrderIds = this.safeList(params, 'clientOrderIds');
         if (!clientOrderIds) {
@@ -1666,10 +1709,12 @@ export default class dydx extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -1771,7 +1816,9 @@ export default class dydx extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -1803,7 +1850,7 @@ export default class dydx extends Exchange {
         }
         const defaultFeeDenom = this.safeString(this.options, 'defaultFeeDenom');
         const defaultFeeMultiplier = this.safeString(this.options, 'defaultFeeMultiplier');
-        const feeDenom = this.safeDict(this.options, 'feeDenom');
+        const feeDenom = this.safeDict(this.options, 'feeDenom', {});
         let gasPrice = undefined;
         let denom = undefined;
         if (defaultFeeDenom === 'uusdc') {
@@ -1816,6 +1863,9 @@ export default class dydx extends Exchange {
         }
         const gasLimit = Math.ceil(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier)));
         let feeAmount = Precise.stringMul(this.numberToString(gasLimit), gasPrice);
+        if (feeAmount === undefined) {
+            throw new ExchangeError(this.id + ' estimateTxFee() missing feeAmount');
+        }
         if (feeAmount.indexOf('.') >= 0) {
             feeAmount = this.numberToString(Math.ceil(this.parseToNumeric(feeAmount)));
         }
@@ -1844,11 +1894,13 @@ export default class dydx extends Exchange {
         if (code !== 'USDC') {
             throw new NotSupported(this.id + ' transfer() only support USDC');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const fromSubaccountId = this.safeInteger(params, 'fromSubaccountId');
         const toSubaccountId = this.safeInteger(params, 'toSubaccountId');
         if (fromAccount !== 'main') {
-            // throw error if from subaccount id is undefind
+            // throw error if from subaccount id is undefined
             if (fromAccount === undefined) {
                 throw new NotSupported(this.id + ' transfer only support main > subaccount and subaccount <> subaccount.');
             }
@@ -1979,7 +2031,9 @@ export default class dydx extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -2033,7 +2087,7 @@ export default class dydx extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
-            'type': this.safeStringLower(transaction, 'type'),
+            'type': this.safeStringLower(transaction, 'type'), // 'deposit', 'withdrawal'
             'amount': amount,
             'currency': code,
             'status': undefined,
@@ -2058,7 +2112,9 @@ export default class dydx extends Exchange {
         if (code !== 'USDC') {
             throw new NotSupported(this.id + ' withdraw() only support USDC');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         this.checkAddress(address);
         const subaccountId = this.safeInteger(params, 'subaccountId');
         if (subaccountId === undefined) {
@@ -2120,7 +2176,9 @@ export default class dydx extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -2143,7 +2201,9 @@ export default class dydx extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -2166,7 +2226,9 @@ export default class dydx extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -2298,11 +2360,13 @@ export default class dydx extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let userAddress = undefined;
-        [userAddress, params] = this.handlePublicAddress('fetchAccounts', params);
+        [userAddress, params] = this.handlePublicAddress('fetchBalance', params);
         let subaccountNumber = undefined;
-        [subaccountNumber, params] = this.handleOptionAndParams(params, 'fetchAccounts', 'subaccountNumber', 0);
+        [subaccountNumber, params] = this.handleOptionAndParams(params, 'fetchBalance', 'subaccountNumber', 0);
         const request = {
             'address': userAddress,
             'subaccountNumber': subaccountNumber,
@@ -2399,7 +2463,7 @@ export default class dydx extends Exchange {
     }
     sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const pathWithParams = this.implodeParams(path, params);
-        let url = this.implodeHostname(this.urls['api'][section]);
+        let url = this.urls['api'][section];
         params = this.omit(params, this.extractParams(path));
         params = this.keysort(params);
         url += '/' + pathWithParams;

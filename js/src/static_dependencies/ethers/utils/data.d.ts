@@ -2,18 +2,18 @@
  *  A [[HexString]] whose length is even, which ensures it is a valid
  *  representation of binary data.
  */
-export declare type DataHexString = string;
+export type DataHexString = string;
 /**
  *  A string which is prefixed with ``0x`` and followed by any number
  *  of case-agnostic hexadecimal characters.
  *
  *  It must match the regular expression ``/0x[0-9A-Fa-f]*\/``.
  */
-export declare type HexString = string;
+export type HexString = string;
 /**
  *  An object that can be used to represent binary data.
  */
-export declare type BytesLike = DataHexString | Uint8Array;
+export type BytesLike = DataHexString | Uint8Array;
 /**
  *  Get a typed Uint8Array for %%value%%. If already a Uint8Array
  *  the original %%value%% is returned; if a copy is required use

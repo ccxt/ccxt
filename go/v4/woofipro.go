@@ -13,18 +13,17 @@ func NewWoofiproCore() *WoofiproCore {
 	return p
 }
 
-func (this *WoofiproCore) Describe() interface{} {
-	return this.DeepExtend(this.Exchange.Describe(), map[string]interface{}{
+func (this *WoofiproCore) Describe() any {
+	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "woofipro",
 		"name":      "WOOFI PRO",
-		"countries": []interface{}{"KY"},
+		"countries": []any{"KY"},
 		"rateLimit": 100,
 		"version":   "v1",
 		"certified": true,
 		"pro":       true,
 		"dex":       true,
-		"hostname":  "dex.woo.org",
-		"has": map[string]interface{}{
+		"has": map[string]any{
 			"CORS":                                 nil,
 			"spot":                                 false,
 			"margin":                               false,
@@ -48,6 +47,7 @@ func (this *WoofiproCore) Describe() interface{} {
 			"createMarketOrderWithCost":            false,
 			"createMarketSellOrderWithCost":        false,
 			"createOrder":                          true,
+			"createOrders":                         true,
 			"createOrderWithTakeProfitAndStopLoss": true,
 			"createReduceOnlyOrder":                true,
 			"createStopLimitOrder":                 false,
@@ -58,6 +58,7 @@ func (this *WoofiproCore) Describe() interface{} {
 			"createTrailingAmountOrder":            false,
 			"createTrailingPercentOrder":           false,
 			"createTriggerOrder":                   true,
+			"editOrder":                            true,
 			"fetchAccounts":                        false,
 			"fetchAllGreeks":                       false,
 			"fetchBalance":                         true,
@@ -96,7 +97,9 @@ func (this *WoofiproCore) Describe() interface{} {
 			"fetchMarkOHLCV":                       false,
 			"fetchMyTrades":                        true,
 			"fetchOHLCV":                           true,
+			"fetchOpenInterest":                    true,
 			"fetchOpenInterestHistory":             false,
+			"fetchOpenInterests":                   true,
 			"fetchOpenOrder":                       false,
 			"fetchOpenOrders":                      true,
 			"fetchOption":                          false,
@@ -110,8 +113,8 @@ func (this *WoofiproCore) Describe() interface{} {
 			"fetchPositions":                       true,
 			"fetchPremiumIndexOHLCV":               false,
 			"fetchStatus":                          true,
-			"fetchTicker":                          false,
-			"fetchTickers":                         false,
+			"fetchTicker":                          true,
+			"fetchTickers":                         true,
 			"fetchTime":                            true,
 			"fetchTrades":                          true,
 			"fetchTradingFee":                      false,
@@ -129,7 +132,7 @@ func (this *WoofiproCore) Describe() interface{} {
 			"transfer":                             false,
 			"withdraw":                             true,
 		},
-		"timeframes": map[string]interface{}{
+		"timeframes": map[string]any{
 			"1m":  "1m",
 			"5m":  "5m",
 			"15m": "15m",
@@ -142,182 +145,412 @@ func (this *WoofiproCore) Describe() interface{} {
 			"1M":  "1mon",
 			"1y":  "1y",
 		},
-		"urls": map[string]interface{}{
+		"urls": map[string]any{
 			"logo": "https://github.com/user-attachments/assets/9ba21b8a-a9c7-4770-b7f1-ce3bcbde68c1",
-			"api": map[string]interface{}{
+			"api": map[string]any{
 				"public":  "https://api-evm.orderly.org",
 				"private": "https://api-evm.orderly.org",
 			},
-			"test": map[string]interface{}{
+			"test": map[string]any{
 				"public":  "https://testnet-api-evm.orderly.org",
 				"private": "https://testnet-api-evm.orderly.org",
 			},
 			"www":  "https://dex.woo.org",
-			"doc":  []interface{}{"https://orderly.network/docs/build-on-omnichain/building-on-evm"},
-			"fees": []interface{}{"https://dex.woo.org/en/orderly"},
-			"referral": map[string]interface{}{
+			"doc":  []any{"https://orderly.network/docs/build-on-omnichain/building-on-omnichain"},
+			"fees": []any{"https://dex.woo.org/en/orderly"},
+			"referral": map[string]any{
 				"url":      "https://dex.woo.org/en/trade?ref=CCXT",
 				"discount": 0.05,
 			},
 		},
-		"api": map[string]interface{}{
-			"v1": map[string]interface{}{
-				"public": map[string]interface{}{
-					"get": map[string]interface{}{
-						"public/volume/stats":             1,
-						"public/broker/name":              1,
-						"public/chain_info/{broker_id}":   1,
-						"public/system_info":              1,
-						"public/vault_balance":            1,
-						"public/insurancefund":            1,
-						"public/chain_info":               1,
-						"faucet/usdc":                     1,
-						"public/account":                  1,
-						"get_account":                     1,
-						"registration_nonce":              1,
-						"get_orderly_key":                 1,
-						"public/liquidation":              1,
-						"public/liquidated_positions":     1,
-						"public/config":                   1,
-						"public/campaign/ranking":         10,
-						"public/campaign/stats":           10,
-						"public/campaign/user":            10,
-						"public/campaign/stats/details":   10,
-						"public/campaigns":                10,
-						"public/points/leaderboard":       1,
-						"client/points":                   1,
-						"public/points/epoch":             1,
-						"public/points/epoch_dates":       1,
-						"public/referral/check_ref_code":  1,
-						"public/referral/verify_ref_code": 1,
-						"referral/admin_info":             1,
-						"referral/info":                   1,
-						"referral/referee_info":           1,
-						"referral/referee_rebate_summary": 1,
-						"referral/referee_history":        1,
-						"referral/referral_history":       1,
-						"referral/rebate_summary":         1,
-						"client/distribution_history":     1,
-						"tv/config":                       1,
-						"tv/history":                      1,
-						"tv/symbol_info":                  1,
-						"public/funding_rate_history":     1,
-						"public/funding_rate/{symbol}":    0.33,
-						"public/funding_rates":            1,
-						"public/info":                     1,
-						"public/info/{symbol}":            1,
-						"public/market_trades":            1,
-						"public/token":                    1,
-						"public/futures":                  1,
-						"public/futures/{symbol}":         1,
+		"api": map[string]any{
+			"v1": map[string]any{
+				"public": map[string]any{
+					"get": map[string]any{
+						"public/volume/stats": map[string]any{
+							"cost": 1,
+						},
+						"public/broker/name": map[string]any{
+							"cost": 1,
+						},
+						"public/chain_info/{broker_id}": map[string]any{
+							"cost": 1,
+						},
+						"public/system_info": map[string]any{
+							"cost": 1,
+						},
+						"public/vault_balance": map[string]any{
+							"cost": 1,
+						},
+						"public/insurancefund": map[string]any{
+							"cost": 1,
+						},
+						"public/chain_info": map[string]any{
+							"cost": 1,
+						},
+						"faucet/usdc": map[string]any{
+							"cost": 1,
+						},
+						"public/account": map[string]any{
+							"cost": 1,
+						},
+						"get_account": map[string]any{
+							"cost": 1,
+						},
+						"registration_nonce": map[string]any{
+							"cost": 1,
+						},
+						"get_orderly_key": map[string]any{
+							"cost": 1,
+						},
+						"public/liquidation": map[string]any{
+							"cost": 1,
+						},
+						"public/liquidated_positions": map[string]any{
+							"cost": 1,
+						},
+						"public/config": map[string]any{
+							"cost": 1,
+						},
+						"public/campaign/ranking": map[string]any{
+							"cost": 10,
+						},
+						"public/campaign/stats": map[string]any{
+							"cost": 10,
+						},
+						"public/campaign/user": map[string]any{
+							"cost": 10,
+						},
+						"public/campaign/stats/details": map[string]any{
+							"cost": 10,
+						},
+						"public/campaigns": map[string]any{
+							"cost": 10,
+						},
+						"public/points/leaderboard": map[string]any{
+							"cost": 1,
+						},
+						"client/points": map[string]any{
+							"cost": 1,
+						},
+						"public/points/epoch": map[string]any{
+							"cost": 1,
+						},
+						"public/points/epoch_dates": map[string]any{
+							"cost": 1,
+						},
+						"public/referral/check_ref_code": map[string]any{
+							"cost": 1,
+						},
+						"public/referral/verify_ref_code": map[string]any{
+							"cost": 1,
+						},
+						"referral/admin_info": map[string]any{
+							"cost": 1,
+						},
+						"referral/info": map[string]any{
+							"cost": 1,
+						},
+						"referral/referee_info": map[string]any{
+							"cost": 1,
+						},
+						"referral/referee_rebate_summary": map[string]any{
+							"cost": 1,
+						},
+						"referral/referee_history": map[string]any{
+							"cost": 1,
+						},
+						"referral/referral_history": map[string]any{
+							"cost": 1,
+						},
+						"referral/rebate_summary": map[string]any{
+							"cost": 1,
+						},
+						"client/distribution_history": map[string]any{
+							"cost": 1,
+						},
+						"tv/config": map[string]any{
+							"cost": 1,
+						},
+						"tv/history": map[string]any{
+							"cost": 1,
+						},
+						"tv/symbol_info": map[string]any{
+							"cost": 1,
+						},
+						"public/funding_rate_history": map[string]any{
+							"cost": 1,
+						},
+						"public/funding_rate/{symbol}": map[string]any{
+							"cost": 0.33,
+						},
+						"public/funding_rates": map[string]any{
+							"cost": 1,
+						},
+						"public/info": map[string]any{
+							"cost": 1,
+						},
+						"public/info/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"public/market_trades": map[string]any{
+							"cost": 1,
+						},
+						"public/token": map[string]any{
+							"cost": 1,
+						},
+						"public/futures": map[string]any{
+							"cost": 1,
+						},
+						"public/futures/{symbol}": map[string]any{
+							"cost": 1,
+						},
 					},
-					"post": map[string]interface{}{
-						"register_account": 1,
+					"post": map[string]any{
+						"register_account": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
-				"private": map[string]interface{}{
-					"get": map[string]interface{}{
-						"client/key_info":                     6,
-						"client/orderly_key_ip_restriction":   6,
-						"order/{oid}":                         1,
-						"client/order/{client_order_id}":      1,
-						"algo/order/{oid}":                    1,
-						"algo/client/order/{client_order_id}": 1,
-						"orders":                              1,
-						"algo/orders":                         1,
-						"trade/{tid}":                         1,
-						"trades":                              1,
-						"order/{oid}/trades":                  1,
-						"client/liquidator_liquidations":      1,
-						"liquidations":                        1,
-						"asset/history":                       60,
-						"client/holding":                      1,
-						"withdraw_nonce":                      1,
-						"settle_nonce":                        1,
-						"pnl_settlement/history":              1,
-						"volume/user/daily":                   60,
-						"volume/user/stats":                   60,
-						"client/statistics":                   60,
-						"client/info":                         60,
-						"client/statistics/daily":             60,
-						"positions":                           3.33,
-						"position/{symbol}":                   3.33,
-						"funding_fee/history":                 30,
-						"notification/inbox/notifications":    60,
-						"notification/inbox/unread":           60,
-						"volume/broker/daily":                 60,
-						"broker/fee_rate/default":             10,
-						"broker/user_info":                    10,
-						"orderbook/{symbol}":                  1,
-						"kline":                               1,
+				"private": map[string]any{
+					"get": map[string]any{
+						"client/key_info": map[string]any{
+							"cost": 6,
+						},
+						"client/orderly_key_ip_restriction": map[string]any{
+							"cost": 6,
+						},
+						"order/{oid}": map[string]any{
+							"cost": 1,
+						},
+						"client/order/{client_order_id}": map[string]any{
+							"cost": 1,
+						},
+						"algo/order/{oid}": map[string]any{
+							"cost": 1,
+						},
+						"algo/client/order/{client_order_id}": map[string]any{
+							"cost": 1,
+						},
+						"orders": map[string]any{
+							"cost": 1,
+						},
+						"algo/orders": map[string]any{
+							"cost": 1,
+						},
+						"trade/{tid}": map[string]any{
+							"cost": 1,
+						},
+						"trades": map[string]any{
+							"cost": 1,
+						},
+						"order/{oid}/trades": map[string]any{
+							"cost": 1,
+						},
+						"client/liquidator_liquidations": map[string]any{
+							"cost": 1,
+						},
+						"liquidations": map[string]any{
+							"cost": 1,
+						},
+						"asset/history": map[string]any{
+							"cost": 60,
+						},
+						"client/holding": map[string]any{
+							"cost": 1,
+						},
+						"withdraw_nonce": map[string]any{
+							"cost": 1,
+						},
+						"settle_nonce": map[string]any{
+							"cost": 1,
+						},
+						"pnl_settlement/history": map[string]any{
+							"cost": 1,
+						},
+						"volume/user/daily": map[string]any{
+							"cost": 60,
+						},
+						"volume/user/stats": map[string]any{
+							"cost": 60,
+						},
+						"client/statistics": map[string]any{
+							"cost": 60,
+						},
+						"client/info": map[string]any{
+							"cost": 60,
+						},
+						"client/statistics/daily": map[string]any{
+							"cost": 60,
+						},
+						"positions": map[string]any{
+							"cost": 3.33,
+						},
+						"position/{symbol}": map[string]any{
+							"cost": 3.33,
+						},
+						"funding_fee/history": map[string]any{
+							"cost": 30,
+						},
+						"notification/inbox/notifications": map[string]any{
+							"cost": 60,
+						},
+						"notification/inbox/unread": map[string]any{
+							"cost": 60,
+						},
+						"volume/broker/daily": map[string]any{
+							"cost": 60,
+						},
+						"broker/fee_rate/default": map[string]any{
+							"cost": 10,
+						},
+						"broker/user_info": map[string]any{
+							"cost": 10,
+						},
+						"orderbook/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"kline": map[string]any{
+							"cost": 1,
+						},
 					},
-					"post": map[string]interface{}{
-						"orderly_key":                             1,
-						"client/set_orderly_key_ip_restriction":   6,
-						"client/reset_orderly_key_ip_restriction": 6,
-						"order":                            1,
-						"batch-order":                      10,
-						"algo/order":                       1,
-						"liquidation":                      1,
-						"claim_insurance_fund":             1,
-						"withdraw_request":                 1,
-						"settle_pnl":                       1,
-						"notification/inbox/mark_read":     60,
-						"notification/inbox/mark_read_all": 60,
-						"client/leverage":                  120,
-						"client/maintenance_config":        60,
-						"delegate_signer":                  10,
-						"delegate_orderly_key":             10,
-						"delegate_settle_pnl":              10,
-						"delegate_withdraw_request":        10,
-						"broker/fee_rate/set":              10,
-						"broker/fee_rate/set_default":      10,
-						"broker/fee_rate/default":          10,
-						"referral/create":                  10,
-						"referral/update":                  10,
-						"referral/bind":                    10,
-						"referral/edit_split":              10,
+					"post": map[string]any{
+						"orderly_key": map[string]any{
+							"cost": 1,
+						},
+						"client/set_orderly_key_ip_restriction": map[string]any{
+							"cost": 6,
+						},
+						"client/reset_orderly_key_ip_restriction": map[string]any{
+							"cost": 6,
+						},
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"batch-order": map[string]any{
+							"cost": 10,
+						},
+						"algo/order": map[string]any{
+							"cost": 1,
+						},
+						"liquidation": map[string]any{
+							"cost": 1,
+						},
+						"claim_insurance_fund": map[string]any{
+							"cost": 1,
+						},
+						"withdraw_request": map[string]any{
+							"cost": 1,
+						},
+						"settle_pnl": map[string]any{
+							"cost": 1,
+						},
+						"notification/inbox/mark_read": map[string]any{
+							"cost": 60,
+						},
+						"notification/inbox/mark_read_all": map[string]any{
+							"cost": 60,
+						},
+						"client/leverage": map[string]any{
+							"cost": 120,
+						},
+						"client/maintenance_config": map[string]any{
+							"cost": 60,
+						},
+						"delegate_signer": map[string]any{
+							"cost": 10,
+						},
+						"delegate_orderly_key": map[string]any{
+							"cost": 10,
+						},
+						"delegate_settle_pnl": map[string]any{
+							"cost": 10,
+						},
+						"delegate_withdraw_request": map[string]any{
+							"cost": 10,
+						},
+						"broker/fee_rate/set": map[string]any{
+							"cost": 10,
+						},
+						"broker/fee_rate/set_default": map[string]any{
+							"cost": 10,
+						},
+						"broker/fee_rate/default": map[string]any{
+							"cost": 10,
+						},
+						"referral/create": map[string]any{
+							"cost": 10,
+						},
+						"referral/update": map[string]any{
+							"cost": 10,
+						},
+						"referral/bind": map[string]any{
+							"cost": 10,
+						},
+						"referral/edit_split": map[string]any{
+							"cost": 10,
+						},
 					},
-					"put": map[string]interface{}{
-						"order":      1,
-						"algo/order": 1,
+					"put": map[string]any{
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"algo/order": map[string]any{
+							"cost": 1,
+						},
 					},
-					"delete": map[string]interface{}{
-						"order":              1,
-						"algo/order":         1,
-						"client/order":       1,
-						"algo/client/order":  1,
-						"algo/orders":        1,
-						"orders":             1,
-						"batch-order":        1,
-						"client/batch-order": 1,
+					"delete": map[string]any{
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"algo/order": map[string]any{
+							"cost": 1,
+						},
+						"client/order": map[string]any{
+							"cost": 1,
+						},
+						"algo/client/order": map[string]any{
+							"cost": 1,
+						},
+						"algo/orders": map[string]any{
+							"cost": 1,
+						},
+						"orders": map[string]any{
+							"cost": 1,
+						},
+						"batch-order": map[string]any{
+							"cost": 1,
+						},
+						"client/batch-order": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
 		},
-		"requiredCredentials": map[string]interface{}{
+		"requiredCredentials": map[string]any{
 			"apiKey":     true,
 			"secret":     true,
 			"accountId":  true,
 			"privateKey": false,
 		},
-		"fees": map[string]interface{}{
-			"trading": map[string]interface{}{
+		"fees": map[string]any{
+			"trading": map[string]any{
 				"tierBased":  true,
 				"percentage": true,
 				"maker":      this.ParseNumber("0.0002"),
 				"taker":      this.ParseNumber("0.0005"),
 			},
 		},
-		"options": map[string]interface{}{
+		"options": map[string]any{
 			"sandboxMode":              false,
 			"brokerId":                 "CCXT",
 			"verifyingContractAddress": "0x6F7a338F2aA472838dEFD3283eB360d4Dff5D203",
 		},
-		"features": map[string]interface{}{
-			"default": map[string]interface{}{
+		"features": map[string]any{
+			"default": map[string]any{
 				"sandbox": true,
-				"createOrder": map[string]interface{}{
+				"createOrder": map[string]any{
 					"marginMode":                 false,
 					"triggerPrice":               true,
 					"triggerPriceType":           nil,
@@ -325,7 +558,7 @@ func (this *WoofiproCore) Describe() interface{} {
 					"stopLossPrice":              false,
 					"takeProfitPrice":            false,
 					"attachedStopLossTakeProfit": nil,
-					"timeInForce": map[string]interface{}{
+					"timeInForce": map[string]any{
 						"IOC": true,
 						"FOK": true,
 						"PO":  true,
@@ -339,23 +572,23 @@ func (this *WoofiproCore) Describe() interface{} {
 					"selfTradePrevention":    false,
 					"iceberg":                true,
 				},
-				"createOrders": map[string]interface{}{
+				"createOrders": map[string]any{
 					"max": 10,
 				},
-				"fetchMyTrades": map[string]interface{}{
+				"fetchMyTrades": map[string]any{
 					"marginMode":     false,
 					"limit":          500,
 					"daysBack":       nil,
 					"untilDays":      100000,
 					"symbolRequired": false,
 				},
-				"fetchOrder": map[string]interface{}{
+				"fetchOrder": map[string]any{
 					"marginMode":     false,
 					"trigger":        true,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchOpenOrders": map[string]interface{}{
+				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          500,
 					"trigger":        true,
@@ -363,7 +596,7 @@ func (this *WoofiproCore) Describe() interface{} {
 					"symbolRequired": false,
 				},
 				"fetchOrders": nil,
-				"fetchClosedOrders": map[string]interface{}{
+				"fetchClosedOrders": map[string]any{
 					"marginMode":       false,
 					"limit":            500,
 					"daysBack":         nil,
@@ -373,37 +606,37 @@ func (this *WoofiproCore) Describe() interface{} {
 					"trailing":         false,
 					"symbolRequired":   false,
 				},
-				"fetchOHLCV": map[string]interface{}{
+				"fetchOHLCV": map[string]any{
 					"limit": 1000,
 				},
 			},
-			"spot": map[string]interface{}{
+			"spot": map[string]any{
 				"extends": "default",
 			},
-			"forDerivatives": map[string]interface{}{
+			"forDerivatives": map[string]any{
 				"extends": "default",
-				"createOrder": map[string]interface{}{
+				"createOrder": map[string]any{
 					"triggerPriceType": nil,
-					"attachedStopLossTakeProfit": map[string]interface{}{
+					"attachedStopLossTakeProfit": map[string]any{
 						"triggerPriceType": nil,
 						"price":            false,
 					},
 				},
 			},
-			"swap": map[string]interface{}{
-				"linear": map[string]interface{}{
+			"swap": map[string]any{
+				"linear": map[string]any{
 					"extends": "forDerivatives",
 				},
 				"inverse": nil,
 			},
-			"future": map[string]interface{}{
+			"future": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
 			},
 		},
-		"commonCurrencies": map[string]interface{}{},
-		"exceptions": map[string]interface{}{
-			"exact": map[string]interface{}{
+		"commonCurrencies": map[string]any{},
+		"exceptions": map[string]any{
+			"exact": map[string]any{
 				"-1000": ExchangeError,
 				"-1001": AuthenticationError,
 				"-1002": AuthenticationError,
@@ -429,12 +662,12 @@ func (this *WoofiproCore) Describe() interface{} {
 				"2":     BadRequest,
 				"15":    BadRequest,
 			},
-			"broad": map[string]interface{}{},
+			"broad": map[string]any{},
 		},
 		"precisionMode": TICK_SIZE,
 	})
 }
-func (this *WoofiproCore) SetSandboxMode(enable interface{}) {
+func (this *WoofiproCore) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
 	AddElementToObject(this.Options, "sandboxMode", enable)
 }
@@ -443,16 +676,16 @@ func (this *WoofiproCore) SetSandboxMode(enable interface{}) {
  * @method
  * @name woofipro#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *WoofiproCore) FetchStatus(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchStatus(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		response := (<-this.V1PublicGetPublicSystemInfo(params))
@@ -467,8 +700,8 @@ func (this *WoofiproCore) FetchStatus(optionalArgs ...interface{}) <-chan interf
 		//         "timestamp": "1709274106602"
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var status interface{} = this.SafeString(data, "status")
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var status any = this.SafeString(data, "status")
 		if IsTrue(IsEqual(status, nil)) {
 			status = "error"
 		} else if IsTrue(IsEqual(status, "0")) {
@@ -477,7 +710,7 @@ func (this *WoofiproCore) FetchStatus(optionalArgs ...interface{}) <-chan interf
 			status = "maintenance"
 		}
 
-		ch <- map[string]interface{}{
+		ch <- map[string]any{
 			"status":  status,
 			"updated": nil,
 			"eta":     nil,
@@ -494,16 +727,16 @@ func (this *WoofiproCore) FetchStatus(optionalArgs ...interface{}) <-chan interf
  * @method
  * @name woofipro#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *WoofiproCore) FetchTime(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchTime(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		response := (<-this.V1PublicGetPublicSystemInfo(params))
@@ -525,7 +758,7 @@ func (this *WoofiproCore) FetchTime(optionalArgs ...interface{}) <-chan interfac
 	}()
 	return ch
 }
-func (this *WoofiproCore) ParseMarket(market interface{}) interface{} {
+func (this *WoofiproCore) ParseMarket(market any) any {
 	//
 	//   {
 	//     "symbol": "PERP_BTC_USDC",
@@ -553,17 +786,20 @@ func (this *WoofiproCore) ParseMarket(market interface{}) interface{} {
 	//     "liquidation_tier": "1"
 	//   }
 	//
-	var marketId interface{} = this.SafeString(market, "symbol")
-	var parts interface{} = Split(marketId, "_")
-	var marketType interface{} = "swap"
-	var baseId interface{} = this.SafeString(parts, 1)
-	var quoteId interface{} = this.SafeString(parts, 2)
-	var base interface{} = this.SafeCurrencyCode(baseId)
-	var quote interface{} = this.SafeCurrencyCode(quoteId)
-	var settleId interface{} = this.SafeString(parts, 2)
-	var settle interface{} = this.SafeCurrencyCode(settleId)
-	var symbol interface{} = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
-	return map[string]interface{}{
+	var marketId any = this.SafeString(market, "symbol")
+	if IsTrue(IsEqual(marketId, nil)) {
+		panic(ExchangeError(Add(this.Id, " parseMarket() missing marketId")))
+	}
+	var parts any = Split(marketId, "_")
+	var marketType any = "swap"
+	var baseId any = this.SafeString(parts, 1)
+	var quoteId any = this.SafeString(parts, 2)
+	var base any = this.SafeCurrencyCode(baseId)
+	var quote any = this.SafeCurrencyCode(quoteId)
+	var settleId any = this.SafeString(parts, 2)
+	var settle any = this.SafeCurrencyCode(settleId)
+	var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
+	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
 		"base":           base,
@@ -587,47 +823,47 @@ func (this *WoofiproCore) ParseMarket(market interface{}) interface{} {
 		"expiryDatetime": nil,
 		"strike":         nil,
 		"optionType":     nil,
-		"precision": map[string]interface{}{
+		"precision": map[string]any{
 			"amount": this.SafeNumber(market, "base_tick"),
 			"price":  this.SafeNumber(market, "quote_tick"),
 		},
-		"limits": map[string]interface{}{
-			"leverage": map[string]interface{}{
+		"limits": map[string]any{
+			"leverage": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
-			"amount": map[string]interface{}{
+			"amount": map[string]any{
 				"min": this.SafeNumber(market, "base_min"),
 				"max": this.SafeNumber(market, "base_max"),
 			},
-			"price": map[string]interface{}{
+			"price": map[string]any{
 				"min": this.SafeNumber(market, "quote_min"),
 				"max": this.SafeNumber(market, "quote_max"),
 			},
-			"cost": map[string]interface{}{
+			"cost": map[string]any{
 				"min": this.SafeNumber(market, "min_notional"),
 				"max": nil,
 			},
 		},
 		"created": this.SafeInteger(market, "created_time"),
 		"info":    market,
-	}
+	})
 }
 
 /**
  * @method
  * @name woofipro#fetchMarkets
  * @description retrieves data on all markets for woofipro
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-available-symbols
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *WoofiproCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchMarkets(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		response := (<-this.V1PublicGetPublicInfo(params))
@@ -667,8 +903,8 @@ func (this *WoofiproCore) FetchMarkets(optionalArgs ...interface{}) <-chan inter
 		//     }
 		//   }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var rows interface{} = this.SafeList(data, "rows", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var rows any = this.SafeList(data, "rows", []any{})
 
 		ch <- this.ParseMarkets(rows)
 		return nil
@@ -681,20 +917,20 @@ func (this *WoofiproCore) FetchMarkets(optionalArgs ...interface{}) <-chan inter
  * @method
  * @name woofipro#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *WoofiproCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchCurrencies(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var result interface{} = map[string]interface{}{}
-		var tokenPromise interface{} = this.V1PublicGetPublicToken(params)
+		var result any = map[string]any{}
+		var tokenPromise any = this.V1PublicGetPublicToken(params)
 		//
 		// {
 		//     "success": true,
@@ -717,70 +953,25 @@ func (this *WoofiproCore) FetchCurrencies(optionalArgs ...interface{}) <-chan in
 		//     }
 		// }
 		//
-		var chainPromise interface{} = this.V1PublicGetPublicChainInfo(params)
-		tokenResponsechainResponseVariable := (<-promiseAll([]interface{}{tokenPromise, chainPromise}))
+		var chainPromise any = this.V1PublicGetPublicChainInfo(params)
+		tokenResponsechainResponseVariable := (<-promiseAll([]any{tokenPromise, chainPromise}))
 		tokenResponse := GetValue(tokenResponsechainResponseVariable, 0)
 		chainResponse := GetValue(tokenResponsechainResponseVariable, 1)
-		var tokenData interface{} = this.SafeDict(tokenResponse, "data", map[string]interface{}{})
-		var tokenRows interface{} = this.SafeList(tokenData, "rows", []interface{}{})
-		var chainData interface{} = this.SafeDict(chainResponse, "data", map[string]interface{}{})
-		var chainRows interface{} = this.SafeList(chainData, "rows", []interface{}{})
-		var indexedChains interface{} = this.IndexBy(chainRows, "chain_id")
+		var tokenData any = this.SafeDict(tokenResponse, "data", map[string]any{})
+		var tokenRows any = this.SafeList(tokenData, "rows", []any{})
+		var chainData any = this.SafeDict(chainResponse, "data", map[string]any{})
+		var chainRows any = this.SafeList(chainData, "rows", []any{})
+		var indexedChains any = this.IndexBy(chainRows, "chain_id")
 		for i := 0; IsLessThan(i, GetArrayLength(tokenRows)); i++ {
-			var token interface{} = GetValue(tokenRows, i)
-			var currencyId interface{} = this.SafeString(token, "token")
-			var networks interface{} = this.SafeList(token, "chain_details")
-			var code interface{} = this.SafeCurrencyCode(currencyId)
-			var resultingNetworks interface{} = map[string]interface{}{}
-			for j := 0; IsLessThan(j, GetArrayLength(networks)); j++ {
-				var networkEntry interface{} = GetValue(networks, j)
-				var networkId interface{} = this.SafeString(networkEntry, "chain_id")
-				var networkRow interface{} = this.SafeDict(indexedChains, networkId)
-				var networkName interface{} = this.SafeString(networkRow, "name")
-				var networkCode interface{} = this.NetworkIdToCode(networkName, code)
-				AddElementToObject(resultingNetworks, networkCode, map[string]interface{}{
-					"id":      networkId,
-					"network": networkCode,
-					"limits": map[string]interface{}{
-						"withdraw": map[string]interface{}{
-							"min": nil,
-							"max": nil,
-						},
-						"deposit": map[string]interface{}{
-							"min": nil,
-							"max": nil,
-						},
-					},
-					"active":    nil,
-					"deposit":   nil,
-					"withdraw":  nil,
-					"fee":       this.SafeNumber(networkEntry, "withdrawal_fee"),
-					"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(networkEntry, "decimals"))),
-					"info":      []interface{}{networkEntry, networkRow},
-				})
+			var token any = GetValue(tokenRows, i)
+			var parsed any = this.ParseCurrency(map[string]any{
+				"_token":         token,
+				"_indexedChains": indexedChains,
+			})
+			if IsTrue(IsEqual(parsed, nil)) {
+				panic(ExchangeError(Add(this.Id, " fetchCurrencies() could not resolve parsed")))
 			}
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]interface{}{
-				"id":        currencyId,
-				"name":      nil,
-				"code":      code,
-				"precision": nil,
-				"active":    nil,
-				"fee":       nil,
-				"networks":  resultingNetworks,
-				"deposit":   nil,
-				"withdraw":  nil,
-				"limits": map[string]interface{}{
-					"deposit": map[string]interface{}{
-						"min": nil,
-						"max": nil,
-					},
-					"withdraw": map[string]interface{}{
-						"min": this.SafeNumber(token, "minimum_withdraw_amount"),
-						"max": nil,
-					},
-				},
-				"info": token,
-			}))
+			AddElementToObject(result, GetValue(parsed, "code"), parsed)
 		}
 
 		ch <- result
@@ -789,20 +980,82 @@ func (this *WoofiproCore) FetchCurrencies(optionalArgs ...interface{}) <-chan in
 	}()
 	return ch
 }
-func (this *WoofiproCore) ParseTokenAndFeeTemp(item interface{}, feeTokenKey interface{}, feeAmountKey interface{}) interface{} {
-	var feeCost interface{} = this.SafeString(item, feeAmountKey)
-	var fee interface{} = nil
+func (this *WoofiproCore) ParseCurrency(rawCurrency any) any {
+	var token any = this.SafeDict(rawCurrency, "_token", map[string]any{})
+	var currencyId any = this.SafeString(token, "token")
+	var networks any = this.SafeList(token, "chain_details", []any{})
+	var code any = this.SafeCurrencyCode(currencyId)
+	var indexedChains any = this.SafeDict(rawCurrency, "_indexedChains", map[string]any{})
+	var resultingNetworks any = map[string]any{}
+	for j := 0; IsLessThan(j, GetArrayLength(networks)); j++ {
+		var networkEntry any = GetValue(networks, j)
+		var networkId any = this.SafeString(networkEntry, "chain_id")
+		var networkRow any = this.SafeDict(indexedChains, networkId)
+		var networkName any = this.SafeString(networkRow, "name", networkId)
+		var networkCode any = this.NetworkIdToCode(networkName, code)
+		if IsTrue(!IsEqual(networkCode, nil)) {
+			AddElementToObject(resultingNetworks, networkCode, map[string]any{
+				"id":      networkId,
+				"network": networkCode,
+				"limits": map[string]any{
+					"withdraw": map[string]any{
+						"min": nil,
+						"max": nil,
+					},
+					"deposit": map[string]any{
+						"min": nil,
+						"max": nil,
+					},
+				},
+				"active":    nil,
+				"deposit":   nil,
+				"withdraw":  nil,
+				"fee":       this.SafeNumber(networkEntry, "withdrawal_fee"),
+				"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(networkEntry, "decimals"))),
+				"info": map[string]any{
+					"network":    networkEntry,
+					"networkRow": networkRow,
+				},
+			})
+		}
+	}
+	return this.SafeCurrencyStructure(map[string]any{
+		"id":        currencyId,
+		"name":      nil,
+		"code":      code,
+		"precision": nil,
+		"active":    nil,
+		"fee":       nil,
+		"networks":  resultingNetworks,
+		"deposit":   nil,
+		"withdraw":  nil,
+		"limits": map[string]any{
+			"deposit": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"withdraw": map[string]any{
+				"min": this.SafeNumber(token, "minimum_withdraw_amount"),
+				"max": nil,
+			},
+		},
+		"info": token,
+	})
+}
+func (this *WoofiproCore) ParseTokenAndFeeTemp(item any, feeTokenKey any, feeAmountKey any) any {
+	var feeCost any = this.SafeString(item, feeAmountKey)
+	var fee any = nil
 	if IsTrue(!IsEqual(feeCost, nil)) {
-		var feeCurrencyId interface{} = this.SafeString(item, feeTokenKey)
-		var feeCurrencyCode interface{} = this.SafeCurrencyCode(feeCurrencyId)
-		fee = map[string]interface{}{
+		var feeCurrencyId any = this.SafeString(item, feeTokenKey)
+		var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId)
+		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": feeCurrencyCode,
 		}
 	}
 	return fee
 }
-func (this *WoofiproCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WoofiproCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	// public/market_trades
 	//
@@ -832,28 +1085,28 @@ func (this *WoofiproCore) ParseTrade(trade interface{}, optionalArgs ...interfac
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var isFromFetchOrder interface{} = (InOp(trade, "id"))
-	var timestamp interface{} = this.SafeInteger(trade, "executed_timestamp")
-	var marketId interface{} = this.SafeString(trade, "symbol")
+	var isFromFetchOrder any = (InOp(trade, "id"))
+	var timestamp any = this.SafeInteger(trade, "executed_timestamp")
+	var marketId any = this.SafeString(trade, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var symbol interface{} = GetValue(market, "symbol")
-	var price interface{} = this.SafeString(trade, "executed_price")
-	var amount interface{} = this.SafeString(trade, "executed_quantity")
-	var order_id interface{} = this.SafeString(trade, "order_id")
-	var fee interface{} = this.ParseTokenAndFeeTemp(trade, "fee_asset", "fee")
-	var feeCost interface{} = this.SafeString(fee, "cost")
-	if IsTrue(!IsEqual(feeCost, nil)) {
+	var symbol any = GetValue(market, "symbol")
+	var price any = this.SafeString(trade, "executed_price")
+	var amount any = this.SafeString(trade, "executed_quantity")
+	var order_id any = this.SafeString(trade, "order_id")
+	var fee any = this.ParseTokenAndFeeTemp(trade, "fee_asset", "fee")
+	var feeCost any = this.SafeString(fee, "cost")
+	if IsTrue(IsTrue((!IsEqual(fee, nil))) && IsTrue((!IsEqual(feeCost, nil)))) {
 		AddElementToObject(fee, "cost", feeCost)
 	}
-	var cost interface{} = Precise.StringMul(price, amount)
-	var side interface{} = this.SafeStringLower(trade, "side")
-	var id interface{} = this.SafeString(trade, "id")
-	var takerOrMaker interface{} = nil
+	var cost any = Precise.StringMul(price, amount)
+	var side any = this.SafeStringLower(trade, "side")
+	var id any = this.SafeString(trade, "id")
+	var takerOrMaker any = nil
 	if IsTrue(isFromFetchOrder) {
-		var isMaker interface{} = IsEqual(this.SafeString(trade, "is_maker"), "1")
+		var isMaker any = IsEqual(this.SafeString(trade, "is_maker"), "1")
 		takerOrMaker = Ternary(IsTrue(isMaker), "maker", "taker")
 	}
-	return this.SafeTrade(map[string]interface{}{
+	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -874,29 +1127,31 @@ func (this *WoofiproCore) ParseTrade(trade interface{}, optionalArgs ...interfac
  * @method
  * @name woofipro#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-market-trades
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-trades
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *WoofiproCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		since := GetArg(optionalArgs, 0, nil)
 		_ = since
 		limit := GetArg(optionalArgs, 1, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]interface{}{})
+		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8468 := (<-this.LoadMarkets())
-		PanicOnError(retRes8468)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes86512 := (<-this.LoadMarkets())
+			PanicOnError(retRes86512)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -920,8 +1175,8 @@ func (this *WoofiproCore) FetchTrades(symbol interface{}, optionalArgs ...interf
 		//     }
 		// }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var rows interface{} = this.SafeList(data, "rows", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var rows any = this.SafeList(data, "rows", []any{})
 
 		ch <- this.ParseTrades(rows, market, since, limit)
 		return nil
@@ -929,7 +1184,7 @@ func (this *WoofiproCore) FetchTrades(symbol interface{}, optionalArgs ...interf
 	}()
 	return ch
 }
-func (this *WoofiproCore) ParseFundingRate(fundingRate interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WoofiproCore) ParseFundingRate(fundingRate any, optionalArgs ...any) any {
 	//
 	//         {
 	//             "symbol":"PERP_AAVE_USDT",
@@ -943,15 +1198,15 @@ func (this *WoofiproCore) ParseFundingRate(fundingRate interface{}, optionalArgs
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol interface{} = this.SafeString(fundingRate, "symbol")
+	var symbol any = this.SafeString(fundingRate, "symbol")
 	market = this.Market(symbol)
-	var nextFundingTimestamp interface{} = this.SafeInteger(fundingRate, "next_funding_time")
-	var estFundingRateTimestamp interface{} = this.SafeInteger(fundingRate, "est_funding_rate_timestamp")
-	var lastFundingRateTimestamp interface{} = this.SafeInteger(fundingRate, "last_funding_rate_timestamp")
-	var fundingTimeString interface{} = this.SafeString(fundingRate, "last_funding_rate_timestamp")
-	var nextFundingTimeString interface{} = this.SafeString(fundingRate, "next_funding_time")
-	var millisecondsInterval interface{} = Precise.StringSub(nextFundingTimeString, fundingTimeString)
-	return map[string]interface{}{
+	var nextFundingTimestamp any = this.SafeInteger(fundingRate, "next_funding_time")
+	var estFundingRateTimestamp any = this.SafeInteger(fundingRate, "est_funding_rate_timestamp")
+	var lastFundingRateTimestamp any = this.SafeInteger(fundingRate, "last_funding_rate_timestamp")
+	var fundingTimeString any = this.SafeString(fundingRate, "last_funding_rate_timestamp")
+	var nextFundingTimeString any = this.SafeString(fundingRate, "next_funding_time")
+	var millisecondsInterval any = Precise.StringSub(nextFundingTimeString, fundingTimeString)
+	return map[string]any{
 		"info":                     fundingRate,
 		"symbol":                   GetValue(market, "symbol"),
 		"markPrice":                nil,
@@ -972,8 +1227,8 @@ func (this *WoofiproCore) ParseFundingRate(fundingRate interface{}, optionalArgs
 		"interval":                 this.ParseFundingInterval(millisecondsInterval),
 	}
 }
-func (this *WoofiproCore) ParseFundingInterval(interval interface{}) interface{} {
-	var intervals interface{} = map[string]interface{}{
+func (this *WoofiproCore) ParseFundingInterval(interval any) any {
+	var intervals any = map[string]any{
 		"3600000":  "1h",
 		"14400000": "4h",
 		"28800000": "8h",
@@ -987,22 +1242,22 @@ func (this *WoofiproCore) ParseFundingInterval(interval interface{}) interface{}
  * @method
  * @name woofipro#fetchFundingInterval
  * @description fetch the current funding rate interval
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *WoofiproCore) FetchFundingInterval(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchFundingInterval(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes93815 := (<-this.FetchFundingRate(symbol, params))
-		PanicOnError(retRes93815)
-		ch <- retRes93815
+		retRes95815 := (<-this.FetchFundingRate(symbol, params))
+		PanicOnError(retRes95815)
+		ch <- retRes95815
 		return nil
 
 	}()
@@ -1013,23 +1268,25 @@ func (this *WoofiproCore) FetchFundingInterval(symbol interface{}, optionalArgs 
  * @method
  * @name woofipro#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *WoofiproCore) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9518 := (<-this.LoadMarkets())
-		PanicOnError(retRes9518)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes97212 := (<-this.LoadMarkets())
+			PanicOnError(retRes97212)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 
@@ -1050,7 +1307,7 @@ func (this *WoofiproCore) FetchFundingRate(symbol interface{}, optionalArgs ...i
 		//     }
 		// }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseFundingRate(data, market)
 		return nil
@@ -1063,23 +1320,25 @@ func (this *WoofiproCore) FetchFundingRate(symbol interface{}, optionalArgs ...i
  * @method
  * @name woofipro#fetchFundingRates
  * @description fetch the current funding rate for multiple markets
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
  * @param {string[]} symbols unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *WoofiproCore) FetchFundingRates(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchFundingRates(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9868 := (<-this.LoadMarkets())
-		PanicOnError(retRes9868)
+			retRes100912 := (<-this.LoadMarkets())
+			PanicOnError(retRes100912)
+		}
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.V1PublicGetPublicFundingRates(params))
@@ -1101,10 +1360,341 @@ func (this *WoofiproCore) FetchFundingRates(optionalArgs ...interface{}) <-chan 
 		//     }
 		// }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var rows interface{} = this.SafeList(data, "rows", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var rows any = this.SafeList(data, "rows", []any{})
 
 		ch <- this.ParseFundingRates(rows, symbols)
+		return nil
+
+	}()
+	return ch
+}
+func (this *WoofiproCore) ParseTicker(ticker any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "symbol": "PERP_BTC_USDC",
+	//         "index_price": 64185.4,
+	//         "mark_price": 64171.0,
+	//         "sum_unitary_funding": 26522.3,
+	//         "est_funding_rate": 0.0001,
+	//         "last_funding_rate": 0.00010041,
+	//         "next_funding_time": 1786032000000,
+	//         "open_interest": 110.64612,
+	//         "24h_open": 64105.6,
+	//         "24h_close": 64180.0,
+	//         "24h_high": 64941.0,
+	//         "24h_low": 63837.6,
+	//         "24h_volume": 102.2817,
+	//         "24h_amount": 6595662.199482
+	//     }
+	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var marketId any = this.SafeString(ticker, "symbol")
+	market = this.SafeMarket(marketId, market)
+	var timestamp any = this.SafeInteger(ticker, "timestamp")
+	return this.SafeTicker(map[string]any{
+		"symbol":        GetValue(market, "symbol"),
+		"timestamp":     timestamp,
+		"datetime":      this.Iso8601(timestamp),
+		"high":          this.SafeString(ticker, "24h_high"),
+		"low":           this.SafeString(ticker, "24h_low"),
+		"bid":           nil,
+		"bidVolume":     nil,
+		"ask":           nil,
+		"askVolume":     nil,
+		"vwap":          nil,
+		"open":          this.SafeString(ticker, "24h_open"),
+		"close":         this.SafeString(ticker, "24h_close"),
+		"last":          this.SafeString(ticker, "24h_close"),
+		"previousClose": nil,
+		"change":        nil,
+		"percentage":    nil,
+		"average":       nil,
+		"baseVolume":    this.SafeString(ticker, "24h_volume"),
+		"quoteVolume":   this.SafeString(ticker, "24h_amount"),
+		"indexPrice":    this.SafeString(ticker, "index_price"),
+		"markPrice":     this.SafeString(ticker, "mark_price"),
+		"info":          ticker,
+	}, market)
+}
+
+/**
+ * @method
+ * @name woofipro#fetchTicker
+ * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *WoofiproCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
+
+			retRes109412 := (<-this.LoadMarkets())
+			PanicOnError(retRes109412)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
+			"symbol": GetValue(market, "id"),
+		}
+
+		response := (<-this.V1PublicGetPublicFuturesSymbol(this.Extend(request, params)))
+		PanicOnError(response)
+		//
+		// {
+		//     "success": true,
+		//     "timestamp": 1786022130191,
+		//     "data": {
+		//         "symbol": "PERP_BTC_USDC",
+		//         "index_price": 64185.4,
+		//         "mark_price": 64171.0,
+		//         "sum_unitary_funding": 26522.3,
+		//         "est_funding_rate": 0.0001,
+		//         "last_funding_rate": 0.00010041,
+		//         "next_funding_time": 1786032000000,
+		//         "open_interest": 110.64612,
+		//         "24h_open": 64105.6,
+		//         "24h_close": 64180.0,
+		//         "24h_high": 64941.0,
+		//         "24h_low": 63837.6,
+		//         "24h_volume": 102.2817,
+		//         "24h_amount": 6595662.199482
+		//     }
+		// }
+		//
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
+
+		ch <- this.ParseTicker(data, market)
+		return nil
+
+	}()
+	return ch
+}
+
+/**
+ * @method
+ * @name woofipro#fetchTickers
+ * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *WoofiproCore) FetchTickers(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		symbols := GetArg(optionalArgs, 0, nil)
+		_ = symbols
+		params := GetArg(optionalArgs, 1, map[string]any{})
+		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
+
+			retRes113912 := (<-this.LoadMarkets())
+			PanicOnError(retRes113912)
+		}
+		symbols = this.MarketSymbols(symbols)
+
+		response := (<-this.V1PublicGetPublicFutures(params))
+		PanicOnError(response)
+		//
+		// {
+		//     "success": true,
+		//     "timestamp": 1786022130191,
+		//     "data": {
+		//         "rows": [{
+		//             "symbol": "PERP_BTC_USDC",
+		//             "index_price": 64185.4,
+		//             "mark_price": 64171.0,
+		//             "sum_unitary_funding": 26522.3,
+		//             "est_funding_rate": 0.0001,
+		//             "last_funding_rate": 0.00010041,
+		//             "next_funding_time": 1786032000000,
+		//             "open_interest": 110.64612,
+		//             "24h_open": 64105.6,
+		//             "24h_close": 64180.0,
+		//             "24h_high": 64941.0,
+		//             "24h_low": 63837.6,
+		//             "24h_volume": 102.2817,
+		//             "24h_amount": 6595662.199482
+		//         }]
+		//     }
+		// }
+		//
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var rows any = this.SafeList(data, "rows", []any{})
+		var timestamp any = this.SafeInteger(response, "timestamp")
+		var result any = []any{}
+		for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
+			var row any = GetValue(rows, i)
+			var marketId any = this.SafeString(row, "symbol", "")
+			if IsTrue(IsTrue((IsEqual(this.Markets_by_id, nil))) || !IsTrue((InOp(this.Markets_by_id, marketId)))) {
+				continue
+			}
+			var ticker any = this.Extend(map[string]any{
+				"timestamp": timestamp,
+			}, row)
+			AppendToArray(&result, this.ParseTicker(ticker))
+		}
+
+		ch <- this.FilterByArrayTickers(result, "symbol", symbols)
+		return nil
+
+	}()
+	return ch
+}
+func (this *WoofiproCore) ParseOpenInterest(interest any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "symbol": "PERP_BTC_USDC",
+	//         "index_price": 64185.4,
+	//         "mark_price": 64171.0,
+	//         "open_interest": 110.64612,
+	//         "24h_open": 64105.6,
+	//         "24h_close": 64180.0,
+	//         "24h_high": 64941.0,
+	//         "24h_low": 63837.6,
+	//         "24h_volume": 102.2817,
+	//         "24h_amount": 6595662.199482
+	//     }
+	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var marketId any = this.SafeString(interest, "symbol")
+	market = this.SafeMarket(marketId, market)
+	var timestamp any = this.SafeInteger(interest, "timestamp")
+	var amount any = this.SafeNumber2(interest, "open_interest", "openInterest")
+	return this.SafeOpenInterest(map[string]any{
+		"symbol":             GetValue(market, "symbol"),
+		"openInterestAmount": amount,
+		"openInterestValue":  nil,
+		"timestamp":          timestamp,
+		"datetime":           this.Iso8601(timestamp),
+		"info":               interest,
+	}, market)
+}
+
+/**
+ * @method
+ * @name woofipro#fetchOpenInterest
+ * @description retrieves the open interest of a contract trading pair
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+ * @param {string} symbol unified CCXT market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *WoofiproCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
+
+			retRes122312 := (<-this.LoadMarkets())
+			PanicOnError(retRes122312)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
+			"symbol": GetValue(market, "id"),
+		}
+
+		response := (<-this.V1PublicGetPublicFuturesSymbol(this.Extend(request, params)))
+		PanicOnError(response)
+		//
+		// {
+		//     "success": true,
+		//     "timestamp": 1786022130191,
+		//     "data": {
+		//         "symbol": "PERP_BTC_USDC",
+		//         "index_price": 64185.4,
+		//         "mark_price": 64171.0,
+		//         "open_interest": 110.64612,
+		//         "24h_volume": 102.2817,
+		//         "24h_amount": 6595662.199482
+		//     }
+		// }
+		//
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
+
+		ch <- this.ParseOpenInterest(data, market)
+		return nil
+
+	}()
+	return ch
+}
+
+/**
+ * @method
+ * @name woofipro#fetchOpenInterests
+ * @description retrieves the open interest for a list of contract trading pairs
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+ * @param {string[]} [symbols] a list of unified CCXT market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *WoofiproCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		symbols := GetArg(optionalArgs, 0, nil)
+		_ = symbols
+		params := GetArg(optionalArgs, 1, map[string]any{})
+		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
+
+			retRes126012 := (<-this.LoadMarkets())
+			PanicOnError(retRes126012)
+		}
+		symbols = this.MarketSymbols(symbols)
+
+		response := (<-this.V1PublicGetPublicFutures(params))
+		PanicOnError(response)
+		//
+		// {
+		//     "success": true,
+		//     "timestamp": 1786022130191,
+		//     "data": {
+		//         "rows": [{
+		//             "symbol": "PERP_BTC_USDC",
+		//             "index_price": 64185.4,
+		//             "mark_price": 64171.0,
+		//             "open_interest": 110.64612,
+		//             "24h_volume": 102.2817,
+		//             "24h_amount": 6595662.199482
+		//         }]
+		//     }
+		// }
+		//
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var rows any = this.SafeList(data, "rows", []any{})
+		var timestamp any = this.SafeInteger(response, "timestamp")
+		var result any = []any{}
+		for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
+			var row any = GetValue(rows, i)
+			var marketId any = this.SafeString(row, "symbol", "")
+			if IsTrue(IsTrue((IsEqual(this.Markets_by_id, nil))) || !IsTrue((InOp(this.Markets_by_id, marketId)))) {
+				continue
+			}
+			var interest any = this.Extend(map[string]any{
+				"timestamp": timestamp,
+			}, row)
+			AppendToArray(&result, this.ParseOpenInterest(interest))
+		}
+
+		ch <- this.FilterByArray(result, "symbol", symbols)
 		return nil
 
 	}()
@@ -1115,7 +1705,7 @@ func (this *WoofiproCore) FetchFundingRates(optionalArgs ...interface{}) <-chan 
  * @method
  * @name woofipro#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-funding-rate-history-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-market
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -1124,9 +1714,9 @@ func (this *WoofiproCore) FetchFundingRates(optionalArgs ...interface{}) <-chan 
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func (this *WoofiproCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1135,25 +1725,27 @@ func (this *WoofiproCore) FetchFundingRateHistory(optionalArgs ...interface{}) <
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10258 := (<-this.LoadMarkets())
-		PanicOnError(retRes10258)
-		var paginate interface{} = false
+			retRes131112 := (<-this.LoadMarkets())
+			PanicOnError(retRes131112)
+		}
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes102919 := (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
-			PanicOnError(retRes102919)
-			ch <- retRes102919
+			retRes131619 := (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
+			PanicOnError(retRes131619)
+			ch <- retRes131619
 			return nil
 		}
-		var request interface{} = map[string]interface{}{}
+		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
-			var market interface{} = this.Market(symbol)
+			var market any = this.Market(symbol)
 			symbol = GetValue(market, "symbol")
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
@@ -1185,14 +1777,14 @@ func (this *WoofiproCore) FetchFundingRateHistory(optionalArgs ...interface{}) <
 		//     }
 		// }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var result interface{} = this.SafeList(data, "rows", []interface{}{})
-		var rates interface{} = []interface{}{}
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var result any = this.SafeList(data, "rows", []any{})
+		var rates any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(result)); i++ {
-			var entry interface{} = GetValue(result, i)
-			var marketId interface{} = this.SafeString(entry, "symbol")
-			var timestamp interface{} = this.SafeInteger(entry, "funding_rate_timestamp")
-			AppendToArray(&rates, map[string]interface{}{
+			var entry any = GetValue(result, i)
+			var marketId any = this.SafeString(entry, "symbol")
+			var timestamp any = this.SafeInteger(entry, "funding_rate_timestamp")
+			AppendToArray(&rates, map[string]any{
 				"info":        entry,
 				"symbol":      this.SafeSymbol(marketId),
 				"fundingRate": this.SafeNumber(entry, "funding_rate"),
@@ -1200,7 +1792,7 @@ func (this *WoofiproCore) FetchFundingRateHistory(optionalArgs ...interface{}) <
 				"datetime":    this.Iso8601(timestamp),
 			})
 		}
-		var sorted interface{} = this.SortBy(rates, "timestamp")
+		var sorted any = this.SortBy(rates, "timestamp")
 
 		ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 		return nil
@@ -1208,7 +1800,7 @@ func (this *WoofiproCore) FetchFundingRateHistory(optionalArgs ...interface{}) <
 	}()
 	return ch
 }
-func (this *WoofiproCore) ParseIncome(income interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WoofiproCore) ParseIncome(income any, optionalArgs ...any) any {
 	//
 	// {
 	//         "symbol": "PERP_ETH_USDC",
@@ -1223,15 +1815,15 @@ func (this *WoofiproCore) ParseIncome(income interface{}, optionalArgs ...interf
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(income, "symbol")
-	var symbol interface{} = this.SafeSymbol(marketId, market)
-	var amount interface{} = this.SafeString(income, "funding_fee")
-	var code interface{} = this.SafeCurrencyCode("USDC")
-	var timestamp interface{} = this.SafeInteger(income, "updated_time")
-	var rate interface{} = this.SafeNumber(income, "funding_rate")
-	var paymentType interface{} = this.SafeString(income, "payment_type")
+	var marketId any = this.SafeString(income, "symbol")
+	var symbol any = this.SafeSymbol(marketId, market)
+	var amount any = this.SafeString(income, "funding_fee")
+	var code any = this.SafeCurrencyCode("USDC")
+	var timestamp any = this.SafeInteger(income, "updated_time")
+	var rate any = this.SafeNumber(income, "funding_rate")
+	var paymentType any = this.SafeString(income, "payment_type")
 	amount = Ternary(IsTrue((IsEqual(paymentType, "Pay"))), Precise.StringNeg(amount), amount)
-	return map[string]interface{}{
+	return map[string]any{
 		"info":      income,
 		"symbol":    symbol,
 		"code":      code,
@@ -1247,7 +1839,7 @@ func (this *WoofiproCore) ParseIncome(income interface{}, optionalArgs ...interf
  * @method
  * @name woofipro#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -1255,9 +1847,9 @@ func (this *WoofiproCore) ParseIncome(income interface{}, optionalArgs ...interf
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func (this *WoofiproCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1266,24 +1858,26 @@ func (this *WoofiproCore) FetchFundingHistory(optionalArgs ...interface{}) <-cha
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11268 := (<-this.LoadMarkets())
-		PanicOnError(retRes11268)
-		var paginate interface{} = false
+			retRes141412 := (<-this.LoadMarkets())
+			PanicOnError(retRes141412)
+		}
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes113019 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes113019)
-			ch <- retRes113019
+			retRes141919 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes141919)
+			ch <- retRes141919
 			return nil
 		}
-		var request interface{} = map[string]interface{}{}
-		var market interface{} = nil
+		var request any = map[string]any{}
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -1291,8 +1885,8 @@ func (this *WoofiproCore) FetchFundingHistory(optionalArgs ...interface{}) <-cha
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start_t", since)
 		}
-		var until interface{} = this.SafeInteger(params, "until") // unified in milliseconds
-		params = this.Omit(params, []interface{}{"until"})
+		var until any = this.SafeInteger(params, "until") // unified in milliseconds
+		params = this.Omit(params, []any{"until"})
 		if IsTrue(!IsEqual(until, nil)) {
 			AddElementToObject(request, "end_t", until)
 		}
@@ -1325,8 +1919,8 @@ func (this *WoofiproCore) FetchFundingHistory(optionalArgs ...interface{}) <-cha
 		//     }
 		// }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var rows interface{} = this.SafeList(data, "rows", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var rows any = this.SafeList(data, "rows", []any{})
 
 		ch <- this.ParseIncomes(rows, market, since, limit)
 		return nil
@@ -1339,20 +1933,22 @@ func (this *WoofiproCore) FetchFundingHistory(optionalArgs ...interface{}) <-cha
  * @method
  * @name woofipro#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *WoofiproCore) FetchTradingFees(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchTradingFees(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11878 := (<-this.LoadMarkets())
-		PanicOnError(retRes11878)
+			retRes147712 := (<-this.LoadMarkets())
+			PanicOnError(retRes147712)
+		}
 
 		response := (<-this.V1PrivateGetClientInfo(params))
 		PanicOnError(response)
@@ -1383,13 +1979,14 @@ func (this *WoofiproCore) FetchTradingFees(optionalArgs ...interface{}) <-chan i
 		//     }
 		// }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var maker interface{} = this.SafeString(data, "futures_maker_fee_rate")
-		var taker interface{} = this.SafeString(data, "futures_taker_fee_rate")
-		var result interface{} = map[string]interface{}{}
-		for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
-			var symbol interface{} = GetValue(this.Symbols, i)
-			AddElementToObject(result, symbol, map[string]interface{}{
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var maker any = this.SafeString(data, "futures_maker_fee_rate")
+		var taker any = this.SafeString(data, "futures_taker_fee_rate")
+		var result any = map[string]any{}
+		var symbols any = this.Symbols
+		for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
+			var symbol any = GetValue(symbols, i)
+			AddElementToObject(result, symbol, map[string]any{
 				"info":       response,
 				"symbol":     symbol,
 				"maker":      this.ParseNumber(Precise.StringDiv(maker, "10000")),
@@ -1410,26 +2007,28 @@ func (this *WoofiproCore) FetchTradingFees(optionalArgs ...interface{}) <-chan i
  * @method
  * @name woofipro#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/orderbook-snapshot
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *WoofiproCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		limit := GetArg(optionalArgs, 0, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes12458 := (<-this.LoadMarkets())
-		PanicOnError(retRes12458)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes153812 := (<-this.LoadMarkets())
+			PanicOnError(retRes153812)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -1456,8 +2055,8 @@ func (this *WoofiproCore) FetchOrderBook(symbol interface{}, optionalArgs ...int
 		//     }
 		// }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var timestamp interface{} = this.SafeInteger(data, "timestamp")
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var timestamp any = this.SafeInteger(data, "timestamp")
 
 		ch <- this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")
 		return nil
@@ -1465,16 +2064,16 @@ func (this *WoofiproCore) FetchOrderBook(symbol interface{}, optionalArgs ...int
 	}()
 	return ch
 }
-func (this *WoofiproCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WoofiproCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	return []interface{}{this.SafeInteger(ohlcv, "start_timestamp"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
+	return []any{this.SafeInteger(ohlcv, "start_timestamp"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
 }
 
 /**
  * @method
  * @name woofipro#fetchOHLCV
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-kline
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -1483,9 +2082,9 @@ func (this *WoofiproCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interfac
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *WoofiproCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		timeframe := GetArg(optionalArgs, 0, "1m")
@@ -1494,13 +2093,15 @@ func (this *WoofiproCore) FetchOHLCV(symbol interface{}, optionalArgs ...interfa
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes13018 := (<-this.LoadMarkets())
-		PanicOnError(retRes13018)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes159612 := (<-this.LoadMarkets())
+			PanicOnError(retRes159612)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 			"type":   this.SafeString(this.Timeframes, timeframe, timeframe),
 		}
@@ -1510,7 +2111,7 @@ func (this *WoofiproCore) FetchOHLCV(symbol interface{}, optionalArgs ...interfa
 
 		response := (<-this.V1PrivateGetKline(this.Extend(request, params)))
 		PanicOnError(response)
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 		//
 		// {
 		//     "success": true,
@@ -1531,7 +2132,7 @@ func (this *WoofiproCore) FetchOHLCV(symbol interface{}, optionalArgs ...interfa
 		//     }
 		// }
 		//
-		var rows interface{} = this.SafeList(data, "rows", []interface{}{})
+		var rows any = this.SafeList(data, "rows", []any{})
 
 		ch <- this.ParseOHLCVs(rows, market, timeframe, since, limit)
 		return nil
@@ -1539,7 +2140,7 @@ func (this *WoofiproCore) FetchOHLCV(symbol interface{}, optionalArgs ...interfa
 	}()
 	return ch
 }
-func (this *WoofiproCore) ParseOrder(order interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WoofiproCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	// Possible input functions:
 	// * createOrder
@@ -1587,45 +2188,45 @@ func (this *WoofiproCore) ParseOrder(order interface{}, optionalArgs ...interfac
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp interface{} = this.SafeIntegerN(order, []interface{}{"timestamp", "created_time", "createdTime"})
-	var orderId interface{} = this.SafeStringN(order, []interface{}{"order_id", "orderId", "algoOrderId"})
-	var clientOrderId interface{} = this.OmitZero(this.SafeString2(order, "client_order_id", "clientOrderId")) // Somehow, this always returns 0 for limit order
-	var marketId interface{} = this.SafeString(order, "symbol")
+	var timestamp any = this.SafeIntegerN(order, []any{"timestamp", "created_time", "createdTime"})
+	var orderId any = this.SafeStringN(order, []any{"order_id", "orderId", "algoOrderId"})
+	var clientOrderId any = this.OmitZero(this.SafeString2(order, "client_order_id", "clientOrderId")) // Somehow, this always returns 0 for limit order
+	var marketId any = this.SafeString(order, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var symbol interface{} = GetValue(market, "symbol")
-	var price interface{} = this.SafeString2(order, "order_price", "price")
-	var amount interface{} = this.SafeString2(order, "order_quantity", "quantity") // This is base amount
-	var cost interface{} = this.SafeString2(order, "order_amount", "amount")       // This is quote amount
-	var orderType interface{} = this.SafeStringLower2(order, "order_type", "type")
-	var status interface{} = this.SafeValue2(order, "status", "algoStatus")
-	var success interface{} = this.SafeBool(order, "success")
+	var symbol any = GetValue(market, "symbol")
+	var price any = this.SafeString2(order, "order_price", "price")
+	var amount any = this.SafeString2(order, "order_quantity", "quantity") // This is base amount
+	var cost any = this.SafeString2(order, "order_amount", "amount")       // This is quote amount
+	var orderType any = this.SafeStringLower2(order, "order_type", "type")
+	var status any = this.SafeValue2(order, "status", "algoStatus")
+	var success any = this.SafeBool(order, "success")
 	if IsTrue(!IsEqual(success, nil)) {
 		status = Ternary(IsTrue((success)), "NEW", "REJECTED")
 	}
-	var side interface{} = this.SafeStringLower(order, "side")
-	var filled interface{} = this.OmitZero(this.SafeValue2(order, "executed", "totalExecutedQuantity"))
-	var average interface{} = this.OmitZero(this.SafeString2(order, "average_executed_price", "averageExecutedPrice"))
-	var remaining interface{} = Precise.StringSub(cost, filled)
-	var fee interface{} = this.SafeValue2(order, "total_fee", "totalFee")
-	var feeCurrency interface{} = this.SafeString2(order, "fee_asset", "feeAsset")
-	var transactions interface{} = this.SafeValue(order, "Transactions")
-	var triggerPrice interface{} = this.SafeNumber(order, "triggerPrice")
-	var takeProfitPrice interface{} = nil
-	var stopLossPrice interface{} = nil
-	var childOrders interface{} = this.SafeValue(order, "childOrders")
+	var side any = this.SafeStringLower(order, "side")
+	var filled any = this.SafeStringN(order, []any{"total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed"})
+	var average any = this.OmitZero(this.SafeString2(order, "average_executed_price", "averageExecutedPrice"))
+	var remaining any = Precise.StringSub(amount, filled)
+	var fee any = this.SafeValue2(order, "total_fee", "totalFee")
+	var feeCurrency any = this.SafeString2(order, "fee_asset", "feeAsset")
+	var transactions any = this.SafeValue(order, "Transactions")
+	var triggerPrice any = this.SafeNumber(order, "triggerPrice")
+	var takeProfitPrice any = nil
+	var stopLossPrice any = nil
+	var childOrders any = this.SafeValue(order, "childOrders")
 	if IsTrue(!IsEqual(childOrders, nil)) {
-		var first interface{} = this.SafeValue(childOrders, 0)
-		var innerChildOrders interface{} = this.SafeValue(first, "childOrders", []interface{}{})
-		var innerChildOrdersLength interface{} = GetArrayLength(innerChildOrders)
+		var first any = this.SafeValue(childOrders, 0)
+		var innerChildOrders any = this.SafeValue(first, "childOrders", []any{})
+		var innerChildOrdersLength any = GetArrayLength(innerChildOrders)
 		if IsTrue(IsGreaterThan(innerChildOrdersLength, 0)) {
-			var takeProfitOrder interface{} = this.SafeValue(innerChildOrders, 0)
-			var stopLossOrder interface{} = this.SafeValue(innerChildOrders, 1)
+			var takeProfitOrder any = this.SafeValue(innerChildOrders, 0)
+			var stopLossOrder any = this.SafeValue(innerChildOrders, 1)
 			takeProfitPrice = this.SafeNumber(takeProfitOrder, "triggerPrice")
 			stopLossPrice = this.SafeNumber(stopLossOrder, "triggerPrice")
 		}
 	}
-	var lastUpdateTimestamp interface{} = this.SafeInteger2(order, "updatedTime", "updated_time")
-	return this.SafeOrder(map[string]interface{}{
+	var lastUpdateTimestamp any = this.SafeInteger2(order, "updatedTime", "updated_time")
+	return this.SafeOrder(map[string]any{
 		"id":                  orderId,
 		"clientOrderId":       clientOrderId,
 		"timestamp":           timestamp,
@@ -1649,24 +2250,24 @@ func (this *WoofiproCore) ParseOrder(order interface{}, optionalArgs ...interfac
 		"remaining":           remaining,
 		"cost":                cost,
 		"trades":              transactions,
-		"fee": map[string]interface{}{
+		"fee": map[string]any{
 			"cost":     fee,
 			"currency": feeCurrency,
 		},
 		"info": order,
 	}, market)
 }
-func (this *WoofiproCore) ParseTimeInForce(timeInForce interface{}) interface{} {
-	var timeInForces interface{} = map[string]interface{}{
+func (this *WoofiproCore) ParseTimeInForce(timeInForce any) any {
+	var timeInForces any = map[string]any{
 		"ioc":       "IOC",
 		"fok":       "FOK",
 		"post_only": "PO",
 	}
-	return this.SafeString(timeInForces, timeInForce, nil)
+	return this.SafeString(timeInForces, timeInForce)
 }
-func (this *WoofiproCore) ParseOrderStatus(status interface{}) interface{} {
+func (this *WoofiproCore) ParseOrderStatus(status any) any {
 	if IsTrue(!IsEqual(status, nil)) {
-		var statuses interface{} = map[string]interface{}{
+		var statuses any = map[string]any{
 			"NEW":             "open",
 			"FILLED":          "closed",
 			"CANCEL_SENT":     "canceled",
@@ -1681,15 +2282,25 @@ func (this *WoofiproCore) ParseOrderStatus(status interface{}) interface{} {
 	}
 	return status
 }
-func (this *WoofiproCore) ParseOrderType(typeVar interface{}) interface{} {
-	var types interface{} = map[string]interface{}{
+func (this *WoofiproCore) ParseOrderType(typeVar any) any {
+	var types any = map[string]any{
 		"LIMIT":     "limit",
 		"MARKET":    "market",
 		"POST_ONLY": "limit",
 	}
 	return this.SafeStringLower(types, typeVar, typeVar)
 }
-func (this *WoofiproCore) CreateOrderRequest(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WoofiproCore) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(typeVar, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
+	}
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
+	}
 	/**
 	 * @method
 	 * @ignore
@@ -1703,31 +2314,30 @@ func (this *WoofiproCore) CreateOrderRequest(symbol interface{}, typeVar interfa
 	 * @param {object} [params] extra parameters specific to the exchange API endpoint
 	 * @returns {object} request to be sent to the exchange
 	 */
-	price := GetArg(optionalArgs, 0, nil)
-	_ = price
-	params := GetArg(optionalArgs, 1, map[string]interface{}{})
-	_ = params
-	var reduceOnly interface{} = this.SafeBool2(params, "reduceOnly", "reduce_only")
-	var orderType interface{} = ToUpper(typeVar)
-	var market interface{} = this.Market(symbol)
-	var orderSide interface{} = ToUpper(side)
-	var request interface{} = map[string]interface{}{
+	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
+	var orderType any = ToUpper(typeVar)
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " createOrderRequest() requires a side argument")))
+	}
+	var market any = this.Market(symbol)
+	var orderSide any = ToUpper(side)
+	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 		"side":   orderSide,
 	}
-	var triggerPrice interface{} = this.SafeString2(params, "triggerPrice", "stopPrice")
-	var stopLoss interface{} = this.SafeValue(params, "stopLoss")
-	var takeProfit interface{} = this.SafeValue(params, "takeProfit")
-	var hasStopLoss interface{} = (!IsEqual(stopLoss, nil))
-	var hasTakeProfit interface{} = (!IsEqual(takeProfit, nil))
-	var algoType interface{} = this.SafeString(params, "algoType")
-	var isConditional interface{} = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(hasStopLoss)) || IsTrue(hasTakeProfit)) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
-	var isMarket interface{} = IsEqual(orderType, "MARKET")
-	var timeInForce interface{} = this.SafeStringLower(params, "timeInForce")
-	var postOnly interface{} = this.IsPostOnly(isMarket, nil, params)
-	var orderQtyKey interface{} = Ternary(IsTrue(isConditional), "quantity", "order_quantity")
-	var priceKey interface{} = Ternary(IsTrue(isConditional), "price", "order_price")
-	var typeKey interface{} = Ternary(IsTrue(isConditional), "type", "order_type")
+	var triggerPrice any = this.SafeString2(params, "triggerPrice", "stopPrice")
+	var stopLoss any = this.SafeValue(params, "stopLoss")
+	var takeProfit any = this.SafeValue(params, "takeProfit")
+	var hasStopLoss any = (!IsEqual(stopLoss, nil))
+	var hasTakeProfit any = (!IsEqual(takeProfit, nil))
+	var algoType any = this.SafeString(params, "algoType")
+	var isConditional any = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(hasStopLoss)) || IsTrue(hasTakeProfit)) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
+	var isMarket any = IsEqual(orderType, "MARKET")
+	var timeInForce any = this.SafeStringLower(params, "timeInForce")
+	var postOnly any = this.IsPostOnly(isMarket, nil, params)
+	var orderQtyKey any = Ternary(IsTrue(isConditional), "quantity", "order_quantity")
+	var priceKey any = Ternary(IsTrue(isConditional), "price", "order_price")
+	var typeKey any = Ternary(IsTrue(isConditional), "type", "order_type")
 	AddElementToObject(request, typeKey, orderType) // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
 	if !IsTrue(isConditional) {
 		if IsTrue(postOnly) {
@@ -1749,7 +2359,7 @@ func (this *WoofiproCore) CreateOrderRequest(symbol interface{}, typeVar interfa
 	} else if IsTrue(!IsEqual(algoType, "POSITIONAL_TP_SL")) {
 		AddElementToObject(request, orderQtyKey, this.AmountToPrecision(symbol, amount))
 	}
-	var clientOrderId interface{} = this.SafeStringN(params, []interface{}{"clOrdID", "clientOrderId", "client_order_id"})
+	var clientOrderId any = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	if IsTrue(!IsEqual(clientOrderId, nil)) {
 		AddElementToObject(request, "client_order_id", clientOrderId)
 	}
@@ -1758,17 +2368,11 @@ func (this *WoofiproCore) CreateOrderRequest(symbol interface{}, typeVar interfa
 		AddElementToObject(request, "algo_type", "STOP")
 	} else if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
 		AddElementToObject(request, "algo_type", "TP_SL")
-		var outterOrder interface{} = map[string]interface{}{
-			"symbol":       GetValue(market, "id"),
-			"reduce_only":  false,
-			"algo_type":    "POSITIONAL_TP_SL",
-			"child_orders": []interface{}{},
-		}
-		var childOrders interface{} = GetValue(outterOrder, "child_orders")
-		var closeSide interface{} = Ternary(IsTrue((IsEqual(orderSide, "BUY"))), "SELL", "BUY")
+		var childOrders any = []any{}
+		var closeSide any = Ternary(IsTrue((IsEqual(orderSide, "BUY"))), "SELL", "BUY")
 		if IsTrue(hasStopLoss) {
-			var stopLossPrice interface{} = this.SafeNumber2(stopLoss, "triggerPrice", "price", stopLoss)
-			var stopLossOrder interface{} = map[string]interface{}{
+			var stopLossPrice any = this.SafeValue2(stopLoss, "triggerPrice", "price", stopLoss)
+			var stopLossOrder any = map[string]any{
 				"side":          closeSide,
 				"algo_type":     "TP_SL",
 				"trigger_price": this.PriceToPrecision(symbol, stopLossPrice),
@@ -1778,19 +2382,25 @@ func (this *WoofiproCore) CreateOrderRequest(symbol interface{}, typeVar interfa
 			AppendToArray(&childOrders, stopLossOrder)
 		}
 		if IsTrue(hasTakeProfit) {
-			var takeProfitPrice interface{} = this.SafeNumber2(takeProfit, "triggerPrice", "price", takeProfit)
-			var takeProfitOrder interface{} = map[string]interface{}{
+			var takeProfitPrice any = this.SafeValue2(takeProfit, "triggerPrice", "price", takeProfit)
+			var takeProfitOrder any = map[string]any{
 				"side":          closeSide,
 				"algo_type":     "TP_SL",
 				"trigger_price": this.PriceToPrecision(symbol, takeProfitPrice),
 				"type":          "LIMIT",
 				"reduce_only":   true,
 			}
-			AppendToArray(&outterOrder, takeProfitOrder)
+			AppendToArray(&childOrders, takeProfitOrder)
 		}
-		AddElementToObject(request, "child_orders", []interface{}{outterOrder})
+		var outterOrder any = map[string]any{
+			"symbol":       GetValue(market, "id"),
+			"reduce_only":  false,
+			"algo_type":    "POSITIONAL_TP_SL",
+			"child_orders": childOrders,
+		}
+		AddElementToObject(request, "child_orders", []any{outterOrder})
 	}
-	params = this.Omit(params, []interface{}{"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit"})
+	params = this.Omit(params, []any{"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit"})
 	return this.Extend(request, params)
 }
 
@@ -1798,8 +2408,8 @@ func (this *WoofiproCore) CreateOrderRequest(symbol interface{}, typeVar interfa
  * @method
  * @name woofipro#createOrder
  * @description create a trade order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -1816,25 +2426,27 @@ func (this *WoofiproCore) CreateOrderRequest(symbol interface{}, typeVar interfa
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WoofiproCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16128 := (<-this.LoadMarkets())
-		PanicOnError(retRes16128)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
-		var triggerPrice interface{} = this.SafeString2(params, "triggerPrice", "stopPrice")
-		var stopLoss interface{} = this.SafeValue(params, "stopLoss")
-		var takeProfit interface{} = this.SafeValue(params, "takeProfit")
-		var isConditional interface{} = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLoss, nil))) || IsTrue(!IsEqual(takeProfit, nil))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
-		var response interface{} = nil
+			retRes191812 := (<-this.LoadMarkets())
+			PanicOnError(retRes191812)
+		}
+		var market any = this.Market(symbol)
+		var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+		var triggerPrice any = this.SafeString2(params, "triggerPrice", "stopPrice")
+		var stopLoss any = this.SafeValue(params, "stopLoss")
+		var takeProfit any = this.SafeValue(params, "takeProfit")
+		var isConditional any = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLoss, nil))) || IsTrue(!IsEqual(takeProfit, nil))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
+		var response any = nil
 		if IsTrue(isConditional) {
 
 			response = (<-this.V1PrivatePostAlgoOrder(request))
@@ -1844,9 +2456,9 @@ func (this *WoofiproCore) CreateOrder(symbol interface{}, typeVar interface{}, s
 			response = (<-this.V1PrivatePostOrder(request))
 			PanicOnError(response)
 		}
-		var data interface{} = this.SafeDict(response, "data")
+		var data any = this.SafeDict(response, "data", map[string]any{})
 		AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
-		var order interface{} = this.ParseOrder(data, market)
+		var order any = this.ParseOrder(data, market)
 		AddElementToObject(order, "type", typeVar)
 
 		ch <- order
@@ -1860,41 +2472,43 @@ func (this *WoofiproCore) CreateOrder(symbol interface{}, typeVar interface{}, s
  * @method
  * @name woofipro#createOrders
  * @description *contract only* create a list of trade orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-create-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WoofiproCore) CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16698 := (<-this.LoadMarkets())
-		PanicOnError(retRes16698)
-		var ordersRequests interface{} = []interface{}{}
+			retRes197712 := (<-this.LoadMarkets())
+			PanicOnError(retRes197712)
+		}
+		var ordersRequests any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
-			var rawOrder interface{} = GetValue(orders, i)
-			var marketId interface{} = this.SafeString(rawOrder, "symbol")
-			var typeVar interface{} = this.SafeString(rawOrder, "type")
-			var side interface{} = this.SafeString(rawOrder, "side")
-			var amount interface{} = this.SafeValue(rawOrder, "amount")
-			var price interface{} = this.SafeValue(rawOrder, "price")
-			var orderParams interface{} = this.SafeDict(rawOrder, "params", map[string]interface{}{})
-			var triggerPrice interface{} = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
-			var stopLoss interface{} = this.SafeValue(orderParams, "stopLoss")
-			var takeProfit interface{} = this.SafeValue(orderParams, "takeProfit")
-			var isConditional interface{} = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLoss, nil))) || IsTrue(!IsEqual(takeProfit, nil))) || IsTrue((!IsEqual(this.SafeValue(orderParams, "childOrders"), nil)))
+			var rawOrder any = GetValue(orders, i)
+			var marketId any = this.SafeString(rawOrder, "symbol")
+			var typeVar any = this.SafeString(rawOrder, "type")
+			var side any = this.SafeString(rawOrder, "side")
+			var amount any = this.SafeValue(rawOrder, "amount")
+			var price any = this.SafeValue(rawOrder, "price")
+			var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+			var triggerPrice any = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
+			var stopLoss any = this.SafeValue(orderParams, "stopLoss")
+			var takeProfit any = this.SafeValue(orderParams, "takeProfit")
+			var isConditional any = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLoss, nil))) || IsTrue(!IsEqual(takeProfit, nil))) || IsTrue((!IsEqual(this.SafeValue(orderParams, "childOrders"), nil)))
 			if IsTrue(isConditional) {
 				panic(NotSupported(Add(this.Id, " createOrders() only support non-stop order")))
 			}
-			var orderRequest interface{} = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
+			var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
 			AppendToArray(&ordersRequests, orderRequest)
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"orders": ordersRequests,
 		}
 
@@ -1917,8 +2531,8 @@ func (this *WoofiproCore) CreateOrders(orders interface{}, optionalArgs ...inter
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var rows interface{} = this.SafeList(data, "rows", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var rows any = this.SafeList(data, "rows", []any{})
 
 		ch <- this.ParseOrders(rows)
 		return nil
@@ -1931,8 +2545,8 @@ func (this *WoofiproCore) CreateOrders(orders interface{}, optionalArgs ...inter
  * @method
  * @name woofipro#editOrder
  * @description edit a trade order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -1945,39 +2559,44 @@ func (this *WoofiproCore) CreateOrders(orders interface{}, optionalArgs ...inter
  * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WoofiproCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		amount := GetArg(optionalArgs, 0, nil)
 		_ = amount
 		price := GetArg(optionalArgs, 1, nil)
 		_ = price
-		params := GetArg(optionalArgs, 2, map[string]interface{}{})
+		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17348 := (<-this.LoadMarkets())
-		PanicOnError(retRes17348)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes204412 := (<-this.LoadMarkets())
+			PanicOnError(retRes204412)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"order_id": id,
 		}
-		var triggerPrice interface{} = this.SafeStringN(params, []interface{}{"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"})
+		var triggerPrice any = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"})
 		if IsTrue(!IsEqual(triggerPrice, nil)) {
 			AddElementToObject(request, "triggerPrice", this.PriceToPrecision(symbol, triggerPrice))
 		}
-		var isConditional interface{} = IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
-		var orderQtyKey interface{} = Ternary(IsTrue(isConditional), "quantity", "order_quantity")
-		var priceKey interface{} = Ternary(IsTrue(isConditional), "price", "order_price")
+		var isConditional any = IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
+		var orderQtyKey any = Ternary(IsTrue(isConditional), "quantity", "order_quantity")
+		var priceKey any = Ternary(IsTrue(isConditional), "price", "order_price")
 		if IsTrue(!IsEqual(price, nil)) {
 			AddElementToObject(request, priceKey, this.PriceToPrecision(symbol, price))
 		}
 		if IsTrue(!IsEqual(amount, nil)) {
 			AddElementToObject(request, orderQtyKey, this.AmountToPrecision(symbol, amount))
 		}
-		params = this.Omit(params, []interface{}{"stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"})
-		var response interface{} = nil
+		params = this.Omit(params, []any{"stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"})
+		var response any = nil
+		if IsTrue(IsEqual(side, nil)) {
+			panic(ArgumentsRequired(Add(this.Id, " editOrder() requires a side argument")))
+		}
 		if IsTrue(isConditional) {
 
 			response = (<-this.V1PrivatePutAlgoOrder(this.Extend(request, params)))
@@ -1985,10 +2604,10 @@ func (this *WoofiproCore) EditOrder(id interface{}, symbol interface{}, typeVar 
 		} else {
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 			AddElementToObject(request, "side", ToUpper(side))
-			var orderType interface{} = ToUpper(typeVar)
-			var timeInForce interface{} = this.SafeStringLower(params, "timeInForce")
-			var isMarket interface{} = IsEqual(orderType, "MARKET")
-			var postOnly interface{} = this.IsPostOnly(isMarket, nil, params)
+			var orderType any = ToUpper(typeVar)
+			var timeInForce any = this.SafeStringLower(params, "timeInForce")
+			var isMarket any = IsEqual(orderType, "MARKET")
+			var postOnly any = this.IsPostOnly(isMarket, nil, params)
 			if IsTrue(postOnly) {
 				AddElementToObject(request, "order_type", "POST_ONLY")
 			} else if IsTrue(IsEqual(timeInForce, "fok")) {
@@ -1998,8 +2617,8 @@ func (this *WoofiproCore) EditOrder(id interface{}, symbol interface{}, typeVar 
 			} else {
 				AddElementToObject(request, "order_type", orderType)
 			}
-			var clientOrderId interface{} = this.SafeStringN(params, []interface{}{"clOrdID", "clientOrderId", "client_order_id"})
-			params = this.Omit(params, []interface{}{"clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce"})
+			var clientOrderId any = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
+			params = this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce"})
 			if IsTrue(!IsEqual(clientOrderId, nil)) {
 				AddElementToObject(request, "client_order_id", clientOrderId)
 			}
@@ -2018,7 +2637,7 @@ func (this *WoofiproCore) EditOrder(id interface{}, symbol interface{}, typeVar 
 		//     }
 		// }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 		AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
 
 		ch <- this.ParseOrder(data, market)
@@ -2031,10 +2650,10 @@ func (this *WoofiproCore) EditOrder(id interface{}, symbol interface{}, typeVar 
 /**
  * @method
  * @name woofipro#cancelOrder
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order-by-client_order_id
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
  * @description cancels an open order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
@@ -2043,38 +2662,40 @@ func (this *WoofiproCore) EditOrder(id interface{}, symbol interface{}, typeVar 
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WoofiproCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-		var trigger interface{} = this.SafeBool2(params, "stop", "trigger", false)
-		params = this.Omit(params, []interface{}{"stop", "trigger"})
+		var trigger any = this.SafeBool2(params, "stop", "trigger", false)
+		params = this.Omit(params, []any{"stop", "trigger"})
 		if IsTrue(!IsTrue(trigger) && IsTrue((IsEqual(symbol, nil)))) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes18168 := (<-this.LoadMarkets())
-		PanicOnError(retRes18168)
-		var market interface{} = nil
+			retRes213112 := (<-this.LoadMarkets())
+			PanicOnError(retRes213112)
+		}
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var request interface{} = map[string]interface{}{
-			"symbol": GetValue(market, "id"),
+		var request any = map[string]any{
+			"symbol": this.SafeString(market, "id"),
 		}
-		var clientOrderIdUnified interface{} = this.SafeString2(params, "clOrdID", "clientOrderId")
-		var clientOrderIdExchangeSpecific interface{} = this.SafeString(params, "client_order_id", clientOrderIdUnified)
-		var isByClientOrder interface{} = !IsEqual(clientOrderIdExchangeSpecific, nil)
-		var response interface{} = nil
+		var clientOrderIdUnified any = this.SafeString2(params, "clOrdID", "clientOrderId")
+		var clientOrderIdExchangeSpecific any = this.SafeString(params, "client_order_id", clientOrderIdUnified)
+		var isByClientOrder any = !IsEqual(clientOrderIdExchangeSpecific, nil)
+		var response any = nil
 		if IsTrue(trigger) {
 			if IsTrue(isByClientOrder) {
 				AddElementToObject(request, "client_order_id", clientOrderIdExchangeSpecific)
-				params = this.Omit(params, []interface{}{"clOrdID", "clientOrderId", "client_order_id"})
+				params = this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
 
 				response = (<-this.V1PrivateDeleteAlgoClientOrder(this.Extend(request, params)))
 				PanicOnError(response)
@@ -2087,7 +2708,7 @@ func (this *WoofiproCore) CancelOrder(id interface{}, optionalArgs ...interface{
 		} else {
 			if IsTrue(isByClientOrder) {
 				AddElementToObject(request, "client_order_id", clientOrderIdExchangeSpecific)
-				params = this.Omit(params, []interface{}{"clOrdID", "clientOrderId", "client_order_id"})
+				params = this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
 
 				response = (<-this.V1PrivateDeleteClientOrder(this.Extend(request, params)))
 				PanicOnError(response)
@@ -2113,7 +2734,7 @@ func (this *WoofiproCore) CancelOrder(id interface{}, optionalArgs ...interface{
 		//     "status": "CANCEL_SENT"
 		// }
 		//
-		var extendParams interface{} = map[string]interface{}{
+		var extendParams any = map[string]any{
 			"symbol": symbol,
 		}
 		if IsTrue(isByClientOrder) {
@@ -2122,11 +2743,12 @@ func (this *WoofiproCore) CancelOrder(id interface{}, optionalArgs ...interface{
 			AddElementToObject(extendParams, "id", id)
 		}
 		if IsTrue(trigger) {
+			var parsedResponse any = Ternary(IsTrue((IsEqual(response, nil))), map[string]any{}, response)
 
-			ch <- this.Extend(this.ParseOrder(response), extendParams)
+			ch <- this.Extend(this.ParseOrder(parsedResponse), extendParams)
 			return nil
 		}
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.Extend(this.ParseOrder(data), extendParams)
 		return nil
@@ -2139,30 +2761,32 @@ func (this *WoofiproCore) CancelOrder(id interface{}, optionalArgs ...interface{
  * @method
  * @name woofipro#cancelOrders
  * @description cancel multiple orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string[]} [params.client_order_ids] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WoofiproCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes18888 := (<-this.LoadMarkets())
-		PanicOnError(retRes18888)
-		var clientOrderIds interface{} = this.SafeListN(params, []interface{}{"clOrdIDs", "clientOrderIds", "client_order_ids"})
-		params = this.Omit(params, []interface{}{"clOrdIDs", "clientOrderIds", "client_order_ids"})
-		var request interface{} = map[string]interface{}{}
-		var response interface{} = nil
+			retRes220612 := (<-this.LoadMarkets())
+			PanicOnError(retRes220612)
+		}
+		var clientOrderIds any = this.SafeListN(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
+		params = this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
+		var request any = map[string]any{}
+		var response any = nil
 		if IsTrue(clientOrderIds) {
 			AddElementToObject(request, "client_order_ids", Join(clientOrderIds, ","))
 
@@ -2184,7 +2808,7 @@ func (this *WoofiproCore) CancelOrders(ids interface{}, optionalArgs ...interfac
 		//     }
 		// }
 		//
-		ch <- []interface{}{this.SafeOrder(map[string]interface{}{
+		ch <- []any{this.SafeOrder(map[string]any{
 			"info": response,
 		})}
 		return nil
@@ -2196,34 +2820,36 @@ func (this *WoofiproCore) CancelOrders(ids interface{}, optionalArgs ...interfac
 /**
  * @method
  * @name woofipro#cancelAllOrders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-all-pending-algo-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
  * @description cancel all open orders in a market
- * @param {string} symbol unified market symbol
+ * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WoofiproCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) CancelAllOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes19268 := (<-this.LoadMarkets())
-		PanicOnError(retRes19268)
-		var trigger interface{} = this.SafeBool2(params, "stop", "trigger")
-		params = this.Omit(params, []interface{}{"stop", "trigger"})
-		var request interface{} = map[string]interface{}{}
+			retRes224612 := (<-this.LoadMarkets())
+			PanicOnError(retRes224612)
+		}
+		var trigger any = this.SafeBool2(params, "stop", "trigger")
+		params = this.Omit(params, []any{"stop", "trigger"})
+		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
-			var market interface{} = this.Market(symbol)
+			var market any = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(trigger) {
 
 			response = (<-this.V1PrivateDeleteAlgoOrders(this.Extend(request, params)))
@@ -2249,7 +2875,7 @@ func (this *WoofiproCore) CancelAllOrders(optionalArgs ...interface{}) <-chan in
 		//     }
 		// }
 		//
-		ch <- []interface{}{this.SafeOrder(map[string]interface{}{
+		ch <- []any{this.SafeOrder(map[string]any{
 			"info": response,
 		})}
 		return nil
@@ -2261,10 +2887,10 @@ func (this *WoofiproCore) CancelAllOrders(optionalArgs ...interface{}) <-chan in
 /**
  * @method
  * @name woofipro#fetchOrder
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-order_id
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-client_order_id
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-order_id
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
  * @description fetches information on an order made by the user
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
@@ -2273,27 +2899,29 @@ func (this *WoofiproCore) CancelAllOrders(optionalArgs ...interface{}) <-chan in
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WoofiproCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes19788 := (<-this.LoadMarkets())
-		PanicOnError(retRes19788)
-		var market interface{} = nil
+			retRes230012 := (<-this.LoadMarkets())
+			PanicOnError(retRes230012)
+		}
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var trigger interface{} = this.SafeBool2(params, "stop", "trigger", false)
-		var request interface{} = map[string]interface{}{}
-		var clientOrderId interface{} = this.SafeStringN(params, []interface{}{"clOrdID", "clientOrderId", "client_order_id"})
-		params = this.Omit(params, []interface{}{"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"})
-		var response interface{} = nil
+		var trigger any = this.SafeBool2(params, "stop", "trigger", false)
+		var request any = map[string]any{}
+		var clientOrderId any = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
+		params = this.Omit(params, []any{"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"})
+		var response any = nil
 		if IsTrue(trigger) {
 			if IsTrue(clientOrderId) {
 				AddElementToObject(request, "client_order_id", clientOrderId)
@@ -2346,9 +2974,10 @@ func (this *WoofiproCore) FetchOrder(id interface{}, optionalArgs ...interface{}
 		//     }
 		// }
 		//
-		var orders interface{} = this.SafeDict(response, "data", response)
+		var orders any = this.SafeDict(response, "data", response)
+		var parsedOrders any = Ternary(IsTrue((IsEqual(orders, nil))), map[string]any{}, orders)
 
-		ch <- this.ParseOrder(orders, market)
+		ch <- this.ParseOrder(parsedOrders, market)
 		return nil
 
 	}()
@@ -2359,8 +2988,8 @@ func (this *WoofiproCore) FetchOrder(id interface{}, optionalArgs ...interface{}
  * @method
  * @name woofipro#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2372,9 +3001,9 @@ func (this *WoofiproCore) FetchOrder(id interface{}, optionalArgs ...interface{}
  * @param {int} params.until timestamp in ms of the latest order to fetch
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WoofiproCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2383,27 +3012,29 @@ func (this *WoofiproCore) FetchOrders(optionalArgs ...interface{}) <-chan interf
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes20548 := (<-this.LoadMarkets())
-		PanicOnError(retRes20548)
-		var paginate interface{} = false
-		var isTrigger interface{} = this.SafeBool2(params, "stop", "trigger", false)
-		var maxLimit interface{} = Ternary(IsTrue((isTrigger)), 100, 500)
+			retRes237912 := (<-this.LoadMarkets())
+			PanicOnError(retRes237912)
+		}
+		var paginate any = false
+		var isTrigger any = this.SafeBool2(params, "stop", "trigger", false)
+		var maxLimit any = Ternary(IsTrue((isTrigger)), 100, 500)
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes206019 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", maxLimit))
-			PanicOnError(retRes206019)
-			ch <- retRes206019
+			retRes238619 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", maxLimit))
+			PanicOnError(retRes238619)
+			ch <- retRes238619
 			return nil
 		}
-		var request interface{} = map[string]interface{}{}
-		var market interface{} = nil
-		params = this.Omit(params, []interface{}{"stop", "trigger"})
+		var request any = map[string]any{}
+		var market any = nil
+		params = this.Omit(params, []any{"stop", "trigger"})
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -2422,7 +3053,7 @@ func (this *WoofiproCore) FetchOrders(optionalArgs ...interface{}) <-chan interf
 		requestparamsVariable := this.HandleUntilOption("end_t", request, params)
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(isTrigger) {
 
 			response = (<-this.V1PrivateGetAlgoOrders(this.Extend(request, params)))
@@ -2435,7 +3066,7 @@ func (this *WoofiproCore) FetchOrders(optionalArgs ...interface{}) <-chan interf
 		//
 		//     {
 		//         "success": true,
-		//         "timestamp": 1702989203989,
+		//         "timestamp": 1702989203988,
 		//         "data": {
 		//             "meta": {
 		//                 "total": 9,
@@ -2466,8 +3097,8 @@ func (this *WoofiproCore) FetchOrders(optionalArgs ...interface{}) <-chan interf
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeValue(response, "data", response)
-		var orders interface{} = this.SafeList(data, "rows")
+		var data any = this.SafeValue(response, "data", response)
+		var orders any = this.SafeList(data, "rows")
 
 		ch <- this.ParseOrders(orders, market, since, limit)
 		return nil
@@ -2480,8 +3111,8 @@ func (this *WoofiproCore) FetchOrders(optionalArgs ...interface{}) <-chan interf
  * @method
  * @name woofipro#fetchOpenOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2493,9 +3124,9 @@ func (this *WoofiproCore) FetchOrders(optionalArgs ...interface{}) <-chan interf
  * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WoofiproCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2504,18 +3135,20 @@ func (this *WoofiproCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan in
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes21448 := (<-this.LoadMarkets())
-		PanicOnError(retRes21448)
-		var extendedParams interface{} = this.Extend(params, map[string]interface{}{
+			retRes247112 := (<-this.LoadMarkets())
+			PanicOnError(retRes247112)
+		}
+		var extendedParams any = this.Extend(params, map[string]any{
 			"status": "INCOMPLETE",
 		})
 
-		retRes214615 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes214615)
-		ch <- retRes214615
+		retRes247415 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+		PanicOnError(retRes247415)
+		ch <- retRes247415
 		return nil
 
 	}()
@@ -2526,8 +3159,8 @@ func (this *WoofiproCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan in
  * @method
  * @name woofipro#fetchClosedOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2539,9 +3172,9 @@ func (this *WoofiproCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan in
  * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WoofiproCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2550,18 +3183,20 @@ func (this *WoofiproCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan 
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes21678 := (<-this.LoadMarkets())
-		PanicOnError(retRes21678)
-		var extendedParams interface{} = this.Extend(params, map[string]interface{}{
+			retRes249612 := (<-this.LoadMarkets())
+			PanicOnError(retRes249612)
+		}
+		var extendedParams any = this.Extend(params, map[string]any{
 			"status": "COMPLETED",
 		})
 
-		retRes216915 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes216915)
-		ch <- retRes216915
+		retRes249915 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+		PanicOnError(retRes249915)
+		ch <- retRes249915
 		return nil
 
 	}()
@@ -2572,7 +3207,7 @@ func (this *WoofiproCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan 
  * @method
  * @name woofipro#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-trades-of-specific-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-trades-of-specific-order
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2580,9 +3215,9 @@ func (this *WoofiproCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *WoofiproCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2591,16 +3226,18 @@ func (this *WoofiproCore) FetchOrderTrades(id interface{}, optionalArgs ...inter
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes21858 := (<-this.LoadMarkets())
-		PanicOnError(retRes21858)
-		var market interface{} = nil
+			retRes251612 := (<-this.LoadMarkets())
+			PanicOnError(retRes251612)
+		}
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"oid": id,
 		}
 
@@ -2627,8 +3264,8 @@ func (this *WoofiproCore) FetchOrderTrades(id interface{}, optionalArgs ...inter
 		//     }
 		// }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var trades interface{} = this.SafeList(data, "rows", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var trades any = this.SafeList(data, "rows", []any{})
 
 		ch <- this.ParseTrades(trades, market, since, limit, params)
 		return nil
@@ -2640,7 +3277,7 @@ func (this *WoofiproCore) FetchOrderTrades(id interface{}, optionalArgs ...inter
 /**
  * @method
  * @name woofipro#fetchMyTrades
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-trades
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-trades
  * @description fetch all trades made by the user
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2650,9 +3287,9 @@ func (this *WoofiproCore) FetchOrderTrades(id interface{}, optionalArgs ...inter
  * @param {int} params.until timestamp in ms of the latest trade to fetch
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *WoofiproCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchMyTrades(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2661,24 +3298,26 @@ func (this *WoofiproCore) FetchMyTrades(optionalArgs ...interface{}) <-chan inte
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes22348 := (<-this.LoadMarkets())
-		PanicOnError(retRes22348)
-		var paginate interface{} = false
+			retRes256712 := (<-this.LoadMarkets())
+			PanicOnError(retRes256712)
+		}
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes223819 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes223819)
-			ch <- retRes223819
+			retRes257219 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes257219)
+			ch <- retRes257219
 			return nil
 		}
-		var request interface{} = map[string]interface{}{}
-		var market interface{} = nil
+		var request any = map[string]any{}
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -2723,8 +3362,8 @@ func (this *WoofiproCore) FetchMyTrades(optionalArgs ...interface{}) <-chan inte
 		//     }
 		// }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var trades interface{} = this.SafeList(data, "rows", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var trades any = this.SafeList(data, "rows", []any{})
 
 		ch <- this.ParseTrades(trades, market, since, limit, params)
 		return nil
@@ -2732,18 +3371,20 @@ func (this *WoofiproCore) FetchMyTrades(optionalArgs ...interface{}) <-chan inte
 	}()
 	return ch
 }
-func (this *WoofiproCore) ParseBalance(response interface{}) interface{} {
-	var result interface{} = map[string]interface{}{
+func (this *WoofiproCore) ParseBalance(response any) any {
+	var result any = map[string]any{
 		"info": response,
 	}
-	var balances interface{} = this.SafeList(response, "holding", []interface{}{})
+	var balances any = this.SafeList(response, "holding", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(balances)); i++ {
-		var balance interface{} = GetValue(balances, i)
-		var code interface{} = this.SafeCurrencyCode(this.SafeString(balance, "token"))
-		var account interface{} = this.Account()
+		var balance any = GetValue(balances, i)
+		var code any = this.SafeCurrencyCode(this.SafeString(balance, "token"))
+		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "holding"))
-		AddElementToObject(account, "frozen", this.SafeString(balance, "frozen"))
-		AddElementToObject(result, code, account)
+		AddElementToObject(account, "used", this.SafeString(balance, "frozen"))
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -2752,20 +3393,22 @@ func (this *WoofiproCore) ParseBalance(response interface{}) interface{} {
  * @method
  * @name woofipro#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-current-holding
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *WoofiproCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchBalance(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes23128 := (<-this.LoadMarkets())
-		PanicOnError(retRes23128)
+			retRes264912 := (<-this.LoadMarkets())
+			PanicOnError(retRes264912)
+		}
 
 		response := (<-this.V1PrivateGetClientHolding(params))
 		PanicOnError(response)
@@ -2784,7 +3427,7 @@ func (this *WoofiproCore) FetchBalance(optionalArgs ...interface{}) <-chan inter
 		//     }
 		// }
 		//
-		var data interface{} = this.SafeDict(response, "data")
+		var data any = this.SafeDict(response, "data")
 
 		ch <- this.ParseBalance(data)
 		return nil
@@ -2792,9 +3435,9 @@ func (this *WoofiproCore) FetchBalance(optionalArgs ...interface{}) <-chan inter
 	}()
 	return ch
 }
-func (this *WoofiproCore) GetAssetHistoryRows(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) GetAssetHistoryRows(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -2803,13 +3446,15 @@ func (this *WoofiproCore) GetAssetHistoryRows(optionalArgs ...interface{}) <-cha
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes23348 := (<-this.LoadMarkets())
-		PanicOnError(retRes23348)
-		var request interface{} = map[string]interface{}{}
-		var currency interface{} = nil
+			retRes267312 := (<-this.LoadMarkets())
+			PanicOnError(retRes267312)
+		}
+		var request any = map[string]any{}
+		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
 			AddElementToObject(request, "balance_token", GetValue(currency, "id"))
@@ -2820,7 +3465,7 @@ func (this *WoofiproCore) GetAssetHistoryRows(optionalArgs ...interface{}) <-cha
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "pageSize", limit)
 		}
-		var transactionType interface{} = this.SafeString(params, "type")
+		var transactionType any = this.SafeString(params, "type")
 		params = this.Omit(params, "type")
 		if IsTrue(!IsEqual(transactionType, nil)) {
 			AddElementToObject(request, "type", transactionType)
@@ -2853,26 +3498,26 @@ func (this *WoofiproCore) GetAssetHistoryRows(optionalArgs ...interface{}) <-cha
 		//     }
 		// }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
-		ch <- []interface{}{currency, this.SafeList(data, "rows", []interface{}{})}
+		ch <- []any{currency, this.SafeList(data, "rows", []any{})}
 		return nil
 
 	}()
 	return ch
 }
-func (this *WoofiproCore) ParseLedgerEntry(item interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WoofiproCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var currencyId interface{} = this.SafeString(item, "token")
-	var code interface{} = this.SafeCurrencyCode(currencyId, currency)
+	var currencyId any = this.SafeString(item, "token")
+	var code any = this.SafeCurrencyCode(currencyId, currency)
 	currency = this.SafeCurrency(currencyId, currency)
-	var amount interface{} = this.SafeNumber(item, "amount")
-	var side interface{} = this.SafeString(item, "token_side")
-	var direction interface{} = Ternary(IsTrue((IsEqual(side, "DEPOSIT"))), "in", "out")
-	var timestamp interface{} = this.SafeInteger(item, "created_time")
-	var fee interface{} = this.ParseTokenAndFeeTemp(item, "fee_token", "fee_amount")
-	return this.SafeLedgerEntry(map[string]interface{}{
+	var amount any = this.SafeNumber(item, "amount")
+	var side any = this.SafeString(item, "token_side")
+	var direction any = Ternary(IsTrue((IsEqual(side, "DEPOSIT"))), "in", "out")
+	var timestamp any = this.SafeInteger(item, "created_time")
+	var fee any = this.ParseTokenAndFeeTemp(item, "fee_token", "fee_amount")
+	return this.SafeLedgerEntry(map[string]any{
 		"id":               this.SafeString(item, "id"),
 		"currency":         code,
 		"account":          this.SafeString(item, "account"),
@@ -2890,8 +3535,8 @@ func (this *WoofiproCore) ParseLedgerEntry(item interface{}, optionalArgs ...int
 		"info":             item,
 	}, currency)
 }
-func (this *WoofiproCore) ParseLedgerEntryType(typeVar interface{}) interface{} {
-	var types interface{} = map[string]interface{}{
+func (this *WoofiproCore) ParseLedgerEntryType(typeVar any) any {
+	var types any = map[string]any{
 		"BALANCE":    "transaction",
 		"COLLATERAL": "transfer",
 	}
@@ -2902,16 +3547,16 @@ func (this *WoofiproCore) ParseLedgerEntryType(typeVar interface{}) interface{} 
  * @method
  * @name woofipro#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-func (this *WoofiproCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchLedger(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -2920,13 +3565,13 @@ func (this *WoofiproCore) FetchLedger(optionalArgs ...interface{}) <-chan interf
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		currencyRows := (<-this.GetAssetHistoryRows(code, since, limit, params))
 		PanicOnError(currencyRows)
-		var currency interface{} = this.SafeValue(currencyRows, 0)
-		var rows interface{} = this.SafeList(currencyRows, 1)
+		var currency any = this.SafeValue(currencyRows, 0)
+		var rows any = this.SafeList(currencyRows, 1)
 
 		ch <- this.ParseLedger(rows, currency, since, limit, params)
 		return nil
@@ -2934,20 +3579,20 @@ func (this *WoofiproCore) FetchLedger(optionalArgs ...interface{}) <-chan interf
 	}()
 	return ch
 }
-func (this *WoofiproCore) ParseTransaction(transaction interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WoofiproCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	// example in fetchLedger
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var code interface{} = this.SafeString(transaction, "token")
-	var movementDirection interface{} = this.SafeStringLower(transaction, "token_side")
+	var code any = this.SafeString(transaction, "token")
+	var movementDirection any = this.SafeStringLower(transaction, "token_side")
 	if IsTrue(IsEqual(movementDirection, "withdraw")) {
 		movementDirection = "withdrawal"
 	}
-	var fee interface{} = this.ParseTokenAndFeeTemp(transaction, "fee_token", "fee_amount")
-	var addressTo interface{} = this.SafeString(transaction, "target_address")
-	var addressFrom interface{} = this.SafeString(transaction, "source_address")
-	var timestamp interface{} = this.SafeInteger(transaction, "created_time")
-	return map[string]interface{}{
+	var fee any = this.ParseTokenAndFeeTemp(transaction, "fee_token", "fee_amount")
+	var addressTo any = this.SafeString(transaction, "target_address")
+	var addressFrom any = this.SafeString(transaction, "source_address")
+	var timestamp any = this.SafeInteger(transaction, "created_time")
+	return map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString2(transaction, "id", "withdraw_id"),
 		"txid":        this.SafeString(transaction, "tx_id"),
@@ -2970,8 +3615,8 @@ func (this *WoofiproCore) ParseTransaction(transaction interface{}, optionalArgs
 		"network":     nil,
 	}
 }
-func (this *WoofiproCore) ParseTransactionStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *WoofiproCore) ParseTransactionStatus(status any) any {
+	var statuses any = map[string]any{
 		"NEW":        "pending",
 		"CONFIRMING": "pending",
 		"PROCESSING": "pending",
@@ -2985,16 +3630,16 @@ func (this *WoofiproCore) ParseTransactionStatus(status interface{}) interface{}
  * @method
  * @name woofipro#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *WoofiproCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchDeposits(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -3003,15 +3648,15 @@ func (this *WoofiproCore) FetchDeposits(optionalArgs ...interface{}) <-chan inte
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"side": "DEPOSIT",
 		}
 
-		retRes249715 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes249715)
-		ch <- retRes249715
+		retRes283715 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes283715)
+		ch <- retRes283715
 		return nil
 
 	}()
@@ -3022,16 +3667,16 @@ func (this *WoofiproCore) FetchDeposits(optionalArgs ...interface{}) <-chan inte
  * @method
  * @name woofipro#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *WoofiproCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -3040,15 +3685,15 @@ func (this *WoofiproCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan i
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"side": "WITHDRAW",
 		}
 
-		retRes251515 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes251515)
-		ch <- retRes251515
+		retRes285515 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes285515)
+		ch <- retRes285515
 		return nil
 
 	}()
@@ -3059,16 +3704,16 @@ func (this *WoofiproCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan i
  * @method
  * @name woofipro#fetchDepositsWithdrawals
  * @description fetch history of deposits and withdrawals
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
  * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *WoofiproCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -3077,15 +3722,14 @@ func (this *WoofiproCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) 
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{}
+		var request any = map[string]any{}
 
 		currencyRows := (<-this.GetAssetHistoryRows(code, since, limit, this.Extend(request, params)))
 		PanicOnError(currencyRows)
-		var currency interface{} = this.SafeValue(currencyRows, 0)
-		var rows interface{} = this.SafeList(currencyRows, 1)
-
+		var currency any = this.SafeValue(currencyRows, 0)
+		var rows any = this.SafeList(currencyRows, 1)
 		//
 		//     {
 		//         "rows":[],
@@ -3097,18 +3741,23 @@ func (this *WoofiproCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) 
 		//         "success":true
 		//     }
 		//
-		ch <- this.ParseTransactions(rows, currency, since, limit, params)
+		var rowsList any = []any{}
+		if IsTrue(!IsEqual(rows, nil)) {
+			rowsList = rows
+		}
+
+		ch <- this.ParseTransactions(rowsList, currency, since, limit, params)
 		return nil
 
 	}()
 	return ch
 }
-func (this *WoofiproCore) GetWithdrawNonce(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) GetWithdrawNonce(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		response := (<-this.V1PrivateGetWithdrawNonce(params))
@@ -3122,7 +3771,7 @@ func (this *WoofiproCore) GetWithdrawNonce(optionalArgs ...interface{}) <-chan i
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.SafeNumber(data, "withdraw_nonce")
 		return nil
@@ -3130,17 +3779,17 @@ func (this *WoofiproCore) GetWithdrawNonce(optionalArgs ...interface{}) <-chan i
 	}()
 	return ch
 }
-func (this *WoofiproCore) HashMessage(message interface{}) interface{} {
+func (this *WoofiproCore) HashMessage(message any) any {
 	return Add("0x", this.Hash(message, keccak, "hex"))
 }
-func (this *WoofiproCore) SignHash(hash interface{}, privateKey interface{}) interface{} {
-	var signature interface{} = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
-	var r interface{} = GetValue(signature, "r")
-	var s interface{} = GetValue(signature, "s")
-	var v interface{} = this.IntToBase16(this.Sum(27, GetValue(signature, "v")))
+func (this *WoofiproCore) SignHash(hash any, privateKey any) any {
+	var signature any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var r any = GetValue(signature, "r")
+	var s any = GetValue(signature, "s")
+	var v any = this.IntToBase16(this.Sum(27, GetValue(signature, "v")))
 	return Add(Add(Add("0x", PadStart(r, 64, "0")), PadStart(s, 64, "0")), v)
 }
-func (this *WoofiproCore) SignMessage(message interface{}, privateKey interface{}) interface{} {
+func (this *WoofiproCore) SignMessage(message any, privateKey any) any {
 	return this.SignHash(this.HashMessage(message), Slice(privateKey, OpNeg(64), nil))
 }
 
@@ -3148,7 +3797,7 @@ func (this *WoofiproCore) SignMessage(message interface{}, privateKey interface{
  * @method
  * @name woofipro#withdraw
  * @description make a withdrawal
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-withdraw-request
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-request
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
@@ -3156,18 +3805,20 @@ func (this *WoofiproCore) SignMessage(message interface{}, privateKey interface{
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *WoofiproCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		tag := GetArg(optionalArgs, 0, nil)
 		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes25928 := (<-this.LoadMarkets())
-		PanicOnError(retRes25928)
+			retRes293712 := (<-this.LoadMarkets())
+			PanicOnError(retRes293712)
+		}
 		this.CheckAddress(address)
 		if IsTrue(!IsEqual(code, nil)) {
 			code = ToUpper(code)
@@ -3175,50 +3826,50 @@ func (this *WoofiproCore) Withdraw(code interface{}, amount interface{}, address
 				panic(NotSupported(Add(this.Id, " withdraw() only support USDC")))
 			}
 		}
-		var currency interface{} = this.Currency(code)
-		var verifyingContractAddress interface{} = this.SafeString(this.Options, "verifyingContractAddress")
-		var chainId interface{} = this.SafeString(params, "chainId")
-		var currencyNetworks interface{} = this.SafeDict(currency, "networks", map[string]interface{}{})
-		var coinNetwork interface{} = this.SafeDict(currencyNetworks, chainId, map[string]interface{}{})
-		var coinNetworkId interface{} = this.SafeNumber(coinNetwork, "id")
+		var currency any = this.Currency(code)
+		var verifyingContractAddress any = this.SafeString(this.Options, "verifyingContractAddress")
+		var chainId any = this.SafeString(params, "chainId")
+		var currencyNetworks any = this.SafeDict(currency, "networks", map[string]any{})
+		var coinNetwork any = this.SafeDict(currencyNetworks, chainId, map[string]any{})
+		var coinNetworkId any = this.SafeNumber(coinNetwork, "id")
 		if IsTrue(IsEqual(coinNetworkId, nil)) {
 			panic(BadRequest(Add(this.Id, " withdraw() require chainId parameter")))
 		}
 
 		withdrawNonce := (<-this.GetWithdrawNonce(params))
 		PanicOnError(withdrawNonce)
-		var nonce interface{} = this.Nonce()
-		var domain interface{} = map[string]interface{}{
+		var nonce any = this.Nonce()
+		var domain any = map[string]any{
 			"chainId":           chainId,
 			"name":              "Orderly",
 			"verifyingContract": verifyingContractAddress,
 			"version":           "1",
 		}
-		var messageTypes interface{} = map[string]interface{}{
-			"Withdraw": []interface{}{map[string]interface{}{
+		var messageTypes any = map[string]any{
+			"Withdraw": []any{map[string]any{
 				"name": "brokerId",
 				"type": "string",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "chainId",
 				"type": "uint256",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "receiver",
 				"type": "address",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "token",
 				"type": "string",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "amount",
 				"type": "uint256",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "withdrawNonce",
 				"type": "uint64",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "timestamp",
 				"type": "uint64",
 			}},
 		}
-		var withdrawRequest interface{} = map[string]interface{}{
+		var withdrawRequest any = map[string]any{
 			"brokerId":      this.SafeString(this.Options, "keyBrokerId", "woofi_pro"),
 			"chainId":       this.ParseToInt(chainId),
 			"receiver":      address,
@@ -3227,9 +3878,9 @@ func (this *WoofiproCore) Withdraw(code interface{}, amount interface{}, address
 			"withdrawNonce": withdrawNonce,
 			"timestamp":     nonce,
 		}
-		var msg interface{} = this.EthEncodeStructuredData(domain, messageTypes, withdrawRequest)
-		var signature interface{} = this.SignMessage(msg, this.PrivateKey)
-		var request interface{} = map[string]interface{}{
+		var msg any = this.EthEncodeStructuredData(domain, messageTypes, withdrawRequest)
+		var signature any = this.SignMessage(msg, this.PrivateKey)
+		var request any = map[string]any{
 			"signature":         signature,
 			"userAddress":       address,
 			"verifyingContract": verifyingContractAddress,
@@ -3248,7 +3899,7 @@ func (this *WoofiproCore) Withdraw(code interface{}, amount interface{}, address
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseTransaction(data, currency)
 		return nil
@@ -3256,13 +3907,13 @@ func (this *WoofiproCore) Withdraw(code interface{}, amount interface{}, address
 	}()
 	return ch
 }
-func (this *WoofiproCore) ParseLeverage(leverage interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WoofiproCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var leverageValue interface{} = this.SafeInteger(leverage, "max_leverage")
-	return map[string]interface{}{
+	var leverageValue any = this.SafeInteger(leverage, "max_leverage")
+	return map[string]any{
 		"info":          leverage,
-		"symbol":        GetValue(market, "symbol"),
+		"symbol":        this.SafeString(market, "symbol"),
 		"marginMode":    nil,
 		"longLeverage":  leverageValue,
 		"shortLeverage": leverageValue,
@@ -3273,22 +3924,24 @@ func (this *WoofiproCore) ParseLeverage(leverage interface{}, optionalArgs ...in
  * @method
  * @name woofipro#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *WoofiproCore) FetchLeverage(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes26818 := (<-this.LoadMarkets())
-		PanicOnError(retRes26818)
-		var market interface{} = this.Market(symbol)
+			retRes302812 := (<-this.LoadMarkets())
+			PanicOnError(retRes302812)
+		}
+		var market any = this.Market(symbol)
 
 		response := (<-this.V1PrivateGetClientInfo(params))
 		PanicOnError(response)
@@ -3319,7 +3972,7 @@ func (this *WoofiproCore) FetchLeverage(symbol interface{}, optionalArgs ...inte
 		//     }
 		// }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseLeverage(data, market)
 		return nil
@@ -3332,40 +3985,42 @@ func (this *WoofiproCore) FetchLeverage(symbol interface{}, optionalArgs ...inte
  * @method
  * @name woofipro#setLeverage
  * @description set the level of leverage for a market
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/update-leverage-setting
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-leverage-setting
  * @param {int} [leverage] the rate of leverage
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *WoofiproCore) SetLeverage(leverage interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes27268 := (<-this.LoadMarkets())
-		PanicOnError(retRes27268)
+			retRes307512 := (<-this.LoadMarkets())
+			PanicOnError(retRes307512)
+		}
 		if IsTrue(IsTrue((IsLessThan(leverage, 1))) || IsTrue((IsGreaterThan(leverage, 50)))) {
 			panic(BadRequest(Add(this.Id, " leverage should be between 1 and 50")))
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"leverage": leverage,
 		}
 
-		retRes273315 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params)))
-		PanicOnError(retRes273315)
-		ch <- retRes273315
+		retRes308315 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params)))
+		PanicOnError(retRes308315)
+		ch <- retRes308315
 		return nil
 
 	}()
 	return ch
 }
-func (this *WoofiproCore) ParsePosition(position interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WoofiproCore) ParsePosition(position any, optionalArgs ...any) any {
 	//
 	// {
 	//     "IMR_withdraw_orders": 0.1,
@@ -3390,23 +4045,23 @@ func (this *WoofiproCore) ParsePosition(position interface{}, optionalArgs ...in
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var contract interface{} = this.SafeString(position, "symbol")
+	var contract any = this.SafeString(position, "symbol")
 	market = this.SafeMarket(contract, market)
-	var size interface{} = this.SafeString(position, "position_qty")
-	var side interface{} = nil
+	var size any = this.SafeString(position, "position_qty")
+	var side any = nil
 	if IsTrue(Precise.StringGt(size, "0")) {
 		side = "long"
 	} else {
 		side = "short"
 	}
-	var contractSize interface{} = this.SafeString(market, "contractSize")
-	var markPrice interface{} = this.SafeString(position, "mark_price")
-	var timestamp interface{} = this.SafeInteger(position, "timestamp")
-	var entryPrice interface{} = this.SafeString(position, "average_open_price")
-	var unrealisedPnl interface{} = this.SafeString(position, "unsettled_pnl")
+	var contractSize any = this.SafeString(market, "contractSize")
+	var markPrice any = this.SafeString(position, "mark_price")
+	var timestamp any = this.SafeInteger(position, "timestamp")
+	var entryPrice any = this.SafeString(position, "average_open_price")
+	var unrealisedPnl any = this.SafeString(position, "unsettled_pnl")
 	size = Precise.StringAbs(size)
-	var notional interface{} = Precise.StringMul(size, markPrice)
-	return this.SafePosition(map[string]interface{}{
+	var notional any = Precise.StringMul(size, markPrice)
+	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
 		"symbol":                      this.SafeString(market, "symbol"),
@@ -3441,24 +4096,26 @@ func (this *WoofiproCore) ParsePosition(position interface{}, optionalArgs ...in
 /**
  * @method
  * @name woofipro#fetchPosition
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
  * @description fetch data on an open position
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *WoofiproCore) FetchPosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes28178 := (<-this.LoadMarkets())
-		PanicOnError(retRes28178)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes316812 := (<-this.LoadMarkets())
+			PanicOnError(retRes316812)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 
@@ -3490,7 +4147,7 @@ func (this *WoofiproCore) FetchPosition(symbol interface{}, optionalArgs ...inte
 		//     }
 		// }
 		//
-		var data interface{} = this.SafeDict(response, "data")
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParsePosition(data, market)
 		return nil
@@ -3503,23 +4160,25 @@ func (this *WoofiproCore) FetchPosition(symbol interface{}, optionalArgs ...inte
  * @method
  * @name woofipro#fetchPositions
  * @description fetch all open positions
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-positions-info
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-positions-info
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *WoofiproCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WoofiproCore) FetchPositions(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes28638 := (<-this.LoadMarkets())
-		PanicOnError(retRes28638)
+			retRes321612 := (<-this.LoadMarkets())
+			PanicOnError(retRes321612)
+		}
 
 		response := (<-this.V1PrivateGetPositions(params))
 		PanicOnError(response)
@@ -3561,8 +4220,8 @@ func (this *WoofiproCore) FetchPositions(optionalArgs ...interface{}) <-chan int
 		//     }
 		// }
 		//
-		var result interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var positions interface{} = this.SafeList(result, "rows", []interface{}{})
+		var result any = this.SafeDict(response, "data", map[string]any{})
+		var positions any = this.SafeList(result, "rows", []any{})
 
 		ch <- this.ParsePositions(positions, symbols)
 		return nil
@@ -3570,25 +4229,24 @@ func (this *WoofiproCore) FetchPositions(optionalArgs ...interface{}) <-chan int
 	}()
 	return ch
 }
-func (this *WoofiproCore) Nonce() interface{} {
+func (this *WoofiproCore) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *WoofiproCore) Sign(path interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WoofiproCore) Sign(path any, optionalArgs ...any) any {
 	section := GetArg(optionalArgs, 0, "public")
 	_ = section
 	method := GetArg(optionalArgs, 1, "GET")
 	_ = method
-	params := GetArg(optionalArgs, 2, map[string]interface{}{})
+	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var version interface{} = GetValue(section, 0)
-	var access interface{} = GetValue(section, 1)
-	var pathWithParams interface{} = this.ImplodeParams(path, params)
-	var url interface{} = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), access))
-	url = Add(url, Add(Add("/", version), "/"))
+	var version any = GetValue(section, 0)
+	var access any = GetValue(section, 1)
+	var pathWithParams any = this.ImplodeParams(path, params)
+	var url any = Add(Add(Add(GetValue(GetValue(this.Urls, "api"), access), "/"), version), "/")
 	params = this.Omit(params, this.ExtractParams(path))
 	params = this.Keysort(params)
 	if IsTrue(IsEqual(access, "public")) {
@@ -3599,11 +4257,11 @@ func (this *WoofiproCore) Sign(path interface{}, optionalArgs ...interface{}) in
 	} else {
 		this.CheckRequiredCredentials()
 		if IsTrue(IsTrue((IsTrue(IsEqual(method, "POST")) || IsTrue(IsEqual(method, "PUT")))) && IsTrue((IsTrue(IsTrue(IsEqual(path, "algo/order")) || IsTrue(IsEqual(path, "order"))) || IsTrue(IsEqual(path, "batch-order"))))) {
-			var isSandboxMode interface{} = this.SafeBool(this.Options, "sandboxMode", false)
+			var isSandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
 			if !IsTrue(isSandboxMode) {
-				var brokerId interface{} = this.SafeString(this.Options, "brokerId", "CCXT")
+				var brokerId any = this.SafeString(this.Options, "brokerId", "CCXT")
 				if IsTrue(IsEqual(path, "batch-order")) {
-					var ordersList interface{} = this.SafeList(params, "orders", []interface{}{})
+					var ordersList any = this.SafeList(params, "orders", []any{})
 					for i := 0; IsLessThan(i, GetArrayLength(ordersList)); i++ {
 						AddElementToObject(GetValue(GetValue(params, "orders"), i), "order_tag", brokerId)
 					}
@@ -3613,14 +4271,14 @@ func (this *WoofiproCore) Sign(path interface{}, optionalArgs ...interface{}) in
 			}
 			params = this.Keysort(params)
 		}
-		var auth interface{} = ""
-		var ts interface{} = ToString(this.Nonce())
+		var auth any = ""
+		var ts any = ToString(this.Nonce())
 		url = Add(url, pathWithParams)
-		var apiKey interface{} = this.ApiKey
+		var apiKey any = this.ApiKey
 		if IsTrue(IsLessThan(GetIndexOf(apiKey, "ed25519:"), 0)) {
 			apiKey = Add("ed25519:", apiKey)
 		}
-		headers = map[string]interface{}{
+		headers = map[string]any{
 			"orderly-account-id": this.AccountId,
 			"orderly-key":        apiKey,
 			"orderly-timestamp":  ts,
@@ -3640,22 +4298,22 @@ func (this *WoofiproCore) Sign(path interface{}, optionalArgs ...interface{}) in
 				body = ""
 			}
 		}
-		var secret interface{} = this.Secret
+		var secret any = this.Secret
 		if IsTrue(IsGreaterThanOrEqual(GetIndexOf(secret, "ed25519:"), 0)) {
-			var parts interface{} = Split(secret, "ed25519:")
+			var parts any = Split(secret, "ed25519:")
 			secret = GetValue(parts, 1)
 		}
-		var signature interface{} = Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ed25519)
+		var signature any = Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ed25519)
 		AddElementToObject(headers, "orderly-signature", this.UrlencodeBase64(this.Base64ToBinary(signature)))
 	}
-	return map[string]interface{}{
+	return map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    body,
 		"headers": headers,
 	}
 }
-func (this *WoofiproCore) HandleErrors(httpCode interface{}, reason interface{}, url interface{}, method interface{}, headers interface{}, body interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{} {
+func (this *WoofiproCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if !IsTrue(response) {
 		return nil // fallback to default error handler
 	}
@@ -3663,10 +4321,10 @@ func (this *WoofiproCore) HandleErrors(httpCode interface{}, reason interface{},
 	//     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
 	//                     {"code":"-1011","message":"The system is under maintenance.","success":false}
 	//
-	var success interface{} = this.SafeBool(response, "success")
-	var errorCode interface{} = this.SafeString(response, "code")
+	var success any = this.SafeBool(response, "success")
+	var errorCode any = this.SafeString(response, "code")
 	if !IsTrue(success) {
-		var feedback interface{} = Add(Add(this.Id, " "), this.Json(response))
+		var feedback any = Add(Add(this.Id, " "), this.Json(response))
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), body, feedback)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
 		panic(ExchangeError(feedback))
@@ -3674,8 +4332,8 @@ func (this *WoofiproCore) HandleErrors(httpCode interface{}, reason interface{},
 	return nil
 }
 
-func (this *WoofiproCore) Init(userConfig map[string]interface{}) {
+func (this *WoofiproCore) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
+	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
 }

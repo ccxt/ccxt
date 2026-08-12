@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bithumb.js';
 import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bithumb
@@ -20,7 +20,7 @@ export default class bithumb extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'bithumb',
             'name': 'Bithumb',
-            'countries': ['KR'],
+            'countries': ['KR'], // South Korea
             'rateLimit': 500,
             'pro': true,
             'has': {
@@ -125,40 +125,40 @@ export default class bithumb extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'ticker/ALL_{quoteId}',
-                        'ticker/{baseId}_{quoteId}',
-                        'orderbook/ALL_{quoteId}',
-                        'orderbook/{baseId}_{quoteId}',
-                        'transaction_history/{baseId}_{quoteId}',
-                        'network-info',
-                        'assetsstatus/multichain/ALL',
-                        'assetsstatus/multichain/{currency}',
-                        'withdraw/minimum/ALL',
-                        'withdraw/minimum/{currency}',
-                        'assetsstatus/ALL',
-                        'assetsstatus/{baseId}',
-                        'candlestick/{baseId}_{quoteId}/{interval}',
-                    ],
+                    'get': {
+                        'ticker/ALL_{quoteId}': { 'cost': 1 },
+                        'ticker/{baseId}_{quoteId}': { 'cost': 1 },
+                        'orderbook/ALL_{quoteId}': { 'cost': 1 },
+                        'orderbook/{baseId}_{quoteId}': { 'cost': 1 },
+                        'transaction_history/{baseId}_{quoteId}': { 'cost': 1 },
+                        'network-info': { 'cost': 1 },
+                        'assetsstatus/multichain/ALL': { 'cost': 1 },
+                        'assetsstatus/multichain/{currency}': { 'cost': 1 },
+                        'withdraw/minimum/ALL': { 'cost': 1 },
+                        'withdraw/minimum/{currency}': { 'cost': 1 },
+                        'assetsstatus/ALL': { 'cost': 1 },
+                        'assetsstatus/{baseId}': { 'cost': 1 },
+                        'candlestick/{baseId}_{quoteId}/{interval}': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'post': [
-                        'info/account',
-                        'info/balance',
-                        'info/wallet_address',
-                        'info/ticker',
-                        'info/orders',
-                        'info/user_transactions',
-                        'info/order_detail',
-                        'trade/place',
-                        'trade/cancel',
-                        'trade/btc_withdrawal',
-                        'trade/krw_deposit',
-                        'trade/krw_withdrawal',
-                        'trade/market_buy',
-                        'trade/market_sell',
-                        'trade/stop_limit',
-                    ],
+                    'post': {
+                        'info/account': { 'cost': 1 },
+                        'info/balance': { 'cost': 1 },
+                        'info/wallet_address': { 'cost': 1 },
+                        'info/ticker': { 'cost': 1 },
+                        'info/orders': { 'cost': 1 },
+                        'info/user_transactions': { 'cost': 1 },
+                        'info/order_detail': { 'cost': 1 },
+                        'trade/place': { 'cost': 1 },
+                        'trade/cancel': { 'cost': 1 },
+                        'trade/btc_withdrawal': { 'cost': 1 },
+                        'trade/krw_deposit': { 'cost': 1 },
+                        'trade/krw_withdrawal': { 'cost': 1 },
+                        'trade/market_buy': { 'cost': 1 },
+                        'trade/market_sell': { 'cost': 1 },
+                        'trade/stop_limit': { 'cost': 1 },
+                    },
                 },
             },
             'fees': {
@@ -227,9 +227,9 @@ export default class bithumb extends Exchange {
             'exceptions': {
                 'Bad Request(SSL)': BadRequest,
                 'Bad Request(Bad Method)': BadRequest,
-                'Bad Request.(Auth Data)': AuthenticationError,
+                'Bad Request.(Auth Data)': AuthenticationError, // { "status": "5100", "message": "Bad Request.(Auth Data)" }
                 'Not Member': AuthenticationError,
-                'Invalid Apikey': AuthenticationError,
+                'Invalid Apikey': AuthenticationError, // {"status":"5300","message":"Invalid Apikey"}
                 'Method Not Allowed.(Access IP)': PermissionDenied,
                 'Method Not Allowed.(BTC Adress)': InvalidAddress,
                 'Method Not Allowed.(Access)': PermissionDenied,
@@ -268,14 +268,6 @@ export default class bithumb extends Exchange {
                             },
                         },
                     },
-                    'USDT': {
-                        'limits': {
-                            'cost': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                        },
-                    },
                 },
             },
             'commonCurrencies': {
@@ -293,7 +285,8 @@ export default class bithumb extends Exchange {
         return super.safeMarket(marketId, market, delimiter, 'spot');
     }
     amountToPrecision(symbol, amount) {
-        return this.decimalToPrecision(amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
+        const market = this.market(symbol);
+        return this.decimalToPrecision(amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES);
     }
     /**
      * @method
@@ -354,7 +347,7 @@ export default class bithumb extends Exchange {
             const quote = quotes[i];
             const quoteId = quote;
             const response = results[i];
-            const data = this.safeDict(response, 'data');
+            const data = this.safeDict(response, 'data', {});
             const extension = this.safeDict(quoteCurrencies, quote, {});
             const currencyIds = Object.keys(data);
             for (let j = 0; j < currencyIds.length; j++) {
@@ -447,7 +440,9 @@ export default class bithumb extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'currency': 'ALL',
         };
@@ -462,10 +457,12 @@ export default class bithumb extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'baseId': market['baseId'],
@@ -557,7 +554,9 @@ export default class bithumb extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const result = {};
         const quoteCurrencies = this.safeDict(this.options, 'quoteCurrencies', {});
         const quotes = Object.keys(quoteCurrencies);
@@ -619,7 +618,9 @@ export default class bithumb extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'baseId': market['baseId'],
@@ -681,7 +682,9 @@ export default class bithumb extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'baseId': market['baseId'],
@@ -805,7 +808,9 @@ export default class bithumb extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'baseId': market['baseId'],
@@ -848,7 +853,9 @@ export default class bithumb extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'order_currency': market['id'],
@@ -890,7 +897,9 @@ export default class bithumb extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'order_id': id,
@@ -1050,7 +1059,9 @@ export default class bithumb extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (limit === undefined) {
             limit = 100;
@@ -1143,7 +1154,9 @@ export default class bithumb extends Exchange {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'units': amount,
@@ -1223,6 +1236,9 @@ export default class bithumb extends Exchange {
             body = this.urlencode(this.extend({
                 'endpoint': endpoint,
             }, query));
+            // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
+            const bodyParts = body.split('%20');
+            body = bodyParts.join('+');
             const nonce = this.nonce().toString();
             const auth = endpoint + "\0" + body + "\0" + nonce; // eslint-disable-line quotes
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);

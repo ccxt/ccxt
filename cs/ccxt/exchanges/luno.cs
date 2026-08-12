@@ -9,7 +9,7 @@ public partial class luno : Exchange
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "luno" },
-            { "name", "luno" },
+            { "name", "Luno" },
             { "countries", new List<object>() {"GB", "SG", "ZA"} },
             { "rateLimit", 200 },
             { "version", "1" },
@@ -45,6 +45,8 @@ public partial class luno : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositWithdrawFee", true },
+                { "fetchDepositWithdrawFees", false },
                 { "fetchFundingHistory", false },
                 { "fetchFundingInterval", false },
                 { "fetchFundingIntervals", false },
@@ -120,63 +122,151 @@ public partial class luno : Exchange
                     { "exchangePrivate", "https://api.luno.com/api/exchange" },
                 } },
                 { "www", "https://www.luno.com" },
-                { "doc", new List<object>() {"https://www.luno.com/en/api", "https://npmjs.org/package/bitx", "https://github.com/bausmeier/node-bitx"} },
+                { "doc", new List<object>() {"https://www.luno.com/en/developers/api", "https://npmjs.org/package/bitx", "https://github.com/bausmeier/node-bitx"} },
             } },
             { "api", new Dictionary<string, object>() {
                 { "exchange", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "markets", 1 },
+                        { "markets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "exchangePrivate", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "candles", 1 },
+                        { "candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "move", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "move/list_moves", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "convert", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "move", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "orderbook", 1 },
-                        { "orderbook_top", 1 },
-                        { "ticker", 1 },
-                        { "tickers", 1 },
-                        { "trades", 1 },
+                        { "orderbook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbook_top", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "accounts/{id}/pending", 1 },
-                        { "accounts/{id}/transactions", 1 },
-                        { "balance", 1 },
-                        { "beneficiaries", 1 },
-                        { "send/networks", 1 },
-                        { "fee_info", 1 },
-                        { "funding_address", 1 },
-                        { "listorders", 1 },
-                        { "listtrades", 1 },
-                        { "send_fee", 1 },
-                        { "orders/{id}", 1 },
-                        { "withdrawals", 1 },
-                        { "withdrawals/{id}", 1 },
-                        { "transfers", 1 },
+                        { "accounts/{id}/pending", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accounts/{id}/transactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "beneficiaries", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "send/networks", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fee_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding_address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "listorders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "listtrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "send_fee", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/linked", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "accounts", 1 },
-                        { "address/validate", 1 },
-                        { "postorder", 1 },
-                        { "marketorder", 1 },
-                        { "stoporder", 1 },
-                        { "funding_address", 1 },
-                        { "withdrawals", 1 },
-                        { "send", 1 },
-                        { "oauth2/grant", 1 },
-                        { "beneficiaries", 1 },
+                        { "accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "address/validate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "postorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "marketorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "stoporder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding_address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "send", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "oauth2/grant", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "beneficiaries", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
-                        { "accounts/{id}/name", 1 },
+                        { "accounts/{id}/name", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "withdrawals/{id}", 1 },
-                        { "beneficiaries/{id}", 1 },
+                        { "withdrawals/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "beneficiaries/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -196,8 +286,110 @@ public partial class luno : Exchange
                 { "trading", new Dictionary<string, object>() {
                     { "tierBased", true },
                     { "percentage", true },
-                    { "taker", this.parseNumber("0.001") },
-                    { "maker", this.parseNumber("0") },
+                    { "taker", this.parseNumber("0.006") },
+                    { "maker", this.parseNumber("0.004") },
+                    { "tiers", new Dictionary<string, object>() {
+                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.006")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.005")}, new List<object> {this.parseNumber("200000"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.003")}, new List<object> {this.parseNumber("2000000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0.0009")}, new List<object> {this.parseNumber("40000000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("80000000"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("120000000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("160000000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("300000000"), this.parseNumber("0.0005")}} },
+                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.003")}, new List<object> {this.parseNumber("200000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("2000000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("40000000"), this.parseNumber("-0.0001")}, new List<object> {this.parseNumber("80000000"), this.parseNumber("-0.0001")}, new List<object> {this.parseNumber("120000000"), this.parseNumber("-0.0002")}, new List<object> {this.parseNumber("160000000"), this.parseNumber("-0.0002")}, new List<object> {this.parseNumber("300000000"), this.parseNumber("-0.0002")}} },
+                    } },
+                } },
+            } },
+            { "exceptions", new Dictionary<string, object>() {
+                { "exact", new Dictionary<string, object>() {
+                    { "ErrAccountIsMigrating", typeof(OperationRejected) },
+                    { "ErrAccountLimit", typeof(OperationRejected) },
+                    { "ErrAccountNotFound", typeof(ExchangeError) },
+                    { "ErrAccountsNotDifferent", typeof(BadRequest) },
+                    { "ErrActiveCryptoRequestExists", typeof(OperationRejected) },
+                    { "ErrAddressCreateRateLimitReached", typeof(RateLimitExceeded) },
+                    { "ErrAddressLimitReached", typeof(OperationRejected) },
+                    { "ErrAmountTooBig", typeof(BadRequest) },
+                    { "ErrAmountTooSmall", typeof(BadRequest) },
+                    { "ErrApiKeyRevoked", typeof(AuthenticationError) },
+                    { "ErrBeneficiaryNotFound", typeof(ExchangeError) },
+                    { "ErrBlockedSendsCurrency", typeof(OperationRejected) },
+                    { "ErrCannotStopUnknownOrNonPendingOrder", typeof(InvalidOrder) },
+                    { "ErrCannotTradeWhileQuoteActive", typeof(OperationRejected) },
+                    { "ErrConvertPairNotSupported", typeof(BadRequest) },
+                    { "ErrConvertRateLimited", typeof(RateLimitExceeded) },
+                    { "ErrCounterDenominationNotAllowed", typeof(InvalidOrder) },
+                    { "ErrCreditAccountNotTransactional", typeof(BadRequest) },
+                    { "ErrCustomRefNotAllowed", typeof(BadRequest) },
+                    { "ErrDeadlineExceeded", typeof(RequestTimeout) },
+                    { "ErrDebitAccountNotTransactional", typeof(BadRequest) },
+                    { "ErrDescriptionTooLong", typeof(BadRequest) },
+                    { "ErrDifferentCurrencies", typeof(BadRequest) },
+                    { "ErrDisallowedTarget", typeof(InvalidAddress) },
+                    { "ErrDuplicateClientMoveID", typeof(OperationRejected) },
+                    { "ErrDuplicateClientOrderID", typeof(DuplicateOrderId) },
+                    { "ErrDuplicateExternalID", typeof(OperationRejected) },
+                    { "ErrERC20AddressAlreadyAssigned", typeof(OperationRejected) },
+                    { "ErrERC20AssignNonDefault", typeof(BadRequest) },
+                    { "ErrFundsMoveNotFound", typeof(ExchangeError) },
+                    { "ErrIdempotencyKeyConflict", typeof(OperationRejected) },
+                    { "ErrIdempotencyKeyRequestMismatch", typeof(BadRequest) },
+                    { "ErrIncompatibleBeneficiary", typeof(BadRequest) },
+                    { "ErrIncorrectPin", typeof(AuthenticationError) },
+                    { "ErrInsufficientBalance", typeof(InsufficientFunds) },
+                    { "ErrInsufficientFunds", typeof(InsufficientFunds) },
+                    { "ErrInsufficientPerms", typeof(PermissionDenied) },
+                    { "ErrInternal", typeof(ExchangeNotAvailable) },
+                    { "ErrInvalidAccount", typeof(BadRequest) },
+                    { "ErrInvalidAccountID", typeof(BadRequest) },
+                    { "ErrInvalidAccountNumber", typeof(BadRequest) },
+                    { "ErrInvalidAmount", typeof(BadRequest) },
+                    { "ErrInvalidArguments", typeof(BadRequest) },
+                    { "ErrInvalidBaseVolume", typeof(InvalidOrder) },
+                    { "ErrInvalidBranchCode", typeof(BadRequest) },
+                    { "ErrInvalidClientOrderId", typeof(InvalidOrder) },
+                    { "ErrInvalidCounterVolume", typeof(InvalidOrder) },
+                    { "ErrInvalidCurrency", typeof(BadRequest) },
+                    { "ErrInvalidDetails", typeof(BadRequest) },
+                    { "ErrInvalidMarketPair", typeof(BadSymbol) },
+                    { "ErrInvalidOrderRef", typeof(InvalidOrder) },
+                    { "ErrInvalidOrderSide", typeof(InvalidOrder) },
+                    { "ErrInvalidParameters", typeof(BadRequest) },
+                    { "ErrInvalidPrice", typeof(InvalidOrder) },
+                    { "ErrInvalidRequestType", typeof(BadRequest) },
+                    { "ErrInvalidSourceAccount", typeof(BadRequest) },
+                    { "ErrInvalidStopDirection", typeof(InvalidOrder) },
+                    { "ErrInvalidStopPrice", typeof(InvalidOrder) },
+                    { "ErrInvalidVolume", typeof(InvalidOrder) },
+                    { "ErrLimitOutOfRange", typeof(BadRequest) },
+                    { "ErrMarketNotAllowed", typeof(PermissionDenied) },
+                    { "ErrMarketUnavailable", typeof(ExchangeError) },
+                    { "ErrMaxActiveFiatRequestsExists", typeof(OperationRejected) },
+                    { "ErrMissingIdempotencyKey", typeof(BadRequest) },
+                    { "ErrNoAddressesAssigned", typeof(InvalidAddress) },
+                    { "ErrNoTradesToInferStopDirection", typeof(InvalidOrder) },
+                    { "ErrNotEnoughLiquidity", typeof(InvalidOrder) },
+                    { "ErrNotFound", typeof(ExchangeError) },
+                    { "ErrOrderCanceled", typeof(InvalidOrder) },
+                    { "ErrOrderNotFound", typeof(OrderNotFound) },
+                    { "ErrPostOnlyMode", typeof(InvalidOrder) },
+                    { "ErrPostOnlyNotAllowed", typeof(InvalidOrder) },
+                    { "ErrPriceDenominationNotAllowed", typeof(InvalidOrder) },
+                    { "ErrPriceTooHigh", typeof(InvalidOrder) },
+                    { "ErrPriceTooLow", typeof(InvalidOrder) },
+                    { "ErrRejectedBeneficiary", typeof(OperationRejected) },
+                    { "ErrRequestTypeDoesNotSupportFastWithdrawals", typeof(BadRequest) },
+                    { "ErrStopPriceTooHigh", typeof(InvalidOrder) },
+                    { "ErrStopPriceTooLow", typeof(InvalidOrder) },
+                    { "ErrTooManyRequests", typeof(RateLimitExceeded) },
+                    { "ErrTooManyRowsRequested", typeof(BadRequest) },
+                    { "ErrTravelRule", typeof(ManualInteractionNeeded) },
+                    { "ErrUnauthorised", typeof(AuthenticationError) },
+                    { "ErrUnderMaintenance", typeof(OnMaintenance) },
+                    { "ErrUpdateRequired", typeof(ExchangeError) },
+                    { "ErrUserBlockedForCancelWithdrawal", typeof(PermissionDenied) },
+                    { "ErrUserNotVerifiedForCurrency", typeof(AccountNotEnabled) },
+                    { "ErrValueTooHigh", typeof(InvalidOrder) },
+                    { "ErrVerificationLevelTooLow", typeof(AccountNotEnabled) },
+                    { "ErrVolumeDenominationNotAllowed", typeof(InvalidOrder) },
+                    { "ErrVolumeTooHigh", typeof(InvalidOrder) },
+                    { "ErrVolumeTooLow", typeof(InvalidOrder) },
+                    { "ErrWithdrawalBlocked", typeof(PermissionDenied) },
+                    { "ErrWithdrawalNotFound", typeof(ExchangeError) },
                 } },
             } },
             { "precisionMode", TICK_SIZE },
@@ -282,6 +474,7 @@ public partial class luno : Exchange
                     { "inverse", null },
                 } },
             } },
+            { "rollingWindowSize", 60000 },
         });
     }
 
@@ -289,6 +482,7 @@ public partial class luno : Exchange
      * @method
      * @name luno#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://www.luno.com/en/developers/api#tag/Send/operation/ListSupportedNetworks
      * @param {dict} [params] extra parameters specific to the exchange API endpoint
      * @returns {dict} an associative dictionary of currencies
      */
@@ -313,24 +507,26 @@ public partial class luno : Exchange
         //     }
         //
         object currenciesData = this.safeList(response, "data", new List<object>() {});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(currenciesData)); postFixIncrement(ref i))
+        object grouped = this.groupBy(currenciesData, "native_currency");
+        object values = new List<object>(((IDictionary<string,object>)grouped).Values);
+        return this.parseCurrencies(values);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(getValue(rawCurrency, 0), "native_currency"); // first item is guaranteed
+        object code = this.safeCurrencyCode(id);
+        object networks = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rawCurrency)); postFixIncrement(ref i))
         {
-            object networkEntry = getValue(currenciesData, i);
-            object id = this.safeString(networkEntry, "native_currency");
-            object code = this.safeCurrencyCode(id);
-            if (!isTrue((inOp(result, code))))
+            object networkEntry = getValue(rawCurrency, i);
+            object networkId = this.safeString(networkEntry, "name");
+            object networkCode = this.networkIdToCode(networkId, code);
+            if (isTrue(!isEqual(networkCode, null)))
             {
-                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                    { "id", id },
-                    { "code", code },
-                    { "precision", null },
-                    { "type", null },
-                    { "name", null },
-                    { "active", null },
-                    { "deposit", null },
-                    { "withdraw", null },
-                    { "fee", null },
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
                             { "min", null },
@@ -341,45 +537,38 @@ public partial class luno : Exchange
                             { "max", null },
                         } },
                     } },
-                    { "networks", new Dictionary<string, object>() {} },
-                    { "info", new Dictionary<string, object>() {} },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "fee", null },
+                    { "precision", null },
+                    { "info", networkEntry },
                 };
             }
-            object networkId = this.safeString(networkEntry, "name");
-            object networkCode = this.networkIdToCode(networkId);
-            ((IDictionary<string,object>)getValue(getValue(result, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
+        }
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "precision", null },
+            { "type", null },
+            { "name", null },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "limits", new Dictionary<string, object>() {
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
                 } },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "precision", null },
-                { "info", networkEntry },
-            };
-            // add entry in info
-            object info = this.safeList(getValue(result, code), "info", new List<object>() {});
-            ((IList<object>)info).Add(networkEntry);
-            ((IDictionary<string,object>)getValue(result, code))["info"] = info;
-        }
-        // only after all entries are formed in currencies, restructure each entry
-        object allKeys = new List<object>(((IDictionary<string,object>)result).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(allKeys)); postFixIncrement(ref i))
-        {
-            object code = getValue(allKeys, i);
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(getValue(result, code)); // this is needed after adding network entry
-        }
-        return result;
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", networks },
+            { "info", rawCurrency },
+        });
     }
 
     /**
@@ -424,9 +613,41 @@ public partial class luno : Exchange
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
             object status = this.safeString(market, "trading_status");
+            // Luno's published schedule is categorical, not a single pair. Entry-tier
+            // rates below are read from Luno's own Help Centre fee article for the ZAR
+            // market; markets quoted in other fiat currencies are left on the
+            // exchange-wide default until their schedules are verified the same way.
+            object fiats = new List<object>() {"ZAR"};
+            // live-but-unverified counters, kept on the exchange-wide default; the market
+            // list is geo-filtered so this is a superset of any one region's view, and
+            // ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
+            object unverifiedQuotes = new List<object>() {"MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"};
+            object stablecoins = new List<object>() {"USDT", "USDC"};
+            object taker = null;
+            object maker = null;
+            if (isTrue(this.inArray(quote, fiats)))
+            {
+                if (isTrue(this.inArray(bs, stablecoins)))
+                {
+                    taker = this.parseNumber("0.002");
+                    maker = this.parseNumber("-0.0001"); // a rebate, not a charge
+                } else
+                {
+                    taker = this.parseNumber("0.006");
+                    maker = this.parseNumber("0.004");
+                }
+            } else if (!isTrue(this.inArray(quote, unverifiedQuotes)))
+            {
+                // stablecoin-quoted (BTC/USDT) and crypto-quoted (ETH/BTC, SOL/ADA) books
+                // are both in Luno's crypto/crypto column
+                taker = this.parseNumber("0.001");
+                maker = this.parseNumber("0.0008");
+            }
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
+                { "taker", taker },
+                { "maker", maker },
                 { "base", bs },
                 { "quote", quote },
                 { "settle", null },
@@ -500,7 +721,7 @@ public partial class luno : Exchange
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", accountId },
                 { "type", null },
-                { "currency", code },
+                { "code", code },
                 { "info", account },
             });
         }
@@ -525,11 +746,11 @@ public partial class luno : Exchange
             object balance = this.safeString(wallet, "balance");
             object reservedUnconfirmed = Precise.stringAdd(reserved, unconfirmed);
             object balanceUnconfirmed = Precise.stringAdd(balance, unconfirmed);
-            if (isTrue(inOp(result, code)))
+            if (isTrue(isTrue((!isEqual(code, null))) && isTrue((inOp(result, code)))))
             {
                 ((IDictionary<string,object>)getValue(result, code))["used"] = Precise.stringAdd(getValue(getValue(result, code), "used"), reservedUnconfirmed);
                 ((IDictionary<string,object>)getValue(result, code))["total"] = Precise.stringAdd(getValue(getValue(result, code), "total"), balanceUnconfirmed);
-            } else
+            } else if (isTrue(!isEqual(code, null)))
             {
                 object account = this.account();
                 ((IDictionary<string,object>)account)["used"] = reservedUnconfirmed;
@@ -551,7 +772,10 @@ public partial class luno : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetBalance(parameters);
         //
         //     {
@@ -575,12 +799,15 @@ public partial class luno : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -697,7 +924,10 @@ public partial class luno : Exchange
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "id", id },
         };
@@ -708,7 +938,10 @@ public partial class luno : Exchange
     public async virtual Task<object> fetchOrdersByState(object state, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(state, null)))
@@ -827,10 +1060,14 @@ public partial class luno : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object response = await this.publicGetTickers(parameters);
-        object tickers = this.indexBy(getValue(response, "tickers"), "pair");
+        object rawTickers = this.safeList(response, "tickers", new List<object>() {});
+        object tickers = this.indexBy(rawTickers, "pair");
         object ids = new List<object>(((IDictionary<string,object>)tickers).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
@@ -856,7 +1093,10 @@ public partial class luno : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -944,14 +1184,14 @@ public partial class luno : Exchange
         {
             if (!isTrue(Precise.stringEquals(feeBaseString, "0.0")))
             {
-                feeCurrency = getValue(market, "base");
+                feeCurrency = this.safeString(market, "base");
                 feeCost = feeBaseString;
             }
         } else if (isTrue(!isEqual(feeCounterString, null)))
         {
             if (!isTrue(Precise.stringEquals(feeCounterString, "0.0")))
             {
-                feeCurrency = getValue(market, "quote");
+                feeCurrency = this.safeString(market, "quote");
                 feeCost = feeCounterString;
             }
         }
@@ -961,7 +1201,7 @@ public partial class luno : Exchange
             { "id", id },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "order", orderId },
             { "type", null },
             { "side", side },
@@ -990,7 +1230,10 @@ public partial class luno : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -1026,14 +1269,17 @@ public partial class luno : Exchange
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} params extra parameters specific to the luno api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "duration", this.safeValue(this.timeframes, timeframe, timeframe) },
@@ -1099,7 +1345,10 @@ public partial class luno : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -1150,7 +1399,10 @@ public partial class luno : Exchange
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -1190,12 +1442,19 @@ public partial class luno : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };
         object response = null;
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
         if (isTrue(isEqual(type, "market")))
         {
             ((IDictionary<string,object>)request)["type"] = ((string)side).ToUpper();
@@ -1214,6 +1473,10 @@ public partial class luno : Exchange
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(getValue(market, "symbol"), price);
             ((IDictionary<string,object>)request)["type"] = ((bool) isTrue((isEqual(side, "buy")))) ? "BID" : "ASK";
             response = await this.privatePostPostorder(this.extend(request, parameters));
+        }
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " createOrder() returned empty response")) ;
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
@@ -1234,7 +1497,10 @@ public partial class luno : Exchange
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "order_id", id },
         };
@@ -1283,7 +1549,10 @@ public partial class luno : Exchange
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.loadAccounts();
         object currency = null;
         object id = this.safeString(parameters, "id"); // account id
@@ -1356,7 +1625,7 @@ public partial class luno : Exchange
         object firstWord = this.safeString(words, 0);
         object thirdWord = this.safeString(words, 2);
         object fourthWord = this.safeString(words, 3);
-        object type = this.safeString(types, firstWord, null);
+        object type = this.safeString(types, firstWord);
         if (isTrue(isTrue((isEqual(type, null))) && isTrue((isEqual(thirdWord, "fee")))))
         {
             type = "fee";
@@ -1440,12 +1709,16 @@ public partial class luno : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.name] an optional name for the new address
      * @param {int} [params.account_id] an optional account id for the new address
+     * @param {int} [params.network] the blockchain network id to use
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> createDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
@@ -1482,12 +1755,16 @@ public partial class luno : Exchange
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.address] a specific cryptocurrency address to retrieve
+     * @param {int} [params.network] the blockchain network id to use
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
@@ -1549,6 +1826,42 @@ public partial class luno : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name luno#fetchDepositWithdrawFee
+     * @description fetch the fee for sending (withdrawing) a currency to a specific address; luno quotes the network fee per destination, so an address is required, see https://github.com/ccxt/ccxt/issues/25830
+     * @see https://www.luno.com/en/developers/api#tag/Send/operation/SendFee
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.address the destination address luno should quote the send fee for (required by the exchange)
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public async override Task<object> fetchDepositWithdrawFee(object code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object address = this.safeString(parameters, "address");
+        if (isTrue(isEqual(address, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchDepositWithdrawFee() requires an \"address\" parameter - luno quotes the send fee per destination address")) ;
+        }
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+        };
+        object response = await this.privateGetSendFee(this.extend(request, parameters));
+        //
+        //     {
+        //         "currency": "XBT",
+        //         "fee": "0.00015"
+        //     }
+        //
+        object result = this.depositWithdrawFee(response);
+        ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.safeNumber(response, "fee");
+        ((IDictionary<string,object>)getValue(result, "withdraw"))["percentage"] = false;
+        return this.assignDefaultDepositWithdrawFees(result, currency);
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
@@ -1585,7 +1898,10 @@ public partial class luno : Exchange
         object error = this.safeValue(response, "error");
         if (isTrue(!isEqual(error, null)))
         {
-            throw new ExchangeError ((string)add(add(this.id, " "), this.json(response))) ;
+            object feedback = add(add(this.id, " "), this.json(response));
+            object errorCode = this.safeString(response, "error_code");
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+            throw new ExchangeError ((string)feedback) ;
         }
         return null;
     }

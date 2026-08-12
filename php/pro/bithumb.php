@@ -7,11 +7,12 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class bithumb extends \ccxt\async\bithumb {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -39,70 +40,81 @@ class bithumb extends \ccxt\async\bithumb {
         ));
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             *
-             * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
-             */
-            $url = $this->urls['api']['ws']['public'];
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+         */
+        $url = $this->urls['api']['ws']['public'];
+        if ($this->markets === null) {
             Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $messageHash = 'ticker:' . $market['symbol'];
+        $request = array(
+            'type' => 'ticker',
+            'symbols' => array( $market['base'] . '_' . $market['quote'] ),
+            'tickTypes' => array( $this->safe_string($params, 'tickTypes', '24H') ),
+        );
+        return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+    }
+
+    public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         *
+         * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
+         *
+         * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $url = $this->urls['api']['ws']['public'];
+        $marketIds = array();
+        $messageHashes = array();
+        $symbols = $this->market_symbols($symbols, null, false, true, true);
+        if ($symbols === null) {
+            $symbols = array();
+        }
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $messageHash = 'ticker:' . $market['symbol'];
-            $request = array(
-                'type' => 'ticker',
-                'symbols' => [ $market['base'] . '_' . $market['quote'] ],
-                'tickTypes' => array( $this->safe_string($params, 'tickTypes', '24H') ),
-            );
-            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-        }) ();
+            $marketIds[] = $market['base'] . '_' . $market['quote'];
+            $messageHashes[] = 'ticker:' . $market['symbol'];
+        }
+        $request = array(
+            'type' => 'ticker',
+            'symbols' => $marketIds,
+            'tickTypes' => array( $this->safe_string($params, 'tickTypes', '24H') ),
+        );
+        $message = $this->extend($request, $params);
+        $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
+        if ($this->newUpdates) {
+            $result = array();
+            $result[$newTicker['symbol']] = $newTicker;
+            return $result;
+        }
+        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             *
-             * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
-             *
-             * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            Async\await($this->load_markets());
-            $url = $this->urls['api']['ws']['public'];
-            $marketIds = array();
-            $messageHashes = array();
-            $symbols = $this->market_symbols($symbols, null, false, true, true);
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $marketIds[] = $market['base'] . '_' . $market['quote'];
-                $messageHashes[] = 'ticker:' . $market['symbol'];
-            }
-            $request = array(
-                'type' => 'ticker',
-                'symbols' => $marketIds,
-                'tickTypes' => array( $this->safe_string($params, 'tickTypes', '24H') ),
-            );
-            $message = $this->extend($request, $params);
-            $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
-            if ($this->newUpdates) {
-                $result = array();
-                $result[$newTicker['symbol']] = $newTicker;
-                return $result;
-            }
-            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        }) ();
-    }
-
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //    {
         //        "type" : "ticker",
@@ -132,10 +144,10 @@ class bithumb extends \ccxt\async\bithumb {
         $ticker = $this->parse_ws_ticker($content);
         $messageHash = 'ticker:' . $symbol;
         $this->tickers[$symbol] = $ticker;
-        $client->resolve ($this->tickers[$symbol], $messageHash);
+        $client->resolve($this->tickers[$symbol], $messageHash);
     }
 
-    public function parse_ws_ticker($ticker, $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null) {
         //
         //    {
         //        "symbol" : "BTC_KRW",           // 통화코드
@@ -184,33 +196,37 @@ class bithumb extends \ccxt\async\bithumb {
         ), $market);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             *
-             * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
-             *
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
-             */
-            Async\await($this->load_markets());
-            $url = $this->urls['api']['ws']['public'];
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'orderbook' . ':' . $symbol;
-            $request = array(
-                'type' => 'orderbookdepth',
-                'symbols' => [ $market['base'] . '_' . $market['quote'] ],
-            );
-            $orderbook = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-            return $orderbook->limit ();
-        }) ();
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
     }
 
-    public function handle_order_book(Client $client, $message) {
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
+         *
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $url = $this->urls['api']['ws']['public'];
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $messageHash = 'orderbook' . ':' . $symbol;
+        $request = array(
+            'type' => 'orderbookdepth',
+            'symbols' => array( $market['base'] . '_' . $market['quote'] ),
+        );
+        $orderbook = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+        return $orderbook->limit();
+    }
+
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //    {
         //        "type" : "orderbookdepth",
@@ -241,7 +257,7 @@ class bithumb extends \ccxt\async\bithumb {
         $symbol = $this->safe_symbol($marketId, null, '_');
         $timestampStr = $this->safe_string($content, 'datetime');
         $timestamp = $this->parse_to_int(mb_substr($timestampStr, 0, 13 - 0));
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $ob = $this->order_book();
             $ob['symbol'] = $symbol;
             $this->orderbooks[$symbol] = $ob;
@@ -251,10 +267,10 @@ class bithumb extends \ccxt\async\bithumb {
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
         $messageHash = 'orderbook' . ':' . $symbol;
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_delta($orderbook, $delta) {
+    public function handle_delta(mixed $orderbook, mixed $delta) {
         //
         //    {
         //        symbol => "ETH_BTC",
@@ -266,48 +282,52 @@ class bithumb extends \ccxt\async\bithumb {
         //
         $sideId = $this->safe_string($delta, 'orderType');
         $side = ($sideId === 'bid') ? 'bids' : 'asks';
-        $bidAsk = $this->parse_bid_ask($delta, 'price', 'quantity');
+        $bidAsk = $this->parse_order_book_bid_ask($delta, 'price', 'quantity');
         $orderbookSide = $orderbook[$side];
-        $orderbookSide->storeArray ($bidAsk);
+        $orderbookSide->storeArray($bidAsk);
     }
 
-    public function handle_deltas($orderbook, $deltas) {
+    public function handle_deltas(mixed $orderbook, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($orderbook, $deltas[$i]);
         }
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent $trades for a particular $symbol
-             *
-             * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
-             */
-            Async\await($this->load_markets());
-            $url = $this->urls['api']['ws']['public'];
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'trade:' . $symbol;
-            $request = array(
-                'type' => 'transaction',
-                'symbols' => [ $market['base'] . '_' . $market['quote'] ],
-            );
-            $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
     }
 
-    public function handle_trades($client, $message) {
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         *
+         * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $url = $this->urls['api']['ws']['public'];
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $messageHash = 'trade:' . $symbol;
+        $request = array(
+            'type' => 'transaction',
+            'symbols' => array( $market['base'] . '_' . $market['quote'] ),
+        );
+        $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+    }
+
+    public function handle_trades(mixed $client, mixed $message) {
         //
         //    {
         //        "type" : "transaction",
@@ -332,20 +352,20 @@ class bithumb extends \ccxt\async\bithumb {
             $rawTrade = $rawTrades[$i];
             $marketId = $this->safe_string($rawTrade, 'symbol');
             $symbol = $this->safe_symbol($marketId, null, '_');
-            if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+            if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
                 $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-                $stored = new ArrayCache ($limit);
+                $stored = new ArrayCache($limit);
                 $this->trades[$symbol] = $stored;
             }
             $trades = $this->trades[$symbol];
             $parsed = $this->parse_ws_trade($rawTrade);
-            $trades->append ($parsed);
+            $trades->append($parsed);
             $messageHash = 'trade' . ':' . $symbol;
-            $client->resolve ($trades, $messageHash);
+            $client->resolve($trades, $messageHash);
         }
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         //    {
         //        "symbol" : "BTC_KRW",
@@ -360,7 +380,7 @@ class bithumb extends \ccxt\async\bithumb {
         $marketId = $this->safe_string($trade, 'symbol');
         $datetime = $this->safe_string($trade, 'contDtm');
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
-        $timestamp = $this->parse8601($datetime) - 32400000;
+        $timestamp = $this->parse_to_int($this->parse8601($datetime)) - 32400000;
         $sideId = $this->safe_string($trade, 'buySellGb');
         return $this->safe_trade(array(
             'id' => null,
@@ -379,14 +399,14 @@ class bithumb extends \ccxt\async\bithumb {
         ), $market);
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //    {
         //        "status" : "5100",
         //        "resmsg" : "Invalid Filter Syntax"
         //    }
         //
-        if (!(is_array($message) && array_key_exists('status', $message))) {
+        if (!(is_array($message) && array_key_exists('status' ?? '', $message))) {
             return true;
         }
         $errorCode = $this->safe_string($message, 'status');
@@ -397,35 +417,39 @@ class bithumb extends \ccxt\async\bithumb {
             }
             return true;
         } catch (Exception $e) {
-            $client->reject ($e);
+            $client->reject($e);
         }
         return true;
     }
 
-    public function watch_balance($params = array ()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * watch $balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%9E%90%EC%82%B0-myasset
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
-             */
-            Async\await($this->load_markets());
-            Async\await($this->authenticate());
-            $url = $this->urls['api']['ws']['privateV2'];
-            $messageHash = 'myAsset';
-            $request = array(
-                array( 'ticket' => 'ccxt' ),
-                array( 'type' => $messageHash ),
-            );
-            $balance = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-            return $balance;
-        }) ();
+    public function watch_balance($params = array()): PromiseInterface {
+        return Async\async(self::do_watch_balance(...))($params);
     }
 
-    public function handle_balance(Client $client, $message) {
+    private function do_watch_balance($params = array()) {
+        /**
+         * watch $balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%9E%90%EC%82%B0-myasset
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->authenticate());
+        $url = $this->urls['api']['ws']['privateV2'];
+        $messageHash = 'myAsset';
+        $request = array(
+            array( 'ticket' => 'ccxt' ),
+            array( 'type' => $messageHash ),
+        );
+        $balance = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        return $balance;
+    }
+
+    public function handle_balance(Client $client, mixed $message) {
         //
         //    {
         //        "type" => "myAsset",
@@ -453,17 +477,19 @@ class bithumb extends \ccxt\async\bithumb {
             $account = $this->account();
             $account['free'] = $this->safe_string($asset, 'balance');
             $account['used'] = $this->safe_string($asset, 'locked');
-            $this->balance[$code] = $account;
+            if ($code !== null) {
+                $this->balance[$code] = $account;
+            }
         }
         $this->balance['info'] = $message;
         $timestamp = $this->safe_integer($message, 'timestamp');
         $this->balance['timestamp'] = $timestamp;
         $this->balance['datetime'] = $this->iso8601($timestamp);
         $this->balance = $this->safe_balance($this->balance);
-        $client->resolve ($this->balance, $messageHash);
+        $client->resolve($this->balance, $messageHash);
     }
 
-    public function authenticate($params = array ()) {
+    public function authenticate($params = array()) {
         $this->check_required_credentials();
         $wsOptions = $this->safe_dict($this->options, 'ws', array());
         $authenticated = $this->safe_string($wsOptions, 'token');
@@ -487,43 +513,47 @@ class bithumb extends \ccxt\async\bithumb {
         return $client;
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $orders made by the user
-             *
-             * @see https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%A3%BC%EB%AC%B8-%EB%B0%8F-%EC%B2%B4%EA%B2%B0-myorder
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string[]} [$params->codes] $market $codes to filter $orders
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            Async\await($this->load_markets());
-            Async\await($this->authenticate());
-            $url = $this->urls['api']['ws']['privateV2'];
-            $messageHash = 'myOrder';
-            $codes = $this->safe_list($params, 'codes', array());
-            $request = array(
-                array( 'ticket' => 'ccxt' ),
-                array( 'type' => $messageHash, 'codes' => $codes ),
-            );
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-                $messageHash = $messageHash . ':' . $symbol;
-            }
-            $orders = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-            if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        }) ();
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
     }
 
-    public function handle_orders(Client $client, $message) {
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $orders made by the user
+         *
+         * @see https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%A3%BC%EB%AC%B8-%EB%B0%8F-%EC%B2%B4%EA%B2%B0-myorder
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [$params->codes] $market $codes to filter $orders
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->authenticate());
+        $url = $this->urls['api']['ws']['privateV2'];
+        $messageHash = 'myOrder';
+        $codes = $this->safe_list($params, 'codes', array());
+        $request = array(
+            array( 'ticket' => 'ccxt' ),
+            array( 'type' => $messageHash, 'codes' => $codes ),
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $messageHash = $messageHash . ':' . $symbol;
+        }
+        $orders = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+    }
+
+    public function handle_orders(Client $client, mixed $message) {
         //
         //    {
         //        "type" => "myOrder",
@@ -554,16 +584,16 @@ class bithumb extends \ccxt\async\bithumb {
         // $orderId = $this->safe_string($parsed, 'id');
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $cachedOrders = $this->orders;
-        $cachedOrders->append ($parsed);
-        $client->resolve ($cachedOrders, $messageHash);
+        $cachedOrders->append($parsed);
+        $client->resolve($cachedOrders, $messageHash);
         $symbolSpecificMessageHash = $messageHash . ':' . $symbol;
-        $client->resolve ($cachedOrders, $symbolSpecificMessageHash);
+        $client->resolve($cachedOrders, $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         //    {
         //        "type" => "myOrder",
@@ -654,7 +684,7 @@ class bithumb extends \ccxt\async\bithumb {
         ), $market);
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if (!$this->handle_error_message($client, $message)) {
             return;
         }

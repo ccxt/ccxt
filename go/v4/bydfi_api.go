@@ -7,182 +7,227 @@
 
 package ccxt
 
-func (this *BydfiCore) PublicGetV1PublicApiLimits(args ...interface{}) <-chan interface{} {
+// PublicGetV1PublicApiLimits returns a channel that yields a JSON object.
+func (this *BydfiCore) PublicGetV1PublicApiLimits(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1PublicApiLimits", args...)
 }
 
-func (this *BydfiCore) PublicGetV1SwapMarketExchangeInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1SwapMarketExchangeInfo", args...)
+// PublicGetV1FapiMarketExchangeInfo returns a channel that yields a JSON object.
+func (this *BydfiCore) PublicGetV1FapiMarketExchangeInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1FapiMarketExchangeInfo", args...)
 }
 
-func (this *BydfiCore) PublicGetV1SwapMarketDepth(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1SwapMarketDepth", args...)
+// PublicGetV1FapiMarketDepth returns a channel that yields a JSON object.
+func (this *BydfiCore) PublicGetV1FapiMarketDepth(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1FapiMarketDepth", args...)
 }
 
-func (this *BydfiCore) PublicGetV1SwapMarketTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1SwapMarketTrades", args...)
+// PublicGetV1FapiMarketTrades returns a channel that yields a JSON object.
+func (this *BydfiCore) PublicGetV1FapiMarketTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1FapiMarketTrades", args...)
 }
 
-func (this *BydfiCore) PublicGetV1SwapMarketKlines(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1SwapMarketKlines", args...)
+// PublicGetV1FapiMarketKlines returns a channel that yields a JSON object.
+func (this *BydfiCore) PublicGetV1FapiMarketKlines(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1FapiMarketKlines", args...)
 }
 
-func (this *BydfiCore) PublicGetV1SwapMarketTicker24hr(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1SwapMarketTicker24hr", args...)
+// PublicGetV1FapiMarketTicker24hr returns a channel that yields a JSON object.
+func (this *BydfiCore) PublicGetV1FapiMarketTicker24hr(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1FapiMarketTicker24hr", args...)
 }
 
-func (this *BydfiCore) PublicGetV1SwapMarketTickerPrice(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1SwapMarketTickerPrice", args...)
+// PublicGetV1FapiMarketTickerPrice returns a channel that yields a JSON object.
+func (this *BydfiCore) PublicGetV1FapiMarketTickerPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1FapiMarketTickerPrice", args...)
 }
 
-func (this *BydfiCore) PublicGetV1SwapMarketMarkPrice(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1SwapMarketMarkPrice", args...)
+// PublicGetV1FapiMarketMarkPrice returns a channel that yields a JSON object.
+func (this *BydfiCore) PublicGetV1FapiMarketMarkPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1FapiMarketMarkPrice", args...)
 }
 
-func (this *BydfiCore) PublicGetV1SwapMarketFundingRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1SwapMarketFundingRate", args...)
+// PublicGetV1FapiMarketFundingRate returns a channel that yields a JSON object.
+func (this *BydfiCore) PublicGetV1FapiMarketFundingRate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1FapiMarketFundingRate", args...)
 }
 
-func (this *BydfiCore) PublicGetV1SwapMarketFundingRateHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1SwapMarketFundingRateHistory", args...)
+// PublicGetV1FapiMarketFundingRateHistory returns a channel that yields a JSON object.
+func (this *BydfiCore) PublicGetV1FapiMarketFundingRateHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1FapiMarketFundingRateHistory", args...)
 }
 
-func (this *BydfiCore) PublicGetV1SwapMarketRiskLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1SwapMarketRiskLimit", args...)
+// PublicGetV1FapiMarketRiskLimit returns a channel that yields a JSON object.
+func (this *BydfiCore) PublicGetV1FapiMarketRiskLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1FapiMarketRiskLimit", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1AccountAssets(args ...interface{}) <-chan interface{} {
+// PrivateGetV1AccountAssets returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1AccountAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1AccountAssets", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1AccountTransferRecords(args ...interface{}) <-chan interface{} {
+// PrivateGetV1AccountTransferRecords returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1AccountTransferRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1AccountTransferRecords", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SpotDepositRecords(args ...interface{}) <-chan interface{} {
+// PrivateGetV1SpotDepositRecords returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1SpotDepositRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1SpotDepositRecords", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SpotWithdrawRecords(args ...interface{}) <-chan interface{} {
+// PrivateGetV1SpotWithdrawRecords returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1SpotWithdrawRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1SpotWithdrawRecords", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SwapTradeOpenOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV1SwapTradeOpenOrder", args...)
+// PrivateGetV1FapiTradeOpenOrder returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1FapiTradeOpenOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1FapiTradeOpenOrder", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SwapTradePlanOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV1SwapTradePlanOrder", args...)
+// PrivateGetV1FapiTradePlanOrder returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1FapiTradePlanOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1FapiTradePlanOrder", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SwapTradeLeverage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV1SwapTradeLeverage", args...)
+// PrivateGetV1FapiTradeLeverage returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1FapiTradeLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1FapiTradeLeverage", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SwapTradeHistoryOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV1SwapTradeHistoryOrder", args...)
+// PrivateGetV1FapiTradeHistoryOrder returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1FapiTradeHistoryOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1FapiTradeHistoryOrder", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SwapTradeHistoryTrade(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV1SwapTradeHistoryTrade", args...)
+// PrivateGetV1FapiTradeHistoryTrade returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1FapiTradeHistoryTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1FapiTradeHistoryTrade", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SwapTradePositionHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV1SwapTradePositionHistory", args...)
+// PrivateGetV1FapiTradePositionHistory returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1FapiTradePositionHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1FapiTradePositionHistory", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SwapTradePositions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV1SwapTradePositions", args...)
+// PrivateGetV1FapiTradePositions returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1FapiTradePositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1FapiTradePositions", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SwapAccountBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV1SwapAccountBalance", args...)
+// PrivateGetV1FapiAccountBalance returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1FapiAccountBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1FapiAccountBalance", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SwapUserDataAssetsMargin(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV1SwapUserDataAssetsMargin", args...)
+// PrivateGetV1FapiUserDataAssetsMargin returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1FapiUserDataAssetsMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1FapiUserDataAssetsMargin", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SwapUserDataPositionSideDual(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV1SwapUserDataPositionSideDual", args...)
+// PrivateGetV1FapiUserDataPositionSideDual returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1FapiUserDataPositionSideDual(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1FapiUserDataPositionSideDual", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1AgentTeams(args ...interface{}) <-chan interface{} {
+// PrivateGetV1AgentTeams returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1AgentTeams(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1AgentTeams", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1AgentAgentLinks(args ...interface{}) <-chan interface{} {
+// PrivateGetV1AgentAgentLinks returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1AgentAgentLinks(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1AgentAgentLinks", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1AgentRegularOverview(args ...interface{}) <-chan interface{} {
+// PrivateGetV1AgentRegularOverview returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1AgentRegularOverview(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1AgentRegularOverview", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1AgentAgentSubOverview(args ...interface{}) <-chan interface{} {
+// PrivateGetV1AgentAgentSubOverview returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1AgentAgentSubOverview(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1AgentAgentSubOverview", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1AgentPartenerUserDeposit(args ...interface{}) <-chan interface{} {
+// PrivateGetV1AgentPartenerUserDeposit returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1AgentPartenerUserDeposit(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1AgentPartenerUserDeposit", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1AgentPartenerUsersData(args ...interface{}) <-chan interface{} {
+// PrivateGetV1AgentPartenerUsersData returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1AgentPartenerUsersData(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1AgentPartenerUsersData", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1AgentAffiliateUids(args ...interface{}) <-chan interface{} {
+// PrivateGetV1AgentAffiliateUids returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1AgentAffiliateUids(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1AgentAffiliateUids", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1AgentAffiliateCommission(args ...interface{}) <-chan interface{} {
+// PrivateGetV1AgentAffiliateCommission returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1AgentAffiliateCommission(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1AgentAffiliateCommission", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1AgentInternalWithdrawalStatus(args ...interface{}) <-chan interface{} {
+// PrivateGetV1AgentInternalWithdrawalStatus returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV1AgentInternalWithdrawalStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1AgentInternalWithdrawalStatus", args...)
 }
 
-func (this *BydfiCore) PrivatePostV1AccountTransfer(args ...interface{}) <-chan interface{} {
+// PrivatePostV1AccountTransfer returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivatePostV1AccountTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV1AccountTransfer", args...)
 }
 
-func (this *BydfiCore) PrivatePostV1SwapTradePlaceOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostV1SwapTradePlaceOrder", args...)
+// PrivatePostV1FapiTradePlaceOrder returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivatePostV1FapiTradePlaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1FapiTradePlaceOrder", args...)
 }
 
-func (this *BydfiCore) PrivatePostV1SwapTradeBatchPlaceOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostV1SwapTradeBatchPlaceOrder", args...)
+// PrivatePostV1FapiTradeBatchPlaceOrder returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivatePostV1FapiTradeBatchPlaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1FapiTradeBatchPlaceOrder", args...)
 }
 
-func (this *BydfiCore) PrivatePostV1SwapTradeEditOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostV1SwapTradeEditOrder", args...)
+// PrivatePostV1FapiTradeEditOrder returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivatePostV1FapiTradeEditOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1FapiTradeEditOrder", args...)
 }
 
-func (this *BydfiCore) PrivatePostV1SwapTradeBatchEditOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostV1SwapTradeBatchEditOrder", args...)
+// PrivatePostV1FapiTradeBatchEditOrder returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivatePostV1FapiTradeBatchEditOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1FapiTradeBatchEditOrder", args...)
 }
 
-func (this *BydfiCore) PrivatePostV1SwapTradeCancelAllOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostV1SwapTradeCancelAllOrder", args...)
+// PrivatePostV1FapiTradeCancelAllOrder returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivatePostV1FapiTradeCancelAllOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1FapiTradeCancelAllOrder", args...)
 }
 
-func (this *BydfiCore) PrivatePostV1SwapTradeLeverage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostV1SwapTradeLeverage", args...)
+// PrivatePostV1FapiTradeLeverage returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivatePostV1FapiTradeLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1FapiTradeLeverage", args...)
 }
 
-func (this *BydfiCore) PrivatePostV1SwapTradeBatchLeverageMargin(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostV1SwapTradeBatchLeverageMargin", args...)
+// PrivatePostV1FapiTradeBatchLeverageMargin returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivatePostV1FapiTradeBatchLeverageMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1FapiTradeBatchLeverageMargin", args...)
 }
 
-func (this *BydfiCore) PrivatePostV1SwapUserDataMarginType(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostV1SwapUserDataMarginType", args...)
+// PrivatePostV1FapiUserDataMarginType returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivatePostV1FapiUserDataMarginType(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1FapiUserDataMarginType", args...)
 }
 
-func (this *BydfiCore) PrivatePostV1SwapUserDataPositionSideDual(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostV1SwapUserDataPositionSideDual", args...)
+// PrivatePostV1FapiUserDataPositionSideDual returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivatePostV1FapiUserDataPositionSideDual(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1FapiUserDataPositionSideDual", args...)
 }
 
-func (this *BydfiCore) PrivatePostV1AgentInternalWithdrawal(args ...interface{}) <-chan interface{} {
+// PrivatePostV1AgentInternalWithdrawal returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivatePostV1AgentInternalWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV1AgentInternalWithdrawal", args...)
 }

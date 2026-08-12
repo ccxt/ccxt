@@ -9,11 +9,10 @@ use Exception; // a common import
 use ccxt\abstract\luno as Exchange;
 
 class luno extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'luno',
-            'name' => 'luno',
+            'name' => 'Luno',
             'countries' => array( 'GB', 'SG', 'ZA' ),
             // 300 calls per minute = 5 calls per second = 1000ms / 5 = 200ms between requests
             'rateLimit' => 200,
@@ -50,6 +49,8 @@ class luno extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositWithdrawFee' => true,
+                'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingInterval' => false,
                 'fetchFundingIntervals' => false,
@@ -126,7 +127,7 @@ class luno extends Exchange {
                 ),
                 'www' => 'https://www.luno.com',
                 'doc' => array(
-                    'https://www.luno.com/en/api',
+                    'https://www.luno.com/en/developers/api',
                     'https://npmjs.org/package/bitx',
                     'https://github.com/bausmeier/node-bitx',
                 ),
@@ -134,66 +135,69 @@ class luno extends Exchange {
             'api' => array(
                 'exchange' => array(
                     'get' => array(
-                        'markets' => 1,
+                        'markets' => array( 'cost' => 1 ),
                     ),
                 ),
                 'exchangePrivate' => array(
                     'get' => array(
-                        'candles' => 1,
+                        'candles' => array( 'cost' => 1 ),
+                        'move' => array( 'cost' => 1 ),
+                        'move/list_moves' => array( 'cost' => 1 ),
+                        'transfers' => array( 'cost' => 1 ),
+                    ),
+                    'post' => array(
+                        'convert' => array( 'cost' => 1 ),
+                        'move' => array( 'cost' => 1 ),
                     ),
                 ),
                 'public' => array(
                     'get' => array(
-                        'orderbook' => 1,
-                        'orderbook_top' => 1,
-                        'ticker' => 1,
-                        'tickers' => 1,
-                        'trades' => 1,
+                        'orderbook' => array( 'cost' => 1 ),
+                        'orderbook_top' => array( 'cost' => 1 ),
+                        'ticker' => array( 'cost' => 1 ),
+                        'tickers' => array( 'cost' => 1 ),
+                        'trades' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'accounts/{id}/pending' => 1,
-                        'accounts/{id}/transactions' => 1,
-                        'balance' => 1,
-                        'beneficiaries' => 1,
-                        'send/networks' => 1,
-                        'fee_info' => 1,
-                        'funding_address' => 1,
-                        'listorders' => 1,
-                        'listtrades' => 1,
-                        'send_fee' => 1,
-                        'orders/{id}' => 1,
-                        'withdrawals' => 1,
-                        'withdrawals/{id}' => 1,
-                        'transfers' => 1,
-                        // GET /api/exchange/1/move
-                        // GET /api/exchange/1/move/list_moves
-                        // GET /api/exchange/1/candles
-                        // GET /api/exchange/1/transfers
+                        'accounts/{id}/pending' => array( 'cost' => 1 ),
+                        'accounts/{id}/transactions' => array( 'cost' => 1 ),
+                        'balance' => array( 'cost' => 1 ),
+                        'beneficiaries' => array( 'cost' => 1 ),
+                        'send/networks' => array( 'cost' => 1 ),
+                        'fee_info' => array( 'cost' => 1 ),
+                        'funding_address' => array( 'cost' => 1 ),
+                        'listorders' => array( 'cost' => 1 ),
+                        'listtrades' => array( 'cost' => 1 ),
+                        'send_fee' => array( 'cost' => 1 ),
+                        'orders/{id}' => array( 'cost' => 1 ),
+                        'withdrawals' => array( 'cost' => 1 ),
+                        'withdrawals/{id}' => array( 'cost' => 1 ),
+                        'transfers' => array( 'cost' => 1 ), // not found in current docs, use GET /api/exchange/1/transfers
+                        'users/linked' => array( 'cost' => 1 ),
                         // GET /api/exchange/2/listorders
                         // GET /api/exchange/2/orders/{id}
                         // GET /api/exchange/3/order
                     ),
                     'post' => array(
-                        'accounts' => 1,
-                        'address/validate' => 1,
-                        'postorder' => 1,
-                        'marketorder' => 1,
-                        'stoporder' => 1,
-                        'funding_address' => 1,
-                        'withdrawals' => 1,
-                        'send' => 1,
-                        'oauth2/grant' => 1,
-                        'beneficiaries' => 1,
-                        // POST /api/exchange/1/move
+                        'accounts' => array( 'cost' => 1 ),
+                        'address/validate' => array( 'cost' => 1 ),
+                        'postorder' => array( 'cost' => 1 ),
+                        'marketorder' => array( 'cost' => 1 ),
+                        'stoporder' => array( 'cost' => 1 ),
+                        'funding_address' => array( 'cost' => 1 ),
+                        'withdrawals' => array( 'cost' => 1 ),
+                        'send' => array( 'cost' => 1 ),
+                        'oauth2/grant' => array( 'cost' => 1 ), // deprecated for new applications
+                        'beneficiaries' => array( 'cost' => 1 ),
                     ),
                     'put' => array(
-                        'accounts/{id}/name' => 1,
+                        'accounts/{id}/name' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'withdrawals/{id}' => 1,
-                        'beneficiaries/{id}' => 1,
+                        'withdrawals/{id}' => array( 'cost' => 1 ),
+                        'beneficiaries/{id}' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -211,10 +215,149 @@ class luno extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
+                    // Luno prices by PAIR CATEGORY 30-day volume tier:
+                    // crypto/fiat, stablecoin/fiat and crypto/crypto each have their own
+                    // ladder, and the maker side is a charge in one category and a rebate
+                    // in another at the same tier. A single scalar cannot represent that,
+                    // so per-market 'taker'/'maker' are set in fetchMarkets where the
+                    // published schedule has been verified. The values below are the
+                    // exchange-wide fallback => crypto/fiat at the entry tier, which is the
+                    // dearest cell in the table and therefore the safe direction to quote
+                    // for a caller who cannot reach the authenticated fetchTradingFee.
                     'tierBased' => true, // based on volume from your primary currency (not the same for everyone)
                     'percentage' => true,
-                    'taker' => $this->parse_number('0.001'),
-                    'maker' => $this->parse_number('0'),
+                    'taker' => $this->parse_number('0.006'),
+                    'maker' => $this->parse_number('0.004'),
+                    'tiers' => array(
+                        'taker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.006') ),
+                            array( $this->parse_number('20000'), $this->parse_number('0.005') ),
+                            array( $this->parse_number('200000'), $this->parse_number('0.004') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.003') ),
+                            array( $this->parse_number('2000000'), $this->parse_number('0.002') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.0015') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('20000000'), $this->parse_number('0.0009') ),
+                            array( $this->parse_number('40000000'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('80000000'), $this->parse_number('0.0007') ),
+                            array( $this->parse_number('120000000'), $this->parse_number('0.0006') ),
+                            array( $this->parse_number('160000000'), $this->parse_number('0.0005') ),
+                            array( $this->parse_number('300000000'), $this->parse_number('0.0005') ),
+                        ),
+                        'maker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.004') ),
+                            array( $this->parse_number('20000'), $this->parse_number('0.003') ),
+                            array( $this->parse_number('200000'), $this->parse_number('0.002') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('2000000'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.0006') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0') ),
+                            array( $this->parse_number('20000000'), $this->parse_number('0') ),
+                            array( $this->parse_number('40000000'), $this->parse_number('-0.0001') ),
+                            array( $this->parse_number('80000000'), $this->parse_number('-0.0001') ),
+                            array( $this->parse_number('120000000'), $this->parse_number('-0.0002') ),
+                            array( $this->parse_number('160000000'), $this->parse_number('-0.0002') ),
+                            array( $this->parse_number('300000000'), $this->parse_number('-0.0002') ),
+                        ),
+                    ),
+                ),
+            ),
+            'exceptions' => array(
+                'exact' => array(
+                    'ErrAccountIsMigrating' => '\\ccxt\\OperationRejected', // Account migration in progress
+                    'ErrAccountLimit' => '\\ccxt\\OperationRejected', // You can't add another wallet with this currency
+                    'ErrAccountNotFound' => '\\ccxt\\ExchangeError', // Cannot find that account
+                    'ErrAccountsNotDifferent' => '\\ccxt\\BadRequest', // Debit and credit accounts must be different
+                    'ErrActiveCryptoRequestExists' => '\\ccxt\\OperationRejected', // Send request pending. Please try again after it has completed.
+                    'ErrAddressCreateRateLimitReached' => '\\ccxt\\RateLimitExceeded', // Receive address create rate limit reached. Please try again later.
+                    'ErrAddressLimitReached' => '\\ccxt\\OperationRejected', // Receive address limit reached.
+                    'ErrAmountTooBig' => '\\ccxt\\BadRequest', // The specified amount is higher than the maximum allowed.
+                    'ErrAmountTooSmall' => '\\ccxt\\BadRequest', // The specified amount is lower than the minimum allowed.
+                    'ErrApiKeyRevoked' => '\\ccxt\\AuthenticationError', // Your API key has been revoked.
+                    'ErrBeneficiaryNotFound' => '\\ccxt\\ExchangeError', // Beneficiary not Found
+                    'ErrBlockedSendsCurrency' => '\\ccxt\\OperationRejected', // Sends are currently disabled for this currency
+                    'ErrCannotStopUnknownOrNonPendingOrder' => '\\ccxt\\InvalidOrder', // Cannot stop unknown or non-pending order.
+                    'ErrCannotTradeWhileQuoteActive' => '\\ccxt\\OperationRejected', // Cannot trade while you have any active quotes.
+                    'ErrConvertPairNotSupported' => '\\ccxt\\BadRequest', // The requested pair is not supported for conversion.
+                    'ErrConvertRateLimited' => '\\ccxt\\RateLimitExceeded', // You have exceeded the conversion rate limit for this pair. Please try again later.
+                    'ErrCounterDenominationNotAllowed' => '\\ccxt\\InvalidOrder', // Amount contains too many decimal places
+                    'ErrCreditAccountNotTransactional' => '\\ccxt\\BadRequest', // The specified credit-account must be transactional
+                    'ErrCustomRefNotAllowed' => '\\ccxt\\BadRequest', // Custom reference not allowed
+                    'ErrDeadlineExceeded' => '\\ccxt\\RequestTimeout', // Could not complete before the deadline
+                    'ErrDebitAccountNotTransactional' => '\\ccxt\\BadRequest', // Debit account not transactional
+                    'ErrDescriptionTooLong' => '\\ccxt\\BadRequest', // Your transaction reference is too long. The maximum length is 256 characters.
+                    'ErrDifferentCurrencies' => '\\ccxt\\BadRequest', // Debit and credit accounts have different currencies
+                    'ErrDisallowedTarget' => '\\ccxt\\InvalidAddress', // Given address not allowed.
+                    'ErrDuplicateClientMoveID' => '\\ccxt\\OperationRejected', // Duplicate client move id
+                    'ErrDuplicateClientOrderID' => '\\ccxt\\DuplicateOrderId', // Duplicate client order id
+                    'ErrDuplicateExternalID' => '\\ccxt\\OperationRejected', // A withdrawal with an identical external id already exists.
+                    'ErrERC20AddressAlreadyAssigned' => '\\ccxt\\OperationRejected', // You can only create 1 ERC-20 receive address per token
+                    'ErrERC20AssignNonDefault' => '\\ccxt\\BadRequest', // You can only assign ERC-20 receive addresses to your default account
+                    'ErrFundsMoveNotFound' => '\\ccxt\\ExchangeError', // Funds move not found
+                    'ErrIdempotencyKeyConflict' => '\\ccxt\\OperationRejected', // A request with this idempotency_key has already been processed.
+                    'ErrIdempotencyKeyRequestMismatch' => '\\ccxt\\BadRequest', // A request with this idempotency_key has a mismatched request
+                    'ErrIncompatibleBeneficiary' => '\\ccxt\\BadRequest', // Beneficiary is incompatible with the requested withdrawal.
+                    'ErrIncorrectPin' => '\\ccxt\\AuthenticationError', // Invalid pin specified
+                    'ErrInsufficientBalance' => '\\ccxt\\InsufficientFunds', // Insufficient balance.
+                    'ErrInsufficientFunds' => '\\ccxt\\InsufficientFunds', // Account has insufficient funds
+                    'ErrInsufficientPerms' => '\\ccxt\\PermissionDenied', // You do not have the required permissions to perform this action
+                    'ErrInternal' => '\\ccxt\\ExchangeNotAvailable', // Something went wrong. We're looking into it.
+                    'ErrInvalidAccount' => '\\ccxt\\BadRequest', // Account is invalid
+                    'ErrInvalidAccountID' => '\\ccxt\\BadRequest', // Invalid account ID specified
+                    'ErrInvalidAccountNumber' => '\\ccxt\\BadRequest', // Account number is invalid
+                    'ErrInvalidAmount' => '\\ccxt\\BadRequest', // Invalid amount specified
+                    'ErrInvalidArguments' => '\\ccxt\\BadRequest', // If any request parameters have invalid values this error will be returned. This error should also include a list of the offending fields to help identify and fix any issues.
+                    'ErrInvalidBaseVolume' => '\\ccxt\\InvalidOrder', // Invalid base volume for sell order.
+                    'ErrInvalidBranchCode' => '\\ccxt\\BadRequest', // Bank branch code is invalid.
+                    'ErrInvalidClientOrderId' => '\\ccxt\\InvalidOrder', // Invalid client order id
+                    'ErrInvalidCounterVolume' => '\\ccxt\\InvalidOrder', // Invalid counter volume for buy order.
+                    'ErrInvalidCurrency' => '\\ccxt\\BadRequest', // Invalid currency specified
+                    'ErrInvalidDetails' => '\\ccxt\\BadRequest', // Bank account details invalid
+                    'ErrInvalidMarketPair' => '\\ccxt\\BadSymbol', // Market pair is invalid
+                    'ErrInvalidOrderRef' => '\\ccxt\\InvalidOrder', // Order reference is invalid
+                    'ErrInvalidOrderSide' => '\\ccxt\\InvalidOrder', // Order side is invalid
+                    'ErrInvalidParameters' => '\\ccxt\\BadRequest', // Invalid parameters
+                    'ErrInvalidPrice' => '\\ccxt\\InvalidOrder', // Invalid order price.
+                    'ErrInvalidRequestType' => '\\ccxt\\BadRequest', // Invalid withdrawal request type specified.
+                    'ErrInvalidSourceAccount' => '\\ccxt\\BadRequest', // Invalid source account
+                    'ErrInvalidStopDirection' => '\\ccxt\\InvalidOrder', // Stop direction is invalid.
+                    'ErrInvalidStopPrice' => '\\ccxt\\InvalidOrder', // Invalid order stop price.
+                    'ErrInvalidVolume' => '\\ccxt\\InvalidOrder', // Invalid order volume.
+                    'ErrLimitOutOfRange' => '\\ccxt\\BadRequest', // List limit is out of allowed range
+                    'ErrMarketNotAllowed' => '\\ccxt\\PermissionDenied', // This market is not enabled for you.
+                    'ErrMarketUnavailable' => '\\ccxt\\ExchangeError', // Market not available
+                    'ErrMaxActiveFiatRequestsExists' => '\\ccxt\\OperationRejected', // Too many withdrawals in progress. Cancel one or try again later.
+                    'ErrMissingIdempotencyKey' => '\\ccxt\\BadRequest', // idempotency_key is required.
+                    'ErrNoAddressesAssigned' => '\\ccxt\\InvalidAddress', // No funding addresses linked to default account
+                    'ErrNoTradesToInferStopDirection' => '\\ccxt\\InvalidOrder', // Could not place Stop Limit Order, no trades to determine direction
+                    'ErrNotEnoughLiquidity' => '\\ccxt\\InvalidOrder', // Market order price would vary too much from the market rate - use a limit order instead
+                    'ErrNotFound' => '\\ccxt\\ExchangeError', // No result found
+                    'ErrOrderCanceled' => '\\ccxt\\InvalidOrder', // Your post-only order was cancelled before trading
+                    'ErrOrderNotFound' => '\\ccxt\\OrderNotFound', // Cannot find that order
+                    'ErrPostOnlyMode' => '\\ccxt\\InvalidOrder', // Market is in post-only mode
+                    'ErrPostOnlyNotAllowed' => '\\ccxt\\InvalidOrder', // IOC and FOK time-in-force types are not supported-only orders
+                    'ErrPriceDenominationNotAllowed' => '\\ccxt\\InvalidOrder', // Price contains too many decimal places
+                    'ErrPriceTooHigh' => '\\ccxt\\InvalidOrder', // Price is above the maximum
+                    'ErrPriceTooLow' => '\\ccxt\\InvalidOrder', // Price is below the minimum
+                    'ErrRejectedBeneficiary' => '\\ccxt\\OperationRejected', // Cannot request withdrawal to rejected beneficiary.
+                    'ErrRequestTypeDoesNotSupportFastWithdrawals' => '\\ccxt\\BadRequest', // The specified request type does not support fast withdrawals.
+                    'ErrStopPriceTooHigh' => '\\ccxt\\InvalidOrder', // Stop price is too high.
+                    'ErrStopPriceTooLow' => '\\ccxt\\InvalidOrder', // Stop price is too low.
+                    'ErrTooManyRequests' => '\\ccxt\\RateLimitExceeded', // You are exceeding the allowed request rate limit
+                    'ErrTooManyRowsRequested' => '\\ccxt\\BadRequest', // Too many rows requested
+                    'ErrTravelRule' => '\\ccxt\\ManualInteractionNeeded', // Please ensure that you've initiated a once-off crypto send for this specific wallet address via the website or mobile app and included relevant Travel Rule information before trying again via the send API. [Click here](https://www.luno.com/help/articles/421340781836897) for more information on the Travel Rule.
+                    'ErrUnauthorised' => '\\ccxt\\AuthenticationError', // You are not authorised to access this route
+                    'ErrUnderMaintenance' => '\\ccxt\\OnMaintenance', // The market is currently undergoing maintenance
+                    'ErrUpdateRequired' => '\\ccxt\\ExchangeError', // Luno app update required
+                    'ErrUserBlockedForCancelWithdrawal' => '\\ccxt\\PermissionDenied', // User blocked from cancelling withdrawals
+                    'ErrUserNotVerifiedForCurrency' => '\\ccxt\\AccountNotEnabled', // You are not verified for this currency
+                    'ErrValueTooHigh' => '\\ccxt\\InvalidOrder', // Order value too high
+                    'ErrVerificationLevelTooLow' => '\\ccxt\\AccountNotEnabled', // You must verify your identity using the Luno app before you can send crypto.
+                    'ErrVolumeDenominationNotAllowed' => '\\ccxt\\InvalidOrder', // Volume contains too many decimal places
+                    'ErrVolumeTooHigh' => '\\ccxt\\InvalidOrder', // Volume is above the maximum
+                    'ErrVolumeTooLow' => '\\ccxt\\InvalidOrder', // Volume is below the minimum
+                    'ErrWithdrawalBlocked' => '\\ccxt\\PermissionDenied', // To increase your withdraw limit add more information to your profile in settings.
+                    'ErrWithdrawalNotFound' => '\\ccxt\\ExchangeError', // Cannot find that withdrawal
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -299,19 +442,23 @@ class luno extends Exchange {
                     'inverse' => null,
                 ),
             ),
+            'rollingWindowSize' => 60000.0,
         ));
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
+         *
+         * @see https://www.luno.com/en/developers/api#tag/Send/operation/ListSupportedNetworks
+         *
          * @param {dict} [$params] extra parameters specific to the exchange API endpoint
          * @return {dict} an associative dictionary of currencies
          */
         if (!$this->check_required_credentials(false)) {
             return array();
         }
-        $response = $this->privateGetSendNetworks ($params);
+        $response = $this->privateGetSendNetworks($params);
         //
         //     {
         //         "networks" => array(
@@ -325,22 +472,23 @@ class luno extends Exchange {
         //     }
         //
         $currenciesData = $this->safe_list($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($currenciesData); $i++) {
-            $networkEntry = $currenciesData[$i];
-            $id = $this->safe_string($networkEntry, 'native_currency');
-            $code = $this->safe_currency_code($id);
-            if (!(is_array($result) && array_key_exists($code, $result))) {
-                $result[$code] = array(
-                    'id' => $id,
-                    'code' => $code,
-                    'precision' => null,
-                    'type' => null,
-                    'name' => null,
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => null,
+        $grouped = $this->group_by($currenciesData, 'native_currency');
+        $values = is_array($grouped) ? array_values($grouped) : array();
+        return $this->parse_currencies($values);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency[0], 'native_currency'); // first item is guaranteed
+        $code = $this->safe_currency_code($id);
+        $networks = array();
+        for ($i = 0; $i < count($rawCurrency); $i++) {
+            $networkEntry = $rawCurrency[$i];
+            $networkId = $this->safe_string($networkEntry, 'name');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
                     'limits' => array(
                         'withdraw' => array(
                             'min' => null,
@@ -351,47 +499,41 @@ class luno extends Exchange {
                             'max' => null,
                         ),
                     ),
-                    'networks' => array(),
-                    'info' => array(),
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
+                    'precision' => null,
+                    'info' => $networkEntry,
                 );
             }
-            $networkId = $this->safe_string($networkEntry, 'name');
-            $networkCode = $this->network_id_to_code($networkId);
-            $result[$code]['networks'][$networkCode] = array(
-                'id' => $networkId,
-                'network' => $networkCode,
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'precision' => null,
+            'type' => null,
+            'name' => null,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'limits' => array(
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
                 ),
-                'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => null,
-                'precision' => null,
-                'info' => $networkEntry,
-            );
-            // add entry in $info
-            $info = $this->safe_list($result[$code], 'info', array());
-            $info[] = $networkEntry;
-            $result[$code]['info'] = $info;
-        }
-        // only after all entries are formed in currencies, restructure each entry
-        $allKeys = is_array($result) ? array_keys($result) : array();
-        for ($i = 0; $i < count($allKeys); $i++) {
-            $code = $allKeys[$i];
-            $result[$code] = $this->safe_currency_structure($result[$code]); // this is needed after adding network entry
-        }
-        return $result;
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+            'info' => $rawCurrency,
+        ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all $markets for luno
          *
@@ -400,7 +542,7 @@ class luno extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
-        $response = $this->exchangeGetMarkets ($params);
+        $response = $this->exchangeGetMarkets($params);
         //
         //     {
         //         "markets":array(
@@ -430,9 +572,37 @@ class luno extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $status = $this->safe_string($market, 'trading_status');
+            // Luno's published schedule is categorical, not a single pair. Entry-tier
+            // rates below are read from Luno's own Help Centre fee article for the ZAR
+            // $market; $markets quoted in other fiat currencies are left on the
+            // exchange-wide default until their schedules are verified the same way.
+            $fiats = array( 'ZAR' );
+            // live-but-unverified counters, kept on the exchange-wide default; the $market
+            // list is geo-filtered so this is a superset of any one region's view, and
+            // ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
+            $unverifiedQuotes = array( 'MYR', 'NGN', 'IDR', 'KES', 'UGX', 'AUD', 'GBP', 'EUR', 'USD', 'ZARU' );
+            $stablecoins = array( 'USDT', 'USDC' );
+            $taker = null;
+            $maker = null;
+            if ($this->in_array($quote, $fiats)) {
+                if ($this->in_array($base, $stablecoins)) {
+                    $taker = $this->parse_number('0.002');
+                    $maker = $this->parse_number('-0.0001'); // a rebate, not a charge
+                } else {
+                    $taker = $this->parse_number('0.006');
+                    $maker = $this->parse_number('0.004');
+                }
+            } elseif (!$this->in_array($quote, $unverifiedQuotes)) {
+                // stablecoin-quoted (BTC/USDT) and crypto-quoted (ETH/BTC, SOL/ADA) books
+                // are both in Luno's crypto/crypto column
+                $taker = $this->parse_number('0.001');
+                $maker = $this->parse_number('0.0008');
+            }
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
+                'taker' => $taker,
+                'maker' => $maker,
                 'base' => $base,
                 'quote' => $quote,
                 'settle' => null,
@@ -483,7 +653,7 @@ class luno extends Exchange {
         return $result;
     }
 
-    public function fetch_accounts($params = array ()): array {
+    public function fetch_accounts($params = array()): array {
         /**
          * fetch all the accounts associated with a profile
          *
@@ -492,7 +662,7 @@ class luno extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$account-structure $account structures~ indexed by the $account type
          */
-        $response = $this->privateGetBalance ($params);
+        $response = $this->privateGetBalance($params);
         $wallets = $this->safe_value($response, 'balance', array());
         $result = array();
         for ($i = 0; $i < count($wallets); $i++) {
@@ -503,14 +673,14 @@ class luno extends Exchange {
             $result[] = array(
                 'id' => $accountId,
                 'type' => null,
-                'currency' => $code,
+                'code' => $code,
                 'info' => $account,
             );
         }
         return $result;
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $wallets = $this->safe_value($response, 'balance', array());
         $result = array(
             'info' => $response,
@@ -526,10 +696,10 @@ class luno extends Exchange {
             $balance = $this->safe_string($wallet, 'balance');
             $reservedUnconfirmed = Precise::string_add($reserved, $unconfirmed);
             $balanceUnconfirmed = Precise::string_add($balance, $unconfirmed);
-            if (is_array($result) && array_key_exists($code, $result)) {
+            if (($code !== null) && (is_array($result) && array_key_exists($code ?? '', $result))) {
                 $result[$code]['used'] = Precise::string_add($result[$code]['used'], $reservedUnconfirmed);
                 $result[$code]['total'] = Precise::string_add($result[$code]['total'], $balanceUnconfirmed);
-            } else {
+            } elseif ($code !== null) {
                 $account = $this->account();
                 $account['used'] = $reservedUnconfirmed;
                 $account['total'] = $balanceUnconfirmed;
@@ -539,7 +709,7 @@ class luno extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -548,8 +718,10 @@ class luno extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
-        $response = $this->privateGetBalance ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privateGetBalance($params);
         //
         //     {
         //         "balance" => [
@@ -563,7 +735,7 @@ class luno extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -573,18 +745,20 @@ class luno extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
         $response = null;
         if ($limit !== null && $limit <= 100) {
-            $response = $this->publicGetOrderbookTop ($this->extend($request, $params));
+            $response = $this->publicGetOrderbookTop($this->extend($request, $params));
         } else {
-            $response = $this->publicGetOrderbook ($this->extend($request, $params));
+            $response = $this->publicGetOrderbook($this->extend($request, $params));
         }
         $timestamp = $this->safe_integer($response, 'timestamp');
         return $this->parse_order_book($response, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'volume');
@@ -672,7 +846,7 @@ class luno extends Exchange {
         ), $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an order made by the user
          *
@@ -683,16 +857,20 @@ class luno extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'id' => $id,
         );
-        $response = $this->privateGetOrdersId ($this->extend($request, $params));
+        $response = $this->privateGetOrdersId($this->extend($request, $params));
         return $this->parse_order($response);
     }
 
-    public function fetch_orders_by_state(?string $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
-        $this->load_markets();
+    public function fetch_orders_by_state(?string $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($state !== null) {
@@ -702,12 +880,12 @@ class luno extends Exchange {
             $market = $this->market($symbol);
             $request['pair'] = $market['id'];
         }
-        $response = $this->privateGetListorders ($this->extend($request, $params));
+        $response = $this->privateGetListorders($this->extend($request, $params));
         $orders = $this->safe_list($response, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple orders made by the user
          *
@@ -722,7 +900,7 @@ class luno extends Exchange {
         return $this->fetch_orders_by_state(null, $symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -737,7 +915,7 @@ class luno extends Exchange {
         return $this->fetch_orders_by_state('PENDING', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed orders made by the user
          *
@@ -790,7 +968,7 @@ class luno extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          *
@@ -800,10 +978,13 @@ class luno extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?$id=$ticker-structure $ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
-        $response = $this->publicGetTickers ($params);
-        $tickers = $this->index_by($response['tickers'], 'pair');
+        $response = $this->publicGetTickers($params);
+        $rawTickers = $this->safe_list($response, 'tickers', array());
+        $tickers = $this->index_by($rawTickers, 'pair');
         $ids = is_array($tickers) ? array_keys($tickers) : array();
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -816,7 +997,7 @@ class luno extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -826,12 +1007,14 @@ class luno extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetTicker ($this->extend($request, $params));
+        $response = $this->publicGetTicker($this->extend($request, $params));
         // {
         //     "pair":"XBTAUD",
         //     "timestamp":1642201439301,
@@ -904,12 +1087,12 @@ class luno extends Exchange {
         $feeCost = null;
         if ($feeBaseString !== null) {
             if (!Precise::string_equals($feeBaseString, '0.0')) {
-                $feeCurrency = $market['base'];
+                $feeCurrency = $this->safe_string($market, 'base');
                 $feeCost = $feeBaseString;
             }
         } elseif ($feeCounterString !== null) {
             if (!Precise::string_equals($feeCounterString, '0.0')) {
-                $feeCurrency = $market['quote'];
+                $feeCurrency = $this->safe_string($market, 'quote');
                 $feeCost = $feeCounterString;
             }
         }
@@ -919,7 +1102,7 @@ class luno extends Exchange {
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'order' => $orderId,
             'type' => null,
             'side' => $side,
@@ -935,7 +1118,7 @@ class luno extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
          *
@@ -947,7 +1130,9 @@ class luno extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
@@ -955,7 +1140,7 @@ class luno extends Exchange {
         if ($since !== null) {
             $request['since'] = $since;
         }
-        $response = $this->publicGetTrades ($this->extend($request, $params));
+        $response = $this->publicGetTrades($this->extend($request, $params));
         //
         //      {
         //          "trades":array(
@@ -973,7 +1158,7 @@ class luno extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          *
          * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetCandles
@@ -983,10 +1168,12 @@ class luno extends Exchange {
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the luno api endpoint
+         * @param {array} $params extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'duration' => $this->safe_value($this->timeframes, $timeframe, $timeframe),
@@ -998,7 +1185,7 @@ class luno extends Exchange {
             $duration = 1000 * 1000 * $this->parse_timeframe($timeframe);
             $request['since'] = $this->milliseconds() - $duration;
         }
-        $response = $this->exchangePrivateGetCandles ($this->extend($request, $params));
+        $response = $this->exchangePrivateGetCandles($this->extend($request, $params));
         //
         //     {
         //          "candles" => array(
@@ -1019,7 +1206,7 @@ class luno extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         // {
         //     "timestamp" => 1664055240000,
         //     "open" => "19612.65",
@@ -1038,7 +1225,7 @@ class luno extends Exchange {
         );
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all $trades made by the user
          *
@@ -1053,7 +1240,9 @@ class luno extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
@@ -1064,7 +1253,7 @@ class luno extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetListtrades ($this->extend($request, $params));
+        $response = $this->privateGetListtrades($this->extend($request, $params));
         //
         //      {
         //          "trades":array(
@@ -1090,7 +1279,7 @@ class luno extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): array {
+    public function fetch_trading_fee(string $symbol, $params = array()): array {
         /**
          * fetch the trading fees for a $market
          *
@@ -1100,12 +1289,14 @@ class luno extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->privateGetFeeInfo ($this->extend($request, $params));
+        $response = $this->privateGetFeeInfo($this->extend($request, $params));
         //
         //     {
         //          "maker_fee" => "0.00250000",
@@ -1123,7 +1314,7 @@ class luno extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade order
          *
@@ -1138,12 +1329,17 @@ class luno extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
         $response = null;
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+        }
         if ($type === 'market') {
             $request['type'] = strtoupper($side);
             // todo add createMarketBuyOrderRequires $price logic is implemented in the other exchanges
@@ -1152,12 +1348,15 @@ class luno extends Exchange {
             } else {
                 $request['base_volume'] = $this->amount_to_precision($market['symbol'], $amount);
             }
-            $response = $this->privatePostMarketorder ($this->extend($request, $params));
+            $response = $this->privatePostMarketorder($this->extend($request, $params));
         } else {
             $request['volume'] = $this->amount_to_precision($market['symbol'], $amount);
             $request['price'] = $this->price_to_precision($market['symbol'], $price);
             $request['type'] = ($side === 'buy') ? 'BID' : 'ASK';
-            $response = $this->privatePostPostorder ($this->extend($request, $params));
+            $response = $this->privatePostPostorder($this->extend($request, $params));
+        }
+        if ($response === null) {
+            throw new NullResponse($this->id . ' createOrder() returned empty response');
         }
         return $this->safe_order(array(
             'info' => $response,
@@ -1165,7 +1364,7 @@ class luno extends Exchange {
         ), $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open order
          *
@@ -1176,11 +1375,13 @@ class luno extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'order_id' => $id,
         );
-        $response = $this->privatePostStoporder ($this->extend($request, $params));
+        $response = $this->privatePostStoporder($this->extend($request, $params));
         //
         //    {
         //        "success" => true
@@ -1191,7 +1392,7 @@ class luno extends Exchange {
         ));
     }
 
-    public function fetch_ledger_by_entries(?string $code = null, $entry = null, $limit = null, $params = array ()) {
+    public function fetch_ledger_by_entries(?string $code = null, mixed $entry = null, ?int $limit = null, $params = array()) {
         // by default without $entry number or $limit number, return most recent $entry
         if ($entry === null) {
             $entry = -1;
@@ -1207,7 +1408,7 @@ class luno extends Exchange {
         return $this->fetch_ledger($code, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
@@ -1219,7 +1420,9 @@ class luno extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?$id=ledger-entry-structure ledger structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->load_accounts();
         $currency = null;
         $id = $this->safe_string($params, 'id'); // $account $id
@@ -1258,12 +1461,12 @@ class luno extends Exchange {
             'min_row' => $min_row,
             'max_row' => $max_row,
         );
-        $response = $this->privateGetAccountsIdTransactions ($this->extend($params, $request));
+        $response = $this->privateGetAccountsIdTransactions($this->extend($params, $request));
         $entries = $this->safe_value($response, 'transactions', array());
         return $this->parse_ledger($entries, $currency, $since, $limit);
     }
 
-    public function parse_ledger_comment($comment) {
+    public function parse_ledger_comment(mixed $comment) {
         $words = explode(' ', $comment);
         $types = array(
             'Withdrawal' => 'fee',
@@ -1282,7 +1485,7 @@ class luno extends Exchange {
         $firstWord = $this->safe_string($words, 0);
         $thirdWord = $this->safe_string($words, 2);
         $fourthWord = $this->safe_string($words, 3);
-        $type = $this->safe_string($types, $firstWord, null);
+        $type = $this->safe_string($types, $firstWord);
         if (($type === null) && ($thirdWord === 'fee')) {
             $type = 'fee';
         }
@@ -1295,7 +1498,7 @@ class luno extends Exchange {
         );
     }
 
-    public function parse_ledger_entry($entry, ?array $currency = null): array {
+    public function parse_ledger_entry(mixed $entry, ?array $currency = null): array {
         // $details = $this->safe_value($entry, 'details', array());
         $id = $this->safe_string($entry, 'row_index');
         $account_id = $this->safe_string($entry, 'account_id');
@@ -1349,7 +1552,7 @@ class luno extends Exchange {
         ), $currency);
     }
 
-    public function create_deposit_address(string $code, $params = array ()): array {
+    public function create_deposit_address(string $code, $params = array()): array {
         /**
          * create a $currency deposit address
          *
@@ -1359,14 +1562,17 @@ class luno extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->name] an optional name for the new address
          * @param {int} [$params->account_id] an optional account id for the new address
+         * @param {int} [$params->network] the blockchain network id to use
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
         );
-        $response = $this->privatePostFundingAddress ($this->extend($request, $params));
+        $response = $this->privatePostFundingAddress($this->extend($request, $params));
         //
         //     {
         //         "account_id" => "string",
@@ -1390,7 +1596,7 @@ class luno extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): array {
+    public function fetch_deposit_address(string $code, $params = array()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
          *
@@ -1399,14 +1605,17 @@ class luno extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->address] a specific cryptocurrency address to retrieve
+         * @param {int} [$params->network] the blockchain network id to use
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
         );
-        $response = $this->privateGetFundingAddress ($this->extend($request, $params));
+        $response = $this->privateGetFundingAddress($this->extend($request, $params));
         //
         //     {
         //         "account_id" => "string",
@@ -1430,7 +1639,7 @@ class luno extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "account_id" => "string",
@@ -1462,7 +1671,40 @@ class luno extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function fetch_deposit_withdraw_fee(string $code, $params = array()): array {
+        /**
+         * fetch the fee for sending (withdrawing) a $currency to a specific $address; luno quotes the network fee per destination, so an $address is required, see https://github.com/ccxt/ccxt/issues/25830
+         *
+         * @see https://www.luno.com/en/developers/api#tag/Send/operation/SendFee
+         *
+         * @param {string} $code unified $currency $code
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} $params->address the destination $address luno should quote the send fee for (required by the exchange)
+         * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
+         */
+        $address = $this->safe_string($params, 'address');
+        if ($address === null) {
+            throw new ArgumentsRequired($this->id . ' fetchDepositWithdrawFee() requires an "address" parameter - luno quotes the send fee per destination address');
+        }
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $response = $this->privateGetSendFee($this->extend($request, $params));
+        //
+        //     {
+        //         "currency" => "XBT",
+        //         "fee" => "0.00015"
+        //     }
+        //
+        $result = $this->deposit_withdraw_fee($response);
+        $result['withdraw']['fee'] = $this->safe_number($response, 'fee');
+        $result['withdraw']['percentage'] = false;
+        return $this->assign_default_deposit_withdraw_fees($result, $currency);
+    }
+
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($query) {
@@ -1478,13 +1720,16 @@ class luno extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }
         $error = $this->safe_value($response, 'error');
         if ($error !== null) {
-            throw new ExchangeError($this->id . ' ' . $this->json($response));
+            $feedback = $this->id . ' ' . $this->json($response);
+            $errorCode = $this->safe_string($response, 'error_code');
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            throw new ExchangeError($feedback);
         }
         return null;
     }

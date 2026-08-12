@@ -1,8 +1,5 @@
-- [Binance Fetch All My Trades Paginate By Id](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -55,5 +52,5 @@ print('Fetched', len(all_trades), 'trades')
 for i in range(0, len(all_trades)):
     trade = all_trades[i]
     print (i, trade['id'], trade['datetime'], trade['amount'])
- 
+
 ```

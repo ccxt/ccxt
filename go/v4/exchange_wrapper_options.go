@@ -3,7 +3,7 @@ package ccxt
 // Order Options
 // type OrderOptions struct {
 // 	Price  float64
-// 	Params map[string]interface{}
+// 	Params map[string]any
 // }
 
 // type OrderOption func(*OrderOptions)
@@ -17,7 +17,7 @@ package ccxt
 // type Options struct {
 // 	Limit  int64
 // 	Since  int64
-// 	Params map[string]interface{}
+// 	Params map[string]any
 // }
 
 // type Option func(*Options)
@@ -36,8 +36,8 @@ package ccxt
 
 // generic with Params
 
-// func WithParams(params map[string]interface{}) interface{} {
-// 	return func(opts interface{}) {
+// func WithParams(params map[string]any) any {
+// 	return func(opts any) {
 // 		switch o := opts.(type) {
 // 		case *Options:
 // 			o.Params = params
@@ -51,7 +51,7 @@ package ccxt
 // 	// Start with default options
 // 	opts := OrderOptions{
 // 		Price:  0,                            // Default to 0 if price is not set
-// 		Params: make(map[string]interface{}), // Default empty map if params are not set
+// 		Params: make(map[string]any), // Default empty map if params are not set
 // 	}
 
 // 	// Apply each option to modify the defaults

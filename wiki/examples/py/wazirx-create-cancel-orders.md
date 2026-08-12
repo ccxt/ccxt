@@ -1,8 +1,5 @@
-- [Wazirx Create Cancel Orders](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -46,5 +43,5 @@ print(response)
 
 # Canceling all open orders (second and third order)
 response = exchange.cancel_all_orders(symbol)
-print(response) 
+print(response)
 ```

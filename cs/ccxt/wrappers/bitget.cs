@@ -290,7 +290,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -588,6 +588,7 @@ public partial class bitget
     /// See <see href="https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets"/>  <br/>
     /// See <see href="https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/uta/account/Get-Account"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -605,6 +606,12 @@ public partial class bitget
     /// <term>params.uta</term>
     /// <description>
     /// string : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot')
     /// </description>
     /// </item>
     /// </list>
@@ -654,7 +661,7 @@ public partial class bitget
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used as the execution price for contract stop-loss / take-profit orders
     /// </description>
     /// </item>
     /// <item>
@@ -2007,11 +2014,18 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/account/Wallet-Transfer"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/account/transfer"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true to transfer via the unified trading account v3 endpoint
     /// </description>
     /// </item>
     /// <item>
@@ -2049,10 +2063,10 @@ public partial class bitget
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<DepositWithdrawFees> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositWithdrawFees(res);
     }
     /// <summary>
     /// retrieves the users liquidated positions

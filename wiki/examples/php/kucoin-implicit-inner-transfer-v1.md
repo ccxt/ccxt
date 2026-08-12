@@ -1,8 +1,5 @@
-- [Kucoin Implicit Inner Transfer V1](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -122,5 +119,5 @@ try {
     echo get_class($e) . ': ' . $e->getMessage() . "\n";
 
 }
- 
+
 ```

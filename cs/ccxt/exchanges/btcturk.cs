@@ -116,7 +116,7 @@ public partial class btcturk : Exchange
                 { "1y", "1 y" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/10e0a238-9f60-4b06-9dda-edfc7602f1d6" },
+                { "logo", "https://github.com/user-attachments/assets/710711ff-1278-4e7a-9b03-b5503dd85b59" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.btcturk.com/api/v2" },
                     { "private", "https://api.btcturk.com/api/v1" },
@@ -128,34 +128,66 @@ public partial class btcturk : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "orderbook", 1 },
-                        { "ticker", 0.1 },
-                        { "trades", 1 },
-                        { "ohlc", 1 },
-                        { "server/exchangeinfo", 1 },
+                        { "orderbook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 0.1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ohlc", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "server/exchangeinfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "users/balances", 1 },
-                        { "openOrders", 1 },
-                        { "allOrders", 1 },
-                        { "users/transactions/trade", 1 },
+                        { "users/balances", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "allOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/transactions/trade", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "users/transactions/crypto", 1 },
-                        { "users/transactions/fiat", 1 },
-                        { "order", 1 },
-                        { "cancelOrder", 1 },
+                        { "users/transactions/crypto", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/transactions/fiat", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "order", 1 },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "graph", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "ohlcs", 1 },
-                        { "klines/history", 1 },
+                        { "ohlcs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "klines/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -327,7 +359,7 @@ public partial class btcturk : Exchange
             }
         }
         object status = this.safeString(entry, "status");
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", add(add(bs, "/"), quote) },
             { "base", bs },
@@ -375,7 +407,7 @@ public partial class btcturk : Exchange
             } },
             { "created", null },
             { "info", entry },
-        };
+        });
     }
 
     public override object parseBalance(object response)
@@ -395,7 +427,10 @@ public partial class btcturk : Exchange
             ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "balance");
             ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "free");
             ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "locked");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -411,7 +446,10 @@ public partial class btcturk : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetUsersBalances(parameters);
         //
         //     {
@@ -440,12 +478,15 @@ public partial class btcturk : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pairSymbol", getValue(market, "id") },
@@ -530,7 +571,10 @@ public partial class btcturk : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.publicGetTicker(parameters);
         object tickers = this.safeList(response, "data");
         return this.parseTickers(tickers, symbols);
@@ -548,7 +592,10 @@ public partial class btcturk : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object tickers = await this.fetchTickers(new List<object>() {symbol}, parameters);
         return this.safeValue(tickers, symbol);
     }
@@ -632,7 +679,10 @@ public partial class btcturk : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         // let maxCount = 50;
         object request = new Dictionary<string, object>() {
@@ -661,7 +711,12 @@ public partial class btcturk : Exchange
         //     }
         //
         object data = this.safeList(response, "data");
-        return this.parseTrades(data, market, since, limit);
+        object dataList = new List<object>() {};
+        if (isTrue(!isEqual(data, null)))
+        {
+            dataList = data;
+        }
+        return this.parseTrades(dataList, market, since, limit);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -696,7 +751,10 @@ public partial class btcturk : Exchange
     {
         timeframe ??= "1h";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -811,7 +869,10 @@ public partial class btcturk : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "orderType", side },
@@ -831,7 +892,7 @@ public partial class btcturk : Exchange
             ((IDictionary<string,object>)request)["newClientOrderId"] = this.uuid();
         }
         object response = await this.privatePostOrder(this.extend(request, parameters));
-        object data = this.safeDict(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -841,7 +902,7 @@ public partial class btcturk : Exchange
      * @description cancels an open order
      * @see https://docs.btcturk.com/private-endpoints/cancel-order
      * @param {string} id order id
-     * @param {string} symbol not used by btcturk cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -878,7 +939,10 @@ public partial class btcturk : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -907,7 +971,10 @@ public partial class btcturk : Exchange
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pairSymbol", getValue(market, "id") },
@@ -1039,7 +1106,10 @@ public partial class btcturk : Exchange
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -1068,7 +1138,12 @@ public partial class btcturk : Exchange
         //     }
         //
         object data = this.safeList(response, "data");
-        return this.parseTrades(data, market, since, limit);
+        object dataList = new List<object>() {};
+        if (isTrue(!isEqual(data, null)))
+        {
+            dataList = data;
+        }
+        return this.parseTrades(dataList, market, since, limit);
     }
 
     public override object nonce()

@@ -115,10 +115,96 @@ public partial class bithumb : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"ticker/ALL_{quoteId}", "ticker/{baseId}_{quoteId}", "orderbook/ALL_{quoteId}", "orderbook/{baseId}_{quoteId}", "transaction_history/{baseId}_{quoteId}", "network-info", "assetsstatus/multichain/ALL", "assetsstatus/multichain/{currency}", "withdraw/minimum/ALL", "withdraw/minimum/{currency}", "assetsstatus/ALL", "assetsstatus/{baseId}", "candlestick/{baseId}_{quoteId}/{interval}"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "ticker/ALL_{quoteId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker/{baseId}_{quoteId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbook/ALL_{quoteId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbook/{baseId}_{quoteId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction_history/{baseId}_{quoteId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "network-info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assetsstatus/multichain/ALL", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assetsstatus/multichain/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdraw/minimum/ALL", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdraw/minimum/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assetsstatus/ALL", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assetsstatus/{baseId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "candlestick/{baseId}_{quoteId}/{interval}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "post", new List<object>() {"info/account", "info/balance", "info/wallet_address", "info/ticker", "info/orders", "info/user_transactions", "info/order_detail", "trade/place", "trade/cancel", "trade/btc_withdrawal", "trade/krw_deposit", "trade/krw_withdrawal", "trade/market_buy", "trade/market_sell", "trade/stop_limit"} },
+                    { "post", new Dictionary<string, object>() {
+                        { "info/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "info/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "info/wallet_address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "info/ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "info/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "info/user_transactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "info/order_detail", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/place", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/btc_withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/krw_deposit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/krw_withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/market_buy", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/market_sell", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/stop_limit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -227,14 +313,6 @@ public partial class bithumb : Exchange
                             } },
                         } },
                     } },
-                    { "USDT", new Dictionary<string, object>() {
-                        { "limits", new Dictionary<string, object>() {
-                            { "cost", new Dictionary<string, object>() {
-                                { "min", null },
-                                { "max", null },
-                            } },
-                        } },
-                    } },
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -256,7 +334,8 @@ public partial class bithumb : Exchange
 
     public override object amountToPrecision(object symbol, object amount)
     {
-        return this.decimalToPrecision(amount, TRUNCATE, getValue(getValue(getValue(this.markets, symbol), "precision"), "amount"), DECIMAL_PLACES);
+        object market = this.market(symbol);
+        return this.decimalToPrecision(amount, TRUNCATE, getValue(getValue(market, "precision"), "amount"), DECIMAL_PLACES);
     }
 
     /**
@@ -287,7 +366,7 @@ public partial class bithumb : Exchange
             object quote = getValue(quotes, i);
             object quoteId = quote;
             object response = getValue(results, i);
-            object data = this.safeDict(response, "data");
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object extension = this.safeDict(quoteCurrencies, quote, new Dictionary<string, object>() {});
             object currencyIds = new List<object>(((IDictionary<string,object>)data).Keys);
             for (object j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
@@ -392,7 +471,10 @@ public partial class bithumb : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "currency", "ALL" },
         };
@@ -408,12 +490,15 @@ public partial class bithumb : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "baseId", getValue(market, "baseId") },
@@ -511,7 +596,10 @@ public partial class bithumb : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object result = new Dictionary<string, object>() {};
         object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
         object quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
@@ -579,7 +667,10 @@ public partial class bithumb : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "baseId", getValue(market, "baseId") },
@@ -640,7 +731,10 @@ public partial class bithumb : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "baseId", getValue(market, "baseId") },
@@ -737,7 +831,7 @@ public partial class bithumb : Exchange
         if (isTrue(!isEqual(feeCostString, null)))
         {
             object feeCurrencyId = this.safeString(trade, "fee_currency");
-            object feeCurrencyCode = this.commonCurrencyCode(feeCurrencyId);
+            object feeCurrencyCode = this.commonCurrencyCode(((string)feeCurrencyId));
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
                 { "currency", feeCurrencyCode },
@@ -774,7 +868,10 @@ public partial class bithumb : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "baseId", getValue(market, "baseId") },
@@ -821,7 +918,10 @@ public partial class bithumb : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "order_currency", getValue(market, "id") },
@@ -869,7 +969,10 @@ public partial class bithumb : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "order_id", id },
@@ -918,7 +1021,7 @@ public partial class bithumb : Exchange
             { "Completed", "closed" },
             { "Cancel", "canceled" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1044,7 +1147,10 @@ public partial class bithumb : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         if (isTrue(isEqual(limit, null)))
         {
@@ -1130,7 +1236,7 @@ public partial class bithumb : Exchange
         object request = new Dictionary<string, object>() {
             { "side", getValue(order, "side") },
         };
-        return await this.cancelOrder(getValue(order, "id"), getValue(order, "symbol"), this.extend(request, parameters));
+        return await this.cancelOrder(((string)getValue(order, "id")), getValue(order, "symbol"), this.extend(request, parameters));
     }
 
     /**
@@ -1152,7 +1258,10 @@ public partial class bithumb : Exchange
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "units", amount },
@@ -1249,8 +1358,11 @@ public partial class bithumb : Exchange
             body = this.urlencode(this.extend(new Dictionary<string, object>() {
                 { "endpoint", endpoint },
             }, query));
+            // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
+            object bodyParts = ((string)body).Split(new [] {((string)"%20")}, StringSplitOptions.None).ToList<object>();
+            body = String.Join("+", ((IList<object>)bodyParts).ToArray());
             object nonce = ((object)this.nonce()).ToString();
-            object auth = add(add(add(add(endpoint, " "), body), " "), nonce); // eslint-disable-line quotes
+            object auth = add(add(add(add(endpoint, "\\"), body), "\\"), nonce); // eslint-disable-line quotes
             object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
             object signature64 = this.stringToBase64(signature);
             headers = new Dictionary<string, object>() {

@@ -7,138 +7,202 @@
 
 package ccxt
 
-func (this *LunoCore) ExchangeGetMarkets(args ...interface{}) <-chan interface{} {
+// ExchangeGetMarkets returns a channel that yields a JSON object.
+func (this *LunoCore) ExchangeGetMarkets(args ...any) <-chan any {
 	return this.callEndpointAsync("exchangeGetMarkets", args...)
 }
 
-func (this *LunoCore) ExchangePrivateGetCandles(args ...interface{}) <-chan interface{} {
+// ExchangePrivateGetCandles returns a channel that yields a JSON object.
+func (this *LunoCore) ExchangePrivateGetCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("exchangePrivateGetCandles", args...)
 }
 
-func (this *LunoCore) PublicGetOrderbook(args ...interface{}) <-chan interface{} {
+// ExchangePrivateGetMove returns a channel that yields a JSON object.
+func (this *LunoCore) ExchangePrivateGetMove(args ...any) <-chan any {
+	return this.callEndpointAsync("exchangePrivateGetMove", args...)
+}
+
+// ExchangePrivateGetMoveListMoves returns a channel that yields a JSON object.
+func (this *LunoCore) ExchangePrivateGetMoveListMoves(args ...any) <-chan any {
+	return this.callEndpointAsync("exchangePrivateGetMoveListMoves", args...)
+}
+
+// ExchangePrivateGetTransfers returns a channel that yields a JSON object.
+func (this *LunoCore) ExchangePrivateGetTransfers(args ...any) <-chan any {
+	return this.callEndpointAsync("exchangePrivateGetTransfers", args...)
+}
+
+// ExchangePrivatePostConvert returns a channel that yields a JSON object.
+func (this *LunoCore) ExchangePrivatePostConvert(args ...any) <-chan any {
+	return this.callEndpointAsync("exchangePrivatePostConvert", args...)
+}
+
+// ExchangePrivatePostMove returns a channel that yields a JSON object.
+func (this *LunoCore) ExchangePrivatePostMove(args ...any) <-chan any {
+	return this.callEndpointAsync("exchangePrivatePostMove", args...)
+}
+
+// PublicGetOrderbook returns a channel that yields a JSON object.
+func (this *LunoCore) PublicGetOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrderbook", args...)
 }
 
-func (this *LunoCore) PublicGetOrderbookTop(args ...interface{}) <-chan interface{} {
+// PublicGetOrderbookTop returns a channel that yields a JSON object.
+func (this *LunoCore) PublicGetOrderbookTop(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrderbookTop", args...)
 }
 
-func (this *LunoCore) PublicGetTicker(args ...interface{}) <-chan interface{} {
+// PublicGetTicker returns a channel that yields a JSON object.
+func (this *LunoCore) PublicGetTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *LunoCore) PublicGetTickers(args ...interface{}) <-chan interface{} {
+// PublicGetTickers returns a channel that yields a JSON object.
+func (this *LunoCore) PublicGetTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *LunoCore) PublicGetTrades(args ...interface{}) <-chan interface{} {
+// PublicGetTrades returns a channel that yields a JSON object.
+func (this *LunoCore) PublicGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *LunoCore) PrivateGetAccountsIdPending(args ...interface{}) <-chan interface{} {
+// PrivateGetAccountsIdPending returns a channel that yields a JSON object.
+func (this *LunoCore) PrivateGetAccountsIdPending(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountsIdPending", args...)
 }
 
-func (this *LunoCore) PrivateGetAccountsIdTransactions(args ...interface{}) <-chan interface{} {
+// PrivateGetAccountsIdTransactions returns a channel that yields a JSON object.
+func (this *LunoCore) PrivateGetAccountsIdTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountsIdTransactions", args...)
 }
 
-func (this *LunoCore) PrivateGetBalance(args ...interface{}) <-chan interface{} {
+// PrivateGetBalance returns a channel that yields a JSON object.
+func (this *LunoCore) PrivateGetBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetBalance", args...)
 }
 
-func (this *LunoCore) PrivateGetBeneficiaries(args ...interface{}) <-chan interface{} {
+// PrivateGetBeneficiaries returns a channel that yields a JSON object.
+func (this *LunoCore) PrivateGetBeneficiaries(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetBeneficiaries", args...)
 }
 
-func (this *LunoCore) PrivateGetSendNetworks(args ...interface{}) <-chan interface{} {
+// PrivateGetSendNetworks returns a channel that yields a JSON object.
+func (this *LunoCore) PrivateGetSendNetworks(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSendNetworks", args...)
 }
 
-func (this *LunoCore) PrivateGetFeeInfo(args ...interface{}) <-chan interface{} {
+// PrivateGetFeeInfo returns a channel that yields a JSON object.
+func (this *LunoCore) PrivateGetFeeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFeeInfo", args...)
 }
 
-func (this *LunoCore) PrivateGetFundingAddress(args ...interface{}) <-chan interface{} {
+// PrivateGetFundingAddress returns a channel that yields a JSON object.
+func (this *LunoCore) PrivateGetFundingAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFundingAddress", args...)
 }
 
-func (this *LunoCore) PrivateGetListorders(args ...interface{}) <-chan interface{} {
+// PrivateGetListorders returns a channel that yields a JSON object.
+func (this *LunoCore) PrivateGetListorders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetListorders", args...)
 }
 
-func (this *LunoCore) PrivateGetListtrades(args ...interface{}) <-chan interface{} {
+// PrivateGetListtrades returns a channel that yields a JSON object.
+func (this *LunoCore) PrivateGetListtrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetListtrades", args...)
 }
 
-func (this *LunoCore) PrivateGetSendFee(args ...interface{}) <-chan interface{} {
+// PrivateGetSendFee returns a channel that yields a JSON object.
+func (this *LunoCore) PrivateGetSendFee(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSendFee", args...)
 }
 
-func (this *LunoCore) PrivateGetOrdersId(args ...interface{}) <-chan interface{} {
+// PrivateGetOrdersId returns a channel that yields a JSON object.
+func (this *LunoCore) PrivateGetOrdersId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrdersId", args...)
 }
 
-func (this *LunoCore) PrivateGetWithdrawals(args ...interface{}) <-chan interface{} {
+// PrivateGetWithdrawals returns a channel that yields a JSON object.
+func (this *LunoCore) PrivateGetWithdrawals(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWithdrawals", args...)
 }
 
-func (this *LunoCore) PrivateGetWithdrawalsId(args ...interface{}) <-chan interface{} {
+// PrivateGetWithdrawalsId returns a channel that yields a JSON object.
+func (this *LunoCore) PrivateGetWithdrawalsId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWithdrawalsId", args...)
 }
 
-func (this *LunoCore) PrivateGetTransfers(args ...interface{}) <-chan interface{} {
+// PrivateGetTransfers returns a channel that yields a JSON object.
+func (this *LunoCore) PrivateGetTransfers(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTransfers", args...)
 }
 
-func (this *LunoCore) PrivatePostAccounts(args ...interface{}) <-chan interface{} {
+// PrivateGetUsersLinked returns a channel that yields a JSON object.
+func (this *LunoCore) PrivateGetUsersLinked(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUsersLinked", args...)
+}
+
+// PrivatePostAccounts returns a channel that yields a JSON object.
+func (this *LunoCore) PrivatePostAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccounts", args...)
 }
 
-func (this *LunoCore) PrivatePostAddressValidate(args ...interface{}) <-chan interface{} {
+// PrivatePostAddressValidate returns a channel that yields a JSON object.
+func (this *LunoCore) PrivatePostAddressValidate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAddressValidate", args...)
 }
 
-func (this *LunoCore) PrivatePostPostorder(args ...interface{}) <-chan interface{} {
+// PrivatePostPostorder returns a channel that yields a JSON object.
+func (this *LunoCore) PrivatePostPostorder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPostorder", args...)
 }
 
-func (this *LunoCore) PrivatePostMarketorder(args ...interface{}) <-chan interface{} {
+// PrivatePostMarketorder returns a channel that yields a JSON object.
+func (this *LunoCore) PrivatePostMarketorder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarketorder", args...)
 }
 
-func (this *LunoCore) PrivatePostStoporder(args ...interface{}) <-chan interface{} {
+// PrivatePostStoporder returns a channel that yields a JSON object.
+func (this *LunoCore) PrivatePostStoporder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostStoporder", args...)
 }
 
-func (this *LunoCore) PrivatePostFundingAddress(args ...interface{}) <-chan interface{} {
+// PrivatePostFundingAddress returns a channel that yields a JSON object.
+func (this *LunoCore) PrivatePostFundingAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostFundingAddress", args...)
 }
 
-func (this *LunoCore) PrivatePostWithdrawals(args ...interface{}) <-chan interface{} {
+// PrivatePostWithdrawals returns a channel that yields a JSON object.
+func (this *LunoCore) PrivatePostWithdrawals(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawals", args...)
 }
 
-func (this *LunoCore) PrivatePostSend(args ...interface{}) <-chan interface{} {
+// PrivatePostSend returns a channel that yields a JSON object.
+func (this *LunoCore) PrivatePostSend(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSend", args...)
 }
 
-func (this *LunoCore) PrivatePostOauth2Grant(args ...interface{}) <-chan interface{} {
+// PrivatePostOauth2Grant returns a channel that yields a JSON object.
+func (this *LunoCore) PrivatePostOauth2Grant(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOauth2Grant", args...)
 }
 
-func (this *LunoCore) PrivatePostBeneficiaries(args ...interface{}) <-chan interface{} {
+// PrivatePostBeneficiaries returns a channel that yields a JSON object.
+func (this *LunoCore) PrivatePostBeneficiaries(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBeneficiaries", args...)
 }
 
-func (this *LunoCore) PrivatePutAccountsIdName(args ...interface{}) <-chan interface{} {
+// PrivatePutAccountsIdName returns a channel that yields a JSON object.
+func (this *LunoCore) PrivatePutAccountsIdName(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutAccountsIdName", args...)
 }
 
-func (this *LunoCore) PrivateDeleteWithdrawalsId(args ...interface{}) <-chan interface{} {
+// PrivateDeleteWithdrawalsId returns a channel that yields a JSON object.
+func (this *LunoCore) PrivateDeleteWithdrawalsId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteWithdrawalsId", args...)
 }
 
-func (this *LunoCore) PrivateDeleteBeneficiariesId(args ...interface{}) <-chan interface{} {
+// PrivateDeleteBeneficiariesId returns a channel that yields a JSON object.
+func (this *LunoCore) PrivateDeleteBeneficiariesId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteBeneficiariesId", args...)
 }

@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\exmo as Exchange;
 
 class exmo extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'exmo',
@@ -31,6 +30,7 @@ class exmo extends Exchange {
                 'createMarketBuyOrder' => true,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => true,
+                'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
@@ -118,65 +118,65 @@ class exmo extends Exchange {
             'api' => array(
                 'web' => array(
                     'get' => array(
-                        'ctrl/feesAndLimits',
-                        'en/docs/fees',
+                        'ctrl/feesAndLimits' => array( 'cost' => 1 ),
+                        'en/docs/fees' => array( 'cost' => 1 ),
                     ),
                 ),
                 'public' => array(
                     'get' => array(
-                        'currency',
-                        'currency/list/extended',
-                        'order_book',
-                        'pair_settings',
-                        'ticker',
-                        'trades',
-                        'candles_history',
-                        'required_amount',
-                        'payments/providers/crypto/list',
+                        'currency' => array( 'cost' => 1 ),
+                        'currency/list/extended' => array( 'cost' => 1 ),
+                        'order_book' => array( 'cost' => 1 ),
+                        'pair_settings' => array( 'cost' => 1 ),
+                        'ticker' => array( 'cost' => 1 ),
+                        'trades' => array( 'cost' => 1 ),
+                        'candles_history' => array( 'cost' => 1 ),
+                        'required_amount' => array( 'cost' => 1 ),
+                        'payments/providers/crypto/list' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'user_info',
-                        'order_create',
-                        'order_cancel',
-                        'stop_market_order_create',
-                        'stop_market_order_cancel',
-                        'user_open_orders',
-                        'user_trades',
-                        'user_cancelled_orders',
-                        'order_trades',
-                        'deposit_address',
-                        'withdraw_crypt',
-                        'withdraw_get_txid',
-                        'excode_create',
-                        'excode_load',
-                        'code_check',
-                        'wallet_history',
-                        'wallet_operations',
-                        'margin/user/order/create',
-                        'margin/user/order/update',
-                        'margin/user/order/cancel',
-                        'margin/user/position/close',
-                        'margin/user/position/margin_add',
-                        'margin/user/position/margin_remove',
-                        'margin/currency/list',
-                        'margin/pair/list',
-                        'margin/settings',
-                        'margin/funding/list',
-                        'margin/user/info',
-                        'margin/user/order/list',
-                        'margin/user/order/history',
-                        'margin/user/order/trades',
-                        'margin/user/order/max_quantity',
-                        'margin/user/position/list',
-                        'margin/user/position/margin_remove_info',
-                        'margin/user/position/margin_add_info',
-                        'margin/user/wallet/list',
-                        'margin/user/wallet/history',
-                        'margin/user/trade/list',
-                        'margin/trades',
-                        'margin/liquidation/feed',
+                        'user_info' => array( 'cost' => 1 ),
+                        'order_create' => array( 'cost' => 1 ),
+                        'order_cancel' => array( 'cost' => 1 ),
+                        'stop_market_order_create' => array( 'cost' => 1 ),
+                        'stop_market_order_cancel' => array( 'cost' => 1 ),
+                        'user_open_orders' => array( 'cost' => 1 ),
+                        'user_trades' => array( 'cost' => 1 ),
+                        'user_cancelled_orders' => array( 'cost' => 1 ),
+                        'order_trades' => array( 'cost' => 1 ),
+                        'deposit_address' => array( 'cost' => 1 ),
+                        'withdraw_crypt' => array( 'cost' => 1 ),
+                        'withdraw_get_txid' => array( 'cost' => 1 ),
+                        'excode_create' => array( 'cost' => 1 ),
+                        'excode_load' => array( 'cost' => 1 ),
+                        'code_check' => array( 'cost' => 1 ),
+                        'wallet_history' => array( 'cost' => 1 ),
+                        'wallet_operations' => array( 'cost' => 1 ),
+                        'margin/user/order/create' => array( 'cost' => 1 ),
+                        'margin/user/order/update' => array( 'cost' => 1 ),
+                        'margin/user/order/cancel' => array( 'cost' => 1 ),
+                        'margin/user/position/close' => array( 'cost' => 1 ),
+                        'margin/user/position/margin_add' => array( 'cost' => 1 ),
+                        'margin/user/position/margin_remove' => array( 'cost' => 1 ),
+                        'margin/currency/list' => array( 'cost' => 1 ),
+                        'margin/pair/list' => array( 'cost' => 1 ),
+                        'margin/settings' => array( 'cost' => 1 ),
+                        'margin/funding/list' => array( 'cost' => 1 ),
+                        'margin/user/info' => array( 'cost' => 1 ),
+                        'margin/user/order/list' => array( 'cost' => 1 ),
+                        'margin/user/order/history' => array( 'cost' => 1 ),
+                        'margin/user/order/trades' => array( 'cost' => 1 ),
+                        'margin/user/order/max_quantity' => array( 'cost' => 1 ),
+                        'margin/user/position/list' => array( 'cost' => 1 ),
+                        'margin/user/position/margin_remove_info' => array( 'cost' => 1 ),
+                        'margin/user/position/margin_add_info' => array( 'cost' => 1 ),
+                        'margin/user/wallet/list' => array( 'cost' => 1 ),
+                        'margin/user/wallet/history' => array( 'cost' => 1 ),
+                        'margin/user/trade/list' => array( 'cost' => 1 ),
+                        'margin/trades' => array( 'cost' => 1 ),
+                        'margin/liquidation/feed' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -300,18 +300,20 @@ class exmo extends Exchange {
         ));
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()) {
-        $this->load_markets();
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()) {
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'position_id' => $market['id'],
             'quantity' => $amount,
         );
-        $response = null;
+        $response = array();
         if ($type === 'add') {
-            $response = $this->privatePostMarginUserPositionMarginAdd ($this->extend($request, $params));
+            $response = $this->privatePostMarginUserPositionMarginAdd($this->extend($request, $params));
         } elseif ($type === 'reduce') {
-            $response = $this->privatePostMarginUserPositionMarginRemove ($this->extend($request, $params));
+            $response = $this->privatePostMarginUserPositionMarginRemove($this->extend($request, $params));
         }
         //
         //      array()
@@ -344,7 +346,7 @@ class exmo extends Exchange {
         );
     }
 
-    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
+    public function reduce_margin(string $symbol, float $amount, $params = array()): array {
         /**
          * remove margin from a position
          *
@@ -358,7 +360,7 @@ class exmo extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
-    public function add_margin(string $symbol, float $amount, $params = array ()): array {
+    public function add_margin(string $symbol, float $amount, $params = array()): array {
         /**
          * add margin
          *
@@ -372,7 +374,7 @@ class exmo extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function fetch_trading_fees($params = array ()): array {
+    public function fetch_trading_fees($params = array()): array {
         /**
          * fetch the trading fees for multiple markets
          *
@@ -388,14 +390,15 @@ class exmo extends Exchange {
         $params = $this->omit($params, 'method');
         if ($method === 'fetchPrivateTradingFees') {
             return $this->fetch_private_trading_fees($params);
-        } else {
-            return $this->fetch_public_trading_fees($params);
         }
+        return $this->fetch_public_trading_fees($params);
     }
 
-    public function fetch_private_trading_fees($params = array ()) {
-        $this->load_markets();
-        $response = $this->privatePostMarginPairList ($params);
+    public function fetch_private_trading_fees($params = array()) {
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privatePostMarginPairList($params);
         //
         //     {
         //         "pairs" => [{
@@ -447,9 +450,11 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function fetch_public_trading_fees($params = array ()) {
-        $this->load_markets();
-        $response = $this->publicGetPairSettings ($params);
+    public function fetch_public_trading_fees($params = array()) {
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->publicGetPairSettings($params);
         //
         //     {
         //         "BTC_USD" => array(
@@ -466,8 +471,9 @@ class exmo extends Exchange {
         //     }
         //
         $result = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        $symbols = $this->symbols;
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $market = $this->market($symbol);
             $fee = $this->safe_value($response, $market['id'], array());
             $makerString = $this->safe_string($fee, 'commission_maker_percent');
@@ -486,7 +492,7 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function parse_fixed_float_value($input) {
+    public function parse_fixed_float_value(mixed $input) {
         if (($input === null) || ($input === '-')) {
             return null;
         }
@@ -503,7 +509,7 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function fetch_transaction_fees(?array $codes = null, $params = array ()) {
+    public function fetch_transaction_fees(?array $codes = null, $params = array()) {
         /**
          * @deprecated
          * please use fetchDepositWithdrawFees instead
@@ -514,8 +520,10 @@ class exmo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=fees-structure transaction fees structures~
          */
-        $this->load_markets();
-        $cryptoList = $this->publicGetPaymentsProvidersCryptoList ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $cryptoList = $this->publicGetPaymentsProvidersCryptoList($params);
         //
         //     {
         //         "BTC":array(
@@ -569,7 +577,9 @@ class exmo extends Exchange {
                 $typeInner = $this->safe_string($provider, 'type');
                 $commissionDesc = $this->safe_string($provider, 'commission_desc');
                 $fee = $this->parse_fixed_float_value($commissionDesc);
-                $result[$code][$typeInner] = $fee;
+                if ($code !== null && $typeInner !== null) {
+                    $result[$code][$typeInner] = $fee;
+                }
             }
             $result[$code]['info'] = $providers;
         }
@@ -578,7 +588,7 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
         /**
          * fetch deposit and withdraw fees
          *
@@ -588,8 +598,10 @@ class exmo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=fees-structure transaction fees structures~
          */
-        $this->load_markets();
-        $response = $this->publicGetPaymentsProvidersCryptoList ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->publicGetPaymentsProvidersCryptoList($params);
         //
         //    {
         //        "USDT" => array(
@@ -615,7 +627,7 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //    array(
         //        array(
@@ -637,7 +649,10 @@ class exmo extends Exchange {
             $provider = $fee[$i];
             $type = $this->safe_string($provider, 'type');
             $networkId = $this->safe_string($provider, 'name');
-            $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
+            $currencyId = $this->safe_string($provider, 'currency_name');
+            $currency = $this->safe_currency($currencyId, $currency);
+            $code = $this->safe_string($currency, 'code');
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $commissionDesc = $this->safe_string($provider, 'commission_desc');
             $splitCommissionDesc = array();
             $percentage = null;
@@ -648,26 +663,30 @@ class exmo extends Exchange {
             }
             $network = $this->safe_value($result['networks'], $networkCode);
             if ($network === null) {
-                $result['networks'][$networkCode] = array(
-                    'withdraw' => array(
-                        'fee' => null,
-                        'percentage' => null,
-                    ),
-                    'deposit' => array(
-                        'fee' => null,
-                        'percentage' => null,
-                    ),
+                if ($networkCode !== null) {
+                    $result['networks'][$networkCode] = array(
+                        'withdraw' => array(
+                            'fee' => null,
+                            'percentage' => null,
+                        ),
+                        'deposit' => array(
+                            'fee' => null,
+                            'percentage' => null,
+                        ),
+                    );
+                }
+            }
+            if (($networkCode !== null) && ($type !== null)) {
+                $result['networks'][$networkCode][$type] = array(
+                    'fee' => $this->parse_fixed_float_value($this->safe_string($splitCommissionDesc, 0)),
+                    'percentage' => $percentage,
                 );
             }
-            $result['networks'][$networkCode][$type] = array(
-                'fee' => $this->parse_fixed_float_value($this->safe_string($splitCommissionDesc, 0)),
-                'percentage' => $percentage,
-            );
         }
         return $this->assign_default_deposit_withdraw_fees($result);
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -679,7 +698,7 @@ class exmo extends Exchange {
          */
         $promises = array();
         //
-        $promises[] = $this->publicGetCurrencyListExtended ($params);
+        $promises[] = $this->publicGetCurrencyListExtended($params);
         //
         //     array(
         //         array("name":"VLX","description":"Velas"),
@@ -688,7 +707,7 @@ class exmo extends Exchange {
         //         array("name":"USD","description":"US Dollar")
         //     )
         //
-        $promises[] = $this->publicGetPaymentsProvidersCryptoList ($params);
+        $promises[] = $this->publicGetPaymentsProvidersCryptoList($params);
         //
         //     {
         //         "BTC":array(
@@ -716,27 +735,40 @@ class exmo extends Exchange {
         $responses = $promises;
         $currencyList = $responses[0];
         $cryptoList = $responses[1];
-        $result = array();
+        $newArray = array();
         for ($i = 0; $i < count($currencyList); $i++) {
             $currency = $currencyList[$i];
             $currencyId = $this->safe_string($currency, 'name');
-            $code = $this->safe_currency_code($currencyId);
-            $type = 'crypto';
-            $networks = array();
             $providers = $this->safe_list($cryptoList, $currencyId);
-            if ($providers === null) {
-                $type = 'fiat';
-            } else {
-                for ($j = 0; $j < count($providers); $j++) {
-                    $provider = $providers[$j];
-                    $name = $this->safe_string($provider, 'name');
-                    // get network-id by removing extra things
-                    $networkId = str_replace($currencyId . ' ', '', $name);
-                    $networkId = str_replace('(', '', $networkId);
-                    $replaceChar = ')'; // transpiler trick
-                    $networkId = str_replace($replaceChar, '', $networkId);
-                    $networkCode = $this->network_id_to_code($networkId);
-                    if (!(is_array($networks) && array_key_exists($networkCode, $networks))) {
+            $newArray[] = array( 'currency' => $currency, 'providers' => $providers );
+        }
+        return $this->parse_currencies($newArray);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $currency = $this->safe_dict($rawCurrency, 'currency', array());
+        $providers = $this->safe_list($rawCurrency, 'providers', array());
+        $currencyId = $this->safe_string($currency, 'name');
+        $code = $this->safe_currency_code($currencyId);
+        $type = 'crypto';
+        $networks = array();
+        if ($providers === null) {
+            $type = 'fiat';
+        } else {
+            for ($j = 0; $j < count($providers); $j++) {
+                $provider = $providers[$j];
+                $name = $this->safe_string($provider, 'name');
+                // get network-id by removing extra things
+                if ($name === null) {
+                    throw new ExchangeError($this->id . ' parseCurrency() missing name');
+                }
+                $networkId = str_replace($currencyId . ' ', '', $name);
+                $networkId = str_replace('(', '', $networkId);
+                $replaceChar = ')'; // transpiler trick
+                $networkId = str_replace($replaceChar, '', $networkId);
+                $networkCode = $this->network_id_to_code($networkId, $code);
+                if (($networkCode === null) || !(is_array($networks) && array_key_exists($networkCode ?? '', $networks))) {
+                    if ($networkCode !== null) {
                         $networks[$networkCode] = array(
                             'id' => $networkId,
                             'network' => $networkCode,
@@ -757,57 +789,58 @@ class exmo extends Exchange {
                             'info' => array(), // set, because of multiple network sub-entries
                         );
                     }
-                    $typeInner = $this->safe_string($provider, 'type');
-                    $minValue = $this->safe_string($provider, 'min');
-                    $maxValue = $this->safe_string($provider, 'max');
-                    $activeProvider = $this->safe_bool($provider, 'enabled');
-                    $networkEntry = $networks[$networkCode];
-                    if ($typeInner === 'deposit') {
-                        $networkEntry['deposit'] = $activeProvider;
-                        $networkEntry['limits']['deposit']['min'] = $minValue;
-                        $networkEntry['limits']['deposit']['max'] = $maxValue;
-                    } elseif ($typeInner === 'withdraw') {
-                        $networkEntry['withdraw'] = $activeProvider;
-                        $networkEntry['limits']['withdraw']['min'] = $minValue;
-                        $networkEntry['limits']['withdraw']['max'] = $maxValue;
-                    }
-                    $info = $this->safe_list($networkEntry, 'info');
-                    $info[] = $provider;
-                    $networkEntry['info'] = $info;
+                }
+                $typeInner = $this->safe_string($provider, 'type');
+                $minValue = $this->safe_string($provider, 'min');
+                $maxValue = $this->safe_string($provider, 'max');
+                $activeProvider = $this->safe_bool($provider, 'enabled');
+                $networkEntry = $this->safe_value($networks, $networkCode);
+                if ($typeInner === 'deposit') {
+                    $networkEntry['deposit'] = $activeProvider;
+                    $networkEntry['limits']['deposit']['min'] = $minValue;
+                    $networkEntry['limits']['deposit']['max'] = $maxValue;
+                } elseif ($typeInner === 'withdraw') {
+                    $networkEntry['withdraw'] = $activeProvider;
+                    $networkEntry['limits']['withdraw']['min'] = $minValue;
+                    $networkEntry['limits']['withdraw']['max'] = $maxValue;
+                }
+                $info = $this->safe_list($networkEntry, 'info', array());
+                $info[] = $provider;
+                $networkEntry['info'] = $info;
+                if ($networkCode !== null) {
                     $networks[$networkCode] = $networkEntry;
                 }
             }
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $currencyId,
-                'code' => $code,
-                'name' => $this->safe_string($currency, 'description'),
-                'type' => $type,
-                'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => null,
-                'precision' => $this->parse_number('1e-8'),
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'info' => array(
-                    'currency' => $currency,
-                    'providers' => $providers,
-                ),
-                'networks' => $networks,
-            ));
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'id' => $currencyId,
+            'code' => $code,
+            'name' => $this->safe_string($currency, 'description'),
+            'type' => $type,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => $this->parse_number('1e-8'),
+            'limits' => array(
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'info' => array(
+                'currency' => $currency,
+                'providers' => $providers,
+            ),
+            'networks' => $networks,
+        ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all markets for exmo
          *
@@ -817,7 +850,7 @@ class exmo extends Exchange {
          * @return {array[]} an array of objects representing $market data
          */
         $promises = array();
-        $promises[] = $this->publicGetPairSettings ($params);
+        $promises[] = $this->publicGetPairSettings($params);
         //
         //     {
         //         "BTC_USD":array(
@@ -836,7 +869,7 @@ class exmo extends Exchange {
         $marginPairsDict = array();
         $fetchMargin = $this->check_required_credentials(false);
         if ($fetchMargin) {
-            $promises[] = $this->privatePostMarginPairList ($params);
+            $promises[] = $this->privatePostMarginPairList($params);
             //
             //    {
             //        "pairs" => array(
@@ -943,7 +976,7 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -957,7 +990,9 @@ class exmo extends Exchange {
          * @param {int} [$params->until] timestamp in ms of the latest candle $to fetch
          * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $until = $this->safe_integer_product($params, 'until', 0.001);
         $untilIsDefined = ($until !== null);
@@ -969,30 +1004,30 @@ class exmo extends Exchange {
         $duration = $this->parse_timeframe($timeframe);
         $now = $this->parse_to_int($this->milliseconds() / 1000);
         if ($since === null) {
-            $to = $untilIsDefined ? min ($until, $now) : $now;
+            $to = $untilIsDefined ? min($until, $now) : $now;
             if ($limit === null) {
                 $limit = 1000; // cap default at generous amount
             } else {
-                $limit = min ($limit, $maxLimit);
+                $limit = min($limit, $maxLimit);
             }
             $request['from'] = $to - ($limit * $duration) - 1;
             $request['to'] = $to;
         } else {
             $request['from'] = $this->parse_to_int($since / 1000);
             if ($untilIsDefined) {
-                $request['to'] = min ($until, $now);
+                $request['to'] = min($until, $now);
             } else {
                 if ($limit === null) {
                     $limit = $maxLimit;
                 } else {
-                    $limit = min ($limit, $maxLimit);
+                    $limit = min($limit, $maxLimit);
                 }
                 $to = $this->sum($since, $limit * $duration);
-                $request['to'] = min ($to, $now);
+                $request['to'] = min($to, $now);
             }
         }
         $params = $this->omit($params, 'until');
-        $response = $this->publicGetCandlesHistory ($this->extend($request, $params));
+        $response = $this->publicGetCandlesHistory($this->extend($request, $params));
         //
         //     {
         //         "candles":array(
@@ -1006,7 +1041,7 @@ class exmo extends Exchange {
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "t":1584057600000,
@@ -1027,7 +1062,7 @@ class exmo extends Exchange {
         );
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         $wallets = $this->safe_value($response, 'wallets');
         if ($wallets !== null) {
@@ -1040,7 +1075,9 @@ class exmo extends Exchange {
                 $account['used'] = $this->safe_string($item, 'used');
                 $account['free'] = $this->safe_string($item, 'free');
                 $account['total'] = $this->safe_string($item, 'balance');
-                $result[$currency] = $account;
+                if ($currency !== null) {
+                    $result[$currency] = $account;
+                }
             }
         } else {
             $free = $this->safe_value($response, 'balances', array());
@@ -1050,19 +1087,21 @@ class exmo extends Exchange {
                 $currencyId = $currencyIds[$i];
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
-                if (is_array($free) && array_key_exists($currencyId, $free)) {
+                if (is_array($free) && array_key_exists($currencyId ?? '', $free)) {
                     $account['free'] = $this->safe_string($free, $currencyId);
                 }
-                if (is_array($used) && array_key_exists($currencyId, $used)) {
+                if (is_array($used) && array_key_exists($currencyId ?? '', $used)) {
                     $account['used'] = $this->safe_string($used, $currencyId);
                 }
-                $result[$code] = $account;
+                if ($code !== null) {
+                    $result[$code] = $account;
+                }
             }
         }
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -1073,15 +1112,16 @@ class exmo extends Exchange {
          * @param {string} [$params->marginMode] *isolated* fetches the isolated margin balance
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
         if ($marginMode === 'cross') {
             throw new BadRequest($this->id . ' does not support cross margin');
         }
-        $response = null;
         if ($marginMode === 'isolated') {
-            $response = $this->privatePostMarginUserWalletList ($params);
+            $response = $this->privatePostMarginUserWalletList($params);
             //
             //    {
             //        "wallets" => {
@@ -1094,7 +1134,7 @@ class exmo extends Exchange {
             //    }
             //
         } else {
-            $response = $this->privatePostUserInfo ($params);
+            $response = $this->privatePostUserInfo($params);
             //
             //     {
             //         "uid":131685,
@@ -1111,7 +1151,7 @@ class exmo extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -1120,9 +1160,11 @@ class exmo extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
@@ -1130,12 +1172,12 @@ class exmo extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetOrderBook ($this->extend($request, $params));
+        $response = $this->publicGetOrderBook($this->extend($request, $params));
         $result = $this->safe_dict($response, $market['id']);
         return $this->parse_order_book($result, $market['symbol'], null, 'bid', 'ask');
     }
 
-    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()): OrderBooks {
+    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
          *
@@ -1146,18 +1188,23 @@ class exmo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market $symbol
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $ids = null;
         if ($symbols === null) {
-            $ids = implode(',', $this->ids);
-            // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
-            if (strlen($ids) > 2048) {
-                $numIds = count($this->ids);
-                throw new ExchangeError($this->id . ' fetchOrderBooks() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
+            $allIds = $this->ids;
+            if ($allIds !== null) {
+                $ids = implode(',', $allIds);
+                // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
+                if (strlen($ids) > 2048) {
+                    $numIds = count($allIds);
+                    throw new ExchangeError($this->id . ' fetchOrderBooks() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
+                }
             }
         } else {
-            $ids = $this->market_ids($symbols);
-            $ids = implode(',', $ids);
+            $requestedIds = $this->market_ids($symbols);
+            $ids = implode(',', $requestedIds);
         }
         $request = array(
             'pair' => $ids,
@@ -1165,13 +1212,14 @@ class exmo extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetOrderBook ($this->extend($request, $params));
+        $response = $this->publicGetOrderBook($this->extend($request, $params));
         $result = array();
         $marketIds = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $symbol = $this->safe_symbol($marketId);
-            $result[$symbol] = $this->parse_order_book($response[$marketId], $symbol, null, 'bid', 'ask');
+            $rawOrderBook = $this->safe_dict($response, $marketId, array());
+            $result[$symbol] = $this->parse_order_book($rawOrderBook, $symbol, null, 'bid', 'ask');
         }
         return $result;
     }
@@ -1217,7 +1265,7 @@ class exmo extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          *
@@ -1227,9 +1275,11 @@ class exmo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
-        $response = $this->publicGetTicker ($params);
+        $response = $this->publicGetTicker($params);
         //
         //     {
         //         "ADA_BTC":{
@@ -1257,7 +1307,7 @@ class exmo extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -1267,10 +1317,12 @@ class exmo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $this->load_markets();
-        $response = $this->publicGetTicker ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->publicGetTicker($params);
         $market = $this->market($symbol);
-        return $this->parse_ticker($response[$market['id']], $market);
+        return $this->parse_ticker($this->safe_value($response, $market['id']), $market);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1364,7 +1416,7 @@ class exmo extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -1376,12 +1428,14 @@ class exmo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetTrades ($this->extend($request, $params));
+        $response = $this->publicGetTrades($this->extend($request, $params));
         //
         //     {
         //         "ETH_BTC":array(
@@ -1408,7 +1462,7 @@ class exmo extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all $trades made by the user
          *
@@ -1432,7 +1486,9 @@ class exmo extends Exchange {
         if ($marginMode === 'cross') {
             throw new BadRequest($this->id . ' only isolated margin is supported');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $pair = $market['id'];
         $isSpot = $marginMode !== 'isolated';
@@ -1450,9 +1506,8 @@ class exmo extends Exchange {
         }
         $offset = $this->safe_integer($params, 'offset', 0);
         $request['offset'] = $offset;
-        $response = null;
         if ($isSpot) {
-            $response = $this->privatePostUserTrades ($this->extend($request, $params));
+            $response = $this->privatePostUserTrades($this->extend($request, $params));
             //
             //    {
             //        "BTC_USD" => array(
@@ -1477,7 +1532,7 @@ class exmo extends Exchange {
             //    }
             //
         } else {
-            $responseFromExchange = $this->privatePostMarginTrades ($this->extend($request, $params));
+            $responseFromExchange = $this->privatePostMarginTrades($this->extend($request, $params));
             //
             //    {
             //        "trades" => {
@@ -1510,7 +1565,7 @@ class exmo extends Exchange {
         return $this->filter_by_since_limit($result, $since, $limit);
     }
 
-    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array ()) {
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()) {
         /**
          * create a market order by providing the $symbol, $side and $cost
          *
@@ -1522,12 +1577,14 @@ class exmo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $params = $this->extend($params, array( 'cost' => $cost ));
         return $this->create_order($symbol, 'market', $side, $cost, null, $params);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
         /**
          * create a market buy order by providing the $symbol and $cost
          *
@@ -1538,12 +1595,14 @@ class exmo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $params = $this->extend($params, array( 'cost' => $cost ));
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()) {
         /**
          * create a market sell order by providing the $symbol and $cost
          *
@@ -1554,12 +1613,14 @@ class exmo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $params = $this->extend($params, array( 'cost' => $cost ));
         return $this->create_order($symbol, 'market', 'sell', $cost, null, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade order
          *
@@ -1579,7 +1640,9 @@ class exmo extends Exchange {
          * @param {float} [$params->cost] *spot only* *$market orders only* the $cost of the order in the quote currency for $market orders
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $isMarket = ($type === 'market') && ($price === null);
         $marginMode = null;
@@ -1624,7 +1687,6 @@ class exmo extends Exchange {
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($market['symbol'], $price);
         }
-        $response = null;
         if ($isSpot) {
             if ($triggerPrice !== null) {
                 if ($type === 'limit') {
@@ -1633,7 +1695,7 @@ class exmo extends Exchange {
                     $request['type'] = $side;
                     $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
                 }
-                $response = $this->privatePostStopMarketOrderCreate ($this->extend($request, $params));
+                $response = $this->privatePostStopMarketOrderCreate($this->extend($request, $params));
             } else {
                 $execType = $this->safe_string($params, 'exec_type');
                 $isPostOnly = null;
@@ -1651,7 +1713,7 @@ class exmo extends Exchange {
                 } elseif ($timeInForce !== null) {
                     $request['exec_type'] = $timeInForce;
                 }
-                $response = $this->privatePostOrderCreate ($this->extend($request, $params));
+                $response = $this->privatePostOrderCreate($this->extend($request, $params));
             }
         } else {
             if ($triggerPrice !== null) {
@@ -1670,12 +1732,12 @@ class exmo extends Exchange {
                     $request['type'] = $type;
                 }
             }
-            $response = $this->privatePostMarginUserOrderCreate ($this->extend($request, $params));
+            $response = $this->privatePostMarginUserOrderCreate($this->extend($request, $params));
         }
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open order
          *
@@ -1684,13 +1746,15 @@ class exmo extends Exchange {
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#705dfec5-2b35-4667-862b-faf54eca6209  // margin
          *
          * @param {string} $id order $id
-         * @param {string} $symbol not used by exmo cancelOrder ()
+         * @param {string} $symbol not used by cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] true to cancel a $trigger order
          * @param {string} [$params->marginMode] set to 'cross' or 'isolated' to cancel a margin order
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $trigger = $this->safe_value_2($params, 'trigger', 'stop');
         $params = $this->omit($params, array( 'trigger', 'stop' ));
@@ -1699,23 +1763,22 @@ class exmo extends Exchange {
         if ($marginMode === 'cross') {
             throw new BadRequest($this->id . ' only supports isolated margin');
         }
-        $response = null;
         if (($marginMode === 'isolated')) {
             $request['order_id'] = $id;
-            $response = $this->privatePostMarginUserOrderCancel ($this->extend($request, $params));
+            $response = $this->privatePostMarginUserOrderCancel($this->extend($request, $params));
             //
             //    array()
             //
         } else {
             if ($trigger) {
                 $request['parent_order_id'] = $id;
-                $response = $this->privatePostStopMarketOrderCancel ($this->extend($request, $params));
+                $response = $this->privatePostStopMarketOrderCancel($this->extend($request, $params));
                 //
                 //    array()
                 //
             } else {
                 $request['order_id'] = $id;
-                $response = $this->privatePostOrderCancel ($this->extend($request, $params));
+                $response = $this->privatePostOrderCancel($this->extend($request, $params));
                 //
                 //    {
                 //        "error" => '',
@@ -1727,7 +1790,7 @@ class exmo extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * *spot only* fetches information on an $order made by the user
          *
@@ -1738,11 +1801,13 @@ class exmo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'order_id' => (string) $id,
         );
-        $response = $this->privatePostOrderTrades ($this->extend($request, $params));
+        $response = $this->privatePostOrderTrades($this->extend($request, $params));
         //
         //     {
         //         "type" => "buy",
@@ -1769,7 +1834,7 @@ class exmo extends Exchange {
         return $order;
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all the $trades made from a single order
          *
@@ -1796,9 +1861,8 @@ class exmo extends Exchange {
         $request = array(
             'order_id' => (string) $id,
         );
-        $response = null;
         if ($marginMode === 'isolated') {
-            $response = $this->privatePostMarginUserOrderTrades ($this->extend($request, $params));
+            $response = $this->privatePostMarginUserOrderTrades($this->extend($request, $params));
             //
             //    {
             //        "trades" => array(
@@ -1816,7 +1880,7 @@ class exmo extends Exchange {
             //    }
             //
         } else {
-            $response = $this->privatePostOrderTrades ($this->extend($request, $params));
+            $response = $this->privatePostOrderTrades($this->extend($request, $params));
             //
             //     {
             //         "type" => "buy",
@@ -1844,10 +1908,14 @@ class exmo extends Exchange {
             //
         }
         $trades = $this->safe_list($response, 'trades');
-        return $this->parse_trades($trades, $market, $since, $limit);
+        $tradesList = array();
+        if ($trades !== null) {
+            $tradesList = $trades;
+        }
+        return $this->parse_trades($tradesList, $market, $since, $limit);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open $orders
          *
@@ -1861,7 +1929,9 @@ class exmo extends Exchange {
          * @param {string} [$params->marginMode] set to "isolated" for margin $orders
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1870,10 +1940,9 @@ class exmo extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
         $isMargin = (($marginMode === 'cross') || ($marginMode === 'isolated'));
-        $response = null;
         $orders = array();
         if ($isMargin) {
-            $response = $this->privatePostMarginUserOrderList ($params);
+            $response = $this->privatePostMarginUserOrderList($params);
             //
             //    {
             //        "orders" => array(
@@ -1907,7 +1976,7 @@ class exmo extends Exchange {
             $responseOrders = $this->safe_value($response, 'orders');
             $orders = $this->parse_orders($responseOrders, $market, $since, $limit, $params);
         } else {
-            $response = $this->privatePostUserOpenOrders ($params);
+            $response = $this->privatePostUserOpenOrders($params);
             //
             //    {
             //        "USDT_USD" => array(
@@ -1939,7 +2008,7 @@ class exmo extends Exchange {
         return $orders;
     }
 
-    public function parse_status($status) {
+    public function parse_status(mixed $status) {
         if ($status === null) {
             return null;
         }
@@ -1952,7 +2021,7 @@ class exmo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_side($orderType) {
+    public function parse_side(mixed $orderType) {
         $side = array(
             'limit_buy' => 'buy',
             'limit_sell' => 'sell',
@@ -2058,9 +2127,9 @@ class exmo extends Exchange {
         $orderType = $this->safe_string_2($order, 'type', 'order_type');
         $side = $this->parse_side($orderType);
         $marketId = null;
-        if (is_array($order) && array_key_exists('pair', $order)) {
+        if (is_array($order) && array_key_exists('pair' ?? '', $order)) {
             $marketId = $order['pair'];
-        } elseif ((is_array($order) && array_key_exists('in_currency', $order)) && (is_array($order) && array_key_exists('out_currency', $order))) {
+        } elseif ((is_array($order) && array_key_exists('in_currency' ?? '', $order)) && (is_array($order) && array_key_exists('out_currency' ?? '', $order))) {
             if ($side === 'buy') {
                 $marketId = $order['in_currency'] . '_' . $order['out_currency'];
             } else {
@@ -2111,7 +2180,7 @@ class exmo extends Exchange {
         ), $market);
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple canceled $orders made by the user
          *
@@ -2125,9 +2194,11 @@ class exmo extends Exchange {
          * @param {string} [$params->marginMode] set to "isolated" for margin $orders
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrders', $params);
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchCanceledOrders', $params);
         if ($marginMode === 'cross') {
             throw new BadRequest($this->id . ' only supports isolated margin');
         }
@@ -2148,9 +2219,8 @@ class exmo extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $response = null;
         if ($isSpot) {
-            $response = $this->privatePostUserCancelledOrders ($this->extend($request, $params));
+            $response = $this->privatePostUserCancelledOrders($this->extend($request, $params));
             //
             //    array(
             //        {
@@ -2169,46 +2239,21 @@ class exmo extends Exchange {
                 'status' => 'canceled',
             ));
             return $this->parse_orders($response, $market, $since, $limit, $params);
-        } else {
-            $responseSwap = $this->privatePostMarginUserOrderHistory ($this->extend($request, $params));
-            //
-            //    {
-            //        "items" => array(
-            //            {
-            //                "event_id" => "692862104574106858",
-            //                "event_time" => "1694116400173489405",
-            //                "event_type" => "OrderCancelStarted",
-            //                "order_id" => "692862104561289319",
-            //                "order_type" => "stop_limit_sell",
-            //                "order_status" => "cancel_started",
-            //                "trade_id" => "0",
-            //                "trade_type":"",
-            //                "trade_quantity" => "0",
-            //                "trade_price" => "0",
-            //                "pair" => "ADA_USDT",
-            //                "quantity" => "12",
-            //                "price" => "0.23",
-            //                "stop_price" => "0.22",
-            //                "distance" => "0"
-            //            }
-            //            ...
-            //        )
-            //    }
-            //
-            $items = $this->safe_value($responseSwap, 'items');
-            $orders = $this->parse_orders($items, $market, $since, $limit, $params);
-            $result = array();
-            for ($i = 0; $i < count($orders); $i++) {
-                $order = $orders[$i];
-                if ($order['status'] === 'canceled') {
-                    $result[] = $order;
-                }
-            }
-            return $result;
         }
+        $responseSwap = $this->privatePostMarginUserOrderHistory($this->extend($request, $params));
+        $items = $this->safe_value($responseSwap, 'items');
+        $orders = $this->parse_orders($items, $market, $since, $limit, $params);
+        $result = array();
+        for ($i = 0; $i < count($orders); $i++) {
+            $order = $orders[$i];
+            if ($order['status'] === 'canceled') {
+                $result[] = $order;
+            }
+        }
+        return $result;
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         /**
          * *margin only* edit a trade order
          *
@@ -2230,7 +2275,9 @@ class exmo extends Exchange {
          * @param {string} [$params->comment] optional comment for order. up to 50 latin symbols, whitespaces, underscores
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('editOrder', $params);
@@ -2251,11 +2298,11 @@ class exmo extends Exchange {
         if ($triggerPrice !== null) {
             $request['stop_price'] = $this->price_to_precision($market['symbol'], $triggerPrice);
         }
-        $response = $this->privatePostMarginUserOrderUpdate ($this->extend($request, $params));
+        $response = $this->privatePostMarginUserOrderUpdate($this->extend($request, $params));
         return $this->parse_order($response);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): array {
+    public function fetch_deposit_address(string $code, $params = array()): array {
         /**
          * fetch the deposit $address for a currency associated with this account
          *
@@ -2265,8 +2312,10 @@ class exmo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
          */
-        $this->load_markets();
-        $response = $this->privatePostDepositAddress ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privatePostDepositAddress($params);
         //
         //     {
         //         "TRX":"TBnwrf4ZdoYXE3C8L2KMs7YPSL3fg6q6V9",
@@ -2294,17 +2343,17 @@ class exmo extends Exchange {
         );
     }
 
-    public function get_market_from_trades($trades) {
+    public function get_market_from_trades(mixed $trades) {
         $tradesBySymbol = $this->index_by($trades, 'pair');
         $symbols = is_array($tradesBySymbol) ? array_keys($tradesBySymbol) : array();
         $numSymbols = count($symbols);
         if ($numSymbols === 1) {
-            return $this->markets[$symbols[0]];
+            return $this->market($symbols[0]);
         }
         return null;
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -2318,7 +2367,9 @@ class exmo extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'amount' => $amount,
@@ -2335,7 +2386,7 @@ class exmo extends Exchange {
             $request['transport'] = $network;
             $params = $this->omit($params, 'network');
         }
-        $response = $this->privatePostWithdrawCrypt ($this->extend($request, $params));
+        $response = $this->privatePostWithdrawCrypt($this->extend($request, $params));
         return $this->parse_transaction($response, $currency);
     }
 
@@ -2430,7 +2481,9 @@ class exmo extends Exchange {
                 $numParts = count($parts);
                 if ($numParts === 2) {
                     $address = $this->safe_string($parts, 1);
-                    $address = str_replace(' ', '', $address);
+                    if ($address !== null) {
+                        $address = str_replace(' ', '', $address);
+                    }
                 }
             }
         }
@@ -2440,7 +2493,7 @@ class exmo extends Exchange {
             'rate' => null,
         );
         // fixed funding fees only (for now)
-        if (!$this->fees['transaction']['percentage']) {
+        if (!($this->fees)['transaction']['percentage']) {
             $key = ($type === 'withdrawal') ? 'withdraw' : 'deposit';
             $feeCost = $this->safe_string($transaction, 'commission');
             if ($feeCost === null) {
@@ -2486,9 +2539,9 @@ class exmo extends Exchange {
         );
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
-         * fetch history of deposits and withdrawals
+         * fetch $history of deposits and withdrawals
          *
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#31e69a33-4849-4e6a-b4b4-6d574238f6a7
          *
@@ -2498,7 +2551,9 @@ class exmo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         if ($since !== null) {
             $request['date'] = $this->parse_to_int($since / 1000);
@@ -2507,14 +2562,14 @@ class exmo extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $response = $this->privatePostWalletHistory ($this->extend($request, $params));
+        $response = $this->privatePostWalletHistory($this->extend($request, $params));
         //
         //     {
         //       "result" => true,
         //       "error" => "",
         //       "begin" => "1493942400",
         //       "end" => "1494028800",
-        //       "history" => [
+        //       "history" => array(
         //          array(
         //            "dt" => 1461841192,
         //            "type" => "deposit",
@@ -2535,13 +2590,14 @@ class exmo extends Exchange {
         //            "account" => "EX-CODE_19371_USDda...",
         //            "txid" => "",
         //          ),
-        //       ],
+        //       ),
         //     }
         //
-        return $this->parse_transactions($response['history'], $currency, $since, $limit);
+        $history = $this->safe_list($response, 'history', array());
+        return $this->parse_transactions($history, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all withdrawals made from an account
          *
@@ -2553,7 +2609,9 @@ class exmo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = null;
         $request = array(
             'type' => 'withdraw',
@@ -2565,7 +2623,7 @@ class exmo extends Exchange {
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
-        $response = $this->privatePostWalletOperations ($this->extend($request, $params));
+        $response = $this->privatePostWalletOperations($this->extend($request, $params));
         //
         //     {
         //         "items" => array(
@@ -2596,7 +2654,7 @@ class exmo extends Exchange {
         return $this->parse_transactions($items, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()) {
         /**
          * fetch data on a $currency withdrawal via the withdrawal $id
          *
@@ -2607,7 +2665,9 @@ class exmo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?$id=transaction-structure transaction structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = null;
         $request = array(
             'order_id' => $id,
@@ -2617,7 +2677,7 @@ class exmo extends Exchange {
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
-        $response = $this->privatePostWalletOperations ($this->extend($request, $params));
+        $response = $this->privatePostWalletOperations($this->extend($request, $params));
         //
         //     {
         //         "items" => array(
@@ -2649,7 +2709,7 @@ class exmo extends Exchange {
         return $this->parse_transaction($first, $currency);
     }
 
-    public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array()) {
         /**
          * fetch information on a deposit
          *
@@ -2660,7 +2720,9 @@ class exmo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?$id=transaction-structure transaction structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = null;
         $request = array(
             'order_id' => $id,
@@ -2670,7 +2732,7 @@ class exmo extends Exchange {
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
-        $response = $this->privatePostWalletOperations ($this->extend($request, $params));
+        $response = $this->privatePostWalletOperations($this->extend($request, $params));
         //
         //     {
         //         "items" => array(
@@ -2702,7 +2764,7 @@ class exmo extends Exchange {
         return $this->parse_transaction($first, $currency);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all deposits made to an account
          *
@@ -2714,7 +2776,9 @@ class exmo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = null;
         $request = array(
             'type' => 'deposit',
@@ -2726,7 +2790,7 @@ class exmo extends Exchange {
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
-        $response = $this->privatePostWalletOperations ($this->extend($request, $params));
+        $response = $this->privatePostWalletOperations($this->extend($request, $params));
         //
         //     {
         //         "items" => array(
@@ -2757,7 +2821,7 @@ class exmo extends Exchange {
         return $this->parse_transactions($items, $currency, $since, $limit);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/';
         if ($api !== 'web') {
             $url .= $this->version . '/';
@@ -2784,11 +2848,11 @@ class exmo extends Exchange {
         return $this->milliseconds();
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
-        if ((is_array($response) && array_key_exists('error', $response)) && !(is_array($response) && array_key_exists('result', $response))) {
+        if ((is_array($response) && array_key_exists('error' ?? '', $response)) && !(is_array($response) && array_key_exists('result' ?? '', $response))) {
             // error => {
             //     "code" => "140434",
             //     "msg" => "Your margin balance is not sufficient to place the order for '5 TON'. Please top up your margin wallet by "2.5 USDT"."
@@ -2802,7 +2866,7 @@ class exmo extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageError, $feedback);
             throw new ExchangeError($feedback);
         }
-        if ((is_array($response) && array_key_exists('result', $response)) || (is_array($response) && array_key_exists('errmsg', $response))) {
+        if ((is_array($response) && array_key_exists('result' ?? '', $response)) || (is_array($response) && array_key_exists('errmsg' ?? '', $response))) {
             //
             //     array("result":false,"error":"Error 50052 => Insufficient funds")
             //     array("s":"error","errmsg":"strconv.ParseInt => parsing \"\" => invalid syntax")
@@ -2818,6 +2882,9 @@ class exmo extends Exchange {
             if (!$success) {
                 $code = null;
                 $message = $this->safe_string_2($response, 'error', 'errmsg');
+                if ($message === null) {
+                    throw new ExchangeError($this->id . ' handleErrors() missing message');
+                }
                 $errorParts = explode(':', $message);
                 $numParts = count($errorParts);
                 if ($numParts > 1) {

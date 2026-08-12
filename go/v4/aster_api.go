@@ -7,318 +7,827 @@
 
 package ccxt
 
-func (this *AsterCore) FapiPublicGetV1Ping(args ...interface{}) <-chan interface{} {
+// FapiPublicGetV1Ping returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPublicGetV1Ping(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV1Ping", args...)
 }
 
-func (this *AsterCore) FapiPublicGetV1Time(args ...interface{}) <-chan interface{} {
+// FapiPublicGetV3Ping returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPublicGetV3Ping(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPublicGetV3Ping", args...)
+}
+
+// FapiPublicGetV1Time returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPublicGetV1Time(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV1Time", args...)
 }
 
-func (this *AsterCore) FapiPublicGetV1ExchangeInfo(args ...interface{}) <-chan interface{} {
+// FapiPublicGetV3Time returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPublicGetV3Time(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPublicGetV3Time", args...)
+}
+
+// FapiPublicGetV1ExchangeInfo returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPublicGetV1ExchangeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV1ExchangeInfo", args...)
 }
 
-func (this *AsterCore) FapiPublicGetV1Depth(args ...interface{}) <-chan interface{} {
+// FapiPublicGetV3ExchangeInfo returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPublicGetV3ExchangeInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPublicGetV3ExchangeInfo", args...)
+}
+
+// FapiPublicGetV1Depth returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPublicGetV1Depth(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV1Depth", args...)
 }
 
-func (this *AsterCore) FapiPublicGetV1Trades(args ...interface{}) <-chan interface{} {
+// FapiPublicGetV3Depth returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPublicGetV3Depth(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPublicGetV3Depth", args...)
+}
+
+// FapiPublicGetV1Trades returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV1Trades(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV1Trades", args...)
 }
 
-func (this *AsterCore) FapiPublicGetV1HistoricalTrades(args ...interface{}) <-chan interface{} {
+// FapiPublicGetV3Trades returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV3Trades(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPublicGetV3Trades", args...)
+}
+
+// FapiPublicGetV1HistoricalTrades returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV1HistoricalTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV1HistoricalTrades", args...)
 }
 
-func (this *AsterCore) FapiPublicGetV1AggTrades(args ...interface{}) <-chan interface{} {
+// FapiPublicGetV3HistoricalTrades returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV3HistoricalTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPublicGetV3HistoricalTrades", args...)
+}
+
+// FapiPublicGetV1AggTrades returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV1AggTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV1AggTrades", args...)
 }
 
-func (this *AsterCore) FapiPublicGetV1Klines(args ...interface{}) <-chan interface{} {
+// FapiPublicGetV3AggTrades returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV3AggTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPublicGetV3AggTrades", args...)
+}
+
+// FapiPublicGetV1Klines returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV1Klines(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV1Klines", args...)
 }
 
-func (this *AsterCore) FapiPublicGetV1IndexPriceKlines(args ...interface{}) <-chan interface{} {
+// FapiPublicGetV3Klines returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV3Klines(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPublicGetV3Klines", args...)
+}
+
+// FapiPublicGetV1IndexPriceKlines returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV1IndexPriceKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV1IndexPriceKlines", args...)
 }
 
-func (this *AsterCore) FapiPublicGetV1MarkPriceKlines(args ...interface{}) <-chan interface{} {
+// FapiPublicGetV3IndexPriceKlines returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV3IndexPriceKlines(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPublicGetV3IndexPriceKlines", args...)
+}
+
+// FapiPublicGetV1MarkPriceKlines returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV1MarkPriceKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV1MarkPriceKlines", args...)
 }
 
-func (this *AsterCore) FapiPublicGetV1PremiumIndex(args ...interface{}) <-chan interface{} {
+// FapiPublicGetV3MarkPriceKlines returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV3MarkPriceKlines(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPublicGetV3MarkPriceKlines", args...)
+}
+
+// FapiPublicGetV1PremiumIndex returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPublicGetV1PremiumIndex(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV1PremiumIndex", args...)
 }
 
-func (this *AsterCore) FapiPublicGetV1FundingRate(args ...interface{}) <-chan interface{} {
+// FapiPublicGetV3PremiumIndex returns a channel that yields a JSON object or a JSON array.
+func (this *AsterCore) FapiPublicGetV3PremiumIndex(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPublicGetV3PremiumIndex", args...)
+}
+
+// FapiPublicGetV1FundingRate returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV1FundingRate(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV1FundingRate", args...)
 }
 
-func (this *AsterCore) FapiPublicGetV1FundingInfo(args ...interface{}) <-chan interface{} {
+// FapiPublicGetV3FundingRate returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV3FundingRate(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPublicGetV3FundingRate", args...)
+}
+
+// FapiPublicGetV1FundingInfo returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV1FundingInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV1FundingInfo", args...)
 }
 
-func (this *AsterCore) FapiPublicGetV1Ticker24hr(args ...interface{}) <-chan interface{} {
+// FapiPublicGetV3FundingInfo returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV3FundingInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPublicGetV3FundingInfo", args...)
+}
+
+// FapiPublicGetV1Ticker24hr returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV1Ticker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV1Ticker24hr", args...)
 }
 
-func (this *AsterCore) FapiPublicGetV1TickerPrice(args ...interface{}) <-chan interface{} {
+// FapiPublicGetV3Ticker24hr returns a channel that yields a JSON object or a JSON array.
+func (this *AsterCore) FapiPublicGetV3Ticker24hr(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPublicGetV3Ticker24hr", args...)
+}
+
+// FapiPublicGetV1TickerPrice returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV1TickerPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV1TickerPrice", args...)
 }
 
-func (this *AsterCore) FapiPublicGetV1TickerBookTicker(args ...interface{}) <-chan interface{} {
+// FapiPublicGetV3TickerPrice returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV3TickerPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPublicGetV3TickerPrice", args...)
+}
+
+// FapiPublicGetV1TickerBookTicker returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV1TickerBookTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV1TickerBookTicker", args...)
 }
 
-func (this *AsterCore) FapiPublicGetV1AdlQuantile(args ...interface{}) <-chan interface{} {
+// FapiPublicGetV3TickerBookTicker returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV3TickerBookTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPublicGetV3TickerBookTicker", args...)
+}
+
+// FapiPublicGetV1AdlQuantile returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV1AdlQuantile(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV1AdlQuantile", args...)
 }
 
-func (this *AsterCore) FapiPublicGetV1ForceOrders(args ...interface{}) <-chan interface{} {
+// FapiPublicGetV1ForceOrders returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPublicGetV1ForceOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV1ForceOrders", args...)
 }
 
-func (this *AsterCore) FapiPrivateGetV1PositionSideDual(args ...interface{}) <-chan interface{} {
+// FapiPublicGetV3Indexreferences returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPublicGetV3Indexreferences(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPublicGetV3Indexreferences", args...)
+}
+
+// FapiPrivateGetV1PositionSideDual returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateGetV1PositionSideDual(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetV1PositionSideDual", args...)
 }
 
-func (this *AsterCore) FapiPrivateGetV1MultiAssetsMargin(args ...interface{}) <-chan interface{} {
+// FapiPrivateGetV3PositionSideDual returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateGetV3PositionSideDual(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3PositionSideDual", args...)
+}
+
+// FapiPrivateGetV1MultiAssetsMargin returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateGetV1MultiAssetsMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetV1MultiAssetsMargin", args...)
 }
 
-func (this *AsterCore) FapiPrivateGetV1Order(args ...interface{}) <-chan interface{} {
+// FapiPrivateGetV3MultiAssetsMargin returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateGetV3MultiAssetsMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3MultiAssetsMargin", args...)
+}
+
+// FapiPrivateGetV1Order returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateGetV1Order(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetV1Order", args...)
 }
 
-func (this *AsterCore) FapiPrivateGetV1OpenOrder(args ...interface{}) <-chan interface{} {
+// FapiPrivateGetV3Order returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateGetV3Order(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3Order", args...)
+}
+
+// FapiPrivateGetV1OpenOrder returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateGetV1OpenOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetV1OpenOrder", args...)
 }
 
-func (this *AsterCore) FapiPrivateGetV1OpenOrders(args ...interface{}) <-chan interface{} {
+// FapiPrivateGetV3OpenOrder returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateGetV3OpenOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3OpenOrder", args...)
+}
+
+// FapiPrivateGetV1OpenOrders returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateGetV1OpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetV1OpenOrders", args...)
 }
 
-func (this *AsterCore) FapiPrivateGetV1AllOrders(args ...interface{}) <-chan interface{} {
+// FapiPrivateGetV3OpenOrders returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateGetV3OpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3OpenOrders", args...)
+}
+
+// FapiPrivateGetV1AllOrders returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateGetV1AllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetV1AllOrders", args...)
 }
 
-func (this *AsterCore) FapiPrivateGetV2Balance(args ...interface{}) <-chan interface{} {
+// FapiPrivateGetV3AllOrders returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateGetV3AllOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3AllOrders", args...)
+}
+
+// FapiPrivateGetV2Balance returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateGetV2Balance(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetV2Balance", args...)
 }
 
-func (this *AsterCore) FapiPrivateGetV3Balance(args ...interface{}) <-chan interface{} {
+// FapiPrivateGetV3Balance returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateGetV3Balance(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetV3Balance", args...)
 }
 
-func (this *AsterCore) FapiPrivateGetV3Account(args ...interface{}) <-chan interface{} {
+// FapiPrivateGetV3Account returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateGetV3Account(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetV3Account", args...)
 }
 
-func (this *AsterCore) FapiPrivateGetV4Account(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("fapiPrivateGetV4Account", args...)
-}
-
-func (this *AsterCore) FapiPrivateGetV1PositionMarginHistory(args ...interface{}) <-chan interface{} {
+// FapiPrivateGetV1PositionMarginHistory returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateGetV1PositionMarginHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetV1PositionMarginHistory", args...)
 }
 
-func (this *AsterCore) FapiPrivateGetV2PositionRisk(args ...interface{}) <-chan interface{} {
+// FapiPrivateGetV3PositionMarginHistory returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateGetV3PositionMarginHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3PositionMarginHistory", args...)
+}
+
+// FapiPrivateGetV2PositionRisk returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateGetV2PositionRisk(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetV2PositionRisk", args...)
 }
 
-func (this *AsterCore) FapiPrivateGetV3PositionRisk(args ...interface{}) <-chan interface{} {
+// FapiPrivateGetV3PositionRisk returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateGetV3PositionRisk(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetV3PositionRisk", args...)
 }
 
-func (this *AsterCore) FapiPrivateGetV1UserTrades(args ...interface{}) <-chan interface{} {
+// FapiPrivateGetV1UserTrades returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateGetV1UserTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetV1UserTrades", args...)
 }
 
-func (this *AsterCore) FapiPrivateGetV1Income(args ...interface{}) <-chan interface{} {
+// FapiPrivateGetV3UserTrades returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateGetV3UserTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3UserTrades", args...)
+}
+
+// FapiPrivateGetV1Income returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateGetV1Income(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetV1Income", args...)
 }
 
-func (this *AsterCore) FapiPrivateGetV1LeverageBracket(args ...interface{}) <-chan interface{} {
+// FapiPrivateGetV3Income returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateGetV3Income(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3Income", args...)
+}
+
+// FapiPrivateGetV1LeverageBracket returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateGetV1LeverageBracket(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetV1LeverageBracket", args...)
 }
 
-func (this *AsterCore) FapiPrivateGetV1CommissionRate(args ...interface{}) <-chan interface{} {
+// FapiPrivateGetV3LeverageBracket returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateGetV3LeverageBracket(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3LeverageBracket", args...)
+}
+
+// FapiPrivateGetV1CommissionRate returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateGetV1CommissionRate(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetV1CommissionRate", args...)
 }
 
-func (this *AsterCore) FapiPrivatePostV1PositionSideDual(args ...interface{}) <-chan interface{} {
+// FapiPrivateGetV3CommissionRate returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateGetV3CommissionRate(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3CommissionRate", args...)
+}
+
+// FapiPrivateGetV3AdlQuantile returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateGetV3AdlQuantile(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3AdlQuantile", args...)
+}
+
+// FapiPrivateGetV3ForceOrders returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateGetV3ForceOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3ForceOrders", args...)
+}
+
+// FapiPrivateGetV3Mmp returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateGetV3Mmp(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3Mmp", args...)
+}
+
+// FapiPrivateGetV3AccountWithJoinMargin returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateGetV3AccountWithJoinMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3AccountWithJoinMargin", args...)
+}
+
+// FapiPrivateGetV4Account returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateGetV4Account(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV4Account", args...)
+}
+
+// FapiPrivateGetV3Agent returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateGetV3Agent(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3Agent", args...)
+}
+
+// FapiPrivateGetV3Builder returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateGetV3Builder(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3Builder", args...)
+}
+
+// FapiPrivatePostV1PositionSideDual returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV1PositionSideDual(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostV1PositionSideDual", args...)
 }
 
-func (this *AsterCore) FapiPrivatePostV1MultiAssetsMargin(args ...interface{}) <-chan interface{} {
+// FapiPrivatePostV3PositionSideDual returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV3PositionSideDual(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3PositionSideDual", args...)
+}
+
+// FapiPrivatePostV1MultiAssetsMargin returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV1MultiAssetsMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostV1MultiAssetsMargin", args...)
 }
 
-func (this *AsterCore) FapiPrivatePostV1Order(args ...interface{}) <-chan interface{} {
+// FapiPrivatePostV3MultiAssetsMargin returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV3MultiAssetsMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3MultiAssetsMargin", args...)
+}
+
+// FapiPrivatePostV1Order returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV1Order(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostV1Order", args...)
 }
 
-func (this *AsterCore) FapiPrivatePostV1OrderTest(args ...interface{}) <-chan interface{} {
+// FapiPrivatePostV3Order returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV3Order(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3Order", args...)
+}
+
+// FapiPrivatePostV1OrderTest returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV1OrderTest(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostV1OrderTest", args...)
 }
 
-func (this *AsterCore) FapiPrivatePostV1BatchOrders(args ...interface{}) <-chan interface{} {
+// FapiPrivatePostV3OrderTest returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV3OrderTest(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3OrderTest", args...)
+}
+
+// FapiPrivatePostV1BatchOrders returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivatePostV1BatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostV1BatchOrders", args...)
 }
 
-func (this *AsterCore) FapiPrivatePostV1AssetWalletTransfer(args ...interface{}) <-chan interface{} {
+// FapiPrivatePostV3BatchOrders returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivatePostV3BatchOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3BatchOrders", args...)
+}
+
+// FapiPrivatePostV1AssetWalletTransfer returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV1AssetWalletTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostV1AssetWalletTransfer", args...)
 }
 
-func (this *AsterCore) FapiPrivatePostV1CountdownCancelAll(args ...interface{}) <-chan interface{} {
+// FapiPrivatePostV3AssetWalletTransfer returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV3AssetWalletTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3AssetWalletTransfer", args...)
+}
+
+// FapiPrivatePostV1CountdownCancelAll returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV1CountdownCancelAll(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostV1CountdownCancelAll", args...)
 }
 
-func (this *AsterCore) FapiPrivatePostV1Leverage(args ...interface{}) <-chan interface{} {
+// FapiPrivatePostV3CountdownCancelAll returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV3CountdownCancelAll(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3CountdownCancelAll", args...)
+}
+
+// FapiPrivatePostV1Leverage returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV1Leverage(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostV1Leverage", args...)
 }
 
-func (this *AsterCore) FapiPrivatePostV1MarginType(args ...interface{}) <-chan interface{} {
+// FapiPrivatePostV3Leverage returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV3Leverage(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3Leverage", args...)
+}
+
+// FapiPrivatePostV1MarginType returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV1MarginType(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostV1MarginType", args...)
 }
 
-func (this *AsterCore) FapiPrivatePostV1PositionMargin(args ...interface{}) <-chan interface{} {
+// FapiPrivatePostV3MarginType returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV3MarginType(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3MarginType", args...)
+}
+
+// FapiPrivatePostV1PositionMargin returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV1PositionMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostV1PositionMargin", args...)
 }
 
-func (this *AsterCore) FapiPrivatePostV1ListenKey(args ...interface{}) <-chan interface{} {
+// FapiPrivatePostV3PositionMargin returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV3PositionMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3PositionMargin", args...)
+}
+
+// FapiPrivatePostV1ListenKey returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV1ListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostV1ListenKey", args...)
 }
 
-func (this *AsterCore) FapiPrivatePutV1ListenKey(args ...interface{}) <-chan interface{} {
+// FapiPrivatePostV3ListenKey returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV3ListenKey(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3ListenKey", args...)
+}
+
+// FapiPrivatePostV3Mmp returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivatePostV3Mmp(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3Mmp", args...)
+}
+
+// FapiPrivatePostV3MmpReset returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV3MmpReset(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3MmpReset", args...)
+}
+
+// FapiPrivatePostV3Noop returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV3Noop(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3Noop", args...)
+}
+
+// FapiPrivatePostV3ApproveAgent returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV3ApproveAgent(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3ApproveAgent", args...)
+}
+
+// FapiPrivatePostV3UpdateAgent returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV3UpdateAgent(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3UpdateAgent", args...)
+}
+
+// FapiPrivatePostV3ApproveBuilder returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV3ApproveBuilder(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3ApproveBuilder", args...)
+}
+
+// FapiPrivatePostV3UpdateBuilder returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV3UpdateBuilder(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3UpdateBuilder", args...)
+}
+
+// FapiPrivatePutV1ListenKey returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePutV1ListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePutV1ListenKey", args...)
 }
 
-func (this *AsterCore) FapiPrivateDeleteV1Order(args ...interface{}) <-chan interface{} {
+// FapiPrivatePutV3ListenKey returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePutV3ListenKey(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePutV3ListenKey", args...)
+}
+
+// FapiPrivateDeleteV1Order returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateDeleteV1Order(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateDeleteV1Order", args...)
 }
 
-func (this *AsterCore) FapiPrivateDeleteV1AllOpenOrders(args ...interface{}) <-chan interface{} {
+// FapiPrivateDeleteV3Order returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateDeleteV3Order(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateDeleteV3Order", args...)
+}
+
+// FapiPrivateDeleteV1AllOpenOrders returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateDeleteV1AllOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateDeleteV1AllOpenOrders", args...)
 }
 
-func (this *AsterCore) FapiPrivateDeleteV1BatchOrders(args ...interface{}) <-chan interface{} {
+// FapiPrivateDeleteV3AllOpenOrders returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateDeleteV3AllOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateDeleteV3AllOpenOrders", args...)
+}
+
+// FapiPrivateDeleteV1BatchOrders returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateDeleteV1BatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateDeleteV1BatchOrders", args...)
 }
 
-func (this *AsterCore) FapiPrivateDeleteV1ListenKey(args ...interface{}) <-chan interface{} {
+// FapiPrivateDeleteV3BatchOrders returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateDeleteV3BatchOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateDeleteV3BatchOrders", args...)
+}
+
+// FapiPrivateDeleteV3Mmp returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateDeleteV3Mmp(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateDeleteV3Mmp", args...)
+}
+
+// FapiPrivateDeleteV1ListenKey returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateDeleteV1ListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateDeleteV1ListenKey", args...)
 }
 
-func (this *AsterCore) SapiPublicGetV1Ping(args ...interface{}) <-chan interface{} {
+// FapiPrivateDeleteV3ListenKey returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateDeleteV3ListenKey(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateDeleteV3ListenKey", args...)
+}
+
+// FapiPrivateDeleteV3Agent returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateDeleteV3Agent(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateDeleteV3Agent", args...)
+}
+
+// FapiPrivateDeleteV3Builder returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateDeleteV3Builder(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateDeleteV3Builder", args...)
+}
+
+// SapiPublicGetV1Ping returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPublicGetV1Ping(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPublicGetV1Ping", args...)
 }
 
-func (this *AsterCore) SapiPublicGetV1Time(args ...interface{}) <-chan interface{} {
+// SapiPublicGetV1Time returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPublicGetV1Time(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPublicGetV1Time", args...)
 }
 
-func (this *AsterCore) SapiPublicGetV1ExchangeInfo(args ...interface{}) <-chan interface{} {
+// SapiPublicGetV1ExchangeInfo returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPublicGetV1ExchangeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPublicGetV1ExchangeInfo", args...)
 }
 
-func (this *AsterCore) SapiPublicGetV1Depth(args ...interface{}) <-chan interface{} {
+// SapiPublicGetV1Depth returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPublicGetV1Depth(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPublicGetV1Depth", args...)
 }
 
-func (this *AsterCore) SapiPublicGetV1Trades(args ...interface{}) <-chan interface{} {
+// SapiPublicGetV1Trades returns a channel that yields a JSON array.
+func (this *AsterCore) SapiPublicGetV1Trades(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPublicGetV1Trades", args...)
 }
 
-func (this *AsterCore) SapiPublicGetV1HistoricalTrades(args ...interface{}) <-chan interface{} {
+// SapiPublicGetV1HistoricalTrades returns a channel that yields a JSON array.
+func (this *AsterCore) SapiPublicGetV1HistoricalTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPublicGetV1HistoricalTrades", args...)
 }
 
-func (this *AsterCore) SapiPublicGetV1AggTrades(args ...interface{}) <-chan interface{} {
+// SapiPublicGetV1AggTrades returns a channel that yields a JSON array.
+func (this *AsterCore) SapiPublicGetV1AggTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPublicGetV1AggTrades", args...)
 }
 
-func (this *AsterCore) SapiPublicGetV1Klines(args ...interface{}) <-chan interface{} {
+// SapiPublicGetV1Klines returns a channel that yields a JSON array.
+func (this *AsterCore) SapiPublicGetV1Klines(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPublicGetV1Klines", args...)
 }
 
-func (this *AsterCore) SapiPublicGetV1Ticker24hr(args ...interface{}) <-chan interface{} {
+// SapiPublicGetV1Ticker24hr returns a channel that yields a JSON array.
+func (this *AsterCore) SapiPublicGetV1Ticker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPublicGetV1Ticker24hr", args...)
 }
 
-func (this *AsterCore) SapiPublicGetV1TickerPrice(args ...interface{}) <-chan interface{} {
+// SapiPublicGetV1TickerPrice returns a channel that yields a JSON array.
+func (this *AsterCore) SapiPublicGetV1TickerPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPublicGetV1TickerPrice", args...)
 }
 
-func (this *AsterCore) SapiPublicGetV1TickerBookTicker(args ...interface{}) <-chan interface{} {
+// SapiPublicGetV1TickerBookTicker returns a channel that yields a JSON array.
+func (this *AsterCore) SapiPublicGetV1TickerBookTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPublicGetV1TickerBookTicker", args...)
 }
 
-func (this *AsterCore) SapiPublicGetV1AsterWithdrawEstimateFee(args ...interface{}) <-chan interface{} {
+// SapiPublicGetV1AsterWithdrawEstimateFee returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPublicGetV1AsterWithdrawEstimateFee(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPublicGetV1AsterWithdrawEstimateFee", args...)
 }
 
-func (this *AsterCore) SapiPrivateGetV1CommissionRate(args ...interface{}) <-chan interface{} {
+// SapiPublicGetV3Ping returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPublicGetV3Ping(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPublicGetV3Ping", args...)
+}
+
+// SapiPublicGetV3Time returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPublicGetV3Time(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPublicGetV3Time", args...)
+}
+
+// SapiPublicGetV3ExchangeInfo returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPublicGetV3ExchangeInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPublicGetV3ExchangeInfo", args...)
+}
+
+// SapiPublicGetV3Depth returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPublicGetV3Depth(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPublicGetV3Depth", args...)
+}
+
+// SapiPublicGetV3Trades returns a channel that yields a JSON array.
+func (this *AsterCore) SapiPublicGetV3Trades(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPublicGetV3Trades", args...)
+}
+
+// SapiPublicGetV3HistoricalTrades returns a channel that yields a JSON array.
+func (this *AsterCore) SapiPublicGetV3HistoricalTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPublicGetV3HistoricalTrades", args...)
+}
+
+// SapiPublicGetV3AggTrades returns a channel that yields a JSON array.
+func (this *AsterCore) SapiPublicGetV3AggTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPublicGetV3AggTrades", args...)
+}
+
+// SapiPublicGetV3Klines returns a channel that yields a JSON array.
+func (this *AsterCore) SapiPublicGetV3Klines(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPublicGetV3Klines", args...)
+}
+
+// SapiPublicGetV3Ticker24hr returns a channel that yields a JSON object or a JSON array.
+func (this *AsterCore) SapiPublicGetV3Ticker24hr(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPublicGetV3Ticker24hr", args...)
+}
+
+// SapiPublicGetV3TickerPrice returns a channel that yields a JSON array.
+func (this *AsterCore) SapiPublicGetV3TickerPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPublicGetV3TickerPrice", args...)
+}
+
+// SapiPublicGetV3TickerBookTicker returns a channel that yields a JSON array.
+func (this *AsterCore) SapiPublicGetV3TickerBookTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPublicGetV3TickerBookTicker", args...)
+}
+
+// SapiPublicGetV3AsterWithdrawEstimateFee returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPublicGetV3AsterWithdrawEstimateFee(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPublicGetV3AsterWithdrawEstimateFee", args...)
+}
+
+// SapiPrivateGetV1CommissionRate returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivateGetV1CommissionRate(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPrivateGetV1CommissionRate", args...)
 }
 
-func (this *AsterCore) SapiPrivateGetV1Order(args ...interface{}) <-chan interface{} {
+// SapiPrivateGetV1Order returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivateGetV1Order(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPrivateGetV1Order", args...)
 }
 
-func (this *AsterCore) SapiPrivateGetV1OpenOrders(args ...interface{}) <-chan interface{} {
+// SapiPrivateGetV1OpenOrders returns a channel that yields a JSON array.
+func (this *AsterCore) SapiPrivateGetV1OpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPrivateGetV1OpenOrders", args...)
 }
 
-func (this *AsterCore) SapiPrivateGetV1AllOrders(args ...interface{}) <-chan interface{} {
+// SapiPrivateGetV1AllOrders returns a channel that yields a JSON array.
+func (this *AsterCore) SapiPrivateGetV1AllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPrivateGetV1AllOrders", args...)
 }
 
-func (this *AsterCore) SapiPrivateGetV1TransactionHistory(args ...interface{}) <-chan interface{} {
+// SapiPrivateGetV1TransactionHistory returns a channel that yields a JSON array.
+func (this *AsterCore) SapiPrivateGetV1TransactionHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPrivateGetV1TransactionHistory", args...)
 }
 
-func (this *AsterCore) SapiPrivateGetV1Account(args ...interface{}) <-chan interface{} {
+// SapiPrivateGetV1Account returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivateGetV1Account(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPrivateGetV1Account", args...)
 }
 
-func (this *AsterCore) SapiPrivateGetV1UserTrades(args ...interface{}) <-chan interface{} {
+// SapiPrivateGetV1UserTrades returns a channel that yields a JSON array.
+func (this *AsterCore) SapiPrivateGetV1UserTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPrivateGetV1UserTrades", args...)
 }
 
-func (this *AsterCore) SapiPrivatePostV1Order(args ...interface{}) <-chan interface{} {
+// SapiPrivateGetV3CommissionRate returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivateGetV3CommissionRate(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPrivateGetV3CommissionRate", args...)
+}
+
+// SapiPrivateGetV3Order returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivateGetV3Order(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPrivateGetV3Order", args...)
+}
+
+// SapiPrivateGetV3OpenOrders returns a channel that yields a JSON array.
+func (this *AsterCore) SapiPrivateGetV3OpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPrivateGetV3OpenOrders", args...)
+}
+
+// SapiPrivateGetV3AllOrders returns a channel that yields a JSON array.
+func (this *AsterCore) SapiPrivateGetV3AllOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPrivateGetV3AllOrders", args...)
+}
+
+// SapiPrivateGetV3Account returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivateGetV3Account(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPrivateGetV3Account", args...)
+}
+
+// SapiPrivateGetV3UserTrades returns a channel that yields a JSON array.
+func (this *AsterCore) SapiPrivateGetV3UserTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPrivateGetV3UserTrades", args...)
+}
+
+// SapiPrivateGetV3OpenOrder returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivateGetV3OpenOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPrivateGetV3OpenOrder", args...)
+}
+
+// SapiPrivatePostV1Order returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivatePostV1Order(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPrivatePostV1Order", args...)
 }
 
-func (this *AsterCore) SapiPrivatePostV1AssetWalletTransfer(args ...interface{}) <-chan interface{} {
+// SapiPrivatePostV1AssetWalletTransfer returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivatePostV1AssetWalletTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPrivatePostV1AssetWalletTransfer", args...)
 }
 
-func (this *AsterCore) SapiPrivatePostV1AssetSendToAddress(args ...interface{}) <-chan interface{} {
+// SapiPrivatePostV1AssetSendToAddress returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivatePostV1AssetSendToAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPrivatePostV1AssetSendToAddress", args...)
 }
 
-func (this *AsterCore) SapiPrivatePostV1AsterUserWithdraw(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("sapiPrivatePostV1AsterUserWithdraw", args...)
-}
-
-func (this *AsterCore) SapiPrivatePostV1ListenKey(args ...interface{}) <-chan interface{} {
+// SapiPrivatePostV1ListenKey returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivatePostV1ListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPrivatePostV1ListenKey", args...)
 }
 
-func (this *AsterCore) SapiPrivatePutV1ListenKey(args ...interface{}) <-chan interface{} {
+// SapiPrivatePostV3Order returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivatePostV3Order(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPrivatePostV3Order", args...)
+}
+
+// SapiPrivatePostV3AssetWalletTransfer returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivatePostV3AssetWalletTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPrivatePostV3AssetWalletTransfer", args...)
+}
+
+// SapiPrivatePostV3AsterUserWithdraw returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivatePostV3AsterUserWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPrivatePostV3AsterUserWithdraw", args...)
+}
+
+// SapiPrivatePostV3ListenKey returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivatePostV3ListenKey(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPrivatePostV3ListenKey", args...)
+}
+
+// SapiPrivatePutV1ListenKey returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivatePutV1ListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPrivatePutV1ListenKey", args...)
 }
 
-func (this *AsterCore) SapiPrivateDeleteV1Order(args ...interface{}) <-chan interface{} {
+// SapiPrivatePutV3ListenKey returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivatePutV3ListenKey(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPrivatePutV3ListenKey", args...)
+}
+
+// SapiPrivateDeleteV1Order returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivateDeleteV1Order(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPrivateDeleteV1Order", args...)
 }
 
-func (this *AsterCore) SapiPrivateDeleteV1AllOpenOrders(args ...interface{}) <-chan interface{} {
+// SapiPrivateDeleteV1AllOpenOrders returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivateDeleteV1AllOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPrivateDeleteV1AllOpenOrders", args...)
 }
 
-func (this *AsterCore) SapiPrivateDeleteV1ListenKey(args ...interface{}) <-chan interface{} {
+// SapiPrivateDeleteV1ListenKey returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivateDeleteV1ListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPrivateDeleteV1ListenKey", args...)
+}
+
+// SapiPrivateDeleteV3AllOpenOrders returns a channel that yields a JSON array.
+func (this *AsterCore) SapiPrivateDeleteV3AllOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPrivateDeleteV3AllOpenOrders", args...)
+}
+
+// SapiPrivateDeleteV3Order returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivateDeleteV3Order(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPrivateDeleteV3Order", args...)
+}
+
+// SapiPrivateDeleteV3ListenKey returns a channel that yields a JSON object.
+func (this *AsterCore) SapiPrivateDeleteV3ListenKey(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPrivateDeleteV3ListenKey", args...)
 }

@@ -30,11 +30,11 @@ public partial class testMainClass : BaseTest
                 // continue;
                 success = false;
             }
-            if (isTrue(isEqual(success, true)))
+            if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
             {
-                assert((response is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(response)));
+                assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return a dictionary. "), exchange.json(response)));
                 now = exchange.milliseconds();
-                testPosition(exchange, skippedProperties, method, response, null, now);
+                testPosition(exchange, skippedProperties, method, response, symbol, now);
             }
         }
         return true;

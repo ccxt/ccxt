@@ -17,10 +17,34 @@
 
 from typing import Tuple
 
-from ...sympy.core.intfunc import igcdex
-
 # A type that represents a point (x,y) on an elliptic curve.
 ECPoint = Tuple[int, int]
+
+
+def igcdex(a: int, b: int) -> Tuple[int, int, int]:
+    """
+    Extended Euclidean algorithm: returns x, y, g such that g = x*a + y*b = gcd(a, b).
+    """
+    if (not a) and (not b):
+        return (0, 1, 0)
+    if not a:
+        return (0, b // abs(b), abs(b))
+    if not b:
+        return (a // abs(a), 0, abs(a))
+    x_sign = 1
+    y_sign = 1
+    if a < 0:
+        a, x_sign = -a, -1
+    if b < 0:
+        b, y_sign = -b, -1
+    x, r = 1, 0
+    y, s = 0, 1
+    while b:
+        q, c = divmod(a, b)
+        a, b = b, c
+        x, r = r, x - q * r
+        y, s = s, y - q * s
+    return (x * x_sign, y * y_sign, a)
 
 def div_mod(n: int, m: int, p: int) -> int:
     """

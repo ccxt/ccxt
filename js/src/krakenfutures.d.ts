@@ -1,5 +1,5 @@
 import Exchange from './abstract/krakenfutures.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num, LeverageTier, LeverageTiers, int, FundingRate, FundingRates, Position } from './base/types.js';
+import type { Balances, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, TransferEntry, NullableDict } from './base/types.js';
 /**
  * @class krakenfutures
  * @augments Exchange
@@ -39,6 +39,17 @@ export default class krakenfutures extends Exchange {
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
+     * @name krakenfutures#fetchTradingFees
+     * @description fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+     */
+    fetchTradingFees(params?: {}): Promise<TradingFees>;
+    parseTradingFee(fee: Dict, market?: Market, volume?: Str): TradingFeeInterface;
+    /**
+     * @method
      * @name krakenfutures#fetchOHLCV
      * @see https://docs.kraken.com/api/docs/futures-api/charts/candles
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -69,7 +80,7 @@ export default class krakenfutures extends Exchange {
      */
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
     /**
      * @method
      * @name krakenfutures#createOrder
@@ -146,7 +157,7 @@ export default class krakenfutures extends Exchange {
      * @name krakenfutures#cancelAllOrders
      * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders
      * @description Cancels all orders on the exchange, including trigger orders
-     * @param {str} symbol Unified market symbol
+     * @param {string} [symbol] Unified market symbol
      * @param {dict} [params] Exchange specific params
      * @returns Response from exchange api
      */
@@ -160,7 +171,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name krakenfutures#fetchOpenOrders
@@ -176,8 +187,8 @@ export default class krakenfutures extends Exchange {
     /**
      * @method
      * @name krakenfutures#fetchOrders
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
      * @description Gets all orders for an account from the exchange api
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
      * @param {string} symbol Unified market symbol
      * @param {int} [since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
      * @param {int} [limit] How many orders to return. (Not used by kraken api but filtered internally by CCXT)
@@ -199,7 +210,8 @@ export default class krakenfutures extends Exchange {
     /**
      * @method
      * @name krakenfutures#fetchClosedOrders
-     * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
+     * @see https://docs.kraken.com/api-reference/account-history/get-order-events
+     * @see https://docs.kraken.com/api-reference/account-history/get-trigger-events
      * @description Gets all closed orders, including trigger orders, for an account from the exchange api
      * @param {string} symbol Unified market symbol
      * @param {int} [since] Timestamp (ms) of earliest order.
@@ -223,8 +235,8 @@ export default class krakenfutures extends Exchange {
      */
     fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrderType(orderType: any): string;
-    verifyOrderActionSuccess(status: any, method: any, omit?: any[]): void;
-    parseOrderStatus(status: Str): string;
+    verifyOrderActionSuccess(status: any, method: any, omit?: string[]): void;
+    parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -239,6 +251,21 @@ export default class krakenfutures extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    /**
+     * @method
+     * @name krakenfutures#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://docs.kraken.com/api-reference/account-history/get-account-log
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest ledger entry
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+     */
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
+    parseLedgerEntryType(type: any): string;
+    parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     /**
      * @method
      * @name krakenfutures#fetchBalance
@@ -284,29 +311,29 @@ export default class krakenfutures extends Exchange {
      * @returns Parsed exchange response for positions
      */
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
-    parsePositions(response: any, symbols?: Strings, params?: {}): any[];
+    parsePositions(response: any, symbols?: Strings, params?: {}): Position[];
     parsePosition(position: Dict, market?: Market): {
         info: Dict;
         symbol: string;
-        timestamp: number;
-        datetime: string;
-        initialMargin: any;
-        initialMarginPercentage: any;
-        maintenanceMargin: any;
-        maintenanceMarginPercentage: any;
-        entryPrice: number;
-        notional: any;
-        leverage: number;
-        unrealizedPnl: any;
-        contracts: number;
-        contractSize: number;
-        marginRatio: any;
-        liquidationPrice: any;
-        markPrice: any;
-        collateral: any;
+        timestamp: number | undefined;
+        datetime: Str;
+        initialMargin: undefined;
+        initialMarginPercentage: undefined;
+        maintenanceMargin: undefined;
+        maintenanceMarginPercentage: undefined;
+        entryPrice: Num;
+        notional: undefined;
+        leverage: Num;
+        unrealizedPnl: undefined;
+        contracts: Num;
+        contractSize: Num;
+        marginRatio: undefined;
+        liquidationPrice: undefined;
+        markPrice: undefined;
+        collateral: undefined;
         marginType: string;
-        side: string;
-        percentage: any;
+        side: Str;
+        percentage: undefined;
     };
     /**
      * @method
@@ -355,7 +382,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name krakenfutures#fetchLeverages
@@ -377,11 +404,11 @@ export default class krakenfutures extends Exchange {
      */
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: Str;
+        headers: NullableDict;
     };
 }

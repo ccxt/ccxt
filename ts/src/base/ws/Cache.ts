@@ -1,5 +1,6 @@
 /* eslint-disable max-classes-per-file */
 // @ts-nocheck
+import { Int } from '../types.js';
 
 interface CustomArray extends Array<any> {
     hashmap: object;
@@ -7,7 +8,7 @@ interface CustomArray extends Array<any> {
 
 class BaseCache extends Array {
 
-    constructor (maxSize = undefined) {
+    constructor (maxSize: Int = undefined) {
         super ()
         Object.defineProperty (this, 'maxSize', {
             __proto__: null, // make it invisible
@@ -25,7 +26,7 @@ class ArrayCache extends BaseCache implements CustomArray {
 
     hashmap: object = {};
 
-    constructor (maxSize = undefined) {
+    constructor (maxSize: Int = undefined) {
         super (maxSize);
         Object.defineProperty (this, 'nestedNewUpdatesBySymbol', {
             __proto__: null, // make it invisible
@@ -61,7 +62,7 @@ class ArrayCache extends BaseCache implements CustomArray {
     }
 
     getLimit (symbol, limit) {
-        let newUpdatesValue = undefined
+        let newUpdatesValue: Bool = undefined
 
         if (symbol === undefined) {
             newUpdatesValue = this.allNewUpdates
@@ -106,7 +107,7 @@ class ArrayCache extends BaseCache implements CustomArray {
 
 class ArrayCacheByTimestamp extends BaseCache {
 
-    constructor (maxSize = undefined) {
+    constructor (maxSize: Int = undefined) {
         super (maxSize)
         Object.defineProperty (this, 'hashmap', {
             __proto__: null, // make it invisible
@@ -166,18 +167,21 @@ class ArrayCacheByTimestamp extends BaseCache {
 
 class ArrayCacheBySymbolById extends ArrayCache {
 
-    constructor (maxSize = undefined) {
+    constructor (maxSize: Int = undefined) {
         super (maxSize)
         this.nestedNewUpdatesBySymbol = true
-        // Object.defineProperty (this, 'hashmap', {
-        //     __proto__: null, // make it invisible
-        //     value: {},
-        //     writable: true,
-        // })
+        // non-enumerable so it stays invisible to array equality/iteration (this extends Array);
+        // the item field used as the first nesting level, overridden by ArrayCacheByOutcomeById
+        Object.defineProperty (this, 'keyField', {
+            __proto__: null, // make it invisible
+            value: 'symbol',
+            writable: true,
+        })
     }
 
     append (item) {
-        const byId = this.hashmap[item.symbol] = this.hashmap[item.symbol] || {}
+        const key = item[this.keyField]
+        const byId = this.hashmap[key] = this.hashmap[key] || {}
         if (item.id in byId) {
             const reference = byId[item.id]
             if (reference !== item) {
@@ -186,7 +190,10 @@ class ArrayCacheBySymbolById extends ArrayCache {
                 }
             }
             item = reference
-            const index = this.findIndex ((x) => x.id === item.id)
+            // match on both the key field (e.g. symbol) and id - different symbols
+            // can share an order id (exchanges like binance use per-symbol id
+            // sequences), and matching on id alone would splice out the wrong row
+            const index = this.findIndex ((x) => (x.id === item.id) && (x[this.keyField] === item[this.keyField]))
             // move the order to the end of the array
             this.splice (index, 1)
         } else {
@@ -194,7 +201,7 @@ class ArrayCacheBySymbolById extends ArrayCache {
         }
         if (this.maxSize && (this.length === this.maxSize)) {
             const deleteReference = this.shift ()
-            delete this.hashmap[deleteReference.symbol][deleteReference.id]
+            delete this.hashmap[deleteReference[this.keyField]][deleteReference.id]
         }
         this.push (item)
         if (this.clearAllUpdates) {
@@ -203,19 +210,27 @@ class ArrayCacheBySymbolById extends ArrayCache {
             this.allNewUpdates = 0
             this.newUpdatesBySymbol = {}
         }
-        if (this.newUpdatesBySymbol[item.symbol] === undefined) {
-            this.newUpdatesBySymbol[item.symbol] = new Set ()
+        if (this.newUpdatesBySymbol[key] === undefined) {
+            this.newUpdatesBySymbol[key] = new Set ()
         }
-        if (this.clearUpdatesBySymbol[item.symbol]) {
-            this.clearUpdatesBySymbol[item.symbol] = false
-            this.newUpdatesBySymbol[item.symbol].clear ()
+        if (this.clearUpdatesBySymbol[key]) {
+            this.clearUpdatesBySymbol[key] = false
+            this.newUpdatesBySymbol[key].clear ()
         }
         // in case an exchange updates the same order id twice
-        const idSet = this.newUpdatesBySymbol[item.symbol]
+        const idSet = this.newUpdatesBySymbol[key]
         const beforeLength = idSet.size
         idSet.add (item.id)
         const afterLength = idSet.size
         this.allNewUpdates = (this.allNewUpdates || 0) + (afterLength - beforeLength)
+    }
+}
+
+class ArrayCacheByOutcomeById extends ArrayCacheBySymbolById {
+
+    constructor (maxSize: Int = undefined) {
+        super (maxSize)
+        this.keyField = 'outcome'
     }
 }
 
@@ -274,5 +289,6 @@ export {
     ArrayCache,
     ArrayCacheByTimestamp,
     ArrayCacheBySymbolById,
+    ArrayCacheByOutcomeById,
     ArrayCacheBySymbolBySide,
 };

@@ -26,6 +26,8 @@ public partial class tokocrypto : Exchange
                 { "cancelAllOrders", false },
                 { "cancelOrder", true },
                 { "cancelOrders", null },
+                { "closeAllPositions", false },
+                { "closePosition", false },
                 { "createDepositAddress", false },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrderWithCost", false },
@@ -33,9 +35,12 @@ public partial class tokocrypto : Exchange
                 { "createOrder", true },
                 { "createReduceOnlyOrder", null },
                 { "createStopLimitOrder", true },
+                { "createStopLossOrder", false },
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
+                { "createTakeProfitOrder", false },
                 { "fetchAccounts", false },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
                 { "fetchBidsAsks", true },
                 { "fetchBorrowInterest", null },
@@ -54,9 +59,12 @@ public partial class tokocrypto : Exchange
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", false },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
@@ -64,26 +72,39 @@ public partial class tokocrypto : Exchange
                 { "fetchLedger", null },
                 { "fetchLeverage", false },
                 { "fetchLeverageTiers", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
                 { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrice", false },
+                { "fetchMarkPrices", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrder", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", false },
                 { "fetchOrders", true },
                 { "fetchOrderTrades", false },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
+                { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchStatus", false },
-                { "fetchTicker", false },
-                { "fetchTickers", false },
+                { "fetchTicker", true },
+                { "fetchTickers", true },
                 { "fetchTime", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", false },
@@ -93,6 +114,8 @@ public partial class tokocrypto : Exchange
                 { "fetchTransactionFees", false },
                 { "fetchTransactions", false },
                 { "fetchTransfers", false },
+                { "fetchUnderlyingAssets", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", true },
                 { "fetchWithdrawalWhitelist", false },
@@ -140,16 +163,28 @@ public partial class tokocrypto : Exchange
             { "api", new Dictionary<string, object>() {
                 { "binance", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "ping", 1 },
-                        { "time", 1 },
+                        { "ping", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "depth", new Dictionary<string, object>() {
                             { "cost", 1 },
                             { "byLimit", new List<object>() {new List<object>() {100, 1}, new List<object>() {500, 5}, new List<object>() {1000, 10}, new List<object>() {5000, 50}} },
                         } },
-                        { "trades", 1 },
-                        { "aggTrades", 1 },
-                        { "historicalTrades", 5 },
-                        { "klines", 1 },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "aggTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "historicalTrades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "klines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "ticker/24hr", new Dictionary<string, object>() {
                             { "cost", 1 },
                             { "noSymbol", 40 },
@@ -162,45 +197,91 @@ public partial class tokocrypto : Exchange
                             { "cost", 1 },
                             { "noSymbol", 2 },
                         } },
-                        { "exchangeInfo", 10 },
+                        { "exchangeInfo", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
-                        { "userDataStream", 1 },
+                        { "userDataStream", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "userDataStream", 1 },
+                        { "userDataStream", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "userDataStream", 1 },
+                        { "userDataStream", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "open/v1/common/time", 1 },
-                        { "open/v1/common/symbols", 1 },
-                        { "open/v1/market/depth", 1 },
-                        { "open/v1/market/trades", 1 },
-                        { "open/v1/market/agg-trades", 1 },
-                        { "open/v1/market/klines", 1 },
+                        { "open/v1/common/time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/common/symbols", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/market/depth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/market/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/market/agg-trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/market/klines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "open/v1/orders/detail", 1 },
-                        { "open/v1/orders", 1 },
-                        { "open/v1/account/spot", 1 },
-                        { "open/v1/account/spot/asset", 1 },
-                        { "open/v1/orders/trades", 1 },
-                        { "open/v1/withdraws", 1 },
-                        { "open/v1/deposits", 1 },
-                        { "open/v1/deposits/address", 1 },
+                        { "open/v1/orders/detail", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/account/spot", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/account/spot/asset", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/orders/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/withdraws", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/deposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/deposits/address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "open/v1/orders", 1 },
-                        { "open/v1/orders/cancel", 1 },
-                        { "open/v1/orders/oco", 1 },
-                        { "open/v1/withdraws", 1 },
-                        { "open/v1/user-data-stream", 1 },
+                        { "open/v1/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/orders/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/orders/oco", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/withdraws", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/user-data-stream", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -233,7 +314,7 @@ public partial class tokocrypto : Exchange
                     { "BEP20", "BSC" },
                     { "OMNI", "OMNI" },
                     { "EOS", "EOS" },
-                    { "SPL", "SOL" },
+                    { "SOL", "SOL" },
                 } },
                 { "reverseNetworks", new Dictionary<string, object>() {
                     { "tronscan.org", "TRC20" },
@@ -889,12 +970,15 @@ public partial class tokocrypto : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(limit, null)))
@@ -904,7 +988,7 @@ public partial class tokocrypto : Exchange
         object response = null;
         if (isTrue(isEqual(getValue(market, "quote"), "USDT")))
         {
-            ((IDictionary<string,object>)request)["symbol"] = add(getValue(market, "baseId"), getValue(market, "quoteId"));
+            ((IDictionary<string,object>)request)["symbol"] = add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", ""));
             response = await this.binanceGetDepth(this.extend(request, parameters));
         } else
         {
@@ -1116,7 +1200,10 @@ public partial class tokocrypto : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", this.getMarketIdByType(market) },
@@ -1207,7 +1294,8 @@ public partial class tokocrypto : Exchange
         //         }
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        object responseList = this.toArray(response);
+        return this.parseTrades(responseList, market, since, limit);
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -1310,8 +1398,18 @@ public partial class tokocrypto : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.binanceGetTicker24hr(parameters);
+        if (!isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            // a user-supplied symbol param makes the endpoint answer a single
+            // ticker object, the unified fetchTickers contract returns a
+            // symbol-keyed dict either way
+            return this.parseTickers(new List<object>() {response}, symbols);
+        }
         return this.parseTickers(response, symbols);
     }
 
@@ -1336,10 +1434,13 @@ public partial class tokocrypto : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "symbol", add(getValue(market, "baseId"), getValue(market, "quoteId")) },
+            { "symbol", add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", "")) },
         };
         object response = await this.binanceGetTicker24hr(this.extend(request, parameters));
         if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
@@ -1362,7 +1463,10 @@ public partial class tokocrypto : Exchange
     public async override Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.binanceGetTickerBookTicker(parameters);
         return this.parseTickers(response, symbols);
     }
@@ -1396,7 +1500,7 @@ public partial class tokocrypto : Exchange
         //         "0",                    // Ignore
         //         1591256519999,          // Close time
         //         "0",                    // Ignore
-        //         60,                     // Number of bisic data
+        //         60,                     // Number of basic data
         //         "0",                    // Ignore
         //         "0",                    // Ignore
         //         "0"                     // Ignore
@@ -1424,7 +1528,10 @@ public partial class tokocrypto : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
         // the reality is that the time range wider than 500 candles won't work right
@@ -1469,7 +1576,14 @@ public partial class tokocrypto : Exchange
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         //     ]
         //
-        object data = this.safeList(response, "data", response);
+        object data = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            data = response;
+        } else
+        {
+            data = this.safeList(response, "data", new List<object>() {});
+        }
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -1487,7 +1601,10 @@ public partial class tokocrypto : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object defaultType = this.safeString2(this.options, "fetchBalance", "defaultType", "spot");
         object type = this.safeString(parameters, "type", defaultType);
         object defaultMarginMode = this.safeString2(this.options, "marginMode", "defaultMarginMode");
@@ -1539,7 +1656,10 @@ public partial class tokocrypto : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "free");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1751,7 +1871,10 @@ public partial class tokocrypto : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId");
         object postOnly = this.safeBool(parameters, "postOnly", false);
@@ -2019,7 +2142,10 @@ public partial class tokocrypto : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrders() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -2177,7 +2303,10 @@ public partial class tokocrypto : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -2239,7 +2368,10 @@ public partial class tokocrypto : Exchange
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
@@ -2302,7 +2434,10 @@ public partial class tokocrypto : Exchange
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {};
         object until = this.safeInteger(parameters, "until");
@@ -2369,7 +2504,10 @@ public partial class tokocrypto : Exchange
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
@@ -2583,7 +2721,10 @@ public partial class tokocrypto : Exchange
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         this.checkAddress(address);
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
@@ -2598,7 +2739,7 @@ public partial class tokocrypto : Exchange
         var networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
         var networkCode = ((IList<object>) networkCodequeryVariable)[0];
         var query = ((IList<object>) networkCodequeryVariable)[1];
-        object networkId = this.networkCodeToId(networkCode);
+        object networkId = this.networkCodeToId(networkCode, code);
         if (isTrue(!isEqual(networkId, null)))
         {
             ((IDictionary<string,object>)request)["network"] = ((string)networkId).ToUpper();
@@ -2712,7 +2853,7 @@ public partial class tokocrypto : Exchange
             throw new DDoSProtection ((string)add(add(add(add(add(add(this.id, " "), ((object)code).ToString()), " "), reason), " "), body)) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
-        // following block cointains legacy checks against message patterns in "msg" property
+        // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if (isTrue(isGreaterThanOrEqual(code, 400)))
         {
@@ -2809,7 +2950,7 @@ public partial class tokocrypto : Exchange
         } else if (isTrue(isTrue((inOp(config, "byLimit"))) && isTrue((inOp(parameters, "limit")))))
         {
             object limit = getValue(parameters, "limit");
-            object byLimit = ((object)getValue(config, "byLimit"));
+            object byLimit = this.safeList(config, "byLimit", new List<object>() {});
             for (object i = 0; isLessThan(i, getArrayLength(byLimit)); postFixIncrement(ref i))
             {
                 object entry = getValue(byLimit, i);

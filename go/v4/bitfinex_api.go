@@ -7,546 +7,682 @@
 
 package ccxt
 
-func (this *BitfinexCore) PublicGetConfConfig(args ...interface{}) <-chan interface{} {
+// PublicGetConfConfig returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfConfig", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubActionObject(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubActionObject returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubActionObject(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubActionObject", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubActionObjectDetail(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubActionObjectDetail returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubActionObjectDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubActionObjectDetail", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubMapObject(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubMapObject returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubMapObject(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubMapObject", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubMapObjectDetail(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubMapObjectDetail returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubMapObjectDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubMapObjectDetail", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubMapCurrencyDetail(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubMapCurrencyDetail returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubMapCurrencyDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubMapCurrencyDetail", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubMapCurrencySym(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubMapCurrencySym returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubMapCurrencySym(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubMapCurrencySym", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubMapCurrencyLabel(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubMapCurrencyLabel returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubMapCurrencyLabel(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubMapCurrencyLabel", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubMapCurrencyUnit(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubMapCurrencyUnit returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubMapCurrencyUnit(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubMapCurrencyUnit", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubMapCurrencyUndl(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubMapCurrencyUndl returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubMapCurrencyUndl(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubMapCurrencyUndl", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubMapCurrencyPool(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubMapCurrencyPool returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubMapCurrencyPool(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubMapCurrencyPool", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubMapCurrencyExplorer(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubMapCurrencyExplorer returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubMapCurrencyExplorer(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubMapCurrencyExplorer", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubMapCurrencyTxFee(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubMapCurrencyTxFee returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubMapCurrencyTxFee(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubMapCurrencyTxFee", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubMapTxMethod(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubMapTxMethod returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubMapTxMethod(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubMapTxMethod", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubListObject(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubListObject returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubListObject(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubListObject", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubListObjectDetail(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubListObjectDetail returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubListObjectDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubListObjectDetail", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubListCurrency(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubListCurrency returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubListCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubListCurrency", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubListPairExchange(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubListPairExchange returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubListPairExchange(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubListPairExchange", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubListPairMargin(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubListPairMargin returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubListPairMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubListPairMargin", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubListPairFutures(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubListPairFutures returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubListPairFutures(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubListPairFutures", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubListCompetitions(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubListCompetitions returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubListCompetitions(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubListCompetitions", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubInfoObject(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubInfoObject returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubInfoObject(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubInfoObject", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubInfoObjectDetail(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubInfoObjectDetail returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubInfoObjectDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubInfoObjectDetail", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubInfoPair(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubInfoPair returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubInfoPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubInfoPair", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubInfoPairFutures(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubInfoPairFutures returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubInfoPairFutures(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubInfoPairFutures", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubInfoTxStatus(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubInfoTxStatus returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubInfoTxStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubInfoTxStatus", args...)
 }
 
-func (this *BitfinexCore) PublicGetConfPubFees(args ...interface{}) <-chan interface{} {
+// PublicGetConfPubFees returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetConfPubFees(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConfPubFees", args...)
 }
 
-func (this *BitfinexCore) PublicGetPlatformStatus(args ...interface{}) <-chan interface{} {
+// PublicGetPlatformStatus returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetPlatformStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetPlatformStatus", args...)
 }
 
-func (this *BitfinexCore) PublicGetTickers(args ...interface{}) <-chan interface{} {
+// PublicGetTickers returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *BitfinexCore) PublicGetTickerSymbol(args ...interface{}) <-chan interface{} {
+// PublicGetTickerSymbol returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetTickerSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickerSymbol", args...)
 }
 
-func (this *BitfinexCore) PublicGetTickersHist(args ...interface{}) <-chan interface{} {
+// PublicGetTickersHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetTickersHist(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickersHist", args...)
 }
 
-func (this *BitfinexCore) PublicGetTradesSymbolHist(args ...interface{}) <-chan interface{} {
+// PublicGetTradesSymbolHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetTradesSymbolHist(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradesSymbolHist", args...)
 }
 
-func (this *BitfinexCore) PublicGetBookSymbolPrecision(args ...interface{}) <-chan interface{} {
+// PublicGetBookSymbolPrecision returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetBookSymbolPrecision(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetBookSymbolPrecision", args...)
 }
 
-func (this *BitfinexCore) PublicGetBookSymbolP0(args ...interface{}) <-chan interface{} {
+// PublicGetBookSymbolP0 returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetBookSymbolP0(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetBookSymbolP0", args...)
 }
 
-func (this *BitfinexCore) PublicGetBookSymbolP1(args ...interface{}) <-chan interface{} {
+// PublicGetBookSymbolP1 returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetBookSymbolP1(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetBookSymbolP1", args...)
 }
 
-func (this *BitfinexCore) PublicGetBookSymbolP2(args ...interface{}) <-chan interface{} {
+// PublicGetBookSymbolP2 returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetBookSymbolP2(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetBookSymbolP2", args...)
 }
 
-func (this *BitfinexCore) PublicGetBookSymbolP3(args ...interface{}) <-chan interface{} {
+// PublicGetBookSymbolP3 returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetBookSymbolP3(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetBookSymbolP3", args...)
 }
 
-func (this *BitfinexCore) PublicGetBookSymbolR0(args ...interface{}) <-chan interface{} {
+// PublicGetBookSymbolR0 returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetBookSymbolR0(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetBookSymbolR0", args...)
 }
 
-func (this *BitfinexCore) PublicGetStats1KeySizeSymbolSideSection(args ...interface{}) <-chan interface{} {
+// PublicGetStats1KeySizeSymbolSideSection returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetStats1KeySizeSymbolSideSection(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetStats1KeySizeSymbolSideSection", args...)
 }
 
-func (this *BitfinexCore) PublicGetStats1KeySizeSymbolSideLast(args ...interface{}) <-chan interface{} {
+// PublicGetStats1KeySizeSymbolSideLast returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetStats1KeySizeSymbolSideLast(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetStats1KeySizeSymbolSideLast", args...)
 }
 
-func (this *BitfinexCore) PublicGetStats1KeySizeSymbolSideHist(args ...interface{}) <-chan interface{} {
+// PublicGetStats1KeySizeSymbolSideHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetStats1KeySizeSymbolSideHist(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetStats1KeySizeSymbolSideHist", args...)
 }
 
-func (this *BitfinexCore) PublicGetStats1KeySizeSymbolSection(args ...interface{}) <-chan interface{} {
+// PublicGetStats1KeySizeSymbolSection returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetStats1KeySizeSymbolSection(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetStats1KeySizeSymbolSection", args...)
 }
 
-func (this *BitfinexCore) PublicGetStats1KeySizeSymbolLast(args ...interface{}) <-chan interface{} {
+// PublicGetStats1KeySizeSymbolLast returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetStats1KeySizeSymbolLast(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetStats1KeySizeSymbolLast", args...)
 }
 
-func (this *BitfinexCore) PublicGetStats1KeySizeSymbolHist(args ...interface{}) <-chan interface{} {
+// PublicGetStats1KeySizeSymbolHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetStats1KeySizeSymbolHist(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetStats1KeySizeSymbolHist", args...)
 }
 
-func (this *BitfinexCore) PublicGetStats1KeySizeSymbolLongLast(args ...interface{}) <-chan interface{} {
+// PublicGetStats1KeySizeSymbolLongLast returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetStats1KeySizeSymbolLongLast(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetStats1KeySizeSymbolLongLast", args...)
 }
 
-func (this *BitfinexCore) PublicGetStats1KeySizeSymbolLongHist(args ...interface{}) <-chan interface{} {
+// PublicGetStats1KeySizeSymbolLongHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetStats1KeySizeSymbolLongHist(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetStats1KeySizeSymbolLongHist", args...)
 }
 
-func (this *BitfinexCore) PublicGetStats1KeySizeSymbolShortLast(args ...interface{}) <-chan interface{} {
+// PublicGetStats1KeySizeSymbolShortLast returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetStats1KeySizeSymbolShortLast(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetStats1KeySizeSymbolShortLast", args...)
 }
 
-func (this *BitfinexCore) PublicGetStats1KeySizeSymbolShortHist(args ...interface{}) <-chan interface{} {
+// PublicGetStats1KeySizeSymbolShortHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetStats1KeySizeSymbolShortHist(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetStats1KeySizeSymbolShortHist", args...)
 }
 
-func (this *BitfinexCore) PublicGetCandlesTradeTimeframeSymbolPeriodSection(args ...interface{}) <-chan interface{} {
+// PublicGetCandlesTradeTimeframeSymbolPeriodSection returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetCandlesTradeTimeframeSymbolPeriodSection(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCandlesTradeTimeframeSymbolPeriodSection", args...)
 }
 
-func (this *BitfinexCore) PublicGetCandlesTradeTimeframeSymbolSection(args ...interface{}) <-chan interface{} {
+// PublicGetCandlesTradeTimeframeSymbolSection returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetCandlesTradeTimeframeSymbolSection(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCandlesTradeTimeframeSymbolSection", args...)
 }
 
-func (this *BitfinexCore) PublicGetCandlesTradeTimeframeSymbolLast(args ...interface{}) <-chan interface{} {
+// PublicGetCandlesTradeTimeframeSymbolLast returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetCandlesTradeTimeframeSymbolLast(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCandlesTradeTimeframeSymbolLast", args...)
 }
 
-func (this *BitfinexCore) PublicGetCandlesTradeTimeframeSymbolHist(args ...interface{}) <-chan interface{} {
+// PublicGetCandlesTradeTimeframeSymbolHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetCandlesTradeTimeframeSymbolHist(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCandlesTradeTimeframeSymbolHist", args...)
 }
 
-func (this *BitfinexCore) PublicGetStatusType(args ...interface{}) <-chan interface{} {
+// PublicGetStatusType returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetStatusType(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetStatusType", args...)
 }
 
-func (this *BitfinexCore) PublicGetStatusDeriv(args ...interface{}) <-chan interface{} {
+// PublicGetStatusDeriv returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetStatusDeriv(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetStatusDeriv", args...)
 }
 
-func (this *BitfinexCore) PublicGetStatusDerivSymbolHist(args ...interface{}) <-chan interface{} {
+// PublicGetStatusDerivSymbolHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetStatusDerivSymbolHist(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetStatusDerivSymbolHist", args...)
 }
 
-func (this *BitfinexCore) PublicGetLiquidationsHist(args ...interface{}) <-chan interface{} {
+// PublicGetLiquidationsHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetLiquidationsHist(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetLiquidationsHist", args...)
 }
 
-func (this *BitfinexCore) PublicGetRankingsKeyTimeframeSymbolSection(args ...interface{}) <-chan interface{} {
+// PublicGetRankingsKeyTimeframeSymbolSection returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetRankingsKeyTimeframeSymbolSection(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetRankingsKeyTimeframeSymbolSection", args...)
 }
 
-func (this *BitfinexCore) PublicGetRankingsKeyTimeframeSymbolHist(args ...interface{}) <-chan interface{} {
+// PublicGetRankingsKeyTimeframeSymbolHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetRankingsKeyTimeframeSymbolHist(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetRankingsKeyTimeframeSymbolHist", args...)
 }
 
-func (this *BitfinexCore) PublicGetPulseHist(args ...interface{}) <-chan interface{} {
+// PublicGetPulseHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetPulseHist(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetPulseHist", args...)
 }
 
-func (this *BitfinexCore) PublicGetPulseProfileNickname(args ...interface{}) <-chan interface{} {
+// PublicGetPulseProfileNickname returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetPulseProfileNickname(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetPulseProfileNickname", args...)
 }
 
-func (this *BitfinexCore) PublicGetFundingStatsSymbolHist(args ...interface{}) <-chan interface{} {
+// PublicGetFundingStatsSymbolHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetFundingStatsSymbolHist(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetFundingStatsSymbolHist", args...)
 }
 
-func (this *BitfinexCore) PublicGetExtVasps(args ...interface{}) <-chan interface{} {
+// PublicGetExtVasps returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicGetExtVasps(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetExtVasps", args...)
 }
 
-func (this *BitfinexCore) PublicPostCalcTradeAvg(args ...interface{}) <-chan interface{} {
+// PublicPostCalcTradeAvg returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicPostCalcTradeAvg(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostCalcTradeAvg", args...)
 }
 
-func (this *BitfinexCore) PublicPostCalcFx(args ...interface{}) <-chan interface{} {
+// PublicPostCalcFx returns a channel that yields a JSON array.
+func (this *BitfinexCore) PublicPostCalcFx(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostCalcFx", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRWallets(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRWallets returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRWallets(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRWallets", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRWalletsHist(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRWalletsHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRWalletsHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRWalletsHist", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthROrders(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthROrders returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthROrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthROrders", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthROrdersSymbol(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthROrdersSymbol returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthROrdersSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthROrdersSymbol", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWOrderSubmit(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWOrderSubmit returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWOrderSubmit(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWOrderSubmit", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWOrderUpdate(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWOrderUpdate returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWOrderUpdate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWOrderUpdate", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWOrderCancel(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWOrderCancel returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWOrderCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWOrderCancel", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWOrderMulti(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWOrderMulti returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWOrderMulti(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWOrderMulti", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWOrderCancelMulti(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWOrderCancelMulti returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWOrderCancelMulti(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWOrderCancelMulti", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthROrdersSymbolHist(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthROrdersSymbolHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthROrdersSymbolHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthROrdersSymbolHist", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthROrdersHist(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthROrdersHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthROrdersHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthROrdersHist", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthROrderSymbolIdTrades(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthROrderSymbolIdTrades returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthROrderSymbolIdTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthROrderSymbolIdTrades", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRTradesSymbolHist(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRTradesSymbolHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRTradesSymbolHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRTradesSymbolHist", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRTradesHist(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRTradesHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRTradesHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRTradesHist", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRLedgersCurrencyHist(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRLedgersCurrencyHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRLedgersCurrencyHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRLedgersCurrencyHist", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRLedgersHist(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRLedgersHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRLedgersHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRLedgersHist", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRInfoMarginKey(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRInfoMarginKey returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRInfoMarginKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRInfoMarginKey", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRInfoMarginBase(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRInfoMarginBase returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRInfoMarginBase(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRInfoMarginBase", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRInfoMarginSymAll(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRInfoMarginSymAll returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRInfoMarginSymAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRInfoMarginSymAll", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRPositions(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRPositions returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRPositions", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWPositionClaim(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWPositionClaim returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWPositionClaim(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWPositionClaim", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWPositionIncrease(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWPositionIncrease returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWPositionIncrease(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWPositionIncrease", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRPositionIncreaseInfo(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRPositionIncreaseInfo returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRPositionIncreaseInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRPositionIncreaseInfo", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRPositionsHist(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRPositionsHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRPositionsHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRPositionsHist", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRPositionsAudit(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRPositionsAudit returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRPositionsAudit(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRPositionsAudit", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRPositionsSnap(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRPositionsSnap returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRPositionsSnap(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRPositionsSnap", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWDerivCollateralSet(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWDerivCollateralSet returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWDerivCollateralSet(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWDerivCollateralSet", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWDerivCollateralLimits(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWDerivCollateralLimits returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWDerivCollateralLimits(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWDerivCollateralLimits", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRFundingOffers(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRFundingOffers returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRFundingOffers(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRFundingOffers", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRFundingOffersSymbol(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRFundingOffersSymbol returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRFundingOffersSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRFundingOffersSymbol", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWFundingOfferSubmit(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWFundingOfferSubmit returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWFundingOfferSubmit(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWFundingOfferSubmit", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWFundingOfferCancel(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWFundingOfferCancel returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWFundingOfferCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWFundingOfferCancel", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWFundingOfferCancelAll(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWFundingOfferCancelAll returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWFundingOfferCancelAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWFundingOfferCancelAll", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWFundingClose(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWFundingClose returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWFundingClose(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWFundingClose", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWFundingAuto(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWFundingAuto returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWFundingAuto(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWFundingAuto", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWFundingKeep(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWFundingKeep returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWFundingKeep(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWFundingKeep", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRFundingOffersSymbolHist(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRFundingOffersSymbolHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRFundingOffersSymbolHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRFundingOffersSymbolHist", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRFundingOffersHist(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRFundingOffersHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRFundingOffersHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRFundingOffersHist", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRFundingLoans(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRFundingLoans returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRFundingLoans(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRFundingLoans", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRFundingLoansHist(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRFundingLoansHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRFundingLoansHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRFundingLoansHist", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRFundingLoansSymbol(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRFundingLoansSymbol returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRFundingLoansSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRFundingLoansSymbol", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRFundingLoansSymbolHist(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRFundingLoansSymbolHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRFundingLoansSymbolHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRFundingLoansSymbolHist", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRFundingCredits(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRFundingCredits returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRFundingCredits(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRFundingCredits", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRFundingCreditsHist(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRFundingCreditsHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRFundingCreditsHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRFundingCreditsHist", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRFundingCreditsSymbol(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRFundingCreditsSymbol returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRFundingCreditsSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRFundingCreditsSymbol", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRFundingCreditsSymbolHist(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRFundingCreditsSymbolHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRFundingCreditsSymbolHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRFundingCreditsSymbolHist", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRFundingTradesSymbolHist(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRFundingTradesSymbolHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRFundingTradesSymbolHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRFundingTradesSymbolHist", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRFundingTradesHist(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRFundingTradesHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRFundingTradesHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRFundingTradesHist", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRInfoFundingKey(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRInfoFundingKey returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRInfoFundingKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRInfoFundingKey", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRInfoUser(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRInfoUser returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRInfoUser(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRInfoUser", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRSummary(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRSummary returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRSummary", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRLoginsHist(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRLoginsHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRLoginsHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRLoginsHist", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRPermissions(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRPermissions returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRPermissions(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRPermissions", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWToken(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWToken returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWToken(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWToken", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRAuditHist(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRAuditHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRAuditHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRAuditHist", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWTransfer(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWTransfer returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWTransfer", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWDepositAddress(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWDepositAddress returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWDepositAddress", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWDepositInvoice(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWDepositInvoice returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWDepositInvoice(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWDepositInvoice", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWWithdraw(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWWithdraw returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWWithdraw", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRMovementsCurrencyHist(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRMovementsCurrencyHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRMovementsCurrencyHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRMovementsCurrencyHist", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRMovementsHist(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRMovementsHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRMovementsHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRMovementsHist", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRAlerts(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRAlerts returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRAlerts(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRAlerts", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWAlertSet(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWAlertSet returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWAlertSet(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWAlertSet", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWAlertPriceSymbolPriceDel(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWAlertPriceSymbolPriceDel returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWAlertPriceSymbolPriceDel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWAlertPriceSymbolPriceDel", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWAlertTypeSymbolPriceDel(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWAlertTypeSymbolPriceDel returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWAlertTypeSymbolPriceDel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWAlertTypeSymbolPriceDel", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthCalcOrderAvail(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthCalcOrderAvail returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthCalcOrderAvail(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthCalcOrderAvail", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWSettingsSet(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWSettingsSet returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWSettingsSet(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWSettingsSet", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRSettings(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRSettings returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRSettings(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRSettings", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWSettingsDel(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWSettingsDel returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWSettingsDel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWSettingsDel", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthRPulseHist(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthRPulseHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRPulseHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRPulseHist", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWPulseAdd(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWPulseAdd returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWPulseAdd(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWPulseAdd", args...)
 }
 
-func (this *BitfinexCore) PrivatePostAuthWPulseDel(args ...interface{}) <-chan interface{} {
+// PrivatePostAuthWPulseDel returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWPulseDel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWPulseDel", args...)
 }

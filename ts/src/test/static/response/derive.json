@@ -1630,7 +1630,7 @@
                         "collateral": null,
                         "marginMode": null,
                         "side": "short",
-                        "percentage": null,
+                        "percentage": 2,
                         "hedged": null,
                         "stopLossPrice": null,
                         "takeProfitPrice": null

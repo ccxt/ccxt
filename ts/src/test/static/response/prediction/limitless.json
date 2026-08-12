@@ -1,0 +1,1442 @@
+{
+	"exchange": "limitless",
+	"asyncOnly": true,
+	"skipKeys": [
+		"timestamp",
+		"datetime"
+	],
+	"options": {},
+	"methods": {
+		"fetchTicker": [
+			{
+				"description": "fetchTicker for a yes outcome",
+				"method": "fetchTicker",
+				"input": [
+					"USA_AUSTRALIA_BOTH_SCORE_1779980360817:YES"
+				],
+				"httpResponse": {
+					"id": "185421",
+					"automationType": "sports",
+					"conditionId": "0x596f88053d8b0aaffb4909bc936f90915475d02f52cf8c704a3fa9a358ebd411",
+					"negRiskRequestId": null,
+					"description": "This market will resolve to \"YES\" if both USA and Australia score at least one goal each during regular time (90 minutes plus stoppage time only) in the World Cup match scheduled for June 19, 2026, 19:00 UTC. Otherwise, this market will res",
+					"groupId": null,
+					"collateralToken": {
+						"address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+						"decimals": "6",
+						"symbol": "USDC"
+					},
+					"title": "USA and Australia both to score?",
+					"proxyTitle": null,
+					"expirationDate": "Jun 20, 2026",
+					"expirationTimestamp": "1781982000000",
+					"createdAt": "2026-05-28T14:59:20.806Z",
+					"startAt": null,
+					"updatedAt": "2026-05-28T15:07:18.277Z",
+					"categories": [
+						"Props"
+					],
+					"status": "FUNDED",
+					"expired": false,
+					"hidden": false,
+					"creator": {
+						"name": "Limitless",
+						"imageURI": "https://limitless.exchange/assets/images/logo.svg",
+						"link": "https://x.com/trylimitless",
+						"address": "0x60e61631d9a585797cDee9f79FafDecf3bd7F64D"
+					},
+					"tags": [
+						"Football",
+						"Lumy"
+					],
+					"volume": "0",
+					"volumeFormatted": "0.000000",
+					"tokens": {
+						"yes": "86754852064474869881286364251658764942266025328391522221494274517474936254814",
+						"no": "86230754815698413619206189608906849294848879165498461416569335949589979443562"
+					},
+					"prices": [
+						0.476,
+						0.524
+					],
+					"tradePrices": {
+						"buy": {
+							"market": [
+								0.486,
+								0.534
+							],
+							"limit": [
+								0.466,
+								0.514
+							]
+						},
+						"sell": {
+							"market": [
+								0.466,
+								0.514
+							],
+							"limit": [
+								0.486,
+								0.534
+							]
+						}
+					},
+					"isOther": false,
+					"isRewardable": true,
+					"slug": "usa-and-australia-both-to-score-1779980360817",
+					"tradeType": "clob",
+					"venue": {
+						"exchange": "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
+						"adapter": null
+					},
+					"marketType": "single",
+					"priorityIndex": "0",
+					"winningOutcomeIndex": null,
+					"metadata": {
+						"fee": true,
+						"awayTeam": "Australia",
+						"homeTeam": "USA",
+						"fixtureId": "1489391",
+						"sportType": "football",
+						"externalSlug": "fifwc-usa-aus-2026-06-19-btts",
+						"cardsThreshold": "0",
+						"goalsThreshold": "0",
+						"shotsThreshold": "0",
+						"daysBeforeMatch": "30",
+						"binaryMarketType": "btts",
+						"cornersThreshold": "0",
+						"startMatchTimestampInUTC": "1781895600",
+						"conditionalMarketSettings": {
+							"c": "3",
+							"minSize": "100000000",
+							"maxSpread": "0.035",
+							"rewardsEpoch": "0.002777777777777778"
+						},
+						"conditionalSettingsApplied": false,
+						"daysBeforeMatchForSettings": "5"
+					},
+					"settings": {
+						"minSize": "100000000",
+						"maxSpread": "0.035",
+						"dailyReward": "1",
+						"rewardsEpoch": "0.0006944444444444445",
+						"c": "3",
+						"rebateRate": "0",
+						"takerDelayMs": "250",
+						"creatorFeePct": "0"
+					},
+					"imageUrl": "https://storage.googleapis.com/limitless-exchange-assets/assets/ball.png",
+					"logo": "https://storage.googleapis.com/limitless-exchange-assets/assets/ball.png",
+					"bids": [
+						{
+							"price": "0.466",
+							"size": "2000000000",
+							"side": "BUY"
+						},
+						{
+							"price": "0.445",
+							"size": "192000000",
+							"side": "BUY"
+						},
+						{
+							"price": "0.432",
+							"size": "1157000000",
+							"side": "BUY"
+						},
+						{
+							"price": "0.002",
+							"size": "500000000",
+							"side": "BUY"
+						},
+						{
+							"price": "0.001",
+							"size": "1000000000",
+							"side": "BUY"
+						}
+					],
+					"asks": [
+						{
+							"price": "0.486",
+							"size": "2000000000",
+							"side": "SELL"
+						},
+						{
+							"price": "0.512",
+							"size": "1024000000",
+							"side": "SELL"
+						},
+						{
+							"price": "0.525",
+							"size": "400000000",
+							"side": "SELL"
+						},
+						{
+							"price": "0.99",
+							"size": "1000000",
+							"side": "SELL"
+						},
+						{
+							"price": "0.998",
+							"size": "500000000",
+							"side": "SELL"
+						}
+					],
+					"tokenId": "86754852064474869881286364251658764942266025328391522221494274517474936254814",
+					"adjustedMidpoint": "0.476",
+					"midpoint": "0.476",
+					"maxSpread": "0.035",
+					"minSize": "100000000",
+					"lastTradePrice": null
+				},
+				"parsedResponse": {
+					"outcome": "USA_AUSTRALIA_BOTH_SCORE_1779980360817:YES",
+					"outcomeId": "86754852064474869881286364251658764942266025328391522221494274517474936254814",
+					"label": "yes",
+					"market": "USA_AUSTRALIA_BOTH_SCORE_1779980360817",
+					"timestamp": 1781915899427,
+					"datetime": "2026-06-20T00:38:19.427Z",
+					"high": null,
+					"low": null,
+					"bid": 0.466,
+					"bidVolume": 2000,
+					"ask": 0.486,
+					"askVolume": 2000,
+					"open": null,
+					"close": 0.476,
+					"last": 0.476,
+					"change": null,
+					"percentage": null,
+					"average": 0.476,
+					"baseVolume": null,
+					"quoteVolume": 0,
+					"info": {
+						"market": {
+							"id": "185421",
+							"automationType": "sports",
+							"conditionId": "0x596f88053d8b0aaffb4909bc936f90915475d02f52cf8c704a3fa9a358ebd411",
+							"negRiskRequestId": null,
+							"description": "This market will resolve to \"YES\" if both USA and Australia score at least one goal each during regular time (90 minutes plus stoppage time only) in the World Cup match scheduled for June 19, 2026, 19:00 UTC. Otherwise, this market will res",
+							"groupId": null,
+							"collateralToken": {
+								"address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+								"decimals": "6",
+								"symbol": "USDC"
+							},
+							"title": "USA and Australia both to score?",
+							"proxyTitle": null,
+							"expirationDate": "Jun 20, 2026",
+							"expirationTimestamp": "1781982000000",
+							"createdAt": "2026-05-28T14:59:20.806Z",
+							"startAt": null,
+							"updatedAt": "2026-05-28T15:07:18.277Z",
+							"categories": [
+								"Props"
+							],
+							"status": "FUNDED",
+							"expired": false,
+							"hidden": false,
+							"creator": {
+								"name": "Limitless",
+								"imageURI": "https://limitless.exchange/assets/images/logo.svg",
+								"link": "https://x.com/trylimitless",
+								"address": "0x60e61631d9a585797cDee9f79FafDecf3bd7F64D"
+							},
+							"tags": [
+								"Football",
+								"Lumy"
+							],
+							"volume": "0",
+							"volumeFormatted": "0.000000",
+							"tokens": {
+								"yes": "86754852064474869881286364251658764942266025328391522221494274517474936254814",
+								"no": "86230754815698413619206189608906849294848879165498461416569335949589979443562"
+							},
+							"prices": [
+								0.476,
+								0.524
+							],
+							"tradePrices": {
+								"buy": {
+									"market": [
+										0.486,
+										0.534
+									],
+									"limit": [
+										0.466,
+										0.514
+									]
+								},
+								"sell": {
+									"market": [
+										0.466,
+										0.514
+									],
+									"limit": [
+										0.486,
+										0.534
+									]
+								}
+							},
+							"isOther": false,
+							"isRewardable": true,
+							"slug": "usa-and-australia-both-to-score-1779980360817",
+							"tradeType": "clob",
+							"venue": {
+								"exchange": "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
+								"adapter": null
+							},
+							"marketType": "single",
+							"priorityIndex": "0",
+							"winningOutcomeIndex": null,
+							"metadata": {
+								"fee": true,
+								"awayTeam": "Australia",
+								"homeTeam": "USA",
+								"fixtureId": "1489391",
+								"sportType": "football",
+								"externalSlug": "fifwc-usa-aus-2026-06-19-btts",
+								"cardsThreshold": "0",
+								"goalsThreshold": "0",
+								"shotsThreshold": "0",
+								"daysBeforeMatch": "30",
+								"binaryMarketType": "btts",
+								"cornersThreshold": "0",
+								"startMatchTimestampInUTC": "1781895600",
+								"conditionalMarketSettings": {
+									"c": "3",
+									"minSize": "100000000",
+									"maxSpread": "0.035",
+									"rewardsEpoch": "0.002777777777777778"
+								},
+								"conditionalSettingsApplied": false,
+								"daysBeforeMatchForSettings": "5"
+							},
+							"settings": {
+								"minSize": "100000000",
+								"maxSpread": "0.035",
+								"dailyReward": "1",
+								"rewardsEpoch": "0.0006944444444444445",
+								"c": "3",
+								"rebateRate": "0",
+								"takerDelayMs": "250",
+								"creatorFeePct": "0"
+							},
+							"imageUrl": "https://storage.googleapis.com/limitless-exchange-assets/assets/ball.png",
+							"logo": "https://storage.googleapis.com/limitless-exchange-assets/assets/ball.png",
+							"bids": [
+								{
+									"price": "0.466",
+									"size": "2000000000",
+									"side": "BUY"
+								},
+								{
+									"price": "0.445",
+									"size": "192000000",
+									"side": "BUY"
+								},
+								{
+									"price": "0.432",
+									"size": "1157000000",
+									"side": "BUY"
+								},
+								{
+									"price": "0.002",
+									"size": "500000000",
+									"side": "BUY"
+								},
+								{
+									"price": "0.001",
+									"size": "1000000000",
+									"side": "BUY"
+								}
+							],
+							"asks": [
+								{
+									"price": "0.486",
+									"size": "2000000000",
+									"side": "SELL"
+								},
+								{
+									"price": "0.512",
+									"size": "1024000000",
+									"side": "SELL"
+								},
+								{
+									"price": "0.525",
+									"size": "400000000",
+									"side": "SELL"
+								},
+								{
+									"price": "0.99",
+									"size": "1000000",
+									"side": "SELL"
+								},
+								{
+									"price": "0.998",
+									"size": "500000000",
+									"side": "SELL"
+								}
+							],
+							"tokenId": "86754852064474869881286364251658764942266025328391522221494274517474936254814",
+							"adjustedMidpoint": "0.476",
+							"midpoint": "0.476",
+							"maxSpread": "0.035",
+							"minSize": "100000000",
+							"lastTradePrice": null
+						},
+						"book": {
+							"id": "185421",
+							"automationType": "sports",
+							"conditionId": "0x596f88053d8b0aaffb4909bc936f90915475d02f52cf8c704a3fa9a358ebd411",
+							"negRiskRequestId": null,
+							"description": "This market will resolve to \"YES\" if both USA and Australia score at least one goal each during regular time (90 minutes plus stoppage time only) in the World Cup match scheduled for June 19, 2026, 19:00 UTC. Otherwise, this market will res",
+							"groupId": null,
+							"collateralToken": {
+								"address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+								"decimals": "6",
+								"symbol": "USDC"
+							},
+							"title": "USA and Australia both to score?",
+							"proxyTitle": null,
+							"expirationDate": "Jun 20, 2026",
+							"expirationTimestamp": "1781982000000",
+							"createdAt": "2026-05-28T14:59:20.806Z",
+							"startAt": null,
+							"updatedAt": "2026-05-28T15:07:18.277Z",
+							"categories": [
+								"Props"
+							],
+							"status": "FUNDED",
+							"expired": false,
+							"hidden": false,
+							"creator": {
+								"name": "Limitless",
+								"imageURI": "https://limitless.exchange/assets/images/logo.svg",
+								"link": "https://x.com/trylimitless",
+								"address": "0x60e61631d9a585797cDee9f79FafDecf3bd7F64D"
+							},
+							"tags": [
+								"Football",
+								"Lumy"
+							],
+							"volume": "0",
+							"volumeFormatted": "0.000000",
+							"tokens": {
+								"yes": "86754852064474869881286364251658764942266025328391522221494274517474936254814",
+								"no": "86230754815698413619206189608906849294848879165498461416569335949589979443562"
+							},
+							"prices": [
+								0.476,
+								0.524
+							],
+							"tradePrices": {
+								"buy": {
+									"market": [
+										0.486,
+										0.534
+									],
+									"limit": [
+										0.466,
+										0.514
+									]
+								},
+								"sell": {
+									"market": [
+										0.466,
+										0.514
+									],
+									"limit": [
+										0.486,
+										0.534
+									]
+								}
+							},
+							"isOther": false,
+							"isRewardable": true,
+							"slug": "usa-and-australia-both-to-score-1779980360817",
+							"tradeType": "clob",
+							"venue": {
+								"exchange": "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
+								"adapter": null
+							},
+							"marketType": "single",
+							"priorityIndex": "0",
+							"winningOutcomeIndex": null,
+							"metadata": {
+								"fee": true,
+								"awayTeam": "Australia",
+								"homeTeam": "USA",
+								"fixtureId": "1489391",
+								"sportType": "football",
+								"externalSlug": "fifwc-usa-aus-2026-06-19-btts",
+								"cardsThreshold": "0",
+								"goalsThreshold": "0",
+								"shotsThreshold": "0",
+								"daysBeforeMatch": "30",
+								"binaryMarketType": "btts",
+								"cornersThreshold": "0",
+								"startMatchTimestampInUTC": "1781895600",
+								"conditionalMarketSettings": {
+									"c": "3",
+									"minSize": "100000000",
+									"maxSpread": "0.035",
+									"rewardsEpoch": "0.002777777777777778"
+								},
+								"conditionalSettingsApplied": false,
+								"daysBeforeMatchForSettings": "5"
+							},
+							"settings": {
+								"minSize": "100000000",
+								"maxSpread": "0.035",
+								"dailyReward": "1",
+								"rewardsEpoch": "0.0006944444444444445",
+								"c": "3",
+								"rebateRate": "0",
+								"takerDelayMs": "250",
+								"creatorFeePct": "0"
+							},
+							"imageUrl": "https://storage.googleapis.com/limitless-exchange-assets/assets/ball.png",
+							"logo": "https://storage.googleapis.com/limitless-exchange-assets/assets/ball.png",
+							"bids": [
+								{
+									"price": "0.466",
+									"size": "2000000000",
+									"side": "BUY"
+								},
+								{
+									"price": "0.445",
+									"size": "192000000",
+									"side": "BUY"
+								},
+								{
+									"price": "0.432",
+									"size": "1157000000",
+									"side": "BUY"
+								},
+								{
+									"price": "0.002",
+									"size": "500000000",
+									"side": "BUY"
+								},
+								{
+									"price": "0.001",
+									"size": "1000000000",
+									"side": "BUY"
+								}
+							],
+							"asks": [
+								{
+									"price": "0.486",
+									"size": "2000000000",
+									"side": "SELL"
+								},
+								{
+									"price": "0.512",
+									"size": "1024000000",
+									"side": "SELL"
+								},
+								{
+									"price": "0.525",
+									"size": "400000000",
+									"side": "SELL"
+								},
+								{
+									"price": "0.99",
+									"size": "1000000",
+									"side": "SELL"
+								},
+								{
+									"price": "0.998",
+									"size": "500000000",
+									"side": "SELL"
+								}
+							],
+							"tokenId": "86754852064474869881286364251658764942266025328391522221494274517474936254814",
+							"adjustedMidpoint": "0.476",
+							"midpoint": "0.476",
+							"maxSpread": "0.035",
+							"minSize": "100000000",
+							"lastTradePrice": null
+						}
+					},
+					"event": null,
+					"openInterest": null
+				}
+			}
+		],
+		"fetchOrderBook": [
+			{
+				"description": "fetchOrderBook for a yes outcome",
+				"method": "fetchOrderBook",
+				"input": [
+					"USA_AUSTRALIA_BOTH_SCORE_1779980360817:YES"
+				],
+				"httpResponse": {
+					"bids": [
+						{
+							"price": "0.466",
+							"size": "2000000000",
+							"side": "BUY"
+						},
+						{
+							"price": "0.445",
+							"size": "192000000",
+							"side": "BUY"
+						},
+						{
+							"price": "0.432",
+							"size": "1157000000",
+							"side": "BUY"
+						},
+						{
+							"price": "0.002",
+							"size": "500000000",
+							"side": "BUY"
+						},
+						{
+							"price": "0.001",
+							"size": "1000000000",
+							"side": "BUY"
+						}
+					],
+					"asks": [
+						{
+							"price": "0.486",
+							"size": "2000000000",
+							"side": "SELL"
+						},
+						{
+							"price": "0.512",
+							"size": "1024000000",
+							"side": "SELL"
+						},
+						{
+							"price": "0.525",
+							"size": "400000000",
+							"side": "SELL"
+						},
+						{
+							"price": "0.99",
+							"size": "1000000",
+							"side": "SELL"
+						},
+						{
+							"price": "0.998",
+							"size": "500000000",
+							"side": "SELL"
+						}
+					],
+					"tokenId": "86754852064474869881286364251658764942266025328391522221494274517474936254814",
+					"adjustedMidpoint": "0.476",
+					"midpoint": "0.476",
+					"maxSpread": "0.035",
+					"minSize": "100000000",
+					"lastTradePrice": null
+				},
+				"parsedResponse": {
+					"outcome": "USA_AUSTRALIA_BOTH_SCORE_1779980360817:YES",
+					"bids": [
+						[
+							0.466,
+							2000
+						],
+						[
+							0.445,
+							192
+						],
+						[
+							0.432,
+							1157
+						],
+						[
+							0.002,
+							500
+						],
+						[
+							0.001,
+							1000
+						]
+					],
+					"asks": [
+						[
+							0.486,
+							2000
+						],
+						[
+							0.512,
+							1024
+						],
+						[
+							0.525,
+							400
+						],
+						[
+							0.99,
+							1
+						],
+						[
+							0.998,
+							500
+						]
+					],
+					"timestamp": 1781915899630,
+					"datetime": "2026-06-20T00:38:19.630Z",
+					"nonce": null,
+					"outcomeId": "86754852064474869881286364251658764942266025328391522221494274517474936254814",
+					"market": "USA_AUSTRALIA_BOTH_SCORE_1779980360817"
+				}
+			}
+		],
+		"fetchTrades": [
+			{
+				"description": "fetchTrades with limit",
+				"method": "fetchTrades",
+				"input": [
+					"ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910:YES",
+					null,
+					3
+				],
+				"httpResponse": {
+					"events": [
+						{
+							"createdAt": "2026-06-12T17:43:09.095Z",
+							"makerAmount": "99999512",
+							"matchedSize": "104602000",
+							"price": "0.956",
+							"profile": {
+								"id": "191123",
+								"account": "0xd1af707df546e3195618E4519F5e78ceE9247678",
+								"username": "Winryy",
+								"displayName": "Winryy",
+								"pfpUrl": null,
+								"socialUrl": null,
+								"rankName": "Bronze"
+							},
+							"side": "0",
+							"takerAmount": "99999512",
+							"title": "",
+							"tokenId": "107351533390162975244672983811852739852090084984816899292786653138720848063052",
+							"txHash": "0x2538d5ebe92b2ed1ee0f9c759c28fa7b4103110bd5c4701e8f96756d1b18a015"
+						},
+						{
+							"createdAt": "2026-06-12T17:42:49.105Z",
+							"makerAmount": "99999492",
+							"matchedSize": "106044000",
+							"price": "0.943",
+							"profile": {
+								"id": "191123",
+								"account": "0xd1af707df546e3195618E4519F5e78ceE9247678",
+								"username": "Winryy",
+								"displayName": "Winryy",
+								"pfpUrl": null,
+								"socialUrl": null,
+								"rankName": "Bronze"
+							},
+							"side": "0",
+							"takerAmount": "99999492",
+							"title": "",
+							"tokenId": "107351533390162975244672983811852739852090084984816899292786653138720848063052",
+							"txHash": "0x24054841959e28097ffd054b180a49c2127c89e36ea41eccd989f6bbc044ec74"
+						},
+						{
+							"createdAt": "2026-06-12T17:42:31.312Z",
+							"makerAmount": "99999424",
+							"matchedSize": "107758000",
+							"price": "0.928",
+							"profile": {
+								"id": "191123",
+								"account": "0xd1af707df546e3195618E4519F5e78ceE9247678",
+								"username": "Winryy",
+								"displayName": "Winryy",
+								"pfpUrl": null,
+								"socialUrl": null,
+								"rankName": "Bronze"
+							},
+							"side": "0",
+							"takerAmount": "99999424",
+							"title": "",
+							"tokenId": "107351533390162975244672983811852739852090084984816899292786653138720848063052",
+							"txHash": "0xa435c825bc71641b7ad96ccddf0f4fc8b6743f8b0273ba4b5680928de40c3745"
+						}
+					],
+					"limit": "3",
+					"page": "1",
+					"totalPages": "8",
+					"totalRows": "24"
+				},
+				"parsedResponse": [
+					{
+						"id": "0xa435c825bc71641b7ad96ccddf0f4fc8b6743f8b0273ba4b5680928de40c3745",
+						"info": {
+							"createdAt": "2026-06-12T17:42:31.312Z",
+							"makerAmount": "99999424",
+							"matchedSize": "107758000",
+							"price": "0.928",
+							"profile": {
+								"id": "191123",
+								"account": "0xd1af707df546e3195618E4519F5e78ceE9247678",
+								"username": "Winryy",
+								"displayName": "Winryy",
+								"pfpUrl": null,
+								"socialUrl": null,
+								"rankName": "Bronze"
+							},
+							"side": "0",
+							"takerAmount": "99999424",
+							"title": "",
+							"tokenId": "107351533390162975244672983811852739852090084984816899292786653138720848063052",
+							"txHash": "0xa435c825bc71641b7ad96ccddf0f4fc8b6743f8b0273ba4b5680928de40c3745"
+						},
+						"timestamp": 1781286151312,
+						"datetime": "2026-06-12T17:42:31.312Z",
+						"outcome": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910:YES",
+						"outcomeId": "107351533390162975244672983811852739852090084984816899292786653138720848063052",
+						"label": "yes",
+						"market": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910",
+						"order": null,
+						"type": null,
+						"side": "buy",
+						"takerOrMaker": "taker",
+						"price": 0.928,
+						"amount": 107.758,
+						"cost": 99.999424,
+						"fee": null,
+						"realizedPnl": null
+					},
+					{
+						"id": "0x24054841959e28097ffd054b180a49c2127c89e36ea41eccd989f6bbc044ec74",
+						"info": {
+							"createdAt": "2026-06-12T17:42:49.105Z",
+							"makerAmount": "99999492",
+							"matchedSize": "106044000",
+							"price": "0.943",
+							"profile": {
+								"id": "191123",
+								"account": "0xd1af707df546e3195618E4519F5e78ceE9247678",
+								"username": "Winryy",
+								"displayName": "Winryy",
+								"pfpUrl": null,
+								"socialUrl": null,
+								"rankName": "Bronze"
+							},
+							"side": "0",
+							"takerAmount": "99999492",
+							"title": "",
+							"tokenId": "107351533390162975244672983811852739852090084984816899292786653138720848063052",
+							"txHash": "0x24054841959e28097ffd054b180a49c2127c89e36ea41eccd989f6bbc044ec74"
+						},
+						"timestamp": 1781286169105,
+						"datetime": "2026-06-12T17:42:49.105Z",
+						"outcome": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910:YES",
+						"outcomeId": "107351533390162975244672983811852739852090084984816899292786653138720848063052",
+						"label": "yes",
+						"market": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910",
+						"order": null,
+						"type": null,
+						"side": "buy",
+						"takerOrMaker": "taker",
+						"price": 0.943,
+						"amount": 106.044,
+						"cost": 99.999492,
+						"fee": null,
+						"realizedPnl": null
+					},
+					{
+						"id": "0x2538d5ebe92b2ed1ee0f9c759c28fa7b4103110bd5c4701e8f96756d1b18a015",
+						"info": {
+							"createdAt": "2026-06-12T17:43:09.095Z",
+							"makerAmount": "99999512",
+							"matchedSize": "104602000",
+							"price": "0.956",
+							"profile": {
+								"id": "191123",
+								"account": "0xd1af707df546e3195618E4519F5e78ceE9247678",
+								"username": "Winryy",
+								"displayName": "Winryy",
+								"pfpUrl": null,
+								"socialUrl": null,
+								"rankName": "Bronze"
+							},
+							"side": "0",
+							"takerAmount": "99999512",
+							"title": "",
+							"tokenId": "107351533390162975244672983811852739852090084984816899292786653138720848063052",
+							"txHash": "0x2538d5ebe92b2ed1ee0f9c759c28fa7b4103110bd5c4701e8f96756d1b18a015"
+						},
+						"timestamp": 1781286189095,
+						"datetime": "2026-06-12T17:43:09.095Z",
+						"outcome": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910:YES",
+						"outcomeId": "107351533390162975244672983811852739852090084984816899292786653138720848063052",
+						"label": "yes",
+						"market": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910",
+						"order": null,
+						"type": null,
+						"side": "buy",
+						"takerOrMaker": "taker",
+						"price": 0.956,
+						"amount": 104.602,
+						"cost": 99.999512,
+						"fee": null,
+						"realizedPnl": null
+					}
+				]
+			}
+		],
+		"fetchOHLCV": [
+			{
+				"description": "fetchOHLCV daily",
+				"method": "fetchOHLCV",
+				"input": [
+					"USA_AUSTRALIA_BOTH_SCORE_1779980360817:YES",
+					"1d"
+				],
+				"httpResponse": {
+					"title": "USA and Australia both to score?",
+					"prices": [
+						{
+							"timestamp": "1781289000000",
+							"price": "0.476"
+						},
+						{
+							"timestamp": "1781288100000",
+							"price": "0.476"
+						},
+						{
+							"timestamp": "1781287200000",
+							"price": "0.476"
+						},
+						{
+							"timestamp": "1781286300000",
+							"price": "0.476"
+						},
+						{
+							"timestamp": "1781285400000",
+							"price": "0.476"
+						},
+						{
+							"timestamp": "1781284500000",
+							"price": "0.476"
+						},
+						{
+							"timestamp": "1781283600000",
+							"price": "0.476"
+						},
+						{
+							"timestamp": "1781282700000",
+							"price": "0.476"
+						},
+						{
+							"timestamp": "1781281800000",
+							"price": "0.476"
+						},
+						{
+							"timestamp": "1781280900000",
+							"price": "0.476"
+						},
+						{
+							"timestamp": "1781280000000",
+							"price": "0.476"
+						},
+						{
+							"timestamp": "1781279100000",
+							"price": "0.476"
+						},
+						{
+							"timestamp": "1781278200000",
+							"price": "0.476"
+						},
+						{
+							"timestamp": "1781277300000",
+							"price": "0.476"
+						},
+						{
+							"timestamp": "1781276400000",
+							"price": "0.476"
+						},
+						{
+							"timestamp": "1781275500000",
+							"price": "0.476"
+						},
+						{
+							"timestamp": "1781274600000",
+							"price": "0.476"
+						},
+						{
+							"timestamp": "1781273700000",
+							"price": "0.476"
+						},
+						{
+							"timestamp": "1781272800000",
+							"price": "0.476"
+						},
+						{
+							"timestamp": "1781271900000",
+							"price": "0.476"
+						},
+						{
+							"timestamp": "1781271000000",
+							"price": "0.485"
+						},
+						{
+							"timestamp": "1781270100000",
+							"price": "0.485"
+						},
+						{
+							"timestamp": "1781269200000",
+							"price": "0.485"
+						},
+						{
+							"timestamp": "1781268300000",
+							"price": "0.485"
+						},
+						{
+							"timestamp": "1781267400000",
+							"price": "0.485"
+						},
+						{
+							"timestamp": "1781266500000",
+							"price": "0.485"
+						},
+						{
+							"timestamp": "1781265600000",
+							"price": "0.485"
+						},
+						{
+							"timestamp": "1781264700000",
+							"price": "0.485"
+						},
+						{
+							"timestamp": "1781263800000",
+							"price": "0.485"
+						},
+						{
+							"timestamp": "1781262900000",
+							"price": "0.485"
+						}
+					],
+					"marketStatus": "FUNDED"
+				},
+				"parsedResponse": [
+					[
+						1781222400000,
+						0.485,
+						0.485,
+						0.476,
+						0.476,
+						0
+					]
+				]
+			}
+		],
+		"fetchEvent": [
+			{
+				"description": "fetchEvent on a group row expands the nested child markets (each carrying tokens/outcomes) instead of returning one dead outcome-less market",
+				"method": "fetchEvent",
+				"input": [
+					"rune-eaters-vs-virtuspro-1783879202232"
+				],
+				"httpResponse": {
+					"id": 10012663,
+					"slug": "rune-eaters-vs-virtuspro-1783879202232",
+					"title": "Rune Eaters vs Virtus.pro",
+					"expirationTimestamp": 1784113200000,
+					"expired": false,
+					"collateralToken": {
+						"symbol": "USDC",
+						"address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+						"decimals": 6
+					},
+					"marketType": "group",
+					"status": "FUNDED",
+					"volumeFormatted": "58.414000",
+					"markets": [
+						{
+							"id": 321433,
+							"conditionId": "0x8326a7dc0975de290abfd2836688b03dbdb116cea7aa0a54b115f462e8e497ac",
+							"groupId": 10012663,
+							"collateralToken": {
+								"address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+								"decimals": 6,
+								"symbol": "USDC"
+							},
+							"title": "Rune Eaters",
+							"expirationTimestamp": 1784113200000,
+							"status": "FUNDED",
+							"expired": false,
+							"volumeFormatted": "0.000000",
+							"tokens": {
+								"yes": "7797025762134170389913700558063650618886525175942484435251794825003095575858",
+								"no": "108657718374880115572287825818776126799453616791576056811688371517129299323715"
+							},
+							"slug": "rune-eaters-1783879202236",
+							"winningOutcomeIndex": null
+						},
+						{
+							"id": 321434,
+							"conditionId": "0x3e91bcd748b0d934573613cda6939a200e7ab7746ec370f8cbc0a89f65069cb9",
+							"groupId": 10012663,
+							"collateralToken": {
+								"address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+								"decimals": 6,
+								"symbol": "USDC"
+							},
+							"title": "Virtus.pro",
+							"expirationTimestamp": 1784113200000,
+							"status": "FUNDED",
+							"expired": false,
+							"volumeFormatted": "58.414000",
+							"tokens": {
+								"yes": "25016075823175711125867208921666352690037236152024924027267727605921161971704",
+								"no": "36477779732987670411405148188795106135327776539832137749139532051522057470561"
+							},
+							"slug": "virtuspro-1783879202242",
+							"winningOutcomeIndex": null
+						}
+					]
+				},
+				"parsedResponse": {
+					"id": "rune-eaters-vs-virtuspro-1783879202232",
+					"slug": "rune-eaters-vs-virtuspro-1783879202232",
+					"event": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232",
+					"title": "Rune Eaters vs Virtus.pro",
+					"description": null,
+					"markets": [
+						{
+							"id": "rune-eaters-1783879202236",
+							"market": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_RUNE_EATERS_1783879202236",
+							"marketType": "binary",
+							"executionModel": "clob",
+							"collateral": "USDC",
+							"base": "rune-eaters-1783879202236",
+							"quote": "USDC",
+							"settle": null,
+							"baseId": "rune-eaters-1783879202236",
+							"quoteId": "USDC",
+							"settleId": null,
+							"type": "prediction",
+							"spot": false,
+							"margin": false,
+							"swap": false,
+							"future": false,
+							"option": false,
+							"prediction": true,
+							"active": true,
+							"resolved": false,
+							"resolvedOutcome": null,
+							"contract": false,
+							"linear": null,
+							"inverse": null,
+							"contractSize": null,
+							"expiry": 1784113200000,
+							"expiryDatetime": "2026-07-15T11:00:00.000Z",
+							"strike": null,
+							"optionType": null,
+							"taker": 0.02,
+							"maker": 0.02,
+							"percentage": true,
+							"tierBased": false,
+							"feeSide": "get",
+							"precision": {
+								"amount": 1e-06,
+								"price": 0.001
+							},
+							"limits": {
+								"leverage": {
+									"min": 1,
+									"max": 1
+								},
+								"amount": {
+									"min": 0,
+									"max": null
+								},
+								"price": {
+									"min": 0.001,
+									"max": 0.999
+								},
+								"cost": {
+									"min": null,
+									"max": null
+								}
+							},
+							"outcomes": [
+								{
+									"outcome": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_RUNE_EATERS_1783879202236:YES",
+									"outcomeId": "7797025762134170389913700558063650618886525175942484435251794825003095575858",
+									"market": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_RUNE_EATERS_1783879202236",
+									"label": "yes",
+									"active": true,
+									"winner": null,
+									"settleFraction": null,
+									"precision": {
+										"amount": 1e-06,
+										"price": 0.001
+									},
+									"info": {
+										"slug": "rune-eaters-1783879202236",
+										"address": "rune-eaters-1783879202236",
+										"conditionId": "0x8326a7dc0975de290abfd2836688b03dbdb116cea7aa0a54b115f462e8e497ac",
+										"outcomeLabel": "yes",
+										"tokenId": "7797025762134170389913700558063650618886525175942484435251794825003095575858",
+										"volume24h": 0
+									}
+								},
+								{
+									"outcome": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_RUNE_EATERS_1783879202236:NO",
+									"outcomeId": "108657718374880115572287825818776126799453616791576056811688371517129299323715",
+									"market": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_RUNE_EATERS_1783879202236",
+									"label": "no",
+									"active": true,
+									"winner": null,
+									"settleFraction": null,
+									"precision": {
+										"amount": 1e-06,
+										"price": 0.001
+									},
+									"info": {
+										"slug": "rune-eaters-1783879202236",
+										"address": "rune-eaters-1783879202236",
+										"conditionId": "0x8326a7dc0975de290abfd2836688b03dbdb116cea7aa0a54b115f462e8e497ac",
+										"outcomeLabel": "no",
+										"tokenId": "108657718374880115572287825818776126799453616791576056811688371517129299323715",
+										"volume24h": 0
+									}
+								}
+							],
+							"info": {
+								"id": 321433,
+								"conditionId": "0x8326a7dc0975de290abfd2836688b03dbdb116cea7aa0a54b115f462e8e497ac",
+								"groupId": 10012663,
+								"collateralToken": {
+									"address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+									"decimals": 6,
+									"symbol": "USDC"
+								},
+								"title": "Rune Eaters",
+								"expirationTimestamp": 1784113200000,
+								"status": "FUNDED",
+								"expired": false,
+								"volumeFormatted": "0.000000",
+								"tokens": {
+									"yes": "7797025762134170389913700558063650618886525175942484435251794825003095575858",
+									"no": "108657718374880115572287825818776126799453616791576056811688371517129299323715"
+								},
+								"slug": "rune-eaters-1783879202236",
+								"winningOutcomeIndex": null,
+								"groupSlug": "rune-eaters-vs-virtuspro-1783879202232",
+								"groupTitle": "Rune Eaters vs Virtus.pro",
+								"address": "rune-eaters-1783879202236",
+								"volume24h": 0
+							},
+							"created": null
+						},
+						{
+							"id": "virtuspro-1783879202242",
+							"market": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_VIRTUSPRO_1783879202242",
+							"marketType": "binary",
+							"executionModel": "clob",
+							"collateral": "USDC",
+							"base": "virtuspro-1783879202242",
+							"quote": "USDC",
+							"settle": null,
+							"baseId": "virtuspro-1783879202242",
+							"quoteId": "USDC",
+							"settleId": null,
+							"type": "prediction",
+							"spot": false,
+							"margin": false,
+							"swap": false,
+							"future": false,
+							"option": false,
+							"prediction": true,
+							"active": true,
+							"resolved": false,
+							"resolvedOutcome": null,
+							"contract": false,
+							"linear": null,
+							"inverse": null,
+							"contractSize": null,
+							"expiry": 1784113200000,
+							"expiryDatetime": "2026-07-15T11:00:00.000Z",
+							"strike": null,
+							"optionType": null,
+							"taker": 0.02,
+							"maker": 0.02,
+							"percentage": true,
+							"tierBased": false,
+							"feeSide": "get",
+							"precision": {
+								"amount": 1e-06,
+								"price": 0.001
+							},
+							"limits": {
+								"leverage": {
+									"min": 1,
+									"max": 1
+								},
+								"amount": {
+									"min": 0,
+									"max": null
+								},
+								"price": {
+									"min": 0.001,
+									"max": 0.999
+								},
+								"cost": {
+									"min": null,
+									"max": null
+								}
+							},
+							"outcomes": [
+								{
+									"outcome": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_VIRTUSPRO_1783879202242:YES",
+									"outcomeId": "25016075823175711125867208921666352690037236152024924027267727605921161971704",
+									"market": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_VIRTUSPRO_1783879202242",
+									"label": "yes",
+									"active": true,
+									"winner": null,
+									"settleFraction": null,
+									"precision": {
+										"amount": 1e-06,
+										"price": 0.001
+									},
+									"info": {
+										"slug": "virtuspro-1783879202242",
+										"address": "virtuspro-1783879202242",
+										"conditionId": "0x3e91bcd748b0d934573613cda6939a200e7ab7746ec370f8cbc0a89f65069cb9",
+										"outcomeLabel": "yes",
+										"tokenId": "25016075823175711125867208921666352690037236152024924027267727605921161971704",
+										"volume24h": 58.414
+									}
+								},
+								{
+									"outcome": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_VIRTUSPRO_1783879202242:NO",
+									"outcomeId": "36477779732987670411405148188795106135327776539832137749139532051522057470561",
+									"market": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_VIRTUSPRO_1783879202242",
+									"label": "no",
+									"active": true,
+									"winner": null,
+									"settleFraction": null,
+									"precision": {
+										"amount": 1e-06,
+										"price": 0.001
+									},
+									"info": {
+										"slug": "virtuspro-1783879202242",
+										"address": "virtuspro-1783879202242",
+										"conditionId": "0x3e91bcd748b0d934573613cda6939a200e7ab7746ec370f8cbc0a89f65069cb9",
+										"outcomeLabel": "no",
+										"tokenId": "36477779732987670411405148188795106135327776539832137749139532051522057470561",
+										"volume24h": 58.414
+									}
+								}
+							],
+							"info": {
+								"id": 321434,
+								"conditionId": "0x3e91bcd748b0d934573613cda6939a200e7ab7746ec370f8cbc0a89f65069cb9",
+								"groupId": 10012663,
+								"collateralToken": {
+									"address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+									"decimals": 6,
+									"symbol": "USDC"
+								},
+								"title": "Virtus.pro",
+								"expirationTimestamp": 1784113200000,
+								"status": "FUNDED",
+								"expired": false,
+								"volumeFormatted": "58.414000",
+								"tokens": {
+									"yes": "25016075823175711125867208921666352690037236152024924027267727605921161971704",
+									"no": "36477779732987670411405148188795106135327776539832137749139532051522057470561"
+								},
+								"slug": "virtuspro-1783879202242",
+								"winningOutcomeIndex": null,
+								"groupSlug": "rune-eaters-vs-virtuspro-1783879202232",
+								"groupTitle": "Rune Eaters vs Virtus.pro",
+								"address": "virtuspro-1783879202242",
+								"volume24h": 58.414
+							},
+							"created": null
+						}
+					],
+					"volume": 58.414,
+					"liquidity": null,
+					"url": null,
+					"image": null,
+					"active": true,
+					"resolved": false,
+					"category": null,
+					"tags": null,
+					"created": null,
+					"createdDatetime": null,
+					"end": null,
+					"endDatetime": null,
+					"lastUpdatedAt": null,
+					"resolutionSource": null,
+					"info": {
+						"id": 10012663,
+						"slug": "rune-eaters-vs-virtuspro-1783879202232",
+						"title": "Rune Eaters vs Virtus.pro",
+						"expirationTimestamp": 1784113200000,
+						"expired": false,
+						"collateralToken": {
+							"symbol": "USDC",
+							"address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+							"decimals": 6
+						},
+						"marketType": "group",
+						"status": "FUNDED",
+						"volumeFormatted": "58.414000",
+						"markets": [
+							{
+								"id": 321433,
+								"conditionId": "0x8326a7dc0975de290abfd2836688b03dbdb116cea7aa0a54b115f462e8e497ac",
+								"groupId": 10012663,
+								"collateralToken": {
+									"address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+									"decimals": 6,
+									"symbol": "USDC"
+								},
+								"title": "Rune Eaters",
+								"expirationTimestamp": 1784113200000,
+								"status": "FUNDED",
+								"expired": false,
+								"volumeFormatted": "0.000000",
+								"tokens": {
+									"yes": "7797025762134170389913700558063650618886525175942484435251794825003095575858",
+									"no": "108657718374880115572287825818776126799453616791576056811688371517129299323715"
+								},
+								"slug": "rune-eaters-1783879202236",
+								"winningOutcomeIndex": null,
+								"groupSlug": "rune-eaters-vs-virtuspro-1783879202232",
+								"groupTitle": "Rune Eaters vs Virtus.pro"
+							},
+							{
+								"id": 321434,
+								"conditionId": "0x3e91bcd748b0d934573613cda6939a200e7ab7746ec370f8cbc0a89f65069cb9",
+								"groupId": 10012663,
+								"collateralToken": {
+									"address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+									"decimals": 6,
+									"symbol": "USDC"
+								},
+								"title": "Virtus.pro",
+								"expirationTimestamp": 1784113200000,
+								"status": "FUNDED",
+								"expired": false,
+								"volumeFormatted": "58.414000",
+								"tokens": {
+									"yes": "25016075823175711125867208921666352690037236152024924027267727605921161971704",
+									"no": "36477779732987670411405148188795106135327776539832137749139532051522057470561"
+								},
+								"slug": "virtuspro-1783879202242",
+								"winningOutcomeIndex": null,
+								"groupSlug": "rune-eaters-vs-virtuspro-1783879202232",
+								"groupTitle": "Rune Eaters vs Virtus.pro"
+							}
+						]
+					}
+				}
+			}
+		]
+	}
+}

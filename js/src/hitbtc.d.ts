@@ -1,5 +1,5 @@
 import Exchange from './abstract/hitbtc.js';
-import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dict, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, MarginModes, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, int, FundingRate, FundingRates, DepositAddress, OrderBooks, OpenInterests } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dict, NullableDict, List, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, CurrencyInterface, MarginModes, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, int, FundingRate, FundingRates, DepositAddress, OrderBooks, OpenInterests, DepositWithdrawFees } from './base/types.js';
 /**
  * @class hitbtc
  * @augments Exchange
@@ -25,6 +25,7 @@ export default class hitbtc extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(currency: Dict): CurrencyInterface;
     /**
      * @method
      * @name hitbtc#createDepositAddress
@@ -108,7 +109,7 @@ export default class hitbtc extends Exchange {
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
     fetchTransactionsHelper(types: any, code: any, since: any, limit: any, params: any): Promise<Transaction[]>;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): string | undefined;
     parseTransactionType(type: any): string;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
@@ -166,7 +167,7 @@ export default class hitbtc extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
@@ -296,7 +297,7 @@ export default class hitbtc extends Exchange {
      * @see https://api.hitbtc.com/#cancel-all-spot-orders
      * @see https://api.hitbtc.com/#cancel-futures-orders
      * @see https://api.hitbtc.com/#cancel-all-margin-orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
      * @param {bool} [params.margin] true for canceling margin orders
@@ -340,8 +341,8 @@ export default class hitbtc extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createOrderRequest(market: object, marketType: string, type: OrderType, side: OrderSide, amount: number, price?: Num, marginMode?: Str, params?: {}): Dict[];
-    parseOrderStatus(status: Str): string;
+    createOrderRequest(market: Dict, marketType: string, type: OrderType, side: OrderSide, amount: Num, price?: Num, marginMode?: Str, params?: {}): {}[];
+    parseOrderStatus(status: Str): string | undefined;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -353,8 +354,8 @@ export default class hitbtc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    fetchMarginModes(symbols?: Str[], params?: {}): Promise<MarginModes>;
-    parseMarginMode(marginMode: Dict, market?: any): MarginMode;
+    fetchMarginModes(symbols?: Strings, params?: {}): Promise<MarginModes>;
+    parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     /**
      * @method
      * @name hitbtc#transfer
@@ -370,7 +371,7 @@ export default class hitbtc extends Exchange {
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     convertCurrencyNetwork(code: string, amount: any, fromNetwork: any, toNetwork: any, params: any): Promise<{
-        info: any;
+        info: List;
     }>;
     /**
      * @method
@@ -415,7 +416,7 @@ export default class hitbtc extends Exchange {
      * @description fetch all open positions
      * @see https://api.hitbtc.com/#get-futures-margin-accounts
      * @see https://api.hitbtc.com/#get-all-margin-accounts
-     * @param {string[]|undefined} symbols not used by hitbtc fetchPositions ()
+     * @param {string[]|undefined} symbols not used by fetchPositions ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
      * @param {bool} [params.margin] true for fetching spot-margin positions
@@ -522,7 +523,7 @@ export default class hitbtc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name hitbtc#fetchDepositWithdrawFees
@@ -532,7 +533,7 @@ export default class hitbtc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<DepositWithdrawFees>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     /**
      * @method
@@ -541,18 +542,18 @@ export default class hitbtc extends Exchange {
      * @see https://api.hitbtc.com/#close-all-futures-margin-positions
      * @param {string} symbol unified ccxt market symbol
      * @param {string} side 'buy' or 'sell'
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.symbol] *required* unified market symbol
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
-    handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    handleMarginModeAndParams(methodName: string, params?: {}, defaultValue?: any): [any, Dict];
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: Str;
+        headers: Dict;
     };
 }

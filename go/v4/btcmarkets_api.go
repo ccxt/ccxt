@@ -7,142 +7,177 @@
 
 package ccxt
 
-func (this *BtcmarketsCore) PublicGetMarkets(args ...interface{}) <-chan interface{} {
+// PublicGetMarkets returns a channel that yields a JSON array.
+func (this *BtcmarketsCore) PublicGetMarkets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
-func (this *BtcmarketsCore) PublicGetMarketsMarketIdTicker(args ...interface{}) <-chan interface{} {
+// PublicGetMarketsMarketIdTicker returns a channel that yields a JSON object.
+func (this *BtcmarketsCore) PublicGetMarketsMarketIdTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketsMarketIdTicker", args...)
 }
 
-func (this *BtcmarketsCore) PublicGetMarketsMarketIdTrades(args ...interface{}) <-chan interface{} {
+// PublicGetMarketsMarketIdTrades returns a channel that yields a JSON array.
+func (this *BtcmarketsCore) PublicGetMarketsMarketIdTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketsMarketIdTrades", args...)
 }
 
-func (this *BtcmarketsCore) PublicGetMarketsMarketIdOrderbook(args ...interface{}) <-chan interface{} {
+// PublicGetMarketsMarketIdOrderbook returns a channel that yields a JSON object.
+func (this *BtcmarketsCore) PublicGetMarketsMarketIdOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketsMarketIdOrderbook", args...)
 }
 
-func (this *BtcmarketsCore) PublicGetMarketsMarketIdCandles(args ...interface{}) <-chan interface{} {
+// PublicGetMarketsMarketIdCandles returns a channel that yields a JSON array.
+func (this *BtcmarketsCore) PublicGetMarketsMarketIdCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketsMarketIdCandles", args...)
 }
 
-func (this *BtcmarketsCore) PublicGetMarketsTickers(args ...interface{}) <-chan interface{} {
+// PublicGetMarketsTickers returns a channel that yields a JSON array.
+func (this *BtcmarketsCore) PublicGetMarketsTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketsTickers", args...)
 }
 
-func (this *BtcmarketsCore) PublicGetMarketsOrderbooks(args ...interface{}) <-chan interface{} {
+// PublicGetMarketsOrderbooks returns a channel that yields a JSON array.
+func (this *BtcmarketsCore) PublicGetMarketsOrderbooks(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketsOrderbooks", args...)
 }
 
-func (this *BtcmarketsCore) PublicGetTime(args ...interface{}) <-chan interface{} {
+// PublicGetTime returns a channel that yields a JSON object.
+func (this *BtcmarketsCore) PublicGetTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTime", args...)
 }
 
-func (this *BtcmarketsCore) PrivateGetOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetOrders returns a channel that yields a JSON array.
+func (this *BtcmarketsCore) PrivateGetOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *BtcmarketsCore) PrivateGetOrdersId(args ...interface{}) <-chan interface{} {
+// PrivateGetOrdersId returns a channel that yields a JSON object.
+func (this *BtcmarketsCore) PrivateGetOrdersId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrdersId", args...)
 }
 
-func (this *BtcmarketsCore) PrivateGetBatchordersIds(args ...interface{}) <-chan interface{} {
+// PrivateGetBatchordersIds returns a channel that yields a JSON object.
+func (this *BtcmarketsCore) PrivateGetBatchordersIds(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetBatchordersIds", args...)
 }
 
-func (this *BtcmarketsCore) PrivateGetTrades(args ...interface{}) <-chan interface{} {
+// PrivateGetTrades returns a channel that yields a JSON array.
+func (this *BtcmarketsCore) PrivateGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTrades", args...)
 }
 
-func (this *BtcmarketsCore) PrivateGetTradesId(args ...interface{}) <-chan interface{} {
+// PrivateGetTradesId returns a channel that yields a JSON object.
+func (this *BtcmarketsCore) PrivateGetTradesId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTradesId", args...)
 }
 
-func (this *BtcmarketsCore) PrivateGetWithdrawals(args ...interface{}) <-chan interface{} {
+// PrivateGetWithdrawals returns a channel that yields a JSON array.
+func (this *BtcmarketsCore) PrivateGetWithdrawals(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWithdrawals", args...)
 }
 
-func (this *BtcmarketsCore) PrivateGetWithdrawalsId(args ...interface{}) <-chan interface{} {
+// PrivateGetWithdrawalsId returns a channel that yields a JSON object.
+func (this *BtcmarketsCore) PrivateGetWithdrawalsId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWithdrawalsId", args...)
 }
 
-func (this *BtcmarketsCore) PrivateGetDeposits(args ...interface{}) <-chan interface{} {
+// PrivateGetDeposits returns a channel that yields a JSON array.
+func (this *BtcmarketsCore) PrivateGetDeposits(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetDeposits", args...)
 }
 
-func (this *BtcmarketsCore) PrivateGetDepositsId(args ...interface{}) <-chan interface{} {
+// PrivateGetDepositsId returns a channel that yields a JSON object.
+func (this *BtcmarketsCore) PrivateGetDepositsId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetDepositsId", args...)
 }
 
-func (this *BtcmarketsCore) PrivateGetTransfers(args ...interface{}) <-chan interface{} {
+// PrivateGetTransfers returns a channel that yields a JSON array.
+func (this *BtcmarketsCore) PrivateGetTransfers(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTransfers", args...)
 }
 
-func (this *BtcmarketsCore) PrivateGetTransfersId(args ...interface{}) <-chan interface{} {
+// PrivateGetTransfersId returns a channel that yields a JSON object.
+func (this *BtcmarketsCore) PrivateGetTransfersId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTransfersId", args...)
 }
 
-func (this *BtcmarketsCore) PrivateGetAddresses(args ...interface{}) <-chan interface{} {
+// PrivateGetAddresses returns a channel that yields a JSON object.
+func (this *BtcmarketsCore) PrivateGetAddresses(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAddresses", args...)
 }
 
-func (this *BtcmarketsCore) PrivateGetWithdrawalFees(args ...interface{}) <-chan interface{} {
+// PrivateGetWithdrawalFees returns a channel that yields a JSON array.
+func (this *BtcmarketsCore) PrivateGetWithdrawalFees(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWithdrawalFees", args...)
 }
 
-func (this *BtcmarketsCore) PrivateGetAssets(args ...interface{}) <-chan interface{} {
+// PrivateGetAssets returns a channel that yields a JSON array.
+func (this *BtcmarketsCore) PrivateGetAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssets", args...)
 }
 
-func (this *BtcmarketsCore) PrivateGetAccountsMeTradingFees(args ...interface{}) <-chan interface{} {
+// PrivateGetAccountsMeTradingFees returns a channel that yields a JSON object.
+func (this *BtcmarketsCore) PrivateGetAccountsMeTradingFees(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountsMeTradingFees", args...)
 }
 
-func (this *BtcmarketsCore) PrivateGetAccountsMeWithdrawalLimits(args ...interface{}) <-chan interface{} {
+// PrivateGetAccountsMeWithdrawalLimits returns a channel that yields a JSON array.
+func (this *BtcmarketsCore) PrivateGetAccountsMeWithdrawalLimits(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountsMeWithdrawalLimits", args...)
 }
 
-func (this *BtcmarketsCore) PrivateGetAccountsMeBalances(args ...interface{}) <-chan interface{} {
+// PrivateGetAccountsMeBalances returns a channel that yields a JSON object.
+func (this *BtcmarketsCore) PrivateGetAccountsMeBalances(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountsMeBalances", args...)
 }
 
-func (this *BtcmarketsCore) PrivateGetAccountsMeTransactions(args ...interface{}) <-chan interface{} {
+// PrivateGetAccountsMeTransactions returns a channel that yields a JSON array.
+func (this *BtcmarketsCore) PrivateGetAccountsMeTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountsMeTransactions", args...)
 }
 
-func (this *BtcmarketsCore) PrivateGetReportsId(args ...interface{}) <-chan interface{} {
+// PrivateGetReportsId returns a channel that yields a JSON object.
+func (this *BtcmarketsCore) PrivateGetReportsId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetReportsId", args...)
 }
 
-func (this *BtcmarketsCore) PrivatePostOrders(args ...interface{}) <-chan interface{} {
+// PrivatePostOrders returns a channel that yields a JSON object.
+func (this *BtcmarketsCore) PrivatePostOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *BtcmarketsCore) PrivatePostBatchorders(args ...interface{}) <-chan interface{} {
+// PrivatePostBatchorders returns a channel that yields a JSON object.
+func (this *BtcmarketsCore) PrivatePostBatchorders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBatchorders", args...)
 }
 
-func (this *BtcmarketsCore) PrivatePostWithdrawals(args ...interface{}) <-chan interface{} {
+// PrivatePostWithdrawals returns a channel that yields a JSON object.
+func (this *BtcmarketsCore) PrivatePostWithdrawals(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawals", args...)
 }
 
-func (this *BtcmarketsCore) PrivatePostReports(args ...interface{}) <-chan interface{} {
+// PrivatePostReports returns a channel that yields a JSON object.
+func (this *BtcmarketsCore) PrivatePostReports(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostReports", args...)
 }
 
-func (this *BtcmarketsCore) PrivateDeleteOrders(args ...interface{}) <-chan interface{} {
+// PrivateDeleteOrders returns a channel that yields a JSON array.
+func (this *BtcmarketsCore) PrivateDeleteOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrders", args...)
 }
 
-func (this *BtcmarketsCore) PrivateDeleteOrdersId(args ...interface{}) <-chan interface{} {
+// PrivateDeleteOrdersId returns a channel that yields a JSON object.
+func (this *BtcmarketsCore) PrivateDeleteOrdersId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrdersId", args...)
 }
 
-func (this *BtcmarketsCore) PrivateDeleteBatchordersIds(args ...interface{}) <-chan interface{} {
+// PrivateDeleteBatchordersIds returns a channel that yields a JSON object.
+func (this *BtcmarketsCore) PrivateDeleteBatchordersIds(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteBatchordersIds", args...)
 }
 
-func (this *BtcmarketsCore) PrivatePutOrdersId(args ...interface{}) <-chan interface{} {
+// PrivatePutOrdersId returns a channel that yields a JSON object.
+func (this *BtcmarketsCore) PrivatePutOrdersId(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutOrdersId", args...)
 }

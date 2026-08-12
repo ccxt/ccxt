@@ -3,6 +3,15 @@
     "skipKeys": [],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://bitso.com/api/v3/catalogues",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "market buy order",

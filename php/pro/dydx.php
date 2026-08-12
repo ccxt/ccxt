@@ -7,11 +7,12 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class dydx extends \ccxt\async\dydx {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -37,61 +38,69 @@ class dydx extends \ccxt\async\dydx {
         ));
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent $trades for a particular $symbol
-             *
-             * @see https://docs.dydx.xyz/indexer-client/websockets#$trades
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
-             */
-            Async\await($this->load_markets());
-            $url = $this->urls['api']['ws'];
-            $market = $this->market($symbol);
-            $messageHash = 'trade:' . $market['symbol'];
-            $request = array(
-                'type' => 'subscribe',
-                'channel' => 'v4_trades',
-                'id' => $market['id'],
-            );
-            $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
     }
 
-    public function un_watch_trades(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unsubscribes from the trades channel
-             *
-             * @see https://docs.dydx.xyz/indexer-client/websockets#trades
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         *
+         * @see https://docs.dydx.xyz/indexer-client/websockets#$trades
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $url = $this->urls['api']['ws'];
-            $market = $this->market($symbol);
-            $messageHash = 'trade:' . $market['symbol'];
-            $request = array(
-                'type' => 'unsubscribe',
-                'channel' => 'v4_trades',
-                'id' => $market['id'],
-            );
-            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-        }) ();
+        }
+        $url = $this->urls['api']['ws'];
+        $market = $this->market($symbol);
+        $messageHash = 'trade:' . $market['symbol'];
+        $request = array(
+            'type' => 'subscribe',
+            'channel' => 'v4_trades',
+            'id' => $market['id'],
+        );
+        $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades($client, $message) {
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
+        /**
+         * unsubscribes from the trades channel
+         *
+         * @see https://docs.dydx.xyz/indexer-client/websockets#trades
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $url = $this->urls['api']['ws'];
+        $market = $this->market($symbol);
+        $messageHash = 'trade:' . $market['symbol'];
+        $request = array(
+            'type' => 'unsubscribe',
+            'channel' => 'v4_trades',
+            'id' => $market['id'],
+        );
+        return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+    }
+
+    public function handle_trades(mixed $client, mixed $message) {
         //
         // {
         //     "type" => "subscribed",
@@ -122,19 +131,19 @@ class dydx extends \ccxt\async\dydx {
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = new ArrayCache ($limit);
+            $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
         }
         $parsedTrades = $this->parse_trades($rawTrades, $market);
         for ($i = 0; $i < count($parsedTrades); $i++) {
             $parsed = $parsedTrades[$i];
-            $stored->append ($parsed);
+            $stored->append($parsed);
         }
         $messageHash = 'trade' . ':' . $symbol;
-        $client->resolve ($stored, $messageHash);
+        $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         // {
         //     "id" => "02b6148d0000000200000003",
@@ -164,57 +173,65 @@ class dydx extends \ccxt\async\dydx {
         ), $market);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://docs.dydx.xyz/indexer-client/websockets#orders
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
-             */
-            Async\await($this->load_markets());
-            $url = $this->urls['api']['ws'];
-            $market = $this->market($symbol);
-            $messageHash = 'orderbook:' . $market['symbol'];
-            $request = array(
-                'type' => 'subscribe',
-                'channel' => 'v4_orderbook',
-                'id' => $market['id'],
-            );
-            $orderbook = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-            return $orderbook->limit ();
-        }) ();
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
     }
 
-    public function un_watch_order_book(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://docs.dydx.xyz/indexer-client/websockets#orders
-             *
-             * @param {string} $symbol unified array of symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
-             */
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://docs.dydx.xyz/indexer-client/websockets#orders
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $url = $this->urls['api']['ws'];
-            $market = $this->market($symbol);
-            $messageHash = 'orderbook:' . $market['symbol'];
-            $request = array(
-                'type' => 'unsubscribe',
-                'channel' => 'v4_orderbook',
-                'id' => $market['id'],
-            );
-            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-        }) ();
+        }
+        $url = $this->urls['api']['ws'];
+        $market = $this->market($symbol);
+        $messageHash = 'orderbook:' . $market['symbol'];
+        $request = array(
+            'type' => 'subscribe',
+            'channel' => 'v4_orderbook',
+            'id' => $market['id'],
+        );
+        $orderbook = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+        return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_order_book(...))($symbol, $params);
+    }
+
+    private function do_un_watch_order_book(string $symbol, $params = array()) {
+        /**
+         * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://docs.dydx.xyz/indexer-client/websockets#orders
+         *
+         * @param {string} $symbol unified array of symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $url = $this->urls['api']['ws'];
+        $market = $this->market($symbol);
+        $messageHash = 'orderbook:' . $market['symbol'];
+        $request = array(
+            'type' => 'unsubscribe',
+            'channel' => 'v4_orderbook',
+            'id' => $market['id'],
+        );
+        return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+    }
+
+    public function handle_order_book(Client $client, mixed $message) {
         //
         // {
         //     "type" => "subscribed",
@@ -254,80 +271,88 @@ class dydx extends \ccxt\async\dydx {
         $orderbook['nonce'] = $this->safe_integer($message, 'message_id');
         $messageHash = 'orderbook:' . $symbol;
         $this->orderbooks[$symbol] = $orderbook;
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         if ((gettype($delta) === 'array' && array_keys($delta) === array_keys(array_keys($delta)))) {
             $price = $this->safe_float($delta, 0);
             $amount = $this->safe_float($delta, 1);
-            $bookside->store ($price, $amount);
+            $bookside->store($price, $amount);
         } else {
-            $bidAsk = $this->parse_bid_ask($delta, 'price', 'size');
-            $bookside->storeArray ($bidAsk);
+            $bidAsk = $this->parse_order_book_bid_ask($delta, 'price', 'size');
+            $bookside->storeArray($bidAsk);
         }
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://docs.dydx.xyz/indexer-client/websockets#candles
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            Async\await($this->load_markets());
-            $url = $this->urls['api']['ws'];
-            $market = $this->market($symbol);
-            $messageHash = 'ohlcv:' . $market['symbol'];
-            $resolution = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-            $request = array(
-                'type' => 'subscribe',
-                'channel' => 'v4_candles',
-                'id' => $market['id'] . '/' . $resolution,
-            );
-            $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-            if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        }) ();
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $params) {
-            /**
-             * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://docs.dydx.xyz/indexer-client/websockets#candles
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
+    private function do_watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://docs.dydx.xyz/indexer-client/websockets#candles
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $url = $this->urls['api']['ws'];
-            $market = $this->market($symbol);
-            $messageHash = 'ohlcv:' . $market['symbol'];
-            $resolution = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-            $request = array(
-                'type' => 'unsubscribe',
-                'channel' => 'v4_candles',
-                'id' => $market['id'] . '/' . $resolution,
-            );
-            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-        }) ();
+        }
+        $url = $this->urls['api']['ws'];
+        $market = $this->market($symbol);
+        $messageHash = 'ohlcv:' . $market['symbol'];
+        $resolution = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $request = array(
+            'type' => 'subscribe',
+            'channel' => 'v4_candles',
+            'id' => $market['id'] . '/' . $resolution,
+        );
+        $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+        if ($this->newUpdates) {
+            $limit = $ohlcv->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ohlcv(...))($symbol, $timeframe, $params);
+    }
+
+    private function do_un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array()) {
+        /**
+         * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://docs.dydx.xyz/indexer-client/websockets#candles
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $url = $this->urls['api']['ws'];
+        $market = $this->market($symbol);
+        $messageHash = 'ohlcv:' . $market['symbol'];
+        $resolution = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $request = array(
+            'type' => 'unsubscribe',
+            'channel' => 'v4_candles',
+            'id' => $market['id'] . '/' . $resolution,
+        );
+        return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+    }
+
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         // {
         //     "type" => "subscribed",
@@ -379,7 +404,7 @@ class dydx extends \ccxt\async\dydx {
         //     }
         // }
         //
-        $id = $this->safe_string($message, 'id');
+        $id = $this->safe_string($message, 'id', '');
         $part = explode('/', $id);
         $interval = $this->safe_string($part, 1);
         $timeframe = $this->find_timeframe($interval);
@@ -395,14 +420,14 @@ class dydx extends \ccxt\async\dydx {
         $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-            $stored = new ArrayCacheByTimestamp ($limit);
+            $stored = new ArrayCacheByTimestamp($limit);
             $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
-        $stored->append ($parsed);
-        $client->resolve ($stored, $messageHash);
+        $stored->append($parsed);
+        $client->resolve($stored, $messageHash);
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, mixed $message) {
         //
         // {
         //     "type" => "error",
@@ -415,12 +440,12 @@ class dydx extends \ccxt\async\dydx {
             $msg = $this->safe_string($message, 'message');
             throw new ExchangeError($this->id . ' ' . $msg);
         } catch (Exception $e) {
-            $client->reject ($e);
+            $client->reject($e);
         }
         return true;
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         $type = $this->safe_string($message, 'type');
         if ($type === 'error') {
             $this->handle_error_message($client, $message);

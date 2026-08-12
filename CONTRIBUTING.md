@@ -7,7 +7,7 @@
 
 ## How To Submit An Issue
 
-Read the notes when opening a [new issue on github](https://github.com/ccxt/ccxt/issues/new/choose) and provide the requested details, so we can assist you better. You can aso read [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section.
+Read the notes when opening a [new issue on github](https://github.com/ccxt/ccxt/issues/new/choose) and provide the requested details, so we can assist you better. You can also read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section.
 
 
 ### Reporting Vulnerabilities And Critical Issues
@@ -104,6 +104,14 @@ If you're not going to develop CCXT and contribute code to the CCXT library, the
   dotnet add ccxt
   ```
 
+- [Java / Gradle](https://github.com/ccxt/ccxt/wiki/Install#java)
+
+  ```shell
+  # Java (clone and build from source)
+  git clone https://github.com/ccxt/ccxt.git --depth 1
+  cd ccxt/java && ./gradlew :lib:build
+  ```
+
 ### With Docker
 
 The easiest way is to use Docker to run an isolated build & test environment with all the dependencies installed:
@@ -139,6 +147,7 @@ This way you can keep the build tools and processes isolated, not having to work
   - PCRE
   - gmp
 - [C#](https://dotnet.microsoft.com/en-us/download) 7.0
+- [Java](https://adoptium.net/) 21+ with Gradle
 
 #### Build Steps
 
@@ -177,7 +186,7 @@ The contents of the repository are structured as follows:
 /README.md                 # master markdown for GitHub, npmjs.com, npms.io, yarn and others
 /build/                    # build scripts
 /build/export-exchanges.js # used to create tables of exchanges in the docs during the build
-/build/transpile.js        # the transpilation script
+/build/transpile.ts        # the transpilation script
 /build/update-badges.js    # a JS script to update badges in the README and in docs
 /build/vss.js              # reads single-sourced version from package.json and writes it everywhere
 /dist/                     # a folder for the generated browser bundle of CCXT
@@ -191,24 +200,23 @@ The contents of the repository are structured as follows:
 /python/__init__.py        # entry point for the Python version of the ccxt.library
 /python/async_support/     # asynchronous version of the ccxt.library for Python 3.5.3+ asyncio
 /python/base/              # base code for the Python version of the ccxt library
-/python/MANIFEST.in        # a PyPI-package file listing extra package files (license, configs, etc...)
 /python/README.md          # a copy of README.md for PyPI
-/python/setup.cfg          # wheels config file for the Python package
-/python/setup.py           # pip/setuptools script (build/install) for ccxt in Python
 /python/tox.ini            # tox config for Python
 /examples/                 # self-explanatory
 /examples/js               # ...
 /examples/php              # ...
 /examples/py               # ...
+/java/examples/            # Java examples (Gradle module)
 /exchanges.cfg             # custom bundle config for including only the exchanges you need
-/package.json              # npm package file, also used in setup.py for version single-sourcing
+/package.json              # npm package file, version single-sourced into pyproject.toml and other files via `npm run vss`
+/pyproject.toml            # metadata and build config (pip/setuptools) for the ccxt package in Python
 /run-tests.js              # a front-end to run individual tests of all exchanges in all languages (JS/PHP/Python)
 /wiki/                     # the source of all docs (edits go here)
 ```
 
 ### Multilanguage Support
 
-The ccxt library is available in several different languages (TypeScript, JavaScript, Python, PHP, C# and more to come). We encourage developers to design *portable* code, so that a single-language user could read the code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
+The ccxt library is available in several different languages (TypeScript, JavaScript, Python, PHP, C#, Go and Java). We encourage developers to design *portable* code, so that a single-language user could read the code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
 At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we have decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is TypeScript. Other language-specific versions are syntactically derived (transpiled, generated) automatically from the source version. But it doesn't mean that you have to be a TS or a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
 
@@ -219,13 +227,25 @@ The module entry points are:
 - `./ts/ccxt.ts` for TypeScript
 - `./dist/ccxt.browser.js` for the browser bundle
 - `./ccxt.php` for PHP
+- `./java/lib/src/main/java/io/github/ccxt/` for Java
 
 Generated versions and docs are transpiled from the source `ts/src` folder by the `npm run build` command.
 
 ### Transpiled (generated) files
 
 - All derived exchange classes are transpiled by `tsc` from TypeScript to JavaScript and by our custom transpiler from TypeScript to PHP and Python. The source files are language-agnostic, easily mapped line-to-line to any other language and written in a cross-language-compatible way. Any coder can read it (by design).
-- All base classes are **not** transpiled, those are language-specific.
+- Base classes are **not** entirely transpiled and are only transpiled partially, as they are language-specific.
+
+#### Base types
+
+The base type declarations are generated from `ts/src/base/types.ts` by `npm run transpile-types`:
+
+- `python/ccxt/base/types.py`
+- `cs/ccxt/base/Exchange.Types.cs`, `cs/ccxt/base/PredictionTypes.cs`
+- `go/v4/exchange_types.go`
+- `java/lib/src/main/java/io/github/ccxt/types/*.java`
+
+Do not edit them by hand — edit `ts/src/base/types.ts` and regenerate. `npm run transpile-types-check` fails the build when they are out of sync. PHP needs no type file (unified structures are plain associative arrays) and the JS/TS declarations are emitted by `tsc`.
 
 #### JavaScript
 
@@ -241,7 +261,7 @@ These files containing derived exchange classes are transpiled from TS into Pyth
 
 These Python base classes and files are not transpiled:
 
-- `python/ccxt/base/*`
+- `python/ccxt/base/*` (except `types.py`, see [Base types](#base-types))
 - `python/ccxt/async/base/*`
 
 #### PHP
@@ -263,6 +283,18 @@ These files containing derived exchange classes are transpiled from TS into C#:
 These C# base classes and files are not transpiled:
 
 - `cs/base/*`
+
+#### Java
+
+These files containing derived exchange classes are transpiled from TS into Java:
+
+- `ts/src/[_a-z].ts` → `java/lib/src/main/java/io/github/ccxt/exchanges/[A-Z]*.java`
+
+These Java base classes and files are not transpiled:
+
+- `java/lib/src/main/java/io/github/ccxt/base/*`
+- `java/lib/src/main/java/io/github/ccxt/ws/*`
+- `java/lib/src/main/java/io/github/ccxt/Exchange.java`
 
 #### Typescript
 
@@ -319,6 +351,7 @@ And structurally:
 - do not use the `in` operator to check if a value is in a non-associative array (list)
 - don't add custom currency or symbol/pair conversions and formatting, copy from existing code instead
 - **don't access non-existent keys, `array['key'] || {}` won't work in other languages!**
+- an empty container is ambiguous in PHP: `{}` and `[]` are both `array()` there, so `isDictionary` returns `true` for an empty array in PHP while every other language can tell them apart and returns `false` — never branch dict-vs-list logic on a possibly-empty container, and don't assert empty containers in shared tests, see https://github.com/ccxt/ccxt/pull/29704 and https://github.com/ccxt/ccxt/pull/29698
 
 #### Sending Market Ids
 
@@ -946,7 +979,7 @@ An example of `keys.local.json` file:
 
 ```json
 {
-    "ftx": {
+    "okx": {
         "apiKey": "XXX",
         "secret": "YYY"
     },
@@ -1048,8 +1081,8 @@ node run-tests --python-async kraken # test Kraken with Python async test, requi
 
 Follow this steps to add a test:
 
-- Create a file in [ts/tests/Exchange](ts/test/Exchange/) following syntax that can be transpiled.
-- Add test to `runPrivateTests` or `runPublicTests` to [ts/src/test/tests.ts](ts/src/test/tests.ts#L354) or for ccxt.pro endpoints to [ts/src/pro/test/tests.ts](ts/src/pro/test/tests.ts#L121)
+- Create a file in [ts/tests/Exchange](https://github.com/ccxt/ccxt/tree/master/ts/test/Exchange) following syntax that can be transpiled.
+- Add test to `runPrivateTests` or `runPublicTests` to [ts/src/test/tests.ts](https://github.com/ccxt/ccxt/blob/master/ts/src/test/tests.ts#L354) or for ccxt.pro endpoints to [ts/src/pro/test/tests.ts](https://github.com/ccxt/ccxt/blob/master/ts/src/pro/test/tests.ts#L121)
 - run `npm run transpile` to generate the test file in javascript, python and php.
 - Call tests `node run-tests`
 

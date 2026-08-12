@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.latoken import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -150,64 +150,64 @@ class latoken(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'book/{currency}/{quote}': 1,
-                        'chart/week': 1,
-                        'chart/week/{currency}/{quote}': 1,
-                        'currency': 1,
-                        'currency/available': 1,
-                        'currency/quotes': 1,
-                        'currency/{currency}': 1,
-                        'pair': 1,
-                        'pair/available': 1,
-                        'ticker': 1,
-                        'ticker/{base}/{quote}': 1,
-                        'time': 1,
-                        'trade/history/{currency}/{quote}': 1,
-                        'trade/fee/{currency}/{quote}': 1,
-                        'trade/feeLevels': 1,
-                        'transaction/bindings': 1,
+                        'book/{currency}/{quote}': {'cost': 1},
+                        'chart/week': {'cost': 1},
+                        'chart/week/{currency}/{quote}': {'cost': 1},
+                        'currency': {'cost': 1},
+                        'currency/available': {'cost': 1},
+                        'currency/quotes': {'cost': 1},
+                        'currency/{currency}': {'cost': 1},
+                        'pair': {'cost': 1},
+                        'pair/available': {'cost': 1},
+                        'ticker': {'cost': 1},
+                        'ticker/{base}/{quote}': {'cost': 1},
+                        'time': {'cost': 1},
+                        'trade/history/{currency}/{quote}': {'cost': 1},
+                        'trade/fee/{currency}/{quote}': {'cost': 1},
+                        'trade/feeLevels': {'cost': 1},
+                        'transaction/bindings': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
-                        'auth/account': 1,
-                        'auth/account/currency/{currency}/{type}': 1,
-                        'auth/order': 1,
-                        'auth/order/getOrder/{id}': 1,
-                        'auth/order/pair/{currency}/{quote}': 1,
-                        'auth/order/pair/{currency}/{quote}/active': 1,
-                        'auth/stopOrder': 1,
-                        'auth/stopOrder/getOrder/{id}': 1,
-                        'auth/stopOrder/pair/{currency}/{quote}': 1,
-                        'auth/stopOrder/pair/{currency}/{quote}/active': 1,
-                        'auth/trade': 1,
-                        'auth/trade/pair/{currency}/{quote}': 1,
-                        'auth/trade/fee/{currency}/{quote}': 1,
-                        'auth/transaction': 1,
-                        'auth/transaction/bindings': 1,
-                        'auth/transaction/bindings/{currency}': 1,
-                        'auth/transaction/{id}': 1,
-                        'auth/transfer': 1,
+                        'auth/account': {'cost': 1},
+                        'auth/account/currency/{currency}/{type}': {'cost': 1},
+                        'auth/order': {'cost': 1},
+                        'auth/order/getOrder/{id}': {'cost': 1},
+                        'auth/order/pair/{currency}/{quote}': {'cost': 1},
+                        'auth/order/pair/{currency}/{quote}/active': {'cost': 1},
+                        'auth/stopOrder': {'cost': 1},
+                        'auth/stopOrder/getOrder/{id}': {'cost': 1},
+                        'auth/stopOrder/pair/{currency}/{quote}': {'cost': 1},
+                        'auth/stopOrder/pair/{currency}/{quote}/active': {'cost': 1},
+                        'auth/trade': {'cost': 1},
+                        'auth/trade/pair/{currency}/{quote}': {'cost': 1},
+                        'auth/trade/fee/{currency}/{quote}': {'cost': 1},
+                        'auth/transaction': {'cost': 1},
+                        'auth/transaction/bindings': {'cost': 1},
+                        'auth/transaction/bindings/{currency}': {'cost': 1},
+                        'auth/transaction/{id}': {'cost': 1},
+                        'auth/transfer': {'cost': 1},
                     },
                     'post': {
-                        'auth/order/cancel': 1,
-                        'auth/order/cancelAll': 1,
-                        'auth/order/cancelAll/{currency}/{quote}': 1,
-                        'auth/order/place': 1,
-                        'auth/spot/deposit': 1,
-                        'auth/spot/withdraw': 1,
-                        'auth/stopOrder/cancel': 1,
-                        'auth/stopOrder/cancelAll': 1,
-                        'auth/stopOrder/cancelAll/{currency}/{quote}': 1,
-                        'auth/stopOrder/place': 1,
-                        'auth/transaction/depositAddress': 1,
-                        'auth/transaction/withdraw': 1,
-                        'auth/transaction/withdraw/cancel': 1,
-                        'auth/transaction/withdraw/confirm': 1,
-                        'auth/transaction/withdraw/resendCode': 1,
-                        'auth/transfer/email': 1,
-                        'auth/transfer/id': 1,
-                        'auth/transfer/phone': 1,
+                        'auth/order/cancel': {'cost': 1},
+                        'auth/order/cancelAll': {'cost': 1},
+                        'auth/order/cancelAll/{currency}/{quote}': {'cost': 1},
+                        'auth/order/place': {'cost': 1},
+                        'auth/spot/deposit': {'cost': 1},
+                        'auth/spot/withdraw': {'cost': 1},
+                        'auth/stopOrder/cancel': {'cost': 1},
+                        'auth/stopOrder/cancelAll': {'cost': 1},
+                        'auth/stopOrder/cancelAll/{currency}/{quote}': {'cost': 1},
+                        'auth/stopOrder/place': {'cost': 1},
+                        'auth/transaction/depositAddress': {'cost': 1},
+                        'auth/transaction/withdraw': {'cost': 1},
+                        'auth/transaction/withdraw/cancel': {'cost': 1},
+                        'auth/transaction/withdraw/confirm': {'cost': 1},
+                        'auth/transaction/withdraw/resendCode': {'cost': 1},
+                        'auth/transfer/email': {'cost': 1},
+                        'auth/transfer/id': {'cost': 1},
+                        'auth/transfer/phone': {'cost': 1},
                     },
                 },
             },
@@ -417,8 +417,9 @@ class latoken(Exchange, ImplicitAPI):
         currencies = self.safe_dict(self.options, 'cachedCurrencies', {})
         currenciesById = self.index_by(currencies, 'id')
         result = []
-        for i in range(0, len(response)):
-            market = response[i]
+        rawMarkets = self.to_array(response)
+        for i in range(0, len(rawMarkets)):
+            market = rawMarkets[i]
             id = self.safe_string(market, 'id')
             # the exchange shows them inverted
             baseId = self.safe_string(market, 'baseCurrency')
@@ -430,6 +431,8 @@ class latoken(Exchange, ImplicitAPI):
             if baseCurrencyInfo is not None and quoteCurrencyInfo is not None:
                 base = self.safe_currency_code(self.safe_string(baseCurrencyInfo, 'tag'))
                 quote = self.safe_currency_code(self.safe_string(quoteCurrencyInfo, 'tag'))
+                if (base is None) or (quote is None):
+                    continue
                 lowercaseQuote = quote.lower()
                 capitalizedQuote = self.capitalize(lowercaseQuote)
                 status = self.safe_string(market, 'status')
@@ -523,38 +526,37 @@ class latoken(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            currency = response[i]
-            id = self.safe_string(currency, 'id')
-            tag = self.safe_string(currency, 'tag')
-            code = self.safe_currency_code(tag)
-            currencyType = self.safe_string(currency, 'type')
-            isCrypto = (currencyType == 'CURRENCY_TYPE_CRYPTO' or currencyType == 'CURRENCY_TYPE_IEO')
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': self.safe_string(currency, 'name'),
-                'type': 'crypto' if isCrypto else 'other',
-                'active': self.safe_string(currency, 'status') == 'CURRENCY_STATUS_ACTIVE',
-                'deposit': None,
-                'withdraw': None,
-                'fee': self.safe_number(currency, 'fee'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals'))),
-                'limits': {
-                    'amount': {
-                        'min': self.safe_number(currency, 'minTransferAmount'),
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
+        return self.parse_currencies(response)
+
+    def parse_currency(self, currency: dict) -> CurrencyInterface:
+        id = self.safe_string(currency, 'id')
+        tag = self.safe_string(currency, 'tag')
+        code = self.safe_currency_code(tag)
+        currencyType = self.safe_string(currency, 'type')
+        isCrypto = (currencyType == 'CURRENCY_TYPE_CRYPTO' or currencyType == 'CURRENCY_TYPE_IEO')
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': currency,
+            'name': self.safe_string(currency, 'name'),
+            'type': 'crypto' if isCrypto else 'other',
+            'active': self.safe_string(currency, 'status') == 'CURRENCY_STATUS_ACTIVE',
+            'deposit': None,
+            'withdraw': None,
+            'fee': self.safe_number(currency, 'fee'),
+            'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals'))),
+            'limits': {
+                'amount': {
+                    'min': self.safe_number(currency, 'minTransferAmount'),
+                    'max': None,
                 },
-                'networks': {},
-            })
-        return result
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': {},
+        })
 
     def fetch_balance(self, params={}) -> Balances:
         """
@@ -565,7 +567,8 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetAuthAccount(params)
         #
         #     [
@@ -589,7 +592,7 @@ class latoken(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -614,7 +617,8 @@ class latoken(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'blocked')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         result['timestamp'] = maxTimestamp
         result['datetime'] = self.iso8601(maxTimestamp)
         return self.safe_balance(result)
@@ -628,11 +632,12 @@ class latoken(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         }
@@ -714,9 +719,10 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'base': market['baseId'],
             'quote': market['quoteId'],
         }
@@ -753,7 +759,8 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.publicGetTicker(params)
         #
         #    [
@@ -833,7 +840,7 @@ class latoken(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
-        if symbol in self.markets:
+        if (self.markets is not None) and (symbol in self.markets):
             market = self.market(symbol)
         id = self.safe_string(trade, 'id')
         orderId = self.safe_string(trade, 'order')
@@ -872,9 +879,10 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
             # 'from': str(since),  # milliseconds
@@ -915,9 +923,10 @@ class latoken(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' not support self method')
 
     def fetch_public_trading_fee(self, symbol: str, params={}):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         }
@@ -940,9 +949,10 @@ class latoken(Exchange, ImplicitAPI):
         }
 
     def fetch_private_trading_fee(self, symbol: str, params={}):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         }
@@ -977,8 +987,9 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             # 'currency': market['baseId'],
             # 'quote': market['quoteId'],
             # 'from': self.milliseconds(),
@@ -987,7 +998,7 @@ class latoken(Exchange, ImplicitAPI):
         market = None
         if limit is not None:
             request['limit'] = limit  # default 100
-        response = None
+        response = []
         if symbol is not None:
             market = self.market(symbol)
             request['currency'] = market['baseId']
@@ -1016,22 +1027,22 @@ class latoken(Exchange, ImplicitAPI):
         return self.parse_trades(response, market, since, limit)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'ORDER_STATUS_PLACED': 'open',
             'ORDER_STATUS_CLOSED': 'closed',
             'ORDER_STATUS_CANCELLED': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, status):
-        statuses: dict = {
+    def parse_order_type(self, status: Any):
+        statuses = {
             'ORDER_TYPE_MARKET': 'market',
             'ORDER_TYPE_LIMIT': 'limit',
         }
         return self.safe_string(statuses, status, status)
 
     def parse_time_in_force(self, timeInForce: Str):
-        timeInForces: dict = {
+        timeInForces = {
             'ORDER_CONDITION_GOOD_TILL_CANCELLED': 'GTC',
             'ORDER_CONDITION_IMMEDIATE_OR_CANCEL': 'IOC',
             'ORDER_CONDITION_FILL_OR_KILL': 'FOK',
@@ -1091,7 +1102,7 @@ class latoken(Exchange, ImplicitAPI):
         symbol = None
         if (base is not None) and (quote is not None):
             symbol = base + '/' + quote
-            if symbol in self.markets:
+            if (self.markets is not None) and (symbol in self.markets):
                 market = self.market(symbol)
         orderSide = self.safe_string(order, 'side')
         side = None
@@ -1153,13 +1164,14 @@ class latoken(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
-        self.load_markets()
-        response = None
+        if self.markets is None:
+            self.load_markets()
+        response: dict
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, 'stop')
         # privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         }
@@ -1207,8 +1219,9 @@ class latoken(Exchange, ImplicitAPI):
         :param boolean [params.trigger]: True if fetching trigger orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             # 'currency': market['baseId'],
             # 'quote': market['quoteId'],
             # 'from': self.milliseconds(),
@@ -1219,7 +1232,7 @@ class latoken(Exchange, ImplicitAPI):
         params = self.omit(params, ['stop', 'trigger'])
         if limit is not None:
             request['limit'] = limit  # default 100
-        response = None
+        response: dict
         if symbol is not None:
             market = self.market(symbol)
             request['currency'] = market['baseId']
@@ -1270,13 +1283,14 @@ class latoken(Exchange, ImplicitAPI):
         :param boolean [params.trigger]: True if fetching a trigger order
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'id': id,
         }
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['stop', 'trigger'])
-        response = None
+        response: dict
         if isTrigger:
             response = self.privateGetAuthStopOrderGetOrderId(self.extend(request, params))
         else:
@@ -1323,10 +1337,13 @@ class latoken(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: [0 .. 50] characters, client's custom order id(free field for your convenience)
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         uppercaseType = type.upper()
-        request: dict = {
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        request = {
             'baseCurrency': market['baseId'],
             'quoteCurrency': market['quoteId'],
             'side': side.upper(),  # "BUY", "BID", "SELL", "ASK"
@@ -1342,7 +1359,7 @@ class latoken(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         params = self.omit(params, ['triggerPrice', 'stopPrice'])
-        response = None
+        response: dict
         if triggerPrice is not None:
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             response = self.privatePostAuthStopOrderPlace(self.extend(request, params))
@@ -1370,18 +1387,19 @@ class latoken(Exchange, ImplicitAPI):
         https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  # stop
 
         :param str id: order id
-        :param str symbol: not used by latoken cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: True if cancelling a trigger order
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'id': id,
         }
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['stop', 'trigger'])
-        response = None
+        response: dict
         if isTrigger:
             response = self.privatePostAuthStopOrderCancel(self.extend(request, params))
         else:
@@ -1404,20 +1422,21 @@ class latoken(Exchange, ImplicitAPI):
         https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
         https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
 
-        :param str symbol: unified market symbol of the market to cancel orders in
+        :param str [symbol]: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: True if cancelling trigger orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             # 'currency': market['baseId'],
             # 'quote': market['quoteId'],
         }
         market = None
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['stop', 'trigger'])
-        response = None
+        response: dict
         if symbol is not None:
             market = self.market(symbol)
             request['currency'] = market['baseId']
@@ -1456,8 +1475,9 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             # 'page': '1',
             # 'size': 100,
         }
@@ -1557,7 +1577,7 @@ class latoken(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'TRANSACTION_STATUS_CONFIRMED': 'ok',
             'TRANSACTION_STATUS_EXECUTED': 'ok',
             'TRANSACTION_STATUS_CHECKING': 'pending',
@@ -1567,8 +1587,8 @@ class latoken(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction_type(self, type):
-        types: dict = {
+    def parse_transaction_type(self, type: Any):
+        types = {
             'TRANSACTION_TYPE_DEPOSIT': 'deposit',
             'TRANSACTION_TYPE_WITHDRAWAL': 'withdrawal',
         }
@@ -1586,7 +1606,8 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         response = self.privateGetAuthTransfer(params)
         #
@@ -1638,14 +1659,15 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
             'recipient': toAccount,
             'value': self.currency_to_precision(code, amount),
         }
-        response = None
+        response: dict
         if toAccount.find('@') >= 0:
             response = self.privatePostAuthTransferEmail(self.extend(request, params))
         elif len(toAccount) == 36:
@@ -1715,7 +1737,7 @@ class latoken(Exchange, ImplicitAPI):
         }
 
     def parse_transfer_status(self, status: Str) -> Str:
-        statuses: dict = {
+        statuses = {
             'TRANSFER_STATUS_COMPLETED': 'ok',
             'TRANSFER_STATUS_PENDING': 'pending',
             'TRANSFER_STATUS_REJECTED': 'failed',
@@ -1724,7 +1746,7 @@ class latoken(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path, api='public', method='GET', params=None, headers=None, body=None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         request = '/' + self.version + '/' + self.implode_params(path, params)
         requestString = request
         query = self.omit(params, self.extract_params(path))
@@ -1747,7 +1769,7 @@ class latoken(Exchange, ImplicitAPI):
         url = self.urls['api']['rest'] + requestString
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if not response:
             return None
         #

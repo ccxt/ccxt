@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitrue.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Fee, FeeString, Int, List, MarginModification, Market, MarketType, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int, Bool, DepositWithdrawFees, Status, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import type { Balances, Currencies, Currency, Dict, Int, MarginModification, Mar
  * @augments Exchange
  */
 export default class bitrue extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bitrue',
             'name': 'Bitrue',
@@ -172,51 +172,51 @@ export default class bitrue extends Exchange {
                     'kline': {
                         'public': {
                             'get': {
-                                'public.json': 0.24,
-                                'public{currency}.json': 0.24,
+                                'public.json': { 'cost': 0.24 } as Endpoint<Dict>,
+                                'public{currency}.json': { 'cost': 0.24 } as Endpoint<Dict>,
                             },
                         },
                     },
                     'v1': {
                         'public': {
                             'get': {
-                                'ping': 0.24,
-                                'time': 0.24,
-                                'exchangeInfo': 0.24,
-                                'depth': { 'cost': 1, 'byLimit': [ [ 100, 0.24 ], [ 500, 1.2 ], [ 1000, 2.4 ] ] },
-                                'trades': 0.24,
-                                'historicalTrades': 1.2,
-                                'aggTrades': 0.24,
-                                'ticker/24hr': { 'cost': 0.24, 'noSymbol': 9.6 },
-                                'ticker/price': 0.24,
-                                'ticker/bookTicker': 0.24,
-                                'market/kline': 0.24,
+                                'ping': { 'cost': 0.24 } as Endpoint<Dict>,
+                                'time': { 'cost': 0.24 } as Endpoint<Dict>,
+                                'exchangeInfo': { 'cost': 0.24 } as Endpoint<Dict>,
+                                'depth': { 'cost': 1, 'byLimit': [ [ 100, 0.24 ], [ 500, 1.2 ], [ 1000, 2.4 ] ] } as Endpoint<Dict>,
+                                'trades': { 'cost': 0.24 } as Endpoint<List>,
+                                'historicalTrades': { 'cost': 1.2 } as Endpoint<List>,
+                                'aggTrades': { 'cost': 0.24 } as Endpoint<List>,
+                                'ticker/24hr': { 'cost': 0.24, 'noSymbol': 9.6 } as Endpoint<List>,
+                                'ticker/price': { 'cost': 0.24 } as Endpoint<Dict>,
+                                'ticker/bookTicker': { 'cost': 0.24 } as Endpoint<Dict>,
+                                'market/kline': { 'cost': 0.24 } as Endpoint<Dict>,
                             },
                         },
                         'private': {
                             'get': {
-                                'order': 5,
-                                'openOrders': 5,
-                                'allOrders': 25,
-                                'account': 25,
-                                'myTrades': 25,
-                                'etf/net-value/{symbol}': 0.24,
-                                'withdraw/history': 120,
-                                'deposit/history': 120,
+                                'order': { 'cost': 5 } as Endpoint<Dict>,
+                                'openOrders': { 'cost': 5 } as Endpoint<Dict>,
+                                'allOrders': { 'cost': 25 } as Endpoint<List>,
+                                'account': { 'cost': 25 } as Endpoint<Dict>,
+                                'myTrades': { 'cost': 25 } as Endpoint<List>,
+                                'etf/net-value/{symbol}': { 'cost': 0.24 } as Endpoint<Dict>,
+                                'withdraw/history': { 'cost': 120 } as Endpoint<Dict>,
+                                'deposit/history': { 'cost': 120 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'order': 5,
-                                'withdraw/commit': 120,
+                                'order': { 'cost': 5 } as Endpoint<Dict>,
+                                'withdraw/commit': { 'cost': 120 } as Endpoint<Dict>,
                             },
                             'delete': {
-                                'order': 5,
+                                'order': { 'cost': 5 } as Endpoint<Dict>,
                             },
                         },
                     },
                     'v2': {
                         'private': {
                             'get': {
-                                'myTrades': 1.2,
+                                'myTrades': { 'cost': 1.2 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -225,34 +225,34 @@ export default class bitrue extends Exchange {
                     'v1': {
                         'public': {
                             'get': {
-                                'ping': 0.24,
-                                'time': 0.24,
-                                'contracts': 0.24,
-                                'depth': 0.24,
-                                'ticker': 0.24,
-                                'klines': 0.24,
+                                'ping': { 'cost': 0.24 } as Endpoint<Dict>,
+                                'time': { 'cost': 0.24 } as Endpoint<Dict>,
+                                'contracts': { 'cost': 0.24 } as Endpoint<List>,
+                                'depth': { 'cost': 0.24 } as Endpoint<Dict>,
+                                'ticker': { 'cost': 0.24 } as Endpoint<Dict | List>,
+                                'klines': { 'cost': 0.24 } as Endpoint<List>,
                             },
                         },
                     },
                     'v2': {
                         'private': {
                             'get': {
-                                'myTrades': 5,
-                                'openOrders': 5,
-                                'order': 5,
-                                'account': 5,
-                                'leverageBracket': 5,
-                                'commissionRate': 5,
-                                'futures_transfer_history': 5,
-                                'forceOrdersHistory': 5,
+                                'myTrades': { 'cost': 5 } as Endpoint<Dict>,
+                                'openOrders': { 'cost': 5 } as Endpoint<Dict>,
+                                'order': { 'cost': 5 } as Endpoint<Dict>,
+                                'account': { 'cost': 5 } as Endpoint<Dict>,
+                                'leverageBracket': { 'cost': 5 } as Endpoint<Dict>,
+                                'commissionRate': { 'cost': 5 } as Endpoint<Dict>,
+                                'futures_transfer_history': { 'cost': 5 } as Endpoint<Dict>,
+                                'forceOrdersHistory': { 'cost': 5 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'positionMargin': 5,
-                                'level_edit': 5,
-                                'cancel': 5,
-                                'order': 25,
-                                'allOpenOrders': 5,
-                                'futures_transfer': 5,
+                                'positionMargin': { 'cost': 5 } as Endpoint<Dict>,
+                                'level_edit': { 'cost': 5 } as Endpoint<Dict>,
+                                'cancel': { 'cost': 5 } as Endpoint<Dict>,
+                                'order': { 'cost': 25 } as Endpoint<Dict>,
+                                'allOpenOrders': { 'cost': 5 } as Endpoint<Dict>,
+                                'futures_transfer': { 'cost': 5 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -261,34 +261,34 @@ export default class bitrue extends Exchange {
                     'v1': {
                         'public': {
                             'get': {
-                                'ping': 0.24,
-                                'time': 0.24,
-                                'contracts': 0.24,
-                                'depth': 0.24,
-                                'ticker': 0.24,
-                                'klines': 0.24,
+                                'ping': { 'cost': 0.24 } as Endpoint<Dict>,
+                                'time': { 'cost': 0.24 } as Endpoint<Dict>,
+                                'contracts': { 'cost': 0.24 } as Endpoint<List>,
+                                'depth': { 'cost': 0.24 } as Endpoint<Dict>,
+                                'ticker': { 'cost': 0.24 } as Endpoint<Dict | List>,
+                                'klines': { 'cost': 0.24 } as Endpoint<List>,
                             },
                         },
                     },
                     'v2': {
                         'private': {
                             'get': {
-                                'myTrades': 5,
-                                'openOrders': 5,
-                                'order': 5,
-                                'account': 5,
-                                'leverageBracket': 5,
-                                'commissionRate': 5,
-                                'futures_transfer_history': 5,
-                                'forceOrdersHistory': 5,
+                                'myTrades': { 'cost': 5 } as Endpoint<Dict>,
+                                'openOrders': { 'cost': 5 } as Endpoint<Dict>,
+                                'order': { 'cost': 5 } as Endpoint<Dict>,
+                                'account': { 'cost': 5 } as Endpoint<Dict>,
+                                'leverageBracket': { 'cost': 5 } as Endpoint<Dict>,
+                                'commissionRate': { 'cost': 5 } as Endpoint<Dict>,
+                                'futures_transfer_history': { 'cost': 5 } as Endpoint<Dict>,
+                                'forceOrdersHistory': { 'cost': 5 } as Endpoint<Dict>,
                             },
                             'post': {
-                                'positionMargin': 5,
-                                'level_edit': 5,
-                                'cancel': 5,
-                                'order': 5,
-                                'allOpenOrders': 5,
-                                'futures_transfer': 5,
+                                'positionMargin': { 'cost': 5 } as Endpoint<Dict>,
+                                'level_edit': { 'cost': 5 } as Endpoint<Dict>,
+                                'cancel': { 'cost': 5 } as Endpoint<Dict>,
+                                'order': { 'cost': 5 } as Endpoint<Dict>,
+                                'allOpenOrders': { 'cost': 5 } as Endpoint<Dict>,
+                                'futures_transfer': { 'cost': 5 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -375,7 +375,9 @@ export default class bitrue extends Exchange {
             },
             // exchange-specific options
             'options': {
-                'createMarketBuyOrderRequiresPrice': true,
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': true,
+                },
                 'fetchMarkets': {
                     'types': [ 'spot', 'linear', 'inverse' ],
                 },
@@ -383,8 +385,8 @@ export default class bitrue extends Exchange {
                 'fetchMyTradesMethod': 'v2PrivateGetMyTrades', // spotV1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'currencyToPrecisionRoundingMode': TRUNCATE,
-                'recvWindow': 5 * 1000, // 5 sec, binance default
-                'timeDifference': 0, // the difference between system clock and Binance clock
+                'recvWindow': 5 * 1000, // 5 sec, the exchange default
+                'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'parseOrderToPrecision': false, // force amounts and costs in parseOrder to precision
                 'newOrderRespType': {
@@ -447,7 +449,6 @@ export default class bitrue extends Exchange {
                     'XML': 'Stellar Lumens',
                     'XYM': 'Symbol',
                     'XTZ': 'Tezos',
-                    'theta': 'theta',
                     'THETA': 'THETA',
                     'VECHAIN': 'VeChain',
                     'WANCHAIN': 'Wanchain',
@@ -598,6 +599,7 @@ export default class bitrue extends Exchange {
                     "You don't have permission.": PermissionDenied, // {"msg":"You don't have permission.","success":false}
                     'Market is closed.': ExchangeNotAvailable, // {"code":-1013,"msg":"Market is closed."}
                     'Too many requests. Please try again later.': DDoSProtection, // {"msg":"Too many requests. Please try again later.","success":false}
+                    'quantity less then minQty': InvalidOrder, // {"code":-1111,"msg":"quantity less then minQty.","data":null}
                     '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1001': ExchangeNotAvailable, // 'Internal error; unable to process your request. Please try again.'
                     '-1002': AuthenticationError, // 'You are not authorized to execute this request.'
@@ -663,7 +665,7 @@ export default class bitrue extends Exchange {
         });
     }
 
-    nonce () {
+    override nonce () {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
@@ -675,7 +677,7 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.spotV1PublicGetPing (params);
         //
         // empty means working status.
@@ -702,7 +704,7 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params = {}): Promise<Int> {
         const response = await this.spotV1PublicGetTime (params);
         //
         //     {
@@ -719,7 +721,7 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params = {}): Promise<Currencies> {
         const response = await this.spotV1PublicGetExchangeInfo (params);
         //
         //     {
@@ -757,7 +759,7 @@ export default class bitrue extends Exchange {
         //                 {
         //                     "chain": "BEP20",
         //                     "enableWithdraw": true,
-        //                     "enableDeposit": true,
+        //                     "enableDeposit": false,
         //                     "withdrawFee": "0.2000",
         //                     "minWithdraw": "5.0000",
         //                     "maxWithdraw": "1000000000000000.0000",
@@ -767,19 +769,21 @@ export default class bitrue extends Exchange {
         //         ],
         //     }
         //
-        const result: Dict = {};
         const coins = this.safeList (response, 'coins', []);
-        for (let i = 0; i < coins.length; i++) {
-            const currency = coins[i];
-            const id = this.safeString (currency, 'coin');
-            const name = this.safeString (currency, 'coinFulName');
-            const code = this.safeCurrencyCode (id);
-            const networkDetails = this.safeList (currency, 'chainDetail', []);
-            const networks: Dict = {};
-            for (let j = 0; j < networkDetails.length; j++) {
-                const entry = networkDetails[j];
-                const networkId = this.safeString (entry, 'chain');
-                const network = this.networkIdToCode (networkId, code);
+        return this.parseCurrencies (coins);
+    }
+
+    override parseCurrency (rawCurrency: Dict): CurrencyInterface {
+        const id = this.safeString (rawCurrency, 'coin');
+        const name = this.safeString (rawCurrency, 'coinFulName');
+        const code = this.safeCurrencyCode (id);
+        const networkDetails = this.safeList (rawCurrency, 'chainDetail', []);
+        const networks: Dict = {};
+        for (let j = 0; j < networkDetails.length; j++) {
+            const entry = networkDetails[j];
+            const networkId = this.safeString (entry, 'chain');
+            const network = this.networkIdToCode (networkId, code);
+            if (network !== undefined) {
                 networks[network] = {
                     'info': entry,
                     'id': networkId,
@@ -797,28 +801,27 @@ export default class bitrue extends Exchange {
                     },
                 };
             }
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'name': name,
-                'code': code,
-                'precision': undefined,
-                'info': currency,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'networks': networks,
-                'fee': undefined,
-                'fees': undefined,
-                'type': 'crypto',
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            });
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'name': name,
+            'code': code,
+            'precision': undefined,
+            'info': rawCurrency,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'networks': networks,
+            'fee': undefined,
+            'fees': undefined,
+            'type': 'crypto',
+            'limits': {
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+        });
     }
 
     /**
@@ -828,12 +831,12 @@ export default class bitrue extends Exchange {
      * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
      * @see https://www.bitrue.com/api-docs#current-open-contract
      * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
-        const promisesRaw = [];
-        let types = undefined;
+    override async fetchMarkets (params = {}): Promise<Market[]> {
+        const promisesRaw: Promise<any>[] = [];
+        let types: Strings = undefined;
         const defaultTypes = [ 'spot', 'linear', 'inverse' ];
         const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
         if (fetchMarketsOptions !== undefined) {
@@ -931,13 +934,13 @@ export default class bitrue extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market: Dict): Market {
-        const id = this.safeString (market, 'symbol');
+    override parseMarket (market: Dict): Market {
+        const id = this.safeString (market, 'symbol', '');
         const lowercaseId = this.safeStringLower (market, 'symbol');
         const side = this.safeInteger (market, 'side'); // 1 linear, 0 inverse, undefined spot
-        let type = undefined;
-        let isLinear = undefined;
-        let isInverse = undefined;
+        let type: MarketType = 'spot';
+        let isLinear: Bool = undefined;
+        let isInverse: Bool = undefined;
         if (side === undefined) {
             type = 'spot';
         } else {
@@ -948,8 +951,8 @@ export default class bitrue extends Exchange {
         const isContract = (type !== 'spot');
         let baseId = this.safeString (market, 'baseAsset');
         let quoteId = this.safeString (market, 'quoteAsset');
-        let settleId = undefined;
-        let settle = undefined;
+        let settleId: Str = undefined;
+        let settle: Str = undefined;
         if (isContract) {
             const symbolSplit = id.split ('-');
             baseId = this.safeString (symbolSplit, 1);
@@ -985,7 +988,8 @@ export default class bitrue extends Exchange {
         if (minCost === undefined) {
             minCost = this.safeNumber (market, 'minOrderMoney');
         }
-        return {
+        const isSpot = (type === 'spot');
+        return this.safeMarketStructure ({
             'id': id,
             'lowercaseId': lowercaseId,
             'symbol': symbol,
@@ -996,7 +1000,7 @@ export default class bitrue extends Exchange {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': (type === 'spot'),
+            'spot': isSpot,
             'margin': false,
             'swap': isContract,
             'future': false,
@@ -1034,10 +1038,10 @@ export default class bitrue extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
-    parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         //
         // spot
         //
@@ -1096,7 +1100,9 @@ export default class bitrue extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString2 (balance, 'free', 'accountNormal');
             account['used'] = this.safeString2 (balance, 'locked', 'accountLock');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
@@ -1115,14 +1121,16 @@ export default class bitrue extends Exchange {
      * @param {string} [params.subType] 'linear', 'inverse'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
-        let type = undefined;
+    override async fetchBalance (params = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let subType = undefined;
+        let subType: Str = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
-        let response = undefined;
-        let result = undefined;
+        let response: NullableDict = undefined;
+        let result: NullableDict = undefined;
         if (type === 'swap') {
             if (subType !== undefined && subType === 'inverse') {
                 response = await this.dapiV2PrivateGetAccount (params);
@@ -1225,12 +1233,14 @@ export default class bitrue extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let response = undefined;
+        let response: Dict = {};
         if (market['swap']) {
             const request: Dict = {
                 'contractName': market['id'],
@@ -1291,7 +1301,7 @@ export default class bitrue extends Exchange {
         return orderbook;
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // fetchBidsAsks
         //
@@ -1330,8 +1340,8 @@ export default class bitrue extends Exchange {
         const symbol = this.safeSymbol (undefined, market);
         const last = this.safeString2 (ticker, 'lastPrice', 'last');
         const timestamp = this.safeInteger (ticker, 'time');
-        let percentage = undefined;
-        if (market['swap']) {
+        let percentage: Str = undefined;
+        if (this.safeBool (market, 'swap')) {
             percentage = Precise.stringMul (this.safeString (ticker, 'rose'), '100');
         } else {
             percentage = this.safeString (ticker, 'priceChangePercent');
@@ -1371,11 +1381,13 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let response = undefined;
-        let data = undefined;
+        let response: NullableDict = undefined;
+        let data: Dict = {};
         if (market['swap']) {
             const request: Dict = {
                 'contractName': market['id'],
@@ -1385,7 +1397,7 @@ export default class bitrue extends Exchange {
             } else if (market['inverse']) {
                 response = await this.dapiV1PublicGetTicker (this.extend (request, params));
             }
-            data = response;
+            data = response as Dict;
         } else if (market['spot']) {
             const request: Dict = {
                 'symbol': market['id'],
@@ -1450,12 +1462,14 @@ export default class bitrue extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch transfers for
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const timeframes = this.safeDict (this.options, 'timeframes', {});
-        let response = undefined;
-        let data = undefined;
+        let response: NullableDict = undefined;
+        let data: Dict[] = [];
         if (market['swap']) {
             const timeframesFuture = this.safeDict (timeframes, 'future', {});
             const request: Dict = {
@@ -1471,7 +1485,7 @@ export default class bitrue extends Exchange {
             } else if (market['inverse']) {
                 response = await this.dapiV1PublicGetKlines (this.extend (request, params));
             }
-            data = response;
+            data = response as Dict[];
         } else if (market['spot']) {
             const timeframesSpot = this.safeDict (timeframes, 'spot', {});
             const request: Dict = {
@@ -1527,7 +1541,7 @@ export default class bitrue extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         // spot
         //
@@ -1577,12 +1591,14 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
         const first = this.safeString (symbols, 0);
         const market = this.market (first);
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (market['swap']) {
             const request: Dict = {
                 'contractName': market['id'],
@@ -1625,7 +1641,7 @@ export default class bitrue extends Exchange {
         //     }
         //
         const data: Dict = {};
-        data[market['id']] = response;
+        data[(market['id'] as string)] = response;
         return this.parseTickers (data, symbols);
     }
 
@@ -1640,13 +1656,15 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
-        let response = undefined;
-        let data = undefined;
+        let response: Dict | List = [];
+        let data: Dict[] = [];
         const request: Dict = {};
-        let type = undefined;
+        let type: Str = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
             const market = this.market (first);
@@ -1654,7 +1672,7 @@ export default class bitrue extends Exchange {
                 throw new NotSupported (this.id + ' fetchTickers does not support swap markets, please use fetchTicker instead');
             } else if (market['spot']) {
                 response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
-                data = response;
+                data = this.toArray (response);
             } else {
                 throw new NotSupported (this.id + ' fetchTickers only support spot & swap markets');
             }
@@ -1664,7 +1682,7 @@ export default class bitrue extends Exchange {
                 throw new NotSupported (this.id + ' fetchTickers only support spot when symbols are not proved');
             }
             response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
-            data = response;
+            data = this.toArray (response);
         }
         //
         // spot
@@ -1710,13 +1728,19 @@ export default class bitrue extends Exchange {
         const tickers: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.safeDict (data, i, {});
-            const market = this.safeMarket (this.safeString (ticker, 'symbol'));
-            tickers[market['id']] = ticker;
+            // skip entries without a symbol: an undefined market id would become a null
+            // dictionary key here, which crashes fetchTickers in the C# build
+            const marketId = this.safeString (ticker, 'symbol');
+            if (marketId === undefined) {
+                continue;
+            }
+            const market = this.safeMarket (marketId);
+            tickers[(market['id'] as string)] = ticker;
         }
         return this.parseTickers (tickers, symbols);
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades
         //
@@ -1772,7 +1796,7 @@ export default class bitrue extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const orderId = this.safeString (trade, 'orderId');
         const id = this.safeString2 (trade, 'id', 'tradeId');
-        let side = undefined;
+        let side: Str = undefined;
         const buyerMaker = this.safeBool (trade, 'isBuyerMaker');  // ignore "m" until Bitrue fixes api
         const isBuyer = this.safeBool (trade, 'isBuyer');
         if (buyerMaker !== undefined) {
@@ -1781,14 +1805,14 @@ export default class bitrue extends Exchange {
         if (isBuyer !== undefined) {
             side = isBuyer ? 'buy' : 'sell'; // this is a true side
         }
-        let fee = undefined;
+        let fee: FeeString = undefined;
         if ('commission' in trade) {
             fee = {
                 'cost': this.safeString2 (trade, 'commission', 'fee'),
                 'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAssert')),
             };
         }
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         const isMaker = this.safeBool (trade, 'isMaker');
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
@@ -1821,10 +1845,12 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let response = undefined;
+        let response: List = [];
         if (market['spot']) {
             const request: Dict = {
                 'symbol': market['id'],
@@ -1866,10 +1892,10 @@ export default class bitrue extends Exchange {
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder - spot
         //
@@ -1928,8 +1954,8 @@ export default class bitrue extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const filled = this.safeString (order, 'executedQty');
-        let timestamp = undefined;
-        let lastTradeTimestamp = undefined;
+        let timestamp: Int = undefined;
+        let lastTradeTimestamp: Int = undefined;
         if ('time' in order) {
             timestamp = this.safeInteger (order, 'time');
         } else if ('transactTime' in order) {
@@ -1948,7 +1974,7 @@ export default class bitrue extends Exchange {
         const amount = this.safeString (order, 'origQty');
         // - Spot/Margin market: cummulativeQuoteQty
         // - Futures market: cumQuote.
-        //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
+        //   Note this is not the actual cost, since the exchange uses leverage to calculate margins.
         const cost = this.safeString2 (order, 'cummulativeQuoteQty', 'cumQuote');
         const id = this.safeString (order, 'orderId');
         let type = this.safeStringLower (order, 'type');
@@ -1997,8 +2023,10 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
-        await this.loadMarkets ();
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (!market['swap']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports swap orders only');
@@ -2031,14 +2059,16 @@ export default class bitrue extends Exchange {
      * @param {float} [params.cost] *swap market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let response = undefined;
-        let data = undefined;
+        let response: NullableDict = undefined;
+        let data: Dict = {};
         const uppercaseType = type.toUpperCase ();
         const request: Dict = {
-            'side': side.toUpperCase (),
+            'side': (side as string).toUpperCase (),
             'type': uppercaseType,
             // 'timeInForce': '',
             // 'price': this.priceToPrecision (symbol, price),
@@ -2113,7 +2143,7 @@ export default class bitrue extends Exchange {
                 request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             }
             response = await this.spotV1PrivatePostOrder (this.extend (request, params));
-            data = response;
+            data = response as Dict;
         } else {
             throw new NotSupported (this.id + ' createOrder only support spot & swap markets');
         }
@@ -2152,16 +2182,18 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
-        let response = undefined;
-        let data = undefined;
+        let response: NullableDict = undefined;
+        let data: Dict = {};
         const request: Dict = {};
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
@@ -2184,7 +2216,7 @@ export default class bitrue extends Exchange {
             request['orderId'] = id; // spot market id is mandatory
             request['symbol'] = market['id'];
             response = await this.spotV1PrivateGetOrder (this.extend (request, params));
-            data = response;
+            data = response as Dict;
         } else {
             throw new NotSupported (this.id + ' fetchOrder only support spot & swap markets');
         }
@@ -2245,11 +2277,13 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (!market['spot']) {
             throw new NotSupported (this.id + ' fetchClosedOrders only support spot markets');
@@ -2305,14 +2339,16 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let response = undefined;
-        let data = undefined;
+        let response: NullableDict = undefined;
+        let data: Dict[] = [];
         const request: Dict = {};
         if (market['swap']) {
             request['contractName'] = market['id'];
@@ -2325,7 +2361,7 @@ export default class bitrue extends Exchange {
         } else if (market['spot']) {
             request['symbol'] = market['id'];
             response = await this.spotV1PrivateGetOpenOrders (this.extend (request, params));
-            data = response;
+            data = response as Dict[];
         } else {
             throw new NotSupported (this.id + ' fetchOpenOrders only support spot & swap markets');
         }
@@ -2390,16 +2426,18 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
-        let response = undefined;
-        let data = undefined;
+        let response: NullableDict = undefined;
+        let data: Dict = {};
         const request: Dict = {};
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
@@ -2421,7 +2459,7 @@ export default class bitrue extends Exchange {
         } else if (market['spot']) {
             request['symbol'] = market['id'];
             response = await this.spotV1PrivateDeleteOrder (this.extend (request, params));
-            data = response;
+            data = response as Dict;
         } else {
             throw new NotSupported (this.id + ' cancelOrder only support spot & swap markets');
         }
@@ -2454,16 +2492,18 @@ export default class bitrue extends Exchange {
      * @description cancel all open orders in a market
      * @see https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
      * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
-     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let response = undefined;
-        let data = undefined;
+        let response: NullableDict = undefined;
+        let data: Dict[] = [];
         if (market['swap']) {
             const request: Dict = {
                 'contractName': market['id'],
@@ -2501,14 +2541,16 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         const market = this.market (symbol);
-        let response = undefined;
-        let data = undefined;
+        let response: NullableDict = undefined;
+        let data: Dict[] = [];
         const request: Dict = {};
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2530,7 +2572,7 @@ export default class bitrue extends Exchange {
         } else if (market['spot']) {
             request['symbol'] = market['id'];
             response = await this.spotV2PrivateGetMyTrades (this.extend (request, params));
-            data = response;
+            data = response as Dict[];
         } else {
             throw new NotSupported (this.id + ' fetchMyTrades only support spot & swap markets');
         }
@@ -2593,11 +2635,13 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a code argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'coin': currency['id'],
@@ -2666,11 +2710,13 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a code argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'coin': currency['id'],
@@ -2715,7 +2761,7 @@ export default class bitrue extends Exchange {
         return this.parseTransactions (data, currency);
     }
 
-    parseTransactionStatusByType (status, type = undefined) {
+    parseTransactionStatusByType (status: any, type: Str = undefined) {
         const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',
@@ -2731,7 +2777,7 @@ export default class bitrue extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -2796,8 +2842,8 @@ export default class bitrue extends Exchange {
         const tagType = this.safeString (transaction, 'tagType');
         let addressTo = this.safeString (transaction, 'addressTo');
         let addressFrom = this.safeString (transaction, 'addressFrom');
-        let tagTo = undefined;
-        let tagFrom = undefined;
+        let tagTo: Str = undefined;
+        let tagFrom: Str = undefined;
         if (tagType !== undefined) {
             if (addressTo !== undefined) {
                 const parts = addressTo.split ('_');
@@ -2818,7 +2864,7 @@ export default class bitrue extends Exchange {
         const type = (payAmount || ctime) ? 'withdrawal' : 'deposit';
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         const amount = this.safeNumber (transaction, 'amount');
-        let network = undefined;
+        let network: Str = undefined;
         let currencyId = this.safeString2 (transaction, 'symbol', 'coin');
         if (currencyId !== undefined) {
             const parts = currencyId.split ('_');
@@ -2830,7 +2876,7 @@ export default class bitrue extends Exchange {
         }
         const code = this.safeCurrencyCode (currencyId, currency);
         const feeCost = this.safeNumber (transaction, 'fee');
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
@@ -2870,10 +2916,12 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'coin': currency['id'],
@@ -2884,10 +2932,10 @@ export default class bitrue extends Exchange {
             // 'addrType': '', // type of address
             // 'tag': tag,
         };
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chainName'] = this.networkCodeToId (networkCode);
+            request['chainName'] = this.networkCodeToId (networkCode, currency['code']);
         }
         if (tag !== undefined) {
             request['tag'] = tag;
@@ -2909,10 +2957,10 @@ export default class bitrue extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseTransaction (data, currency);
+        return this.parseTransaction (data as Dict, currency);
     }
 
-    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         //   {
         //       "coin": "adx",
@@ -2941,10 +2989,12 @@ export default class bitrue extends Exchange {
                 const networkId = this.safeString (chainDetail, 'chain');
                 const currencyCode = this.safeString (currency, 'code');
                 const networkCode = this.networkIdToCode (networkId, currencyCode);
-                result['networks'][networkCode] = {
-                    'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': this.safeNumber (chainDetail, 'withdrawFee'), 'percentage': false },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'deposit': { 'fee': undefined, 'percentage': undefined },
+                        'withdraw': { 'fee': this.safeNumber (chainDetail, 'withdrawFee'), 'percentage': false },
+                    };
+                }
                 if (chainDetailLength === 1) {
                     result['withdraw']['fee'] = this.safeNumber (chainDetail, 'withdrawFee');
                     result['withdraw']['percentage'] = false;
@@ -2963,14 +3013,16 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<DepositWithdrawFees> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.spotV1PublicGetExchangeInfo (params);
         const coins = this.safeList (response, 'coins');
         return this.parseDepositWithdrawFees (coins, codes, 'coin');
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    override parseTransfer (transfer: any, currency: Currency = undefined) {
         //
         //     fetchTransfers
         //
@@ -2987,8 +3039,8 @@ export default class bitrue extends Exchange {
         //     {}
         //
         const transferType = this.safeString (transfer, 'transferType');
-        let fromAccount = undefined;
-        let toAccount = undefined;
+        let fromAccount: Str = undefined;
+        let toAccount: Str = undefined;
         if (transferType !== undefined) {
             const accountSplit = transferType.split ('_to_');
             fromAccount = this.safeString (accountSplit, 0);
@@ -3022,13 +3074,15 @@ export default class bitrue extends Exchange {
      * @param {string} [params.type] transfer type wallet_to_contract or contract_to_wallet
      * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
      */
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
-        await this.loadMarkets ();
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const type = this.safeString2 (params, 'type', 'transferType');
         const request: Dict = {
             'transferType': type,
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['coinSymbol'] = currency['id'];
@@ -3078,8 +3132,10 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
      */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        await this.loadMarkets ();
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const accountTypes = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountTypes, fromAccount, fromAccount);
@@ -3112,16 +3168,18 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
         if ((leverage < 1) || (leverage > 125)) {
             throw new BadRequest (this.id + ' leverage should be between 1 and 125');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let response = undefined;
+        let response: Dict = {};
         const request: Dict = {
             'contractName': market['id'],
             'leverage': leverage,
@@ -3137,7 +3195,7 @@ export default class bitrue extends Exchange {
         return response;
     }
 
-    parseMarginModification (data, market = undefined): MarginModification {
+    override parseMarginModification (data: any, market: Market = undefined): MarginModification {
         //
         // setMargin
         //
@@ -3149,7 +3207,7 @@ export default class bitrue extends Exchange {
         //
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'type': undefined,
             'marginMode': 'isolated',
             'amount': undefined,
@@ -3172,13 +3230,15 @@ export default class bitrue extends Exchange {
      * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
-    async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
-        await this.loadMarkets ();
+    override async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (!market['swap']) {
             throw new NotSupported (this.id + ' setMargin only support swap markets');
         }
-        let response = undefined;
+        let response: NullableDict = undefined;
         const request: Dict = {
             'contractName': market['id'],
             'amount': this.parseToNumeric (amount),
@@ -3198,15 +3258,15 @@ export default class bitrue extends Exchange {
         return this.parseMarginModification (response, market);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const type = this.safeString (api, 0);
         const version = this.safeString (api, 1);
         const access = this.safeString (api, 2);
-        let url = undefined;
+        let url: Str = undefined;
         if ((type === 'api' && version === 'kline') || (type === 'open' && path.indexOf ('listenKey') >= 0)) {
             url = this.urls['api'][type];
         } else {
-            url = this.urls['api'][type] + '/' + version;
+            url = this.urls['api'][type as string] + '/' + version;
         }
         url = url + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
@@ -3231,7 +3291,7 @@ export default class bitrue extends Exchange {
                 }
             } else {
                 const timestamp = this.nonce ().toString ();
-                let signPath = undefined;
+                let signPath: Str = undefined;
                 if (type === 'fapi') {
                     signPath = '/fapi';
                 } else if (type === 'dapi') {
@@ -3275,12 +3335,12 @@ export default class bitrue extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if ((code === 418) || (code === 429)) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
-        // following block cointains legacy checks against message patterns in "msg" property
+        // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if (code >= 400) {
             if (body.indexOf ('Price * QTY is zero or less') >= 0) {
@@ -3301,7 +3361,7 @@ export default class bitrue extends Exchange {
         const success = this.safeBool (response, 'success', true);
         if (!success) {
             const messageInner = this.safeString (response, 'msg');
-            let parsedMessage = undefined;
+            let parsedMessage: NullableDict = undefined;
             if (messageInner !== undefined) {
                 try {
                     parsedMessage = JSON.parse (messageInner);
@@ -3343,12 +3403,12 @@ export default class bitrue extends Exchange {
         return undefined;
     }
 
-    calculateRateLimiterCost (api, method, path, params, config = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
         } else if (('byLimit' in config) && ('limit' in params)) {
             const limit = params['limit'];
-            const byLimit = config['byLimit'] as any;
+            const byLimit = this.safeList (config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 if (limit <= entry[0]) {

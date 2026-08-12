@@ -1,13 +1,13 @@
 import Exchange from './abstract/coinbaseinternational.js';
-import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict, int, OHLCV, DepositAddress, MarginModification } from './base/types.js';
+import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, DepositAddress, MarginModification } from './base/types.js';
 /**
  * @class coinbaseinternational
  * @augments Exchange
  */
 export default class coinbaseinternational extends Exchange {
     describe(): any;
-    handlePortfolioAndParams(methodName: string, params?: {}): Promise<any[]>;
-    handleNetworkIdAndParams(currencyCode: string, methodName: string, params: any): Promise<any[]>;
+    handlePortfolioAndParams(methodName: string, params?: {}): Promise<[Str, Dict]>;
+    handleNetworkIdAndParams(currencyCode: string, methodName: string, params?: {}): Promise<[Str, Dict]>;
     /**
      * @method
      * @name coinbaseinternational#fetchAccounts
@@ -18,9 +18,9 @@ export default class coinbaseinternational extends Exchange {
      */
     fetchAccounts(params?: {}): Promise<import("./base/types.js").Account[]>;
     parseAccount(account: any): {
-        id: string;
-        type: any;
-        code: any;
+        id: Str;
+        type: undefined;
+        code: undefined;
         info: any;
     };
     /**
@@ -56,21 +56,21 @@ export default class coinbaseinternational extends Exchange {
     parseFundingRate(contract: any, market?: Market): {
         info: any;
         symbol: string;
-        markPrice: number;
-        indexPrice: any;
-        interestRate: any;
-        estimatedSettlePrice: any;
-        timestamp: number;
-        datetime: string;
-        fundingRate: number;
-        fundingTimestamp: number;
-        fundingDatetime: string;
-        nextFundingRate: any;
-        nextFundingTimestamp: any;
-        nextFundingDatetime: any;
-        previousFundingRate: any;
-        previousFundingTimestamp: any;
-        previousFundingDatetime: any;
+        markPrice: Num;
+        indexPrice: undefined;
+        interestRate: undefined;
+        estimatedSettlePrice: undefined;
+        timestamp: number | undefined;
+        datetime: Str;
+        fundingRate: Num;
+        fundingTimestamp: number | undefined;
+        fundingDatetime: Str;
+        nextFundingRate: undefined;
+        nextFundingTimestamp: undefined;
+        nextFundingDatetime: undefined;
+        previousFundingRate: undefined;
+        previousFundingTimestamp: undefined;
+        previousFundingDatetime: undefined;
     };
     /**
      * @method
@@ -87,12 +87,12 @@ export default class coinbaseinternational extends Exchange {
     parseIncome(income: any, market?: Market): {
         info: any;
         symbol: string;
-        code: string;
-        timestamp: number;
-        datetime: string;
-        id: string;
-        amount: number;
-        rate: any;
+        code: Str;
+        timestamp: number | undefined;
+        datetime: string | undefined;
+        id: Str;
+        amount: Num;
+        rate: undefined;
     };
     /**
      * @method
@@ -126,22 +126,22 @@ export default class coinbaseinternational extends Exchange {
     parseNetworks(networks: any, params?: {}): Dict;
     parseNetwork(network: any, params?: {}): {
         info: any;
-        id: string;
-        name: string;
-        network: string;
-        active: boolean;
-        deposit: boolean;
-        withdraw: boolean;
-        fee: number;
-        precision: number;
+        id: Str;
+        name: Str;
+        network: Str;
+        active: boolean | undefined;
+        deposit: boolean | undefined;
+        withdraw: boolean | undefined;
+        fee: Num;
+        precision: Num;
         limits: {
             withdraw: {
-                min: number;
-                max: number;
+                min: Num;
+                max: Num;
             };
             deposit: {
-                min: number;
-                max: number;
+                min: Num;
+                max: Num;
             };
         };
     };
@@ -158,7 +158,7 @@ export default class coinbaseinternational extends Exchange {
     setMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     /**
      * @method
-     * @name exchange#fetchDepositsWithdrawals
+     * @name coinbaseinternational#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
      * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
      * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
@@ -210,7 +210,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     /**
      * @method
      * @name coinbaseinternational#fetchDeposits
@@ -226,8 +226,8 @@ export default class coinbaseinternational extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatus(status: Str): string;
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
+    parseTransactionStatus(status: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
@@ -249,7 +249,7 @@ export default class coinbaseinternational extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(currency: Dict): Currency;
+    parseCurrency(currency: Dict): CurrencyInterface;
     /**
      * @method
      * @name coinbaseinternational#fetchTickers
@@ -315,17 +315,17 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.stp_mode] Possible values: [NONE, AGGRESSING, BOTH] Specifies the behavior for self match handling. None disables the functionality, new cancels the newest order, and both cancels both orders.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): string;
-    parseOrderType(type: Str): string;
+    parseOrderStatus(status: Str): Str;
+    parseOrderType(type: Str): Str;
     /**
      * @method
      * @name coinbaseinternational#cancelOrder
      * @description cancels an open order
      * @see https://docs.cloud.coinbase.com/intx/reference/cancelorder
      * @param {string} id order id
-     * @param {string} symbol not used by coinbaseinternational cancelOrder()
+     * @param {string} symbol not used by cancelOrder()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -334,11 +334,11 @@ export default class coinbaseinternational extends Exchange {
      * @method
      * @name coinbaseinternational#cancelAllOrders
      * @description cancel all open orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelAllOrders(symbol?: string, params?: {}): Promise<Order[]>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name coinbaseinternational#editOrder
@@ -354,7 +354,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} params.clientOrderId client order id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     /**
      * @method
      * @name coinbaseinternational#fetchOrder
@@ -412,32 +412,11 @@ export default class coinbaseinternational extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
-    safeNetwork(network: any): {
-        info: any;
-        id: string;
-        name: string;
-        network: string;
-        active: boolean;
-        deposit: boolean;
-        withdraw: boolean;
-        fee: number;
-        precision: number;
-        limits: {
-            withdraw: {
-                min: number;
-                max: number;
-            };
-            deposit: {
-                min: number;
-                max: number;
-            };
-        };
-    };
-    sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: Str;
+        headers: NullableDict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

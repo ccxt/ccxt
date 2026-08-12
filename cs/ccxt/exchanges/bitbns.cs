@@ -75,14 +75,126 @@ public partial class bitbns : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "www", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"order/fetchMarkets", "order/fetchTickers", "order/fetchOrderbook", "order/getTickerWithVolume", "exchangeData/ohlc", "exchangeData/orderBook", "exchangeData/tradedetails"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "order/fetchMarkets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/fetchTickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/fetchOrderbook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/getTickerWithVolume", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchangeData/ohlc", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchangeData/orderBook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchangeData/tradedetails", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "v1", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"platform/status", "tickers", "orderbook/sell/{symbol}", "orderbook/buy/{symbol}"} },
-                    { "post", new List<object>() {"currentCoinBalance/EVERYTHING", "getApiUsageStatus/USAGE", "getOrderSocketToken/USAGE", "currentCoinBalance/{symbol}", "orderStatus/{symbol}", "depositHistory/{symbol}", "withdrawHistory/{symbol}", "withdrawHistoryAll/{symbol}", "depositHistoryAll/{symbol}", "listOpenOrders/{symbol}", "listOpenStopOrders/{symbol}", "getCoinAddress/{symbol}", "placeSellOrder/{symbol}", "placeBuyOrder/{symbol}", "buyStopLoss/{symbol}", "sellStopLoss/{symbol}", "cancelOrder/{symbol}", "cancelStopLossOrder/{symbol}", "listExecutedOrders/{symbol}", "placeMarketOrder/{symbol}", "placeMarketOrderQnty/{symbol}"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "platform/status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbook/sell/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbook/buy/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "currentCoinBalance/EVERYTHING", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getApiUsageStatus/USAGE", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getOrderSocketToken/USAGE", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currentCoinBalance/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderStatus/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "depositHistory/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawHistory/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawHistoryAll/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "depositHistoryAll/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "listOpenOrders/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "listOpenStopOrders/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getCoinAddress/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "placeSellOrder/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "placeBuyOrder/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "buyStopLoss/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sellStopLoss/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelOrder/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelStopLossOrder/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "listExecutedOrders/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "placeMarketOrder/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "placeMarketOrderQnty/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "v2", new Dictionary<string, object>() {
-                    { "post", new List<object>() {"orders", "cancel", "getordersnew", "marginOrders"} },
+                    { "post", new Dictionary<string, object>() {
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getordersnew", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "marginOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -238,9 +350,10 @@ public partial class bitbns : Exchange
         //     ]
         //
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object rawMarkets = this.toArray(response);
+        for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
         {
-            object market = getValue(response, i);
+            object market = getValue(rawMarkets, i);
             object id = this.safeString(market, "id");
             object baseId = this.safeString(market, "base");
             object quoteId = this.safeString(market, "quote");
@@ -315,12 +428,15 @@ public partial class bitbns : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -422,7 +538,10 @@ public partial class bitbns : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.wwwGetOrderFetchTickers(parameters);
         //
         //     {
@@ -486,7 +605,10 @@ public partial class bitbns : Exchange
                     currencyId = "INR";
                 }
                 object code = this.safeCurrencyCode(currencyId);
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -502,7 +624,10 @@ public partial class bitbns : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.v1PostCurrentCoinBalanceEVERYTHING(parameters);
         //
         //     {
@@ -640,12 +765,19 @@ public partial class bitbns : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "t_rate"});
         object targetRate = this.safeString(parameters, "target_rate");
         object trailRate = this.safeString(parameters, "trail_rate");
         parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate"});
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "side", ((string)side).ToUpper() },
             { "symbol", getValue(market, "uppercaseId") },
@@ -682,7 +814,8 @@ public partial class bitbns : Exchange
         //         "code":200
         //     }
         //
-        return this.parseOrder(response, market);
+        object parsed = ((bool) isTrue((isEqual(response, null)))) ? new Dictionary<string, object>() {} : response;
+        return this.parseOrder(parsed, market);
     }
 
     /**
@@ -704,7 +837,10 @@ public partial class bitbns : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
@@ -718,7 +854,8 @@ public partial class bitbns : Exchange
         quoteSide = add(quoteSide, tail);
         ((IDictionary<string,object>)request)["side"] = quoteSide;
         response = await this.v2PostCancel(this.extend(request, parameters));
-        return this.parseOrder(response, market);
+        object parsed = ((bool) isTrue((isEqual(response, null)))) ? new Dictionary<string, object>() {} : response;
+        return this.parseOrder(parsed, market);
     }
 
     /**
@@ -738,7 +875,10 @@ public partial class bitbns : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -776,7 +916,7 @@ public partial class bitbns : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object first = this.safeDict(data, 0);
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseOrder(first, market);
     }
 
@@ -800,7 +940,10 @@ public partial class bitbns : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
@@ -940,7 +1083,10 @@ public partial class bitbns : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1013,7 +1159,10 @@ public partial class bitbns : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchTrades() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(market, "baseId") },
@@ -1047,7 +1196,10 @@ public partial class bitbns : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchDeposits() requires a currency code argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(currency, "id") },
@@ -1098,7 +1250,10 @@ public partial class bitbns : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchWithdrawals() requires a currency code argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(currency, "id") },
@@ -1220,7 +1375,10 @@ public partial class bitbns : Exchange
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(currency, "id") },
@@ -1259,7 +1417,7 @@ public partial class bitbns : Exchange
         api ??= "www";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object urls = ((object)this.urls);
+        object urls = this.urls;
         if (!isTrue((inOp(getValue(urls, "api"), api))))
         {
             throw new ExchangeError ((string)add(add(add(this.id, " does not have a testnet/sandbox URL for "), api), " endpoints")) ;
@@ -1296,6 +1454,7 @@ public partial class bitbns : Exchange
             };
             object payload = this.stringToBase64(this.json(auth));
             object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512);
+            headers = ((bool) isTrue((isEqual(headers, null)))) ? new Dictionary<string, object>() {} : headers;
             ((IDictionary<string,object>)headers)["X-BITBNS-PAYLOAD"] = payload;
             ((IDictionary<string,object>)headers)["X-BITBNS-SIGNATURE"] = signature;
             ((IDictionary<string,object>)headers)["Content-Type"] = "application/x-www-form-urlencoded";

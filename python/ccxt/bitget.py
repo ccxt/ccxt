@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitget import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, LedgerEntry, Leverage, LeverageTier, Liquidation, LongShortRatio, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, LedgerEntry, Leverage, LeverageTier, Liquidation, LongShortRatio, MarginMode, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -182,7 +182,7 @@ class bitget(Exchange, ImplicitAPI):
             },
             'hostname': 'bitget.com',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/fbaa10cc-a277-441d-a5b7-997dd9a87658',
+                'logo': 'https://github.com/user-attachments/assets/b54bb4c2-416d-4231-8968-85a77748ba45',
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'mix': 'https://api.{hostname}',
@@ -218,685 +218,731 @@ class bitget(Exchange, ImplicitAPI):
                 'public': {
                     'common': {
                         'get': {
-                            'v2/public/annoucements': 1,
-                            'v2/public/time': 1,
+                            'v2/public/annoucements': {'cost': 1},
+                            'v2/public/time': {'cost': 1},
                         },
                     },
                     'spot': {
                         'get': {
-                            'spot/v1/notice/queryAllNotices': 1,  # 20 times/1s(IP) => 20/20 = 1
-                            'spot/v1/public/time': 1,
-                            'spot/v1/public/currencies': 6.6667,  # 3 times/1s(IP) => 20/3 = 6.6667
-                            'spot/v1/public/products': 1,
-                            'spot/v1/public/product': 1,
-                            'spot/v1/market/ticker': 1,
-                            'spot/v1/market/tickers': 1,
-                            'spot/v1/market/fills': 2,  # 10 times/1s(IP) => 20/10 = 2
-                            'spot/v1/market/fills-history': 2,
-                            'spot/v1/market/candles': 1,
-                            'spot/v1/market/depth': 1,
-                            'spot/v1/market/spot-vip-level': 2,
-                            'spot/v1/market/merge-depth': 1,
-                            'spot/v1/market/history-candles': 1,
-                            'spot/v1/public/loan/coinInfos': 2,  # 10 times/1s(IP) => 20/10 = 2
-                            'spot/v1/public/loan/hour-interest': 2,  # 10 times/1s(IP) => 20/10 = 2
-                            'v2/spot/public/coins': 6.6667,
-                            'v2/spot/public/symbols': 1,
-                            'v2/spot/market/vip-fee-rate': 2,
-                            'v2/spot/market/tickers': 1,
-                            'v2/spot/market/merge-depth': 1,
-                            'v2/spot/market/orderbook': 1,
-                            'v2/spot/market/candles': 1,
-                            'v2/spot/market/history-candles': 1,
-                            'v2/spot/market/fills': 2,
-                            'v2/spot/market/fills-history': 2,
+                            'spot/v1/notice/queryAllNotices': {'cost': 1},  # 20 times/1s(IP) => 20/20 = 1
+                            'spot/v1/public/time': {'cost': 1},
+                            'spot/v1/public/currencies': {'cost': 6.6667},  # 3 times/1s(IP) => 20/3 = 6.6667
+                            'spot/v1/public/products': {'cost': 1},
+                            'spot/v1/public/product': {'cost': 1},
+                            'spot/v1/market/ticker': {'cost': 1},
+                            'spot/v1/market/tickers': {'cost': 1},
+                            'spot/v1/market/fills': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
+                            'spot/v1/market/fills-history': {'cost': 2},
+                            'spot/v1/market/candles': {'cost': 1},
+                            'spot/v1/market/depth': {'cost': 1},
+                            'spot/v1/market/spot-vip-level': {'cost': 2},
+                            'spot/v1/market/merge-depth': {'cost': 1},
+                            'spot/v1/market/history-candles': {'cost': 1},
+                            'spot/v1/public/loan/coinInfos': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
+                            'spot/v1/public/loan/hour-interest': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
+                            'v2/spot/public/coins': {'cost': 6.6667},
+                            'v2/spot/public/symbols': {'cost': 1},
+                            'v2/spot/market/vip-fee-rate': {'cost': 2},
+                            'v2/spot/market/tickers': {'cost': 1},
+                            'v2/spot/market/merge-depth': {'cost': 1},
+                            'v2/spot/market/orderbook': {'cost': 1},
+                            'v2/spot/market/candles': {'cost': 1},
+                            'v2/spot/market/history-candles': {'cost': 1},
+                            'v2/spot/market/fills': {'cost': 2},
+                            'v2/spot/market/fills-history': {'cost': 2},
                         },
                     },
                     'mix': {
                         'get': {
-                            'mix/v1/market/contracts': 1,
-                            'mix/v1/market/depth': 1,
-                            'mix/v1/market/ticker': 1,
-                            'mix/v1/market/tickers': 1,
-                            'mix/v1/market/contract-vip-level': 2,
-                            'mix/v1/market/fills': 1,
-                            'mix/v1/market/fills-history': 2,
-                            'mix/v1/market/candles': 1,
-                            'mix/v1/market/index': 1,
-                            'mix/v1/market/funding-time': 1,
-                            'mix/v1/market/history-fundRate': 1,
-                            'mix/v1/market/current-fundRate': 1,
-                            'mix/v1/market/open-interest': 1,
-                            'mix/v1/market/mark-price': 1,
-                            'mix/v1/market/symbol-leverage': 1,
-                            'mix/v1/market/queryPositionLever': 1,
-                            'mix/v1/market/open-limit': 1,
-                            'mix/v1/market/history-candles': 1,
-                            'mix/v1/market/history-index-candles': 1,
-                            'mix/v1/market/history-mark-candles': 1,
-                            'mix/v1/market/merge-depth': 1,
-                            'v2/mix/market/vip-fee-rate': 2,
-                            'v2/mix/market/union-interest-rate-history': 4,
-                            'v2/mix/market/exchange-rate': 4,
-                            'v2/mix/market/discount-rate': 4,
-                            'v2/mix/market/merge-depth': 1,
-                            'v2/mix/market/ticker': 1,
-                            'v2/mix/market/tickers': 1,
-                            'v2/mix/market/fills': 1,
-                            'v2/mix/market/fills-history': 2,
-                            'v2/mix/market/candles': 1,
-                            'v2/mix/market/history-candles': 1,
-                            'v2/mix/market/history-index-candles': 1,
-                            'v2/mix/market/history-mark-candles': 1,
-                            'v2/mix/market/open-interest': 1,
-                            'v2/mix/market/funding-time': 1,
-                            'v2/mix/market/symbol-price': 1,
-                            'v2/mix/market/history-fund-rate': 1,
-                            'v2/mix/market/current-fund-rate': 1,
-                            'v2/mix/market/oi-limit': 2,
-                            'v2/mix/market/contracts': 1,
-                            'v2/mix/market/query-position-lever': 2,
-                            'v2/mix/market/account-long-short': 20,
+                            'mix/v1/market/contracts': {'cost': 1},
+                            'mix/v1/market/depth': {'cost': 1},
+                            'mix/v1/market/ticker': {'cost': 1},
+                            'mix/v1/market/tickers': {'cost': 1},
+                            'mix/v1/market/contract-vip-level': {'cost': 2},
+                            'mix/v1/market/fills': {'cost': 1},
+                            'mix/v1/market/fills-history': {'cost': 2},
+                            'mix/v1/market/candles': {'cost': 1},
+                            'mix/v1/market/index': {'cost': 1},
+                            'mix/v1/market/funding-time': {'cost': 1},
+                            'mix/v1/market/history-fundRate': {'cost': 1},
+                            'mix/v1/market/current-fundRate': {'cost': 1},
+                            'mix/v1/market/open-interest': {'cost': 1},
+                            'mix/v1/market/mark-price': {'cost': 1},
+                            'mix/v1/market/symbol-leverage': {'cost': 1},
+                            'mix/v1/market/queryPositionLever': {'cost': 1},
+                            'mix/v1/market/open-limit': {'cost': 1},
+                            'mix/v1/market/history-candles': {'cost': 1},
+                            'mix/v1/market/history-index-candles': {'cost': 1},
+                            'mix/v1/market/history-mark-candles': {'cost': 1},
+                            'mix/v1/market/merge-depth': {'cost': 1},
+                            'v2/mix/market/vip-fee-rate': {'cost': 2},
+                            'v2/mix/market/union-interest-rate-history': {'cost': 4},
+                            'v2/mix/market/exchange-rate': {'cost': 4},
+                            'v2/mix/market/discount-rate': {'cost': 4},
+                            'v2/mix/market/merge-depth': {'cost': 1},
+                            'v2/mix/market/ticker': {'cost': 1},
+                            'v2/mix/market/tickers': {'cost': 1},
+                            'v2/mix/market/fills': {'cost': 1},
+                            'v2/mix/market/fills-history': {'cost': 2},
+                            'v2/mix/market/candles': {'cost': 1},
+                            'v2/mix/market/history-candles': {'cost': 1},
+                            'v2/mix/market/history-index-candles': {'cost': 1},
+                            'v2/mix/market/history-mark-candles': {'cost': 1},
+                            'v2/mix/market/open-interest': {'cost': 1},
+                            'v2/mix/market/funding-time': {'cost': 1},
+                            'v2/mix/market/symbol-price': {'cost': 1},
+                            'v2/mix/market/history-fund-rate': {'cost': 1},
+                            'v2/mix/market/current-fund-rate': {'cost': 1},
+                            'v2/mix/market/oi-limit': {'cost': 2},
+                            'v2/mix/market/contracts': {'cost': 1},
+                            'v2/mix/market/query-position-lever': {'cost': 2},
+                            'v2/mix/market/account-long-short': {'cost': 20},
                         },
                     },
                     'margin': {
                         'get': {
-                            'margin/v1/cross/public/interestRateAndLimit': 2,  # 10 times/1s(IP) => 20/10 = 2
-                            'margin/v1/isolated/public/interestRateAndLimit': 2,  # 10 times/1s(IP) => 20/10 = 2
-                            'margin/v1/cross/public/tierData': 2,  # 10 times/1s(IP) => 20/10 = 2
-                            'margin/v1/isolated/public/tierData': 2,  # 10 times/1s(IP) => 20/10 = 2
-                            'margin/v1/public/currencies': 1,  # 20 times/1s(IP) => 20/20 = 1
-                            'v2/margin/currencies': 2,
-                            'v2/margin/market/long-short-ratio': 20,
+                            'margin/v1/cross/public/interestRateAndLimit': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
+                            'margin/v1/isolated/public/interestRateAndLimit': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
+                            'margin/v1/cross/public/tierData': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
+                            'margin/v1/isolated/public/tierData': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
+                            'margin/v1/public/currencies': {'cost': 1},  # 20 times/1s(IP) => 20/20 = 1
+                            'v2/margin/currencies': {'cost': 2},
+                            'v2/margin/market/long-short-ratio': {'cost': 20},
                         },
                     },
                     'earn': {
                         'get': {
-                            'v2/earn/loan/public/coinInfos': 2,
-                            'v2/earn/loan/public/hour-interest': 2,
+                            'v2/earn/loan/public/coinInfos': {'cost': 2},
+                            'v2/earn/loan/public/hour-interest': {'cost': 2},
                         },
                     },
                     'uta': {
                         'get': {
-                            'v3/market/instruments': 1,
-                            'v3/market/tickers': 1,
-                            'v3/market/orderbook': 1,
-                            'v3/market/fills': 1,
-                            'v3/market/open-interest': 1,
-                            'v3/market/candles': 1,
-                            'v3/market/history-candles': 1,
-                            'v3/market/current-fund-rate': 1,
-                            'v3/market/history-fund-rate': 1,
-                            'v3/market/risk-reserve': 1,
-                            'v3/market/discount-rate': 1,
-                            'v3/market/margin-loans': 1,
-                            'v3/market/position-tier': 1,
-                            'v3/market/oi-limit': 2,
+                            'v3/market/instruments': {'cost': 1},
+                            'v3/market/tickers': {'cost': 1},
+                            'v3/market/orderbook': {'cost': 1},
+                            'v3/market/fills': {'cost': 1},
+                            'v3/market/proof-of-reserves': {'cost': 1},
+                            'v3/market/open-interest': {'cost': 1},
+                            'v3/market/candles': {'cost': 1},
+                            'v3/market/history-candles': {'cost': 1},
+                            'v3/market/current-fund-rate': {'cost': 1},
+                            'v3/market/history-fund-rate': {'cost': 1},
+                            'v3/market/risk-reserve': {'cost': 1},
+                            'v3/market/discount-rate': {'cost': 1},
+                            'v3/market/margin-loans': {'cost': 1},
+                            'v3/market/position-tier': {'cost': 1},
+                            'v3/market/oi-limit': {'cost': 2},
+                            'v3/market/index-components': {'cost': 2},
                         },
                     },
                 },
                 'private': {
                     'spot': {
                         'get': {
-                            'spot/v1/wallet/deposit-address': 4,
-                            'spot/v1/wallet/withdrawal-list': 1,
-                            'spot/v1/wallet/deposit-list': 1,
-                            'spot/v1/account/getInfo': 20,
-                            'spot/v1/account/assets': 2,
-                            'spot/v1/account/assets-lite': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/account/transferRecords': 1,  # 20 times/1s(UID) => 20/20 = 1
-                            'spot/v1/convert/currencies': 2,
-                            'spot/v1/convert/convert-record': 2,
-                            'spot/v1/loan/ongoing-orders': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/loan/repay-history': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/loan/revise-history': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/loan/borrow-history': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/loan/debts': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'v2/spot/trade/orderInfo': 1,
-                            'v2/spot/trade/unfilled-orders': 1,
-                            'v2/spot/trade/history-orders': 1,
-                            'v2/spot/trade/fills': 2,
-                            'v2/spot/trade/current-plan-order': 1,
-                            'v2/spot/trade/history-plan-order': 1,
-                            'v2/spot/account/info': 20,
-                            'v2/spot/account/assets': 2,
-                            'v2/spot/account/subaccount-assets': 2,
-                            'v2/spot/account/bills': 2,
-                            'v2/spot/account/transferRecords': 1,
-                            'v2/account/funding-assets': 2,
-                            'v2/account/bot-assets': 2,
-                            'v2/account/all-account-balance': 20,
-                            'v2/spot/wallet/deposit-address': 2,
-                            'v2/spot/wallet/deposit-records': 2,
-                            'v2/spot/wallet/withdrawal-records': 2,
+                            'spot/v1/wallet/deposit-address': {'cost': 4},
+                            'spot/v1/wallet/withdrawal-list': {'cost': 1},
+                            'spot/v1/wallet/deposit-list': {'cost': 1},
+                            'spot/v1/account/getInfo': {'cost': 20},
+                            'spot/v1/account/assets': {'cost': 2},
+                            'spot/v1/account/assets-lite': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/account/transferRecords': {'cost': 1},  # 20 times/1s(UID) => 20/20 = 1
+                            'spot/v1/convert/currencies': {'cost': 2},
+                            'spot/v1/convert/convert-record': {'cost': 2},
+                            'spot/v1/loan/ongoing-orders': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/loan/repay-history': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/loan/revise-history': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/loan/borrow-history': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/loan/debts': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'v2/spot/trade/orderInfo': {'cost': 1},
+                            'v2/spot/trade/unfilled-orders': {'cost': 1},
+                            'v2/spot/trade/history-orders': {'cost': 1},
+                            'v2/spot/trade/fills': {'cost': 2},
+                            'v2/spot/trade/current-plan-order': {'cost': 1},
+                            'v2/spot/trade/history-plan-order': {'cost': 1},
+                            'v2/spot/account/info': {'cost': 20},
+                            'v2/spot/account/assets': {'cost': 2},
+                            'v2/spot/account/subaccount-assets': {'cost': 2},
+                            'v2/spot/account/bills': {'cost': 2},
+                            'v2/spot/account/transferRecords': {'cost': 1},
+                            'v2/account/funding-assets': {'cost': 2},
+                            'v2/account/bot-assets': {'cost': 2},
+                            'v2/account/all-account-balance': {'cost': 20},
+                            'v2/spot/wallet/deposit-address': {'cost': 2},
+                            'v2/spot/wallet/deposit-records': {'cost': 2},
+                            'v2/spot/wallet/withdrawal-records': {'cost': 2},
+                            'v2/spot/account/upgrade-status': {'cost': 20},
                         },
                         'post': {
-                            'spot/v1/wallet/transfer': 4,
-                            'spot/v1/wallet/transfer-v2': 4,
-                            'spot/v1/wallet/subTransfer': 10,
-                            'spot/v1/wallet/withdrawal': 4,
-                            'spot/v1/wallet/withdrawal-v2': 4,
-                            'spot/v1/wallet/withdrawal-inner': 4,
-                            'spot/v1/wallet/withdrawal-inner-v2': 4,
-                            'spot/v1/account/sub-account-spot-assets': 200,
-                            'spot/v1/account/bills': 2,
-                            'spot/v1/trade/orders': 2,
-                            'spot/v1/trade/batch-orders': 4,
-                            'spot/v1/trade/cancel-order': 2,
-                            'spot/v1/trade/cancel-order-v2': 2,
-                            'spot/v1/trade/cancel-symbol-order': 2,
-                            'spot/v1/trade/cancel-batch-orders': 4,
-                            'spot/v1/trade/cancel-batch-orders-v2': 4,
-                            'spot/v1/trade/orderInfo': 1,
-                            'spot/v1/trade/open-orders': 1,
-                            'spot/v1/trade/history': 1,
-                            'spot/v1/trade/fills': 1,
-                            'spot/v1/plan/placePlan': 1,
-                            'spot/v1/plan/modifyPlan': 1,
-                            'spot/v1/plan/cancelPlan': 1,
-                            'spot/v1/plan/currentPlan': 1,
-                            'spot/v1/plan/historyPlan': 1,
-                            'spot/v1/plan/batchCancelPlan': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/convert/quoted-price': 4,
-                            'spot/v1/convert/trade': 4,
-                            'spot/v1/loan/borrow': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/loan/repay': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/loan/revise-pledge': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/order/orderCurrentList': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/order/orderHistoryList': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/order/closeTrackingOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/order/updateTpsl': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/order/followerEndOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/order/spotInfoList': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/config/getTraderSettings': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/config/getFollowerSettings': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/user/myTraders': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/config/setFollowerConfig': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/user/myFollowers': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/config/setProductCode': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/user/removeTrader': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/getRemovableFollower': 2,
-                            'spot/v1/trace/user/removeFollower': 2,
-                            'spot/v1/trace/profit/totalProfitInfo': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/profit/totalProfitList': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/profit/profitHisList': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/profit/profitHisDetailList': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/profit/waitProfitDetailList': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/user/getTraderInfo': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'v2/spot/trade/place-order': 2,
-                            'v2/spot/trade/cancel-order': 2,
-                            'v2/spot/trade/batch-orders': 20,
-                            'v2/spot/trade/batch-cancel-order': 2,
-                            'v2/spot/trade/cancel-symbol-order': 4,
-                            'v2/spot/trade/place-plan-order': 1,
-                            'v2/spot/trade/modify-plan-order': 1,
-                            'v2/spot/trade/cancel-plan-order': 1,
-                            'v2/spot/trade/cancel-replace-order': 2,
-                            'v2/spot/trade/batch-cancel-plan-order': 2,
-                            'v2/spot/wallet/transfer': 2,
-                            'v2/spot/wallet/subaccount-transfer': 2,
-                            'v2/spot/wallet/withdrawal': 2,
-                            'v2/spot/wallet/cancel-withdrawal': 2,
-                            'v2/spot/wallet/modify-deposit-account': 2,
+                            'spot/v1/wallet/transfer': {'cost': 4},
+                            'spot/v1/wallet/transfer-v2': {'cost': 4},
+                            'spot/v1/wallet/subTransfer': {'cost': 10},
+                            'spot/v1/wallet/withdrawal': {'cost': 4},
+                            'spot/v1/wallet/withdrawal-v2': {'cost': 4},
+                            'spot/v1/wallet/withdrawal-inner': {'cost': 4},
+                            'spot/v1/wallet/withdrawal-inner-v2': {'cost': 4},
+                            'spot/v1/account/sub-account-spot-assets': {'cost': 200},
+                            'spot/v1/account/bills': {'cost': 2},
+                            'spot/v1/trade/orders': {'cost': 2},
+                            'spot/v1/trade/batch-orders': {'cost': 4},
+                            'spot/v1/trade/cancel-order': {'cost': 2},
+                            'spot/v1/trade/cancel-order-v2': {'cost': 2},
+                            'spot/v1/trade/cancel-symbol-order': {'cost': 2},
+                            'spot/v1/trade/cancel-batch-orders': {'cost': 4},
+                            'spot/v1/trade/cancel-batch-orders-v2': {'cost': 4},
+                            'spot/v1/trade/orderInfo': {'cost': 1},
+                            'spot/v1/trade/open-orders': {'cost': 1},
+                            'spot/v1/trade/history': {'cost': 1},
+                            'spot/v1/trade/fills': {'cost': 1},
+                            'spot/v1/plan/placePlan': {'cost': 1},
+                            'spot/v1/plan/modifyPlan': {'cost': 1},
+                            'spot/v1/plan/cancelPlan': {'cost': 1},
+                            'spot/v1/plan/currentPlan': {'cost': 1},
+                            'spot/v1/plan/historyPlan': {'cost': 1},
+                            'spot/v1/plan/batchCancelPlan': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/convert/quoted-price': {'cost': 4},
+                            'spot/v1/convert/trade': {'cost': 4},
+                            'spot/v1/loan/borrow': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/loan/repay': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/loan/revise-pledge': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/trace/order/orderCurrentList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/trace/order/orderHistoryList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/trace/order/closeTrackingOrder': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/trace/order/updateTpsl': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/trace/order/followerEndOrder': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/trace/order/spotInfoList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/trace/config/getTraderSettings': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/trace/config/getFollowerSettings': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/trace/user/myTraders': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/trace/config/setFollowerConfig': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/trace/user/myFollowers': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/trace/config/setProductCode': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/trace/user/removeTrader': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/trace/getRemovableFollower': {'cost': 2},
+                            'spot/v1/trace/user/removeFollower': {'cost': 2},
+                            'spot/v1/trace/profit/totalProfitInfo': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/trace/profit/totalProfitList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/trace/profit/profitHisList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/trace/profit/profitHisDetailList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/trace/profit/waitProfitDetailList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/trace/user/getTraderInfo': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'v2/spot/trade/place-order': {'cost': 2},
+                            'v2/spot/trade/cancel-order': {'cost': 2},
+                            'v2/spot/trade/batch-orders': {'cost': 20},
+                            'v2/spot/trade/batch-cancel-order': {'cost': 2},
+                            'v2/spot/trade/cancel-symbol-order': {'cost': 4},
+                            'v2/spot/trade/place-plan-order': {'cost': 1},
+                            'v2/spot/trade/modify-plan-order': {'cost': 1},
+                            'v2/spot/trade/cancel-plan-order': {'cost': 1},
+                            'v2/spot/trade/cancel-replace-order': {'cost': 2},
+                            'v2/spot/trade/batch-cancel-plan-order': {'cost': 2},
+                            'v2/spot/wallet/transfer': {'cost': 2},
+                            'v2/spot/wallet/subaccount-transfer': {'cost': 2},
+                            'v2/spot/wallet/withdrawal': {'cost': 2},
+                            'v2/spot/wallet/cancel-withdrawal': {'cost': 2},
+                            'v2/spot/wallet/modify-deposit-account': {'cost': 2},
+                            'v2/spot/account/upgrade': {'cost': 20},
                         },
                     },
                     'mix': {
                         'get': {
-                            'mix/v1/account/account': 2,
-                            'mix/v1/account/accounts': 2,
-                            'mix/v1/position/singlePosition': 2,
-                            'mix/v1/position/singlePosition-v2': 2,
-                            'mix/v1/position/allPosition': 4,  # 5 times/1s(UID) => 20/5 = 4
-                            'mix/v1/position/allPosition-v2': 4,  # 5 times/1s(UID) => 20/5 = 4
-                            'mix/v1/position/history-position': 1,
-                            'mix/v1/account/accountBill': 2,
-                            'mix/v1/account/accountBusinessBill': 4,
-                            'mix/v1/order/current': 1,  # 20 times/1s(UID) => 20/20 = 1
-                            'mix/v1/order/marginCoinCurrent': 1,  # 20 times/1s(UID) => 20/20 = 1
-                            'mix/v1/order/history': 2,
-                            'mix/v1/order/historyProductType': 4,  # 5 times/1s(UID) => 20/5 = 4
-                            'mix/v1/order/detail': 2,
-                            'mix/v1/order/fills': 2,
-                            'mix/v1/order/allFills': 2,
-                            'mix/v1/plan/currentPlan': 1,  # 20 times/1s(UID) => 20/20 = 1
-                            'mix/v1/plan/historyPlan': 2,
-                            'mix/v1/trace/currentTrack': 2,
-                            'mix/v1/trace/followerOrder': 2,
-                            'mix/v1/trace/followerHistoryOrders': 2,
-                            'mix/v1/trace/historyTrack': 2,
-                            'mix/v1/trace/summary': 1,  # 20 times/1s(UID) => 20/20 = 1
-                            'mix/v1/trace/profitSettleTokenIdGroup': 1,  # 20 times/1s(UID) => 20/20 = 1
-                            'mix/v1/trace/profitDateGroupList': 1,  # 20 times/1s(UID) => 20/20 = 1
-                            'mix/v1/trade/profitDateList': 2,
-                            'mix/v1/trace/waitProfitDateList': 1,  # 20 times/1s(UID) => 20/20 = 1
-                            'mix/v1/trace/traderSymbols': 1,  # 20 times/1s(UID) => 20/20 = 1
-                            'mix/v1/trace/traderList': 2,
-                            'mix/v1/trace/traderDetail': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'mix/v1/trace/queryTraceConfig': 2,
-                            'v2/mix/account/account': 2,
-                            'v2/mix/account/accounts': 2,
-                            'v2/mix/account/sub-account-assets': 200,
-                            'v2/mix/account/interest-history': 4,
-                            'v2/mix/account/max-open': 1,
-                            'v2/mix/account/liq-price': 1,
-                            'v2/mix/account/open-count': 2,
-                            'v2/mix/account/bill': 2,
-                            'v2/mix/account/transfer-limits': 20,
-                            'v2/mix/account/union-config': 20,
-                            'v2/mix/account/switch-union-usdt': 20,
-                            'v2/mix/account/isolated-symbols': 2,
-                            'v2/mix/market/query-position-lever': 2,
-                            'v2/mix/position/single-position': 2,
-                            'v2/mix/position/all-position': 4,
-                            'v2/mix/position/adlRank': 4,
-                            'v2/mix/position/history-position': 1,
-                            'v2/mix/order/detail': 2,
-                            'v2/mix/order/fills': 2,
-                            'v2/mix/order/fill-history': 2,
-                            'v2/mix/order/orders-pending': 2,
-                            'v2/mix/order/orders-history': 2,
-                            'v2/mix/order/plan-sub-order': 2,
-                            'v2/mix/order/orders-plan-pending': 2,
-                            'v2/mix/order/orders-plan-history': 2,
-                            'v2/mix/market/position-long-short': 20,
+                            'mix/v1/account/account': {'cost': 2},
+                            'mix/v1/account/accounts': {'cost': 2},
+                            'mix/v1/position/singlePosition': {'cost': 2},
+                            'mix/v1/position/singlePosition-v2': {'cost': 2},
+                            'mix/v1/position/allPosition': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
+                            'mix/v1/position/allPosition-v2': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
+                            'mix/v1/position/history-position': {'cost': 1},
+                            'mix/v1/account/accountBill': {'cost': 2},
+                            'mix/v1/account/accountBusinessBill': {'cost': 4},
+                            'mix/v1/order/current': {'cost': 1},  # 20 times/1s(UID) => 20/20 = 1
+                            'mix/v1/order/marginCoinCurrent': {'cost': 1},  # 20 times/1s(UID) => 20/20 = 1
+                            'mix/v1/order/history': {'cost': 2},
+                            'mix/v1/order/historyProductType': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
+                            'mix/v1/order/detail': {'cost': 2},
+                            'mix/v1/order/fills': {'cost': 2},
+                            'mix/v1/order/allFills': {'cost': 2},
+                            'mix/v1/plan/currentPlan': {'cost': 1},  # 20 times/1s(UID) => 20/20 = 1
+                            'mix/v1/plan/historyPlan': {'cost': 2},
+                            'mix/v1/trace/currentTrack': {'cost': 2},
+                            'mix/v1/trace/followerOrder': {'cost': 2},
+                            'mix/v1/trace/followerHistoryOrders': {'cost': 2},
+                            'mix/v1/trace/historyTrack': {'cost': 2},
+                            'mix/v1/trace/summary': {'cost': 1},  # 20 times/1s(UID) => 20/20 = 1
+                            'mix/v1/trace/profitSettleTokenIdGroup': {'cost': 1},  # 20 times/1s(UID) => 20/20 = 1
+                            'mix/v1/trace/profitDateGroupList': {'cost': 1},  # 20 times/1s(UID) => 20/20 = 1
+                            'mix/v1/trade/profitDateList': {'cost': 2},
+                            'mix/v1/trace/waitProfitDateList': {'cost': 1},  # 20 times/1s(UID) => 20/20 = 1
+                            'mix/v1/trace/traderSymbols': {'cost': 1},  # 20 times/1s(UID) => 20/20 = 1
+                            'mix/v1/trace/traderList': {'cost': 2},
+                            'mix/v1/trace/traderDetail': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'mix/v1/trace/queryTraceConfig': {'cost': 2},
+                            'v2/mix/account/account': {'cost': 2},
+                            'v2/mix/account/accounts': {'cost': 2},
+                            'v2/mix/account/sub-account-assets': {'cost': 200},
+                            'v2/mix/account/interest-history': {'cost': 4},
+                            'v2/mix/account/max-open': {'cost': 1},
+                            'v2/mix/account/liq-price': {'cost': 1},
+                            'v2/mix/account/open-count': {'cost': 2},
+                            'v2/mix/account/bill': {'cost': 2},
+                            'v2/mix/account/transfer-limits': {'cost': 20},
+                            'v2/mix/account/union-config': {'cost': 20},
+                            'v2/mix/account/switch-union-usdt': {'cost': 20},
+                            'v2/mix/account/isolated-symbols': {'cost': 2},
+                            'v2/mix/market/query-position-lever': {'cost': 2},
+                            'v2/mix/position/single-position': {'cost': 2},
+                            'v2/mix/position/all-position': {'cost': 4},
+                            'v2/mix/position/adlRank': {'cost': 4},
+                            'v2/mix/position/history-position': {'cost': 1},
+                            'v2/mix/order/detail': {'cost': 2},
+                            'v2/mix/order/fills': {'cost': 2},
+                            'v2/mix/order/fill-history': {'cost': 2},
+                            'v2/mix/order/orders-pending': {'cost': 2},
+                            'v2/mix/order/orders-history': {'cost': 2},
+                            'v2/mix/order/plan-sub-order': {'cost': 2},
+                            'v2/mix/order/orders-plan-pending': {'cost': 2},
+                            'v2/mix/order/orders-plan-history': {'cost': 2},
+                            'v2/mix/market/position-long-short': {'cost': 20},
                         },
                         'post': {
-                            'mix/v1/account/sub-account-contract-assets': 200,  # 0.1 times/1s(UID) => 20/0.1 = 200
-                            'mix/v1/account/open-count': 1,
-                            'mix/v1/account/setLeverage': 4,  # 5 times/1s(UID) => 20/5 = 4
-                            'mix/v1/account/setMargin': 4,  # 5 times/1s(UID) => 20/5 = 4
-                            'mix/v1/account/setMarginMode': 4,  # 5 times/1s(UID) => 20/5 = 4
-                            'mix/v1/account/setPositionMode': 4,  # 5 times/1s(UID) => 20/5 = 4
-                            'mix/v1/order/placeOrder': 2,
-                            'mix/v1/order/batch-orders': 2,
-                            'mix/v1/order/cancel-order': 2,
-                            'mix/v1/order/cancel-batch-orders': 2,
-                            'mix/v1/order/modifyOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'mix/v1/order/cancel-symbol-orders': 2,
-                            'mix/v1/order/cancel-all-orders': 2,
-                            'mix/v1/order/close-all-positions': 20,
-                            'mix/v1/plan/placePlan': 2,
-                            'mix/v1/plan/modifyPlan': 2,
-                            'mix/v1/plan/modifyPlanPreset': 2,
-                            'mix/v1/plan/placeTPSL': 2,
-                            'mix/v1/plan/placeTrailStop': 2,
-                            'mix/v1/plan/placePositionsTPSL': 2,
-                            'mix/v1/plan/modifyTPSLPlan': 2,
-                            'mix/v1/plan/cancelPlan': 2,
-                            'mix/v1/plan/cancelSymbolPlan': 2,
-                            'mix/v1/plan/cancelAllPlan': 2,
-                            'mix/v1/trace/closeTrackOrder': 2,
-                            'mix/v1/trace/modifyTPSL': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'mix/v1/trace/closeTrackOrderBySymbol': 2,
-                            'mix/v1/trace/setUpCopySymbols': 2,
-                            'mix/v1/trace/followerSetBatchTraceConfig': 2,
-                            'mix/v1/trace/followerCloseByTrackingNo': 2,
-                            'mix/v1/trace/followerCloseByAll': 2,
-                            'mix/v1/trace/followerSetTpsl': 2,
-                            'mix/v1/trace/cancelCopyTrader': 4,  # 5 times/1s(UID) => 20/5 = 4
-                            'mix/v1/trace/traderUpdateConfig': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'mix/v1/trace/myTraderList': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'mix/v1/trace/myFollowerList': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'mix/v1/trace/removeFollower': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'mix/v1/trace/public/getFollowerConfig': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'mix/v1/trace/report/order/historyList': 2,  # 10 times/1s(IP) => 20/10 = 2
-                            'mix/v1/trace/report/order/currentList': 2,  # 10 times/1s(IP) => 20/10 = 2
-                            'mix/v1/trace/queryTraderTpslRatioConfig': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'mix/v1/trace/traderUpdateTpslRatioConfig': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'v2/mix/account/set-auto-margin': 4,
-                            'v2/mix/account/set-leverage': 4,
-                            'v2/mix/account/set-all-leverage': 4,
-                            'v2/mix/account/set-margin': 4,
-                            'v2/mix/account/set-asset-mode': 10,
-                            'v2/mix/account/set-margin-mode': 4,
-                            'v2/mix/account/union-convert': 20,
-                            'v2/mix/account/set-position-mode': 4,
-                            'v2/mix/order/place-order': 2,
-                            'v2/mix/order/click-backhand': 20,
-                            'v2/mix/order/batch-place-order': 20,
-                            'v2/mix/order/modify-order': 2,
-                            'v2/mix/order/cancel-order': 2,
-                            'v2/mix/order/batch-cancel-orders': 2,
-                            'v2/mix/order/close-positions': 20,
-                            'v2/mix/order/cancel-all-orders': 20,
-                            'v2/mix/order/place-tpsl-order': 2,
-                            'v2/mix/order/place-pos-tpsl': 2,
-                            'v2/mix/order/place-plan-order': 2,
-                            'v2/mix/order/modify-tpsl-order': 2,
-                            'v2/mix/order/modify-plan-order': 2,
-                            'v2/mix/order/cancel-plan-order': 2,
+                            'mix/v1/account/sub-account-contract-assets': {'cost': 200},  # 0.1 times/1s(UID) => 20/0.1 = 200
+                            'mix/v1/account/open-count': {'cost': 1},
+                            'mix/v1/account/setLeverage': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
+                            'mix/v1/account/setMargin': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
+                            'mix/v1/account/setMarginMode': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
+                            'mix/v1/account/setPositionMode': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
+                            'mix/v1/order/placeOrder': {'cost': 2},
+                            'mix/v1/order/batch-orders': {'cost': 2},
+                            'mix/v1/order/cancel-order': {'cost': 2},
+                            'mix/v1/order/cancel-batch-orders': {'cost': 2},
+                            'mix/v1/order/modifyOrder': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'mix/v1/order/cancel-symbol-orders': {'cost': 2},
+                            'mix/v1/order/cancel-all-orders': {'cost': 2},
+                            'mix/v1/order/close-all-positions': {'cost': 20},
+                            'mix/v1/plan/placePlan': {'cost': 2},
+                            'mix/v1/plan/modifyPlan': {'cost': 2},
+                            'mix/v1/plan/modifyPlanPreset': {'cost': 2},
+                            'mix/v1/plan/placeTPSL': {'cost': 2},
+                            'mix/v1/plan/placeTrailStop': {'cost': 2},
+                            'mix/v1/plan/placePositionsTPSL': {'cost': 2},
+                            'mix/v1/plan/modifyTPSLPlan': {'cost': 2},
+                            'mix/v1/plan/cancelPlan': {'cost': 2},
+                            'mix/v1/plan/cancelSymbolPlan': {'cost': 2},
+                            'mix/v1/plan/cancelAllPlan': {'cost': 2},
+                            'mix/v1/trace/closeTrackOrder': {'cost': 2},
+                            'mix/v1/trace/modifyTPSL': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'mix/v1/trace/closeTrackOrderBySymbol': {'cost': 2},
+                            'mix/v1/trace/setUpCopySymbols': {'cost': 2},
+                            'mix/v1/trace/followerSetBatchTraceConfig': {'cost': 2},
+                            'mix/v1/trace/followerCloseByTrackingNo': {'cost': 2},
+                            'mix/v1/trace/followerCloseByAll': {'cost': 2},
+                            'mix/v1/trace/followerSetTpsl': {'cost': 2},
+                            'mix/v1/trace/cancelCopyTrader': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
+                            'mix/v1/trace/traderUpdateConfig': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'mix/v1/trace/myTraderList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'mix/v1/trace/myFollowerList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'mix/v1/trace/removeFollower': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'mix/v1/trace/public/getFollowerConfig': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'mix/v1/trace/report/order/historyList': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
+                            'mix/v1/trace/report/order/currentList': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
+                            'mix/v1/trace/queryTraderTpslRatioConfig': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'mix/v1/trace/traderUpdateTpslRatioConfig': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'v2/mix/account/set-auto-margin': {'cost': 4},
+                            'v2/mix/account/set-leverage': {'cost': 4},
+                            'v2/mix/account/set-all-leverage': {'cost': 4},
+                            'v2/mix/account/set-margin': {'cost': 4},
+                            'v2/mix/account/set-asset-mode': {'cost': 10},
+                            'v2/mix/account/set-margin-mode': {'cost': 4},
+                            'v2/mix/account/union-convert': {'cost': 20},
+                            'v2/mix/account/set-position-mode': {'cost': 4},
+                            'v2/mix/order/place-order': {'cost': 2},
+                            'v2/mix/order/click-backhand': {'cost': 20},
+                            'v2/mix/order/batch-place-order': {'cost': 20},
+                            'v2/mix/order/modify-order': {'cost': 2},
+                            'v2/mix/order/cancel-order': {'cost': 2},
+                            'v2/mix/order/batch-cancel-orders': {'cost': 2},
+                            'v2/mix/order/close-positions': {'cost': 20},
+                            'v2/mix/order/cancel-all-orders': {'cost': 20},
+                            'v2/mix/order/place-tpsl-order': {'cost': 2},
+                            'v2/mix/order/place-pos-tpsl': {'cost': 2},
+                            'v2/mix/order/place-plan-order': {'cost': 2},
+                            'v2/mix/order/modify-tpsl-order': {'cost': 2},
+                            'v2/mix/order/modify-plan-order': {'cost': 2},
+                            'v2/mix/order/cancel-plan-order': {'cost': 2},
                         },
                     },
                     'user': {
                         'get': {
-                            'user/v1/fee/query': 2,
-                            'user/v1/sub/virtual-list': 2,
-                            'user/v1/sub/virtual-api-list': 2,
-                            'user/v1/tax/spot-record': 1,
-                            'user/v1/tax/future-record': 1,
-                            'user/v1/tax/margin-record': 1,
-                            'user/v1/tax/p2p-record': 1,
-                            'v2/user/virtual-subaccount-list': 2,
-                            'v2/user/virtual-subaccount-apikey-list': 2,
+                            'user/v1/fee/query': {'cost': 2},
+                            'user/v1/sub/virtual-list': {'cost': 2},
+                            'user/v1/sub/virtual-api-list': {'cost': 2},
+                            'user/v1/tax/spot-record': {'cost': 1},
+                            'user/v1/tax/future-record': {'cost': 1},
+                            'user/v1/tax/margin-record': {'cost': 1},
+                            'user/v1/tax/p2p-record': {'cost': 1},
+                            'v2/user/virtual-subaccount-list': {'cost': 2},
+                            'v2/user/virtual-subaccount-apikey-list': {'cost': 2},
                         },
                         'post': {
-                            'user/v1/sub/virtual-create': 4,
-                            'user/v1/sub/virtual-modify': 4,
-                            'user/v1/sub/virtual-api-batch-create': 20,  # 1 times/1s(UID) => 20/1 = 20
-                            'user/v1/sub/virtual-api-create': 4,
-                            'user/v1/sub/virtual-api-modify': 4,
-                            'v2/user/create-virtual-subaccount': 4,
-                            'v2/user/modify-virtual-subaccount': 4,
-                            'v2/user/batch-create-subaccount-and-apikey': 20,
-                            'v2/user/create-virtual-subaccount-apikey': 4,
-                            'v2/user/modify-virtual-subaccount-apikey': 4,
+                            'user/v1/sub/virtual-create': {'cost': 4},
+                            'user/v1/sub/virtual-modify': {'cost': 4},
+                            'user/v1/sub/virtual-api-batch-create': {'cost': 20},  # 1 times/1s(UID) => 20/1 = 20
+                            'user/v1/sub/virtual-api-create': {'cost': 4},
+                            'user/v1/sub/virtual-api-modify': {'cost': 4},
+                            'v2/user/create-virtual-subaccount': {'cost': 4},
+                            'v2/user/modify-virtual-subaccount': {'cost': 4},
+                            'v2/user/batch-create-subaccount-and-apikey': {'cost': 20},
+                            'v2/user/create-virtual-subaccount-apikey': {'cost': 4},
+                            'v2/user/modify-virtual-subaccount-apikey': {'cost': 4},
                         },
                     },
                     'p2p': {
                         'get': {
-                            'p2p/v1/merchant/merchantList': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'p2p/v1/merchant/merchantInfo': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'p2p/v1/merchant/advList': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'p2p/v1/merchant/orderList': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'v2/p2p/merchantList': 2,
-                            'v2/p2p/merchantInfo': 2,
-                            'v2/p2p/orderList': 2,
-                            'v2/p2p/advList': 2,
+                            'p2p/v1/merchant/merchantList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'p2p/v1/merchant/merchantInfo': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'p2p/v1/merchant/advList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'p2p/v1/merchant/orderList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'v2/p2p/merchantList': {'cost': 2},
+                            'v2/p2p/merchantInfo': {'cost': 2},
+                            'v2/p2p/orderList': {'cost': 2},
+                            'v2/p2p/advList': {'cost': 2},
                         },
                     },
                     'broker': {
                         'get': {
-                            'broker/v1/account/info': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'broker/v1/account/sub-list': 20,  # 1 times/1s(UID) => 20/1 = 20
-                            'broker/v1/account/sub-email': 20,  # 1 times/1s(UID) => 20/1 = 20
-                            'broker/v1/account/sub-spot-assets': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'broker/v1/account/sub-future-assets': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'broker/v1/account/subaccount-transfer': 1,  # unknown
-                            'broker/v1/account/subaccount-deposit': 1,  # unknown
-                            'broker/v1/account/subaccount-withdrawal': 1,  # unknown
-                            'broker/v1/account/sub-api-list': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'v2/broker/account/info': 2,
-                            'v2/broker/account/subaccount-list': 20,
-                            'v2/broker/account/subaccount-email': 2,
-                            'v2/broker/account/subaccount-spot-assets': 2,
-                            'v2/broker/account/subaccount-future-assets': 2,
-                            'v2/broker/manage/subaccount-apikey-list': 2,
+                            'broker/v1/account/info': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'broker/v1/account/sub-list': {'cost': 20},  # 1 times/1s(UID) => 20/1 = 20
+                            'broker/v1/account/sub-email': {'cost': 20},  # 1 times/1s(UID) => 20/1 = 20
+                            'broker/v1/account/sub-spot-assets': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'broker/v1/account/sub-future-assets': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'broker/v1/account/subaccount-transfer': {'cost': 1},  # unknown
+                            'broker/v1/account/subaccount-deposit': {'cost': 1},  # unknown
+                            'broker/v1/account/subaccount-withdrawal': {'cost': 1},  # unknown
+                            'broker/v1/account/sub-api-list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'v2/broker/account/info': {'cost': 2},
+                            'v2/broker/account/subaccount-list': {'cost': 20},
+                            'v2/broker/account/subaccount-email': {'cost': 2},
+                            'v2/broker/account/subaccount-spot-assets': {'cost': 2},
+                            'v2/broker/account/subaccount-future-assets': {'cost': 2},
+                            'v2/broker/manage/subaccount-apikey-list': {'cost': 2},
                         },
                         'post': {
-                            'broker/v1/account/sub-create': 20,  # 1 times/1s(UID) => 20/1 = 20
-                            'broker/v1/account/sub-modify': 20,  # 1 times/1s(UID) => 20/1 = 20
-                            'broker/v1/account/sub-modify-email': 20,  # 1 times/1s(UID) => 20/1 = 20
-                            'broker/v1/account/sub-address': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'broker/v1/account/sub-withdrawal': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'broker/v1/account/sub-auto-transfer': 4,  # 5 times/1s(UID) => 20/5 = 4
-                            'broker/v1/account/sub-api-create': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'broker/v1/account/sub-api-modify': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'v2/broker/account/modify-subaccount-email': 2,
-                            'v2/broker/account/create-subaccount': 20,
-                            'v2/broker/account/modify-subaccount': 20,
-                            'v2/broker/account/subaccount-address': 2,
-                            'v2/broker/account/subaccount-withdrawal': 2,
-                            'v2/broker/account/set-subaccount-autotransfer': 2,
-                            'v2/broker/manage/create-subaccount-apikey': 2,
-                            'v2/broker/manage/modify-subaccount-apikey': 2,
+                            'broker/v1/account/sub-create': {'cost': 20},  # 1 times/1s(UID) => 20/1 = 20
+                            'broker/v1/account/sub-modify': {'cost': 20},  # 1 times/1s(UID) => 20/1 = 20
+                            'broker/v1/account/sub-modify-email': {'cost': 20},  # 1 times/1s(UID) => 20/1 = 20
+                            'broker/v1/account/sub-address': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'broker/v1/account/sub-withdrawal': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'broker/v1/account/sub-auto-transfer': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
+                            'broker/v1/account/sub-api-create': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'broker/v1/account/sub-api-modify': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'v2/broker/account/modify-subaccount-email': {'cost': 2},
+                            'v2/broker/account/create-subaccount': {'cost': 20},
+                            'v2/broker/account/modify-subaccount': {'cost': 20},
+                            'v2/broker/account/subaccount-address': {'cost': 2},
+                            'v2/broker/account/subaccount-withdrawal': {'cost': 2},
+                            'v2/broker/account/set-subaccount-autotransfer': {'cost': 2},
+                            'v2/broker/manage/create-subaccount-apikey': {'cost': 2},
+                            'v2/broker/manage/modify-subaccount-apikey': {'cost': 2},
                         },
                     },
                     'margin': {
                         'get': {
-                            'margin/v1/cross/account/riskRate': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/account/maxTransferOutAmount': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/account/maxTransferOutAmount': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/order/openOrders': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/order/history': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/order/fills': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/loan/list': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/repay/list': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/interest/list': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/liquidation/list': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/fin/list': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/order/openOrders': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/order/history': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/order/fills': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/loan/list': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/repay/list': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/interest/list': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/liquidation/list': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/fin/list': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/account/assets': 2,  # 10 times/1s(IP) => 20/10 = 2
-                            'margin/v1/isolated/account/assets': 2,  # 10 times/1s(IP) => 20/10 = 2
-                            'v2/margin/crossed/borrow-history': 2,
-                            'v2/margin/crossed/repay-history': 2,
-                            'v2/margin/crossed/interest-history': 2,
-                            'v2/margin/crossed/liquidation-history': 2,
-                            'v2/margin/crossed/financial-records': 2,
-                            'v2/margin/crossed/account/assets': 2,
-                            'v2/margin/crossed/account/risk-rate': 2,
-                            'v2/margin/crossed/account/max-borrowable-amount': 2,
-                            'v2/margin/crossed/account/max-transfer-out-amount': 2,
-                            'v2/margin/crossed/interest-rate-and-limit': 2,
-                            'v2/margin/crossed/tier-data': 2,
-                            'v2/margin/crossed/open-orders': 2,
-                            'v2/margin/crossed/history-orders': 2,
-                            'v2/margin/crossed/fills': 2,
-                            'v2/margin/isolated/borrow-history': 2,
-                            'v2/margin/isolated/repay-history': 2,
-                            'v2/margin/isolated/interest-history': 2,
-                            'v2/margin/isolated/liquidation-history': 2,
-                            'v2/margin/isolated/financial-records': 2,
-                            'v2/margin/isolated/account/assets': 2,
-                            'v2/margin/isolated/account/risk-rate': 2,
-                            'v2/margin/isolated/account/max-borrowable-amount': 2,
-                            'v2/margin/isolated/account/max-transfer-out-amount': 2,
-                            'v2/margin/isolated/interest-rate-and-limit': 2,
-                            'v2/margin/isolated/tier-data': 2,
-                            'v2/margin/isolated/open-orders': 2,
-                            'v2/margin/isolated/history-orders': 2,
-                            'v2/margin/isolated/fills': 2,
+                            'margin/v1/cross/account/riskRate': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/cross/account/maxTransferOutAmount': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/isolated/account/maxTransferOutAmount': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/isolated/order/openOrders': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/isolated/order/history': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/isolated/order/fills': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/isolated/loan/list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/isolated/repay/list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/isolated/interest/list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/isolated/liquidation/list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/isolated/fin/list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/cross/order/openOrders': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/cross/order/history': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/cross/order/fills': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/cross/loan/list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/cross/repay/list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/cross/interest/list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/cross/liquidation/list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/cross/fin/list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/cross/account/assets': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
+                            'margin/v1/isolated/account/assets': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
+                            'v2/margin/crossed/borrow-history': {'cost': 2},
+                            'v2/margin/crossed/repay-history': {'cost': 2},
+                            'v2/margin/crossed/interest-history': {'cost': 2},
+                            'v2/margin/crossed/liquidation-history': {'cost': 2},
+                            'v2/margin/crossed/financial-records': {'cost': 2},
+                            'v2/margin/crossed/account/assets': {'cost': 2},
+                            'v2/margin/crossed/account/risk-rate': {'cost': 2},
+                            'v2/margin/crossed/account/max-borrowable-amount': {'cost': 2},
+                            'v2/margin/crossed/account/max-transfer-out-amount': {'cost': 2},
+                            'v2/margin/crossed/interest-rate-and-limit': {'cost': 2},
+                            'v2/margin/crossed/tier-data': {'cost': 2},
+                            'v2/margin/crossed/open-orders': {'cost': 2},
+                            'v2/margin/crossed/history-orders': {'cost': 2},
+                            'v2/margin/crossed/fills': {'cost': 2},
+                            'v2/margin/isolated/borrow-history': {'cost': 2},
+                            'v2/margin/isolated/repay-history': {'cost': 2},
+                            'v2/margin/isolated/interest-history': {'cost': 2},
+                            'v2/margin/isolated/liquidation-history': {'cost': 2},
+                            'v2/margin/isolated/financial-records': {'cost': 2},
+                            'v2/margin/isolated/account/assets': {'cost': 2},
+                            'v2/margin/isolated/account/risk-rate': {'cost': 2},
+                            'v2/margin/isolated/account/max-borrowable-amount': {'cost': 2},
+                            'v2/margin/isolated/account/max-transfer-out-amount': {'cost': 2},
+                            'v2/margin/isolated/interest-rate-and-limit': {'cost': 2},
+                            'v2/margin/isolated/tier-data': {'cost': 2},
+                            'v2/margin/isolated/open-orders': {'cost': 2},
+                            'v2/margin/isolated/history-orders': {'cost': 2},
+                            'v2/margin/isolated/fills': {'cost': 2},
                         },
                         'post': {
-                            'margin/v1/cross/account/borrow': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/account/borrow': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/account/repay': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/account/repay': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/account/riskRate': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/account/maxBorrowableAmount': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/account/maxBorrowableAmount': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/account/flashRepay': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/account/queryFlashRepayStatus': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/account/flashRepay': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/account/queryFlashRepayStatus': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/order/placeOrder': 4,  # 5 times/1s(UID) => 20/5 = 4
-                            'margin/v1/isolated/order/batchPlaceOrder': 4,  # 5 times/1s(UID) => 20/5 = 4
-                            'margin/v1/isolated/order/cancelOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/order/batchCancelOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/order/placeOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/order/batchPlaceOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/order/cancelOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/order/batchCancelOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
-                            'v2/margin/crossed/account/borrow': 2,
-                            'v2/margin/crossed/account/repay': 2,
-                            'v2/margin/crossed/account/flash-repay': 2,
-                            'v2/margin/crossed/account/query-flash-repay-status': 2,
-                            'v2/margin/crossed/place-order': 2,
-                            'v2/margin/crossed/batch-place-order': 2,
-                            'v2/margin/crossed/cancel-order': 2,
-                            'v2/margin/crossed/batch-cancel-order': 2,
-                            'v2/margin/isolated/account/borrow': 2,
-                            'v2/margin/isolated/account/repay': 2,
-                            'v2/margin/isolated/account/flash-repay': 2,
-                            'v2/margin/isolated/account/query-flash-repay-status': 2,
-                            'v2/margin/isolated/place-order': 2,
-                            'v2/margin/isolated/batch-place-order': 2,
-                            'v2/margin/isolated/cancel-order': 2,
-                            'v2/margin/isolated/batch-cancel-order': 2,
+                            'margin/v1/cross/account/borrow': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/isolated/account/borrow': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/cross/account/repay': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/isolated/account/repay': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/isolated/account/riskRate': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/cross/account/maxBorrowableAmount': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/isolated/account/maxBorrowableAmount': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/isolated/account/flashRepay': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/isolated/account/queryFlashRepayStatus': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/cross/account/flashRepay': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/cross/account/queryFlashRepayStatus': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/isolated/order/placeOrder': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
+                            'margin/v1/isolated/order/batchPlaceOrder': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
+                            'margin/v1/isolated/order/cancelOrder': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/isolated/order/batchCancelOrder': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/cross/order/placeOrder': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/cross/order/batchPlaceOrder': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/cross/order/cancelOrder': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/cross/order/batchCancelOrder': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'v2/margin/crossed/account/borrow': {'cost': 2},
+                            'v2/margin/crossed/account/repay': {'cost': 2},
+                            'v2/margin/crossed/account/flash-repay': {'cost': 2},
+                            'v2/margin/crossed/account/query-flash-repay-status': {'cost': 2},
+                            'v2/margin/crossed/place-order': {'cost': 2},
+                            'v2/margin/crossed/batch-place-order': {'cost': 2},
+                            'v2/margin/crossed/cancel-order': {'cost': 2},
+                            'v2/margin/crossed/batch-cancel-order': {'cost': 2},
+                            'v2/margin/isolated/account/borrow': {'cost': 2},
+                            'v2/margin/isolated/account/repay': {'cost': 2},
+                            'v2/margin/isolated/account/flash-repay': {'cost': 2},
+                            'v2/margin/isolated/account/query-flash-repay-status': {'cost': 2},
+                            'v2/margin/isolated/place-order': {'cost': 2},
+                            'v2/margin/isolated/batch-place-order': {'cost': 2},
+                            'v2/margin/isolated/cancel-order': {'cost': 2},
+                            'v2/margin/isolated/batch-cancel-order': {'cost': 2},
                         },
                     },
                     'copy': {
                         'get': {
-                            'v2/copy/mix-trader/order-current-track': 2,
-                            'v2/copy/mix-trader/order-history-track': 2,
-                            'v2/copy/mix-trader/order-total-detail': 2,
-                            'v2/copy/mix-trader/profit-history-summarys': 1,
-                            'v2/copy/mix-trader/profit-history-details': 1,
-                            'v2/copy/mix-trader/profit-details': 1,
-                            'v2/copy/mix-trader/profits-group-coin-date': 1,
-                            'v2/copy/mix-trader/config-query-symbols': 1,
-                            'v2/copy/mix-trader/config-query-followers': 2,
-                            'v2/copy/mix-follower/query-current-orders': 2,
-                            'v2/copy/mix-follower/query-history-orders': 1,
-                            'v2/copy/mix-follower/query-settings': 2,
-                            'v2/copy/mix-follower/query-traders': 2,
-                            'v2/copy/mix-follower/query-quantity-limit': 2,
-                            'v2/copy/mix-broker/query-traders': 2,
-                            'v2/copy/mix-broker/query-history-traces': 2,
-                            'v2/copy/mix-broker/query-current-traces': 2,
-                            'v2/copy/spot-trader/profit-summarys': 2,
-                            'v2/copy/spot-trader/profit-history-details': 2,
-                            'v2/copy/spot-trader/profit-details': 2,
-                            'v2/copy/spot-trader/order-total-detail': 2,
-                            'v2/copy/spot-trader/order-history-track': 2,
-                            'v2/copy/spot-trader/order-current-track': 2,
-                            'v2/copy/spot-trader/config-query-settings': 2,
-                            'v2/copy/spot-trader/config-query-followers': 2,
-                            'v2/copy/spot-follower/query-traders': 2,
-                            'v2/copy/spot-follower/query-trader-symbols': 2,
-                            'v2/copy/spot-follower/query-settings': 2,
-                            'v2/copy/spot-follower/query-history-orders': 2,
-                            'v2/copy/spot-follower/query-current-orders': 2,
+                            'v2/copy/mix-trader/order-current-track': {'cost': 2},
+                            'v2/copy/mix-trader/order-history-track': {'cost': 2},
+                            'v2/copy/mix-trader/order-total-detail': {'cost': 2},
+                            'v2/copy/mix-trader/profit-history-summarys': {'cost': 1},
+                            'v2/copy/mix-trader/profit-history-details': {'cost': 1},
+                            'v2/copy/mix-trader/profit-details': {'cost': 1},
+                            'v2/copy/mix-trader/profits-group-coin-date': {'cost': 1},
+                            'v2/copy/mix-trader/config-query-symbols': {'cost': 1},
+                            'v2/copy/mix-trader/config-query-followers': {'cost': 2},
+                            'v2/copy/mix-follower/query-current-orders': {'cost': 2},
+                            'v2/copy/mix-follower/query-history-orders': {'cost': 1},
+                            'v2/copy/mix-follower/query-settings': {'cost': 2},
+                            'v2/copy/mix-follower/query-traders': {'cost': 2},
+                            'v2/copy/mix-follower/query-quantity-limit': {'cost': 2},
+                            'v2/copy/mix-broker/query-traders': {'cost': 2},
+                            'v2/copy/mix-broker/query-history-traces': {'cost': 2},
+                            'v2/copy/mix-broker/query-current-traces': {'cost': 2},
+                            'v2/copy/spot-trader/profit-summarys': {'cost': 2},
+                            'v2/copy/spot-trader/profit-history-details': {'cost': 2},
+                            'v2/copy/spot-trader/profit-details': {'cost': 2},
+                            'v2/copy/spot-trader/order-total-detail': {'cost': 2},
+                            'v2/copy/spot-trader/order-history-track': {'cost': 2},
+                            'v2/copy/spot-trader/order-current-track': {'cost': 2},
+                            'v2/copy/spot-trader/config-query-settings': {'cost': 2},
+                            'v2/copy/spot-trader/config-query-followers': {'cost': 2},
+                            'v2/copy/spot-follower/query-traders': {'cost': 2},
+                            'v2/copy/spot-follower/query-trader-symbols': {'cost': 2},
+                            'v2/copy/spot-follower/query-settings': {'cost': 2},
+                            'v2/copy/spot-follower/query-history-orders': {'cost': 2},
+                            'v2/copy/spot-follower/query-current-orders': {'cost': 2},
                         },
                         'post': {
-                            'v2/copy/mix-trader/order-modify-tpsl': 2,
-                            'v2/copy/mix-trader/order-close-positions': 2,
-                            'v2/copy/mix-trader/config-setting-symbols': 2,
-                            'v2/copy/mix-trader/config-setting-base': 2,
-                            'v2/copy/mix-trader/config-remove-follower': 2,
-                            'v2/copy/mix-follower/setting-tpsl': 1,
-                            'v2/copy/mix-follower/settings': 2,
-                            'v2/copy/mix-follower/close-positions': 2,
-                            'v2/copy/mix-follower/cancel-trader': 4,
-                            'v2/copy/spot-trader/order-modify-tpsl': 2,
-                            'v2/copy/spot-trader/order-close-tracking': 2,
-                            'v2/copy/spot-trader/config-setting-symbols': 2,
-                            'v2/copy/spot-trader/config-remove-follower': 2,
-                            'v2/copy/spot-follower/stop-order': 2,
-                            'v2/copy/spot-follower/settings': 2,
-                            'v2/copy/spot-follower/setting-tpsl': 2,
-                            'v2/copy/spot-follower/order-close-tracking': 2,
-                            'v2/copy/spot-follower/cancel-trader': 2,
+                            'v2/copy/mix-trader/order-modify-tpsl': {'cost': 2},
+                            'v2/copy/mix-trader/order-close-positions': {'cost': 2},
+                            'v2/copy/mix-trader/config-setting-symbols': {'cost': 2},
+                            'v2/copy/mix-trader/config-setting-base': {'cost': 2},
+                            'v2/copy/mix-trader/config-remove-follower': {'cost': 2},
+                            'v2/copy/mix-follower/setting-tpsl': {'cost': 1},
+                            'v2/copy/mix-follower/settings': {'cost': 2},
+                            'v2/copy/mix-follower/close-positions': {'cost': 2},
+                            'v2/copy/mix-follower/cancel-trader': {'cost': 4},
+                            'v2/copy/spot-trader/order-modify-tpsl': {'cost': 2},
+                            'v2/copy/spot-trader/order-close-tracking': {'cost': 2},
+                            'v2/copy/spot-trader/config-setting-symbols': {'cost': 2},
+                            'v2/copy/spot-trader/config-remove-follower': {'cost': 2},
+                            'v2/copy/spot-follower/stop-order': {'cost': 2},
+                            'v2/copy/spot-follower/settings': {'cost': 2},
+                            'v2/copy/spot-follower/setting-tpsl': {'cost': 2},
+                            'v2/copy/spot-follower/order-close-tracking': {'cost': 2},
+                            'v2/copy/spot-follower/cancel-trader': {'cost': 2},
                         },
                     },
                     'tax': {
                         'get': {
-                            'v2/tax/spot-record': 20,
-                            'v2/tax/future-record': 20,
-                            'v2/tax/margin-record': 20,
-                            'v2/tax/p2p-record': 20,
+                            'v2/tax/spot-record': {'cost': 20},
+                            'v2/tax/future-record': {'cost': 20},
+                            'v2/tax/margin-record': {'cost': 20},
+                            'v2/tax/p2p-record': {'cost': 20},
                         },
                     },
                     'convert': {
                         'get': {
-                            'v2/convert/currencies': 2,
-                            'v2/convert/quoted-price': 2,
-                            'v2/convert/convert-record': 2,
-                            'v2/convert/bgb-convert-coin-list': 2,
-                            'v2/convert/bgb-convert-records': 2,
+                            'v2/convert/currencies': {'cost': 2},
+                            'v2/convert/quoted-price': {'cost': 2},
+                            'v2/convert/convert-record': {'cost': 2},
+                            'v2/convert/bgb-convert-coin-list': {'cost': 2},
+                            'v2/convert/bgb-convert-records': {'cost': 2},
                         },
                         'post': {
-                            'v2/convert/trade': 2,
-                            'v2/convert/bgb-convert': 2,
+                            'v2/convert/trade': {'cost': 2},
+                            'v2/convert/bgb-convert': {'cost': 2},
                         },
                     },
                     'earn': {
                         'get': {
-                            'v2/earn/savings/product': 2,
-                            'v2/earn/savings/account': 2,
-                            'v2/earn/savings/assets': 2,
-                            'v2/earn/savings/records': 2,
-                            'v2/earn/savings/subscribe-info': 2,
-                            'v2/earn/savings/subscribe-result': 2,
-                            'v2/earn/savings/redeem-result': 2,
-                            'v2/earn/sharkfin/product': 2,
-                            'v2/earn/sharkfin/account': 2,
-                            'v2/earn/sharkfin/assets': 2,
-                            'v2/earn/sharkfin/records': 2,
-                            'v2/earn/sharkfin/subscribe-info': 2,
-                            'v2/earn/sharkfin/subscribe-result': 4,
-                            'v2/earn/loan/ongoing-orders': 2,
-                            'v2/earn/loan/repay-history': 2,
-                            'v2/earn/loan/revise-history': 2,
-                            'v2/earn/loan/borrow-history': 2,
-                            'v2/earn/loan/debts': 2,
-                            'v2/earn/loan/reduces': 2,
-                            'v2/earn/account/assets': 2,
+                            'v2/earn/savings/product': {'cost': 2},
+                            'v2/earn/savings/account': {'cost': 2},
+                            'v2/earn/savings/assets': {'cost': 2},
+                            'v2/earn/savings/records': {'cost': 2},
+                            'v2/earn/savings/subscribe-info': {'cost': 2},
+                            'v2/earn/savings/subscribe-result': {'cost': 2},
+                            'v2/earn/savings/redeem-result': {'cost': 2},
+                            'v2/earn/sharkfin/product': {'cost': 2},
+                            'v2/earn/sharkfin/account': {'cost': 2},
+                            'v2/earn/sharkfin/assets': {'cost': 2},
+                            'v2/earn/sharkfin/records': {'cost': 2},
+                            'v2/earn/sharkfin/subscribe-info': {'cost': 2},
+                            'v2/earn/sharkfin/subscribe-result': {'cost': 4},
+                            'v2/earn/loan/ongoing-orders': {'cost': 2},
+                            'v2/earn/loan/repay-history': {'cost': 2},
+                            'v2/earn/loan/revise-history': {'cost': 2},
+                            'v2/earn/loan/borrow-history': {'cost': 2},
+                            'v2/earn/loan/debts': {'cost': 2},
+                            'v2/earn/loan/reduces': {'cost': 2},
+                            'v2/earn/account/assets': {'cost': 2},
                         },
                         'post': {
-                            'v2/earn/savings/subscribe': 2,
-                            'v2/earn/savings/redeem': 2,
-                            'v2/earn/sharkfin/subscribe': 2,
-                            'v2/earn/loan/borrow': 2,
-                            'v2/earn/loan/repay': 2,
-                            'v2/earn/loan/revise-pledge': 2,
+                            'v2/earn/savings/subscribe': {'cost': 2},
+                            'v2/earn/savings/redeem': {'cost': 2},
+                            'v2/earn/sharkfin/subscribe': {'cost': 2},
+                            'v2/earn/loan/borrow': {'cost': 2},
+                            'v2/earn/loan/repay': {'cost': 2},
+                            'v2/earn/loan/revise-pledge': {'cost': 2},
                         },
                     },
                     'common': {
                         'get': {
-                            'v2/common/trade-rate': 2,
+                            'v2/common/trade-rate': {'cost': 2},
                         },
                     },
                     'uta': {
                         'get': {
-                            'v3/account/assets': 1,
-                            'v3/account/settings': 1,
-                            'v3/account/deposit-records': 2,
-                            'v3/account/financial-records': 1,
-                            'v3/account/repayable-coins': 2,
-                            'v3/account/payment-coins': 2,
-                            'v3/account/convert-records': 1,
-                            'v3/account/transferable-coins': 2,
-                            'v3/account/sub-transfer-record': 4,
-                            'v3/ins-loan/transfered': 6.6667,
-                            'v3/ins-loan/symbols': 6.6667,
-                            'v3/ins-loan/risk-unit': 6.6667,
-                            'v3/ins-loan/repaid-history': 6.6667,
-                            'v3/ins-loan/product-infos': 6.6667,
-                            'v3/ins-loan/loan-order': 6.6667,
-                            'v3/ins-loan/ltv-convert': 6.6667,
-                            'v3/ins-loan/ensure-coins-convert': 6.6667,
-                            'v3/position/current-position': 1,
-                            'v3/position/history-position': 1,
-                            'v3/trade/order-info': 1,
-                            'v3/trade/unfilled-orders': 1,
-                            'v3/trade/unfilled-strategy-orders': 1,
-                            'v3/trade/history-orders': 1,
-                            'v3/trade/history-strategy-orders': 1,
-                            'v3/trade/fills': 1,
-                            'v3/user/sub-list': 2,
-                            'v3/user/sub-api-list': 2,
+                            'v3/account/assets': {'cost': 1},
+                            'v3/account/funding-assets': {'cost': 1},
+                            'v3/account/settings': {'cost': 1},
+                            'v3/account/financial-records': {'cost': 1},
+                            'v3/account/repayable-coins': {'cost': 2},
+                            'v3/account/payment-coins': {'cost': 2},
+                            'v3/account/convert-records': {'cost': 1},
+                            'v3/account/deduct-info': {'cost': 20},
+                            'v3/account/fee-rate': {'cost': 6.6667},
+                            'v3/account/switch-status': {'cost': 4},
+                            'v3/account/max-transferable': {'cost': 6.6667},
+                            'v3/account/open-interest-limit': {'cost': 4},
+                            'v3/account/sub-unified-assets': {'cost': 20},
+                            'v3/account/transferable-coins': {'cost': 2},
+                            'v3/account/sub-transfer-record': {'cost': 4},
+                            'v3/account/deposit-address': {'cost': 2},
+                            'v3/account/sub-deposit-address': {'cost': 2},
+                            'v3/account/deposit-records': {'cost': 2},
+                            'v3/account/sub-deposit-records': {'cost': 2},
+                            'v3/account/withdrawal-records': {'cost': 2},
+                            'v3/broker/sub-list': {'cost': 1},
+                            'v3/broker/all-sub-deposit-withdrawal': {'cost': 1},
+                            'v3/broker/commission': {'cost': 1},
+                            'v3/broker/query-sub-apikey': {'cost': 1},
+                            'v3/ins-loan/transfered': {'cost': 6.6667},
+                            'v3/ins-loan/symbols': {'cost': 6.6667},
+                            'v3/ins-loan/risk-unit': {'cost': 6.6667},
+                            'v3/ins-loan/repaid-history': {'cost': 6.6667},
+                            'v3/ins-loan/product-infos': {'cost': 6.6667},
+                            'v3/ins-loan/loan-order': {'cost': 6.6667},
+                            'v3/ins-loan/ltv-convert': {'cost': 6.6667},
+                            'v3/ins-loan/ensure-coins-convert': {'cost': 6.6667},
+                            'v3/loan/coins': {'cost': 2},
+                            'v3/loan/interest': {'cost': 2},
+                            'v3/loan/borrow-ongoing': {'cost': 2},
+                            'v3/loan/borrow-history': {'cost': 2},
+                            'v3/loan/repay-history': {'cost': 2},
+                            'v3/loan/pledge-rate-history': {'cost': 2},
+                            'v3/loan/debts': {'cost': 2},
+                            'v3/loan/reduces': {'cost': 2},
+                            'v3/position/current-position': {'cost': 1},
+                            'v3/position/history-position': {'cost': 1},
+                            'v3/position/adlRank': {'cost': 20},
+                            'v3/tax/records': {'cost': 20},
+                            'v3/trade/order-info': {'cost': 1},
+                            'v3/trade/unfilled-orders': {'cost': 1},
+                            'v3/trade/unfilled-strategy-orders': {'cost': 1},
+                            'v3/trade/history-orders': {'cost': 1},
+                            'v3/trade/history-strategy-orders': {'cost': 1},
+                            'v3/trade/fills': {'cost': 1},
+                            'v3/user/sub-list': {'cost': 2},
+                            'v3/user/sub-api-list': {'cost': 2},
                         },
                         'post': {
-                            'v3/account/set-leverage': 2,
-                            'v3/account/set-hold-mode': 2,
-                            'v3/account/repay': 4,
-                            'v3/account/transfer': 4,
-                            'v3/account/sub-transfer': 4,
-                            'v3/account/max-open-available': 4,
-                            'v3/ins-loan/bind-uid': 6.6667,
-                            'v3/trade/place-order': 2,
-                            'v3/trade/place-strategy-order': 2,
-                            'v3/trade/modify-order': 2,
-                            'v3/trade/modify-strategy-order': 2,
-                            'v3/trade/cancel-order': 2,
-                            'v3/trade/cancel-strategy-order': 2,
-                            'v3/trade/place-batch': 4,
-                            'v3/trade/batch-modify-order': 2,
-                            'v3/trade/cancel-batch': 4,
-                            'v3/trade/cancel-symbol-order': 4,
-                            'v3/trade/close-positions': 4,
-                            'v3/user/create-sub': 2,
-                            'v3/user/freeze-sub': 2,
-                            'v3/user/create-sub-api': 2,
-                            'v3/user/update-sub-api': 2,
-                            'v3/user/delete-sub-api': 2,
+                            'v3/account/set-leverage': {'cost': 2},
+                            'v3/account/set-hold-mode': {'cost': 2},
+                            'v3/account/repay': {'cost': 4},
+                            'v3/account/switch-deduct': {'cost': 20},
+                            'v3/account/deposit-account': {'cost': 20},
+                            'v3/account/switch': {'cost': 20},
+                            'v3/account/adjust-account-mode': {'cost': 20},
+                            'v3/account/transfer': {'cost': 4},
+                            'v3/account/sub-transfer': {'cost': 4},
+                            'v3/account/sub-master-transfer': {'cost': 4},
+                            'v3/account/max-open-available': {'cost': 4},
+                            'v3/account/withdrawal': {'cost': 20},
+                            'v3/broker/create-sub': {'cost': 1},
+                            'v3/broker/modify-sub': {'cost': 1},
+                            'v3/broker/sub-withdrawal': {'cost': 1},
+                            'v3/broker/sub-deposit-address': {'cost': 1},
+                            'v3/broker/create-sub-apikey': {'cost': 1},
+                            'v3/broker/modify-sub-apikey': {'cost': 1},
+                            'v3/broker/delete-sub-apikey': {'cost': 1},
+                            'v3/ins-loan/bind-uid': {'cost': 6.6667},
+                            'v3/loan/borrow': {'cost': 2},
+                            'v3/loan/repay': {'cost': 2},
+                            'v3/loan/revise-pledge': {'cost': 2},
+                            'v3/trade/place-order': {'cost': 2},
+                            'v3/trade/place-strategy-order': {'cost': 2},
+                            'v3/trade/modify-order': {'cost': 2},
+                            'v3/trade/modify-strategy-order': {'cost': 2},
+                            'v3/trade/cancel-order': {'cost': 2},
+                            'v3/trade/cancel-strategy-order': {'cost': 2},
+                            'v3/trade/place-batch': {'cost': 4},
+                            'v3/trade/batch-modify-order': {'cost': 2},
+                            'v3/trade/cancel-batch': {'cost': 4},
+                            'v3/trade/cancel-symbol-order': {'cost': 4},
+                            'v3/trade/close-positions': {'cost': 4},
+                            'v3/trade/countdown-cancel-all': {'cost': 20},
+                            'v3/user/create-sub': {'cost': 2},
+                            'v3/user/freeze-sub': {'cost': 2},
+                            'v3/user/create-sub-api': {'cost': 2},
+                            'v3/user/update-sub-api': {'cost': 2},
+                            'v3/user/delete-sub-api': {'cost': 2},
                         },
                     },
                 },
@@ -1367,6 +1413,7 @@ class bitget(Exchange, ImplicitAPI):
                     '43115': OnMaintenance,  # {"code":"43115","msg":"The current trading pair is opening soon, please refer to the official announcement for the opening time","requestTime":1688907202434,"data":null}
                     '45110': InvalidOrder,  # {"code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null}
                     '40774': InvalidOrder,  # {"code":"40774","msg":"The order type for unilateral position must also be the unilateral position type.","requestTime":1758709764409,"data":null}
+                    '40917': InvalidOrder,  # {"code":"40917","msg":"Stop price for long positions please < mark price {0}","requestTime":1776355933687,"data":null}
                     '45122': InvalidOrder,  # {"code":"45122","msg":"Short position stop loss price please > mark price 106.86","requestTime":1758709970499,"data":null}
                     # spot
                     'invalid sign': AuthenticationError,
@@ -1431,7 +1478,9 @@ class bitget(Exchange, ImplicitAPI):
                     '20003': ExchangeError,  # operation failed, {"status":"error","ts":1595730308979,"err_code":"bad-request","err_msg":"20003"}
                     '01001': ExchangeError,  # order failed, {"status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试"}
                     '40024': RestrictedLocation,  # {"code":"40024","msg":"The currency is a regional currency and does not meet the purchase conditions.","requestTime":1765282460733,"data":null}
+                    '41117': InvalidOrder,  # {"code":"41117","msg":"K/USDT selling price cannot be lower than 0.00085","requestTime":1773990851247,"data":null}
                     '43111': PermissionDenied,  # {"code":"43111","msg":"参数错误 address not in address book","requestTime":1665394201164,"data":null}
+                    '45113': InvalidOrder,  # {"code":"45113","msg":"Maximum order value limit triggered","requestTime":1774884278712,"data":null}
                 },
                 'broad': {
                     'invalid size, valid range': ExchangeError,
@@ -1447,66 +1496,69 @@ class bitget(Exchange, ImplicitAPI):
                 'TONCOIN': 'TON',
             },
             'options': {
-                'uta': False,
-                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'uta': None,
+                'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
-                'timeframes': {
-                    'spot': {
-                        '1m': '1min',
-                        '5m': '5min',
-                        '3m': '3min',
-                        '15m': '15min',
-                        '30m': '30min',
-                        '1h': '1h',
-                        '4h': '4h',
-                        '6h': '6Hutc',
-                        '12h': '12Hutc',
-                        '1d': '1Dutc',
-                        '3d': '3Dutc',
-                        '1w': '1Wutc',
-                        '1M': '1Mutc',
-                    },
-                    'swap': {
-                        '1m': '1m',
-                        '3m': '3m',
-                        '5m': '5m',
-                        '15m': '15m',
-                        '30m': '30m',
-                        '1h': '1H',
-                        '2h': '2H',
-                        '4h': '4H',
-                        '6h': '6Hutc',
-                        '12h': '12Hutc',
-                        '1d': '1Dutc',
-                        '3d': '3Dutc',
-                        '1w': '1Wutc',
-                        '1M': '1Mutc',
-                    },
-                    'uta': {
-                        '1m': '1m',
-                        '3m': '3m',
-                        '5m': '5m',
-                        '15m': '15m',
-                        '30m': '30m',
-                        '1h': '1H',
-                        '2h': '2H',
-                        '4h': '4H',
-                        '6h': '6H',
-                        '12h': '12H',
-                        '1d': '1D',
-                    },
-                },
                 'fetchMarkets': {
                     'types': ['spot', 'swap'],  # there is future markets but they use the same endpoints
                 },
                 'defaultType': 'spot',  # 'spot', 'swap', 'future'
                 'defaultSubType': 'linear',  # 'linear', 'inverse'
-                'createMarketBuyOrderRequiresPrice': True,
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': True,
+                    'timeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+                },
                 'broker': 'p4sve',
                 'withdraw': {
                     'fillResponseFromRequest': True,
                 },
                 'fetchOHLCV': {
+                    'timeframes': {
+                        'spot': {
+                            '1m': '1min',
+                            '5m': '5min',
+                            '3m': '3min',
+                            '15m': '15min',
+                            '30m': '30min',
+                            '1h': '1h',
+                            '4h': '4h',
+                            '6h': '6Hutc',
+                            '12h': '12Hutc',
+                            '1d': '1Dutc',
+                            '3d': '3Dutc',
+                            '1w': '1Wutc',
+                            '1M': '1Mutc',
+                        },
+                        'swap': {
+                            '1m': '1m',
+                            '3m': '3m',
+                            '5m': '5m',
+                            '15m': '15m',
+                            '30m': '30m',
+                            '1h': '1H',
+                            '2h': '2H',
+                            '4h': '4H',
+                            '6h': '6Hutc',
+                            '12h': '12Hutc',
+                            '1d': '1Dutc',
+                            '3d': '3Dutc',
+                            '1w': '1Wutc',
+                            '1M': '1Mutc',
+                        },
+                        'uta': {
+                            '1m': '1m',
+                            '3m': '3m',
+                            '5m': '5m',
+                            '15m': '15m',
+                            '30m': '30m',
+                            '1h': '1H',
+                            '2h': '2H',
+                            '4h': '4H',
+                            '6h': '6H',
+                            '12h': '12H',
+                            '1d': '1D',
+                        },
+                    },
                     #  ### Timeframe settings  ###
                     # after testing, the below values are real ones, because the values provided by API DOCS are wrong
                     # so, start timestamp should be within these thresholds to be able to call "recent" candles endpoint
@@ -1560,6 +1612,7 @@ class bitget(Exchange, ImplicitAPI):
                     'method': 'publicMixGetV2MixMarketCurrentFundRate',  # or publicMixGetV2MixMarketFundingTime
                 },
                 'accountsByType': {
+                    'funding': 'spot',
                     'spot': 'spot',
                     'cross': 'crossed_margin',
                     'isolated': 'isolated_margin',
@@ -1567,6 +1620,8 @@ class bitget(Exchange, ImplicitAPI):
                     'usdc_swap': 'usdc_futures',
                     'future': 'coin_futures',
                     'p2p': 'p2p',
+                    'uta': 'uta',
+                    'unified': 'uta',
                 },
                 'accountsById': {
                     'spot': 'spot',
@@ -1576,6 +1631,7 @@ class bitget(Exchange, ImplicitAPI):
                     'usdc_futures': 'usdc_swap',
                     'coin_futures': 'future',
                     'p2p': 'p2p',
+                    'uta': 'uta',
                 },
                 'sandboxMode': False,
                 'networks': {
@@ -1588,8 +1644,8 @@ class bitget(Exchange, ImplicitAPI):
                     'ATOM': 'ATOM',
                     'ACA': 'AcalaToken',
                     'APT': 'Aptos',
-                    'ARBONE': 'ArbitrumOne',
-                    'ARBNOVA': 'ArbitrumNova',
+                    'ARBITRUM': 'ArbitrumOne',
+                    'ARBITRUM_NOVA': 'ArbitrumNova',
                     'AVAXC': 'C-Chain',
                     'AVAXX': 'X-Chain',
                     'AR': 'Arweave',
@@ -1670,7 +1726,7 @@ class bitget(Exchange, ImplicitAPI):
                     # 'CADUCEUS': 'CMP',
                     # 'CONFLUX': 'CFX',  # CFXeSpace is different
                     # 'CERE': 'CERE',
-                    # 'CANTO': 'CANTO',
+                    'CANTO': 'CANTO-EVM',  # live-verified raw chain id, see https://github.com/ccxt/ccxt/issues/23989
                     'ZKSYNC': 'zkSyncEra',
                     'STARKNET': 'Starknet',
                     'VIC': 'VICTION',
@@ -1680,9 +1736,10 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchPositions': {
                     'method': 'privateMixGetV2MixPositionAllPosition',  # or privateMixGetV2MixPositionHistoryPosition
                 },
-                'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
-                # fiat currencies on deposit page
-                'fiatCurrencies': ['EUR', 'VND', 'PLN', 'CZK', 'HUF', 'DKK', 'AUD', 'CAD', 'NOK', 'SEK', 'CHF', 'MXN', 'COP', 'ARS', 'GBP', 'BRL', 'UAH', 'ZAR'],
+                'fetchCurrencies': {
+                    # fiat currencies on deposit page
+                    'fiatCurrencies': ['EUR', 'VND', 'PLN', 'CZK', 'HUF', 'DKK', 'AUD', 'CAD', 'NOK', 'SEK', 'CHF', 'MXN', 'COP', 'ARS', 'GBP', 'BRL', 'UAH', 'ZAR'],
+                },
             },
             'rollingWindowSize': 1000.0,
             'features': {
@@ -1838,7 +1895,7 @@ class bitget(Exchange, ImplicitAPI):
         """
         self.set_sandbox_mode(enabled)
 
-    def handle_product_type_and_params(self, market=None, params={}):
+    def handle_product_type_and_params(self, market: Market = None, params={}) -> list:
         subType = None
         subType, params = self.handle_sub_type_and_params('handleProductTypeAndParams', None, params)
         defaultProductType = None
@@ -1876,6 +1933,23 @@ class bitget(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' requires a productType param, one of "USDT-FUTURES", "USDC-FUTURES", "COIN-FUTURES", "SUSDT-FUTURES", "SUSDC-FUTURES", "SCOIN-FUTURES" or for uta only "SPOT"')
         params = self.omit(params, ['productType', 'category'])
         return [productType, params]
+
+    def handle_uta_and_params(self, params: Any, methodName: Str, defaultValue: bool = False):
+        uta = None
+        uta, params = self.handle_option_and_params(params, methodName, 'uta')
+        if uta is not None:
+            return [uta, params]
+        if self.check_required_credentials(False):
+            # use the api to determine if the account is uta or not
+            accountIsUTa = False
+            try:
+                self.privateUtaGetV3AccountSettings(params)
+                accountIsUTa = True
+            except Exception as e:
+                accountIsUTa = False
+            self.options['uta'] = accountIsUTa
+            return [accountIsUTa, params]
+        return [defaultValue, params]
 
     def fetch_time(self, params={}) -> Int:
         """
@@ -1916,13 +1990,12 @@ class bitget(Exchange, ImplicitAPI):
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchMarkets', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchMarkets', False)
         if uta:
             return self.fetch_uta_markets(params)
-        else:
-            return self.fetch_default_markets(params)
+        return self.fetch_default_markets(params)
 
-    def fetch_default_markets(self, params) -> List[Market]:
+    def fetch_default_markets(self, params: Any) -> List[Market]:
         types = None
         fetchMarketsOptions = self.safe_dict(self.options, 'fetchMarkets')
         defaultMarkets = ['spot', 'swap']
@@ -1957,9 +2030,24 @@ class bitget(Exchange, ImplicitAPI):
             firstData = self.safe_dict(data, 0, {})
             isBorrowable = self.safe_bool(firstData, 'isBorrowable')
             if fetchMargins and isBorrowable is not None:
-                keysList = list(self.index_by(data, 'symbol').keys())
-                self.options['crossMarginPairsData'] = keysList
-                self.options['isolatedMarginPairsData'] = keysList
+                # cross and isolated availability are per-symbol - a coin can be listed by
+                # v2/margin/currencies yet have cross disabled(isCrossBorrowable False,
+                # maxCrossedLeverage "0"), e.g. KAITOUSDT, which makes fetchCrossBorrowRate
+                # fail with bitget error 50001 "coin does not support cross"
+                crossKeys = []
+                isolatedKeys = []
+                for j in range(0, len(data)):
+                    entry = self.safe_dict(data, j, {})
+                    entrySymbol = self.safe_string(entry, 'symbol')
+                    entryBorrowable = self.safe_bool(entry, 'isBorrowable', True)
+                    if entryBorrowable and self.safe_bool(entry, 'isCrossBorrowable', True):
+                        crossKeys.append(entrySymbol)
+                    isolatedBase = self.safe_bool(entry, 'isIsolatedBaseBorrowable', True)
+                    isolatedQuote = self.safe_bool_2(entry, 'isIsolatedQuotedBorrowable', 'isIsolatedQuoteBorrowable', True)
+                    if entryBorrowable and (isolatedBase or isolatedQuote):
+                        isolatedKeys.append(entrySymbol)
+                self.options['crossMarginPairsData'] = crossKeys
+                self.options['isolatedMarginPairsData'] = isolatedKeys
             else:
                 markets = self.array_concat(markets, data)
         #
@@ -2072,8 +2160,8 @@ class bitget(Exchange, ImplicitAPI):
                     expiry = self.safe_integer(market, 'deliveryTime')
                     expiryDatetime = self.iso8601(expiry)
                     expiryParts = expiryDatetime.split('-')
-                    yearPart = self.safe_string(expiryParts, 0)
-                    dayPart = self.safe_string(expiryParts, 2)
+                    yearPart = self.safe_string(expiryParts, 0, '')
+                    dayPart = self.safe_string(expiryParts, 2, '')
                     year = yearPart[2:4]
                     month = self.safe_string(expiryParts, 1)
                     day = dayPart[0:2]
@@ -2164,7 +2252,7 @@ class bitget(Exchange, ImplicitAPI):
             }))
         return result
 
-    def fetch_uta_markets(self, params) -> List[Market]:
+    def fetch_uta_markets(self, params: Any) -> List[Market]:
         subTypes = ['SPOT', 'USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES']
         promises = []
         for i in range(0, len(subTypes)):
@@ -2325,8 +2413,8 @@ class bitget(Exchange, ImplicitAPI):
                     expiry = self.safe_integer(market, 'deliveryTime')
                     expiryDatetime = self.iso8601(expiry)
                     expiryParts = expiryDatetime.split('-')
-                    yearPart = self.safe_string(expiryParts, 0)
-                    dayPart = self.safe_string(expiryParts, 2)
+                    yearPart = self.safe_string(expiryParts, 0, '')
+                    dayPart = self.safe_string(expiryParts, 2, '')
                     year = yearPart[2:4]
                     month = self.safe_string(expiryParts, 1)
                     day = dayPart[0:2]
@@ -2445,81 +2533,83 @@ class bitget(Exchange, ImplicitAPI):
         #            },
         #            ...
         #
-        result: dict = {}
         data = self.safe_value(response, 'data', [])
-        fiatCurrencies = self.safe_list(self.options, 'fiatCurrencies', [])
-        for i in range(0, len(data)):
-            entry = data[i]
-            id = self.safe_string(entry, 'coin')  # we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints(deposit, withdraw, etc..)
-            code = self.safe_currency_code(id)
-            chains = self.safe_value(entry, 'chains', [])
-            networks: dict = {}
-            withdraw = None
-            deposit = None
-            chainsLength = len(chains)
-            if chainsLength == 0:
-                withdraw = False
-                deposit = False
-            for j in range(0, chainsLength):
-                chain = chains[j]
-                networkId = self.safe_string(chain, 'chain')
-                network = self.network_id_to_code(networkId, code)
-                network = network.upper()
-                withdrawable = (self.safe_string(chain, 'withdrawable') == 'true')
-                rechargeable = (self.safe_string(chain, 'rechargeable') == 'true')
-                withdraw = withdrawable if (withdraw is None) else (withdraw or withdrawable)
-                deposit = rechargeable if (deposit is None) else (deposit or rechargeable)
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(chain, 'minWithdrawAmount'),
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': self.safe_number(chain, 'minDepositAmount'),
-                            'max': None,
-                        },
-                    },
-                    'active': None,
-                    'withdraw': withdrawable,
-                    'deposit': rechargeable,
-                    'fee': self.safe_number(chain, 'withdrawFee'),
-                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawMinScale'))),
-                }
-            active = withdraw and deposit
-            isFiat = self.in_array(code, fiatCurrencies)
-            result[code] = self.safe_currency_structure({
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': networks,
-                'type': 'fiat' if isFiat else 'crypto',
-                'name': None,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': None,
-                'precision': None,
+        return self.parse_currencies(data)
+
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+        fiatCurrencies = self.handle_option('fetchCurrencies', 'fiatCurrencies', [])
+        entry = rawCurrency
+        id = self.safe_string(entry, 'coin')  # we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints(deposit, withdraw, etc..)
+        code = self.safe_currency_code(id)
+        chains = self.safe_list(entry, 'chains', [])
+        networks = {}
+        withdraw = None
+        deposit = None
+        chainsLength = len(chains)
+        if chainsLength == 0:
+            withdraw = False
+            deposit = False
+        for j in range(0, chainsLength):
+            chain = chains[j]
+            networkId = self.safe_string(chain, 'chain')
+            network = self.network_id_to_code(networkId, code)
+            if network is None:
+                raise ArgumentsRequired(self.id + ' requires a network argument')
+            network = network.upper()
+            withdrawable = (self.safe_string(chain, 'withdrawable') == 'true')
+            rechargeable = (self.safe_string(chain, 'rechargeable') == 'true')
+            withdraw = withdrawable if (withdraw is None) else (withdraw or withdrawable)
+            deposit = rechargeable if (deposit is None) else (deposit or rechargeable)
+            networks[network] = {
+                'info': chain,
+                'id': networkId,
+                'network': network,
                 'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
-                        'min': None,
+                        'min': self.safe_number(chain, 'minWithdrawAmount'),
                         'max': None,
                     },
                     'deposit': {
-                        'min': None,
+                        'min': self.safe_number(chain, 'minDepositAmount'),
                         'max': None,
                     },
                 },
-                'created': None,
-            })
-        return result
+                'active': None,
+                'withdraw': withdrawable,
+                'deposit': rechargeable,
+                'fee': self.safe_number(chain, 'withdrawFee'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawMinScale'))),
+            }
+        active = withdraw and deposit
+        isFiat = self.in_array(code, fiatCurrencies)
+        return self.safe_currency_structure({
+            'info': entry,
+            'id': id,
+            'code': code,
+            'networks': networks,
+            'type': 'fiat' if isFiat else 'crypto',
+            'name': None,
+            'active': active,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': None,
+            'precision': None,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,
+        })
 
     def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
         """
@@ -2538,16 +2628,17 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a `leverage tiers structure <https://docs.ccxt.com/?id=leverage-tiers-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {}
+        request = {}
         response = None
         marginMode = None
         productType = None
         uta = None
         marginMode, params = self.handle_margin_mode_and_params('fetchMarketLeverageTiers', params, 'isolated')
         productType, params = self.handle_product_type_and_params(market, params)
-        uta, params = self.handle_option_and_params(params, 'fetchMarketLeverageTiers', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchMarketLeverageTiers', False)
         if uta:
             if productType == 'SPOT':
                 if marginMode is not None:
@@ -2649,7 +2740,7 @@ class bitget(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'data', [])
         return self.parse_market_leverage_tiers(result, market)
 
-    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: Any, market: Market = None) -> List[LeverageTier]:
         #
         # swap and future
         #
@@ -2705,7 +2796,7 @@ class bitget(Exchange, ImplicitAPI):
                 minNotional = minimumNotional
             maxNotional = self.safe_number_n(item, ['endUnit', 'maxBorrowableAmount', 'baseMaxBorrowableAmount', 'maxTierValue'])
             marginCurrency = self.safe_string_2(item, 'coin', 'baseCoin')
-            currencyId = marginCurrency if (marginCurrency is not None) else market['base']
+            currencyId = marginCurrency if (marginCurrency is not None) else self.safe_string(market, 'base')
             marketId = self.safe_string(item, 'symbol')
             tiers.append({
                 'tier': self.safe_integer_2(item, 'level', 'tier'),
@@ -2735,14 +2826,15 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchDeposits', None, since, limit, params, 'idLessThan', 'idLessThan', None, 100)
         if since is None:
             since = self.milliseconds() - 7776000000  # 90 days
-        request: dict = {
+        request = {
             'startTime': since,
             'endTime': self.milliseconds(),
         }
@@ -2799,10 +2891,11 @@ class bitget(Exchange, ImplicitAPI):
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' withdraw() requires a "network" parameter')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        networkId = self.network_code_to_id(networkCode)
-        request: dict = {
+        networkId = self.network_code_to_id(networkCode, code)
+        request = {
             'coin': currency['id'],
             'address': address,
             'chain': networkId,
@@ -2852,7 +2945,8 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
         if paginate:
@@ -2862,7 +2956,7 @@ class bitget(Exchange, ImplicitAPI):
             currency = self.currency(code)
         if since is None:
             since = self.milliseconds() - 7776000000  # 90 days
-        request: dict = {
+        request = {
             'startTime': since,
             'endTime': self.milliseconds(),
         }
@@ -2961,7 +3055,7 @@ class bitget(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'tradeId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, code),
             'addressFrom': self.safe_string(transaction, 'fromAddress'),
             'address': self.safe_string(transaction, 'toAddress'),
             'addressTo': self.safe_string(transaction, 'toAddress'),
@@ -2979,7 +3073,7 @@ class bitget(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'success': 'ok',
             'Pending': 'pending',
             'pending_review': 'pending',
@@ -2998,11 +3092,12 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'coin': currency['id'],
         }
         if networkCode is not None:
@@ -3025,7 +3120,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "coin": "BTC",
@@ -3061,11 +3156,12 @@ class bitget(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -3074,7 +3170,7 @@ class bitget(Exchange, ImplicitAPI):
         productType, params = self.handle_product_type_and_params(market, params)
         response = None
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchOrderBook', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchOrderBook', False)
         if uta:
             request['category'] = productType
             response = self.publicUtaGetV3MarketOrderbook(self.extend(request, params))
@@ -3270,16 +3366,17 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
         response = None
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchTicker', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchTicker', False)
         if uta:
             request['category'] = productType
             response = self.publicUtaGetV3MarketTickers(self.extend(request, params))
@@ -3424,9 +3521,10 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = None
@@ -3455,13 +3553,14 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.productType]: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbols is not None:
             symbol = self.safe_value(symbols, 0)
             market = self.market(symbol)
         response = None
-        request: dict = {}
+        request = {}
         type = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         # Calls like `.fetchTickers(None, {subType:'inverse'})` should be supported for self exchange, so
@@ -3472,11 +3571,12 @@ class bitget(Exchange, ImplicitAPI):
         productType, params = self.handle_product_type_and_params(market, params)
         # only if passedSubType and productType is None, then use spot
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchTickers', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchTickers', False)
         if uta:
-            symbolsLength = len(symbols)
-            if (symbols is not None) and (symbolsLength == 1):
-                request['symbol'] = market['id']
+            if symbols is not None:
+                symbolsLength = len(symbols)
+                if symbolsLength == 1:
+                    request['symbol'] = self.safe_string(market, 'id')
             request['category'] = productType
             response = self.publicUtaGetV3MarketTickers(self.extend(request, params))
         elif type == 'spot' and passedSubType is None:
@@ -3773,17 +3873,18 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default False, when True will automatically paginate by calling self endpoint multiple times
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchTrades', symbol, since, limit, params, 'idLessThan', 'idLessThan')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchTrades', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchTrades', False)
         if limit is not None:
             if uta:
                 request['limit'] = min(limit, 100)
@@ -3896,9 +3997,10 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'isolated' or 'cross', for finding the fee rate of spot margin trading pairs
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         marginMode = None
@@ -3925,7 +4027,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_trading_fee(data, market)
 
-    def fetch_trading_fees(self, params={}) -> TradingFees:
+    def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -3938,7 +4040,8 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.margin]: set to True for spot margin
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = None
         marginMode = None
         marketType = None
@@ -4030,7 +4133,7 @@ class bitget(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        result: dict = {}
+        result = {}
         for i in range(0, len(data)):
             entry = data[i]
             marketId = self.safe_string(entry, 'symbol')
@@ -4040,7 +4143,7 @@ class bitget(Exchange, ImplicitAPI):
             result[symbol] = fee
         return result
 
-    def parse_trading_fee(self, data, market: Market = None):
+    def parse_trading_fee(self, data: Any, market: Market = None):
         marketId = self.safe_string(data, 'symbol')
         return {
             'info': data,
@@ -4051,7 +4154,7 @@ class bitget(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     [
         #         "1645911960000",
@@ -4099,7 +4202,8 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.price]: *swap only* "mark"(to fetch mark price candles) or "index"(to fetch index price candles)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         defaultLimit = 100  # default 100, max 1000
         maxLimitForRecentEndpoint = 1000
         maxLimitForHistoryEndpoint = 200  # note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
@@ -4111,19 +4215,20 @@ class bitget(Exchange, ImplicitAPI):
             limitForPagination = maxLimitForHistoryEndpoint if useHistoryEndpointForPagination else maxLimitForRecentEndpoint
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, limitForPagination)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         marketType = None
         timeframes = None
+        timeframesOption = self.handle_option('fetchOHLCV', 'timeframes')
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchOHLCV', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchOHLCV', False)
         if uta:
-            timeframes = self.options['timeframes']['uta']
+            timeframes = timeframesOption['uta']
             request['interval'] = self.safe_string(timeframes, timeframe, timeframe)
         else:
             marketType = 'spot' if market['spot'] else 'swap'
-            timeframes = self.options['timeframes'][marketType]
+            timeframes = timeframesOption[marketType]
             request['granularity'] = self.safe_string(timeframes, timeframe, timeframe)
         msInDay = 86400000
         now = self.milliseconds()
@@ -4235,8 +4340,12 @@ class bitget(Exchange, ImplicitAPI):
         if response == '':
             return []  # happens when a new token is listed
         #  [["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"]]
-        data = self.safe_list(response, 'data', response)
-        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+        candles = []
+        if isinstance(response, list):
+            candles = response
+        else:
+            candles = self.safe_list(response, 'data', [])
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     def fetch_balance(self, params={}) -> Balances:
         """
@@ -4249,25 +4358,33 @@ class bitget(Exchange, ImplicitAPI):
         https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
         https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
         https://www.bitget.com/api-doc/uta/account/Get-Account
+        https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.productType]: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :param str [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :param str [params.type]: 'funding' to fetch the uta funding-account assets(uta only, classic accounts route funding through 'spot')
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         marketType = None
         marginMode = None
         response = None
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchBalance', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchBalance', False)
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
         if uta:
-            response = self.privateUtaGetV3AccountAssets(self.extend(request, params))
-            results = self.safe_dict(response, 'data', {})
-            assets = self.safe_list(results, 'assets', [])
+            assets = None
+            if marketType == 'funding':
+                response = self.privateUtaGetV3AccountFundingAssets(self.extend(request, params))
+                assets = self.safe_list(response, 'data', [])
+            else:
+                response = self.privateUtaGetV3AccountAssets(self.extend(request, params))
+                results = self.safe_dict(response, 'data', {})
+                assets = self.safe_list(results, 'assets', [])
             return self.parse_uta_balance(assets)
         elif (marketType == 'swap') or (marketType == 'future'):
             productType = None
@@ -4401,11 +4518,29 @@ class bitget(Exchange, ImplicitAPI):
         #         }
         #     }
         #
+        # funding uta
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1750396239013,
+        #         "data": [
+        #             {
+        #                 "coin": "BGB",
+        #                 "available": "0.01",
+        #                 "frozen": "0",
+        #                 "balance": "0.01"
+        #             }
+        #         ]
+        #     }
+        #
         data = self.safe_value(response, 'data', [])
         return self.parse_balance(data)
 
-    def parse_uta_balance(self, balance) -> Balances:
-        result: dict = {'info': balance}
+    def parse_uta_balance(self, balance: Any) -> Balances:
+        result = {'info': balance}
+        #
+        # uta
         #
         #     {
         #         "coin": "USDT",
@@ -4417,20 +4552,30 @@ class bitget(Exchange, ImplicitAPI):
         #         "locked": "0"
         #     }
         #
+        # funding uta
+        #
+        #     {
+        #         "coin": "BGB",
+        #         "available": "0.01",
+        #         "frozen": "0",
+        #         "balance": "0.01"
+        #     }
+        #
         for i in range(0, len(balance)):
             entry = balance[i]
             account = self.account()
             currencyId = self.safe_string(entry, 'coin')
             code = self.safe_currency_code(currencyId)
             account['debt'] = self.safe_string(entry, 'debt')
-            account['used'] = self.safe_string(entry, 'locked')
+            account['used'] = self.safe_string_2(entry, 'locked', 'frozen')
             account['free'] = self.safe_string(entry, 'available')
             account['total'] = self.safe_string(entry, 'balance')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
-    def parse_balance(self, balance) -> Balances:
-        result: dict = {'info': balance}
+    def parse_balance(self, balance: Any) -> Balances:
+        result = {'info': balance}
         #
         # spot
         #
@@ -4501,11 +4646,12 @@ class bitget(Exchange, ImplicitAPI):
                     frozen = self.safe_string(entry, 'frozen')
                     locked = self.safe_string(entry, 'locked')
                     account['used'] = Precise.string_add(frozen, locked)
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'new': 'open',
             'init': 'open',
             'not_trigger': 'open',
@@ -4868,7 +5014,8 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
@@ -4895,7 +5042,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used execution price for contract stop-loss / take-profit orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.cost]: *spot only* how much you want to trade in units of the quote currency, for market buy orders only
         :param float [params.triggerPrice]: *swap only* The price at which a trigger order is triggered at
@@ -4923,7 +5070,8 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.posSide]: *uta only* hedged two-way position side, long or short
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         marginParams = self.handle_margin_mode_and_params('createOrder', params)
         marginMode = marginParams[0]
@@ -4938,7 +5086,7 @@ class bitget(Exchange, ImplicitAPI):
         isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
         response = None
         uta = None
-        uta, params = self.handle_option_and_params(params, 'createOrder', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'createOrder', False)
         if uta:
             request = self.create_uta_order_request(symbol, type, side, amount, price, params)
             if isStopLossOrTakeProfitTrigger:
@@ -4977,7 +5125,11 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def create_uta_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_uta_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
@@ -4986,7 +5138,7 @@ class bitget(Exchange, ImplicitAPI):
             marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
             if marginMode is not None:
                 productType = 'MARGIN'
-        request: dict = {
+        request = {
             'category': productType,
             'symbol': market['id'],
             'qty': self.amount_to_precision(symbol, amount),
@@ -5051,8 +5203,10 @@ class bitget(Exchange, ImplicitAPI):
             exchangeSpecificTifParam = self.safe_string(params, 'timeInForce')
             postOnly = None
             postOnly, params = self.handle_post_only(isMarketOrder, exchangeSpecificTifParam == 'post_only', params)
-            defaultTimeInForce = self.safe_string_upper(self.options, 'defaultTimeInForce')
-            timeInForce = self.safe_string_upper(params, 'timeInForce', defaultTimeInForce)
+            timeInForce = None
+            timeInForce, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce')
+            if timeInForce is not None:
+                timeInForce = timeInForce.upper()
             if postOnly:
                 request['timeInForce'] = 'post_only'
             elif timeInForce == 'GTC':
@@ -5077,13 +5231,17 @@ class bitget(Exchange, ImplicitAPI):
         params = self.omit(params, ['stopLoss', 'takeProfit', 'postOnly', 'reduceOnly', 'hedged'])
         return self.extend(request, params)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         marketType = None
         marginMode = None
         marketType, params = self.handle_market_type_and_params('createOrder', market, params)
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'orderType': type,
         }
@@ -5110,6 +5268,13 @@ class bitget(Exchange, ImplicitAPI):
         trailingTriggerPrice = self.safe_string(params, 'trailingTriggerPrice', self.number_to_string(price))
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRatio')
         isTrailingPercentOrder = trailingPercent is not None
+        # multipleTriggers = (isTriggerOrder and (isStopLossTriggerOrder or isTakeProfitTriggerOrder or isTrailingPercentOrder))
+        #     or (isStopLossTriggerOrder and (isTakeProfitTriggerOrder or isTrailingPercentOrder))
+        #     or (isTakeProfitTriggerOrder and isTrailingPercentOrder)
+        # if multipleTriggers:
+        #     raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent')
+        # }
+        #
         if self.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isTrailingPercentOrder) > 1:
             raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent')
         if type == 'limit':
@@ -5120,8 +5285,10 @@ class bitget(Exchange, ImplicitAPI):
         exchangeSpecificTifParam = self.safe_string_2(params, 'force', 'timeInForce')
         postOnly = None
         postOnly, params = self.handle_post_only(isMarketOrder, exchangeSpecificTifParam == 'post_only', params)
-        defaultTimeInForce = self.safe_string_upper(self.options, 'defaultTimeInForce')
-        timeInForce = self.safe_string_upper(params, 'timeInForce', defaultTimeInForce)
+        timeInForce = None
+        timeInForce, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce')
+        if timeInForce is not None:
+            timeInForce = timeInForce.upper()
         if postOnly:
             request['force'] = 'post_only'
         elif timeInForce == 'GTC':
@@ -5169,8 +5336,10 @@ class bitget(Exchange, ImplicitAPI):
                     tpType = self.safe_string(takeProfit, 'type', 'mark_price')
                     request['stopSurplusTriggerType'] = tpType
             elif isStopLossOrTakeProfitTrigger:
-                if not isMarketOrder:
-                    raise ExchangeError(self.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders')
+                if price is not None:
+                    request['executePrice'] = self.price_to_precision(symbol, price)
+                    if 'price' in request:
+                        del request['price']
                 if hedged:
                     request['holdSide'] = 'long' if (side == 'sell') else 'short'
                 else:
@@ -5184,10 +5353,22 @@ class bitget(Exchange, ImplicitAPI):
             else:
                 if hasStopLoss:
                     slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice')
+                    if slTriggerPrice is None:
+                        raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter')
                     request['presetStopLossPrice'] = self.price_to_precision(symbol, slTriggerPrice)
+                    slLimitPrice = self.safe_value(stopLoss, 'price')
+                    if slLimitPrice is not None:
+                        # without the execute price the exchange fills the attached stop loss
+                        # at the market price, see https://github.com/ccxt/ccxt/issues/23459
+                        request['presetStopLossExecutePrice'] = self.price_to_precision(symbol, slLimitPrice)
                 if hasTakeProfit:
                     tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice')
+                    if tpTriggerPrice is None:
+                        raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter')
                     request['presetStopSurplusPrice'] = self.price_to_precision(symbol, tpTriggerPrice)
+                    tpLimitPrice = self.safe_value(takeProfit, 'price')
+                    if tpLimitPrice is not None:
+                        request['presetStopSurplusExecutePrice'] = self.price_to_precision(symbol, tpLimitPrice)
             if not isStopLossOrTakeProfitTrigger:
                 if marginMode is None:
                     marginMode = 'cross'
@@ -5221,7 +5402,7 @@ class bitget(Exchange, ImplicitAPI):
                     quantity = self.cost_to_precision(symbol, cost)
                 elif createMarketBuyOrderRequiresPrice:
                     if price is None:
-                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice in options["createOrder"] or params to False and pass the cost to spend in the amount argument')
                     else:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)
@@ -5254,7 +5435,8 @@ class bitget(Exchange, ImplicitAPI):
         return self.extend(request, params)
 
     def create_uta_orders(self, orders: List[OrderRequest], params={}):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         ordersRequests = []
         symbol = None
         marginMode = None
@@ -5314,9 +5496,10 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         uta = None
-        uta, params = self.handle_option_and_params(params, 'createOrders', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'createOrders', False)
         if uta:
             return self.create_uta_orders(orders, params)
         ordersRequests = []
@@ -5346,7 +5529,7 @@ class bitget(Exchange, ImplicitAPI):
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'orderList': ordersRequests,
         }
@@ -5432,9 +5615,10 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             # 'orderId': id,
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientOid')
@@ -5457,6 +5641,12 @@ class bitget(Exchange, ImplicitAPI):
         trailingTriggerPrice = self.safe_string(params, 'trailingTriggerPrice', self.number_to_string(price))
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'newCallbackRatio')
         isTrailingPercentOrder = trailingPercent is not None
+        # multipleTriggers = (isTriggerOrder and (isStopLossOrder or isTakeProfitOrder or isTrailingPercentOrder))
+        #     or (isStopLossOrder and (isTakeProfitOrder or isTrailingPercentOrder))
+        #     or (isTakeProfitOrder and isTrailingPercentOrder)
+        # if multipleTriggers:
+        #     raise ExchangeError(self.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent')
+        # }
         if self.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder) > 1:
             raise ExchangeError(self.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent')
         params = self.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent'])
@@ -5464,7 +5654,7 @@ class bitget(Exchange, ImplicitAPI):
         productType = None
         uta = None
         productType, params = self.handle_product_type_and_params(market, params)
-        uta, params = self.handle_option_and_params(params, 'editOrder', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'editOrder', False)
         if uta:
             if amount is not None:
                 request['qty'] = self.amount_to_precision(symbol, amount)
@@ -5510,7 +5700,10 @@ class bitget(Exchange, ImplicitAPI):
             request['orderType'] = type
             if triggerPrice is not None:
                 request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-                request['executePrice'] = self.price_to_precision(symbol, price)
+                # market plan orders carry no execute price, follow up to
+                # https://github.com/ccxt/ccxt/issues/25427
+                if price is not None:
+                    request['executePrice'] = self.price_to_precision(symbol, price)
             else:
                 request['price'] = self.price_to_precision(symbol, price)
             if triggerPrice is not None:
@@ -5614,26 +5807,27 @@ class bitget(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         marginMode = None
-        response = None
+        response = {}
         marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
-        request: dict = {}
+        request = {}
         trailing = self.safe_value(params, 'trailing')
         trigger = self.safe_value_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger', 'trailing'])
         if not (market['spot'] and trigger):
             request['symbol'] = market['id']
         uta = None
-        uta, params = self.handle_option_and_params(params, 'cancelOrder', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'cancelOrder', False)
         isPlanOrder = trigger or trailing
         isContract = market['swap'] or market['future']
         isContractTriggerEndpoint = isContract and isPlanOrder and not uta
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientOid')
         if isContractTriggerEndpoint:
             orderIdList = []
-            orderId: dict = {}
+            orderId = {}
             if clientOrderId is not None:
                 params = self.omit(params, 'clientOrderId')
                 orderId['clientOid'] = clientOrderId
@@ -5728,10 +5922,10 @@ class bitget(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        order = None
+        order = {}
         if isContractTriggerEndpoint:
             orderInfo = self.safe_value(data, 'successList', [])
-            order = orderInfo[0]
+            order = self.safe_dict(orderInfo, 0, {})
         else:
             if uta and trigger:
                 order = response
@@ -5739,17 +5933,18 @@ class bitget(Exchange, ImplicitAPI):
                 order = data
         return self.parse_order(order, market)
 
-    def cancel_uta_orders(self, ids, symbol: Str = None, params={}):
+    def cancel_uta_orders(self, ids: Any, symbol: Str = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
         requestList = []
         for i in range(0, len(ids)):
             individualId = ids[i]
-            order: dict = {
+            order = {
                 'orderId': individualId,
                 'symbol': market['id'],
                 'category': productType,
@@ -5793,10 +5988,11 @@ class bitget(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         uta = None
-        uta, params = self.handle_option_and_params(params, 'cancelOrders', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'cancelOrders', False)
         if uta:
             return self.cancel_uta_orders(ids, symbol, params)
         marginMode = None
@@ -5806,11 +6002,11 @@ class bitget(Exchange, ImplicitAPI):
         orderIdList = []
         for i in range(0, len(ids)):
             individualId = ids[i]
-            orderId: dict = {
+            orderId = {
                 'orderId': individualId,
             }
             orderIdList.append(orderId)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if market['spot'] and (marginMode is None):
@@ -5873,20 +6069,21 @@ class bitget(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('cancelAllOrders', params)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         response = None
         uta = None
-        uta, params = self.handle_option_and_params(params, 'cancelAllOrders', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'cancelAllOrders', False)
         if uta:
             if productType == 'SPOT':
                 if marginMode is not None:
@@ -5913,7 +6110,7 @@ class bitget(Exchange, ImplicitAPI):
                 raise NotSupported(self.id + ' cancelAllOrders() does not support margin markets, you can use cancelOrders() instead')
             else:
                 if trigger:
-                    stopRequest: dict = {
+                    stopRequest = {
                         'symbolList': [market['id']],
                     }
                     response = self.privateSpotPostV2SpotTradeBatchCancelPlanOrder(self.extend(stopRequest, params))
@@ -5949,7 +6146,7 @@ class bitget(Exchange, ImplicitAPI):
             #     {
             #         "code": "00000",
             #         "msg": "success",
-            #         "requestTime": "1680008815965",
+            #         "requestTime": "1680008815966",
             #         "data": {
             #             "successList": [
             #                 {
@@ -5987,9 +6184,10 @@ class bitget(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             # 'orderId': id,
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientOid')
@@ -6000,7 +6198,7 @@ class bitget(Exchange, ImplicitAPI):
             request['orderId'] = id
         response = None
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchOrder', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchOrder', False)
         if uta:
             response = self.privateUtaGetV3TradeOrderInfo(self.extend(request, params))
         elif market['spot']:
@@ -6164,14 +6362,15 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         type = None
-        request: dict = {}
+        request = {}
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchOpenOrders', False)
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -6543,7 +6742,8 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.trailing]: set to True if you want to fetch trailing orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         orders = self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')
 
@@ -6571,7 +6771,8 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.trailing]: set to True if you want to fetch trailing orders
         :returns dict: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         orders = self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'canceled')
 
@@ -6602,12 +6803,13 @@ class bitget(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchCanceledAndClosedOrders', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchCanceledAndClosedOrders', False)
         if uta:
             return self.fetch_uta_canceled_and_closed_orders(symbol, since, limit, params)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -6652,7 +6854,7 @@ class bitget(Exchange, ImplicitAPI):
             elif trigger:
                 if symbol is None:
                     raise ArgumentsRequired(self.id + ' fetchCanceledAndClosedOrders() requires a symbol argument')
-                endTime = self.safe_integer_n(params, ['endTime', 'until'])
+                endTime = self.safe_integer_2(params, 'endTime', 'until')
                 params = self.omit(params, ['until'])
                 if since is None:
                     since = now - 7776000000
@@ -6867,7 +7069,8 @@ class bitget(Exchange, ImplicitAPI):
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_uta_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -6878,7 +7081,7 @@ class bitget(Exchange, ImplicitAPI):
             marginMode, params = self.handle_margin_mode_and_params('fetchCanceledAndClosedOrders', params)
             if marginMode is not None:
                 productType = 'MARGIN'
-        request: dict = {
+        request = {
             'category': productType,
         }
         paginate = False
@@ -7001,7 +7204,8 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbol = self.safe_string(params, 'symbol')
         params = self.omit(params, 'symbol')
         market = None
@@ -7017,7 +7221,7 @@ class bitget(Exchange, ImplicitAPI):
                 cursorReceived = 'endId'
             return self.fetch_paginated_call_cursor('fetchLedger', symbol, since, limit, params, cursorReceived, 'idLessThan')
         currency = None
-        request: dict = {}
+        request = {}
         if code is not None:
             currency = self.currency(code)
             request['coin'] = currency['id']
@@ -7031,7 +7235,7 @@ class bitget(Exchange, ImplicitAPI):
             response = self.privateSpotGetV2SpotAccountBills(self.extend(request, params))
         else:
             if symbol is not None:
-                request['symbol'] = market['id']
+                request['symbol'] = self.safe_string(market, 'id')
             productType = None
             productType, params = self.handle_product_type_and_params(market, params)
             request['productType'] = productType
@@ -7120,7 +7324,7 @@ class bitget(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(item, 'cTime')
         after = self.safe_number(item, 'balance')
         fee = self.safe_number_2(item, 'fees', 'fee')
-        amountRaw = self.safe_string_2(item, 'size', 'amount')
+        amountRaw = self.safe_string_2(item, 'size', 'amount', '')
         amount = self.parse_number(Precise.string_abs(amountRaw))
         direction = 'in'
         if amountRaw.find('-') >= 0:
@@ -7146,8 +7350,8 @@ class bitget(Exchange, ImplicitAPI):
             },
         }, currency)
 
-    def parse_ledger_type(self, type):
-        types: dict = {
+    def parse_ledger_type(self, type: Any):
+        types = {
             'trans_to_cross': 'transfer',
             'trans_from_cross': 'transfer',
             'trans_to_exchange': 'transfer',
@@ -7211,12 +7415,13 @@ class bitget(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchMyTrades', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchMyTrades', False)
         if not uta and (symbol is None):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {}
+        request = {}
         request, params = self.handle_until_option('endTime', request, params)
         if since is not None:
             request['startTime'] = since
@@ -7415,17 +7620,18 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = None
         uta = None
         result = None
-        uta, params = self.handle_option_and_params(params, 'fetchPosition', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchPosition', False)
         if uta:
             request['category'] = productType
             response = self.privateUtaGetV3PositionCurrentPosition(self.extend(request, params))
@@ -7525,7 +7731,8 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchPositions', 'paginate')
         if paginate:
@@ -7544,11 +7751,11 @@ class bitget(Exchange, ImplicitAPI):
                 market = self.market(first)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request: dict = {}
+        request = {}
         response = None
         isHistory = False
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchPositions', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchPositions', False)
         if uta:
             request['category'] = productType
             response = self.privateUtaGetV3PositionCurrentPosition(self.extend(request, params))
@@ -7922,9 +8129,10 @@ class bitget(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         productType = None
@@ -7932,7 +8140,7 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         result = None
         productType, params = self.handle_product_type_and_params(market, params)
-        uta, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchFundingRateHistory', False)
         if uta:
             if limit is not None:
                 request['limit'] = limit
@@ -8010,18 +8218,19 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.method]: either(default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         uta = None
         response = None
-        uta, params = self.handle_option_and_params(params, 'fetchFundingRate', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchFundingRate', False)
         if uta:
             response = self.publicUtaGetV3MarketCurrentFundRate(self.extend(request, params))
             #
@@ -8096,12 +8305,13 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.method]: either(default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
         :returns dict: a dictionary of `funding rate structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbols is not None:
             symbol = self.safe_value(symbols, 0)
             market = self.market(symbol)
-        request: dict = {}
+        request = {}
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
         method = 'publicMixGetV2MixMarketTickers'
@@ -8176,11 +8386,12 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.productType]: 'USDT-FUTURES'(default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         params = self.extend({'method': 'publicMixGetV2MixMarketCurrentFundRate'}, params)
         return self.fetch_funding_rates(symbols, params)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         #
         # fetchFundingRate: publicMixGetV2MixMarketCurrentFundRate, publicUtaGetV3MarketCurrentFundRate
         #
@@ -8282,57 +8493,92 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding history structures <https://docs.ccxt.com/?id=funding-history-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
+        uta = None
+        uta, params = self.handle_uta_and_params(params, 'fetchFundingHistory', False)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
         if paginate:
+            if uta:
+                return self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, params, 'cursor', 'cursor')
             return self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, params, 'endId', 'idLessThan')
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingHistory() supports swap contracts only')
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request: dict = {
-            'symbol': market['id'],
-            'marginCoin': market['settleId'],
-            'businessType': 'contract_settle_fee',
-            'productType': productType,
-        }
+        request = {}
         request, params = self.handle_until_option('endTime', request, params)
         if since is not None:
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        response = self.privateMixGetV2MixAccountBill(self.extend(request, params))
-        #
-        #     {
-        #         "code": "00000",
-        #         "msg": "success",
-        #         "requestTime": 1700795977890,
-        #         "data": {
-        #             "bills": [
-        #                 {
-        #                     "billId": "1111499428100472833",
-        #                     "symbol": "BTCUSDT",
-        #                     "amount": "-0.004992",
-        #                     "fee": "0",
-        #                     "feeByCoupon": "",
-        #                     "businessType": "contract_settle_fee",
-        #                     "coin": "USDT",
-        #                     "cTime": "1700728034996"
-        #                 },
-        #             ],
-        #             "endId": "1098396773329305606"
-        #         }
-        #     }
-        #
+        response = None
+        if uta:
+            request['coin'] = market['settleId']
+            request['category'] = productType
+            response = self.privateUtaGetV3AccountFinancialRecords(self.extend(request, params))
+            #
+            # {
+            #     "code": "00000",
+            #     "msg": "success",
+            #     "requestTime": 1750135478641,
+            #     "data": {
+            #         "list": [
+            #             {
+            #                 "category": "Margin",
+            #                 "id": "13111111111111111",
+            #                 "symbol": "BTCUSDT",
+            #                 "coin": "BTC",
+            #                 "type": "ORDER_DEALT_IN",
+            #                 "amount": "0.00531168",
+            #                 "fee": "-0.00000531",
+            #                 "balance": "55.10017801",
+            #                 "ts": "1745853486185"
+            #             }
+            #         ],
+            #         "cursor": "122222222222222222"
+            #     }
+            # }
+            #
+        else:
+            request['symbol'] = market['id']
+            request['marginCoin'] = market['settleId']
+            request['businessType'] = 'contract_settle_fee'
+            request['productType'] = productType
+            response = self.privateMixGetV2MixAccountBill(self.extend(request, params))
+            #
+            #     {
+            #         "code": "00000",
+            #         "msg": "success",
+            #         "requestTime": 1700795977890,
+            #         "data": {
+            #             "bills": [
+            #                 {
+            #                     "billId": "1111499428100472833",
+            #                     "symbol": "BTCUSDT",
+            #                     "amount": "-0.004992",
+            #                     "fee": "0",
+            #                     "feeByCoupon": "",
+            #                     "businessType": "contract_settle_fee",
+            #                     "coin": "USDT",
+            #                     "cTime": "1700728034996"
+            #                 },
+            #             ],
+            #             "endId": "1098396773329305606"
+            #         }
+            #     }
+            #
         data = self.safe_value(response, 'data', {})
-        result = self.safe_value(data, 'bills', [])
-        return self.parse_funding_histories(result, market, since, limit)
+        bills = self.safe_list_2(data, 'bills', 'list', [])
+        if uta:
+            bills = self.filter_by_array(bills, 'type', ['CONTRACT_MAIN_SETTLE_FEE_USER_IN', 'CONTRACT_MAIN_SETTLE_FEE_USER_OUT'], False)
+        return self.parse_funding_histories(bills, market, since, limit)
 
-    def parse_funding_history(self, contract, market: Market = None):
+    def parse_funding_history(self, contract: Any, market: Market = None):
         #
         #     {
         #         "billId": "1111499428100472833",
@@ -8345,9 +8591,21 @@ class bitget(Exchange, ImplicitAPI):
         #         "cTime": "1700728034996"
         #     }
         #
+        #     {
+        #         "category": "Margin",
+        #         "id": "13111111111111111",
+        #         "symbol": "BTCUSDT",
+        #         "coin": "BTC",
+        #         "type": "ORDER_DEALT_IN",
+        #         "amount": "0.00531168",
+        #         "fee": "-0.00000531",
+        #         "balance": "55.10017801",
+        #         "ts": "1745853486185"
+        #     }
+        #
         marketId = self.safe_string(contract, 'symbol')
         currencyId = self.safe_string(contract, 'coin')
-        timestamp = self.safe_integer(contract, 'cTime')
+        timestamp = self.safe_integer_2(contract, 'cTime', 'ts')
         return {
             'info': contract,
             'symbol': self.safe_symbol(marketId, market, None, 'swap'),
@@ -8355,16 +8613,18 @@ class bitget(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'code': self.safe_currency_code(currencyId),
             'amount': self.safe_number(contract, 'amount'),
-            'id': self.safe_string(contract, 'billId'),
+            'id': self.safe_string_2(contract, 'billId', 'id'),
         }
 
-    def parse_funding_histories(self, contracts, market=None, since: Int = None, limit: Int = None) -> List[FundingHistory]:
+    def parse_funding_histories(self, contracts: Any, market: Market = None, since: Int = None, limit: Int = None) -> List[FundingHistory]:
         result = []
         for i in range(0, len(contracts)):
             contract = contracts[i]
-            business = self.safe_string(contract, 'businessType')
-            if business != 'contract_settle_fee':
-                continue
+            # for non-uta, we've set bussinessType in request payload. Not sure why self existed.
+            # business = self.safe_string(contract, 'businessType')
+            # if business != 'contract_settle_fee':
+            #     continue
+            # }
             result.append(self.parse_funding_history(contract, market))
         sorted = self.sort_by(result, 'timestamp')
         symbol = None
@@ -8372,13 +8632,14 @@ class bitget(Exchange, ImplicitAPI):
             symbol = market['symbol']
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
-        self.load_markets()
+    def modify_margin_helper(self, symbol: str, amount: Any, type: Any, params={}) -> MarginModification:
+        if self.markets is None:
+            self.load_markets()
         holdSide = self.safe_string(params, 'holdSide')
         market = self.market(symbol)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
             'amount': self.amount_to_precision(symbol, amount),  # positive value for adding margin, negative for reducing
@@ -8415,12 +8676,12 @@ class bitget(Exchange, ImplicitAPI):
         status = 'ok' if (errorCode == '00000') else 'failed'
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'type': None,
             'marginMode': 'isolated',
             'amount': None,
             'total': None,
-            'code': market['settle'],
+            'code': self.safe_string(market, 'settle'),
             'status': status,
             'timestamp': None,
             'datetime': None,
@@ -8470,11 +8731,12 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
             'productType': productType,
@@ -8517,7 +8779,7 @@ class bitget(Exchange, ImplicitAPI):
         shortLevKey = 'crossedMarginLeverage' if isCrossMarginMode else 'isolatedShortLever'
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'marginMode': 'cross' if isCrossMarginMode else 'isolated',
             'longLeverage': self.safe_integer(leverage, longLevKey),
             'shortLeverage': self.safe_integer(leverage, shortLevKey),
@@ -8540,21 +8802,22 @@ class bitget(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'leverage': self.number_to_string(leverage),
         }
         uta = None
-        response = None
-        uta, params = self.handle_option_and_params(params, 'setLeverage', 'uta', False)
+        response = {}
+        uta, params = self.handle_uta_and_params(params, 'setLeverage', False)
         if uta:
             if productType == 'SPOT':
                 marginMode = None
-                marginMode, params = self.handle_margin_mode_and_params('fetchTrades', params)
+                marginMode, params = self.handle_margin_mode_and_params('setLeverage', params)
                 if marginMode is not None:
                     productType = 'MARGIN'
             request['coin'] = market['settleId']
@@ -8607,11 +8870,12 @@ class bitget(Exchange, ImplicitAPI):
             marginMode = 'crossed'
         if (marginMode != 'isolated') and (marginMode != 'crossed'):
             raise ArgumentsRequired(self.id + ' setMarginMode() marginMode must be either isolated or crossed(cross)')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
             'marginMode': marginMode,
@@ -8642,23 +8906,24 @@ class bitget(Exchange, ImplicitAPI):
         https://www.bitget.com/api-doc/uta/account/Change-Position-Mode
 
         :param bool hedged: set to True to use dualSidePosition
-        :param str symbol: not used by bitget setPositionMode()
+        :param str symbol: not used by setPositionMode()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.productType]: required if not uta and symbol is None: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: response from the exchange
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         posMode = 'hedge_mode' if hedged else 'one_way_mode'
-        request: dict = {}
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
         productType = None
         uta = None
-        response = None
+        response = {}
         productType, params = self.handle_product_type_and_params(market, params)
-        uta, params = self.handle_option_and_params(params, 'setPositionMode', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'setPositionMode', False)
         if uta:
             request['holdMode'] = posMode
             response = self.privateUtaPostV3AccountSetHoldMode(self.extend(request, params))
@@ -8698,18 +8963,19 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not market['contract']:
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         uta = None
         response = None
-        uta, params = self.handle_option_and_params(params, 'fetchOpenInterest', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchOpenInterest', False)
         if uta:
             request['category'] = productType
             response = self.publicUtaGetV3MarketOpenInterest(self.extend(request, params))
@@ -8751,7 +9017,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_open_interest(data, market)
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: Any, market: Market = None):
         #
         # default
         #
@@ -8804,7 +9070,8 @@ class bitget(Exchange, ImplicitAPI):
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchTransfers() requires a code argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('fetchTransfers', None, params)
         fromAccount = self.safe_string(params, 'fromAccount', type)
@@ -8812,7 +9079,7 @@ class bitget(Exchange, ImplicitAPI):
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         type = self.safe_string(accountsByType, fromAccount)
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'coin': currency['id'],
             'fromType': type,
         }
@@ -8851,22 +9118,27 @@ class bitget(Exchange, ImplicitAPI):
         transfer currency internally between wallets on the same account
 
         https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
+        https://www.bitget.com/api-doc/uta/account/transfer
 
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True to transfer via the unified trading account v3 endpoint
         :param str [params.symbol]: unified CCXT market symbol, required when transferring to or from an account type that is a leveraged position-by-position account
         :param str [params.clientOid]: custom id
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
+        uta = None
+        uta, params = self.handle_uta_and_params(params, 'transfer', False)
         currency = self.currency(code)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         fromType = self.safe_string(accountsByType, fromAccount)
         toType = self.safe_string(accountsByType, toAccount)
-        request: dict = {
+        request = {
             'fromType': fromType,
             'toType': toType,
             'amount': amount,
@@ -8878,7 +9150,11 @@ class bitget(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        response = self.privateSpotPostV2SpotWalletTransfer(self.extend(request, params))
+        response = None
+        if uta:
+            response = self.privateUtaPostV3AccountTransfer(self.extend(request, params))
+        else:
+            response = self.privateSpotPostV2SpotWalletTransfer(self.extend(request, params))
         #
         #     {
         #         "code": "00000",
@@ -8940,12 +9216,12 @@ class bitget(Exchange, ImplicitAPI):
         }
 
     def parse_transfer_status(self, status: Str) -> Str:
-        statuses: dict = {
+        statuses = {
             'successful': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: Any, currency: Currency = None):
         #
         #     {
         #         "chains": [
@@ -8970,7 +9246,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         chains = self.safe_value(fee, 'chains', [])
         chainsLength = len(chains)
-        result: dict = {
+        result = {
             'info': fee,
             'withdraw': {
                 'fee': None,
@@ -8987,16 +9263,17 @@ class bitget(Exchange, ImplicitAPI):
             networkId = self.safe_string(chain, 'chain')
             currencyCode = self.safe_string(currency, 'code')
             networkCode = self.network_id_to_code(networkId, currencyCode)
-            result['networks'][networkCode] = {
-                'deposit': {'fee': None, 'percentage': None},
-                'withdraw': {'fee': self.safe_number(chain, 'withdrawFee'), 'percentage': False},
-            }
+            if networkCode is not None:
+                result['networks'][networkCode] = {
+                    'deposit': {'fee': None, 'percentage': None},
+                    'withdraw': {'fee': self.safe_number(chain, 'withdrawFee'), 'percentage': False},
+                }
             if chainsLength == 1:
                 result['withdraw']['fee'] = self.safe_number(chain, 'withdrawFee')
                 result['withdraw']['percentage'] = False
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -9006,7 +9283,8 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.publicSpotGetV2SpotPublicCoins(params)
         #
         #     {
@@ -9040,7 +9318,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'coin')
 
-    def borrow_cross_margin(self, code: str, amount: float, params={}):
+    def borrow_cross_margin(self, code: str, amount: float, params={}) -> MarginLoan:
         """
         create a loan to borrow margin
 
@@ -9051,9 +9329,10 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'coin': currency['id'],
             'borrowAmount': self.currency_to_precision(code, amount),
         }
@@ -9073,7 +9352,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
+    def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}) -> MarginLoan:
         """
         create a loan to borrow margin
 
@@ -9085,10 +9364,11 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'coin': currency['id'],
             'borrowAmount': self.currency_to_precision(code, amount),
             'symbol': market['id'],
@@ -9110,7 +9390,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_margin_loan(data, currency, market)
 
-    def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
+    def repay_isolated_margin(self, symbol: str, code: str, amount: float, params={}) -> MarginLoan:
         """
         repay borrowed margin and interest
 
@@ -9122,10 +9402,11 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'coin': currency['id'],
             'repayAmount': self.currency_to_precision(code, amount),
             'symbol': market['id'],
@@ -9148,7 +9429,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_margin_loan(data, currency, market)
 
-    def repay_cross_margin(self, code: str, amount, params={}):
+    def repay_cross_margin(self, code: str, amount: float, params={}) -> MarginLoan:
         """
         repay borrowed margin and interest
 
@@ -9159,9 +9440,10 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'coin': currency['id'],
             'repayAmount': self.currency_to_precision(code, amount),
         }
@@ -9182,7 +9464,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    def parse_margin_loan(self, info, currency: Currency = None, market: Market = None):
+    def parse_margin_loan(self, info: Any, currency: Currency = None, market: Market = None) -> MarginLoan:
         #
         # isolated: borrowMargin
         #
@@ -9251,7 +9533,8 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyLiquidations', 'paginate')
         if paginate:
@@ -9263,7 +9546,7 @@ class bitget(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchMyLiquidations', market, params)
         if type != 'spot':
             raise NotSupported(self.id + ' fetchMyLiquidations() supports spot margin markets only')
-        request: dict = {}
+        request = {}
         request, params = self.handle_until_option('endTime', request, params)
         if since is not None:
             request['startTime'] = since
@@ -9277,7 +9560,7 @@ class bitget(Exchange, ImplicitAPI):
         if marginMode == 'isolated':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchMyLiquidations() requires a symbol argument')
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
             response = self.privateMarginGetV2MarginIsolatedLiquidationHistory(self.extend(request, params))
         elif marginMode == 'cross':
             response = self.privateMarginGetV2MarginCrossedLiquidationHistory(self.extend(request, params))
@@ -9337,7 +9620,7 @@ class bitget(Exchange, ImplicitAPI):
         liquidations = self.safe_list(data, 'resultList', [])
         return self.parse_liquidations(liquidations, market, since, limit)
 
-    def parse_liquidation(self, liquidation, market: Market = None):
+    def parse_liquidation(self, liquidation: Any, market: Market = None):
         #
         # isolated
         #
@@ -9395,9 +9678,10 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `isolated borrow rate structure <https://docs.ccxt.com/?id=isolated-borrow-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = self.privateMarginGetV2MarginIsolatedInterestRateAndLimit(self.extend(request, params))
@@ -9512,15 +9796,16 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a `borrow rate structure <https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'coin': currency['id'],
         }
         uta = None
         response = None
-        result = None
-        uta, params = self.handle_option_and_params(params, 'fetchCrossBorrowRate', 'uta', False)
+        result = {}
+        uta, params = self.handle_uta_and_params(params, 'fetchCrossBorrowRate', False)
         if uta:
             response = self.publicUtaGetV3MarketMarginLoans(self.extend(request, params))
             #
@@ -9570,7 +9855,7 @@ class bitget(Exchange, ImplicitAPI):
         result['timestamp'] = timestamp
         return self.parse_borrow_rate(result, currency)
 
-    def parse_borrow_rate(self, info, currency: Currency = None):
+    def parse_borrow_rate(self, info: Any, currency: Currency = None):
         #
         # default
         #
@@ -9626,7 +9911,8 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/?id=borrow-interest-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchBorrowInterest', 'paginate')
         if paginate:
@@ -9634,7 +9920,7 @@ class bitget(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {}
+        request = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -9651,7 +9937,7 @@ class bitget(Exchange, ImplicitAPI):
         if marginMode == 'isolated':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchBorrowInterest() requires a symbol argument')
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
             response = self.privateMarginGetV2MarginIsolatedInterestHistory(self.extend(request, params))
         elif marginMode == 'cross':
             response = self.privateMarginGetV2MarginCrossedInterestHistory(self.extend(request, params))
@@ -9768,16 +10054,17 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         productType = None
         uta = None
         response = None
         productType, params = self.handle_product_type_and_params(market, params)
-        uta, params = self.handle_option_and_params(params, 'closePosition', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'closePosition', False)
         if uta:
             if side is not None:
                 request['posSide'] = side
@@ -9836,13 +10123,14 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict[]: A list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         productType = None
         uta = None
         response = None
         productType, params = self.handle_product_type_and_params(None, params)
-        uta, params = self.handle_option_and_params(params, 'closeAllPositions', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'closeAllPositions', False)
         if uta:
             request['category'] = productType
             response = self.privateUtaPostV3TradeClosePositions(self.extend(request, params))
@@ -9895,11 +10183,12 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin mode structure <https://docs.ccxt.com/?id=margin-mode-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
             'productType': productType,
@@ -9936,12 +10225,12 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_margin_mode(data, market)
 
-    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         marginType = self.safe_string(marginMode, 'marginMode')
         marginType = 'cross' if (marginType == 'crossed') else marginType
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'marginMode': marginType,
         }
 
@@ -9955,14 +10244,15 @@ class bitget(Exchange, ImplicitAPI):
         :param str[] [symbols]: unified contract symbols
         :param int [since]: timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
         :param int [limit]: the maximum amount of records to fetch, default=20, max=100
-        :param dict params: extra parameters specific to the exchange api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
         :param str [params.productType]: USDT-FUTURES(default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         market = None
         productType = None
         uta = None
@@ -9978,7 +10268,7 @@ class bitget(Exchange, ImplicitAPI):
             request['limit'] = limit
         request, params = self.handle_until_option('endTime', request, params)
         productType, params = self.handle_product_type_and_params(market, params)
-        uta, params = self.handle_option_and_params(params, 'fetchPositionsHistory', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchPositionsHistory', False)
         if uta:
             request['category'] = productType
             response = self.privateUtaGetV3PositionHistoryPosition(self.extend(request, params))
@@ -10062,8 +10352,9 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'fromCoin': fromCode,
             'toCoin': toCode,
             'fromCoinSize': self.number_to_string(amount),
@@ -10107,7 +10398,8 @@ class bitget(Exchange, ImplicitAPI):
         :param str params['toAmount']: the amount you want to trade in units of the toCurrency, obtained from fetchConvertQuote()
         :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         price = self.safe_string_2(params, 'price', 'cnvtPrice')
         if price is None:
             raise ArgumentsRequired(self.id + ' createConvertTrade() requires a price parameter')
@@ -10115,7 +10407,7 @@ class bitget(Exchange, ImplicitAPI):
         if toAmount is None:
             raise ArgumentsRequired(self.id + ' createConvertTrade() requires a toAmount parameter')
         params = self.omit(params, ['price', 'toAmount'])
-        request: dict = {
+        request = {
             'traceId': id,
             'fromCoin': fromCode,
             'toCoin': toCode,
@@ -10154,8 +10446,9 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `conversion structures <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         msInDay = 86400000
         now = self.milliseconds()
         if since is not None:
@@ -10260,7 +10553,8 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateConvertGetV2ConvertCurrencies(params)
         #
         #     {
@@ -10277,40 +10571,41 @@ class bitget(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result: dict = {}
+        result = {}
         data = self.safe_list(response, 'data', [])
         for i in range(0, len(data)):
             entry = data[i]
             id = self.safe_string(entry, 'coin')
             code = self.safe_currency_code(id)
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': None,
-                'type': None,
-                'name': None,
-                'active': None,
-                'deposit': None,
-                'withdraw': self.safe_number(entry, 'available'),
-                'fee': None,
-                'precision': None,
-                'limits': {
-                    'amount': {
-                        'min': self.safe_number(entry, 'minAmount'),
-                        'max': self.safe_number(entry, 'maxAmount'),
+            if code is not None:
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': None,
+                    'type': None,
+                    'name': None,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': self.safe_number(entry, 'available'),
+                    'fee': None,
+                    'precision': None,
+                    'limits': {
+                        'amount': {
+                            'min': self.safe_number(entry, 'minAmount'),
+                            'max': self.safe_number(entry, 'maxAmount'),
+                        },
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'created': None,
-            }
+                    'created': None,
+                }
         return result
 
     def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
@@ -10325,16 +10620,17 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = None
         uta = None
-        uta, params = self.handle_option_and_params(params, 'fetchFundingInterval', 'uta', False)
+        uta, params = self.handle_uta_and_params(params, 'fetchFundingInterval', False)
         if uta:
             response = self.publicUtaGetV3MarketCurrentFundRate(self.extend(request, params))
             #
@@ -10389,9 +10685,10 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of `long short ratio structures <https://docs.ccxt.com/?id=long-short-ratio-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if timeframe is not None:
@@ -10444,7 +10741,7 @@ class bitget(Exchange, ImplicitAPI):
             'longShortRatio': self.safe_number_2(info, 'longShortRatio', 'longShortAccountRatio'),
         }
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if not response:
             return None  # fallback to default error handler
         #
@@ -10490,7 +10787,7 @@ class bitget(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
+    def sign(self, path: Any, api: Any = [], method='GET', params={}, headers: dict = None, body: Any = None):
         signed = api[0] == 'private'
         endpoint = api[1]
         pathPart = '/api'
@@ -10512,12 +10809,17 @@ class bitget(Exchange, ImplicitAPI):
                 auth += body
             else:
                 if params:
-                    queryInner = '?' + self.urlencode(self.keysort(params))
+                    sortedParams = self.keysort(params)
+                    queryInner = '?' + self.urlencode(sortedParams, True)
                     # check  #21169 pr
                     if queryInner.find('%24') > -1:
                         queryInner = queryInner.replace('%24', '$')
                     url += queryInner
-                    auth += queryInner
+                    # bitget signs the raw(non-percent-encoded) query string, so the
+                    # signature must use the decoded values(e.g. non-ascii market ids).
+                    # sort explicitly(True) so the signed order matches the url order in Go,
+                    # where map iteration is not ordered(keysort's order is otherwise lost)
+                    auth += '?' + self.rawencode(sortedParams, True)
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             broker = self.safe_string(self.options, 'broker')
             headers = {

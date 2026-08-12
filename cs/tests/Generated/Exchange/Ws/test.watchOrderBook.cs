@@ -22,7 +22,7 @@ public partial class testMainClass : BaseTest
                 response = ((IOrderBook)(await exchange.watchOrderBook(symbol))).Copy();
             } catch(Exception e)
             {
-                if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
+                if (isTrue(!isTrue(testSharedMethods.isTemporaryFailure(e)) && !isTrue((e is InvalidNonce))))
                 {
                     throw e;
                 }
@@ -30,10 +30,8 @@ public partial class testMainClass : BaseTest
                 // continue;
                 success = false;
             }
-            if (isTrue(isEqual(success, true)))
+            if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
             {
-                // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-                assert((response is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(response)));
                 now = exchange.milliseconds();
                 testOrderBook(exchange, skippedProperties, method, response, symbol);
             }

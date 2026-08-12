@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bittrade$1 = require('./abstract/bittrade.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -86,7 +86,7 @@ class bittrade extends bittrade$1["default"] {
                 '1y': '1year',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg',
+                'logo': 'https://github.com/user-attachments/assets/c5996ed2-0d56-42d8-ac40-7eaf8116dbae',
                 'api': {
                     'market': 'https://{hostname}',
                     'public': 'https://{hostname}',
@@ -102,143 +102,143 @@ class bittrade extends bittrade$1["default"] {
             'api': {
                 'v2Public': {
                     'get': {
-                        'reference/currencies': 1,
-                        'market-status': 1, // 获取当前市场状态
+                        'reference/currencies': { 'cost': 1 }, // 币链参考信息
+                        'market-status': { 'cost': 1 }, // 获取当前市场状态
                     },
                 },
                 'v2Private': {
                     'get': {
-                        'account/ledger': 1,
-                        'account/withdraw/quota': 1,
-                        'account/withdraw/address': 1,
-                        'account/deposit/address': 1,
-                        'account/repayment': 5,
-                        'reference/transact-fee-rate': 1,
-                        'account/asset-valuation': 0.2,
-                        'point/account': 5,
-                        'sub-user/user-list': 1,
-                        'sub-user/user-state': 1,
-                        'sub-user/account-list': 1,
-                        'sub-user/deposit-address': 1,
-                        'sub-user/query-deposit': 1,
-                        'user/api-key': 1,
-                        'user/uid': 1,
-                        'algo-orders/opening': 1,
-                        'algo-orders/history': 1,
-                        'algo-orders/specific': 1,
-                        'c2c/offers': 1,
-                        'c2c/offer': 1,
-                        'c2c/transactions': 1,
-                        'c2c/repayment': 1,
-                        'c2c/account': 1,
-                        'etp/reference': 1,
-                        'etp/transactions': 5,
-                        'etp/transaction': 5,
-                        'etp/rebalance': 1,
-                        'etp/limit': 1, // 获取ETP持仓限额
+                        'account/ledger': { 'cost': 1 },
+                        'account/withdraw/quota': { 'cost': 1 },
+                        'account/withdraw/address': { 'cost': 1 }, // 提币地址查询(限母用户可用)
+                        'account/deposit/address': { 'cost': 1 },
+                        'account/repayment': { 'cost': 5 }, // 还币交易记录查询
+                        'reference/transact-fee-rate': { 'cost': 1 },
+                        'account/asset-valuation': { 'cost': 0.2 }, // 获取账户资产估值
+                        'point/account': { 'cost': 5 }, // 点卡余额查询
+                        'sub-user/user-list': { 'cost': 1 }, // 获取子用户列表
+                        'sub-user/user-state': { 'cost': 1 }, // 获取特定子用户的用户状态
+                        'sub-user/account-list': { 'cost': 1 }, // 获取特定子用户的账户列表
+                        'sub-user/deposit-address': { 'cost': 1 }, // 子用户充币地址查询
+                        'sub-user/query-deposit': { 'cost': 1 }, // 子用户充币记录查询
+                        'user/api-key': { 'cost': 1 }, // 母子用户API key信息查询
+                        'user/uid': { 'cost': 1 }, // 母子用户获取用户UID
+                        'algo-orders/opening': { 'cost': 1 }, // 查询未触发OPEN策略委托
+                        'algo-orders/history': { 'cost': 1 }, // 查询策略委托历史
+                        'algo-orders/specific': { 'cost': 1 }, // 查询特定策略委托
+                        'c2c/offers': { 'cost': 1 }, // 查询借入借出订单
+                        'c2c/offer': { 'cost': 1 }, // 查询特定借入借出订单及其交易记录
+                        'c2c/transactions': { 'cost': 1 }, // 查询借入借出交易记录
+                        'c2c/repayment': { 'cost': 1 }, // 查询还币交易记录
+                        'c2c/account': { 'cost': 1 }, // 查询账户余额
+                        'etp/reference': { 'cost': 1 }, // 基础参考信息
+                        'etp/transactions': { 'cost': 5 }, // 获取杠杆ETP申赎记录
+                        'etp/transaction': { 'cost': 5 }, // 获取特定杠杆ETP申赎记录
+                        'etp/rebalance': { 'cost': 1 }, // 获取杠杆ETP调仓记录
+                        'etp/limit': { 'cost': 1 }, // 获取ETP持仓限额
                     },
                     'post': {
-                        'account/transfer': 1,
-                        'account/repayment': 5,
-                        'point/transfer': 5,
-                        'sub-user/management': 1,
-                        'sub-user/creation': 1,
-                        'sub-user/tradable-market': 1,
-                        'sub-user/transferability': 1,
-                        'sub-user/api-key-generation': 1,
-                        'sub-user/api-key-modification': 1,
-                        'sub-user/api-key-deletion': 1,
-                        'sub-user/deduct-mode': 1,
-                        'algo-orders': 1,
-                        'algo-orders/cancel-all-after': 1,
-                        'algo-orders/cancellation': 1,
-                        'c2c/offer': 1,
-                        'c2c/cancellation': 1,
-                        'c2c/cancel-all': 1,
-                        'c2c/repayment': 1,
-                        'c2c/transfer': 1,
-                        'etp/creation': 5,
-                        'etp/redemption': 5,
-                        'etp/{transactId}/cancel': 10,
-                        'etp/batch-cancel': 50, // 杠杆ETP批量撤单
+                        'account/transfer': { 'cost': 1 },
+                        'account/repayment': { 'cost': 5 }, // 归还借币（全仓逐仓通用）
+                        'point/transfer': { 'cost': 5 }, // 点卡划转
+                        'sub-user/management': { 'cost': 1 }, // 冻结/解冻子用户
+                        'sub-user/creation': { 'cost': 1 }, // 子用户创建
+                        'sub-user/tradable-market': { 'cost': 1 }, // 设置子用户交易权限
+                        'sub-user/transferability': { 'cost': 1 }, // 设置子用户资产转出权限
+                        'sub-user/api-key-generation': { 'cost': 1 }, // 子用户API key创建
+                        'sub-user/api-key-modification': { 'cost': 1 }, // 修改子用户API key
+                        'sub-user/api-key-deletion': { 'cost': 1 }, // 删除子用户API key
+                        'sub-user/deduct-mode': { 'cost': 1 }, // 设置子用户手续费抵扣模式
+                        'algo-orders': { 'cost': 1 }, // 策略委托下单
+                        'algo-orders/cancel-all-after': { 'cost': 1 }, // 自动撤销订单
+                        'algo-orders/cancellation': { 'cost': 1 }, // 策略委托（触发前）撤单
+                        'c2c/offer': { 'cost': 1 }, // 借入借出下单
+                        'c2c/cancellation': { 'cost': 1 }, // 借入借出撤单
+                        'c2c/cancel-all': { 'cost': 1 }, // 撤销所有借入借出订单
+                        'c2c/repayment': { 'cost': 1 }, // 还币
+                        'c2c/transfer': { 'cost': 1 }, // 资产划转
+                        'etp/creation': { 'cost': 5 }, // 杠杆ETP换入
+                        'etp/redemption': { 'cost': 5 }, // 杠杆ETP换出
+                        'etp/{transactId}/cancel': { 'cost': 10 }, // 杠杆ETP单个撤单
+                        'etp/batch-cancel': { 'cost': 50 }, // 杠杆ETP批量撤单
                     },
                 },
                 'market': {
                     'get': {
-                        'history/kline': 1,
-                        'detail/merged': 1,
-                        'depth': 1,
-                        'trade': 1,
-                        'history/trade': 1,
-                        'detail': 1,
-                        'tickers': 1,
-                        'etp': 1, // 获取杠杆ETP实时净值
+                        'history/kline': { 'cost': 1 }, // 获取K线数据
+                        'detail/merged': { 'cost': 1 }, // 获取聚合行情(Ticker)
+                        'depth': { 'cost': 1 }, // 获取 Market Depth 数据
+                        'trade': { 'cost': 1 }, // 获取 Trade Detail 数据
+                        'history/trade': { 'cost': 1 }, // 批量获取最近的交易记录
+                        'detail': { 'cost': 1 }, // 获取 Market Detail 24小时成交量数据
+                        'tickers': { 'cost': 1 },
+                        'etp': { 'cost': 1 }, // 获取杠杆ETP实时净值
                     },
                 },
                 'public': {
                     'get': {
-                        'common/symbols': 1,
-                        'common/currencys': 1,
-                        'common/timestamp': 1,
-                        'common/exchange': 1,
-                        'settings/currencys': 1, // ?language=en-US
+                        'common/symbols': { 'cost': 1 }, // 查询系统支持的所有交易对
+                        'common/currencys': { 'cost': 1 }, // 查询系统支持的所有币种
+                        'common/timestamp': { 'cost': 1 }, // 查询系统当前时间
+                        'common/exchange': { 'cost': 1 }, // order limits
+                        'settings/currencys': { 'cost': 1 }, // ?language=en-US
                     },
                 },
                 'private': {
                     'get': {
-                        'account/accounts': 0.2,
-                        'account/accounts/{id}/balance': 0.2,
-                        'account/accounts/{sub-uid}': 1,
-                        'account/history': 4,
-                        'cross-margin/loan-info': 1,
-                        'margin/loan-info': 1,
-                        'fee/fee-rate/get': 1,
-                        'order/openOrders': 0.4,
-                        'order/orders': 0.4,
-                        'order/orders/{id}': 0.4,
-                        'order/orders/{id}/matchresults': 0.4,
-                        'order/orders/getClientOrder': 0.4,
-                        'order/history': 1,
-                        'order/matchresults': 1,
+                        'account/accounts': { 'cost': 0.2 }, // 查询当前用户的所有账户(即account-id)
+                        'account/accounts/{id}/balance': { 'cost': 0.2 }, // 查询指定账户的余额
+                        'account/accounts/{sub-uid}': { 'cost': 1 },
+                        'account/history': { 'cost': 4 },
+                        'cross-margin/loan-info': { 'cost': 1 },
+                        'margin/loan-info': { 'cost': 1 }, // 查询借币币息率及额度
+                        'fee/fee-rate/get': { 'cost': 1 },
+                        'order/openOrders': { 'cost': 0.4 },
+                        'order/orders': { 'cost': 0.4 },
+                        'order/orders/{id}': { 'cost': 0.4 }, // 查询某个订单详情
+                        'order/orders/{id}/matchresults': { 'cost': 0.4 }, // 查询某个订单的成交明细
+                        'order/orders/getClientOrder': { 'cost': 0.4 },
+                        'order/history': { 'cost': 1 }, // 查询当前委托、历史委托
+                        'order/matchresults': { 'cost': 1 }, // 查询当前成交、历史成交
                         // 'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址（Deprecated）
-                        'query/deposit-withdraw': 1,
+                        'query/deposit-withdraw': { 'cost': 1 },
                         // 'margin/loan-info', // duplicate
-                        'margin/loan-orders': 0.2,
-                        'margin/accounts/balance': 0.2,
-                        'cross-margin/loan-orders': 1,
-                        'cross-margin/accounts/balance': 1,
-                        'points/actions': 1,
-                        'points/orders': 1,
-                        'subuser/aggregate-balance': 10,
-                        'stable-coin/exchange_rate': 1,
-                        'stable-coin/quote': 1,
+                        'margin/loan-orders': { 'cost': 0.2 }, // 借贷订单
+                        'margin/accounts/balance': { 'cost': 0.2 }, // 借贷账户详情
+                        'cross-margin/loan-orders': { 'cost': 1 }, // 查询借币订单
+                        'cross-margin/accounts/balance': { 'cost': 1 }, // 借币账户详情
+                        'points/actions': { 'cost': 1 },
+                        'points/orders': { 'cost': 1 },
+                        'subuser/aggregate-balance': { 'cost': 10 },
+                        'stable-coin/exchange_rate': { 'cost': 1 },
+                        'stable-coin/quote': { 'cost': 1 },
                     },
                     'post': {
-                        'account/transfer': 1,
-                        'futures/transfer': 1,
-                        'order/batch-orders': 0.4,
-                        'order/orders/place': 0.2,
-                        'order/orders/submitCancelClientOrder': 0.2,
-                        'order/orders/batchCancelOpenOrders': 0.4,
+                        'account/transfer': { 'cost': 1 }, // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
+                        'futures/transfer': { 'cost': 1 },
+                        'order/batch-orders': { 'cost': 0.4 },
+                        'order/orders/place': { 'cost': 0.2 }, // 创建并执行一个新订单 (一步下单， 推荐使用)
+                        'order/orders/submitCancelClientOrder': { 'cost': 0.2 },
+                        'order/orders/batchCancelOpenOrders': { 'cost': 0.4 },
                         // 'order/orders', // 创建一个新的订单请求 （仅创建订单，不执行下单）
                         // 'order/orders/{id}/place', // 执行一个订单 （仅执行已创建的订单）
-                        'order/orders/{id}/submitcancel': 0.2,
-                        'order/orders/batchcancel': 0.4,
+                        'order/orders/{id}/submitcancel': { 'cost': 0.2 }, // 申请撤销一个订单请求
+                        'order/orders/batchcancel': { 'cost': 0.4 }, // 批量撤销订单
                         // 'dw/balance/transfer', // 资产划转
-                        'dw/withdraw/api/create': 1,
+                        'dw/withdraw/api/create': { 'cost': 1 }, // 申请提现虚拟币
                         // 'dw/withdraw-virtual/create', // 申请提现虚拟币
                         // 'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现（Deprecated）
-                        'dw/withdraw-virtual/{id}/cancel': 1,
-                        'dw/transfer-in/margin': 10,
-                        'dw/transfer-out/margin': 10,
-                        'margin/orders': 10,
-                        'margin/orders/{id}/repay': 10,
-                        'cross-margin/transfer-in': 1,
-                        'cross-margin/transfer-out': 1,
-                        'cross-margin/orders': 1,
-                        'cross-margin/orders/{id}/repay': 1,
-                        'stable-coin/exchange': 1,
-                        'subuser/transfer': 10,
+                        'dw/withdraw-virtual/{id}/cancel': { 'cost': 1 }, // 申请取消提现虚拟币
+                        'dw/transfer-in/margin': { 'cost': 10 }, // 现货账户划入至借贷账户
+                        'dw/transfer-out/margin': { 'cost': 10 }, // 借贷账户划出至现货账户
+                        'margin/orders': { 'cost': 10 }, // 申请借贷
+                        'margin/orders/{id}/repay': { 'cost': 10 }, // 归还借贷
+                        'cross-margin/transfer-in': { 'cost': 1 }, // 资产划转
+                        'cross-margin/transfer-out': { 'cost': 1 }, // 资产划转
+                        'cross-margin/orders': { 'cost': 1 }, // 申请借币
+                        'cross-margin/orders/{id}/repay': { 'cost': 1 }, // 归还借币
+                        'stable-coin/exchange': { 'cost': 1 },
+                        'subuser/transfer': { 'cost': 10 },
                     },
                 },
             },
@@ -256,11 +256,11 @@ class bittrade extends bittrade$1["default"] {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': true, // todo: implement
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': false,
@@ -292,7 +292,7 @@ class bittrade extends bittrade$1["default"] {
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
-                        'limit': undefined,
+                        'limit': undefined, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -300,8 +300,8 @@ class bittrade extends bittrade$1["default"] {
                     'fetchOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'daysBack': undefined,
-                        'untilDays': undefined,
+                        'daysBack': undefined, // todo
+                        'untilDays': undefined, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -309,9 +309,9 @@ class bittrade extends bittrade$1["default"] {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'daysBack': undefined,
-                        'daysBackCanceled': undefined,
-                        'untilDays': undefined,
+                        'daysBack': undefined, // todo
+                        'daysBackCanceled': undefined, // todo
+                        'untilDays': undefined, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -338,34 +338,34 @@ class bittrade extends bittrade$1["default"] {
                 'exact': {
                     // err-code
                     'bad-request': errors.BadRequest,
-                    'base-date-limit-error': errors.BadRequest,
-                    'api-not-support-temp-addr': errors.PermissionDenied,
-                    'timeout': errors.RequestTimeout,
-                    'gateway-internal-error': errors.ExchangeNotAvailable,
-                    'account-frozen-balance-insufficient-error': errors.InsufficientFunds,
-                    'invalid-amount': errors.InvalidOrder,
-                    'order-limitorder-amount-min-error': errors.InvalidOrder,
-                    'order-limitorder-amount-max-error': errors.InvalidOrder,
-                    'order-marketorder-amount-min-error': errors.InvalidOrder,
-                    'order-limitorder-price-min-error': errors.InvalidOrder,
-                    'order-limitorder-price-max-error': errors.InvalidOrder,
-                    'order-holding-limit-failed': errors.InvalidOrder,
-                    'order-orderprice-precision-error': errors.InvalidOrder,
-                    'order-etp-nav-price-max-error': errors.InvalidOrder,
-                    'order-orderstate-error': errors.OrderNotFound,
-                    'order-queryorder-invalid': errors.OrderNotFound,
-                    'order-update-error': errors.ExchangeNotAvailable,
+                    'base-date-limit-error': errors.BadRequest, // {"status":"error","err-code":"base-date-limit-error","err-msg":"date less than system limit","data":null}
+                    'api-not-support-temp-addr': errors.PermissionDenied, // {"status":"error","err-code":"api-not-support-temp-addr","err-msg":"API withdrawal does not support temporary addresses","data":null}
+                    'timeout': errors.RequestTimeout, // {"ts":1571653730865,"status":"error","err-code":"timeout","err-msg":"Request Timeout"}
+                    'gateway-internal-error': errors.ExchangeNotAvailable, // {"status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":null}
+                    'account-frozen-balance-insufficient-error': errors.InsufficientFunds, // {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
+                    'invalid-amount': errors.InvalidOrder, // eg "Paramemter `amount` is invalid."
+                    'order-limitorder-amount-min-error': errors.InvalidOrder, // limit order amount error, min: `0.001`
+                    'order-limitorder-amount-max-error': errors.InvalidOrder, // market order amount error, max: `1000000`
+                    'order-marketorder-amount-min-error': errors.InvalidOrder, // market order amount error, min: `0.01`
+                    'order-limitorder-price-min-error': errors.InvalidOrder, // limit order price error
+                    'order-limitorder-price-max-error': errors.InvalidOrder, // limit order price error
+                    'order-holding-limit-failed': errors.InvalidOrder, // {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of this currency","data":null}
+                    'order-orderprice-precision-error': errors.InvalidOrder, // {"status":"error","err-code":"order-orderprice-precision-error","err-msg":"order price precision error, scale: `4`","data":null}
+                    'order-etp-nav-price-max-error': errors.InvalidOrder, // {"status":"error","err-code":"order-etp-nav-price-max-error","err-msg":"Order price cannot be higher than 5% of NAV","data":null}
+                    'order-orderstate-error': errors.OrderNotFound, // canceling an already canceled order
+                    'order-queryorder-invalid': errors.OrderNotFound, // querying a non-existent order
+                    'order-update-error': errors.ExchangeNotAvailable, // undocumented error
                     'api-signature-check-failed': errors.AuthenticationError,
-                    'api-signature-not-valid': errors.AuthenticationError,
-                    'base-record-invalid': errors.OrderNotFound,
-                    'base-symbol-trade-disabled': errors.BadSymbol,
-                    'base-symbol-error': errors.BadSymbol,
-                    'system-maintenance': errors.OnMaintenance,
+                    'api-signature-not-valid': errors.AuthenticationError, // {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: Incorrect Access key [Access key错误]","data":null}
+                    'base-record-invalid': errors.OrderNotFound, // https://github.com/ccxt/ccxt/issues/5750
+                    'base-symbol-trade-disabled': errors.BadSymbol, // {"status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for this symbol","data":null}
+                    'base-symbol-error': errors.BadSymbol, // {"status":"error","err-code":"base-symbol-error","err-msg":"The symbol is invalid","data":null}
+                    'system-maintenance': errors.OnMaintenance, // {"status": "error", "err-code": "system-maintenance", "err-msg": "System is in maintenance!", "data": null}
                     // err-msg
-                    'invalid symbol': errors.BadSymbol,
-                    'symbol trade not open now': errors.BadSymbol,
-                    'invalid-address': errors.BadRequest,
-                    'base-currency-chain-error': errors.BadRequest,
+                    'invalid symbol': errors.BadSymbol, // {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
+                    'symbol trade not open now': errors.BadSymbol, // {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"},
+                    'invalid-address': errors.BadRequest, // {"status":"error","err-code":"invalid-address","err-msg":"Invalid address.","data":null},
+                    'base-currency-chain-error': errors.BadRequest, // {"status":"error","err-code":"base-currency-chain-error","err-msg":"The current currency chain does not exist","data":null},
                     'dw-insufficient-balance': errors.InsufficientFunds, // {"status":"error","err-code":"dw-insufficient-balance","err-msg":"Insufficient balance. You can only transfer `12.3456` at most.","data":null}
                 },
             },
@@ -378,17 +378,28 @@ class bittrade extends bittrade$1["default"] {
                     'HECO': 'hrc20',
                     'HT': 'hrc20',
                     'ALGO': 'algo',
-                    'OMNI': '',
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
-                'fetchOrdersByStatesMethod': 'private_get_order_orders',
-                'fetchOpenOrdersMethod': 'fetch_open_orders_v1',
-                'createMarketBuyOrderRequiresPrice': true,
-                'fetchMarketsMethod': 'publicGetCommonSymbols',
-                'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
-                'createOrderMethod': 'privatePostOrderOrdersPlace',
+                'fetchOrdersByStates': {
+                    'method': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
+                },
+                'fetchOpenOrders': {
+                    'method': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
+                },
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': true,
+                    'method': 'privatePostOrderOrdersPlace',
+                },
+                'fetchMarkets': {
+                    'method': 'publicGetCommonSymbols',
+                },
+                'fetchBalance': {
+                    'method': 'privateGetAccountAccountsIdBalance',
+                },
                 'currencyToPrecisionRoundingMode': number.TRUNCATE,
-                'language': 'en-US',
+                'fetchCurrencies': {
+                    'language': 'en-US',
+                },
                 'broker': {
                     'id': 'AA03022abc',
                 },
@@ -397,8 +408,8 @@ class bittrade extends bittrade$1["default"] {
                 // https://github.com/ccxt/ccxt/issues/6081
                 // https://github.com/ccxt/ccxt/issues/3365
                 // https://github.com/ccxt/ccxt/issues/2873
-                'GET': 'Themis',
-                'GTC': 'Game.com',
+                'GET': 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
+                'GTC': 'Game.com', // conflict with Gitcoin and Gastrocoin
                 'HIT': 'HitChain',
                 // https://github.com/ccxt/ccxt/issues/7399
                 // https://coinmarketcap.com/currencies/pnetwork/
@@ -425,9 +436,14 @@ class bittrade extends bittrade$1["default"] {
         // this method should not be called directly, use loadTradingLimits () instead
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbols === undefined) {
             symbols = this.symbols;
+        }
+        if (symbols === undefined) {
+            throw new errors.ExchangeError(this.id + ' markets not loaded');
         }
         const result = {};
         for (let i = 0; i < symbols.length; i++) {
@@ -486,7 +502,7 @@ class bittrade extends bittrade$1["default"] {
         };
     }
     costToPrecision(symbol, cost) {
-        return this.decimalToPrecision(cost, number.TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
+        return this.decimalToPrecision(cost, number.TRUNCATE, this.market(symbol)['precision']['cost'], this.precisionMode);
     }
     /**
      * @method
@@ -496,7 +512,7 @@ class bittrade extends bittrade$1["default"] {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const method = this.options['fetchMarketsMethod'];
+        const method = this.handleOption('fetchMarkets', 'method', 'publicGetCommonSymbols');
         const response = await this[method](params);
         //
         //    {
@@ -547,6 +563,12 @@ class bittrade extends bittrade$1["default"] {
             const superLeverageRatio = this.safeString(market, 'super-margin-leverage-ratio', '1');
             const margin = Precise["default"].stringGt(leverageRatio, '1') || Precise["default"].stringGt(superLeverageRatio, '1');
             const fee = (base === 'OMG') ? this.parseNumber('0') : this.parseNumber('0.002');
+            if (baseId === undefined) {
+                throw new errors.ExchangeError(this.id + ' fetchMarkets() missing baseId');
+            }
+            if (quoteId === undefined) {
+                throw new errors.ExchangeError(this.id + ' fetchMarkets() missing quoteId');
+            }
             result.push({
                 'id': baseId + quoteId,
                 'symbol': base + '/' + quote,
@@ -697,10 +719,12 @@ class bittrade extends bittrade$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -749,7 +773,9 @@ class bittrade extends bittrade$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -775,7 +801,8 @@ class bittrade extends bittrade$1["default"] {
         //         }
         //     }
         //
-        const ticker = this.parseTicker(response['tick'], market);
+        const tick = this.safeDict(response, 'tick', {});
+        const ticker = this.parseTicker(tick, market);
         const timestamp = this.safeInteger(response, 'ts');
         ticker['timestamp'] = timestamp;
         ticker['datetime'] = this.iso8601(timestamp);
@@ -790,7 +817,9 @@ class bittrade extends bittrade$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.marketGetTickers(params);
         const tickers = this.safeValue(response, 'data', []);
@@ -901,12 +930,15 @@ class bittrade extends bittrade$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'id': id,
         };
         const response = await this.privateGetOrderOrdersIdMatchresults(this.extend(request, params));
-        return this.parseTrades(response['data'], undefined, since, limit);
+        const data = this.safeList(response, 'data', []);
+        return this.parseTrades(data, undefined, since, limit);
     }
     /**
      * @method
@@ -919,7 +951,9 @@ class bittrade extends bittrade$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -934,7 +968,8 @@ class bittrade extends bittrade$1["default"] {
             // request['end-time'] = this.sum (since, 172800000); // 48 hours window
         }
         const response = await this.privateGetOrderMatchresults(this.extend(request, params));
-        return this.parseTrades(response['data'], market, since, limit);
+        const data = this.safeList(response, 'data', []);
+        return this.parseTrades(data, market, since, limit);
     }
     /**
      * @method
@@ -947,7 +982,9 @@ class bittrade extends bittrade$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = 1000, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1026,7 +1063,9 @@ class bittrade extends bittrade$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1059,9 +1098,11 @@ class bittrade extends bittrade$1["default"] {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     async fetchAccounts(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetAccountAccounts(params);
-        return response['data'];
+        return this.safeList(response, 'data', []);
     }
     /**
      * @method
@@ -1072,7 +1113,7 @@ class bittrade extends bittrade$1["default"] {
      */
     async fetchCurrencies(params = {}) {
         const request = {
-            'language': this.options['language'],
+            'language': this.handleOption('fetchCurrencies', 'language', 'en-US'),
         };
         const response = await this.publicGetSettingsCurrencys(this.extend(request, params));
         //
@@ -1116,51 +1157,49 @@ class bittrade extends bittrade$1["default"] {
         //     }
         //
         const currencies = this.safeValue(response, 'data', []);
-        const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const id = this.safeValue(currency, 'name');
-            const code = this.safeCurrencyCode(id);
-            const depositEnabled = this.safeValue(currency, 'deposit-enabled');
-            const withdrawEnabled = this.safeValue(currency, 'withdraw-enabled');
-            const countryDisabled = this.safeValue(currency, 'country-disabled');
-            const visible = this.safeBool(currency, 'visible', false);
-            const state = this.safeString(currency, 'state');
-            const active = visible && depositEnabled && withdrawEnabled && (state === 'online') && !countryDisabled;
-            const name = this.safeString(currency, 'display-name');
-            const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'withdraw-precision')));
-            result[code] = {
-                'id': id,
-                'code': code,
-                'type': 'crypto',
-                // 'payin': currency['deposit-enabled'],
-                // 'payout': currency['withdraw-enabled'],
-                // 'transfer': undefined,
-                'name': name,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': undefined,
-                'precision': precision,
-                'networks': undefined,
-                'limits': {
-                    'amount': {
-                        'min': precision,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': this.safeNumber(currency, 'deposit-min-amount'),
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': this.safeNumber(currency, 'withdraw-min-amount'),
-                        'max': undefined,
-                    },
+        return this.parseCurrencies(currencies);
+    }
+    parseCurrency(currency) {
+        const id = this.safeValue(currency, 'name');
+        const code = this.safeCurrencyCode(id);
+        const depositEnabled = this.safeValue(currency, 'deposit-enabled');
+        const withdrawEnabled = this.safeValue(currency, 'withdraw-enabled');
+        const countryDisabled = this.safeValue(currency, 'country-disabled');
+        const visible = this.safeBool(currency, 'visible', false);
+        const state = this.safeString(currency, 'state');
+        const active = visible && depositEnabled && withdrawEnabled && (state === 'online') && !countryDisabled;
+        const name = this.safeString(currency, 'display-name');
+        const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'withdraw-precision')));
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'type': 'crypto',
+            // 'payin': currency['deposit-enabled'],
+            // 'payout': currency['withdraw-enabled'],
+            // 'transfer': undefined,
+            'name': name,
+            'active': active,
+            'deposit': depositEnabled,
+            'withdraw': withdrawEnabled,
+            'fee': undefined, // todo need to fetch from fee endpoint
+            'precision': precision,
+            'networks': undefined,
+            'limits': {
+                'amount': {
+                    'min': precision,
+                    'max': undefined,
                 },
-                'info': currency,
-            };
-        }
-        return result;
+                'deposit': {
+                    'min': this.safeNumber(currency, 'deposit-min-amount'),
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.safeNumber(currency, 'withdraw-min-amount'),
+                    'max': undefined,
+                },
+            },
+            'info': currency,
+        });
     }
     parseBalance(response) {
         const balances = this.safeValue(response['data'], 'list', []);
@@ -1170,19 +1209,27 @@ class bittrade extends bittrade$1["default"] {
             const currencyId = this.safeString(balance, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             let account = undefined;
-            if (code in result) {
+            if ((code !== undefined) && (code in result)) {
                 account = result[code];
             }
             else {
                 account = this.account();
             }
+            if (account === undefined) {
+                throw new errors.ExchangeError(this.id + ' parseBalance() could not resolve account');
+            }
             if (balance['type'] === 'trade') {
                 account['free'] = this.safeString(balance, 'balance');
+            }
+            if (account === undefined) {
+                throw new errors.ExchangeError(this.id + ' parseBalance() could not resolve account');
             }
             if (balance['type'] === 'frozen') {
                 account['used'] = this.safeString(balance, 'balance');
             }
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1194,9 +1241,11 @@ class bittrade extends bittrade$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadAccounts();
-        const method = this.options['fetchBalanceMethod'];
+        const method = this.handleOption('fetchBalance', 'method', 'privateGetAccountAccountsIdBalance');
         const request = {
             'id': this.accounts[0]['id'],
         };
@@ -1204,7 +1253,9 @@ class bittrade extends bittrade$1["default"] {
         return this.parseBalance(response);
     }
     async fetchOrdersByStates(states, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'states': states,
         };
@@ -1213,11 +1264,11 @@ class bittrade extends bittrade$1["default"] {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        const method = this.safeString(this.options, 'fetchOrdersByStatesMethod', 'private_get_order_orders');
+        const method = this.handleOption('fetchOrdersByStates', 'method', 'private_get_order_orders');
         const response = await this[method](this.extend(request, params));
         //
         //     { "status":   "ok",
-        //         "data": [ {                  id:  13997833014,
+        //         "data": [ {                  id:  13997833016,
         //                                "symbol": "ethbtc",
         //                          "account-id":  3398321,
         //                                "amount": "0.045000000000000000",
@@ -1244,12 +1295,14 @@ class bittrade extends bittrade$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'id': id,
         };
         const response = await this.privateGetOrderOrdersId(this.extend(request, params));
-        const order = this.safeDict(response, 'data');
+        const order = this.safeDict(response, 'data', {});
         return this.parseOrder(order);
     }
     /**
@@ -1276,7 +1329,7 @@ class bittrade extends bittrade$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const method = this.safeString(this.options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1');
+        const method = this.handleOption('fetchOpenOrders', 'method', 'fetch_open_orders_v1');
         return await this[method](symbol, since, limit, params);
     }
     async fetchOpenOrdersV1(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1299,7 +1352,9 @@ class bittrade extends bittrade$1["default"] {
         return await this.fetchOrdersByStates('filled,partial-canceled,canceled', symbol, since, limit, params);
     }
     async fetchOpenOrdersV2(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -1453,7 +1508,9 @@ class bittrade extends bittrade$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -1474,7 +1531,9 @@ class bittrade extends bittrade$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadAccounts();
         const market = this.market(symbol);
         const request = {
@@ -1557,7 +1616,7 @@ class bittrade extends bittrade$1["default"] {
      * @name bittrade#cancelOrder
      * @description cancels an open order
      * @param {string} id order id
-     * @param {string} symbol not used by bittrade cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1579,12 +1638,14 @@ class bittrade extends bittrade$1["default"] {
      * @name bittrade#cancelOrders
      * @description cancel multiple orders
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by bittrade cancelOrders ()
+     * @param {string} symbol not used by cancelOrders ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const clientOrderIds = this.safeValue2(params, 'clientOrderIds', 'client-order-ids');
         params = this.omit(params, ['clientOrderIds', 'client-order-ids']);
         const request = {};
@@ -1691,12 +1752,14 @@ class bittrade extends bittrade$1["default"] {
      * @method
      * @name bittrade#cancelAllOrders
      * @description cancel all open orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'account-id' string false NA The account id used for this cancel Refer to GET /v1/account/accounts
         // 'symbol': market['id'], // a list of comma-separated symbols, all symbols by default
@@ -1769,7 +1832,9 @@ class bittrade extends bittrade$1["default"] {
         if (limit === undefined || limit > 100) {
             limit = 100;
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -1786,7 +1851,8 @@ class bittrade extends bittrade$1["default"] {
         }
         const response = await this.privateGetQueryDepositWithdraw(this.extend(request, params));
         // return response
-        return this.parseTransactions(response['data'], currency, since, limit);
+        const data = this.safeList(response, 'data', []);
+        return this.parseTransactions(data, currency, since, limit);
     }
     /**
      * @method
@@ -1802,7 +1868,9 @@ class bittrade extends bittrade$1["default"] {
         if (limit === undefined || limit > 100) {
             limit = 100;
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -1819,7 +1887,8 @@ class bittrade extends bittrade$1["default"] {
         }
         const response = await this.privateGetQueryDepositWithdraw(this.extend(request, params));
         // return response
-        return this.parseTransactions(response['data'], currency, since, limit);
+        const data = this.safeList(response, 'data', []);
+        return this.parseTransactions(data, currency, since, limit);
     }
     parseTransaction(transaction, currency = undefined) {
         //
@@ -1937,11 +2006,13 @@ class bittrade extends bittrade$1["default"] {
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         this.checkAddress(address);
         const currency = this.currency(code);
         const request = {
-            'address': address,
+            'address': address, // only supports existing addresses in your withdraw address list
             'amount': amount,
             'currency': currency['id'].toLowerCase(),
         };
@@ -1998,9 +2069,10 @@ class bittrade extends bittrade$1["default"] {
             const requestSorted = this.keysort(request);
             let auth = this.urlencode(requestSorted);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
+            const content = [method, this.hostname, url, auth];
             // eslint-disable-next-line quotes
-            const payload = [method, this.hostname, url, auth].join("\n");
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
+            const payload = content.join("\n");
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'base64');
             auth += '&' + this.urlencode({ 'Signature': signature });
             url += '?' + auth;
             if (method === 'POST') {

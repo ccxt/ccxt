@@ -13,16 +13,16 @@ func NewXtCore() *XtCore {
 	return p
 }
 
-func (this *XtCore) Describe() interface{} {
-	return this.DeepExtend(this.Exchange.Describe(), map[string]interface{}{
+func (this *XtCore) Describe() any {
+	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "xt",
 		"name":      "XT",
-		"countries": []interface{}{"SC"},
+		"countries": []any{"SC"},
 		"rateLimit": 100,
 		"version":   "v4",
 		"certified": false,
 		"pro":       true,
-		"has": map[string]interface{}{
+		"has": map[string]any{
 			"CORS":                           false,
 			"spot":                           true,
 			"margin":                         true,
@@ -79,7 +79,7 @@ func (this *XtCore) Describe() interface{} {
 			"fetchMarkOHLCV":                 false,
 			"fetchMyTrades":                  true,
 			"fetchOHLCV":                     true,
-			"fetchOpenInterest":              false,
+			"fetchOpenInterest":              true,
 			"fetchOpenInterestHistory":       false,
 			"fetchOpenOrders":                true,
 			"fetchOption":                    false,
@@ -92,6 +92,7 @@ func (this *XtCore) Describe() interface{} {
 			"fetchOrderTrades":               false,
 			"fetchPosition":                  true,
 			"fetchPositions":                 true,
+			"fetchPositionsHistory":          true,
 			"fetchPremiumIndexOHLCV":         false,
 			"fetchSettlementHistory":         false,
 			"fetchStatus":                    false,
@@ -99,8 +100,8 @@ func (this *XtCore) Describe() interface{} {
 			"fetchTickers":                   true,
 			"fetchTime":                      true,
 			"fetchTrades":                    true,
-			"fetchTradingFee":                false,
-			"fetchTradingFees":               false,
+			"fetchTradingFee":                true,
+			"fetchTradingFees":               true,
 			"fetchTradingLimits":             false,
 			"fetchTransactionFee":            false,
 			"fetchTransactionFees":           false,
@@ -122,9 +123,9 @@ func (this *XtCore) Describe() interface{} {
 			"withdraw":                       true,
 		},
 		"precisionMode": TICK_SIZE,
-		"urls": map[string]interface{}{
-			"logo": "https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg",
-			"api": map[string]interface{}{
+		"urls": map[string]any{
+			"logo": "https://github.com/user-attachments/assets/1f916564-6507-4549-af96-22837bb0a0c7",
+			"api": map[string]any{
 				"spot":    "https://sapi.xt.com",
 				"linear":  "https://fapi.xt.com",
 				"inverse": "https://dapi.xt.com",
@@ -132,236 +133,569 @@ func (this *XtCore) Describe() interface{} {
 			},
 			"www":      "https://xt.com",
 			"referral": "https://www.xt.com/en/accounts/register?ref=9PTM9VW",
-			"doc":      []interface{}{"https://doc.xt.com/", "https://github.com/xtpub/api-doc"},
+			"doc":      []any{"https://doc.xt.com/", "https://github.com/xtpub/api-doc"},
 			"fees":     "https://www.xt.com/en/rate",
 		},
-		"api": map[string]interface{}{
-			"public": map[string]interface{}{
-				"spot": map[string]interface{}{
-					"get": map[string]interface{}{
-						"currencies":              1,
-						"depth":                   10,
-						"kline":                   1,
-						"symbol":                  1,
-						"ticker":                  1,
-						"ticker/book":             1,
-						"ticker/price":            1,
-						"ticker/24h":              1,
-						"time":                    1,
-						"trade/history":           1,
-						"trade/recent":            1,
-						"wallet/support/currency": 1,
+		"api": map[string]any{
+			"public": map[string]any{
+				"spot": map[string]any{
+					"get": map[string]any{
+						"currencies": map[string]any{
+							"cost": 1,
+						},
+						"depth": map[string]any{
+							"cost": 10,
+						},
+						"kline": map[string]any{
+							"cost": 1,
+						},
+						"symbol": map[string]any{
+							"cost": 1,
+						},
+						"ticker": map[string]any{
+							"cost": 1,
+						},
+						"ticker/book": map[string]any{
+							"cost": 1,
+						},
+						"ticker/price": map[string]any{
+							"cost": 1,
+						},
+						"ticker/24h": map[string]any{
+							"cost": 1,
+						},
+						"time": map[string]any{
+							"cost": 1,
+						},
+						"trade/history": map[string]any{
+							"cost": 1,
+						},
+						"trade/recent": map[string]any{
+							"cost": 1,
+						},
+						"wallet/support/currency": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
-				"linear": map[string]interface{}{
-					"get": map[string]interface{}{
-						"future/market/v1/public/contract/risk-balance":   1,
-						"future/market/v1/public/contract/open-interest":  1,
-						"future/market/v1/public/leverage/bracket/detail": 1,
-						"future/market/v1/public/leverage/bracket/list":   1,
-						"future/market/v1/public/q/agg-ticker":            1,
-						"future/market/v1/public/q/agg-tickers":           1,
-						"future/market/v1/public/q/deal":                  1,
-						"future/market/v1/public/q/depth":                 1,
-						"future/market/v1/public/q/funding-rate":          1,
-						"future/market/v1/public/q/funding-rate-record":   1,
-						"future/market/v1/public/q/index-price":           1,
-						"future/market/v1/public/q/kline":                 1,
-						"future/market/v1/public/q/mark-price":            1,
-						"future/market/v1/public/q/symbol-index-price":    1,
-						"future/market/v1/public/q/symbol-mark-price":     1,
-						"future/market/v1/public/q/ticker":                1,
-						"future/market/v1/public/q/tickers":               1,
-						"future/market/v1/public/symbol/coins":            3.33,
-						"future/market/v1/public/symbol/detail":           3.33,
-						"future/market/v1/public/symbol/list":             1,
+				"linear": map[string]any{
+					"get": map[string]any{
+						"future/market/v1/public/contract/risk-balance": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/contract/open-interest": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/leverage/bracket/detail": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/leverage/bracket/list": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/agg-ticker": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/agg-tickers": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/deal": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/depth": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/funding-rate": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/funding-rate-record": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/index-price": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/kline": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/mark-price": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/symbol-index-price": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/symbol-mark-price": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/ticker": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/ticker/books": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/tickers": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/symbol/coins": map[string]any{
+							"cost": 3.33,
+						},
+						"future/market/v1/public/symbol/detail": map[string]any{
+							"cost": 3.33,
+						},
+						"future/market/v1/public/symbol/list": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
-				"inverse": map[string]interface{}{
-					"get": map[string]interface{}{
-						"future/market/v1/public/contract/risk-balance":   1,
-						"future/market/v1/public/contract/open-interest":  1,
-						"future/market/v1/public/leverage/bracket/detail": 1,
-						"future/market/v1/public/leverage/bracket/list":   1,
-						"future/market/v1/public/q/agg-ticker":            1,
-						"future/market/v1/public/q/agg-tickers":           1,
-						"future/market/v1/public/q/deal":                  1,
-						"future/market/v1/public/q/depth":                 1,
-						"future/market/v1/public/q/funding-rate":          1,
-						"future/market/v1/public/q/funding-rate-record":   1,
-						"future/market/v1/public/q/index-price":           1,
-						"future/market/v1/public/q/kline":                 1,
-						"future/market/v1/public/q/mark-price":            1,
-						"future/market/v1/public/q/symbol-index-price":    1,
-						"future/market/v1/public/q/symbol-mark-price":     1,
-						"future/market/v1/public/q/ticker":                1,
-						"future/market/v1/public/q/tickers":               1,
-						"future/market/v1/public/symbol/coins":            3.33,
-						"future/market/v1/public/symbol/detail":           3.33,
-						"future/market/v1/public/symbol/list":             1,
+				"inverse": map[string]any{
+					"get": map[string]any{
+						"future/market/v1/public/contract/risk-balance": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/contract/open-interest": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/leverage/bracket/detail": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/leverage/bracket/list": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/agg-ticker": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/agg-tickers": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/deal": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/depth": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/funding-rate": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/funding-rate-record": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/index-price": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/kline": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/mark-price": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/symbol-index-price": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/symbol-mark-price": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/ticker": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/ticker/books": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/q/tickers": map[string]any{
+							"cost": 1,
+						},
+						"future/market/v1/public/symbol/coins": map[string]any{
+							"cost": 3.33,
+						},
+						"future/market/v1/public/symbol/detail": map[string]any{
+							"cost": 3.33,
+						},
+						"future/market/v1/public/symbol/list": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
-			"private": map[string]interface{}{
-				"spot": map[string]interface{}{
-					"get": map[string]interface{}{
-						"balance":          1,
-						"balances":         1,
-						"batch-order":      1,
-						"deposit/address":  1,
-						"deposit/history":  1,
-						"history-order":    1,
-						"open-order":       1,
-						"order":            1,
-						"order/{orderId}":  1,
-						"trade":            1,
-						"withdraw/history": 1,
+			"private": map[string]any{
+				"spot": map[string]any{
+					"get": map[string]any{
+						"balance": map[string]any{
+							"cost": 1,
+						},
+						"balances": map[string]any{
+							"cost": 1,
+						},
+						"batch-order": map[string]any{
+							"cost": 1,
+						},
+						"deposit/address": map[string]any{
+							"cost": 1,
+						},
+						"deposit/history": map[string]any{
+							"cost": 1,
+						},
+						"history-order": map[string]any{
+							"cost": 1,
+						},
+						"open-order": map[string]any{
+							"cost": 1,
+						},
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"order/{orderId}": map[string]any{
+							"cost": 1,
+						},
+						"trade": map[string]any{
+							"cost": 1,
+						},
+						"withdraw/history": map[string]any{
+							"cost": 1,
+						},
 					},
-					"post": map[string]interface{}{
-						"order":                    0.2,
-						"withdraw":                 10,
-						"balance/transfer":         1,
-						"balance/account/transfer": 1,
-						"ws-token":                 1,
+					"post": map[string]any{
+						"order": map[string]any{
+							"cost": 0.2,
+						},
+						"withdraw": map[string]any{
+							"cost": 10,
+						},
+						"balance/transfer": map[string]any{
+							"cost": 1,
+						},
+						"balance/account/transfer": map[string]any{
+							"cost": 1,
+						},
+						"ws-token": map[string]any{
+							"cost": 1,
+						},
 					},
-					"delete": map[string]interface{}{
-						"batch-order":     1,
-						"open-order":      1,
-						"order/{orderId}": 1,
+					"delete": map[string]any{
+						"batch-order": map[string]any{
+							"cost": 1,
+						},
+						"open-order": map[string]any{
+							"cost": 1,
+						},
+						"order/{orderId}": map[string]any{
+							"cost": 1,
+						},
 					},
-					"put": map[string]interface{}{
-						"order/{orderId}": 1,
-					},
-				},
-				"linear": map[string]interface{}{
-					"get": map[string]interface{}{
-						"future/trade/v1/entrust/plan-detail":       1,
-						"future/trade/v1/entrust/plan-list":         1,
-						"future/trade/v1/entrust/plan-list-history": 1,
-						"future/trade/v1/entrust/profit-detail":     1,
-						"future/trade/v1/entrust/profit-list":       1,
-						"future/trade/v1/order/detail":              1,
-						"future/trade/v1/order/list":                1,
-						"future/trade/v1/order/list-history":        1,
-						"future/trade/v1/order/trade-list":          1,
-						"future/user/v1/account/info":               1,
-						"future/user/v1/balance/bills":              1,
-						"future/user/v1/balance/detail":             1,
-						"future/user/v1/balance/funding-rate-list":  1,
-						"future/user/v1/balance/list":               1,
-						"future/user/v1/position/adl":               1,
-						"future/user/v1/position/list":              1,
-						"future/user/v1/user/collection/list":       1,
-						"future/user/v1/user/listen-key":            1,
-					},
-					"post": map[string]interface{}{
-						"future/trade/v1/entrust/cancel-all-plan":        1,
-						"future/trade/v1/entrust/cancel-all-profit-stop": 1,
-						"future/trade/v1/entrust/cancel-plan":            1,
-						"future/trade/v1/entrust/cancel-profit-stop":     1,
-						"future/trade/v1/entrust/create-plan":            1,
-						"future/trade/v1/entrust/create-profit":          1,
-						"future/trade/v1/entrust/update-profit-stop":     1,
-						"future/trade/v1/order/cancel":                   1,
-						"future/trade/v1/order/cancel-all":               1,
-						"future/trade/v1/order/create":                   1,
-						"future/trade/v1/order/create-batch":             1,
-						"future/trade/v1/order/update":                   1,
-						"future/user/v1/account/open":                    1,
-						"future/user/v1/position/adjust-leverage":        1,
-						"future/user/v1/position/auto-margin":            1,
-						"future/user/v1/position/close-all":              1,
-						"future/user/v1/position/margin":                 1,
-						"future/user/v1/user/collection/add":             1,
-						"future/user/v1/user/collection/cancel":          1,
-						"future/user/v1/position/change-type":            1,
+					"put": map[string]any{
+						"order/{orderId}": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
-				"inverse": map[string]interface{}{
-					"get": map[string]interface{}{
-						"future/trade/v1/entrust/plan-detail":       1,
-						"future/trade/v1/entrust/plan-list":         1,
-						"future/trade/v1/entrust/plan-list-history": 1,
-						"future/trade/v1/entrust/profit-detail":     1,
-						"future/trade/v1/entrust/profit-list":       1,
-						"future/trade/v1/order/detail":              1,
-						"future/trade/v1/order/list":                1,
-						"future/trade/v1/order/list-history":        1,
-						"future/trade/v1/order/trade-list":          1,
-						"future/user/v1/account/info":               1,
-						"future/user/v1/balance/bills":              1,
-						"future/user/v1/balance/detail":             1,
-						"future/user/v1/balance/funding-rate-list":  1,
-						"future/user/v1/balance/list":               1,
-						"future/user/v1/position/adl":               1,
-						"future/user/v1/position/list":              1,
-						"future/user/v1/user/collection/list":       1,
-						"future/user/v1/user/listen-key":            1,
+				"linear": map[string]any{
+					"get": map[string]any{
+						"future/trade/v1/entrust/plan-detail": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/plan-list": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/plan-list-history": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/profit-detail": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/profit-list": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/detail": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/list": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/list-history": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/position/list-history": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/trade-list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/account/info": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/balance/bills": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/balance/detail": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/balance/funding-rate-list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/balance/list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/adl": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/break-list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/user/step-rate": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/user/collection/list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/user/listen-key": map[string]any{
+							"cost": 1,
+						},
 					},
-					"post": map[string]interface{}{
-						"future/trade/v1/entrust/cancel-all-plan":        1,
-						"future/trade/v1/entrust/cancel-all-profit-stop": 1,
-						"future/trade/v1/entrust/cancel-plan":            1,
-						"future/trade/v1/entrust/cancel-profit-stop":     1,
-						"future/trade/v1/entrust/create-plan":            1,
-						"future/trade/v1/entrust/create-profit":          1,
-						"future/trade/v1/entrust/update-profit-stop":     1,
-						"future/trade/v1/order/cancel":                   1,
-						"future/trade/v1/order/cancel-all":               1,
-						"future/trade/v1/order/create":                   1,
-						"future/trade/v1/order/create-batch":             1,
-						"future/trade/v1/order/update":                   1,
-						"future/user/v1/account/open":                    1,
-						"future/user/v1/position/adjust-leverage":        1,
-						"future/user/v1/position/auto-margin":            1,
-						"future/user/v1/position/close-all":              1,
-						"future/user/v1/position/margin":                 1,
-						"future/user/v1/user/collection/add":             1,
-						"future/user/v1/user/collection/cancel":          1,
+					"post": map[string]any{
+						"future/trade/v1/entrust/cancel-all-plan": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/cancel-all-profit-stop": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/cancel-plan": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/cancel-profit-stop": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/create-plan": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/create-profit": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/update-profit-stop": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/cancel": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/cancel-all": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/create": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/create-batch": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/update": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/account/open": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/adjust-leverage": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/auto-margin": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/close-all": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/margin": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/user/collection/add": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/user/collection/cancel": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/change-type": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
-				"user": map[string]interface{}{
-					"get": map[string]interface{}{
-						"user/account":         1,
-						"user/account/api-key": 1,
+				"inverse": map[string]any{
+					"get": map[string]any{
+						"future/trade/v1/entrust/plan-detail": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/plan-list": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/plan-list-history": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/profit-detail": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/profit-list": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/detail": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/list": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/list-history": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/position/list-history": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/trade-list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/account/info": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/balance/bills": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/balance/detail": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/balance/funding-rate-list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/balance/list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/adl": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/break-list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/user/step-rate": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/user/collection/list": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/user/listen-key": map[string]any{
+							"cost": 1,
+						},
 					},
-					"post": map[string]interface{}{
-						"user/account":         1,
-						"user/account/api-key": 1,
+					"post": map[string]any{
+						"future/trade/v1/entrust/cancel-all-plan": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/cancel-all-profit-stop": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/cancel-plan": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/cancel-profit-stop": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/create-plan": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/create-profit": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/entrust/update-profit-stop": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/cancel": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/cancel-all": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/create": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/create-batch": map[string]any{
+							"cost": 1,
+						},
+						"future/trade/v1/order/update": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/account/open": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/adjust-leverage": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/auto-margin": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/close-all": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/margin": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/user/collection/add": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/user/collection/cancel": map[string]any{
+							"cost": 1,
+						},
+						"future/user/v1/position/change-type": map[string]any{
+							"cost": 1,
+						},
 					},
-					"put": map[string]interface{}{
-						"user/account/api-key": 1,
+				},
+				"user": map[string]any{
+					"get": map[string]any{
+						"user/account": map[string]any{
+							"cost": 1,
+						},
+						"user/account/api-key": map[string]any{
+							"cost": 1,
+						},
 					},
-					"delete": map[string]interface{}{
-						"user/account/{apiKeyId}": 1,
+					"post": map[string]any{
+						"user/account": map[string]any{
+							"cost": 1,
+						},
+						"user/account/api-key": map[string]any{
+							"cost": 1,
+						},
+					},
+					"put": map[string]any{
+						"user/account/api-key": map[string]any{
+							"cost": 1,
+						},
+					},
+					"delete": map[string]any{
+						"user/account/{apiKeyId}": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
 		},
-		"fees": map[string]interface{}{
-			"spot": map[string]interface{}{
+		"fees": map[string]any{
+			"spot": map[string]any{
 				"tierBased":  true,
 				"percentage": true,
 				"maker":      this.ParseNumber("0.002"),
 				"taker":      this.ParseNumber("0.002"),
-				"tiers": map[string]interface{}{
-					"maker": []interface{}{[]interface{}{this.ParseNumber("0"), this.ParseNumber("0.002")}, []interface{}{this.ParseNumber("5000"), this.ParseNumber("0.0018")}, []interface{}{this.ParseNumber("10000"), this.ParseNumber("0.0016")}, []interface{}{this.ParseNumber("20000"), this.ParseNumber("0.0014")}, []interface{}{this.ParseNumber("50000"), this.ParseNumber("0.0012")}, []interface{}{this.ParseNumber("150000"), this.ParseNumber("0.0010")}, []interface{}{this.ParseNumber("300000"), this.ParseNumber("0.0008")}, []interface{}{this.ParseNumber("600000"), this.ParseNumber("0.0007")}, []interface{}{this.ParseNumber("1200000"), this.ParseNumber("0.0006")}, []interface{}{this.ParseNumber("2500000"), this.ParseNumber("0.0005")}, []interface{}{this.ParseNumber("6000000"), this.ParseNumber("0.0004")}, []interface{}{this.ParseNumber("15000000"), this.ParseNumber("0.0003")}, []interface{}{this.ParseNumber("30000000"), this.ParseNumber("0.0002")}},
-					"taker": []interface{}{[]interface{}{this.ParseNumber("0"), this.ParseNumber("0.002")}, []interface{}{this.ParseNumber("5000"), this.ParseNumber("0.0018")}, []interface{}{this.ParseNumber("10000"), this.ParseNumber("0.0016")}, []interface{}{this.ParseNumber("20000"), this.ParseNumber("0.0014")}, []interface{}{this.ParseNumber("50000"), this.ParseNumber("0.0012")}, []interface{}{this.ParseNumber("150000"), this.ParseNumber("0.0010")}, []interface{}{this.ParseNumber("300000"), this.ParseNumber("0.0008")}, []interface{}{this.ParseNumber("600000"), this.ParseNumber("0.0007")}, []interface{}{this.ParseNumber("1200000"), this.ParseNumber("0.0006")}, []interface{}{this.ParseNumber("2500000"), this.ParseNumber("0.0005")}, []interface{}{this.ParseNumber("6000000"), this.ParseNumber("0.0004")}, []interface{}{this.ParseNumber("15000000"), this.ParseNumber("0.0003")}, []interface{}{this.ParseNumber("30000000"), this.ParseNumber("0.0002")}},
+				"tiers": map[string]any{
+					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.002")}, []any{this.ParseNumber("5000"), this.ParseNumber("0.0018")}, []any{this.ParseNumber("10000"), this.ParseNumber("0.0016")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.0014")}, []any{this.ParseNumber("50000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("150000"), this.ParseNumber("0.0010")}, []any{this.ParseNumber("300000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("600000"), this.ParseNumber("0.0007")}, []any{this.ParseNumber("1200000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("2500000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("6000000"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("15000000"), this.ParseNumber("0.0003")}, []any{this.ParseNumber("30000000"), this.ParseNumber("0.0002")}},
+					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.002")}, []any{this.ParseNumber("5000"), this.ParseNumber("0.0018")}, []any{this.ParseNumber("10000"), this.ParseNumber("0.0016")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.0014")}, []any{this.ParseNumber("50000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("150000"), this.ParseNumber("0.0010")}, []any{this.ParseNumber("300000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("600000"), this.ParseNumber("0.0007")}, []any{this.ParseNumber("1200000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("2500000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("6000000"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("15000000"), this.ParseNumber("0.0003")}, []any{this.ParseNumber("30000000"), this.ParseNumber("0.0002")}},
 				},
 			},
-			"contract": map[string]interface{}{
+			"contract": map[string]any{
 				"tierBased":  true,
 				"percentage": true,
 				"maker":      this.ParseNumber("0.0004"),
 				"taker":      this.ParseNumber("0.0006"),
-				"tiers": map[string]interface{}{
-					"maker": []interface{}{[]interface{}{this.ParseNumber("0"), this.ParseNumber("0.0004")}, []interface{}{this.ParseNumber("200000"), this.ParseNumber("0.00038")}, []interface{}{this.ParseNumber("1000000"), this.ParseNumber("0.00036")}, []interface{}{this.ParseNumber("5000000"), this.ParseNumber("0.00034")}, []interface{}{this.ParseNumber("10000000"), this.ParseNumber("0.00032")}, []interface{}{this.ParseNumber("15000000"), this.ParseNumber("0.00028")}, []interface{}{this.ParseNumber("30000000"), this.ParseNumber("0.00024")}, []interface{}{this.ParseNumber("50000000"), this.ParseNumber("0.0002")}, []interface{}{this.ParseNumber("100000000"), this.ParseNumber("0.00016")}, []interface{}{this.ParseNumber("300000000"), this.ParseNumber("0.00012")}, []interface{}{this.ParseNumber("500000000"), this.ParseNumber("0.00008")}},
-					"taker": []interface{}{[]interface{}{this.ParseNumber("0"), this.ParseNumber("0.0006")}, []interface{}{this.ParseNumber("200000"), this.ParseNumber("0.000588")}, []interface{}{this.ParseNumber("1000000"), this.ParseNumber("0.00057")}, []interface{}{this.ParseNumber("5000000"), this.ParseNumber("0.00054")}, []interface{}{this.ParseNumber("10000000"), this.ParseNumber("0.00051")}, []interface{}{this.ParseNumber("15000000"), this.ParseNumber("0.00048")}, []interface{}{this.ParseNumber("30000000"), this.ParseNumber("0.00045")}, []interface{}{this.ParseNumber("50000000"), this.ParseNumber("0.00045")}, []interface{}{this.ParseNumber("100000000"), this.ParseNumber("0.00036")}, []interface{}{this.ParseNumber("300000000"), this.ParseNumber("0.00033")}, []interface{}{this.ParseNumber("500000000"), this.ParseNumber("0.0003")}},
+				"tiers": map[string]any{
+					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("200000"), this.ParseNumber("0.00038")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.00036")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.00034")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.00032")}, []any{this.ParseNumber("15000000"), this.ParseNumber("0.00028")}, []any{this.ParseNumber("30000000"), this.ParseNumber("0.00024")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.0002")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0.00016")}, []any{this.ParseNumber("300000000"), this.ParseNumber("0.00012")}, []any{this.ParseNumber("500000000"), this.ParseNumber("0.00008")}},
+					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("200000"), this.ParseNumber("0.000588")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.00057")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.00054")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.00051")}, []any{this.ParseNumber("15000000"), this.ParseNumber("0.00048")}, []any{this.ParseNumber("30000000"), this.ParseNumber("0.00045")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.00045")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0.00036")}, []any{this.ParseNumber("300000000"), this.ParseNumber("0.00033")}, []any{this.ParseNumber("500000000"), this.ParseNumber("0.0003")}},
 				},
 			},
 		},
-		"exceptions": map[string]interface{}{
-			"exact": map[string]interface{}{
+		"exceptions": map[string]any{
+			"exact": map[string]any{
 				"400":                                NetworkError,
 				"404":                                ExchangeError,
 				"429":                                RateLimitExceeded,
@@ -471,13 +805,13 @@ func (this *XtCore) Describe() interface{} {
 				"open_order_min_nominal_value_limit": InvalidOrder,
 				"insufficient_balance":               InsufficientFunds,
 			},
-			"broad": map[string]interface{}{
+			"broad": map[string]any{
 				"The symbol does not support trading via API":          BadSymbol,
 				"Exceeds the minimum notional value of a single order": InvalidOrder,
 				"insufficient balance":                                 InsufficientFunds,
 			},
 		},
-		"timeframes": map[string]interface{}{
+		"timeframes": map[string]any{
 			"1m":  "1m",
 			"5m":  "5m",
 			"15m": "15m",
@@ -492,11 +826,11 @@ func (this *XtCore) Describe() interface{} {
 			"1w":  "1w",
 			"1M":  "1M",
 		},
-		"commonCurrencies": map[string]interface{}{},
-		"options": map[string]interface{}{
+		"commonCurrencies": map[string]any{},
+		"options": map[string]any{
 			"adjustForTimeDifference": false,
 			"timeDifference":          0,
-			"accountsById": map[string]interface{}{
+			"accountsById": map[string]any{
 				"spot":     "SPOT",
 				"leverage": "LEVER",
 				"finance":  "FINANCE",
@@ -505,14 +839,13 @@ func (this *XtCore) Describe() interface{} {
 				"linear":   "FUTURES_U",
 				"inverse":  "FUTURES_C",
 			},
-			"networks": map[string]interface{}{
+			"networks": map[string]any{
 				"ERC20": "Ethereum",
 				"TRC20": "Tron",
+				"TRX":   "Tron",
 				"BEP20": "BNB Smart Chain",
 				"BEP2":  "BNB-BEP2",
 				"ETH":   "Ethereum",
-				"TRON":  "Tron",
-				"BNB":   "BNB Smart Chain",
 				"AVAX":  "AVAX C-Chain",
 				"GAL":   "GAL(FT)",
 				"ALEO":  "ALEO(IOU)",
@@ -566,7 +899,7 @@ func (this *XtCore) Describe() interface{} {
 				"GMMT":  "GMMT chain",
 				"ZIL":   "Zilliqa",
 			},
-			"networksById": map[string]interface{}{
+			"networksById": map[string]any{
 				"Ethereum":          "ERC20",
 				"Tron":              "TRC20",
 				"BNB Smart Chain":   "BEP20",
@@ -627,18 +960,18 @@ func (this *XtCore) Describe() interface{} {
 			"createMarketBuyOrderRequiresPrice": true,
 			"recvWindow":                        "5000",
 		},
-		"features": map[string]interface{}{
-			"default": map[string]interface{}{
+		"features": map[string]any{
+			"default": map[string]any{
 				"sandbox": false,
-				"createOrder": map[string]interface{}{
-					"marginMode":                 false,
+				"createOrder": map[string]any{
+					"marginMode":                 true,
 					"triggerPrice":               false,
 					"triggerDirection":           false,
 					"triggerPriceType":           nil,
 					"stopLossPrice":              false,
 					"takeProfitPrice":            false,
 					"attachedStopLossTakeProfit": nil,
-					"timeInForce": map[string]interface{}{
+					"timeInForce": map[string]any{
 						"IOC": true,
 						"FOK": true,
 						"PO":  true,
@@ -653,7 +986,7 @@ func (this *XtCore) Describe() interface{} {
 					"iceberg":                false,
 				},
 				"createOrders": nil,
-				"fetchMyTrades": map[string]interface{}{
+				"fetchMyTrades": map[string]any{
 					"marginMode":     true,
 					"limit":          100,
 					"daysBack":       100000,
@@ -662,7 +995,7 @@ func (this *XtCore) Describe() interface{} {
 					"subType":        true,
 					"symbolRequired": false,
 				},
-				"fetchOrder": map[string]interface{}{
+				"fetchOrder": map[string]any{
 					"marginMode":     false,
 					"trigger":        true,
 					"trailing":       false,
@@ -670,7 +1003,7 @@ func (this *XtCore) Describe() interface{} {
 					"subType":        true,
 					"symbolRequired": false,
 				},
-				"fetchOpenOrders": map[string]interface{}{
+				"fetchOpenOrders": map[string]any{
 					"marginMode":     true,
 					"limit":          100,
 					"trigger":        true,
@@ -679,7 +1012,7 @@ func (this *XtCore) Describe() interface{} {
 					"subType":        true,
 					"symbolRequired": false,
 				},
-				"fetchOrders": map[string]interface{}{
+				"fetchOrders": map[string]any{
 					"marginMode":     true,
 					"limit":          100,
 					"daysBack":       100000,
@@ -690,7 +1023,7 @@ func (this *XtCore) Describe() interface{} {
 					"subType":        true,
 					"symbolRequired": false,
 				},
-				"fetchClosedOrders": map[string]interface{}{
+				"fetchClosedOrders": map[string]any{
 					"marginMode":       true,
 					"limit":            100,
 					"daysBack":         100000,
@@ -702,18 +1035,19 @@ func (this *XtCore) Describe() interface{} {
 					"subType":          true,
 					"symbolRequired":   false,
 				},
-				"fetchOHLCV": map[string]interface{}{
+				"fetchOHLCV": map[string]any{
 					"limit": 1000,
 				},
 			},
-			"spot": map[string]interface{}{
+			"spot": map[string]any{
 				"extends": "default",
 			},
-			"forDerivatives": map[string]interface{}{
+			"forDerivatives": map[string]any{
 				"extends": "default",
-				"createOrder": map[string]interface{}{
+				"createOrder": map[string]any{
+					"marginMode":   false,
 					"triggerPrice": true,
-					"triggerPriceType": map[string]interface{}{
+					"triggerPriceType": map[string]any{
 						"last":  true,
 						"mark":  true,
 						"index": true,
@@ -721,31 +1055,31 @@ func (this *XtCore) Describe() interface{} {
 					"stopLossPrice":   true,
 					"takeProfitPrice": true,
 				},
-				"fetchMyTrades": map[string]interface{}{
+				"fetchMyTrades": map[string]any{
 					"daysBack":  nil,
 					"untilDays": nil,
 				},
 			},
-			"swap": map[string]interface{}{
-				"linear": map[string]interface{}{
+			"swap": map[string]any{
+				"linear": map[string]any{
 					"extends": "forDerivatives",
 				},
-				"inverse": map[string]interface{}{
+				"inverse": map[string]any{
 					"extends": "forDerivatives",
 				},
 			},
-			"future": map[string]interface{}{
-				"linear": map[string]interface{}{
+			"future": map[string]any{
+				"linear": map[string]any{
 					"extends": "forDerivatives",
 				},
-				"inverse": map[string]interface{}{
+				"inverse": map[string]any{
 					"extends": "forDerivatives",
 				},
 			},
 		},
 	})
 }
-func (this *XtCore) Nonce() interface{} {
+func (this *XtCore) Nonce() any {
 	return Subtract(this.Milliseconds(), GetValue(this.Options, "timeDifference"))
 }
 
@@ -753,16 +1087,16 @@ func (this *XtCore) Nonce() interface{} {
  * @method
  * @name xt#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the xt server
- * @see https://doc.xt.com/#market1serverInfo
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @see https://doc.xt.com/docs/spot/Market/GetServerTime
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the xt server
  */
-func (this *XtCore) FetchTime(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchTime(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		response := (<-this.PublicSpotGetTime(params))
@@ -777,7 +1111,7 @@ func (this *XtCore) FetchTime(optionalArgs ...interface{}) <-chan interface{} {
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeValue(response, "result")
+		var data any = this.SafeValue(response, "result")
 
 		ch <- this.SafeInteger(data, "serverTime")
 		return nil
@@ -790,18 +1124,18 @@ func (this *XtCore) FetchTime(optionalArgs ...interface{}) <-chan interface{} {
  * @method
  * @name xt#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetSupportedCurrencies
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *XtCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchCurrencies(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var promisesRaw interface{} = []interface{}{this.PublicSpotGetWalletSupportCurrency(params), this.PublicSpotGetCurrencies(params)}
+		var promisesRaw any = []any{this.PublicSpotGetWalletSupportCurrency(params), this.PublicSpotGetCurrencies(params)}
 		chainsResponsecurrenciesResponseVariable := (<-promiseAll(promisesRaw))
 		chainsResponse := GetValue(chainsResponsecurrenciesResponseVariable, 0)
 		currenciesResponse := GetValue(chainsResponsecurrenciesResponseVariable, 1)
@@ -856,82 +1190,86 @@ func (this *XtCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interfac
 		//
 		// note: individual network's full data is available on per-currency endpoint: https://www.xt.com/sapi/v4/balance/public/currency/11
 		//
-		var chainsData interface{} = this.SafeValue(chainsResponse, "result", []interface{}{})
-		var currenciesResult interface{} = this.SafeValue(currenciesResponse, "result", []interface{}{})
-		var currenciesData interface{} = this.SafeValue(currenciesResult, "currencies", []interface{}{})
-		var chainsDataIndexed interface{} = this.IndexBy(chainsData, "currency")
-		var result interface{} = map[string]interface{}{}
+		var chainsData any = this.SafeValue(chainsResponse, "result", []any{})
+		var currenciesResult any = this.SafeValue(currenciesResponse, "result", []any{})
+		var currenciesData any = this.SafeValue(currenciesResult, "currencies", []any{})
+		var chainsDataIndexed any = this.IndexBy(chainsData, "currency")
+		var result any = map[string]any{}
 		for i := 0; IsLessThan(i, GetArrayLength(currenciesData)); i++ {
-			var entry interface{} = GetValue(currenciesData, i)
-			var currencyId interface{} = this.SafeString(entry, "currency")
-			var code interface{} = this.SafeCurrencyCode(currencyId)
-			var networkEntry interface{} = this.SafeValue(chainsDataIndexed, currencyId, map[string]interface{}{})
-			var rawNetworks interface{} = this.SafeValue(networkEntry, "supportChains", []interface{}{})
-			var networks interface{} = map[string]interface{}{}
+			var entry any = GetValue(currenciesData, i)
+			var currencyId any = this.SafeString(entry, "currency")
+			var code any = this.SafeCurrencyCode(currencyId)
+			var networkEntry any = this.SafeValue(chainsDataIndexed, currencyId, map[string]any{})
+			var rawNetworks any = this.SafeValue(networkEntry, "supportChains", []any{})
+			var networks any = map[string]any{}
 			for j := 0; IsLessThan(j, GetArrayLength(rawNetworks)); j++ {
-				var rawNetwork interface{} = GetValue(rawNetworks, j)
-				var networkId interface{} = this.SafeString(rawNetwork, "chain")
-				var networkCode interface{} = this.NetworkIdToCode(networkId, code)
-				AddElementToObject(networks, networkCode, map[string]interface{}{
-					"info":      rawNetwork,
-					"id":        networkId,
-					"network":   networkCode,
-					"name":      nil,
-					"active":    nil,
-					"fee":       this.SafeNumber(rawNetwork, "withdrawFeeAmount"),
-					"precision": nil,
-					"deposit":   this.SafeBool(rawNetwork, "depositEnabled"),
-					"withdraw":  this.SafeBool(rawNetwork, "withdrawEnabled"),
-					"limits": map[string]interface{}{
-						"amount": map[string]interface{}{
-							"min": nil,
-							"max": nil,
+				var rawNetwork any = GetValue(rawNetworks, j)
+				var networkId any = this.SafeString(rawNetwork, "chain")
+				var networkCode any = this.NetworkIdToCode(networkId, code)
+				if IsTrue(!IsEqual(networkCode, nil)) {
+					AddElementToObject(networks, networkCode, map[string]any{
+						"info":      rawNetwork,
+						"id":        networkId,
+						"network":   networkCode,
+						"name":      nil,
+						"active":    nil,
+						"fee":       this.SafeNumber(rawNetwork, "withdrawFeeAmount"),
+						"precision": nil,
+						"deposit":   this.SafeBool(rawNetwork, "depositEnabled"),
+						"withdraw":  this.SafeBool(rawNetwork, "withdrawEnabled"),
+						"limits": map[string]any{
+							"amount": map[string]any{
+								"min": nil,
+								"max": nil,
+							},
+							"withdraw": map[string]any{
+								"min": this.SafeNumber(rawNetwork, "withdrawMinAmount"),
+								"max": nil,
+							},
+							"deposit": map[string]any{
+								"min": nil,
+								"max": nil,
+							},
 						},
-						"withdraw": map[string]interface{}{
-							"min": this.SafeNumber(rawNetwork, "withdrawMinAmount"),
-							"max": nil,
-						},
-						"deposit": map[string]interface{}{
-							"min": nil,
-							"max": nil,
-						},
-					},
-				})
+					})
+				}
 			}
-			var typeRaw interface{} = this.SafeString(entry, "type")
-			var typeVar interface{} = nil
+			var typeRaw any = this.SafeString(entry, "type")
+			var typeVar any = nil
 			if IsTrue(IsEqual(typeRaw, "FT")) {
 				typeVar = "crypto"
 			} else {
 				typeVar = "other"
 			}
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]interface{}{
-				"info":      entry,
-				"id":        currencyId,
-				"code":      code,
-				"name":      this.SafeString(entry, "fullName"),
-				"active":    nil,
-				"fee":       nil,
-				"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(entry, "maxPrecision"))),
-				"deposit":   IsEqual(this.SafeString(entry, "depositStatus"), "1"),
-				"withdraw":  IsEqual(this.SafeString(entry, "withdrawStatus"), "1"),
-				"networks":  networks,
-				"type":      typeVar,
-				"limits": map[string]interface{}{
-					"amount": map[string]interface{}{
-						"min": nil,
-						"max": nil,
+			if IsTrue(!IsEqual(code, nil)) {
+				AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
+					"info":      entry,
+					"id":        currencyId,
+					"code":      code,
+					"name":      this.SafeString(entry, "fullName"),
+					"active":    nil,
+					"fee":       nil,
+					"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(entry, "maxPrecision"))),
+					"deposit":   IsEqual(this.SafeString(entry, "depositStatus"), "1"),
+					"withdraw":  IsEqual(this.SafeString(entry, "withdrawStatus"), "1"),
+					"networks":  networks,
+					"type":      typeVar,
+					"limits": map[string]any{
+						"amount": map[string]any{
+							"min": nil,
+							"max": nil,
+						},
+						"withdraw": map[string]any{
+							"min": nil,
+							"max": nil,
+						},
+						"deposit": map[string]any{
+							"min": nil,
+							"max": nil,
+						},
 					},
-					"withdraw": map[string]interface{}{
-						"min": nil,
-						"max": nil,
-					},
-					"deposit": map[string]interface{}{
-						"min": nil,
-						"max": nil,
-					},
-				},
-			}))
+				}))
+			}
 		}
 
 		ch <- result
@@ -945,29 +1283,29 @@ func (this *XtCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interfac
  * @method
  * @name xt#fetchMarkets
  * @description retrieves data on all markets for xt
- * @see https://doc.xt.com/#market2symbol
- * @see https://doc.xt.com/#futures_quotesgetSymbols
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @see https://doc.xt.com/docs/spot/Market/GetSymbolInformation
+ * @see https://doc.xt.com/docs/futures/MarketData/get-configuration-information-for-listed-and-tradeable-symbols
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *XtCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchMarkets(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes99112 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes99112)
+			retRes100512 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes100512)
 		}
-		var promisesUnresolved interface{} = []interface{}{this.FetchSpotMarkets(params), this.FetchSwapAndFutureMarkets(params)}
+		var promisesUnresolved any = []any{this.FetchSpotMarkets(params), this.FetchSwapAndFutureMarkets(params)}
 
 		promises := (<-promiseAll(promisesUnresolved))
 		PanicOnError(promises)
-		var spotMarkets interface{} = GetValue(promises, 0)
-		var swapAndFutureMarkets interface{} = GetValue(promises, 1)
+		var spotMarkets any = GetValue(promises, 0)
+		var swapAndFutureMarkets any = GetValue(promises, 1)
 
 		ch <- this.ArrayConcat(spotMarkets, swapAndFutureMarkets)
 		return nil
@@ -975,12 +1313,12 @@ func (this *XtCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface{}
 	}()
 	return ch
 }
-func (this *XtCore) FetchSpotMarkets(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchSpotMarkets(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		response := (<-this.PublicSpotGetSymbol(params))
@@ -1037,8 +1375,8 @@ func (this *XtCore) FetchSpotMarkets(optionalArgs ...interface{}) <-chan interfa
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeValue(response, "result", map[string]interface{}{})
-		var symbols interface{} = this.SafeValue(data, "symbols", []interface{}{})
+		var data any = this.SafeValue(response, "result", map[string]any{})
+		var symbols any = this.SafeValue(data, "symbols", []any{})
 
 		ch <- this.ParseMarkets(symbols)
 		return nil
@@ -1046,15 +1384,15 @@ func (this *XtCore) FetchSpotMarkets(optionalArgs ...interface{}) <-chan interfa
 	}()
 	return ch
 }
-func (this *XtCore) FetchSwapAndFutureMarkets(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchSwapAndFutureMarkets(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		markets := (<-promiseAll([]interface{}{this.PublicLinearGetFutureMarketV1PublicSymbolList(params), this.PublicInverseGetFutureMarketV1PublicSymbolList(params)}))
+		markets := (<-promiseAll([]any{this.PublicLinearGetFutureMarketV1PublicSymbolList(params), this.PublicInverseGetFutureMarketV1PublicSymbolList(params)}))
 		PanicOnError(markets)
 		//
 		//     {
@@ -1118,7 +1456,7 @@ func (this *XtCore) FetchSwapAndFutureMarkets(optionalArgs ...interface{}) <-cha
 		//         ]
 		//     }
 		//
-		var swapAndFutureMarkets interface{} = this.ArrayConcat(this.SafeValue(GetValue(markets, 0), "result", []interface{}{}), this.SafeValue(GetValue(markets, 1), "result", []interface{}{}))
+		var swapAndFutureMarkets any = this.ArrayConcat(this.SafeValue(GetValue(markets, 0), "result", []any{}), this.SafeValue(GetValue(markets, 1), "result", []any{}))
 
 		ch <- this.ParseMarkets(swapAndFutureMarkets)
 		return nil
@@ -1126,14 +1464,14 @@ func (this *XtCore) FetchSwapAndFutureMarkets(optionalArgs ...interface{}) <-cha
 	}()
 	return ch
 }
-func (this *XtCore) ParseMarkets(markets interface{}) interface{} {
-	var result interface{} = []interface{}{}
+func (this *XtCore) ParseMarkets(markets any) any {
+	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
 		AppendToArray(&result, this.ParseMarket(GetValue(markets, i)))
 	}
 	return result
 }
-func (this *XtCore) ParseMarket(market interface{}) interface{} {
+func (this *XtCore) ParseMarket(market any) any {
 	//
 	// spot
 	//
@@ -1250,24 +1588,24 @@ func (this *XtCore) ParseMarket(market interface{}) interface{} {
 	//         "enDesc": null
 	//     }
 	//
-	var id interface{} = this.SafeString(market, "symbol")
-	var baseId interface{} = this.SafeString2(market, "baseCurrency", "baseCoin")
-	var quoteId interface{} = this.SafeString2(market, "quoteCurrency", "quoteCoin")
-	var base interface{} = this.SafeCurrencyCode(baseId)
-	var quote interface{} = this.SafeCurrencyCode(quoteId)
-	var state interface{} = this.SafeString(market, "state")
-	var symbol interface{} = Add(Add(base, "/"), quote)
-	var filters interface{} = this.SafeValue(market, "filters", []interface{}{})
-	var minAmount interface{} = nil
-	var maxAmount interface{} = nil
-	var minCost interface{} = nil
-	var maxCost interface{} = nil
-	var minPrice interface{} = nil
-	var maxPrice interface{} = nil
-	var amountPrecision interface{} = nil
+	var id any = this.SafeString(market, "symbol")
+	var baseId any = this.SafeString2(market, "baseCurrency", "baseCoin")
+	var quoteId any = this.SafeString2(market, "quoteCurrency", "quoteCoin")
+	var base any = this.SafeCurrencyCode(baseId)
+	var quote any = this.SafeCurrencyCode(quoteId)
+	var state any = this.SafeString(market, "state")
+	var symbol any = Add(Add(base, "/"), quote)
+	var filters any = this.SafeValue(market, "filters", []any{})
+	var minAmount any = nil
+	var maxAmount any = nil
+	var minCost any = nil
+	var maxCost any = nil
+	var minPrice any = nil
+	var maxPrice any = nil
+	var amountPrecision any = nil
 	for i := 0; IsLessThan(i, GetArrayLength(filters)); i++ {
-		var entry interface{} = GetValue(filters, i)
-		var filter interface{} = this.SafeString(entry, "filter")
+		var entry any = GetValue(filters, i)
+		var filter any = this.SafeString(entry, "filter")
 		if IsTrue(IsEqual(filter, "QUANTITY")) {
 			minAmount = this.SafeNumber(entry, "min")
 			maxAmount = this.SafeNumber(entry, "max")
@@ -1284,17 +1622,17 @@ func (this *XtCore) ParseMarket(market interface{}) interface{} {
 	if IsTrue(IsEqual(amountPrecision, nil)) {
 		amountPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityPrecision")))
 	}
-	var underlyingType interface{} = this.SafeString(market, "underlyingType")
-	var linear interface{} = nil
-	var inverse interface{} = nil
-	var settleId interface{} = nil
-	var settle interface{} = nil
-	var expiry interface{} = nil
-	var future interface{} = false
-	var swap interface{} = false
-	var contract interface{} = false
-	var spot interface{} = true
-	var typeVar interface{} = "spot"
+	var underlyingType any = this.SafeString(market, "underlyingType")
+	var linear any = nil
+	var inverse any = nil
+	var settleId any = nil
+	var settle any = nil
+	var expiry any = nil
+	var future any = false
+	var swap any = false
+	var contract any = false
+	var spot any = true
+	var typeVar any = "spot"
 	if IsTrue(IsEqual(underlyingType, "U_BASED")) {
 		symbol = Add(Add(symbol, ":"), quote)
 		settleId = baseId
@@ -1310,7 +1648,7 @@ func (this *XtCore) ParseMarket(market interface{}) interface{} {
 	}
 	if IsTrue(!IsEqual(underlyingType, nil)) {
 		expiry = this.SafeInteger(market, "deliveryDate")
-		var productType interface{} = this.SafeString(market, "productType")
+		var productType any = this.SafeString(market, "productType")
 		if IsTrue(!IsEqual(productType, "perpetual")) {
 			symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
 			typeVar = "future"
@@ -1327,7 +1665,7 @@ func (this *XtCore) ParseMarket(market interface{}) interface{} {
 		contract = true
 		spot = false
 	}
-	var isActive interface{} = false
+	var isActive any = false
 	if IsTrue(contract) {
 		isActive = this.SafeValue(market, "isOpenApi", false)
 	} else {
@@ -1335,7 +1673,7 @@ func (this *XtCore) ParseMarket(market interface{}) interface{} {
 			isActive = true
 		}
 	}
-	return this.SafeMarketStructure(map[string]interface{}{
+	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         symbol,
 		"base":           base,
@@ -1354,33 +1692,33 @@ func (this *XtCore) ParseMarket(market interface{}) interface{} {
 		"contract":       contract,
 		"linear":         linear,
 		"inverse":        inverse,
-		"taker":          this.SafeNumber(market, "takerFee"),
-		"maker":          this.SafeNumber(market, "makerFee"),
+		"taker":          this.SafeNumber2(market, "takerFee", "takerFeeRate"),
+		"maker":          this.SafeNumber2(market, "makerFee", "makerFeeRate"),
 		"contractSize":   this.SafeNumber(market, "contractSize"),
 		"expiry":         expiry,
 		"expiryDatetime": this.Iso8601(expiry),
 		"strike":         nil,
 		"optionType":     nil,
-		"precision": map[string]interface{}{
+		"precision": map[string]any{
 			"price":  this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pricePrecision"))),
 			"amount": amountPrecision,
 			"base":   this.ParseNumber(this.ParsePrecision(this.SafeString(market, "baseCoinPrecision"))),
 			"quote":  this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quoteCoinPrecision"))),
 		},
-		"limits": map[string]interface{}{
-			"leverage": map[string]interface{}{
+		"limits": map[string]any{
+			"leverage": map[string]any{
 				"min": this.ParseNumber("1"),
 				"max": nil,
 			},
-			"amount": map[string]interface{}{
+			"amount": map[string]any{
 				"min": minAmount,
 				"max": maxAmount,
 			},
-			"price": map[string]interface{}{
+			"price": map[string]any{
 				"min": minPrice,
 				"max": maxPrice,
 			},
-			"cost": map[string]interface{}{
+			"cost": map[string]any{
 				"min": minCost,
 				"max": maxCost,
 			},
@@ -1393,20 +1731,20 @@ func (this *XtCore) ParseMarket(market interface{}) interface{} {
  * @method
  * @name xt#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://doc.xt.com/#market4kline
- * @see https://doc.xt.com/#futures_quotesgetKLine
+ * @see https://doc.xt.com/docs/spot/Market/GetKlineData
+ * @see https://doc.xt.com/docs/futures/MarketData/get-trading-pair-information-of-kline
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *XtCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		timeframe := GetArg(optionalArgs, 0, "1m")
@@ -1415,41 +1753,52 @@ func (this *XtCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) 
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes14108 := (<-this.LoadMarkets())
-		PanicOnError(retRes14108)
-		var paginate interface{} = false
+			retRes142512 := (<-this.LoadMarkets())
+			PanicOnError(retRes142512)
+		}
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes141419 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
-			PanicOnError(retRes141419)
-			ch <- retRes141419
+			retRes143019 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+			PanicOnError(retRes143019)
+			ch <- retRes143019
 			return nil
 		}
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol":   GetValue(market, "id"),
 			"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 		}
 		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "startTime", since)
+			// xt rounds startTime down to the candle boundary, which makes a mid-candle
+			// window start return one pre-since candle, shifting paginated windows and
+			// dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
+			var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+			AddElementToObject(request, "startTime", Multiply(MathCeil(Divide(since, duration)), duration))
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
+			if IsTrue(GetValue(market, "spot")) {
+				limit = mathMin(limit, 1000) // spot max limit
+			} else {
+				limit = mathMin(limit, 1500) // derivatives max limit
+			}
 			AddElementToObject(request, "limit", limit)
 		} else {
 			AddElementToObject(request, "limit", 1000)
 		}
-		var until interface{} = this.SafeInteger(params, "until")
-		params = this.Omit(params, []interface{}{"until"})
+		var until any = this.SafeInteger(params, "until")
+		params = this.Omit(params, []any{"until"})
 		if IsTrue(!IsEqual(until, nil)) {
 			AddElementToObject(request, "endTime", until)
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(GetValue(market, "linear")) {
 
 			response = (<-this.PublicLinearGetFutureMarketV1PublicQKline(this.Extend(request, params)))
@@ -1504,7 +1853,7 @@ func (this *XtCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) 
 		//         ]
 		//     }
 		//
-		var ohlcvs interface{} = this.SafeValue(response, "result", []interface{}{})
+		var ohlcvs any = this.SafeValue(response, "result", []any{})
 
 		ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
 		return nil
@@ -1512,7 +1861,7 @@ func (this *XtCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) 
 	}()
 	return ch
 }
-func (this *XtCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{} {
+func (this *XtCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	// spot
 	//
@@ -1542,38 +1891,41 @@ func (this *XtCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) i
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var volumeIndex interface{} = Ternary(IsTrue((GetValue(market, "inverse"))), "v", "a")
-	return []interface{}{this.SafeInteger(ohlcv, "t"), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber2(ohlcv, "q", volumeIndex)}
+	var isInverse any = this.SafeBool(market, "inverse")
+	var volumeIndex any = Ternary(IsTrue((isInverse)), "v", "a")
+	return []any{this.SafeInteger(ohlcv, "t"), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber2(ohlcv, "q", volumeIndex)}
 }
 
 /**
  * @method
  * @name xt#fetchOrderBook
- * @see https://doc.xt.com/#market3depth
- * @see https://doc.xt.com/#futures_quotesgetDepth
+ * @see https://doc.xt.com/docs/spot/Market/GetDepthData
+ * @see https://doc.xt.com/docs/futures/MarketData/get-depth-data-of-trading-pairs
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified market symbol to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
- * @param {object} params extra parameters specific to the xt api endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+ * @param {object} params extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
  */
-func (this *XtCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		limit := GetArg(optionalArgs, 0, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes15388 := (<-this.LoadMarkets())
-		PanicOnError(retRes15388)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes156512 := (<-this.LoadMarkets())
+			PanicOnError(retRes156512)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(GetValue(market, "spot")) {
 			if IsTrue(!IsEqual(limit, nil)) {
 				AddElementToObject(request, "limit", mathMin(limit, 500))
@@ -1643,16 +1995,16 @@ func (this *XtCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface
 		//         }
 		//     }
 		//
-		var orderBook interface{} = this.SafeValue(response, "result", map[string]interface{}{})
-		var timestamp interface{} = this.SafeInteger2(orderBook, "timestamp", "t")
+		var orderBook any = this.SafeValue(response, "result", map[string]any{})
+		var timestamp any = this.SafeInteger2(orderBook, "timestamp", "t")
 		if IsTrue(GetValue(market, "spot")) {
-			var ob interface{} = this.ParseOrderBook(orderBook, symbol, timestamp)
+			var ob any = this.ParseOrderBook(orderBook, symbol, timestamp)
 			AddElementToObject(ob, "nonce", this.SafeInteger(orderBook, "lastUpdateId"))
 
 			ch <- ob
 			return nil
 		}
-		var swapOb interface{} = this.ParseOrderBook(orderBook, symbol, timestamp, "b", "a")
+		var swapOb any = this.ParseOrderBook(orderBook, symbol, timestamp, "b", "a")
 		AddElementToObject(swapOb, "nonce", this.SafeInteger2(orderBook, "u", "lastUpdateId"))
 
 		ch <- swapOb
@@ -1666,27 +2018,29 @@ func (this *XtCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface
  * @method
  * @name xt#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://doc.xt.com/#market10ticker24h
- * @see https://doc.xt.com/#futures_quotesgetAggTicker
+ * @see https://doc.xt.com/docs/spot/Market/Get24hStatisticsTicker
+ * @see https://doc.xt.com/docs/futures/MarketData/get-aggregated-market-information-for-specific-trading-pair
  * @param {string} symbol unified market symbol to fetch the ticker for
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
-func (this *XtCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16308 := (<-this.LoadMarkets())
-		PanicOnError(retRes16308)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes165912 := (<-this.LoadMarkets())
+			PanicOnError(retRes165912)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(GetValue(market, "linear")) {
 
 			response = (<-this.PublicLinearGetFutureMarketV1PublicQAggTicker(this.Extend(request, params)))
@@ -1746,7 +2100,7 @@ func (this *XtCore) FetchTicker(symbol interface{}, optionalArgs ...interface{})
 		//         }
 		//     }
 		//
-		var ticker interface{} = this.SafeValue(response, "result")
+		var ticker any = this.SafeValue(response, "result")
 		if IsTrue(GetValue(market, "spot")) {
 
 			ch <- this.ParseTicker(GetValue(ticker, 0), market)
@@ -1764,33 +2118,35 @@ func (this *XtCore) FetchTicker(symbol interface{}, optionalArgs ...interface{})
  * @method
  * @name xt#fetchTickers
  * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
- * @see https://doc.xt.com/#market10ticker24h
- * @see https://doc.xt.com/#futures_quotesgetAggTickers
+ * @see https://doc.xt.com/docs/spot/Market/Get24hStatisticsTicker
+ * @see https://doc.xt.com/docs/futures/MarketData/get_aggregated_market_information_for_all_trading_pairs
  * @param {string} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
-func (this *XtCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchTickers(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17078 := (<-this.LoadMarkets())
-		PanicOnError(retRes17078)
-		var market interface{} = nil
+			retRes173812 := (<-this.LoadMarkets())
+			PanicOnError(retRes173812)
+		}
+		var market any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
 			symbols = this.MarketSymbols(symbols)
 			market = this.Market(GetValue(symbols, 0))
 		}
-		var request interface{} = map[string]interface{}{}
-		var typeVar interface{} = nil
-		var subType interface{} = nil
-		var response interface{} = nil
+		var request any = map[string]any{}
+		var typeVar any = nil
+		var subType any = nil
+		var response any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
@@ -1858,12 +2214,14 @@ func (this *XtCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{}
 		//         ]
 		//     }
 		//
-		var tickers interface{} = this.SafeValue(response, "result", []interface{}{})
-		var result interface{} = map[string]interface{}{}
+		var tickers any = this.SafeValue(response, "result", []any{})
+		var result any = map[string]any{}
 		for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
-			var ticker interface{} = this.ParseTicker(GetValue(tickers, i), market)
-			var symbol interface{} = GetValue(ticker, "symbol")
-			AddElementToObject(result, symbol, ticker)
+			var ticker any = this.ParseTicker(GetValue(tickers, i), market)
+			var symbol any = GetValue(ticker, "symbol")
+			if IsTrue(!IsEqual(symbol, nil)) {
+				AddElementToObject(result, symbol, ticker)
+			}
 		}
 
 		ch <- this.FilterByArray(result, "symbol", symbols)
@@ -1877,39 +2235,59 @@ func (this *XtCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{}
  * @method
  * @name xt#fetchBidsAsks
  * @description fetches the bid and ask price and volume for multiple markets
- * @see https://doc.xt.com/#market9tickerBook
- * @param {string} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @see https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
+ * @see https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
-func (this *XtCore) FetchBidsAsks(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchBidsAsks(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17948 := (<-this.LoadMarkets())
-		PanicOnError(retRes17948)
+			retRes183012 := (<-this.LoadMarkets())
+			PanicOnError(retRes183012)
+		}
 		symbols = this.MarketSymbols(symbols)
-		var request interface{} = map[string]interface{}{}
-		var market interface{} = nil
+		var request any = map[string]any{}
+		var market any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
 			market = this.Market(GetValue(symbols, 0))
 		}
-		var subType interface{} = nil
+		var typeVar any = nil
+		var subType any = nil
+		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
+		typeVar = GetValue(typeVarparamsVariable, 0)
+		params = GetValue(typeVarparamsVariable, 1)
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchBidsAsks", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		if IsTrue(!IsEqual(subType, nil)) {
-			panic(NotSupported(Add(this.Id, " fetchBidsAsks() is not available for swap and future markets, only spot markets are supported")))
-		}
+		var isInverse any = (IsEqual(subType, "inverse"))
+		var isLinear any = IsTrue(IsTrue((IsEqual(subType, "linear"))) || IsTrue((IsEqual(typeVar, "swap")))) || IsTrue((IsEqual(typeVar, "future")))
+		var isContract any = IsTrue(isInverse) || IsTrue(isLinear)
+		var response any = nil
+		if IsTrue(isInverse) {
 
-		response := (<-this.PublicSpotGetTickerBook(this.Extend(request, params)))
-		PanicOnError(response)
+			response = (<-this.PublicInverseGetFutureMarketV1PublicQTickerBooks(this.Extend(request, params)))
+			PanicOnError(response)
+		} else if IsTrue(isLinear) {
+
+			response = (<-this.PublicLinearGetFutureMarketV1PublicQTickerBooks(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+
+			response = (<-this.PublicSpotGetTickerBook(this.Extend(request, params)))
+			PanicOnError(response)
+		}
+		//
+		// spot
 		//
 		//     {
 		//         "rc": 0,
@@ -1927,15 +2305,47 @@ func (this *XtCore) FetchBidsAsks(optionalArgs ...interface{}) <-chan interface{
 		//         ]
 		//     }
 		//
-		var tickers interface{} = this.SafeValue(response, "result", []interface{}{})
+		// swap and future
+		//
+		//     {
+		//         "returnCode": 0,
+		//         "msgInfo": "success",
+		//         "error": null,
+		//         "result": [
+		//             {
+		//                 "s": "btc_usdt",
+		//                 "t": 1785928174370,
+		//                 "ap": "64085.5",
+		//                 "aq": "101843",
+		//                 "bp": "64085.3",
+		//                 "bq": "121042"
+		//             },
+		//         ]
+		//     }
+		//
+		var tickers any = this.SafeList(response, "result", []any{})
+		var result any = map[string]any{}
+		for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
+			var rawTicker any = GetValue(tickers, i)
+			// the spot and contract payloads share the same field names, so
+			// the market type cannot be inferred from the entry itself
+			var marketId any = this.SafeString(rawTicker, "s")
+			var marketType any = Ternary(IsTrue(isContract), "contract", "spot")
+			var marketInner any = this.SafeMarket(marketId, market, "_", marketType)
+			var ticker any = this.ParseTicker(rawTicker, marketInner)
+			var symbol any = GetValue(ticker, "symbol")
+			if IsTrue(!IsEqual(symbol, nil)) {
+				AddElementToObject(result, symbol, ticker)
+			}
+		}
 
-		ch <- this.ParseTickers(tickers, symbols)
+		ch <- this.FilterByArray(result, "symbol", symbols)
 		return nil
 
 	}()
 	return ch
 }
-func (this *XtCore) ParseTicker(ticker interface{}, optionalArgs ...interface{}) interface{} {
+func (this *XtCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	// spot: fetchTicker, fetchTickers
 	//
@@ -1983,20 +2393,20 @@ func (this *XtCore) ParseTicker(ticker interface{}, optionalArgs ...interface{})
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(ticker, "s")
-	var marketType interface{} = Ternary(IsTrue((!IsEqual(market, nil))), GetValue(market, "type"), nil)
-	var hasSpotKeys interface{} = IsTrue((InOp(ticker, "cv"))) || IsTrue((InOp(ticker, "aq")))
+	var marketId any = this.SafeString(ticker, "s")
+	var marketType any = Ternary(IsTrue((!IsEqual(market, nil))), GetValue(market, "type"), nil)
+	var hasSpotKeys any = IsTrue((InOp(ticker, "cv"))) || IsTrue((InOp(ticker, "aq")))
 	if IsTrue(IsEqual(marketType, nil)) {
 		marketType = Ternary(IsTrue(hasSpotKeys), "spot", "contract")
 	}
 	market = this.SafeMarket(marketId, market, "_", marketType)
-	var symbol interface{} = GetValue(market, "symbol")
-	var timestamp interface{} = this.SafeInteger(ticker, "t")
-	var percentage interface{} = this.SafeString2(ticker, "cr", "r")
+	var symbol any = GetValue(market, "symbol")
+	var timestamp any = this.SafeInteger(ticker, "t")
+	var percentage any = this.SafeString2(ticker, "cr", "r")
 	if IsTrue(!IsEqual(percentage, nil)) {
 		percentage = Precise.StringMul(percentage, "100")
 	}
-	return this.SafeTicker(map[string]interface{}{
+	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -2014,7 +2424,7 @@ func (this *XtCore) ParseTicker(ticker interface{}, optionalArgs ...interface{})
 		"change":        this.SafeNumber(ticker, "cv"),
 		"percentage":    this.ParseNumber(percentage),
 		"average":       nil,
-		"baseVolume":    this.SafeNumber(ticker, "a"),
+		"baseVolume":    this.SafeNumber2(ticker, "a", "q"),
 		"quoteVolume":   this.SafeNumber(ticker, "v"),
 		"info":          ticker,
 	}, market)
@@ -2024,43 +2434,45 @@ func (this *XtCore) ParseTicker(ticker interface{}, optionalArgs ...interface{})
  * @method
  * @name xt#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://doc.xt.com/#market5tradeRecent
- * @see https://doc.xt.com/#futures_quotesgetDeal
+ * @see https://doc.xt.com/docs/spot/Market/QueryRecentTransactions
+ * @see https://doc.xt.com/docs/futures/MarketData/get-latest-transaction-information-of-trading-pairs
  * @param {string} symbol unified market symbol to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
  */
-func (this *XtCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		since := GetArg(optionalArgs, 0, nil)
 		_ = since
 		limit := GetArg(optionalArgs, 1, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]interface{}{})
+		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes19248 := (<-this.LoadMarkets())
-		PanicOnError(retRes19248)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes200512 := (<-this.LoadMarkets())
+			PanicOnError(retRes200512)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(GetValue(market, "spot")) {
 			if IsTrue(!IsEqual(limit, nil)) {
-				AddElementToObject(request, "limit", limit)
+				AddElementToObject(request, "limit", mathMin(limit, 1000))
 			}
 
 			response = (<-this.PublicSpotGetTradeRecent(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
 			if IsTrue(!IsEqual(limit, nil)) {
-				AddElementToObject(request, "num", limit)
+				AddElementToObject(request, "num", mathMin(limit, 1000))
 			}
 			if IsTrue(GetValue(market, "linear")) {
 
@@ -2108,7 +2520,7 @@ func (this *XtCore) FetchTrades(symbol interface{}, optionalArgs ...interface{})
 		//         ]
 		//     }
 		//
-		var trades interface{} = this.SafeValue(response, "result", []interface{}{})
+		var trades any = this.SafeValue(response, "result", []any{})
 
 		ch <- this.ParseTrades(trades, market)
 		return nil
@@ -2121,17 +2533,17 @@ func (this *XtCore) FetchTrades(symbol interface{}, optionalArgs ...interface{})
  * @method
  * @name xt#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://doc.xt.com/#tradetradeGet
- * @see https://doc.xt.com/#futures_ordergetTrades
+ * @see https://doc.xt.com/docs/spot/Trade/QueryTrade
+ * @see https://doc.xt.com/docs/futures/Order/see-transaction-details
  * @param {string} [symbol] unified market symbol to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
  */
-func (this *XtCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchMyTrades(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2140,13 +2552,15 @@ func (this *XtCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes19988 := (<-this.LoadMarkets())
-		PanicOnError(retRes19988)
-		var request interface{} = map[string]interface{}{}
-		var market interface{} = nil
+			retRes208112 := (<-this.LoadMarkets())
+			PanicOnError(retRes208112)
+		}
+		var request any = map[string]any{}
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -2154,9 +2568,9 @@ func (this *XtCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "startTime", since)
 		}
-		var typeVar interface{} = nil
-		var subType interface{} = nil
-		var response interface{} = nil
+		var typeVar any = nil
+		var subType any = nil
+		var response any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
@@ -2177,11 +2591,11 @@ func (this *XtCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{
 				PanicOnError(response)
 			}
 		} else {
-			var marginMode interface{} = nil
+			var marginMode any = nil
 			marginModeparamsVariable := this.HandleMarginModeAndParams("fetchMyTrades", params)
 			marginMode = GetValue(marginModeparamsVariable, 0)
 			params = GetValue(marginModeparamsVariable, 1)
-			var marginOrSpotRequest interface{} = Ternary(IsTrue((!IsEqual(marginMode, nil))), "LEVER", "SPOT")
+			var marginOrSpotRequest any = Ternary(IsTrue((!IsEqual(marginMode, nil))), "LEVER", "SPOT")
 			AddElementToObject(request, "bizType", marginOrSpotRequest)
 			if IsTrue(!IsEqual(limit, nil)) {
 				AddElementToObject(request, "limit", limit)
@@ -2248,8 +2662,8 @@ func (this *XtCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeValue(response, "result", map[string]interface{}{})
-		var trades interface{} = this.SafeValue(data, "items", []interface{}{})
+		var data any = this.SafeValue(response, "result", map[string]any{})
+		var trades any = this.SafeValue(data, "items", []any{})
 
 		ch <- this.ParseTrades(trades, market, since, limit)
 		return nil
@@ -2257,7 +2671,7 @@ func (this *XtCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{
 	}()
 	return ch
 }
-func (this *XtCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{} {
+func (this *XtCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	// spot: fetchTrades
 	//
@@ -2367,42 +2781,42 @@ func (this *XtCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) i
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString2(trade, "s", "symbol")
-	var marketType interface{} = Ternary(IsTrue((!IsEqual(market, nil))), GetValue(market, "type"), nil)
-	var hasSpotKeys interface{} = IsTrue(IsTrue((InOp(trade, "b"))) || IsTrue((InOp(trade, "bizType")))) || IsTrue((InOp(trade, "oi")))
+	var marketId any = this.SafeString2(trade, "s", "symbol")
+	var marketType any = Ternary(IsTrue((!IsEqual(market, nil))), GetValue(market, "type"), nil)
+	var hasSpotKeys any = IsTrue(IsTrue((InOp(trade, "b"))) || IsTrue((InOp(trade, "bizType")))) || IsTrue((InOp(trade, "oi")))
 	if IsTrue(IsEqual(marketType, nil)) {
 		marketType = Ternary(IsTrue(hasSpotKeys), "spot", "contract")
 	}
 	market = this.SafeMarket(marketId, market, "_", marketType)
-	var side interface{} = nil
-	var takerOrMaker interface{} = nil
-	var isBuyerMaker interface{} = this.SafeBool(trade, "b")
+	var side any = nil
+	var takerOrMaker any = nil
+	var isBuyerMaker any = this.SafeBool(trade, "b")
 	if IsTrue(!IsEqual(isBuyerMaker, nil)) {
 		side = Ternary(IsTrue(isBuyerMaker), "sell", "buy")
 		takerOrMaker = "taker" // public trades always taker
 	} else {
-		var takerMaker interface{} = this.SafeStringLower(trade, "takerMaker")
+		var takerMaker any = this.SafeStringLower(trade, "takerMaker")
 		if IsTrue(!IsEqual(takerMaker, nil)) {
 			takerOrMaker = takerMaker
 		} else {
-			var isMaker interface{} = this.SafeBool(trade, "isMaker")
+			var isMaker any = this.SafeBool(trade, "isMaker")
 			if IsTrue(!IsEqual(isMaker, nil)) {
 				takerOrMaker = Ternary(IsTrue(isMaker), "maker", "taker")
 			}
 		}
-		var orderSide interface{} = this.SafeStringLower(trade, "orderSide")
+		var orderSide any = this.SafeStringLower(trade, "orderSide")
 		if IsTrue(!IsEqual(orderSide, nil)) {
 			side = orderSide
 		} else {
-			var bidOrAsk interface{} = this.SafeString(trade, "m")
+			var bidOrAsk any = this.SafeString(trade, "m")
 			if IsTrue(!IsEqual(bidOrAsk, nil)) {
 				side = Ternary(IsTrue((IsEqual(bidOrAsk, "BID"))), "buy", "sell")
 			}
 		}
 	}
-	var timestamp interface{} = this.SafeIntegerN(trade, []interface{}{"t", "time", "timestamp"})
-	var quantity interface{} = this.SafeString2(trade, "q", "quantity")
-	var amount interface{} = nil
+	var timestamp any = this.SafeIntegerN(trade, []any{"t", "time", "timestamp"})
+	var quantity any = this.SafeString2(trade, "q", "quantity")
+	var amount any = nil
 	if IsTrue(IsEqual(marketType, "spot")) {
 		amount = quantity
 	} else {
@@ -2412,9 +2826,9 @@ func (this *XtCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) i
 			amount = Precise.StringMul(quantity, this.NumberToString(GetValue(market, "contractSize")))
 		}
 	}
-	return this.SafeTrade(map[string]interface{}{
+	return this.SafeTrade(map[string]any{
 		"info":         trade,
-		"id":           this.SafeStringN(trade, []interface{}{"i", "tradeId", "execId"}),
+		"id":           this.SafeStringN(trade, []any{"i", "tradeId", "execId"}),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       GetValue(market, "symbol"),
@@ -2425,7 +2839,7 @@ func (this *XtCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) i
 		"price":        this.SafeString2(trade, "p", "price"),
 		"amount":       amount,
 		"cost":         nil,
-		"fee": map[string]interface{}{
+		"fee": map[string]any{
 			"currency": this.SafeCurrencyCode(this.SafeString2(trade, "feeCurrency", "feeCoin")),
 			"cost":     this.SafeString(trade, "fee"),
 		},
@@ -2436,31 +2850,33 @@ func (this *XtCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) i
  * @method
  * @name xt#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://doc.xt.com/#balancebalancesGet
- * @see https://doc.xt.com/#futures_usergetBalances
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @see https://doc.xt.com/docs/spot/Balance/GetBalances
+ * @see https://doc.xt.com/docs/futures/User/GetUserFunds
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
  */
-func (this *XtCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchBalance(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes22788 := (<-this.LoadMarkets())
-		PanicOnError(retRes22788)
-		var typeVar interface{} = nil
-		var subType interface{} = nil
-		var response interface{} = nil
+			retRes236312 := (<-this.LoadMarkets())
+			PanicOnError(retRes236312)
+		}
+		var typeVar any = nil
+		var subType any = nil
+		var response any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchBalance", nil, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var isContractWallet interface{} = (IsTrue((IsEqual(typeVar, "swap"))) || IsTrue((IsEqual(typeVar, "future"))))
+		var isContractWallet any = (IsTrue((IsEqual(typeVar, "swap"))) || IsTrue((IsEqual(typeVar, "future"))))
 		if IsTrue(IsEqual(subType, "inverse")) {
 
 			response = (<-this.PrivateInverseGetFutureUserV1BalanceList(params))
@@ -2518,12 +2934,12 @@ func (this *XtCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{}
 		//         ]
 		//     }
 		//
-		var balances interface{} = nil
+		var balances any = nil
 		if IsTrue(IsTrue((!IsEqual(subType, nil))) || IsTrue(isContractWallet)) {
-			balances = this.SafeValue(response, "result", []interface{}{})
+			balances = this.SafeValue(response, "result", []any{})
 		} else {
-			var data interface{} = this.SafeValue(response, "result", map[string]interface{}{})
-			balances = this.SafeValue(data, "assets", []interface{}{})
+			var data any = this.SafeValue(response, "result", map[string]any{})
+			balances = this.SafeValue(data, "assets", []any{})
 		}
 
 		ch <- this.ParseBalance(balances)
@@ -2532,7 +2948,7 @@ func (this *XtCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{}
 	}()
 	return ch
 }
-func (this *XtCore) ParseBalance(response interface{}) interface{} {
+func (this *XtCore) ParseBalance(response any) any {
 	//
 	// spot
 	//
@@ -2559,25 +2975,27 @@ func (this *XtCore) ParseBalance(response interface{}) interface{} {
 	//         "coupon":"0"
 	//     }
 	//
-	var result interface{} = map[string]interface{}{
+	var result any = map[string]any{
 		"info": response,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-		var balance interface{} = GetValue(response, i)
-		var currencyId interface{} = this.SafeString2(balance, "currency", "coin")
-		var code interface{} = this.SafeCurrencyCode(currencyId)
-		var account interface{} = this.Account()
-		var free interface{} = this.SafeString2(balance, "availableAmount", "availableBalance")
-		var used interface{} = this.SafeString(balance, "frozenAmount")
-		var total interface{} = this.SafeString2(balance, "totalAmount", "walletBalance")
+		var balance any = GetValue(response, i)
+		var currencyId any = this.SafeString2(balance, "currency", "coin")
+		var code any = this.SafeCurrencyCode(currencyId)
+		var account any = this.Account()
+		var free any = this.SafeString2(balance, "availableAmount", "availableBalance")
+		var used any = this.SafeString(balance, "frozenAmount")
+		var total any = this.SafeString2(balance, "totalAmount", "walletBalance")
 		if IsTrue(IsEqual(used, nil)) {
-			var crossedAndIsolatedMargin interface{} = Precise.StringAdd(this.SafeString(balance, "crossedMargin"), this.SafeString(balance, "isolatedMargin"))
+			var crossedAndIsolatedMargin any = Precise.StringAdd(this.SafeString(balance, "crossedMargin"), this.SafeString(balance, "isolatedMargin"))
 			used = Precise.StringAdd(this.SafeString(balance, "openOrderMarginFrozen"), crossedAndIsolatedMargin)
 		}
 		AddElementToObject(account, "free", free)
 		AddElementToObject(account, "used", used)
 		AddElementToObject(account, "total", total)
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -2585,31 +3003,33 @@ func (this *XtCore) ParseBalance(response interface{}) interface{} {
 /**
  * @method
  * @name xt#createMarketBuyOrderWithCost
- * @see https://doc.xt.com/#orderorderPost
+ * @see https://doc.xt.com/docs/spot/Order/SubmitOrder
  * @description create a market buy order by providing the symbol and cost
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *XtCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes24058 := (<-this.LoadMarkets())
-		PanicOnError(retRes24058)
-		var market interface{} = this.Market(symbol)
+			retRes249412 := (<-this.LoadMarkets())
+			PanicOnError(retRes249412)
+		}
+		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
 		}
 
-		retRes241015 := (<-this.CreateOrder(symbol, "market", "buy", cost, 1, params))
-		PanicOnError(retRes241015)
-		ch <- retRes241015
+		retRes250015 := (<-this.CreateOrder(symbol, "market", "buy", cost, 1, params))
+		PanicOnError(retRes250015)
+		ch <- retRes250015
 		return nil
 
 	}()
@@ -2620,16 +3040,16 @@ func (this *XtCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost interf
  * @method
  * @name xt#createOrder
  * @description create a trade order
- * @see https://doc.xt.com/#orderorderPost
- * @see https://doc.xt.com/#futures_ordercreate
- * @see https://doc.xt.com/#futures_entrustcreatePlan
- * @see https://doc.xt.com/#futures_entrustcreateProfit
+ * @see https://doc.xt.com/docs/spot/Order/SubmitOrder
+ * @see https://doc.xt.com/docs/futures/Order/Create%20Orders
+ * @see https://doc.xt.com/docs/futures/Entrust/CreateTriggerOrders
+ * @see https://doc.xt.com/docs/futures/Entrust/CreateStopLimit
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much you want to trade in units of the base currency
  * @param {float} [price] the price to fulfill the order, in units of the quote currency, can be ignored in market orders
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'GTX'
  * @param {string} [params.entrustType] 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
  * @param {string} [params.triggerPriceType] 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
@@ -2639,75 +3059,79 @@ func (this *XtCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost interf
  * @param {float} [params.takeProfit] price to set a take-profit on an open position
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
-func (this *XtCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes24378 := (<-this.LoadMarkets())
-		PanicOnError(retRes24378)
-		var market interface{} = this.Market(symbol)
+			retRes252812 := (<-this.LoadMarkets())
+			PanicOnError(retRes252812)
+		}
+		var market any = this.Market(symbol)
 		symbol = GetValue(market, "symbol")
 		if IsTrue(GetValue(market, "spot")) {
 
-			retRes244119 := (<-this.CreateSpotOrder(symbol, typeVar, side, amount, price, params))
-			PanicOnError(retRes244119)
-			ch <- retRes244119
+			retRes253319 := (<-this.CreateSpotOrder(symbol, typeVar, side, amount, price, params))
+			PanicOnError(retRes253319)
+			ch <- retRes253319
 			return nil
 		} else {
 
-			retRes244319 := (<-this.CreateContractOrder(symbol, typeVar, side, amount, price, params))
-			PanicOnError(retRes244319)
-			ch <- retRes244319
+			retRes253519 := (<-this.CreateContractOrder(symbol, typeVar, side, amount, price, params))
+			PanicOnError(retRes253519)
+			ch <- retRes253519
 			return nil
 		}
 
 	}()
 	return ch
 }
-func (this *XtCore) CreateSpotOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) CreateSpotOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes24488 := (<-this.LoadMarkets())
-		PanicOnError(retRes24488)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes254112 := (<-this.LoadMarkets())
+			PanicOnError(retRes254112)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 			"side":   ToUpper(side),
 			"type":   ToUpper(typeVar),
 		}
-		var timeInForce interface{} = nil
-		var marginMode interface{} = nil
+		var timeInForce any = nil
+		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("createOrder", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
 		params = GetValue(marginModeparamsVariable, 1)
-		var marginOrSpotRequest interface{} = Ternary(IsTrue((!IsEqual(marginMode, nil))), "LEVER", "SPOT")
+		var marginOrSpotRequest any = Ternary(IsTrue((!IsEqual(marginMode, nil))), "LEVER", "SPOT")
 		AddElementToObject(request, "bizType", marginOrSpotRequest)
 		if IsTrue(IsEqual(typeVar, "market")) {
 			timeInForce = this.SafeStringUpper(params, "timeInForce", "FOK")
 			if IsTrue(IsEqual(side, "buy")) {
-				var cost interface{} = this.SafeString(params, "cost")
+				var cost any = this.SafeString(params, "cost")
 				params = this.Omit(params, "cost")
-				var createMarketBuyOrderRequiresPrice interface{} = this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", true)
+				var createMarketBuyOrderRequiresPrice any = this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", true)
 				if IsTrue(createMarketBuyOrderRequiresPrice) {
 					if IsTrue(IsTrue(IsEqual(price, nil)) && IsTrue((IsEqual(cost, nil)))) {
 						panic(InvalidOrder(Add(this.Id, " createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter")))
 					} else {
-						var amountString interface{} = this.NumberToString(amount)
-						var priceString interface{} = this.NumberToString(price)
-						var costCalculated interface{} = nil
+						var amountString any = this.NumberToString(amount)
+						var priceString any = this.NumberToString(price)
+						var costCalculated any = nil
 						if IsTrue(!IsEqual(price, nil)) {
 							costCalculated = Precise.StringMul(amountString, priceString)
 						} else {
@@ -2716,7 +3140,7 @@ func (this *XtCore) CreateSpotOrder(symbol interface{}, typeVar interface{}, sid
 						AddElementToObject(request, "quoteQty", this.CostToPrecision(symbol, costCalculated))
 					}
 				} else {
-					var amountCost interface{} = Ternary(IsTrue((!IsEqual(cost, nil))), cost, amount)
+					var amountCost any = Ternary(IsTrue((!IsEqual(cost, nil))), cost, amount)
 					AddElementToObject(request, "quoteQty", this.CostToPrecision(symbol, amountCost))
 				}
 			}
@@ -2741,7 +3165,7 @@ func (this *XtCore) CreateSpotOrder(symbol interface{}, typeVar interface{}, sid
 		//         }
 		//     }
 		//
-		var order interface{} = this.SafeValue(response, "result", map[string]interface{}{})
+		var order any = this.SafeValue(response, "result", map[string]any{})
 
 		ch <- this.ParseOrder(order, market)
 		return nil
@@ -2749,42 +3173,44 @@ func (this *XtCore) CreateSpotOrder(symbol interface{}, typeVar interface{}, sid
 	}()
 	return ch
 }
-func (this *XtCore) CreateContractOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) CreateContractOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes25098 := (<-this.LoadMarkets())
-		PanicOnError(retRes25098)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes260412 := (<-this.LoadMarkets())
+			PanicOnError(retRes260412)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol":  GetValue(market, "id"),
 			"origQty": this.AmountToPrecision(symbol, amount),
 		}
-		var timeInForce interface{} = this.SafeStringUpper(params, "timeInForce")
+		var timeInForce any = this.SafeStringUpper(params, "timeInForce")
 		if IsTrue(!IsEqual(timeInForce, nil)) {
 			AddElementToObject(request, "timeInForce", timeInForce)
 		}
-		var reduceOnly interface{} = this.SafeValue(params, "reduceOnly", false)
+		var reduceOnly any = this.SafeValue(params, "reduceOnly", false)
 		if IsTrue(IsEqual(side, "buy")) {
-			var requestType interface{} = Ternary(IsTrue((reduceOnly)), "SHORT", "LONG")
+			var requestType any = Ternary(IsTrue((reduceOnly)), "SHORT", "LONG")
 			AddElementToObject(request, "positionSide", requestType)
 		} else {
-			var requestType interface{} = Ternary(IsTrue((reduceOnly)), "LONG", "SHORT")
+			var requestType any = Ternary(IsTrue((reduceOnly)), "LONG", "SHORT")
 			AddElementToObject(request, "positionSide", requestType)
 		}
-		var response interface{} = nil
-		var triggerPrice interface{} = this.SafeNumber2(params, "triggerPrice", "stopPrice")
-		var stopLoss interface{} = this.SafeNumber2(params, "stopLoss", "triggerStopPrice")
-		var takeProfit interface{} = this.SafeNumber2(params, "takeProfit", "triggerProfitPrice")
-		var isTrigger interface{} = (!IsEqual(triggerPrice, nil))
-		var isStopLoss interface{} = (!IsEqual(stopLoss, nil))
-		var isTakeProfit interface{} = (!IsEqual(takeProfit, nil))
+		var response any = map[string]any{}
+		var triggerPrice any = this.SafeNumber2(params, "triggerPrice", "stopPrice")
+		var stopLoss any = this.SafeNumber2(params, "stopLoss", "triggerStopPrice")
+		var takeProfit any = this.SafeNumber2(params, "takeProfit", "triggerProfitPrice")
+		var isTrigger any = (!IsEqual(triggerPrice, nil))
+		var isStopLoss any = (!IsEqual(stopLoss, nil))
+		var isTakeProfit any = (!IsEqual(takeProfit, nil))
 		if IsTrue(!IsEqual(price, nil)) {
 			if IsTrue(!IsTrue((isStopLoss)) && !IsTrue((isTakeProfit))) {
 				AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
@@ -2795,7 +3221,7 @@ func (this *XtCore) CreateContractOrder(symbol interface{}, typeVar interface{},
 			AddElementToObject(request, "triggerPriceType", this.SafeString(params, "triggerPriceType", "LATEST_PRICE"))
 			AddElementToObject(request, "orderSide", ToUpper(side))
 			AddElementToObject(request, "stopPrice", this.PriceToPrecision(symbol, triggerPrice))
-			var entrustType interface{} = Ternary(IsTrue((IsEqual(typeVar, "market"))), "STOP_MARKET", "STOP")
+			var entrustType any = Ternary(IsTrue((IsEqual(typeVar, "market"))), "STOP_MARKET", "STOP")
 			AddElementToObject(request, "entrustType", entrustType)
 			params = this.Omit(params, "triggerPrice")
 			if IsTrue(GetValue(market, "linear")) {
@@ -2813,7 +3239,7 @@ func (this *XtCore) CreateContractOrder(symbol interface{}, typeVar interface{},
 			} else {
 				AddElementToObject(request, "triggerProfitPrice", this.PriceToPrecision(symbol, takeProfit))
 			}
-			params = this.Omit(params, []interface{}{"stopLoss", "takeProfit"})
+			params = this.Omit(params, []any{"stopLoss", "takeProfit"})
 			if IsTrue(GetValue(market, "linear")) {
 
 				response = (<-this.PrivateLinearPostFutureTradeV1EntrustCreateProfit(this.Extend(request, params)))
@@ -2856,45 +3282,47 @@ func (this *XtCore) CreateContractOrder(symbol interface{}, typeVar interface{},
  * @method
  * @name xt#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://doc.xt.com/#orderorderGet
- * @see https://doc.xt.com/#futures_ordergetById
- * @see https://doc.xt.com/#futures_entrustgetPlanById
- * @see https://doc.xt.com/#futures_entrustgetProfitById
+ * @see https://doc.xt.com/docs/spot/Order/GetSingleOrder
+ * @see https://doc.xt.com/docs/futures/Order/see-orders-by-id
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersByEntrustId
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimitByProfitId
  * @param {string} id order id
  * @param {string} [symbol] unified symbol of the market the order was made in
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
-func (this *XtCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes26008 := (<-this.LoadMarkets())
-		PanicOnError(retRes26008)
-		var market interface{} = nil
+			retRes269712 := (<-this.LoadMarkets())
+			PanicOnError(retRes269712)
+		}
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var request interface{} = map[string]interface{}{}
-		var typeVar interface{} = nil
-		var subType interface{} = nil
-		var response interface{} = nil
+		var request any = map[string]any{}
+		var typeVar any = nil
+		var subType any = nil
+		var response any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchOrder", market, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchOrder", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var trigger interface{} = this.SafeValue(params, "stop")
-		var stopLossTakeProfit interface{} = this.SafeValue(params, "stopLossTakeProfit")
+		var trigger any = this.SafeValue(params, "stop")
+		var stopLossTakeProfit any = this.SafeValue(params, "stopLossTakeProfit")
 		if IsTrue(trigger) {
 			AddElementToObject(request, "entrustId", id)
 		} else if IsTrue(stopLossTakeProfit) {
@@ -3054,7 +3482,7 @@ func (this *XtCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-ch
 		//         }
 		//     }
 		//
-		var order interface{} = this.SafeValue(response, "result", map[string]interface{}{})
+		var order any = this.SafeValue(response, "result", map[string]any{})
 
 		ch <- this.ParseOrder(order, market)
 		return nil
@@ -3067,19 +3495,19 @@ func (this *XtCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-ch
  * @method
  * @name xt#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://doc.xt.com/#orderhistoryOrderGet
- * @see https://doc.xt.com/#futures_ordergetHistory
- * @see https://doc.xt.com/#futures_entrustgetPlanHistory
+ * @see https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+ * @see https://doc.xt.com/docs/futures/Order/see-order-history
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersHistory
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of order structures to retrieve
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
-func (this *XtCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -3088,13 +3516,15 @@ func (this *XtCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} 
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes27778 := (<-this.LoadMarkets())
-		PanicOnError(retRes27778)
-		var request interface{} = map[string]interface{}{}
-		var market interface{} = nil
+			retRes287612 := (<-this.LoadMarkets())
+			PanicOnError(retRes287612)
+		}
+		var request any = map[string]any{}
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -3105,18 +3535,18 @@ func (this *XtCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} 
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
 		}
-		var typeVar interface{} = nil
-		var subType interface{} = nil
-		var response interface{} = nil
+		var typeVar any = nil
+		var subType any = nil
+		var response any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchOrders", market, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchOrders", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var trigger interface{} = this.SafeValue2(params, "trigger", "stop")
+		var trigger any = this.SafeValue2(params, "trigger", "stop")
 		if IsTrue(trigger) {
-			params = this.Omit(params, []interface{}{"trigger", "stop"})
+			params = this.Omit(params, []any{"trigger", "stop"})
 			if IsTrue(IsEqual(subType, "inverse")) {
 
 				response = (<-this.PrivateInverseGetFutureTradeV1EntrustPlanListHistory(this.Extend(request, params)))
@@ -3135,11 +3565,11 @@ func (this *XtCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} 
 			response = (<-this.PrivateLinearGetFutureTradeV1OrderListHistory(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
-			var marginMode interface{} = nil
+			var marginMode any = nil
 			marginModeparamsVariable := this.HandleMarginModeAndParams("fetchOrders", params)
 			marginMode = GetValue(marginModeparamsVariable, 0)
 			params = GetValue(marginModeparamsVariable, 1)
-			var marginOrSpotRequest interface{} = Ternary(IsTrue((!IsEqual(marginMode, nil))), "LEVER", "SPOT")
+			var marginOrSpotRequest any = Ternary(IsTrue((!IsEqual(marginMode, nil))), "LEVER", "SPOT")
 			AddElementToObject(request, "bizType", marginOrSpotRequest)
 
 			response = (<-this.PrivateSpotGetHistoryOrder(this.Extend(request, params)))
@@ -3255,8 +3685,8 @@ func (this *XtCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} 
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeValue(response, "result", map[string]interface{}{})
-		var orders interface{} = this.SafeValue(data, "items", []interface{}{})
+		var data any = this.SafeValue(response, "result", map[string]any{})
+		var orders any = this.SafeValue(data, "items", []any{})
 
 		ch <- this.ParseOrders(orders, market, since, limit)
 		return nil
@@ -3264,9 +3694,9 @@ func (this *XtCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} 
 	}()
 	return ch
 }
-func (this *XtCore) FetchOrdersByStatus(status interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchOrdersByStatus(status any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -3275,13 +3705,15 @@ func (this *XtCore) FetchOrdersByStatus(status interface{}, optionalArgs ...inte
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes29308 := (<-this.LoadMarkets())
-		PanicOnError(retRes29308)
-		var request interface{} = map[string]interface{}{}
-		var market interface{} = nil
+			retRes303112 := (<-this.LoadMarkets())
+			PanicOnError(retRes303112)
+		}
+		var request any = map[string]any{}
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -3292,17 +3724,17 @@ func (this *XtCore) FetchOrdersByStatus(status interface{}, optionalArgs ...inte
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "startTime", since)
 		}
-		var typeVar interface{} = nil
-		var subType interface{} = nil
-		var response interface{} = nil
+		var typeVar any = nil
+		var subType any = nil
+		var response any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchOrdersByStatus", market, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchOrdersByStatus", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var trigger interface{} = this.SafeBool2(params, "stop", "trigger")
-		var stopLossTakeProfit interface{} = this.SafeValue(params, "stopLossTakeProfit")
+		var trigger any = this.SafeBool2(params, "stop", "trigger")
+		var stopLossTakeProfit any = this.SafeValue(params, "stopLossTakeProfit")
 		if IsTrue(IsEqual(status, "open")) {
 			if IsTrue(IsTrue(trigger) || IsTrue(stopLossTakeProfit)) {
 				AddElementToObject(request, "state", "NOT_TRIGGERED")
@@ -3333,7 +3765,7 @@ func (this *XtCore) FetchOrdersByStatus(status interface{}, optionalArgs ...inte
 			}
 		}
 		if IsTrue(trigger) {
-			params = this.Omit(params, []interface{}{"stop", "trigger"})
+			params = this.Omit(params, []any{"stop", "trigger"})
 			if IsTrue(IsEqual(subType, "inverse")) {
 
 				response = (<-this.PrivateInverseGetFutureTradeV1EntrustPlanList(this.Extend(request, params)))
@@ -3365,11 +3797,11 @@ func (this *XtCore) FetchOrdersByStatus(status interface{}, optionalArgs ...inte
 				PanicOnError(response)
 			}
 		} else {
-			var marginMode interface{} = nil
+			var marginMode any = nil
 			marginModeparamsVariable := this.HandleMarginModeAndParams("fetchOrdersByStatus", params)
 			marginMode = GetValue(marginModeparamsVariable, 0)
 			params = GetValue(marginModeparamsVariable, 1)
-			var marginOrSpotRequest interface{} = Ternary(IsTrue((!IsEqual(marginMode, nil))), "LEVER", "SPOT")
+			var marginOrSpotRequest any = Ternary(IsTrue((!IsEqual(marginMode, nil))), "LEVER", "SPOT")
 			AddElementToObject(request, "bizType", marginOrSpotRequest)
 			if IsTrue(!IsEqual(status, "open")) {
 				if IsTrue(!IsEqual(since, nil)) {
@@ -3566,12 +3998,12 @@ func (this *XtCore) FetchOrdersByStatus(status interface{}, optionalArgs ...inte
 		//         }
 		//     }
 		//
-		var orders interface{} = []interface{}{}
-		var resultDict interface{} = this.SafeDict(response, "result")
+		var orders any = []any{}
+		var resultDict any = this.SafeDict(response, "result")
 		if IsTrue(!IsEqual(resultDict, nil)) {
-			orders = this.SafeList(resultDict, "items", []interface{}{})
+			orders = this.SafeList(resultDict, "items", []any{})
 		} else {
-			orders = this.SafeList(response, "result")
+			orders = this.SafeList(response, "result", []any{})
 		}
 
 		ch <- this.ParseOrders(orders, market, since, limit)
@@ -3585,21 +4017,21 @@ func (this *XtCore) FetchOrdersByStatus(status interface{}, optionalArgs ...inte
  * @method
  * @name xt#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://doc.xt.com/#orderopenOrderGet
- * @see https://doc.xt.com/#futures_ordergetOrders
- * @see https://doc.xt.com/#futures_entrustgetPlan
- * @see https://doc.xt.com/#futures_entrustgetProfit
+ * @see https://doc.xt.com/docs/spot/Order/QueryOpenOrders
+ * @see https://doc.xt.com/docs/futures/Order/see-orders
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of open order structures to retrieve
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
-func (this *XtCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -3608,12 +4040,12 @@ func (this *XtCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interfac
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes322215 := (<-this.FetchOrdersByStatus("open", symbol, since, limit, params))
-		PanicOnError(retRes322215)
-		ch <- retRes322215
+		retRes332415 := (<-this.FetchOrdersByStatus("open", symbol, since, limit, params))
+		PanicOnError(retRes332415)
+		ch <- retRes332415
 		return nil
 
 	}()
@@ -3624,21 +4056,21 @@ func (this *XtCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interfac
  * @method
  * @name xt#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://doc.xt.com/#orderhistoryOrderGet
- * @see https://doc.xt.com/#futures_ordergetOrders
- * @see https://doc.xt.com/#futures_entrustgetPlan
- * @see https://doc.xt.com/#futures_entrustgetProfit
+ * @see https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+ * @see https://doc.xt.com/docs/futures/Order/see-orders
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of order structures to retrieve
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
-func (this *XtCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -3647,12 +4079,12 @@ func (this *XtCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interf
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes324215 := (<-this.FetchOrdersByStatus("closed", symbol, since, limit, params))
-		PanicOnError(retRes324215)
-		ch <- retRes324215
+		retRes334415 := (<-this.FetchOrdersByStatus("closed", symbol, since, limit, params))
+		PanicOnError(retRes334415)
+		ch <- retRes334415
 		return nil
 
 	}()
@@ -3663,21 +4095,21 @@ func (this *XtCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interf
  * @method
  * @name xt#fetchCanceledOrders
  * @description fetches information on multiple canceled orders made by the user
- * @see https://doc.xt.com/#orderhistoryOrderGet
- * @see https://doc.xt.com/#futures_ordergetOrders
- * @see https://doc.xt.com/#futures_entrustgetPlan
- * @see https://doc.xt.com/#futures_entrustgetProfit
+ * @see https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+ * @see https://doc.xt.com/docs/futures/Order/see-orders
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+ * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of order structures to retrieve
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
-func (this *XtCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -3686,12 +4118,12 @@ func (this *XtCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan inte
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes326215 := (<-this.FetchOrdersByStatus("canceled", symbol, since, limit, params))
-		PanicOnError(retRes326215)
-		ch <- retRes326215
+		retRes336415 := (<-this.FetchOrdersByStatus("canceled", symbol, since, limit, params))
+		PanicOnError(retRes336415)
+		ch <- retRes336415
 		return nil
 
 	}()
@@ -3702,45 +4134,47 @@ func (this *XtCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan inte
  * @method
  * @name xt#cancelOrder
  * @description cancels an open order
- * @see https://doc.xt.com/#orderorderDel
- * @see https://doc.xt.com/#futures_ordercancel
- * @see https://doc.xt.com/#futures_entrustcancelPlan
- * @see https://doc.xt.com/#futures_entrustcancelProfit
+ * @see https://doc.xt.com/docs/spot/Order/CancelOrder
+ * @see https://doc.xt.com/docs/futures/Order/cancel-orders
+ * @see https://doc.xt.com/docs/futures/Entrust/CancelTriggerOrders
+ * @see https://doc.xt.com/docs/futures/Entrust/CancelStopLimit
  * @param {string} id order id
  * @param {string} [symbol] unified symbol of the market the order was made in
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
-func (this *XtCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes32818 := (<-this.LoadMarkets())
-		PanicOnError(retRes32818)
-		var market interface{} = nil
+			retRes338412 := (<-this.LoadMarkets())
+			PanicOnError(retRes338412)
+		}
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var request interface{} = map[string]interface{}{}
-		var typeVar interface{} = nil
-		var subType interface{} = nil
-		var response interface{} = nil
+		var request any = map[string]any{}
+		var typeVar any = nil
+		var subType any = nil
+		var response any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("cancelOrder", market, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
 		subTypeparamsVariable := this.HandleSubTypeAndParams("cancelOrder", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var trigger interface{} = this.SafeValue2(params, "trigger", "stop")
-		var stopLossTakeProfit interface{} = this.SafeValue(params, "stopLossTakeProfit")
+		var trigger any = this.SafeValue2(params, "trigger", "stop")
+		var stopLossTakeProfit any = this.SafeValue(params, "stopLossTakeProfit")
 		if IsTrue(trigger) {
 			AddElementToObject(request, "entrustId", id)
 		} else if IsTrue(stopLossTakeProfit) {
@@ -3749,7 +4183,7 @@ func (this *XtCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-c
 			AddElementToObject(request, "orderId", id)
 		}
 		if IsTrue(trigger) {
-			params = this.Omit(params, []interface{}{"trigger", "stop"})
+			params = this.Omit(params, []any{"trigger", "stop"})
 			if IsTrue(IsEqual(subType, "inverse")) {
 
 				response = (<-this.PrivateInversePostFutureTradeV1EntrustCancelPlan(this.Extend(request, params)))
@@ -3804,8 +4238,8 @@ func (this *XtCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-c
 		//         "result": "208319789679471616"
 		//     }
 		//
-		var isContractResponse interface{} = (IsTrue(IsTrue((!IsEqual(subType, nil))) || IsTrue((IsEqual(typeVar, "swap")))) || IsTrue((IsEqual(typeVar, "future"))))
-		var order interface{} = Ternary(IsTrue(isContractResponse), response, this.SafeValue(response, "result", map[string]interface{}{}))
+		var isContractResponse any = (IsTrue(IsTrue((!IsEqual(subType, nil))) || IsTrue((IsEqual(typeVar, "swap")))) || IsTrue((IsEqual(typeVar, "future"))))
+		var order any = Ternary(IsTrue(isContractResponse), response, this.SafeValue(response, "result", map[string]any{}))
 
 		ch <- this.ParseOrder(order, market)
 		return nil
@@ -3818,47 +4252,49 @@ func (this *XtCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-c
  * @method
  * @name xt#cancelAllOrders
  * @description cancel all open orders in a market
- * @see https://doc.xt.com/#orderopenOrderDel
- * @see https://doc.xt.com/#futures_ordercancelBatch
- * @see https://doc.xt.com/#futures_entrustcancelPlanBatch
- * @see https://doc.xt.com/#futures_entrustcancelProfitBatch
+ * @see https://doc.xt.com/docs/spot/Order/CancelCurrentPendingOrder
+ * @see https://doc.xt.com/docs/futures/Order/cancel-all-orders
+ * @see https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders
+ * @see https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit
  * @param {string} [symbol] unified market symbol of the market to cancel orders in
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
-func (this *XtCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) CancelAllOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes33638 := (<-this.LoadMarkets())
-		PanicOnError(retRes33638)
-		var request interface{} = map[string]interface{}{}
-		var market interface{} = nil
+			retRes346812 := (<-this.LoadMarkets())
+			PanicOnError(retRes346812)
+		}
+		var request any = map[string]any{}
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
-		var typeVar interface{} = nil
-		var subType interface{} = nil
-		var response interface{} = nil
+		var typeVar any = nil
+		var subType any = nil
+		var response any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
 		subTypeparamsVariable := this.HandleSubTypeAndParams("cancelAllOrders", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var trigger interface{} = this.SafeValue2(params, "trigger", "stop")
-		var stopLossTakeProfit interface{} = this.SafeValue(params, "stopLossTakeProfit")
+		var trigger any = this.SafeValue2(params, "trigger", "stop")
+		var stopLossTakeProfit any = this.SafeValue(params, "stopLossTakeProfit")
 		if IsTrue(trigger) {
-			params = this.Omit(params, []interface{}{"trigger", "stop"})
+			params = this.Omit(params, []any{"trigger", "stop"})
 			if IsTrue(IsEqual(subType, "inverse")) {
 
 				response = (<-this.PrivateInversePostFutureTradeV1EntrustCancelAllPlan(this.Extend(request, params)))
@@ -3888,11 +4324,11 @@ func (this *XtCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interfac
 			response = (<-this.PrivateLinearPostFutureTradeV1OrderCancelAll(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
-			var marginMode interface{} = nil
+			var marginMode any = nil
 			marginModeparamsVariable := this.HandleMarginModeAndParams("cancelAllOrders", params)
 			marginMode = GetValue(marginModeparamsVariable, 0)
 			params = GetValue(marginModeparamsVariable, 1)
-			var marginOrSpotRequest interface{} = Ternary(IsTrue((!IsEqual(marginMode, nil))), "LEVER", "SPOT")
+			var marginOrSpotRequest any = Ternary(IsTrue((!IsEqual(marginMode, nil))), "LEVER", "SPOT")
 			AddElementToObject(request, "bizType", marginOrSpotRequest)
 
 			response = (<-this.PrivateSpotDeleteOpenOrder(this.Extend(request, params)))
@@ -3918,7 +4354,7 @@ func (this *XtCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interfac
 		//         "result": true
 		//     }
 		//
-		ch <- []interface{}{this.SafeOrder(response)}
+		ch <- []any{this.SafeOrder(response)}
 		return nil
 
 	}()
@@ -3929,32 +4365,34 @@ func (this *XtCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interfac
  * @method
  * @name xt#cancelOrders
  * @description cancel multiple orders
- * @see https://doc.xt.com/#orderbatchOrderDel
+ * @see https://doc.xt.com/docs/spot/Order/CancelBatchOrder
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol of the market to cancel orders in
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
-func (this *XtCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes34378 := (<-this.LoadMarkets())
-		PanicOnError(retRes34378)
-		var request interface{} = map[string]interface{}{
+			retRes354412 := (<-this.LoadMarkets())
+			PanicOnError(retRes354412)
+		}
+		var request any = map[string]any{
 			"orderIds": ids,
 		}
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var subType interface{} = nil
+		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("cancelOrders", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
@@ -3975,13 +4413,13 @@ func (this *XtCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) <
 		//         "result": null
 		//     }
 		//
-		ch <- []interface{}{this.SafeOrder(response)}
+		ch <- []any{this.SafeOrder(response)}
 		return nil
 
 	}()
 	return ch
 }
-func (this *XtCore) ParseOrder(order interface{}, optionalArgs ...interface{}) interface{} {
+func (this *XtCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	// spot: createOrder
 	//
@@ -4110,19 +4548,34 @@ func (this *XtCore) ParseOrder(order interface{}, optionalArgs ...interface{}) i
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(order, "symbol")
-	var marketType interface{} = Ternary(IsTrue(IsTrue((InOp(order, "result"))) || IsTrue((InOp(order, "positionSide")))), "contract", "spot")
+	var marketId any = this.SafeString(order, "symbol")
+	var marketType any = Ternary(IsTrue(IsTrue((InOp(order, "result"))) || IsTrue((InOp(order, "positionSide")))), "contract", "spot")
 	market = this.SafeMarket(marketId, market, nil, marketType)
-	var symbol interface{} = this.SafeSymbol(marketId, market, nil, marketType)
-	var timestamp interface{} = this.SafeInteger2(order, "time", "createdTime")
-	var quantity interface{} = this.SafeNumber(order, "origQty")
-	var amount interface{} = Ternary(IsTrue((IsEqual(marketType, "spot"))), quantity, Precise.StringMul(this.NumberToString(quantity), this.NumberToString(GetValue(market, "contractSize"))))
-	var filledQuantity interface{} = this.SafeNumber(order, "executedQty")
-	var filled interface{} = Ternary(IsTrue((IsEqual(marketType, "spot"))), filledQuantity, Precise.StringMul(this.NumberToString(filledQuantity), this.NumberToString(GetValue(market, "contractSize"))))
-	var lastUpdatedTimestamp interface{} = this.SafeInteger(order, "updatedTime")
-	return this.SafeOrder(map[string]interface{}{
+	var symbol any = this.SafeSymbol(marketId, market, nil, marketType)
+	var timestamp any = this.SafeInteger2(order, "time", "createdTime")
+	var quantity any = this.SafeNumber(order, "origQty")
+	var amount any = Ternary(IsTrue((IsEqual(marketType, "spot"))), quantity, Precise.StringMul(this.NumberToString(quantity), this.NumberToString(GetValue(market, "contractSize"))))
+	var filledQuantity any = this.SafeNumber(order, "executedQty")
+	var filled any = Ternary(IsTrue((IsEqual(marketType, "spot"))), filledQuantity, Precise.StringMul(this.NumberToString(filledQuantity), this.NumberToString(GetValue(market, "contractSize"))))
+	var lastUpdatedTimestamp any = this.SafeInteger(order, "updatedTime")
+	var side any = this.SafeStringLower2(order, "side", "orderSide")
+	if IsTrue(IsEqual(side, nil)) {
+		// the stop loss and take profit entries carry only the position
+		// side, they close the position, so a long position closes with a
+		// sell and a short position closes with a buy
+		// see https://github.com/ccxt/ccxt/issues/25288
+		var positionSide any = this.SafeString(order, "positionSide")
+		if IsTrue(!IsEqual(positionSide, nil)) {
+			if IsTrue(IsEqual(positionSide, "LONG")) {
+				side = "sell"
+			} else {
+				side = "buy"
+			}
+		}
+	}
+	return this.SafeOrder(map[string]any{
 		"info":                order,
-		"id":                  this.SafeStringN(order, []interface{}{"orderId", "result", "cancelId", "entrustId", "profitId"}),
+		"id":                  this.SafeStringN(order, []any{"orderId", "result", "cancelId", "entrustId", "profitId"}),
 		"clientOrderId":       this.SafeString2(order, "clientOrderId", "clientModifyId"),
 		"timestamp":           timestamp,
 		"datetime":            this.Iso8601(timestamp),
@@ -4132,7 +4585,7 @@ func (this *XtCore) ParseOrder(order interface{}, optionalArgs ...interface{}) i
 		"type":                this.SafeStringLower2(order, "type", "orderType"),
 		"timeInForce":         this.SafeString(order, "timeInForce"),
 		"postOnly":            nil,
-		"side":                this.SafeStringLower2(order, "side", "orderSide"),
+		"side":                side,
 		"price":               this.SafeNumber(order, "price"),
 		"triggerPrice":        this.SafeNumber(order, "stopPrice"),
 		"stopLoss":            this.SafeNumber(order, "triggerStopPrice"),
@@ -4143,15 +4596,15 @@ func (this *XtCore) ParseOrder(order interface{}, optionalArgs ...interface{}) i
 		"cost":                nil,
 		"average":             this.SafeNumber(order, "avgPrice"),
 		"status":              this.ParseOrderStatus(this.SafeString(order, "state")),
-		"fee": map[string]interface{}{
+		"fee": map[string]any{
 			"currency": this.SafeCurrencyCode(this.SafeString(order, "feeCurrency")),
 			"cost":     this.SafeNumber(order, "fee"),
 		},
 		"trades": nil,
 	}, market)
 }
-func (this *XtCore) ParseOrderStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *XtCore) ParseOrderStatus(status any) any {
+	var statuses any = map[string]any{
 		"NEW":                 "open",
 		"PARTIALLY_FILLED":    "open",
 		"FILLED":              "closed",
@@ -4173,16 +4626,16 @@ func (this *XtCore) ParseOrderStatus(status interface{}) interface{} {
  * @method
  * @name xt#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://doc.xt.com/#futures_usergetBalanceBill
+ * @see https://doc.xt.com/docs/futures/User/Get%20User's%20Account%20Flow%20Information
  * @param {string} [code] unified currency code
  * @param {int} [since] timestamp in ms of the earliest ledger entry
  * @param {int} [limit] max number of ledger entries to return
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
  */
-func (this *XtCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchLedger(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -4191,13 +4644,15 @@ func (this *XtCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} 
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes36658 := (<-this.LoadMarkets())
-		PanicOnError(retRes36658)
-		var request interface{} = map[string]interface{}{}
-		var currency interface{} = nil
+			retRes378912 := (<-this.LoadMarkets())
+			PanicOnError(retRes378912)
+		}
+		var request any = map[string]any{}
+		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
 		}
@@ -4207,9 +4662,9 @@ func (this *XtCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} 
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
 		}
-		var typeVar interface{} = nil
-		var subType interface{} = nil
-		var response interface{} = nil
+		var typeVar any = nil
+		var subType any = nil
+		var response any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchLedger", nil, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
@@ -4250,8 +4705,8 @@ func (this *XtCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} 
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeValue(response, "result", map[string]interface{}{})
-		var ledger interface{} = this.SafeValue(data, "items", []interface{}{})
+		var data any = this.SafeValue(response, "result", map[string]any{})
+		var ledger any = this.SafeValue(data, "items", []any{})
 
 		ch <- this.ParseLedger(ledger, currency, since, limit)
 		return nil
@@ -4259,7 +4714,7 @@ func (this *XtCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} 
 	}()
 	return ch
 }
-func (this *XtCore) ParseLedgerEntry(item interface{}, optionalArgs ...interface{}) interface{} {
+func (this *XtCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "id": "207260567109387524",
@@ -4274,12 +4729,12 @@ func (this *XtCore) ParseLedgerEntry(item interface{}, optionalArgs ...interface
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var side interface{} = this.SafeString(item, "side")
-	var direction interface{} = Ternary(IsTrue((IsEqual(side, "ADD"))), "in", "out")
-	var currencyId interface{} = this.SafeString(item, "coin")
+	var side any = this.SafeString(item, "side")
+	var direction any = Ternary(IsTrue((IsEqual(side, "ADD"))), "in", "out")
+	var currencyId any = this.SafeString(item, "coin")
 	currency = this.SafeCurrency(currencyId, currency)
-	var timestamp interface{} = this.SafeInteger(item, "createdTime")
-	return this.SafeLedgerEntry(map[string]interface{}{
+	var timestamp any = this.SafeInteger(item, "createdTime")
+	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,
 		"id":               this.SafeString(item, "id"),
 		"direction":        direction,
@@ -4294,14 +4749,14 @@ func (this *XtCore) ParseLedgerEntry(item interface{}, optionalArgs ...interface
 		"before":           nil,
 		"after":            this.SafeNumber(item, "afterAmount"),
 		"status":           nil,
-		"fee": map[string]interface{}{
+		"fee": map[string]any{
 			"currency": nil,
 			"cost":     nil,
 		},
 	}, currency)
 }
-func (this *XtCore) ParseLedgerEntryType(typeVar interface{}) interface{} {
-	var ledgerType interface{} = map[string]interface{}{
+func (this *XtCore) ParseLedgerEntryType(typeVar any) any {
+	var ledgerType any = map[string]any{
 		"EXCHANGE":           "transfer",
 		"CLOSE_POSITION":     "trade",
 		"TAKE_OVER":          "trade",
@@ -4318,30 +4773,32 @@ func (this *XtCore) ParseLedgerEntryType(typeVar interface{}) interface{} {
  * @method
  * @name xt#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://doc.xt.com/#deposit_withdrawaldepositAddressGet
+ * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetDepositAddress
  * @param {string} code unified currency code
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} params.network required network id
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
  */
-func (this *XtCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes37828 := (<-this.LoadMarkets())
-		PanicOnError(retRes37828)
-		var networkCode interface{} = nil
+			retRes390812 := (<-this.LoadMarkets())
+			PanicOnError(retRes390812)
+		}
+		var networkCode any = nil
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode = GetValue(networkCodeparamsVariable, 0)
 		params = GetValue(networkCodeparamsVariable, 1)
-		var currency interface{} = this.Currency(code)
-		var networkId interface{} = this.NetworkCodeToId(networkCode, code)
+		var currency any = this.Currency(code)
+		var networkId any = this.NetworkCodeToId(networkCode, code)
 		this.CheckRequiredArgument("fetchDepositAddress", networkId, "network")
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
 			"chain":    networkId,
 		}
@@ -4359,7 +4816,7 @@ func (this *XtCore) FetchDepositAddress(code interface{}, optionalArgs ...interf
 		//         }
 		//     }
 		//
-		var result interface{} = this.SafeValue(response, "result", map[string]interface{}{})
+		var result any = this.SafeValue(response, "result", map[string]any{})
 
 		ch <- this.ParseDepositAddress(result, currency)
 		return nil
@@ -4367,7 +4824,7 @@ func (this *XtCore) FetchDepositAddress(code interface{}, optionalArgs ...interf
 	}()
 	return ch
 }
-func (this *XtCore) ParseDepositAddress(depositAddress interface{}, optionalArgs ...interface{}) interface{} {
+func (this *XtCore) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "address": "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
@@ -4376,9 +4833,9 @@ func (this *XtCore) ParseDepositAddress(depositAddress interface{}, optionalArgs
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var address interface{} = this.SafeString(depositAddress, "address")
+	var address any = this.SafeString(depositAddress, "address")
 	this.CheckAddress(address)
-	return map[string]interface{}{
+	return map[string]any{
 		"info":     depositAddress,
 		"currency": this.SafeCurrencyCode(nil, currency),
 		"network":  nil,
@@ -4391,16 +4848,16 @@ func (this *XtCore) ParseDepositAddress(depositAddress interface{}, optionalArgs
  * @method
  * @name xt#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://doc.xt.com/#deposit_withdrawalhistoryDepositGet
+ * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetDepositHistory
  * @param {string} [code] unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of transaction structures to retrieve
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
  */
-func (this *XtCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchDeposits(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -4409,13 +4866,15 @@ func (this *XtCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes38388 := (<-this.LoadMarkets())
-		PanicOnError(retRes38388)
-		var request interface{} = map[string]interface{}{}
-		var currency interface{} = nil
+			retRes396612 := (<-this.LoadMarkets())
+			PanicOnError(retRes396612)
+		}
+		var request any = map[string]any{}
+		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
 			AddElementToObject(request, "currency", GetValue(currency, "id"))
@@ -4455,8 +4914,8 @@ func (this *XtCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeValue(response, "result", map[string]interface{}{})
-		var deposits interface{} = this.SafeValue(data, "items", []interface{}{})
+		var data any = this.SafeValue(response, "result", map[string]any{})
+		var deposits any = this.SafeValue(data, "items", []any{})
 
 		ch <- this.ParseTransactions(deposits, currency, since, limit, params)
 		return nil
@@ -4469,16 +4928,16 @@ func (this *XtCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{
  * @method
  * @name xt#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://doc.xt.com/#deposit_withdrawalwithdrawHistory
+ * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/WithdrawHistory
  * @param {string} [code] unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of transaction structures to retrieve
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
  */
-func (this *XtCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -4487,13 +4946,15 @@ func (this *XtCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interfa
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes38958 := (<-this.LoadMarkets())
-		PanicOnError(retRes38958)
-		var request interface{} = map[string]interface{}{}
-		var currency interface{} = nil
+			retRes402512 := (<-this.LoadMarkets())
+			PanicOnError(retRes402512)
+		}
+		var request any = map[string]any{}
+		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
 			AddElementToObject(request, "currency", GetValue(currency, "id"))
@@ -4533,8 +4994,8 @@ func (this *XtCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interfa
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeValue(response, "result", map[string]interface{}{})
-		var withdrawals interface{} = this.SafeValue(data, "items", []interface{}{})
+		var data any = this.SafeValue(response, "result", map[string]any{})
+		var withdrawals any = this.SafeValue(data, "items", []any{})
 
 		ch <- this.ParseTransactions(withdrawals, currency, since, limit, params)
 		return nil
@@ -4547,38 +5008,40 @@ func (this *XtCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interfa
  * @method
  * @name xt#withdraw
  * @description make a withdrawal
- * @see https://doc.xt.com/#deposit_withdrawalwithdraw
+ * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/Withdraw
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} [tag]
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
  */
-func (this *XtCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		tag := GetArg(optionalArgs, 0, nil)
 		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		this.CheckAddress(address)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes39548 := (<-this.LoadMarkets())
-		PanicOnError(retRes39548)
-		var currency interface{} = this.Currency(code)
+			retRes408612 := (<-this.LoadMarkets())
+			PanicOnError(retRes408612)
+		}
+		var currency any = this.Currency(code)
 		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
-		var networkCode interface{} = nil
+		var networkCode any = nil
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode = GetValue(networkCodeparamsVariable, 0)
 		params = GetValue(networkCodeparamsVariable, 1)
-		var networkIdsByCodes interface{} = this.SafeValue(this.Options, "networks", map[string]interface{}{})
-		var networkId interface{} = this.SafeString2(networkIdsByCodes, networkCode, code, code)
-		var request interface{} = map[string]interface{}{
+		var networkIdsByCodes any = this.SafeValue(this.Options, "networks", map[string]any{})
+		var networkId any = this.SafeString2(networkIdsByCodes, networkCode, code, code)
+		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
 			"chain":    networkId,
 			"amount":   this.CurrencyToPrecision(code, amount),
@@ -4600,7 +5063,7 @@ func (this *XtCore) Withdraw(code interface{}, amount interface{}, address inter
 		//         }
 		//     }
 		//
-		var result interface{} = this.SafeValue(response, "result", map[string]interface{}{})
+		var result any = this.SafeValue(response, "result", map[string]any{})
 
 		ch <- this.ParseTransaction(result, currency)
 		return nil
@@ -4608,7 +5071,7 @@ func (this *XtCore) Withdraw(code interface{}, amount interface{}, address inter
 	}()
 	return ch
 }
-func (this *XtCore) ParseTransaction(transaction interface{}, optionalArgs ...interface{}) interface{} {
+func (this *XtCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
 	// fetchDeposits
 	//
@@ -4650,15 +5113,15 @@ func (this *XtCore) ParseTransaction(transaction interface{}, optionalArgs ...in
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var typeVar interface{} = Ternary(IsTrue((InOp(transaction, "fromAddr"))), "deposit", "withdraw")
-	var timestamp interface{} = this.SafeInteger(transaction, "createdTime")
-	var address interface{} = this.SafeString(transaction, "address")
-	var memo interface{} = this.SafeString(transaction, "memo")
-	var currencyCode interface{} = this.SafeCurrencyCode(this.SafeString(transaction, "currency"), currency)
-	var fee interface{} = this.SafeNumber(transaction, "fee")
-	var feeCurrency interface{} = Ternary(IsTrue((!IsEqual(fee, nil))), currencyCode, nil)
-	var networkId interface{} = this.SafeString(transaction, "chain")
-	return map[string]interface{}{
+	var typeVar any = Ternary(IsTrue((InOp(transaction, "fromAddr"))), "deposit", "withdraw")
+	var timestamp any = this.SafeInteger(transaction, "createdTime")
+	var address any = this.SafeString(transaction, "address")
+	var memo any = this.SafeString(transaction, "memo")
+	var currencyCode any = this.SafeCurrencyCode(this.SafeString(transaction, "currency"), currency)
+	var fee any = this.SafeNumber(transaction, "fee")
+	var feeCurrency any = Ternary(IsTrue((!IsEqual(fee, nil))), currencyCode, nil)
+	var networkId any = this.SafeString(transaction, "chain")
+	return map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString(transaction, "id"),
 		"txid":        this.SafeString(transaction, "transactionId"),
@@ -4677,7 +5140,7 @@ func (this *XtCore) ParseTransaction(transaction interface{}, optionalArgs ...in
 		"network":     this.NetworkIdToCode(networkId, currencyCode),
 		"status":      this.ParseTransactionStatus(this.SafeString(transaction, "status")),
 		"comment":     memo,
-		"fee": map[string]interface{}{
+		"fee": map[string]any{
 			"currency": feeCurrency,
 			"cost":     fee,
 			"rate":     nil,
@@ -4685,8 +5148,8 @@ func (this *XtCore) ParseTransaction(transaction interface{}, optionalArgs ...in
 		"internal": nil,
 	}
 }
-func (this *XtCore) ParseTransactionStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *XtCore) ParseTransactionStatus(status any) any {
+	var statuses any = map[string]any{
 		"SUBMIT":  "pending",
 		"REVIEW":  "pending",
 		"AUDITED": "pending",
@@ -4702,47 +5165,49 @@ func (this *XtCore) ParseTransactionStatus(status interface{}) interface{} {
  * @method
  * @name xt#setLeverage
  * @description set the level of leverage for a market
- * @see https://doc.xt.com/#futures_useradjustLeverage
+ * @see https://doc.xt.com/docs/futures/User/Adjust%20Leverage
  * @param {float} leverage the rate of leverage
  * @param {string} symbol unified market symbol
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} params.positionSide 'LONG' or 'SHORT'
  * @returns {object} response from the exchange
  */
-func (this *XtCore) SetLeverage(leverage interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
-		var positionSide interface{} = this.SafeString(params, "positionSide")
-		this.CheckRequiredArgument("setLeverage", positionSide, "positionSide", []interface{}{"LONG", "SHORT"})
+		var positionSide any = this.SafeString(params, "positionSide")
+		this.CheckRequiredArgument("setLeverage", positionSide, "positionSide", []any{"LONG", "SHORT"})
 		if IsTrue(IsTrue((IsLessThan(leverage, 1))) || IsTrue((IsGreaterThan(leverage, 125)))) {
 			panic(BadRequest(Add(this.Id, " setLeverage() leverage should be between 1 and 125")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes40948 := (<-this.LoadMarkets())
-		PanicOnError(retRes40948)
-		var market interface{} = this.Market(symbol)
+			retRes422812 := (<-this.LoadMarkets())
+			PanicOnError(retRes422812)
+		}
+		var market any = this.Market(symbol)
 		if !IsTrue((GetValue(market, "contract"))) {
 			panic(BadSymbol(Add(this.Id, " setLeverage() supports contract markets only")))
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"symbol":       GetValue(market, "id"),
 			"positionSide": positionSide,
 			"leverage":     leverage,
 		}
-		var subType interface{} = nil
+		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("setLeverage", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(subType, "inverse")) {
 
 			response = (<-this.PrivateInversePostFutureUserV1PositionAdjustLeverage(this.Extend(request, params)))
@@ -4772,24 +5237,24 @@ func (this *XtCore) SetLeverage(leverage interface{}, optionalArgs ...interface{
  * @method
  * @name xt#addMargin
  * @description add margin to a position
- * @see https://doc.xt.com/#futures_useradjustMargin
+ * @see https://doc.xt.com/docs/futures/User/Alter%20Margin
  * @param {string} symbol unified market symbol
  * @param {float} amount amount of margin to add
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} params.positionSide 'LONG' or 'SHORT'
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *XtCore) AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes413515 := (<-this.ModifyMarginHelper(symbol, amount, "ADD", params))
-		PanicOnError(retRes413515)
-		ch <- retRes413515
+		retRes427015 := (<-this.ModifyMarginHelper(symbol, amount, "ADD", params))
+		PanicOnError(retRes427015)
+		ch <- retRes427015
 		return nil
 
 	}()
@@ -4800,53 +5265,56 @@ func (this *XtCore) AddMargin(symbol interface{}, amount interface{}, optionalAr
  * @method
  * @name xt#reduceMargin
  * @description remove margin from a position
- * @see https://doc.xt.com/#futures_useradjustMargin
+ * @see https://doc.xt.com/docs/futures/User/Alter%20Margin
  * @param {string} symbol unified market symbol
  * @param {float} amount the amount of margin to remove
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} params.positionSide 'LONG' or 'SHORT'
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *XtCore) ReduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes415015 := (<-this.ModifyMarginHelper(symbol, amount, "SUB", params))
-		PanicOnError(retRes415015)
-		ch <- retRes415015
+		retRes428515 := (<-this.ModifyMarginHelper(symbol, amount, "SUB", params))
+		PanicOnError(retRes428515)
+		ch <- retRes428515
 		return nil
 
 	}()
 	return ch
 }
-func (this *XtCore) ModifyMarginHelper(symbol interface{}, amount interface{}, addOrReduce interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) ModifyMarginHelper(symbol any, amount any, addOrReduce any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var positionSide interface{} = this.SafeString(params, "positionSide")
-		this.CheckRequiredArgument("setLeverage", positionSide, "positionSide", []interface{}{"LONG", "SHORT"})
+		var positionSide any = this.SafeString(params, "positionSide")
+		var methodName any = Ternary(IsTrue((IsEqual(addOrReduce, "ADD"))), "addMargin", "reduceMargin")
+		this.CheckRequiredArgument(methodName, positionSide, "positionSide", []any{"LONG", "SHORT"})
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes41568 := (<-this.LoadMarkets())
-		PanicOnError(retRes41568)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes429312 := (<-this.LoadMarkets())
+			PanicOnError(retRes429312)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol":       GetValue(market, "id"),
 			"margin":       amount,
 			"type":         addOrReduce,
 			"positionSide": positionSide,
 		}
-		var subType interface{} = nil
+		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("modifyMarginHelper", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(subType, "inverse")) {
 
 			response = (<-this.PrivateInversePostFutureUserV1PositionMargin(this.Extend(request, params)))
@@ -4871,10 +5339,10 @@ func (this *XtCore) ModifyMarginHelper(symbol interface{}, amount interface{}, a
 	}()
 	return ch
 }
-func (this *XtCore) ParseMarginModification(data interface{}, optionalArgs ...interface{}) interface{} {
+func (this *XtCore) ParseMarginModification(data any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	return map[string]interface{}{
+	return map[string]any{
 		"info":       data,
 		"type":       nil,
 		"amount":     nil,
@@ -4892,28 +5360,30 @@ func (this *XtCore) ParseMarginModification(data interface{}, optionalArgs ...in
  * @method
  * @name xt#fetchLeverageTiers
  * @description retrieve information on the maximum leverage for different trade sizes
- * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
+ * @see https://doc.xt.com/docs/futures/MarketData/see-leverage-stratification-of-single-trading-pair
  * @param {string} [symbols] a list of unified market symbols
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
-func (this *XtCore) FetchLeverageTiers(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchLeverageTiers(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes42088 := (<-this.LoadMarkets())
-		PanicOnError(retRes42088)
-		var subType interface{} = nil
+			retRes434712 := (<-this.LoadMarkets())
+			PanicOnError(retRes434712)
+		}
+		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchLeverageTiers", nil, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(subType, "inverse")) {
 
 			response = (<-this.PublicInverseGetFutureMarketV1PublicLeverageBracketList(params))
@@ -4947,7 +5417,7 @@ func (this *XtCore) FetchLeverageTiers(optionalArgs ...interface{}) <-chan inter
 		//         ]
 		//     }
 		//
-		var data interface{} = this.SafeValue(response, "result", []interface{}{})
+		var data any = this.SafeValue(response, "result", []any{})
 		symbols = this.MarketSymbols(symbols)
 
 		ch <- this.ParseLeverageTiers(data, symbols, "symbol")
@@ -4956,7 +5426,7 @@ func (this *XtCore) FetchLeverageTiers(optionalArgs ...interface{}) <-chan inter
 	}()
 	return ch
 }
-func (this *XtCore) ParseLeverageTiers(response interface{}, optionalArgs ...interface{}) interface{} {
+func (this *XtCore) ParseLeverageTiers(response any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "symbol": "rad_usdt",
@@ -4978,12 +5448,12 @@ func (this *XtCore) ParseLeverageTiers(response interface{}, optionalArgs ...int
 	_ = symbols
 	marketIdKey := GetArg(optionalArgs, 1, nil)
 	_ = marketIdKey
-	var result interface{} = map[string]interface{}{}
+	var result any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-		var entry interface{} = GetValue(response, i)
-		var marketId interface{} = this.SafeString(entry, "symbol")
-		var market interface{} = this.SafeMarket(marketId, nil, "_", "contract")
-		var symbol interface{} = this.SafeSymbol(marketId, market)
+		var entry any = GetValue(response, i)
+		var marketId any = this.SafeString(entry, "symbol")
+		var market any = this.SafeMarket(marketId, nil, "_", "contract")
+		var symbol any = this.SafeSymbol(marketId, market)
 		if IsTrue(!IsEqual(symbols, nil)) {
 			if IsTrue(this.InArray(symbol, symbols)) {
 				AddElementToObject(result, symbol, this.ParseMarketLeverageTiers(entry, market))
@@ -4999,30 +5469,32 @@ func (this *XtCore) ParseLeverageTiers(response interface{}, optionalArgs ...int
  * @method
  * @name xt#fetchMarketLeverageTiers
  * @description retrieve information on the maximum leverage for different trade sizes of a single market
- * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
+ * @see https://doc.xt.com/docs/futures/MarketData/see-leverage-stratification-of-single-trading-pair
  * @param {string} symbol unified market symbol
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
-func (this *XtCore) FetchMarketLeverageTiers(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchMarketLeverageTiers(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes42918 := (<-this.LoadMarkets())
-		PanicOnError(retRes42918)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes443212 := (<-this.LoadMarkets())
+			PanicOnError(retRes443212)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
-		var subType interface{} = nil
+		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMarketLeverageTiers", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(subType, "inverse")) {
 
 			response = (<-this.PublicInverseGetFutureMarketV1PublicLeverageBracketDetail(this.Extend(request, params)))
@@ -5054,7 +5526,7 @@ func (this *XtCore) FetchMarketLeverageTiers(symbol interface{}, optionalArgs ..
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeValue(response, "result", map[string]interface{}{})
+		var data any = this.SafeValue(response, "result", map[string]any{})
 
 		ch <- this.ParseMarketLeverageTiers(data, market)
 		return nil
@@ -5062,7 +5534,7 @@ func (this *XtCore) FetchMarketLeverageTiers(symbol interface{}, optionalArgs ..
 	}()
 	return ch
 }
-func (this *XtCore) ParseMarketLeverageTiers(info interface{}, optionalArgs ...interface{}) interface{} {
+func (this *XtCore) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "symbol": "rad_usdt",
@@ -5082,17 +5554,18 @@ func (this *XtCore) ParseMarketLeverageTiers(info interface{}, optionalArgs ...i
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var tiers interface{} = []interface{}{}
-	var brackets interface{} = this.SafeValue(info, "leverageBrackets", []interface{}{})
+	var tiers any = []any{}
+	var brackets any = this.SafeValue(info, "leverageBrackets", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(brackets)); i++ {
-		var tier interface{} = GetValue(brackets, i)
-		var marketId interface{} = this.SafeString(info, "symbol")
+		var tier any = GetValue(brackets, i)
+		var marketId any = this.SafeString(info, "symbol")
 		market = this.SafeMarket(marketId, market, "_", "contract")
-		AppendToArray(&tiers, map[string]interface{}{
+		var minNotional any = this.SafeNumber(GetValue(brackets, Subtract(i, 1)), "maxNominalValue", 0)
+		AppendToArray(&tiers, map[string]any{
 			"tier":                  this.SafeInteger(tier, "bracket"),
 			"symbol":                this.SafeSymbol(marketId, market, "_", "contract"),
 			"currency":              GetValue(market, "settle"),
-			"minNotional":           this.SafeNumber(GetValue(brackets, Subtract(i, 1)), "maxNominalValue", 0),
+			"minNotional":           minNotional,
 			"maxNotional":           this.SafeNumber(tier, "maxNominalValue"),
 			"maintenanceMarginRate": this.SafeNumber(tier, "maintMarginRate"),
 			"maxLeverage":           this.SafeNumber(tier, "maxLeverage"),
@@ -5106,17 +5579,17 @@ func (this *XtCore) ParseMarketLeverageTiers(info interface{}, optionalArgs ...i
  * @method
  * @name xt#fetchFundingRateHistory
  * @description fetches historical funding rates
- * @see https://doc.xt.com/#futures_quotesgetFundingRateRecord
+ * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-records
  * @param {string} [symbol] unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} params.paginate true/false whether to use the pagination helper to aumatically paginate through the results
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
  */
-func (this *XtCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -5125,30 +5598,32 @@ func (this *XtCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan 
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes43848 := (<-this.LoadMarkets())
-		PanicOnError(retRes43848)
-		var paginate interface{} = false
+			retRes452812 := (<-this.LoadMarkets())
+			PanicOnError(retRes452812)
+		}
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes438819 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "id", "id", 1, 200))
-			PanicOnError(retRes438819)
-			ch <- retRes438819
+			retRes453319 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "id", "id", 1, 200))
+			PanicOnError(retRes453319)
+			ch <- retRes453319
 			return nil
 		}
-		var market interface{} = this.Market(symbol)
+		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " fetchFundingRateHistory() supports swap contracts only")))
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -5156,11 +5631,11 @@ func (this *XtCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan 
 		} else {
 			AddElementToObject(request, "limit", 200) // max
 		}
-		var subType interface{} = nil
+		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchFundingRateHistory", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(subType, "inverse")) {
 
 			response = (<-this.PublicInverseGetFutureMarketV1PublicQFundingRateRecord(this.Extend(request, params)))
@@ -5190,15 +5665,15 @@ func (this *XtCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan 
 		//         }
 		//     }
 		//
-		var result interface{} = this.SafeValue(response, "result", map[string]interface{}{})
-		var items interface{} = this.SafeValue(result, "items", []interface{}{})
-		var rates interface{} = []interface{}{}
+		var result any = this.SafeValue(response, "result", map[string]any{})
+		var items any = this.SafeValue(result, "items", []any{})
+		var rates any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(items)); i++ {
-			var entry interface{} = GetValue(items, i)
-			var marketId interface{} = this.SafeString(entry, "symbol")
-			var symbolInner interface{} = this.SafeSymbol(marketId, market)
-			var timestamp interface{} = this.SafeInteger(entry, "createdTime")
-			AppendToArray(&rates, map[string]interface{}{
+			var entry any = GetValue(items, i)
+			var marketId any = this.SafeString(entry, "symbol")
+			var symbolInner any = this.SafeSymbol(marketId, market)
+			var timestamp any = this.SafeInteger(entry, "createdTime")
+			AppendToArray(&rates, map[string]any{
 				"info":        entry,
 				"symbol":      symbolInner,
 				"fundingRate": this.SafeNumber(entry, "fundingRate"),
@@ -5206,7 +5681,7 @@ func (this *XtCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan 
 				"datetime":    this.Iso8601(timestamp),
 			})
 		}
-		var sorted interface{} = this.SortBy(rates, "timestamp")
+		var sorted any = this.SortBy(rates, "timestamp")
 
 		ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
 		return nil
@@ -5219,22 +5694,22 @@ func (this *XtCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan 
  * @method
  * @name xt#fetchFundingInterval
  * @description fetch the current funding rate interval
- * @see https://doc.xt.com/#futures_quotesgetFundingRate
+ * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *XtCore) FetchFundingInterval(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchFundingInterval(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes446015 := (<-this.FetchFundingRate(symbol, params))
-		PanicOnError(retRes446015)
-		ch <- retRes446015
+		retRes460515 := (<-this.FetchFundingRate(symbol, params))
+		PanicOnError(retRes460515)
+		ch <- retRes460515
 		return nil
 
 	}()
@@ -5245,33 +5720,35 @@ func (this *XtCore) FetchFundingInterval(symbol interface{}, optionalArgs ...int
  * @method
  * @name xt#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://doc.xt.com/#futures_quotesgetFundingRate
+ * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
  * @param {string} symbol unified market symbol
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *XtCore) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes44738 := (<-this.LoadMarkets())
-		PanicOnError(retRes44738)
-		var market interface{} = this.Market(symbol)
+			retRes461912 := (<-this.LoadMarkets())
+			PanicOnError(retRes461912)
+		}
+		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
-		var subType interface{} = nil
+		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchFundingRate", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(subType, "inverse")) {
 
 			response = (<-this.PublicInverseGetFutureMarketV1PublicQFundingRate(this.Extend(request, params)))
@@ -5294,7 +5771,7 @@ func (this *XtCore) FetchFundingRate(symbol interface{}, optionalArgs ...interfa
 		//         }
 		//     }
 		//
-		var result interface{} = this.SafeValue(response, "result", map[string]interface{}{})
+		var result any = this.SafeValue(response, "result", map[string]any{})
 
 		ch <- this.ParseFundingRate(result, market)
 		return nil
@@ -5302,7 +5779,7 @@ func (this *XtCore) FetchFundingRate(symbol interface{}, optionalArgs ...interfa
 	}()
 	return ch
 }
-func (this *XtCore) ParseFundingRate(contract interface{}, optionalArgs ...interface{}) interface{} {
+func (this *XtCore) ParseFundingRate(contract any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "symbol": "btc_usdt",
@@ -5313,14 +5790,14 @@ func (this *XtCore) ParseFundingRate(contract interface{}, optionalArgs ...inter
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(contract, "symbol")
-	var symbol interface{} = this.SafeSymbol(marketId, market, "_", "swap")
-	var timestamp interface{} = this.SafeInteger(contract, "nextCollectionTime")
-	var interval interface{} = this.SafeString(contract, "collectionInternal")
+	var marketId any = this.SafeString(contract, "symbol")
+	var symbol any = this.SafeSymbol(marketId, market, "_", "swap")
+	var timestamp any = this.SafeInteger(contract, "nextCollectionTime")
+	var interval any = this.SafeString(contract, "collectionInternal")
 	if IsTrue(!IsEqual(interval, nil)) {
 		interval = Add(interval, "h")
 	}
-	return map[string]interface{}{
+	return map[string]any{
 		"info":                     contract,
 		"symbol":                   symbol,
 		"markPrice":                nil,
@@ -5344,18 +5821,240 @@ func (this *XtCore) ParseFundingRate(contract interface{}, optionalArgs ...inter
 
 /**
  * @method
+ * @name xt#fetchOpenInterest
+ * @description retrieves the open interest of a contract trading pair
+ * @see https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *XtCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		retRes47018 := (<-this.LoadMarkets())
+		PanicOnError(retRes47018)
+		var market any = this.Market(symbol)
+		if !IsTrue(GetValue(market, "swap")) {
+			panic(NotSupported(Add(this.Id, " fetchOpenInterest() supports swap contracts only")))
+		}
+		var request any = map[string]any{
+			"symbol": GetValue(market, "id"),
+		}
+		var subType any = nil
+		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchOpenInterest", market, params)
+		subType = GetValue(subTypeparamsVariable, 0)
+		params = GetValue(subTypeparamsVariable, 1)
+		var response any = nil
+		if IsTrue(IsEqual(subType, "inverse")) {
+
+			response = (<-this.PublicInverseGetFutureMarketV1PublicContractOpenInterest(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+
+			response = (<-this.PublicLinearGetFutureMarketV1PublicContractOpenInterest(this.Extend(request, params)))
+			PanicOnError(response)
+		}
+		//
+		//     {
+		//         "returnCode": 0,
+		//         "msgInfo": "success",
+		//         "error": null,
+		//         "result": {
+		//             "symbol": "btc_usdt",
+		//             "openInterest": "21005.8646",
+		//             "openInterestUsd": "1120726916.46709",
+		//             "time": 1785925443734
+		//         }
+		//     }
+		//
+		var result any = this.SafeDict(response, "result", map[string]any{})
+
+		ch <- this.ParseOpenInterest(result, market)
+		return nil
+
+	}()
+	return ch
+}
+func (this *XtCore) ParseOpenInterest(interest any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "symbol": "btc_usdt",
+	//         "openInterest": "21005.8646",
+	//         "openInterestUsd": "1120726916.46709",
+	//         "time": 1785925443734
+	//     }
+	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var marketId any = this.SafeString(interest, "symbol")
+	market = this.SafeMarket(marketId, market, nil, "contract")
+	var timestamp any = this.SafeInteger(interest, "time")
+	return this.SafeOpenInterest(map[string]any{
+		"symbol":             GetValue(market, "symbol"),
+		"openInterestAmount": this.SafeNumber(interest, "openInterest"),
+		"openInterestValue":  this.SafeNumber(interest, "openInterestUsd"),
+		"timestamp":          timestamp,
+		"datetime":           this.Iso8601(timestamp),
+		"info":               interest,
+	}, market)
+}
+
+/**
+ * @method
+ * @name xt#fetchTradingFee
+ * @description fetch the trading fees for a contract market, the same account-level rate applies to all contract markets of the same subtype
+ * @see https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+ */
+func (this *XtCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		retRes47668 := (<-this.LoadMarkets())
+		PanicOnError(retRes47668)
+		var market any = this.Market(symbol)
+		if !IsTrue(GetValue(market, "contract")) {
+			panic(NotSupported(Add(this.Id, " fetchTradingFee() supports contract markets only")))
+		}
+		var subType any = nil
+		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchTradingFee", market, params)
+		subType = GetValue(subTypeparamsVariable, 0)
+		params = GetValue(subTypeparamsVariable, 1)
+		var response any = nil
+		if IsTrue(IsEqual(subType, "inverse")) {
+
+			response = (<-this.CallDynamically("privateInverseGetFutureUserV1UserStepRate", params))
+			PanicOnError(response)
+		} else {
+
+			response = (<-this.CallDynamically("privateLinearGetFutureUserV1UserStepRate", params))
+			PanicOnError(response)
+		}
+		//
+		//     {
+		//         "returnCode": 0,
+		//         "msgInfo": "success",
+		//         "error": null,
+		//         "result": {
+		//             "specialType": false,
+		//             "vipProType": false,
+		//             "stepRateProName": null,
+		//             "discountLevel": 0,
+		//             "makerFee": "0.0002",
+		//             "takerFee": "0.0006",
+		//             "levelReturnDay": 90,
+		//             "totalTradeVolume": "78.708",
+		//             "walletBalance": "21.95",
+		//             "nextLvTradeVolume": "200000",
+		//             "nextLvMakerFee": "0.00018",
+		//             "nextLvTakerFee": "0.00054",
+		//             "feeSource": "step_rate"
+		//         }
+		//     }
+		//
+		var result any = this.SafeDict(response, "result", map[string]any{})
+
+		ch <- this.ParseTradingFee(result, market)
+		return nil
+
+	}()
+	return ch
+}
+
+/**
+ * @method
+ * @name xt#fetchTradingFees
+ * @description fetch the trading fees for multiple markets, the same account-level rate applies to all contract markets of the requested subtype
+ * @see https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subType] 'linear' (default) or 'inverse'
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbol
+ */
+func (this *XtCore) FetchTradingFees(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		retRes48158 := (<-this.LoadMarkets())
+		PanicOnError(retRes48158)
+		var subType any = nil
+		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchTradingFees", nil, params)
+		subType = GetValue(subTypeparamsVariable, 0)
+		params = GetValue(subTypeparamsVariable, 1)
+		var isInverse any = (IsEqual(subType, "inverse"))
+		var response any = nil
+		if IsTrue(isInverse) {
+
+			response = (<-this.CallDynamically("privateInverseGetFutureUserV1UserStepRate", params))
+			PanicOnError(response)
+		} else {
+
+			response = (<-this.CallDynamically("privateLinearGetFutureUserV1UserStepRate", params))
+			PanicOnError(response)
+		}
+		//
+		// same response as fetchTradingFee
+		//
+		var fee any = this.SafeDict(response, "result", map[string]any{})
+		var result any = map[string]any{}
+		var symbols any = this.Symbols
+		for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
+			var symbol any = GetValue(symbols, i)
+			var market any = this.Market(symbol)
+			var matchesSubType any = Ternary(IsTrue((isInverse)), GetValue(market, "inverse"), GetValue(market, "linear"))
+			if IsTrue(IsTrue(GetValue(market, "contract")) && IsTrue(matchesSubType)) {
+				AddElementToObject(result, symbol, this.ParseTradingFee(fee, market))
+			}
+		}
+
+		ch <- result
+		return nil
+
+	}()
+	return ch
+}
+func (this *XtCore) ParseTradingFee(fee any, optionalArgs ...any) any {
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var symbol any = Ternary(IsTrue((!IsEqual(market, nil))), GetValue(market, "symbol"), nil)
+	return map[string]any{
+		"info":       fee,
+		"symbol":     symbol,
+		"maker":      this.SafeNumber(fee, "makerFee"),
+		"taker":      this.SafeNumber(fee, "takerFee"),
+		"percentage": nil,
+		"tierBased":  true,
+	}
+}
+
+/**
+ * @method
  * @name xt#fetchFundingHistory
  * @description fetch the funding history
- * @see https://doc.xt.com/#futures_usergetFunding
+ * @see https://doc.xt.com/docs/futures/User/Get%20Fund%20Fee%20Information
  * @param {string} symbol unified market symbol
  * @param {int} [since] the starting timestamp in milliseconds
  * @param {int} [limit] the number of entries to return
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func (this *XtCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -5364,16 +6063,18 @@ func (this *XtCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan inte
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes45568 := (<-this.LoadMarkets())
-		PanicOnError(retRes45568)
-		var market interface{} = this.Market(symbol)
+			retRes486712 := (<-this.LoadMarkets())
+			PanicOnError(retRes486712)
+		}
+		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " fetchFundingHistory() supports swap contracts only")))
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -5382,11 +6083,11 @@ func (this *XtCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan inte
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
 		}
-		var subType interface{} = nil
+		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchFundingHistory", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(subType, "inverse")) {
 
 			response = (<-this.PrivateInverseGetFutureUserV1BalanceFundingRateList(this.Extend(request, params)))
@@ -5417,14 +6118,14 @@ func (this *XtCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan inte
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeValue(response, "result", map[string]interface{}{})
-		var items interface{} = this.SafeValue(data, "items", []interface{}{})
-		var result interface{} = []interface{}{}
+		var data any = this.SafeValue(response, "result", map[string]any{})
+		var items any = this.SafeValue(data, "items", []any{})
+		var result any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(items)); i++ {
-			var entry interface{} = GetValue(items, i)
+			var entry any = GetValue(items, i)
 			AppendToArray(&result, this.ParseFundingHistory(entry, market))
 		}
-		var sorted interface{} = this.SortBy(result, "timestamp")
+		var sorted any = this.SortBy(result, "timestamp")
 
 		ch <- this.FilterBySinceLimit(sorted, since, limit)
 		return nil
@@ -5432,7 +6133,7 @@ func (this *XtCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan inte
 	}()
 	return ch
 }
-func (this *XtCore) ParseFundingHistory(contract interface{}, optionalArgs ...interface{}) interface{} {
+func (this *XtCore) ParseFundingHistory(contract any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "id": "210804044057280512",
@@ -5445,12 +6146,12 @@ func (this *XtCore) ParseFundingHistory(contract interface{}, optionalArgs ...in
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(contract, "symbol")
-	var symbol interface{} = this.SafeSymbol(marketId, market, "_", "swap")
-	var currencyId interface{} = this.SafeString(contract, "coin")
-	var code interface{} = this.SafeCurrencyCode(currencyId)
-	var timestamp interface{} = this.SafeInteger(contract, "createdTime")
-	return map[string]interface{}{
+	var marketId any = this.SafeString(contract, "symbol")
+	var symbol any = this.SafeSymbol(marketId, market, "_", "swap")
+	var currencyId any = this.SafeString(contract, "coin")
+	var code any = this.SafeCurrencyCode(currencyId)
+	var timestamp any = this.SafeInteger(contract, "createdTime")
+	return map[string]any{
 		"info":      contract,
 		"symbol":    symbol,
 		"code":      code,
@@ -5462,42 +6163,86 @@ func (this *XtCore) ParseFundingHistory(contract interface{}, optionalArgs ...in
 }
 
 /**
+ * @ignore
+ * @method
+ * @param {object[]} breakList the "result" array of a position/break-list response
+ */
+func (this *XtCore) IndexPositionBreakList(breakList any) any {
+	var breakBySymbolSide any = map[string]any{}
+	for i := 0; IsLessThan(i, GetArrayLength(breakList)); i++ {
+		var breakEntry any = GetValue(breakList, i)
+		// xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
+		// endpoint, including here and on position/list; there is no one-way/net
+		// mode that would report 'BOTH', see setLeverage()/setMarginMode() which
+		// both validate positionSide against exactly ['LONG', 'SHORT'])
+		var key any = Add(Add(this.SafeString(breakEntry, "symbol"), "_"), this.SafeString(breakEntry, "positionSide"))
+		AddElementToObject(breakBySymbolSide, key, breakEntry)
+	}
+	return breakBySymbolSide
+}
+
+/**
+ * @ignore
+ * @method
+ * @param {object} entry a single entry from a position/list response
+ * @param {object} breakBySymbolSide the result of indexPositionBreakList()
+ */
+func (this *XtCore) MergePositionBreakInfo(entry any, breakBySymbolSide any) any {
+	var marketId any = this.SafeString(entry, "symbol")
+	var key any = Add(Add(marketId, "_"), this.SafeString(entry, "positionSide"))
+	var breakEntry any = this.SafeDict(breakBySymbolSide, key)
+	if IsTrue(IsEqual(breakEntry, nil)) {
+		return entry
+	}
+	return this.Extend(entry, map[string]any{
+		"breakPrice":   this.SafeString(breakEntry, "breakPrice"),
+		"calMarkPrice": this.SafeString(breakEntry, "calMarkPrice"),
+	})
+}
+
+/**
  * @method
  * @name xt#fetchPosition
  * @description fetch data on a single open contract trade position
- * @see https://doc.xt.com/#futures_usergetPosition
+ * @see https://doc.xt.com/docs/futures/User/Get%20Position%20Information
+ * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
  * @param {string} symbol unified market symbol of the market the position is held in
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *XtCore) FetchPosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes46478 := (<-this.LoadMarkets())
-		PanicOnError(retRes46478)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes499912 := (<-this.LoadMarkets())
+			PanicOnError(retRes499912)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
-		var subType interface{} = nil
+		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchPosition", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var response interface{} = nil
+		var promisesUnresolved any = []any{}
 		if IsTrue(IsEqual(subType, "inverse")) {
-
-			response = (<-this.PrivateInverseGetFutureUserV1PositionList(this.Extend(request, params)))
-			PanicOnError(response)
+			AppendToArray(&promisesUnresolved, this.PrivateInverseGetFutureUserV1PositionList(this.Extend(request, params)))
+			AppendToArray(&promisesUnresolved, this.PrivateInverseGetFutureUserV1PositionBreakList(this.Extend(request, params)))
 		} else {
-
-			response = (<-this.PrivateLinearGetFutureUserV1PositionList(this.Extend(request, params)))
-			PanicOnError(response)
+			AppendToArray(&promisesUnresolved, this.PrivateLinearGetFutureUserV1PositionList(this.Extend(request, params)))
+			AppendToArray(&promisesUnresolved, this.PrivateLinearGetFutureUserV1PositionBreakList(this.Extend(request, params)))
 		}
+		responsebreakResponseVariable := (<-promiseAll(promisesUnresolved))
+		response := GetValue(responsebreakResponseVariable, 0)
+		breakResponse := GetValue(responsebreakResponseVariable, 1)
+		//
+		// position/list
 		//
 		//     {
 		//         "returnCode": 0,
@@ -5518,25 +6263,41 @@ func (this *XtCore) FetchPosition(symbol interface{}, optionalArgs ...interface{
 		//                 "openOrderMarginFrozen": "0",
 		//                 "realizedProfit": "-0.00130138",
 		//                 "autoMargin": false,
-		//                 "leverage": 25
+		//                 "leverage": 25,
+		//                 "markPrice": "27050"
 		//             },
 		//         ]
 		//     }
 		//
-		var positions interface{} = this.SafeValue(response, "result", []interface{}{})
+		// position/break-list
+		//
+		//     {
+		//         "returnCode": 0,
+		//         "result": [
+		//             {
+		//                 "symbol": "btc_usdt",
+		//                 "positionSide": "SHORT",
+		//                 "breakPrice": "0",
+		//                 "calMarkPrice": "27050"
+		//             },
+		//         ]
+		//     }
+		//
+		var positions any = this.SafeList(response, "result", []any{})
+		var breakBySymbolSide any = this.IndexPositionBreakList(this.SafeList(breakResponse, "result", []any{}))
 		for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
-			var entry interface{} = GetValue(positions, i)
-			var marketId interface{} = this.SafeString(entry, "symbol")
-			var marketInner interface{} = this.SafeMarket(marketId, nil, nil, "contract")
-			var positionSize interface{} = this.SafeString(entry, "positionSize")
+			var entry any = GetValue(positions, i)
+			var marketId any = this.SafeString(entry, "symbol")
+			var marketInner any = this.SafeMarket(marketId, nil, nil, "contract")
+			var positionSize any = this.SafeString(entry, "positionSize")
 			if IsTrue(!IsEqual(positionSize, "0")) {
+				var merged any = this.MergePositionBreakInfo(entry, breakBySymbolSide)
 
-				ch <- this.ParsePosition(entry, marketInner)
+				ch <- this.ParsePosition(merged, marketInner)
 				return nil
 			}
 		}
-
-		return nil
+		panic(NullResponse(Add(Add(this.Id, " fetchPosition() could not find a position for "), symbol)))
 
 	}()
 	return ch
@@ -5546,37 +6307,43 @@ func (this *XtCore) FetchPosition(symbol interface{}, optionalArgs ...interface{
  * @method
  * @name xt#fetchPositions
  * @description fetch all open positions
- * @see https://doc.xt.com/#futures_usergetPosition
+ * @see https://doc.xt.com/docs/futures/User/Get%20Position%20Information
+ * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
  * @param {string} [symbols] list of unified market symbols, not supported with xt
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *XtCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) FetchPositions(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes47088 := (<-this.LoadMarkets())
-		PanicOnError(retRes47088)
-		var subType interface{} = nil
+			retRes508512 := (<-this.LoadMarkets())
+			PanicOnError(retRes508512)
+		}
+		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchPositions", nil, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var response interface{} = nil
+		var promisesUnresolved any = []any{}
 		if IsTrue(IsEqual(subType, "inverse")) {
-
-			response = (<-this.PrivateInverseGetFutureUserV1PositionList(params))
-			PanicOnError(response)
+			AppendToArray(&promisesUnresolved, this.PrivateInverseGetFutureUserV1PositionList(params))
+			AppendToArray(&promisesUnresolved, this.PrivateInverseGetFutureUserV1PositionBreakList(params))
 		} else {
-
-			response = (<-this.PrivateLinearGetFutureUserV1PositionList(params))
-			PanicOnError(response)
+			AppendToArray(&promisesUnresolved, this.PrivateLinearGetFutureUserV1PositionList(params))
+			AppendToArray(&promisesUnresolved, this.PrivateLinearGetFutureUserV1PositionBreakList(params))
 		}
+		responsebreakResponseVariable := (<-promiseAll(promisesUnresolved))
+		response := GetValue(responsebreakResponseVariable, 0)
+		breakResponse := GetValue(responsebreakResponseVariable, 1)
+		//
+		// position/list
 		//
 		//     {
 		//         "returnCode": 0,
@@ -5597,18 +6364,35 @@ func (this *XtCore) FetchPositions(optionalArgs ...interface{}) <-chan interface
 		//                 "openOrderMarginFrozen": "0",
 		//                 "realizedProfit": "-0.00130138",
 		//                 "autoMargin": false,
-		//                 "leverage": 25
+		//                 "leverage": 25,
+		//                 "markPrice": "27050"
 		//             },
 		//         ]
 		//     }
 		//
-		var positions interface{} = this.SafeValue(response, "result", []interface{}{})
-		var result interface{} = []interface{}{}
+		// position/break-list
+		//
+		//     {
+		//         "returnCode": 0,
+		//         "result": [
+		//             {
+		//                 "symbol": "btc_usdt",
+		//                 "positionSide": "SHORT",
+		//                 "breakPrice": "0",
+		//                 "calMarkPrice": "27050"
+		//             },
+		//         ]
+		//     }
+		//
+		var positions any = this.SafeList(response, "result", []any{})
+		var breakBySymbolSide any = this.IndexPositionBreakList(this.SafeList(breakResponse, "result", []any{}))
+		var result any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
-			var entry interface{} = GetValue(positions, i)
-			var marketId interface{} = this.SafeString(entry, "symbol")
-			var marketInner interface{} = this.SafeMarket(marketId, nil, nil, "contract")
-			AppendToArray(&result, this.ParsePosition(entry, marketInner))
+			var entry any = GetValue(positions, i)
+			var marketId any = this.SafeString(entry, "symbol")
+			var marketInner any = this.SafeMarket(marketId, nil, nil, "contract")
+			var merged any = this.MergePositionBreakInfo(entry, breakBySymbolSide)
+			AppendToArray(&result, this.ParsePosition(merged, marketInner))
 		}
 
 		ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -5617,7 +6401,115 @@ func (this *XtCore) FetchPositions(optionalArgs ...interface{}) <-chan interface
 	}()
 	return ch
 }
-func (this *XtCore) ParsePosition(position interface{}, optionalArgs ...interface{}) interface{} {
+
+/**
+ * @method
+ * @name xt#fetchPositionsHistory
+ * @description fetches historical closed positions
+ * @see https://doc.xt.com/docs/futures/Entrust/GetPositionHistory
+ * @param {string[]} [symbols] unified market symbols, all closed positions are returned if not assigned
+ * @param {int} [since] timestamp in ms of the earliest position to fetch
+ * @param {int} [limit] the maximum amount of records to fetch, default=10
+ * @param {object} params extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest position to fetch
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+ */
+func (this *XtCore) FetchPositionsHistory(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		symbols := GetArg(optionalArgs, 0, nil)
+		_ = symbols
+		since := GetArg(optionalArgs, 1, nil)
+		_ = since
+		limit := GetArg(optionalArgs, 2, nil)
+		_ = limit
+		params := GetArg(optionalArgs, 3, map[string]any{})
+		_ = params
+
+		retRes51668 := (<-this.LoadMarkets())
+		PanicOnError(retRes51668)
+		symbols = this.MarketSymbols(symbols)
+		var request any = map[string]any{}
+		var market any = nil
+		if IsTrue(!IsEqual(symbols, nil)) {
+			var symbolsLength any = GetArrayLength(symbols)
+			if IsTrue(IsEqual(symbolsLength, 1)) {
+				market = this.Market(GetValue(symbols, 0))
+				AddElementToObject(request, "symbol", GetValue(market, "id"))
+			}
+		}
+		if IsTrue(!IsEqual(since, nil)) {
+			AddElementToObject(request, "startTime", since)
+		}
+		if IsTrue(!IsEqual(limit, nil)) {
+			AddElementToObject(request, "limit", limit)
+		}
+		requestparamsVariable := this.HandleUntilOption("endTime", request, params)
+		request = GetValue(requestparamsVariable, 0)
+		params = GetValue(requestparamsVariable, 1)
+		var subType any = nil
+		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchPositionsHistory", market, params)
+		subType = GetValue(subTypeparamsVariable, 0)
+		params = GetValue(subTypeparamsVariable, 1)
+		var response any = nil
+		if IsTrue(IsEqual(subType, "inverse")) {
+
+			response = (<-this.PrivateInverseGetFutureTradeV1PositionListHistory(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+
+			response = (<-this.PrivateLinearGetFutureTradeV1PositionListHistory(this.Extend(request, params)))
+			PanicOnError(response)
+		}
+		//
+		//     {
+		//         "returnCode": 0,
+		//         "msgInfo": "success",
+		//         "error": null,
+		//         "result": {
+		//             "hasPrev": false,
+		//             "hasNext": false,
+		//             "items": [
+		//                 {
+		//                     "id": "654559911738263296",
+		//                     "positionSide": "LONG",
+		//                     "contractType": "PERPETUAL",
+		//                     "symbol": "xrp_usdt",
+		//                     "positionType": 2,
+		//                     "closeProfit": "0.001",
+		//                     "closePositionSize": "1",
+		//                     "closeOpenPrice": "1.0651",
+		//                     "closePrice": "1.0652",
+		//                     "maxPositionSize": "1",
+		//                     "openTime": 1785761266645,
+		//                     "closeTime": 1785761266645,
+		//                     "startLeverage": 10,
+		//                     "endLeverage": 10,
+		//                     "working": false,
+		//                     "force": false,
+		//                     "forceMarkPrice": null,
+		//                     "totalFee": "0.0063",
+		//                     "totalFundFee": "0"
+		//                 }
+		//             ]
+		//         }
+		//     }
+		//
+		var result any = this.SafeDict(response, "result", map[string]any{})
+		var items any = this.SafeList(result, "items", []any{})
+		var positions any = this.ParsePositions(items, symbols)
+
+		ch <- this.FilterBySinceLimit(positions, since, limit)
+		return nil
+
+	}()
+	return ch
+}
+func (this *XtCore) ParsePosition(position any, optionalArgs ...any) any {
+	//
+	// position/list
 	//
 	//     {
 	//         "symbol": "btc_usdt",
@@ -5633,38 +6525,79 @@ func (this *XtCore) ParsePosition(position interface{}, optionalArgs ...interfac
 	//         "openOrderMarginFrozen": "0",
 	//         "realizedProfit": "-0.00130138",
 	//         "autoMargin": false,
-	//         "leverage": 25
+	//         "leverage": 25,
+	//         "markPrice": "27050"
+	//     }
+	//
+	// position/break-list
+	//
+	//     {
+	//         "symbol": "btc_usdt",
+	//         "positionSide": "SHORT",
+	//         "breakPrice": "0",
+	//         "calMarkPrice": "27050"
+	//     }
+	//
+	// position/list-history
+	//
+	//     {
+	//         "id": "654559911738263296",
+	//         "positionSide": "LONG",
+	//         "contractType": "PERPETUAL",
+	//         "symbol": "xrp_usdt",
+	//         "positionType": 2,
+	//         "closeProfit": "0.001",
+	//         "closePositionSize": "1",
+	//         "closeOpenPrice": "1.0651",
+	//         "closePrice": "1.0652",
+	//         "maxPositionSize": "1",
+	//         "openTime": 1785761266645,
+	//         "closeTime": 1785761266645,
+	//         "startLeverage": 10,
+	//         "endLeverage": 10,
+	//         "working": false,
+	//         "force": false,
+	//         "forceMarkPrice": null,
+	//         "totalFee": "0.0063",
+	//         "totalFundFee": "0"
 	//     }
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(position, "symbol")
+	var marketId any = this.SafeString(position, "symbol")
 	market = this.SafeMarket(marketId, market, nil, "contract")
-	var symbol interface{} = this.SafeSymbol(marketId, market, nil, "contract")
-	var positionType interface{} = this.SafeString(position, "positionType")
-	var marginMode interface{} = Ternary(IsTrue((IsEqual(positionType, "CROSSED"))), "cross", "isolated")
-	var collateral interface{} = this.SafeNumber(position, "isolatedMargin")
-	return this.SafePosition(map[string]interface{}{
+	var symbol any = this.SafeSymbol(marketId, market, nil, "contract")
+	// "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
+	var positionType any = this.SafeString(position, "positionType")
+	var isCross any = IsTrue((IsEqual(positionType, "CROSSED"))) || IsTrue((IsEqual(positionType, "1")))
+	var marginMode any = Ternary(IsTrue((isCross)), "cross", "isolated")
+	var collateral any = this.SafeNumber(position, "isolatedMargin")
+	// history entries carry the liquidation price in forceMarkPrice when force is true
+	var liquidationPriceString any = this.OmitZero(this.SafeString2(position, "breakPrice", "forceMarkPrice"))
+	var timestamp any = this.SafeInteger(position, "closeTime")
+	return this.SafePosition(map[string]any{
 		"info":                        position,
-		"id":                          nil,
+		"id":                          this.SafeString(position, "id"),
 		"symbol":                      symbol,
-		"timestamp":                   nil,
-		"datetime":                    nil,
+		"timestamp":                   timestamp,
+		"datetime":                    this.Iso8601(timestamp),
 		"hedged":                      nil,
 		"side":                        this.SafeStringLower(position, "positionSide"),
-		"contracts":                   this.SafeNumber(position, "positionSize"),
+		"contracts":                   this.SafeNumber2(position, "positionSize", "closePositionSize"),
 		"contractSize":                GetValue(market, "contractSize"),
-		"entryPrice":                  this.SafeNumber(position, "entryPrice"),
-		"markPrice":                   nil,
+		"entryPrice":                  this.SafeNumber2(position, "entryPrice", "closeOpenPrice"),
+		"markPrice":                   this.SafeNumber2(position, "markPrice", "calMarkPrice"),
+		"lastPrice":                   this.SafeNumber(position, "closePrice"),
 		"notional":                    nil,
-		"leverage":                    this.SafeInteger(position, "leverage"),
+		"leverage":                    this.SafeInteger2(position, "leverage", "endLeverage"),
 		"collateral":                  collateral,
 		"initialMargin":               collateral,
 		"maintenanceMargin":           nil,
 		"initialMarginPercentage":     nil,
 		"maintenanceMarginPercentage": nil,
 		"unrealizedPnl":               nil,
-		"liquidationPrice":            nil,
+		"realizedPnl":                 this.SafeNumber2(position, "realizedProfit", "closeProfit"),
+		"liquidationPrice":            this.ParseNumber(liquidationPriceString),
 		"marginMode":                  marginMode,
 		"percentage":                  nil,
 		"marginRatio":                 nil,
@@ -5675,30 +6608,32 @@ func (this *XtCore) ParsePosition(position interface{}, optionalArgs ...interfac
  * @method
  * @name xt#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://doc.xt.com/#transfersubTransferPost
+ * @see https://doc.xt.com/docs/spot/Transfer/TransferBetweenUserSystems
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from -  spot, swap, leverage, finance
  * @param {string} toAccount account to transfer to - spot, swap, leverage, finance
- * @param {object} params extra parameters specific to the whitebit api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *XtCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes48188 := (<-this.LoadMarkets())
-		PanicOnError(retRes48188)
-		var currency interface{} = this.Currency(code)
-		var accountsByType interface{} = this.SafeValue(this.Options, "accountsById")
-		var fromAccountId interface{} = this.SafeString(accountsByType, fromAccount, fromAccount)
-		var toAccountId interface{} = this.SafeString(accountsByType, toAccount, toAccount)
-		var amountString interface{} = this.CurrencyToPrecision(code, amount)
-		var request interface{} = map[string]interface{}{
+			retRes534112 := (<-this.LoadMarkets())
+			PanicOnError(retRes534112)
+		}
+		var currency any = this.Currency(code)
+		var accountsByType any = this.SafeValue(this.Options, "accountsById")
+		var fromAccountId any = this.SafeString(accountsByType, fromAccount, fromAccount)
+		var toAccountId any = this.SafeString(accountsByType, toAccount, toAccount)
+		var amountString any = this.CurrencyToPrecision(code, amount)
+		var request any = map[string]any{
 			"bizId":    this.Uuid(),
 			"currency": GetValue(currency, "id"),
 			"amount":   amountString,
@@ -5728,10 +6663,10 @@ func (this *XtCore) Transfer(code interface{}, amount interface{}, fromAccount i
 	}()
 	return ch
 }
-func (this *XtCore) ParseTransfer(transfer interface{}, optionalArgs ...interface{}) interface{} {
+func (this *XtCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	return map[string]interface{}{
+	return map[string]any{
 		"info":        transfer,
 		"id":          this.SafeString(transfer, "result"),
 		"timestamp":   nil,
@@ -5748,29 +6683,31 @@ func (this *XtCore) ParseTransfer(transfer interface{}, optionalArgs ...interfac
  * @method
  * @name xt#setMarginMode
  * @description set margin mode to 'cross' or 'isolated'
- * @see https://doc.xt.com/#futures_userchangePositionType
+ * @see https://doc.xt.com/docs/futures/User/Change%20Position%20Type
  * @param {string} marginMode 'cross' or 'isolated'
  * @param {string} [symbol] required
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.positionSide] *required* "long" or "short"
  * @returns {object} response from the exchange
  */
-func (this *XtCore) SetMarginMode(marginMode interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes48778 := (<-this.LoadMarkets())
-		PanicOnError(retRes48778)
-		var market interface{} = this.Market(symbol)
+			retRes540212 := (<-this.LoadMarkets())
+			PanicOnError(retRes540212)
+		}
+		var market any = this.Market(symbol)
 		if IsTrue(GetValue(market, "spot")) {
 			panic(BadSymbol(Add(this.Id, " setMarginMode() supports contract markets only")))
 		}
@@ -5783,18 +6720,28 @@ func (this *XtCore) SetMarginMode(marginMode interface{}, optionalArgs ...interf
 		} else {
 			marginMode = "ISOLATED"
 		}
-		var posSide interface{} = this.SafeStringUpper(params, "positionSide")
-		if IsTrue(IsEqual(posSide, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a positionSide parameter, either \"LONG\" or \"SHORT\"")))
-		}
-		var request interface{} = map[string]interface{}{
+		var posSide any = this.SafeStringUpper(params, "positionSide")
+		this.CheckRequiredArgument("setMarginMode", posSide, "positionSide", []any{"LONG", "SHORT"})
+		params = this.Omit(params, "positionSide")
+		var request any = map[string]any{
 			"positionType": marginMode,
 			"positionSide": posSide,
 			"symbol":       GetValue(market, "id"),
 		}
+		var subType any = nil
+		subTypeparamsVariable := this.HandleSubTypeAndParams("setMarginMode", market, params)
+		subType = GetValue(subTypeparamsVariable, 0)
+		params = GetValue(subTypeparamsVariable, 1)
+		var response any = nil
+		if IsTrue(IsEqual(subType, "inverse")) {
 
-		response := (<-this.PrivateLinearPostFutureUserV1PositionChangeType(this.Extend(request, params)))
-		PanicOnError(response)
+			response = (<-this.PrivateInversePostFutureUserV1PositionChangeType(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+
+			response = (<-this.PrivateLinearPostFutureUserV1PositionChangeType(this.Extend(request, params)))
+			PanicOnError(response)
+		}
 
 		//
 		// {
@@ -5818,9 +6765,9 @@ func (this *XtCore) SetMarginMode(marginMode interface{}, optionalArgs ...interf
  * @method
  * @name xt#editOrder
  * @description cancels an order and places a new order
- * @see https://doc.xt.com/#orderorderUpdate
- * @see https://doc.xt.com/#futures_orderupdate
- * @see https://doc.xt.com/#futures_entrustupdateProfit
+ * @see https://doc.xt.com/docs/spot/Order/UpdateOrderLimit
+ * @see https://doc.xt.com/docs/futures/Order/update-orders
+ * @see https://doc.xt.com/docs/futures/Entrust/AlterStopLimit
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -5832,37 +6779,39 @@ func (this *XtCore) SetMarginMode(marginMode interface{}, optionalArgs ...interf
  * @param {float} [params.takeProfit] price to set a take-profit on an open position
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *XtCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *XtCore) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		amount := GetArg(optionalArgs, 0, nil)
 		_ = amount
 		price := GetArg(optionalArgs, 1, nil)
 		_ = price
-		params := GetArg(optionalArgs, 2, map[string]interface{}{})
+		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(amount, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " editOrder() requires an amount argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes49378 := (<-this.LoadMarkets())
-		PanicOnError(retRes49378)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{}
-		var stopLoss interface{} = this.SafeNumber2(params, "stopLoss", "triggerStopPrice")
-		var takeProfit interface{} = this.SafeNumber2(params, "takeProfit", "triggerProfitPrice")
-		params = this.Omit(params, []interface{}{"stopLoss", "takeProfit"})
-		var isStopLoss interface{} = (!IsEqual(stopLoss, nil))
-		var isTakeProfit interface{} = (!IsEqual(takeProfit, nil))
+			retRes547012 := (<-this.LoadMarkets())
+			PanicOnError(retRes547012)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{}
+		var stopLoss any = this.SafeNumber2(params, "stopLoss", "triggerStopPrice")
+		var takeProfit any = this.SafeNumber2(params, "takeProfit", "triggerProfitPrice")
+		params = this.Omit(params, []any{"stopLoss", "takeProfit"})
+		var isStopLoss any = (!IsEqual(stopLoss, nil))
+		var isTakeProfit any = (!IsEqual(takeProfit, nil))
 		if IsTrue(IsTrue(isStopLoss) || IsTrue(isTakeProfit)) {
 			AddElementToObject(request, "profitId", id)
 		} else {
 			AddElementToObject(request, "orderId", id)
 			AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(GetValue(market, "swap")) {
 			if IsTrue(isStopLoss) {
 				AddElementToObject(request, "triggerStopPrice", this.PriceToPrecision(symbol, stopLoss))
@@ -5871,7 +6820,7 @@ func (this *XtCore) EditOrder(id interface{}, symbol interface{}, typeVar interf
 			} else {
 				AddElementToObject(request, "origQty", this.AmountToPrecision(symbol, amount))
 			}
-			var subType interface{} = nil
+			var subType any = nil
 			subTypeparamsVariable := this.HandleSubTypeAndParams("editOrder", market, params)
 			subType = GetValue(subTypeparamsVariable, 0)
 			params = GetValue(subTypeparamsVariable, 1)
@@ -5902,7 +6851,7 @@ func (this *XtCore) EditOrder(id interface{}, symbol interface{}, typeVar interf
 			response = (<-this.PrivateSpotPutOrderOrderId(this.Extend(request, params)))
 			PanicOnError(response)
 		}
-		var result interface{} = Ternary(IsTrue((GetValue(market, "swap"))), response, this.SafeDict(response, "result", map[string]interface{}{}))
+		var result any = Ternary(IsTrue((GetValue(market, "swap"))), response, this.SafeDict(response, "result", map[string]any{}))
 
 		ch <- this.ParseOrder(result, market)
 		return nil
@@ -5910,7 +6859,7 @@ func (this *XtCore) EditOrder(id interface{}, symbol interface{}, typeVar interf
 	}()
 	return ch
 }
-func (this *XtCore) HandleErrors(code interface{}, reason interface{}, url interface{}, method interface{}, headers interface{}, body interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{} {
+func (this *XtCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	//
 	// spot: error
 	//
@@ -5963,35 +6912,35 @@ func (this *XtCore) HandleErrors(code interface{}, reason interface{}, url inter
 	// {"returnCode":1,"msgInfo":"failure","error":{"code":"insufficient_balance","msg":"insufficient balance","args":[]},"result":null}
 	//
 	//
-	var status interface{} = this.SafeStringUpper2(response, "msgInfo", "mc")
+	var status any = this.SafeStringUpper2(response, "msgInfo", "mc")
 	if IsTrue(IsTrue(!IsEqual(status, nil)) && IsTrue(!IsEqual(status, "SUCCESS"))) {
-		var feedback interface{} = Add(Add(this.Id, " "), body)
-		var error interface{} = this.SafeValue(response, "error", map[string]interface{}{})
-		var spotErrorCode interface{} = this.SafeString(response, "mc")
-		var errorCode interface{} = this.SafeString(error, "code", spotErrorCode)
-		var spotMessage interface{} = this.SafeString(response, "msgInfo")
-		var message interface{} = this.SafeString(error, "msg", spotMessage)
+		var feedback any = Add(Add(this.Id, " "), body)
+		var error any = this.SafeValue(response, "error", map[string]any{})
+		var spotErrorCode any = this.SafeString(response, "mc")
+		var errorCode any = this.SafeString(error, "code", spotErrorCode)
+		var spotMessage any = this.SafeString(response, "msgInfo")
+		var message any = this.SafeString(error, "msg", spotMessage)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
 		panic(ExchangeError(feedback))
 	}
 	return nil
 }
-func (this *XtCore) Sign(path interface{}, optionalArgs ...interface{}) interface{} {
-	api := GetArg(optionalArgs, 0, []interface{}{})
+func (this *XtCore) Sign(path any, optionalArgs ...any) any {
+	api := GetArg(optionalArgs, 0, []any{})
 	_ = api
 	method := GetArg(optionalArgs, 1, "GET")
 	_ = method
-	params := GetArg(optionalArgs, 2, map[string]interface{}{})
+	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var signed interface{} = IsEqual(GetValue(api, 0), "private")
-	var endpoint interface{} = GetValue(api, 1)
-	var request interface{} = Add("/", this.ImplodeParams(path, params))
-	var payload interface{} = nil
+	var signed any = IsEqual(GetValue(api, 0), "private")
+	var endpoint any = GetValue(api, 1)
+	var request any = Add("/", this.ImplodeParams(path, params))
+	var payload any = nil
 	if IsTrue(IsTrue((IsEqual(endpoint, "spot"))) || IsTrue((IsEqual(endpoint, "user")))) {
 		if IsTrue(signed) {
 			payload = Add(Add("/", this.Version), request)
@@ -6001,32 +6950,38 @@ func (this *XtCore) Sign(path interface{}, optionalArgs ...interface{}) interfac
 	} else {
 		payload = request
 	}
-	var url interface{} = Add(GetValue(GetValue(this.Urls, "api"), endpoint), payload)
-	var query interface{} = this.Omit(params, this.ExtractParams(path))
-	var urlencoded interface{} = this.Urlencode(this.Keysort(query))
-	headers = map[string]interface{}{
+	var url any = Add(GetValue(GetValue(this.Urls, "api"), endpoint), payload)
+	var query any = this.Omit(params, this.ExtractParams(path))
+	var urlencoded any = this.Urlencode(this.Keysort(query))
+	headers = map[string]any{
 		"Content-Type": "application/json",
 	}
 	if IsTrue(signed) {
 		this.CheckRequiredCredentials()
-		var defaultRecvWindow interface{} = this.SafeString(this.Options, "recvWindow")
-		var recvWindow interface{} = this.SafeString(query, "recvWindow", defaultRecvWindow)
-		var timestamp interface{} = this.NumberToString(this.Nonce())
+		var defaultRecvWindow any = this.SafeString(this.Options, "recvWindow")
+		var recvWindow any = this.SafeString(query, "recvWindow", defaultRecvWindow)
+		var timestamp any = this.NumberToString(this.Nonce())
 		body = query
 		if IsTrue(IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(payload, "/v4/order"))) || IsTrue((IsEqual(payload, "/future/trade/v1/order/create")))) || IsTrue((IsEqual(payload, "/future/trade/v1/entrust/create-plan")))) || IsTrue((IsEqual(payload, "/future/trade/v1/entrust/create-profit")))) || IsTrue((IsEqual(payload, "/future/trade/v1/order/create-batch")))) {
-			var id interface{} = "CCXT"
+			var id any = "CCXT"
+			if IsTrue(IsEqual(body, nil)) {
+				panic(NullResponse(Add(this.Id, " sign() returned empty body")))
+			}
 			if IsTrue(IsGreaterThan(GetIndexOf(payload, "future"), OpNeg(1))) {
 				AddElementToObject(body, "clientMedia", id)
+				if IsTrue(IsEqual(body, nil)) {
+					panic(NullResponse(Add(this.Id, " sign() returned empty body")))
+				}
 			} else {
 				AddElementToObject(body, "media", id)
 			}
 		}
-		var isUndefinedBody interface{} = (IsTrue(IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(path, "order/{orderId}")))) || IsTrue((IsEqual(path, "ws-token"))))
+		var isUndefinedBody any = (IsTrue(IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(path, "order/{orderId}")))) || IsTrue((IsEqual(path, "ws-token"))))
 		if IsTrue(IsTrue((IsEqual(method, "PUT"))) && IsTrue((IsEqual(endpoint, "spot")))) {
 			isUndefinedBody = false
 		}
 		body = Ternary(IsTrue(isUndefinedBody), nil, this.Json(body))
-		var payloadString interface{} = nil
+		var payloadString any = nil
 		if IsTrue(IsTrue((IsEqual(endpoint, "spot"))) || IsTrue((IsEqual(endpoint, "user")))) {
 			payloadString = Add(Add(Add(Add(Add(Add("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=", this.ApiKey), "&xt-validate-recvwindow="), recvWindow), "&xt-validate-t"), "imestamp="), timestamp)
 			if IsTrue(isUndefinedBody) {
@@ -6054,7 +7009,7 @@ func (this *XtCore) Sign(path interface{}, optionalArgs ...interface{}) interfac
 				payloadString = Add(payloadString, Add(Add(Add("#", payload), "#"), body))
 			}
 		}
-		var signature interface{} = this.Hmac(this.Encode(payloadString), this.Encode(this.Secret), sha256)
+		var signature any = this.Hmac(this.Encode(payloadString), this.Encode(this.Secret), sha256)
 		AddElementToObject(headers, "xt-validate-appkey", this.ApiKey)
 		AddElementToObject(headers, "xt-validate-timestamp", timestamp)
 		AddElementToObject(headers, "xt-validate-signature", signature)
@@ -6063,7 +7018,7 @@ func (this *XtCore) Sign(path interface{}, optionalArgs ...interface{}) interfac
 			url = Add(url, Add("?", urlencoded))
 		}
 	}
-	return map[string]interface{}{
+	return map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    body,
@@ -6071,8 +7026,8 @@ func (this *XtCore) Sign(path interface{}, optionalArgs ...interface{}) interfac
 	}
 }
 
-func (this *XtCore) Init(userConfig map[string]interface{}) {
+func (this *XtCore) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
+	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
 }

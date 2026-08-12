@@ -8,11 +8,14 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class aster extends \ccxt\async\aster {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -86,273 +89,326 @@ class aster extends \ccxt\async\aster {
         ));
     }
 
-    public function get_account_type_from_subscriptions(array $subscriptions): string {
-        $accountType = '';
-        for ($i = 0; $i < count($subscriptions); $i++) {
-            $subscription = $subscriptions[$i];
-            if (($subscription === 'spot') || ($subscription === 'swap')) {
-                $accountType = $subscription;
-                break;
-            }
+    public function get_account_type_from_url(string $url): string {
+        if (mb_strpos($url, 'fstream') > -1) {
+            return 'swap';
         }
-        return $accountType;
+        return 'spot';
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-$symbol
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-$symbol-ticker-streams
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
-             */
-            $params['callerMethodName'] = 'watchTicker';
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         *
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#simplified-ticker-by-$symbol
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#compact-$tickers-for-all-symbols-in-the-entire-market
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#full-ticker-per-$symbol
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#complete-ticker-for-all-trading-pairs-on-the-entire-market
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-$symbol-mini-ticker-stream
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-mini-$tickers-stream
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-$symbol-ticker-streams
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-$tickers-streams
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        $params['callerMethodName'] = 'watchTicker';
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbol = $this->safe_symbol($symbol);
-            $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
-            return $tickers[$symbol];
-        }) ();
+        }
+        $symbol = $this->safe_symbol($symbol);
+        $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
+        return $tickers[$symbol];
     }
 
-    public function un_watch_ticker(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches a price ticker
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-$symbol
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-$symbol-ticker-streams
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
-             */
-            $params['callerMethodName'] = 'unWatchTicker';
-            return Async\await($this->un_watch_tickers(array( $symbol ), $params));
-        }) ();
+    public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ticker(...))($symbol, $params);
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-$symbol
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-$symbol-ticker-streams
-             *
-             * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
-             */
+    private function do_un_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * unWatches a price ticker
+         *
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#simplified-ticker-by-$symbol
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#compact-tickers-for-all-symbols-in-the-entire-market
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#full-ticker-per-$symbol
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#complete-ticker-for-all-trading-pairs-on-the-entire-market
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-$symbol-mini-ticker-stream
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-mini-tickers-stream
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-$symbol-ticker-streams
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-tickers-streams
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        $params['callerMethodName'] = 'unWatchTicker';
+        return Async\await($this->un_watch_tickers(array( $symbol ), $params));
+    }
+
+    public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         *
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#compact-tickers-for-all-$symbols-in-the-entire-$market
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#complete-ticker-for-all-trading-pairs-on-the-entire-$market
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#all-$market-mini-tickers-stream
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#all-$market-tickers-streams
+         *
+         * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, true, true, true);
-            $firstMarket = $this->get_market_from_symbols($symbols);
-            $type = $this->safe_string($firstMarket, 'type', 'swap');
-            $symbolsLength = count($symbols);
-            $methodName = null;
-            list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'watchTickers');
-            $params = $this->omit($params, 'callerMethodName');
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
-            }
-            $url = $this->urls['api']['ws']['public'][$type];
-            $subscriptionArgs = array();
-            $messageHashes = array();
-            $request = array(
-                'method' => 'SUBSCRIBE',
-                'params' => $subscriptionArgs,
-            );
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@ticker';
-                $messageHashes[] = 'ticker:' . $market['symbol'];
-            }
-            $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
-            if ($this->newUpdates) {
-                $result = array();
-                $result[$newTicker['symbol']] = $newTicker;
-                return $result;
-            }
-            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        }) ();
+        }
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        if ($symbols === null) {
+            $symbols = array();
+        }
+        $firstMarket = $this->get_market_from_symbols($symbols);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
+        $symbolsLength = count($symbols);
+        $methodName = null;
+        list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'watchTickers');
+        $params = $this->omit($params, 'callerMethodName');
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
+        }
+        $url = $this->urls['api']['ws']['public'][$type];
+        $subscriptionArgs = array();
+        $messageHashes = array();
+        $request = array(
+            'method' => 'SUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@ticker';
+            $messageHashes[] = 'ticker:' . $market['symbol'];
+        }
+        $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
+        if ($this->newUpdates) {
+            $result = array();
+            $result[$newTicker['symbol']] = $newTicker;
+            return $result;
+        }
+        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
-    public function un_watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-$symbol
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-$symbol-ticker-streams
-             *
-             * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
-             */
+    public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_un_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         *
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#compact-tickers-for-all-$symbols-in-the-entire-$market
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#complete-ticker-for-all-trading-pairs-on-the-entire-$market
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#all-$market-mini-tickers-stream
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#all-$market-tickers-streams
+         *
+         * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, true, true, true);
-            $firstMarket = $this->get_market_from_symbols($symbols);
-            $type = $this->safe_string($firstMarket, 'type', 'swap');
-            $symbolsLength = count($symbols);
-            $methodName = null;
-            list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'unWatchTickers');
-            $params = $this->omit($params, 'callerMethodName');
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
-            }
-            $url = $this->urls['api']['ws']['public'][$type];
-            $subscriptionArgs = array();
-            $messageHashes = array();
-            $request = array(
-                'method' => 'UNSUBSCRIBE',
-                'params' => $subscriptionArgs,
-            );
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@ticker';
-                $messageHashes[] = 'unsubscribe:ticker:' . $market['symbol'];
-            }
-            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
-        }) ();
+        }
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        if ($symbols === null) {
+            $symbols = array();
+        }
+        $firstMarket = $this->get_market_from_symbols($symbols);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
+        $symbolsLength = count($symbols);
+        $methodName = null;
+        list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'unWatchTickers');
+        $params = $this->omit($params, 'callerMethodName');
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
+        }
+        $url = $this->urls['api']['ws']['public'][$type];
+        $subscriptionArgs = array();
+        $messageHashes = array();
+        $request = array(
+            'method' => 'UNSUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@ticker';
+            $messageHashes[] = 'unsubscribe:ticker:' . $market['symbol'];
+        }
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
     }
 
-    public function watch_mark_price(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watches a mark price for a specific market
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
-             */
-            $params['callerMethodName'] = 'watchMarkPrice';
+    public function watch_mark_price(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_mark_price(...))($symbol, $params);
+    }
+
+    private function do_watch_mark_price(string $symbol, $params = array()) {
+        /**
+         * watches a mark price for a specific market
+         *
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream-for-all-market
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        $params['callerMethodName'] = 'watchMarkPrice';
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbol = $this->safe_symbol($symbol);
-            $tickers = Async\await($this->watch_mark_prices(array( $symbol ), $params));
-            return $tickers[$symbol];
-        }) ();
+        }
+        $symbol = $this->safe_symbol($symbol);
+        $tickers = Async\await($this->watch_mark_prices(array( $symbol ), $params));
+        return $tickers[$symbol];
     }
 
-    public function un_watch_mark_price(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches a mark price for a specific market
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
-             */
-            $params['callerMethodName'] = 'unWatchMarkPrice';
-            return Async\await($this->un_watch_mark_prices(array( $symbol ), $params));
-        }) ();
+    public function un_watch_mark_price(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_mark_price(...))($symbol, $params);
     }
 
-    public function watch_mark_prices(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * watches the mark price for all markets
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream
-             *
-             * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
-             */
+    private function do_un_watch_mark_price(string $symbol, $params = array()) {
+        /**
+         * unWatches a mark price for a specific market
+         *
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream-for-all-market
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        $params['callerMethodName'] = 'unWatchMarkPrice';
+        return Async\await($this->un_watch_mark_prices(array( $symbol ), $params));
+    }
+
+    public function watch_mark_prices(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_mark_prices(...))($symbols, $params);
+    }
+
+    private function do_watch_mark_prices(?array $symbols = null, $params = array()) {
+        /**
+         * watches the mark price for all markets
+         *
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#mark-price-stream
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#mark-price-stream-for-all-$market
+         *
+         * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, true, true, true);
-            $firstMarket = $this->get_market_from_symbols($symbols);
-            $type = $this->safe_string($firstMarket, 'type', 'swap');
-            $symbolsLength = count($symbols);
-            $methodName = null;
-            list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'watchMarkPrices');
-            $params = $this->omit($params, 'callerMethodName');
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
-            }
-            $url = $this->urls['api']['ws']['public'][$type];
-            $subscriptionArgs = array();
-            $messageHashes = array();
-            $request = array(
-                'method' => 'SUBSCRIBE',
-                'params' => $subscriptionArgs,
-            );
-            $use1sFreq = $this->safe_bool($params, 'use1sFreq', true);
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $suffix = ($use1sFreq) ? '@1s' : '';
-                $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@markPrice' . $suffix;
-                $messageHashes[] = 'ticker:' . $market['symbol'];
-            }
-            $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
-            if ($this->newUpdates) {
-                $result = array();
-                $result[$newTicker['symbol']] = $newTicker;
-                return $result;
-            }
-            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        }) ();
+        }
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        if ($symbols === null) {
+            $symbols = array();
+        }
+        $firstMarket = $this->get_market_from_symbols($symbols);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
+        $symbolsLength = count($symbols);
+        $methodName = null;
+        list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'watchMarkPrices');
+        $params = $this->omit($params, 'callerMethodName');
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
+        }
+        $url = $this->urls['api']['ws']['public'][$type];
+        $subscriptionArgs = array();
+        $messageHashes = array();
+        $request = array(
+            'method' => 'SUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
+        $use1sFreq = $this->safe_bool($params, 'use1sFreq', true);
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            $suffix = ($use1sFreq) ? '@1s' : '';
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@markPrice' . $suffix;
+            $messageHashes[] = 'ticker:' . $market['symbol'];
+        }
+        $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
+        if ($this->newUpdates) {
+            $result = array();
+            $result[$newTicker['symbol']] = $newTicker;
+            return $result;
+        }
+        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
-    public function un_watch_mark_prices(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * watches the mark price for all markets
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream
-             *
-             * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
-             */
+    public function un_watch_mark_prices(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_mark_prices(...))($symbols, $params);
+    }
+
+    private function do_un_watch_mark_prices(?array $symbols = null, $params = array()) {
+        /**
+         * watches the mark price for all markets
+         *
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#mark-price-stream
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#mark-price-stream-for-all-$market
+         *
+         * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, true, true, true);
-            $firstMarket = $this->get_market_from_symbols($symbols);
-            $type = $this->safe_string($firstMarket, 'type', 'swap');
-            $symbolsLength = count($symbols);
-            $methodName = null;
-            list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'unWatchMarkPrices');
-            $params = $this->omit($params, 'callerMethodName');
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
-            }
-            $url = $this->urls['api']['ws']['public'][$type];
-            $subscriptionArgs = array();
-            $messageHashes = array();
-            $request = array(
-                'method' => 'UNSUBSCRIBE',
-                'params' => $subscriptionArgs,
-            );
-            $use1sFreq = $this->safe_bool($params, 'use1sFreq', true);
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $suffix = ($use1sFreq) ? '@1s' : '';
-                $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@markPrice' . $suffix;
-                $messageHashes[] = 'unsubscribe:ticker:' . $market['symbol'];
-            }
-            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
-        }) ();
+        }
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        if ($symbols === null) {
+            $symbols = array();
+        }
+        $firstMarket = $this->get_market_from_symbols($symbols);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
+        $symbolsLength = count($symbols);
+        $methodName = null;
+        list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'unWatchMarkPrices');
+        $params = $this->omit($params, 'callerMethodName');
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
+        }
+        $url = $this->urls['api']['ws']['public'][$type];
+        $subscriptionArgs = array();
+        $messageHashes = array();
+        $request = array(
+            'method' => 'UNSUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
+        $use1sFreq = $this->safe_bool($params, 'use1sFreq', true);
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            $suffix = ($use1sFreq) ? '@1s' : '';
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@markPrice' . $suffix;
+            $messageHashes[] = 'unsubscribe:ticker:' . $market['symbol'];
+        }
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
-        //         "stream" => "trumpusdt@$ticker",
-        //         "data" => {
         //             "e" => "24hrTicker",
         //             "E" => 1754451187277,
         //             "s" => "CAKEUSDT",
@@ -371,11 +427,8 @@ class aster extends \ccxt\async\aster {
         //             "F" => 6571389,
         //             "L" => 6574507,
         //             "n" => 3119
-        //         }
         //     }
         //     {
-        //         "stream" => "btcusdt@markPrice",
-        //         "data" => {
         //             "e" => "markPriceUpdate",
         //             "E" => 1754660466000,
         //             "s" => "BTCUSDT",
@@ -384,29 +437,26 @@ class aster extends \ccxt\async\aster {
         //             "i" => "116836.93534884",
         //             "r" => "0.00010000",
         //             "T" => 1754668800000
-        //         }
         //     }
         //
-        $subscriptions = $client->subscriptions;
-        $subscriptionsKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
-        $marketType = $this->get_account_type_from_subscriptions($subscriptionsKeys);
-        $ticker = $this->safe_dict($message, 'data');
+        $marketType = $this->get_account_type_from_url($client->url);
+        $ticker = $message;
         $parsed = $this->parse_ws_ticker($ticker, $marketType);
         $symbol = $parsed['symbol'];
         $messageHash = 'ticker:' . $symbol;
-        $this->tickers[$symbol] = $parsed;
-        $client->resolve ($this->tickers[$symbol], $messageHash);
+        if ($symbol !== null) {
+            $this->tickers[$symbol] = $parsed;
+            $client->resolve($this->tickers[$symbol], $messageHash);
+        }
     }
 
-    public function parse_ws_ticker($message, $marketType) {
+    public function parse_ws_ticker(mixed $message, mixed $marketType) {
         $event = $this->safe_string($message, 'e');
-        $part = explode('@', $event);
-        $channel = $this->safe_string($part, 1);
         $marketId = $this->safe_string($message, 's');
         $timestamp = $this->safe_integer($message, 'E');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $last = $this->safe_string($message, 'c');
-        if ($channel === 'markPriceUpdate') {
+        if ($event === 'markPriceUpdate') {
             return $this->safe_ticker(array(
                 'symbol' => $market['symbol'],
                 'timestamp' => $timestamp,
@@ -440,91 +490,107 @@ class aster extends \ccxt\async\aster {
         ), $market);
     }
 
-    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * watches best bid & ask for $symbols
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#best-order-book-information-by-$symbol
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-$symbol-book-ticker-streams
-             *
-             * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
-             */
-            Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, true, true, true);
-            $firstMarket = $this->get_market_from_symbols($symbols);
-            $type = $this->safe_string($firstMarket, 'type', 'swap');
-            $symbolsLength = count($symbols);
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' watchBidsAsks() requires a non-empty array of symbols');
-            }
-            $url = $this->urls['api']['ws']['public'][$type];
-            $subscriptionArgs = array();
-            $messageHashes = array();
-            $request = array(
-                'method' => 'SUBSCRIBE',
-                'params' => $subscriptionArgs,
-            );
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@bookTicker';
-                $messageHashes[] = 'bidask:' . $market['symbol'];
-            }
-            $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
-            if ($this->newUpdates) {
-                $result = array();
-                $result[$newTicker['symbol']] = $newTicker;
-                return $result;
-            }
-            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
-        }) ();
+    public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_bids_asks(...))($symbols, $params);
     }
 
-    public function un_watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * unWatches best bid & ask for $symbols
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#best-order-book-information-by-$symbol
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-$symbol-book-ticker-streams
-             *
-             * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
-             */
+    private function do_watch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         * watches best bid & ask for $symbols
+         *
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#best-order-book-information-by-$symbol
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#best-order-book-information-across-the-entire-$market
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#individual-$symbol-book-ticker-streams
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#all-book-tickers-stream
+         *
+         * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, true, true, true);
-            $firstMarket = $this->get_market_from_symbols($symbols);
-            $type = $this->safe_string($firstMarket, 'type', 'swap');
-            $symbolsLength = count($symbols);
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' unWatchBidsAsks() requires a non-empty array of symbols');
-            }
-            $url = $this->urls['api']['ws']['public'][$type];
-            $subscriptionArgs = array();
-            $messageHashes = array();
-            $request = array(
-                'method' => 'UNSUBSCRIBE',
-                'params' => $subscriptionArgs,
-            );
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@bookTicker';
-                $messageHashes[] = 'unsubscribe:bidask:' . $market['symbol'];
-            }
-            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
-        }) ();
+        }
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        if ($symbols === null) {
+            $symbols = array();
+        }
+        $firstMarket = $this->get_market_from_symbols($symbols);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
+        $symbolsLength = count($symbols);
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' watchBidsAsks() requires a non-empty array of symbols');
+        }
+        $url = $this->urls['api']['ws']['public'][$type];
+        $subscriptionArgs = array();
+        $messageHashes = array();
+        $request = array(
+            'method' => 'SUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@bookTicker';
+            $messageHashes[] = 'bidask:' . $market['symbol'];
+        }
+        $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
+        if ($this->newUpdates) {
+            $result = array();
+            $result[$newTicker['symbol']] = $newTicker;
+            return $result;
+        }
+        return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
     }
 
-    public function handle_bid_ask(Client $client, $message) {
+    public function un_watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_un_watch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         * unWatches best bid & ask for $symbols
+         *
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#best-order-book-information-by-$symbol
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#best-order-book-information-across-the-entire-$market
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#individual-$symbol-book-ticker-streams
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#all-book-tickers-stream
+         *
+         * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        if ($symbols === null) {
+            $symbols = array();
+        }
+        $firstMarket = $this->get_market_from_symbols($symbols);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
+        $symbolsLength = count($symbols);
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' unWatchBidsAsks() requires a non-empty array of symbols');
+        }
+        $url = $this->urls['api']['ws']['public'][$type];
+        $subscriptionArgs = array();
+        $messageHashes = array();
+        $request = array(
+            'method' => 'UNSUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@bookTicker';
+            $messageHashes[] = 'unsubscribe:bidask:' . $market['symbol'];
+        }
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
+    }
+
+    public function handle_bid_ask(Client $client, mixed $message) {
         //
         //     {
-        //         "stream" => "btcusdt@bookTicker",
-        //         "data" => {
         //             "e" => "bookTicker",
         //             "u" => 157240846459,
         //             "s" => "BTCUSDT",
@@ -534,26 +600,26 @@ class aster extends \ccxt\async\aster {
         //             "A" => "0.001",
         //             "T" => 1754896692922,
         //             "E" => 1754896692926
-        //         }
         //     }
         //
-        $subscriptions = $client->subscriptions;
-        $subscriptionsKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
-        $marketType = $this->get_account_type_from_subscriptions($subscriptionsKeys);
-        $data = $this->safe_dict($message, 'data', array());
+        $marketType = $this->get_account_type_from_url($client->url);
+        $data = $message;
         $marketId = $this->safe_string($data, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $ticker = $this->parse_ws_bid_ask($data, $market);
         $symbol = $ticker['symbol'];
-        $this->bidsasks[$symbol] = $ticker;
+        if ($symbol !== null) {
+            $this->bidsasks[$symbol] = $ticker;
+        }
         $messageHash = 'bidask:' . $symbol;
-        $client->resolve ($ticker, $messageHash);
+        $client->resolve($ticker, $messageHash);
     }
 
-    public function parse_ws_bid_ask($message, $market = null) {
+    public function parse_ws_bid_ask(mixed $message, ?array $market = null) {
         $timestamp = $this->safe_integer($message, 'T');
+        $bidAskSymbol = ($market !== null) ? $market['symbol'] : null;
         return $this->safe_ticker(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $bidAskSymbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'ask' => $this->safe_string($message, 'a'),
@@ -564,184 +630,183 @@ class aster extends \ccxt\async\aster {
         ), $market);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple trades made in a market
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#collection-transaction-flow
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams
-             *
-             * @param {string} $symbol unified market $symbol of the market trades were made in
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
-             */
-            $params['callerMethodName'] = 'watchTrades';
-            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
-        }) ();
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
     }
 
-    public function un_watch_trades(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unsubscribe from the trades channel
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#collection-transaction-flow
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams
-             *
-             * @param {string} $symbol unified market $symbol of the market trades were made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
-             */
-            $params['callerMethodName'] = 'unWatchTrades';
-            return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
-        }) ();
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple trades made in a market
+         *
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#collection-transaction-flow
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#tick-by-tick-trades
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#aggregate-trade-streams
+         *
+         * @param {string} $symbol unified market $symbol of the market trades were made in
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        $params['callerMethodName'] = 'watchTrades';
+        return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
     }
 
-    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             * get the list of most recent $trades for a list of $symbols
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#collection-transaction-flow
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams
-             *
-             * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
-             */
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
+        /**
+         * unsubscribe from the trades channel
+         *
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#collection-transaction-flow
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#tick-by-tick-trades
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#aggregate-trade-streams
+         *
+         * @param {string} $symbol unified market $symbol of the market trades were made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        $params['callerMethodName'] = 'unWatchTrades';
+        return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
+    }
+
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_trades_for_symbols(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent $trades for a list of $symbols
+         *
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#collection-transaction-flow
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#tick-by-tick-$trades
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#aggregate-trade-streams
+         *
+         * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, true, true, true);
-            $firstMarket = $this->get_market_from_symbols($symbols);
-            $type = $this->safe_string($firstMarket, 'type', 'swap');
-            $symbolsLength = count($symbols);
-            $methodName = null;
-            list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'watchTradesForSymbols');
-            $params = $this->omit($params, 'callerMethodName');
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
-            }
-            $url = $this->urls['api']['ws']['public'][$type];
-            $subscriptionArgs = array();
-            $messageHashes = array();
-            $request = array(
-                'method' => 'SUBSCRIBE',
-                'params' => $subscriptionArgs,
-            );
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@aggTrade';
-                $messageHashes[] = 'trade:' . $market['symbol'];
-            }
-            $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
-            if ($this->newUpdates) {
-                $first = $this->safe_value($trades, 0);
-                $tradeSymbol = $this->safe_string($first, 'symbol');
-                $limit = $trades->getLimit ($tradeSymbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+        }
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $firstMarket = $this->get_market_from_symbols($symbols);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
+        $symbolsLength = count($symbols);
+        $methodName = null;
+        list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'watchTradesForSymbols');
+        $params = $this->omit($params, 'callerMethodName');
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
+        }
+        $url = $this->urls['api']['ws']['public'][$type];
+        $subscriptionArgs = array();
+        $messageHashes = array();
+        $request = array(
+            'method' => 'SUBSCRIBE',
+            'params' => $subscriptionArgs,
+            'id' => 1,
+        );
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            $marketId = $this->safe_string_lower($market, 'id');
+            $subscriptionArgs[] = $marketId . '@aggTrade';
+            $messageHashes[] = 'trade::' . $market['symbol'];
+        }
+        $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
+        if ($this->newUpdates) {
+            $first = $this->safe_value($trades, 0);
+            $tradeSymbol = $this->safe_string($first, 'symbol');
+            $limit = $trades->getLimit($tradeSymbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function un_watch_trades_for_symbols(array $symbols, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * unsubscribe from the trades channel
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#collection-transaction-flow
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams
-             *
-             * @param {string[]} $symbols unified $symbol of the $market to fetch trades for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
-             */
+    public function un_watch_trades_for_symbols(array $symbols, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades_for_symbols(...))($symbols, $params);
+    }
+
+    private function do_un_watch_trades_for_symbols(array $symbols, $params = array()) {
+        /**
+         * unsubscribe from the trades channel
+         *
+         * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#collection-transaction-flow
+         * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams
+         *
+         * @param {string[]} $symbols unified $symbol of the $market to fetch trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, true, true, true);
-            $firstMarket = $this->get_market_from_symbols($symbols);
-            $type = $this->safe_string($firstMarket, 'type', 'swap');
-            $symbolsLength = count($symbols);
-            $methodName = null;
-            list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'unWatchTradesForSymbols');
-            $params = $this->omit($params, 'callerMethodName');
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
-            }
-            $url = $this->urls['api']['ws']['public'][$type];
-            $subscriptionArgs = array();
-            $messageHashes = array();
-            $request = array(
-                'method' => 'UNSUBSCRIBE',
-                'params' => $subscriptionArgs,
-            );
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@aggTrade';
-                $messageHashes[] = 'unsubscribe:trade:' . $market['symbol'];
-            }
-            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
-        }) ();
+        }
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $firstMarket = $this->get_market_from_symbols($symbols);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
+        $symbolsLength = count($symbols);
+        $methodName = null;
+        list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'unWatchTradesForSymbols');
+        $params = $this->omit($params, 'callerMethodName');
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
+        }
+        $url = $this->urls['api']['ws']['public'][$type];
+        $subscriptionArgs = array();
+        $messageHashes = array();
+        $request = array(
+            'method' => 'UNSUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@aggTrade';
+            $messageHashes[] = 'unsubscribe:trade:' . $market['symbol'];
+        }
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
     }
 
-    public function handle_trade(Client $client, $message) {
+    public function handle_trade(Client $client, mixed $message) {
         //
         //     {
-        //         "stream" => "btcusdt@aggTrade",
-        //         "data" => {
-        //             "e" => "aggTrade",
-        //             "E" => 1754551358681,
-        //             "a" => 20505890,
-        //             "s" => "BTCUSDT",
-        //             "p" => "114783.7",
-        //             "q" => "0.020",
-        //             "f" => 26024678,
-        //             "l" => 26024682,
-        //             "T" => 1754551358528,
-        //             "m" => false
-        //         }
+        //         "e" => "aggTrade",
+        //         "E" => 1754551358681,
+        //         "a" => 20505890,
+        //         "s" => "BTCUSDT",
+        //         "p" => "114783.7",
+        //         "q" => "0.020",
+        //         "f" => 26024678,
+        //         "l" => 26024682,
+        //         "T" => 1754551358528,
+        //         "m" => false
         //     }
         //
-        $subscriptions = $client->subscriptions;
-        $subscriptionsKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
-        $marketType = $this->get_account_type_from_subscriptions($subscriptionsKeys);
-        $trade = $this->safe_dict($message, 'data');
+        $marketType = $this->get_account_type_from_url($client->url);
+        $trade = $message;
         $marketId = $this->safe_string($trade, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $parsed = $this->parse_ws_trade($trade, $market);
         $symbol = $parsed['symbol'];
-        $stored = $this->safe_value($this->trades, $symbol);
-        if ($stored === null) {
-            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = new ArrayCache ($limit);
-            $this->trades[$symbol] = $stored;
+        if ($symbol === null) {
+            return;
         }
-        $stored->append ($parsed);
-        $messageHash = 'trade' . ':' . $symbol;
-        $client->resolve ($stored, $messageHash);
+        if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $this->trades[$symbol] = new ArrayCache($limit);
+        }
+        $stored = $this->trades[$symbol];
+        $stored->append($parsed);
+        $client->resolve($stored, 'trade::' . $symbol);
     }
 
-    public function parse_ws_trade($trade, $market = null): array {
+    public function parse_ws_trade(mixed $trade, ?array $market = null): array {
         //
-        // public watchTrades
-        //
-        //     {
-        //         "e" => "trade",       // event $type
-        //         "E" => 1579481530911, // event time
-        //         "s" => "ETHBTC",      // $symbol
-        //         "t" => 158410082,     // $trade $id
-        //         "p" => "0.01914100",  // $price
-        //         "q" => "0.00700000",  // quantity
-        //         "b" => 586187049,     // buyer order $id
-        //         "a" => 586186710,     // seller order $id
-        //         "T" => 1579481530910, // $trade time
-        //         "m" => false,         // is the buyer the $market maker
-        //         "M" => true           // binance docs say it should be ignored
-        //     }
+        // public watchTrades (spot)
         //
         //     {
         //        "e" => "aggTrade",  // Event $type
@@ -830,10 +895,18 @@ class aster extends \ccxt\async\aster {
         //         "ss" => 0
         //     }
         //
+        $e = $this->safe_string($trade, 'e');
+        $isPublicTrade = ($e === 'trade') || ($e === 'aggTrade');
         $id = $this->safe_string_2($trade, 't', 'a');
         $timestamp = $this->safe_integer($trade, 'T');
         $price = $this->safe_string_2($trade, 'L', 'p');
-        $amount = $this->safe_string_2($trade, 'q', 'l');
+        $amount = null;
+        if ($isPublicTrade) {
+            $amount = $this->safe_string($trade, 'q');
+        } else {
+            // private trades, $amount is in 'l' field, quantity of the last filled $trade
+            $amount = $this->safe_string($trade, 'l');
+        }
         $cost = $this->safe_string($trade, 'Y');
         if ($cost === null) {
             if (($price !== null) && ($amount !== null)) {
@@ -846,7 +919,7 @@ class aster extends \ccxt\async\aster {
         $side = $this->safe_string_lower($trade, 'S');
         $takerOrMaker = null;
         $orderId = $this->safe_string($trade, 'i');
-        if (is_array($trade) && array_key_exists('m', $trade)) {
+        if (is_array($trade) && array_key_exists('m' ?? '', $trade)) {
             if ($side === null) {
                 $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
             }
@@ -880,138 +953,156 @@ class aster extends \ccxt\async\aster {
         ));
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return.
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
-             */
-            $params['callerMethodName'] = 'watchOrderBook';
-            return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
-        }) ();
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
     }
 
-    public function un_watch_order_book(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unsubscribe from the orderbook channel
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams
-             *
-             * @param {string} $symbol symbol of the market to unwatch the trades for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->limit] orderbook limit, default is null
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
-             */
-            $params['callerMethodName'] = 'unWatchOrderBook';
-            return Async\await($this->un_watch_order_book_for_symbols(array( $symbol ), $params));
-        }) ();
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#limited-depth-information
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#incremental-depth-information
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#partial-book-depth-streams
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#diff-book-depth-streams
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return.
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        $params['callerMethodName'] = 'watchOrderBook';
+        return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
     }
 
-    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams
-             *
-             * @param {string[]} $symbols unified array of $symbols
-             * @param {int} [$limit] the maximum amount of order book entries to return.
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market $symbols
-             */
+    public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_order_book(...))($symbol, $params);
+    }
+
+    private function do_un_watch_order_book(string $symbol, $params = array()) {
+        /**
+         * unsubscribe from the orderbook channel
+         *
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#limited-depth-information
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#incremental-depth-information
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#partial-book-depth-streams
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#diff-book-depth-streams
+         *
+         * @param {string} $symbol symbol of the market to unwatch the trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->limit] orderbook limit, default is null
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        $params['callerMethodName'] = 'unWatchOrderBook';
+        return Async\await($this->un_watch_order_book_for_symbols(array( $symbol ), $params));
+    }
+
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_order_book_for_symbols(...))($symbols, $limit, $params);
+    }
+
+    private function do_watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#limited-depth-information
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#incremental-depth-information
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#partial-book-depth-streams
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#diff-book-depth-streams
+         *
+         * @param {string[]} $symbols unified array of $symbols
+         * @param {int} [$limit] the maximum amount of order book entries to return.
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, true, true, true);
-            $firstMarket = $this->get_market_from_symbols($symbols);
-            $type = $this->safe_string($firstMarket, 'type', 'swap');
-            $symbolsLength = count($symbols);
-            $methodName = null;
-            list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'watchOrderBookForSymbols');
-            $params = $this->omit($params, 'callerMethodName');
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
-            }
-            $url = $this->urls['api']['ws']['public'][$type];
-            $subscriptionArgs = array();
-            $messageHashes = array();
-            $request = array(
-                'method' => 'SUBSCRIBE',
-                'params' => $subscriptionArgs,
-            );
-            if ($limit === null || ($limit !== 5 && $limit !== 10 && $limit !== 20)) {
-                $limit = 20;
-            }
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@depth' . (string) $limit;
-                $messageHashes[] = 'orderbook:' . $market['symbol'];
-            }
-            $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
-            return $orderbook->limit ();
-        }) ();
+        }
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $firstMarket = $this->get_market_from_symbols($symbols);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
+        $symbolsLength = count($symbols);
+        $methodName = null;
+        list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'watchOrderBookForSymbols');
+        $params = $this->omit($params, 'callerMethodName');
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
+        }
+        $url = $this->urls['api']['ws']['public'][$type];
+        $subscriptionArgs = array();
+        $messageHashes = array();
+        $request = array(
+            'method' => 'SUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
+        if ($limit === null || ($limit !== 5 && $limit !== 10 && $limit !== 20)) {
+            $limit = 20;
+        }
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@depth' . (string) $limit;
+            $messageHashes[] = 'orderbook:' . $market['symbol'];
+        }
+        $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
+        return $orderbook->limit();
     }
 
-    public function un_watch_order_book_for_symbols(array $symbols, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * unsubscribe from the orderbook channel
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams
-             *
-             * @param {string[]} $symbols unified $symbol of the $market to unwatch the trades for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->limit] orderbook $limit, default is null
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market $symbols
-             */
+    public function un_watch_order_book_for_symbols(array $symbols, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_order_book_for_symbols(...))($symbols, $params);
+    }
+
+    private function do_un_watch_order_book_for_symbols(array $symbols, $params = array()) {
+        /**
+         * unsubscribe from the orderbook channel
+         *
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#limited-depth-information
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#incremental-depth-information
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#partial-book-depth-streams
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#diff-book-depth-streams
+         *
+         * @param {string[]} $symbols unified $symbol of the $market to unwatch the trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->limit] orderbook $limit, default is null
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, true, true, true);
-            $firstMarket = $this->get_market_from_symbols($symbols);
-            $type = $this->safe_string($firstMarket, 'type', 'swap');
-            $symbolsLength = count($symbols);
-            $methodName = null;
-            list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'unWatchOrderBookForSymbols');
-            $params = $this->omit($params, 'callerMethodName');
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
-            }
-            $url = $this->urls['api']['ws']['public'][$type];
-            $subscriptionArgs = array();
-            $messageHashes = array();
-            $request = array(
-                'method' => 'UNSUBSCRIBE',
-                'params' => $subscriptionArgs,
-            );
-            $limit = $this->safe_number($params, 'limit');
-            $params = $this->omit($params, 'limit');
-            if ($limit === null || ($limit !== 5 && $limit !== 10 && $limit !== 20)) {
-                $limit = 20;
-            }
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@depth' . $limit;
-                $messageHashes[] = 'unsubscribe:orderbook:' . $market['symbol'];
-            }
-            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
-        }) ();
+        }
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $firstMarket = $this->get_market_from_symbols($symbols);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
+        $symbolsLength = count($symbols);
+        $methodName = null;
+        list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'unWatchOrderBookForSymbols');
+        $params = $this->omit($params, 'callerMethodName');
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
+        }
+        $url = $this->urls['api']['ws']['public'][$type];
+        $subscriptionArgs = array();
+        $messageHashes = array();
+        $request = array(
+            'method' => 'UNSUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
+        $limit = $this->safe_number($params, 'limit');
+        $params = $this->omit($params, 'limit');
+        if ($limit === null || ($limit !== 5 && $limit !== 10 && $limit !== 20)) {
+            $limit = 20;
+        }
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@depth' . $limit;
+            $messageHashes[] = 'unsubscribe:orderbook:' . $market['symbol'];
+        }
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
-        //         "stream" => "btcusdt@depth20",
-        //         "data" => {
         //             "e" => "depthUpdate",
         //             "E" => 1754556878284,
         //             "T" => 1754556878031,
@@ -1031,171 +1122,186 @@ class aster extends \ccxt\async\aster {
         //                     "1.060"
         //                 )
         //             )
-        //         }
         //     }
         //
-        $subscriptions = $client->subscriptions;
-        $subscriptionsKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
-        $marketType = $this->get_account_type_from_subscriptions($subscriptionsKeys);
-        $data = $this->safe_dict($message, 'data');
+        $marketType = $this->get_account_type_from_url($client->url);
+        $data = $message;
         $marketId = $this->safe_string($data, 's');
         $timestamp = $this->safe_integer($data, 'T');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
         $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'b', 'a');
-        $orderbook->reset ($snapshot);
+        $orderbook->reset($snapshot);
         $messageHash = 'orderbook' . ':' . $symbol;
         $this->orderbooks[$symbol] = $orderbook;
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve($orderbook, $messageHash);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            $params['callerMethodName'] = 'watchOHLCV';
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         *
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#k-line-streams
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#klinecandlestick-streams
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        $params['callerMethodName'] = 'watchOHLCV';
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbol = $this->safe_symbol($symbol);
-            $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
-            return $result[$symbol][$timeframe];
-        }) ();
+        }
+        $symbol = $this->safe_symbol($symbol);
+        $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
+        return $result[$symbol][$timeframe];
     }
 
-    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $params) {
-            /**
-             * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            $params['callerMethodName'] = 'unWatchOHLCV';
-            return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
-        }) ();
+    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ohlcv(...))($symbol, $timeframe, $params);
     }
 
-    public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array ()) {
-        return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
-            /**
-             * watches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams
-             *
-             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A list of candles ordered, open, high, low, close, volume
-             */
+    private function do_un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array()) {
+        /**
+         * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         *
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#k-line-streams
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#klinecandlestick-streams
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        $params['callerMethodName'] = 'unWatchOHLCV';
+        return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
+    }
+
+    public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
+        return Async\async(self::do_watch_ohlcv_for_symbols(...))($symbolsAndTimeframes, $since, $limit, $params);
+    }
+
+    private function do_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#k-line-streams
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#klinecandlestick-streams
+         *
+         * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbolsLength = count($symbolsAndTimeframes);
-            $methodName = null;
-            list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'watchOHLCVForSymbols');
-            $params = $this->omit($params, 'callerMethodName');
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
+        }
+        $symbolsLength = count($symbolsAndTimeframes);
+        $methodName = null;
+        list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'watchOHLCVForSymbols');
+        $params = $this->omit($params, 'callerMethodName');
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
+        }
+        $symbols = $this->get_list_from_object_values($symbolsAndTimeframes, 0);
+        $marketSymbols = $this->market_symbols($symbols, null, false, true, true);
+        $firstMarket = $this->market($marketSymbols[0]);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
+        $url = $this->urls['api']['ws']['public'][$type];
+        $subscriptionArgs = array();
+        $messageHashes = array();
+        $request = array(
+            'method' => 'SUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
+        for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+            $data = $symbolsAndTimeframes[$i];
+            $symbolString = $this->safe_string($data, 0);
+            if ($symbolString === null) {
+                continue;
             }
-            $symbols = $this->get_list_from_object_values($symbolsAndTimeframes, 0);
-            $marketSymbols = $this->market_symbols($symbols, null, false, true, true);
-            $firstMarket = $this->market($marketSymbols[0]);
-            $type = $this->safe_string($firstMarket, 'type', 'swap');
-            $url = $this->urls['api']['ws']['public'][$type];
-            $subscriptionArgs = array();
-            $messageHashes = array();
-            $request = array(
-                'method' => 'SUBSCRIBE',
-                'params' => $subscriptionArgs,
-            );
-            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-                $data = $symbolsAndTimeframes[$i];
-                $symbolString = $this->safe_string($data, 0);
-                $market = $this->market($symbolString);
-                $symbolString = $market['symbol'];
-                $unfiedTimeframe = $this->safe_string($data, 1);
-                $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
-                $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@kline_' . $timeframeId;
-                $messageHashes[] = 'ohlcv:' . $market['symbol'] . ':' . $unfiedTimeframe;
-            }
-            list($symbol, $timeframe, $stored) = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
-            if ($this->newUpdates) {
-                $limit = $stored->getLimit ($symbol, $limit);
-            }
-            $filtered = $this->filter_by_since_limit($stored, $since, $limit, 0, true);
-            return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
-        }) ();
+            $market = $this->market($symbolString);
+            $symbolString = $market['symbol'];
+            $unfiedTimeframe = $this->safe_string($data, 1);
+            $timeframeId = ($unfiedTimeframe === null) ? null : $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@kline_' . $timeframeId;
+            $messageHashes[] = 'ohlcv:' . $market['symbol'] . ':' . $unfiedTimeframe;
+        }
+        list($symbol, $timeframe, $stored) = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
+        if ($this->newUpdates) {
+            $limit = $stored->getLimit($symbol, $limit);
+        }
+        $filtered = $this->filter_by_since_limit($stored, $since, $limit, 0, true);
+        return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
     }
 
-    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbolsAndTimeframes, $params) {
-            /**
-             * unWatches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams
-             *
-             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
+    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ohlcv_for_symbols(...))($symbolsAndTimeframes, $params);
+    }
+
+    private function do_un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array()) {
+        /**
+         * unWatches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#k-line-streams
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#klinecandlestick-streams
+         *
+         * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbolsLength = count($symbolsAndTimeframes);
-            $methodName = null;
-            list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'unWatchOHLCVForSymbols');
-            $params = $this->omit($params, 'callerMethodName');
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
+        }
+        $symbolsLength = count($symbolsAndTimeframes);
+        $methodName = null;
+        list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'unWatchOHLCVForSymbols');
+        $params = $this->omit($params, 'callerMethodName');
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
+        }
+        $symbols = $this->get_list_from_object_values($symbolsAndTimeframes, 0);
+        $marketSymbols = $this->market_symbols($symbols, null, false, true, true);
+        $firstMarket = $this->market($marketSymbols[0]);
+        $type = $this->safe_string($firstMarket, 'type', 'swap');
+        $url = $this->urls['api']['ws']['public'][$type];
+        $subscriptionArgs = array();
+        $messageHashes = array();
+        $request = array(
+            'method' => 'UNSUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
+        for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+            $data = $symbolsAndTimeframes[$i];
+            $symbolString = $this->safe_string($data, 0);
+            if ($symbolString === null) {
+                continue;
             }
-            $symbols = $this->get_list_from_object_values($symbolsAndTimeframes, 0);
-            $marketSymbols = $this->market_symbols($symbols, null, false, true, true);
-            $firstMarket = $this->market($marketSymbols[0]);
-            $type = $this->safe_string($firstMarket, 'type', 'swap');
-            $url = $this->urls['api']['ws']['public'][$type];
-            $subscriptionArgs = array();
-            $messageHashes = array();
-            $request = array(
-                'method' => 'UNSUBSCRIBE',
-                'params' => $subscriptionArgs,
-            );
-            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-                $data = $symbolsAndTimeframes[$i];
-                $symbolString = $this->safe_string($data, 0);
-                $market = $this->market($symbolString);
-                $symbolString = $market['symbol'];
-                $unfiedTimeframe = $this->safe_string($data, 1);
-                $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
-                $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@kline_' . $timeframeId;
-                $messageHashes[] = 'unsubscribe:ohlcv:' . $market['symbol'] . ':' . $unfiedTimeframe;
-            }
-            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
-        }) ();
+            $market = $this->market($symbolString);
+            $symbolString = $market['symbol'];
+            $unfiedTimeframe = $this->safe_string($data, 1);
+            $timeframeId = ($unfiedTimeframe === null) ? null : $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@kline_' . $timeframeId;
+            $messageHashes[] = 'unsubscribe:ohlcv:' . $market['symbol'] . ':' . $unfiedTimeframe;
+        }
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
-        //         "stream" => "btcusdt@kline_1m",
-        //         "data" => {
         //             "e" => "kline",
         //             "E" => 1754655777119,
         //             "s" => "BTCUSDT",
@@ -1218,36 +1324,36 @@ class aster extends \ccxt\async\aster {
         //                 "Q" => "0.0000",
         //                 "B" => "0"
         //             }
-        //         }
         //     }
         //
-        $subscriptions = $client->subscriptions;
-        $subscriptionsKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
-        $marketType = $this->get_account_type_from_subscriptions($subscriptionsKeys);
-        $data = $this->safe_dict($message, 'data');
+        $marketType = $this->get_account_type_from_url($client->url);
+        $data = $message;
         $marketId = $this->safe_string($data, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $kline = $this->safe_dict($data, 'k');
         $timeframeId = $this->safe_string($kline, 'i');
         $timeframe = $this->find_timeframe($timeframeId);
+        if ($timeframe === null) {
+            return;
+        }
         $ohlcvsByTimeframe = $this->safe_value($this->ohlcvs, $symbol);
         if ($ohlcvsByTimeframe === null) {
             $this->ohlcvs[$symbol] = array();
         }
         if ($this->safe_value($ohlcvsByTimeframe, $timeframe) === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-            $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp ($limit);
+            $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
         }
         $stored = $this->ohlcvs[$symbol][$timeframe];
         $parsed = $this->parse_ws_ohlcv($kline);
-        $stored->append ($parsed);
+        $stored->append($parsed);
         $messageHash = 'ohlcv:' . $symbol . ':' . $timeframe;
         $resolveData = array( $symbol, $timeframe, $stored );
-        $client->resolve ($resolveData, $messageHash);
+        $client->resolve($resolveData, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null): array {
+    public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 't'),
             $this->safe_number($ohlcv, 'o'),
@@ -1258,55 +1364,63 @@ class aster extends \ccxt\async\aster {
         );
     }
 
-    public function authenticate($type = 'spot', $params = array ()) {
-        return Async\async(function () use ($type, $params) {
-            $time = $this->milliseconds();
-            $lastAuthenticatedTimeOptions = $this->safe_dict($this->options, 'lastAuthenticatedTime', array());
-            $lastAuthenticatedTime = $this->safe_integer($lastAuthenticatedTimeOptions, $type, 0);
-            $listenKeyRefreshRateOptions = $this->safe_dict($this->options, 'listenKeyRefreshRate', array());
-            $listenKeyRefreshRate = $this->safe_integer($listenKeyRefreshRateOptions, $type, 3600000); // 1 hour
-            if ($time - $lastAuthenticatedTime > $listenKeyRefreshRate) {
-                $response = null;
-                if ($type === 'spot') {
-                    $response = Async\await($this->sapiPrivatePostV1ListenKey ($params));
-                } else {
-                    $response = Async\await($this->fapiPrivatePostV1ListenKey ($params));
-                }
-                $this->options['listenKey'][$type] = $this->safe_string($response, 'listenKey');
-                $this->options['lastAuthenticatedTime'][$type] = $time;
-                $params = $this->extend(array( 'type' => $type ), $params);
-                $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
-            }
-        }) ();
+    public function authenticate($type = 'spot', $params = array()) {
+        return Async\async(self::do_authenticate(...))($type, $params);
     }
 
-    public function keep_alive_listen_key($params = array ()) {
-        return Async\async(function () use ($params) {
-            $type = $this->safe_string($params, 'type', 'spot');
-            $listenKeyOptions = $this->safe_dict($this->options, 'listenKey', array());
-            $listenKey = $this->safe_string($listenKeyOptions, $type);
-            if ($listenKey === null) {
-                return;
+    private function do_authenticate($type = 'spot', $params = array()) {
+        $time = $this->milliseconds();
+        $lastAuthenticatedTimeOptions = $this->safe_dict($this->options, 'lastAuthenticatedTime', array());
+        $lastAuthenticatedTime = $this->safe_integer($lastAuthenticatedTimeOptions, $type, 0);
+        $listenKeyRefreshRateOptions = $this->safe_dict($this->options, 'listenKeyRefreshRate', array());
+        $listenKeyRefreshRate = $this->safe_integer($listenKeyRefreshRateOptions, $type, 3600000); // 1 hour
+        if ($time - $lastAuthenticatedTime > $listenKeyRefreshRate) {
+            $response = array();
+            if ($type === 'spot') {
+                $response = Async\await($this->sapiPrivatePostV3ListenKey($params));
+            } else {
+                $response = Async\await($this->fapiPrivatePostV3ListenKey($params));
             }
-            try {
-                Async\await($this->sapiPrivatePutV1ListenKey ()); // extend the expiry
-            } catch (Exception $error) {
-                $url = $this->urls['api']['ws']['private'][$type] . '/' . $listenKey;
-                $client = $this->client($url);
-                $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
-                for ($i = 0; $i < count($messageHashes); $i++) {
-                    $messageHash = $messageHashes[$i];
-                    $client->reject ($error, $messageHash);
-                }
-                $this->options['listenKey'][$type] = null;
-                $this->options['lastAuthenticatedTime'][$type] = 0;
-                return;
-            }
-            // whether or not to schedule another $listenKey keepAlive request
-            $listenKeyRefreshOptions = $this->safe_dict($this->options, 'listenKeyRefresh', array());
-            $listenKeyRefreshRate = $this->safe_integer($listenKeyRefreshOptions, 'listenKeyRefreshRate', 3600000);
+            $this->options['listenKey'][$type] = $this->safe_string($response, 'listenKey');
+            $this->options['lastAuthenticatedTime'][$type] = $time;
+            $params = $this->extend(array( 'type' => $type ), $params);
             $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
-        }) ();
+        }
+    }
+
+    public function keep_alive_listen_key($params = array()) {
+        return Async\async(self::do_keep_alive_listen_key(...))($params);
+    }
+
+    private function do_keep_alive_listen_key($params = array()) {
+        $type = $this->safe_string($params, 'type', 'spot');
+        $listenKeyOptions = $this->safe_dict($this->options, 'listenKey', array());
+        $listenKey = $this->safe_string($listenKeyOptions, $type);
+        if ($listenKey === null) {
+            return;
+        }
+        try {
+            if ($type === 'spot') {
+                Async\await($this->sapiPrivatePutV3ListenKey()); // extend the expiry
+            } else {
+                Async\await($this->fapiPrivatePutV3ListenKey()); // extend the expiry
+            }
+        } catch (Exception $error) {
+            $url = $this->urls['api']['ws']['private'][$type] . '/' . $listenKey;
+            $client = $this->client($url);
+            $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
+            for ($i = 0; $i < count($messageHashes); $i++) {
+                $messageHash = $messageHashes[$i];
+                $client->reject($error, $messageHash);
+            }
+            $this->options['listenKey'][$type] = null;
+            $this->options['lastAuthenticatedTime'][$type] = 0;
+            return;
+        }
+        // whether or not to schedule another $listenKey keepAlive request
+        $listenKeyRefreshOptions = $this->safe_dict($this->options, 'listenKeyRefresh', array());
+        $listenKeyRefreshRate = $this->safe_integer($listenKeyRefreshOptions, 'listenKeyRefreshRate', 3600000);
+        $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
     }
 
     public function get_private_url($type = 'spot') {
@@ -1316,47 +1430,51 @@ class aster extends \ccxt\async\aster {
         return $url;
     }
 
-    public function watch_balance($params = array ()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-account_update
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->type] 'spot' or 'swap', default is 'spot'
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            Async\await($this->load_markets());
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params, $type);
-            Async\await($this->authenticate($type, $params));
-            $url = $this->get_private_url($type);
-            $client = $this->client($url);
-            $this->set_balance_cache($client, $type);
-            $options = $this->safe_dict($this->options, 'watchBalance');
-            $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
-            $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
-            if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
-                Async\await($client->future ($type . ':fetchBalanceSnapshot'));
-            }
-            $messageHash = $type . ':balance';
-            $message = null;
-            return Async\await($this->watch($url, $messageHash, $message, $type));
-        }) ();
+    public function watch_balance($params = array()): PromiseInterface {
+        return Async\async(self::do_watch_balance(...))($params);
     }
 
-    public function set_balance_cache(Client $client, $type) {
-        if ((is_array($client->subscriptions) && array_key_exists($type, $client->subscriptions)) && (is_array($this->balance) && array_key_exists($type, $this->balance))) {
+    private function do_watch_balance($params = array()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-account-info/#payload-account_update
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/user-data-streams/#event-balance-and-position-update
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] 'spot' or 'swap', default is 'spot'
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params, $type);
+        Async\await($this->authenticate($type, $params));
+        $url = $this->get_private_url($type);
+        $client = $this->client($url);
+        $this->set_balance_cache($client, $type);
+        $options = $this->safe_dict($this->options, 'watchBalance');
+        $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
+        $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
+        if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
+            Async\await($client->future($type . ':fetchBalanceSnapshot'));
+        }
+        $messageHash = $type . ':balance';
+        $message = null;
+        return Async\await($this->watch($url, $messageHash, $message, $type));
+    }
+
+    public function set_balance_cache(Client $client, mixed $type) {
+        if ((is_array($client->subscriptions) && array_key_exists($type ?? '', $client->subscriptions)) && (is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             return;
         }
         $options = $this->safe_value($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         if ($fetchBalanceSnapshot) {
             $messageHash = $type . ':fetchBalanceSnapshot';
-            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
-                $client->future ($messageHash);
+            if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
+                $client->future($messageHash);
                 $this->spawn(array($this, 'load_balance_snapshot'), $client, $messageHash, $type);
             }
         } else {
@@ -1364,23 +1482,25 @@ class aster extends \ccxt\async\aster {
         }
     }
 
-    public function load_balance_snapshot($client, $messageHash, $type) {
-        return Async\async(function () use ($client, $messageHash, $type) {
-            $params = array(
-                'type' => $type,
-            );
-            $response = Async\await($this->fetch_balance($params));
-            $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
-            // don't remove the $future from the .futures cache
-            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
-                $future = $client->futures[$messageHash];
-                $future->resolve ();
-                $client->resolve ($this->balance[$type], $type . ':balance');
-            }
-        }) ();
+    public function load_balance_snapshot(Client $client, mixed $messageHash, mixed $type) {
+        return Async\async(self::do_load_balance_snapshot(...))($client, $messageHash, $type);
     }
 
-    public function handle_balance(Client $client, $message) {
+    private function do_load_balance_snapshot(Client $client, mixed $messageHash, mixed $type) {
+        $params = array(
+            'type' => $type,
+        );
+        $response = Async\await($this->fetch_balance($params));
+        $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
+        // don't remove the $future from the .futures cache
+        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+            $future = $client->futures[$messageHash];
+            $future->resolve();
+            $client->resolve($this->balance[$type], $type . ':balance');
+        }
+    }
+
+    public function handle_balance(Client $client, mixed $message) {
         //
         // spot balance update
         //     {
@@ -1434,9 +1554,7 @@ class aster extends \ccxt\async\aster {
         //         }
         //     }
         //
-        $subscriptions = $client->subscriptions;
-        $subscriptionsKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
-        $accountType = $this->get_account_type_from_subscriptions($subscriptionsKeys);
+        $accountType = $this->get_account_type_from_url($client->url);
         $messageHash = $accountType . ':balance';
         if ($this->balance[$accountType] === null) {
             $this->balance[$accountType] = array();
@@ -1453,58 +1571,64 @@ class aster extends \ccxt\async\aster {
             $account['free'] = $this->safe_string($entry, 'f');
             $account['used'] = $this->safe_string($entry, 'l');
             $account['total'] = $this->safe_string($entry, $wallet);
-            $this->balance[$accountType][$code] = $account;
+            if (($accountType !== null) && ($code !== null)) {
+                $this->balance[$accountType][$code] = $account;
+            }
         }
         $timestamp = $this->safe_integer($message, 'E');
         $this->balance[$accountType]['timestamp'] = $timestamp;
         $this->balance[$accountType]['datetime'] = $this->iso8601($timestamp);
         $this->balance[$accountType] = $this->safe_balance($this->balance[$accountType]);
-        $client->resolve ($this->balance[$accountType], $messageHash);
+        $client->resolve($this->balance[$accountType], $messageHash);
     }
 
-    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             * watch all open positions
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update
-             *
-             * @param {string[]|null} $symbols list of unified market $symbols
-             * @param {number} [$since] $since timestamp
-             * @param {number} [$limit] $limit
-             * @param {array} $params extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
-             */
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_positions(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watch all open positions
+         *
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/user-data-streams/#event-balance-and-position-update
+         *
+         * @param {string[]|null} $symbols list of unified market $symbols
+         * @param {number} [$since] $since timestamp
+         * @param {number} [$limit] $limit
+         * @param {array} $params extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $type = 'swap';
-            Async\await($this->authenticate($type, $params));
-            $url = $this->get_private_url($type);
-            $client = $this->client($url);
-            $this->set_positions_cache($client);
-            $messageHashes = array();
-            $messageHash = 'positions';
-            $symbols = $this->market_symbols($symbols, 'swap', true, true);
-            if ($symbols === null) {
-                $messageHashes[] = $messageHash;
-            } else {
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $symbol = $symbols[$i];
-                    $messageHashes[] = $messageHash . '::' . $symbol;
-                }
+        }
+        $type = 'swap';
+        Async\await($this->authenticate($type, $params));
+        $url = $this->get_private_url($type);
+        $client = $this->client($url);
+        $this->set_positions_cache($client);
+        $messageHashes = array();
+        $messageHash = 'positions';
+        $symbols = $this->market_symbols($symbols, 'swap', true, true);
+        if ($symbols === null) {
+            $messageHashes[] = $messageHash;
+        } else {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $messageHashes[] = $messageHash . '::' . $symbol;
             }
-            $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-            $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
-            $cache = $this->positions;
-            if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $cache === null) {
-                $snapshot = Async\await($client->future ('fetchPositionsSnapshot'));
-                return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
-            }
-            $newPositions = Async\await($this->watch_multiple($url, $messageHashes, null, array( $type )));
-            if ($this->newUpdates) {
-                return $newPositions;
-            }
-            return $this->filter_by_symbols_since_limit($cache, $symbols, $since, $limit, true);
-        }) ();
+        }
+        $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
+        $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
+        $cache = $this->positions;
+        if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $cache === null) {
+            $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
+            return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
+        }
+        $newPositions = Async\await($this->watch_multiple($url, $messageHashes, null, array( $type )));
+        if ($this->newUpdates) {
+            return $newPositions;
+        }
+        return $this->filter_by_symbols_since_limit($cache, $symbols, $since, $limit, true);
     }
 
     public function set_positions_cache(Client $client) {
@@ -1514,37 +1638,39 @@ class aster extends \ccxt\async\aster {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
         if ($fetchPositionsSnapshot) {
             $messageHash = 'fetchPositionsSnapshot';
-            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
-                $client->future ($messageHash);
+            if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
+                $client->future($messageHash);
                 $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash);
             }
         } else {
-            $this->positions = new ArrayCacheBySymbolBySide ();
+            $this->positions = new ArrayCacheBySymbolBySide();
         }
     }
 
-    public function load_positions_snapshot($client, $messageHash) {
-        return Async\async(function () use ($client, $messageHash) {
-            $positions = Async\await($this->fetch_positions());
-            $this->positions = new ArrayCacheBySymbolBySide ();
-            $cache = $this->positions;
-            for ($i = 0; $i < count($positions); $i++) {
-                $position = $positions[$i];
-                $contracts = $this->safe_number($position, 'contracts', 0);
-                if ($contracts > 0) {
-                    $cache->append ($position);
-                }
-            }
-            // don't remove the $future from the .futures $cache
-            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
-                $future = $client->futures[$messageHash];
-                $future->resolve ($cache);
-                $client->resolve ($cache, 'positions');
-            }
-        }) ();
+    public function load_positions_snapshot(Client $client, mixed $messageHash) {
+        return Async\async(self::do_load_positions_snapshot(...))($client, $messageHash);
     }
 
-    public function handle_positions($client, $message) {
+    private function do_load_positions_snapshot(Client $client, mixed $messageHash) {
+        $positions = Async\await($this->fetch_positions());
+        $this->positions = new ArrayCacheBySymbolBySide();
+        $cache = $this->positions;
+        for ($i = 0; $i < count($positions); $i++) {
+            $position = $positions[$i];
+            $contracts = $this->safe_number($position, 'contracts', 0);
+            if (($contracts !== null) && ($contracts > 0)) {
+                $cache->append($position);
+            }
+        }
+        // don't remove the $future from the .futures $cache
+        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+            $future = $client->futures[$messageHash];
+            $future->resolve($cache);
+            $client->resolve($cache, 'positions');
+        }
+    }
+
+    public function handle_positions(mixed $client, mixed $message) {
         //
         //     {
         //         "e" => "ACCOUNT_UPDATE",
@@ -1578,7 +1704,7 @@ class aster extends \ccxt\async\aster {
         //
         $messageHash = 'positions';
         if ($this->positions === null) {
-            $this->positions = new ArrayCacheBySymbolBySide ();
+            $this->positions = new ArrayCacheBySymbolBySide();
         }
         $cache = $this->positions;
         $data = $this->safe_dict($message, 'a', array());
@@ -1591,7 +1717,7 @@ class aster extends \ccxt\async\aster {
             $position['timestamp'] = $timestamp;
             $position['datetime'] = $this->iso8601($timestamp);
             $newPositions[] = $position;
-            $cache->append ($position);
+            $cache->append($position);
         }
         $messageHashes = $this->find_message_hashes($client, $messageHash);
         if (!$this->is_empty($messageHashes)) {
@@ -1599,13 +1725,13 @@ class aster extends \ccxt\async\aster {
                 $position = $newPositions[$i];
                 $symbol = $position['symbol'];
                 $symbolMessageHash = $messageHash . '::' . $symbol;
-                $client->resolve ($position, $symbolMessageHash);
+                $client->resolve($position, $symbolMessageHash);
             }
-            $client->resolve ($newPositions, 'positions');
+            $client->resolve($newPositions, 'positions');
         }
     }
 
-    public function parse_ws_position($position, $market = null) {
+    public function parse_ws_position(mixed $position, ?array $market = null) {
         //
         //     {
         //         "s" => "BTCUSDT", // Symbol
@@ -1660,85 +1786,93 @@ class aster extends \ccxt\async\aster {
         ));
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $orders made by the user
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update
-             *
-             * @param {string} [$symbol] unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->type] 'spot' or 'swap', default is 'spot' if $symbol is not provided
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            Async\await($this->load_markets());
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-            }
-            $messageHash = 'orders';
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params, $type);
-            Async\await($this->authenticate($type, $params));
-            if ($market !== null) {
-                $messageHash .= '::' . $symbol;
-            }
-            $url = $this->get_private_url($type);
-            $client = $this->client($url);
-            $this->set_balance_cache($client, $type);
-            $orders = Async\await($this->watch_multiple($url, array( $messageHash ), null, array( $type )));
-            if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        }) ();
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $trades made by the user
-             *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update
-             *
-             * @param {string} [$symbol] unified $market $symbol of the $market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->type] 'spot' or 'swap', default is 'spot' if $symbol is not provided
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $orders made by the user
+         *
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-account-info/#payload-order-update
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/user-data-streams/#event-order-update
+         *
+         * @param {string} [$symbol] unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] 'spot' or 'swap', default is 'spot' if $symbol is not provided
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-            }
-            $messageHash = 'myTrades';
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params, $type);
-            Async\await($this->authenticate($type, $params));
-            if ($market !== null) {
-                $messageHash .= '::' . $symbol;
-            }
-            $url = $this->get_private_url($type);
-            $client = $this->client($url);
-            $this->set_balance_cache($client, $type);
-            $trades = Async\await($this->watch_multiple($url, array( $messageHash ), null, array( $type )));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
-        }) ();
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+        }
+        $messageHash = 'orders';
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params, $type);
+        Async\await($this->authenticate($type, $params));
+        if ($market !== null) {
+            $messageHash .= '::' . $symbol;
+        }
+        $url = $this->get_private_url($type);
+        $client = $this->client($url);
+        $this->set_balance_cache($client, $type);
+        $orders = Async\await($this->watch_multiple($url, array( $messageHash ), null, array( $type )));
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_order_update(Client $client, $message) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $trades made by the user
+         *
+         * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-account-info/#payload-order-update
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/user-data-streams/#event-order-update
+         *
+         * @param {string} [$symbol] unified $market $symbol of the $market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] 'spot' or 'swap', default is 'spot' if $symbol is not provided
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+        }
+        $messageHash = 'myTrades';
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('watchMyTrades', $market, $params, $type);
+        Async\await($this->authenticate($type, $params));
+        if ($market !== null) {
+            $messageHash .= '::' . $symbol;
+        }
+        $url = $this->get_private_url($type);
+        $client = $this->client($url);
+        $this->set_balance_cache($client, $type);
+        $trades = Async\await($this->watch_multiple($url, array( $messageHash ), null, array( $type )));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+    }
+
+    public function handle_order_update(Client $client, mixed $message) {
         $rawOrder = $this->safe_dict($message, 'o', $message);
         $e = $this->safe_string($message, 'e');
         if (($e === 'ORDER_TRADE_UPDATE') || ($e === 'ALGO_UPDATE')) {
@@ -1748,7 +1882,7 @@ class aster extends \ccxt\async\aster {
         $this->handle_my_trade($client, $message);
     }
 
-    public function handle_my_trade(Client $client, $message) {
+    public function handle_my_trade(Client $client, mixed $message) {
         $messageHash = 'myTrades';
         $executionType = $this->safe_string($message, 'x');
         if ($executionType === 'TRADE') {
@@ -1775,7 +1909,8 @@ class aster extends \ccxt\async\aster {
                                 $orderFee = $fees[$i];
                                 if ($orderFee['currency'] === $tradeFee['currency']) {
                                     $feeCost = $this->sum($tradeFee['cost'], $orderFee['cost']);
-                                    $order['fees'][$i]['cost'] = floatval($this->currency_to_precision($tradeFee['currency'], $feeCost));
+                                    $feeCostString = $this->currency_to_precision($tradeFee['currency'], $feeCost);
+                                    $order['fees'][$i]['cost'] = ($feeCostString === null) ? null : floatval($feeCostString);
                                     $insertNewFeeCurrency = false;
                                     break;
                                 }
@@ -1786,7 +1921,8 @@ class aster extends \ccxt\async\aster {
                         } elseif ($fee !== null) {
                             if ($fee['currency'] === $tradeFee['currency']) {
                                 $feeCost = $this->sum($fee['cost'], $tradeFee['cost']);
-                                $order['fee']['cost'] = floatval($this->currency_to_precision($tradeFee['currency'], $feeCost));
+                                $feeCostString = $this->currency_to_precision($tradeFee['currency'], $feeCost);
+                                $order['fee']['cost'] = ($feeCostString === null) ? null : floatval($feeCostString);
                             } elseif ($fee['currency'] === null) {
                                 $order['fee'] = $tradeFee;
                             } else {
@@ -1807,17 +1943,17 @@ class aster extends \ccxt\async\aster {
             }
             if ($this->myTrades === null) {
                 $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-                $this->myTrades = new ArrayCacheBySymbolById ($limit);
+                $this->myTrades = new ArrayCacheBySymbolById($limit);
             }
             $myTrades = $this->myTrades;
-            $myTrades->append ($trade);
-            $client->resolve ($this->myTrades, $messageHash);
-            $messageHashSymbol = $messageHash . ':' . $symbol;
-            $client->resolve ($this->myTrades, $messageHashSymbol);
+            $myTrades->append($trade);
+            $client->resolve($this->myTrades, $messageHash);
+            $messageHashSymbol = $messageHash . '::' . $symbol;
+            $client->resolve($this->myTrades, $messageHashSymbol);
         }
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         //
         // spot
         //     {
@@ -1896,21 +2032,21 @@ class aster extends \ccxt\async\aster {
         $market = $this->get_market_from_order($client, $message);
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $cache = $this->orders;
         $parsed = $this->parse_ws_order($message, $market);
         $symbol = $market['symbol'];
-        $cache->append ($parsed);
+        $cache->append($parsed);
         $messageHashes = $this->find_message_hashes($client, $messageHash);
         if (!$this->is_empty($messageHashes)) {
             $symbolMessageHash = $messageHash . '::' . $symbol;
-            $client->resolve ($cache, $symbolMessageHash);
-            $client->resolve ($cache, $messageHash);
+            $client->resolve($cache, $symbolMessageHash);
+            $client->resolve($cache, $messageHash);
         }
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order(mixed $order, ?array $market = null) {
         $executionType = $this->safe_string($order, 'x');
         $marketId = $this->safe_string($order, 's');
         $market = $this->safe_market($marketId, $market);
@@ -1956,7 +2092,7 @@ class aster extends \ccxt\async\aster {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'lastUpdateTimestamp' => $lastUpdateTimestamp,
-            'type' => $this->parseOrderType ($this->safe_string_lower($order, 'o')),
+            'type' => $this->parseOrderType($this->safe_string_lower($order, 'o')),
             'timeInForce' => $timeInForce,
             'postOnly' => null,
             'reduceOnly' => $this->safe_bool($order, 'R'),
@@ -1975,46 +2111,35 @@ class aster extends \ccxt\async\aster {
         ));
     }
 
-    public function get_market_from_order(Client $client, $order) {
+    public function get_market_from_order(Client $client, mixed $order) {
         $marketId = $this->safe_string($order, 's');
-        $subscriptions = $client->subscriptions;
-        $subscriptionsKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
-        $marketType = $this->get_account_type_from_subscriptions($subscriptionsKeys);
+        $marketType = $this->get_account_type_from_url($client->url);
         return $this->safe_market($marketId, null, null, $marketType);
     }
 
-    public function handle_message(Client $client, $message) {
-        $stream = $this->safe_string($message, 'stream');
-        if ($stream !== null) {
-            $part = explode('@', $stream);
-            $topic = $this->safe_string($part, 1, '');
-            $part2 = explode('_', $topic);
-            $topic = $this->safe_string($part2, 0, '');
-            $methods = array(
-                'ticker' => array($this, 'handle_ticker'),
-                'aggTrade' => array($this, 'handle_trade'),
-                'depth5' => array($this, 'handle_order_book'),
-                'depth10' => array($this, 'handle_order_book'),
-                'depth20' => array($this, 'handle_order_book'),
-                'kline' => array($this, 'handle_ohlcv'),
-                'markPrice' => array($this, 'handle_ticker'),
-                'bookTicker' => array($this, 'handle_bid_ask'),
-            );
-            $method = $this->safe_value($methods, $topic);
-            if ($method !== null) {
-                $method($client, $message);
-            }
-        } else {
-            // private messages
-            $event = $this->safe_string($message, 'e');
-            if ($event === 'outboundAccountPosition') {
-                $this->handle_balance($client, $message);
-            } elseif ($event === 'ACCOUNT_UPDATE') {
-                $this->handle_balance($client, $message);
-                $this->handle_positions($client, $message);
-            } elseif (($event === 'ORDER_TRADE_UPDATE') || ($event === 'executionReport')) {
-                $this->handle_order_update($client, $message);
-            }
+    public function handle_balance_and_position(Client $client, mixed $message) {
+        $this->handle_balance($client, $message);
+        $this->handle_positions($client, $message);
+    }
+
+    public function handle_message(Client $client, mixed $message) {
+        $messageInner = $this->safe_dict($message, 'data', $message); // can be either wrapped in 'data' or full object itself
+        $event = $this->safe_string($messageInner, 'e');
+        $methods = array(
+            '24hrTicker' => array($this, 'handle_ticker'),
+            'aggTrade' => array($this, 'handle_trade'),
+            'depthUpdate' => array($this, 'handle_order_book'),
+            'kline' => array($this, 'handle_ohlcv'),
+            'markPriceUpdate' => array($this, 'handle_ticker'),
+            'bookTicker' => array($this, 'handle_bid_ask'),
+            'outboundAccountPosition' => array($this, 'handle_balance'),
+            'ACCOUNT_UPDATE' => array($this, 'handle_balance_and_position'),
+            'executionReport' => array($this, 'handle_order_update'),
+            'ORDER_TRADE_UPDATE' => array($this, 'handle_order_update'),
+        );
+        $method = ($event === null) ? null : $this->safe_value($methods, $event);
+        if ($method !== null) {
+            $method($client, $messageInner);
         }
     }
 }

@@ -19,7 +19,7 @@ import type { BigNumberish, BytesLike, Numeric } from "./index.js";
  *
  *  The bit-width must be byte aligned and the decimals can be at most 80.
  */
-export declare type FixedFormat = number | string | {
+export type FixedFormat = number | string | {
     signed?: boolean;
     width?: number;
     decimals?: number;

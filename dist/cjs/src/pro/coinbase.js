@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var coinbase$1 = require('../coinbase.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -67,15 +67,22 @@ class coinbase extends coinbase$1["default"] {
      * @returns {object} subscription to a websocket channel
      */
     async subscribe(name, isPrivate, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         let messageHash = name;
         let productIds = [];
         if (Array.isArray(symbol)) {
             const symbols = this.marketSymbols(symbol);
             const marketIds = this.marketIds(symbols);
-            productIds = marketIds;
-            messageHash = messageHash + '::' + symbol.join(',');
+            if (marketIds === undefined) {
+                productIds = [];
+            }
+            else {
+                productIds = marketIds;
+            }
+            messageHash = messageHash + '::' + symbols.join(',');
         }
         else if (symbol !== undefined) {
             market = this.market(symbol);
@@ -108,7 +115,9 @@ class coinbase extends coinbase$1["default"] {
      * @returns {object} subscription to a websocket channel
      */
     async unSubscribe(topic, name, isPrivate, symbol = undefined) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (this.safeBool(this.options, 'unSubscriptionPending', false)) {
             throw new errors.ExchangeError(this.id + ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions');
         }
@@ -120,9 +129,14 @@ class coinbase extends coinbase$1["default"] {
         if (Array.isArray(symbol)) {
             const symbols = this.marketSymbols(symbol);
             const marketIds = this.marketIds(symbols);
-            productIds = marketIds;
-            watchMessageHash = watchMessageHash + '::' + symbol.join(',');
-            unWatchMessageHash = unWatchMessageHash + '::' + symbol.join(',');
+            if (marketIds === undefined) {
+                productIds = [];
+            }
+            else {
+                productIds = marketIds;
+            }
+            watchMessageHash = watchMessageHash + '::' + symbols.join(',');
+            unWatchMessageHash = unWatchMessageHash + '::' + symbols.join(',');
         }
         else if (symbol !== undefined) {
             market = this.market(symbol);
@@ -165,7 +179,9 @@ class coinbase extends coinbase$1["default"] {
      * @returns {object} subscription to a websocket channel
      */
     async subscribeMultiple(name, isPrivate, symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const productIds = [];
         const messageHashes = [];
         symbols = this.marketSymbols(symbols, undefined, false);
@@ -204,7 +220,9 @@ class coinbase extends coinbase$1["default"] {
             throw new errors.ExchangeError(this.id + ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions');
         }
         this.options['unSubscriptionPending'] = true;
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const productIds = [];
         const watchMessageHashes = [];
         const unWatchMessageHashes = [];
@@ -248,7 +266,7 @@ class coinbase extends coinbase$1["default"] {
         if (!isCloudAPiKey) {
             subscribe['api_key'] = this.apiKey;
             subscribe['timestamp'] = timestamp;
-            subscribe['signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+            subscribe['signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
         }
         else {
             if (this.apiKey.startsWith('-----BEGIN')) {
@@ -277,7 +295,9 @@ class coinbase extends coinbase$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'ticker';
         return await this.subscribe(name, false, symbol, params);
     }
@@ -291,7 +311,9 @@ class coinbase extends coinbase$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'ticker';
         return await this.unSubscribe('ticker', name, false, symbol);
     }
@@ -305,7 +327,9 @@ class coinbase extends coinbase$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbols === undefined) {
             symbols = this.symbols;
         }
@@ -329,7 +353,9 @@ class coinbase extends coinbase$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbols === undefined) {
             symbols = this.symbols;
         }
@@ -442,7 +468,9 @@ class coinbase extends coinbase$1["default"] {
                 result['timestamp'] = timestamp;
                 result['datetime'] = datetime;
                 const symbol = result['symbol'];
-                this.tickers[symbol] = result;
+                if (symbol !== undefined) {
+                    this.tickers[symbol] = result;
+                }
                 const messageHash = channel + '::' + symbol;
                 client.resolve(result, messageHash);
                 this.tryResolveUsdc(client, messageHash, result);
@@ -506,7 +534,9 @@ class coinbase extends coinbase$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const name = 'market_trades';
         const trades = await this.subscribe(name, false, symbol, params);
@@ -525,7 +555,9 @@ class coinbase extends coinbase$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTrades(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'market_trades';
         return await this.unSubscribe('trades', name, false, symbol);
     }
@@ -541,7 +573,9 @@ class coinbase extends coinbase$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'market_trades';
         const trades = await this.subscribeMultiple(name, false, symbols, params);
         if (this.newUpdates) {
@@ -561,7 +595,9 @@ class coinbase extends coinbase$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTradesForSymbols(symbols, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'market_trades';
         return await this.unSubscribeMultiple('trades', name, false, symbols, params);
     }
@@ -577,7 +613,9 @@ class coinbase extends coinbase$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'user';
         const orders = await this.subscribe(name, true, symbol, params);
         if (this.newUpdates) {
@@ -595,7 +633,9 @@ class coinbase extends coinbase$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async unWatchOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'user';
         return await this.unSubscribe('orders', name, true, this.symbol(symbol));
     }
@@ -607,10 +647,12 @@ class coinbase extends coinbase$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'level2';
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -624,10 +666,12 @@ class coinbase extends coinbase$1["default"] {
      * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const name = 'level2';
         return await this.unSubscribe('orderbook', name, false, symbol);
@@ -640,10 +684,12 @@ class coinbase extends coinbase$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'level2';
         const orderbook = await this.subscribeMultiple(name, false, symbols, params);
         return orderbook.limit();
@@ -673,6 +719,9 @@ class coinbase extends coinbase$1["default"] {
         //    }
         //
         const events = this.safeList(message, 'events');
+        if (events === undefined) {
+            return;
+        }
         const event = this.safeValue(events, 0);
         const trades = this.safeList(event, 'trades');
         const trade = this.safeDict(trades, 0);
@@ -688,8 +737,13 @@ class coinbase extends coinbase$1["default"] {
         for (let i = 0; i < events.length; i++) {
             const currentEvent = events[i];
             const currentTrades = this.safeList(currentEvent, 'trades');
-            for (let j = 0; j < currentTrades.length; j++) {
-                const item = currentTrades[i];
+            if (currentTrades === undefined) {
+                continue;
+            }
+            // coinbase sends trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
+            const tradesLength = currentTrades.length;
+            for (let j = 0; j < tradesLength; j++) {
+                const item = currentTrades[tradesLength - j - 1];
                 tradesArray.append(this.parseTrade(item));
             }
         }
@@ -726,6 +780,9 @@ class coinbase extends coinbase$1["default"] {
         //    }
         //
         const events = this.safeList(message, 'events');
+        if (events === undefined) {
+            return;
+        }
         const marketIds = [];
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
@@ -734,13 +791,18 @@ class coinbase extends coinbase$1["default"] {
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
             const responseOrders = this.safeList(event, 'orders');
+            if (responseOrders === undefined) {
+                continue;
+            }
             for (let j = 0; j < responseOrders.length; j++) {
                 const responseOrder = responseOrders[j];
                 const parsed = this.parseWsOrder(responseOrder);
                 const cachedOrders = this.orders;
                 const marketId = this.safeString(responseOrder, 'product_id');
-                if (!(marketId in marketIds)) {
-                    marketIds.push(marketId);
+                if (marketId !== undefined) {
+                    if (!(marketId in marketIds)) {
+                        marketIds.push(marketId);
+                    }
                 }
                 cachedOrders.append(parsed);
             }
@@ -811,7 +873,7 @@ class coinbase extends coinbase$1["default"] {
             const side = this.safeString(this.options['sides'], sideId);
             const price = this.safeNumber(trade, 'price_level');
             const amount = this.safeNumber(trade, 'new_quantity');
-            const orderbookSide = orderbook[side];
+            const orderbookSide = this.safeValue(orderbook, side);
             orderbookSide.store(price, amount);
         }
     }
@@ -845,6 +907,9 @@ class coinbase extends coinbase$1["default"] {
         //    }
         //
         const events = this.safeList(message, 'events');
+        if (events === undefined) {
+            return;
+        }
         const datetime = this.safeString(message, 'timestamp');
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
@@ -950,7 +1015,9 @@ class coinbase extends coinbase$1["default"] {
         const type = this.safeString(message, 'type');
         if (type === 'error') {
             const errorMessage = this.safeString(message, 'message');
-            throw new errors.ExchangeError(errorMessage);
+            // ternary (not ||) so the ast-transpiler emits a value-typed conditional, not a boolean
+            const errorMessageValue = (errorMessage !== undefined) ? errorMessage : 'unknown error';
+            throw new errors.ExchangeError(errorMessageValue);
         }
         const method = this.safeValue(methods, channel);
         if (method) {

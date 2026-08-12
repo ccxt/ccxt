@@ -6,6 +6,15 @@
     ],
     "outputType": "both",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://www.bitrue.com/api/v1/exchangeInfo",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot market buy",

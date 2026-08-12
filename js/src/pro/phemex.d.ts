@@ -1,15 +1,15 @@
 import phemexRest from '../phemex.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Strings, Tickers } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class phemex extends phemexRest {
     describe(): any;
-    fromEn(en: any, scale: any): string;
-    fromEp(ep: any, market?: any): any;
-    fromEv(ev: any, market?: any): any;
-    fromEr(er: any, market?: any): any;
+    fromEn(en: any, scale: any): string | undefined;
+    fromEp(ep: any, market?: Market): any;
+    fromEv(ev: any, market?: Market): any;
+    fromEr(er: any, market?: Market): any;
     requestId(): any;
-    parseSwapTicker(ticker: any, market?: any): Ticker;
-    parsePerpetualTicker(ticker: any, market?: any): Ticker;
+    parseSwapTicker(ticker: any, market?: Market): Ticker;
+    parsePerpetualTicker(ticker: any, market?: Market): Ticker;
     handleTicker(client: Client, message: any): void;
     /**
      * @method
@@ -23,7 +23,7 @@ export default class phemex extends phemexRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: {}): Promise<Balances>;
-    handleBalance(type: any, client: any, message: any): void;
+    handleBalance(type: any, client: Client, message: any): void;
     handleTrades(client: Client, message: any): void;
     handleOHLCV(client: Client, message: any): void;
     /**
@@ -76,7 +76,7 @@ export default class phemex extends phemexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -94,8 +94,8 @@ export default class phemex extends phemexRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    customHandleDelta(bookside: any, delta: any, market?: any): void;
-    customHandleDeltas(bookside: any, deltas: any, market?: any): void;
+    customHandleDelta(bookside: any, delta: any, market?: Market): void;
+    customHandleDeltas(bookside: any, deltas: any, market?: Market): void;
     handleOrderBook(client: Client, message: any): void;
     /**
      * @method
@@ -107,7 +107,7 @@ export default class phemex extends phemexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     handleMyTrades(client: Client, message: any): void;
     /**
      * @method
@@ -119,9 +119,9 @@ export default class phemex extends phemexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     handleOrders(client: Client, message: any): void;
-    parseWSSwapOrder(order: any, market?: any): Order;
+    parseWSSwapOrder(order: any, market?: Market): Order;
     handleMessage(client: Client, message: any): void;
     handleAuthenticate(client: Client, message: any): void;
     subscribePrivate(type: any, messageHash: any, params?: {}): Promise<any>;

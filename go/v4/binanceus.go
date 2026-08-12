@@ -13,18 +13,18 @@ func NewBinanceusCore() *BinanceusCore {
 	return p
 }
 
-func (this *BinanceusCore) Describe() interface{} {
-	return this.DeepExtend(this.BinanceCore.Describe(), map[string]interface{}{
+func (this *BinanceusCore) Describe() any {
+	return this.DeepExtend(this.BinanceCore.Describe(), map[string]any{
 		"id":        "binanceus",
 		"name":      "Binance US",
-		"countries": []interface{}{"US"},
+		"countries": []any{"US"},
 		"hostname":  "binance.us",
 		"rateLimit": 50,
 		"certified": false,
 		"pro":       true,
-		"urls": map[string]interface{}{
+		"urls": map[string]any{
 			"logo": "https://github.com/user-attachments/assets/a9667919-b632-4d52-a832-df89f8a35e8c",
-			"api": map[string]interface{}{
+			"api": map[string]any{
 				"web":     "https://www.binance.us",
 				"public":  "https://api.binance.us/api/v3",
 				"private": "https://api.binance.us/api/v3",
@@ -37,23 +37,24 @@ func (this *BinanceusCore) Describe() interface{} {
 			"doc":      "https://github.com/binance-us/binance-official-api-docs",
 			"fees":     "https://www.binance.us/en/fee/schedule",
 		},
-		"fees": map[string]interface{}{
-			"trading": map[string]interface{}{
+		"fees": map[string]any{
+			"trading": map[string]any{
 				"tierBased":  true,
 				"percentage": true,
 				"taker":      this.ParseNumber("0.001"),
 				"maker":      this.ParseNumber("0.001"),
 			},
 		},
-		"options": map[string]interface{}{
-			"fetchMarkets": map[string]interface{}{
-				"types": []interface{}{"spot"},
+		"options": map[string]any{
+			"fetchMarkets": map[string]any{
+				"types": []any{"spot"},
 			},
-			"defaultType":   "spot",
-			"fetchMargins":  false,
-			"quoteOrderQty": false,
+			"defaultType":     "spot",
+			"fetchMargins":    false,
+			"quoteOrderQty":   false,
+			"fetchCurrencies": false,
 		},
-		"has": map[string]interface{}{
+		"has": map[string]any{
 			"CORS":                       nil,
 			"spot":                       true,
 			"margin":                     false,
@@ -121,154 +122,326 @@ func (this *BinanceusCore) Describe() interface{} {
 			"setMarginMode":              false,
 			"setPositionMode":            false,
 		},
-		"api": map[string]interface{}{
-			"public": map[string]interface{}{
-				"get": map[string]interface{}{
-					"ping":             1,
-					"time":             1,
-					"exchangeInfo":     10,
-					"trades":           1,
-					"historicalTrades": 5,
-					"aggTrades":        1,
-					"depth": map[string]interface{}{
+		"api": map[string]any{
+			"public": map[string]any{
+				"get": map[string]any{
+					"ping": map[string]any{
+						"cost": 1,
+					},
+					"time": map[string]any{
+						"cost": 1,
+					},
+					"exchangeInfo": map[string]any{
+						"cost": 10,
+					},
+					"trades": map[string]any{
+						"cost": 1,
+					},
+					"historicalTrades": map[string]any{
+						"cost": 5,
+					},
+					"aggTrades": map[string]any{
+						"cost": 1,
+					},
+					"depth": map[string]any{
 						"cost":    1,
-						"byLimit": []interface{}{[]interface{}{100, 1}, []interface{}{500, 5}, []interface{}{1000, 10}, []interface{}{5000, 50}},
+						"byLimit": []any{[]any{100, 1}, []any{500, 5}, []any{1000, 10}, []any{5000, 50}},
 					},
-					"klines": 1,
-					"ticker/price": map[string]interface{}{
+					"klines": map[string]any{
+						"cost": 1,
+					},
+					"ticker/price": map[string]any{
 						"cost":     1,
 						"noSymbol": 2,
 					},
-					"avgPrice": 1,
-					"ticker/bookTicker": map[string]interface{}{
+					"avgPrice": map[string]any{
+						"cost": 1,
+					},
+					"ticker/bookTicker": map[string]any{
 						"cost":     1,
 						"noSymbol": 2,
 					},
-					"ticker/24hr": map[string]interface{}{
+					"ticker/24hr": map[string]any{
 						"cost":     1,
 						"noSymbol": 40,
 					},
-					"ticker": map[string]interface{}{
+					"ticker": map[string]any{
 						"cost":     2,
 						"noSymbol": 100,
 					},
 				},
 			},
-			"private": map[string]interface{}{
-				"get": map[string]interface{}{
-					"account":         10,
-					"rateLimit/order": 20,
-					"order":           2,
-					"openOrders": map[string]interface{}{
+			"private": map[string]any{
+				"get": map[string]any{
+					"account": map[string]any{
+						"cost": 10,
+					},
+					"rateLimit/order": map[string]any{
+						"cost": 20,
+					},
+					"order": map[string]any{
+						"cost": 2,
+					},
+					"openOrders": map[string]any{
 						"cost":     3,
 						"noSymbol": 40,
 					},
-					"myTrades":           10,
-					"myPreventedMatches": 10,
-					"allOrders":          10,
-					"orderList":          2,
-					"allOrderList":       10,
-					"openOrderList":      3,
+					"myTrades": map[string]any{
+						"cost": 10,
+					},
+					"myPreventedMatches": map[string]any{
+						"cost": 10,
+					},
+					"allOrders": map[string]any{
+						"cost": 10,
+					},
+					"orderList": map[string]any{
+						"cost": 2,
+					},
+					"allOrderList": map[string]any{
+						"cost": 10,
+					},
+					"openOrderList": map[string]any{
+						"cost": 3,
+					},
 				},
-				"post": map[string]interface{}{
-					"order":               1,
-					"order/test":          1,
-					"order/cancelReplace": 1,
-					"order/oco":           1,
+				"post": map[string]any{
+					"order": map[string]any{
+						"cost": 1,
+					},
+					"order/test": map[string]any{
+						"cost": 1,
+					},
+					"order/cancelReplace": map[string]any{
+						"cost": 1,
+					},
+					"order/oco": map[string]any{
+						"cost": 1,
+					},
 				},
-				"delete": map[string]interface{}{
-					"order":      1,
-					"openOrders": 1,
-					"orderList":  1,
-				},
-			},
-			"sapi": map[string]interface{}{
-				"get": map[string]interface{}{
-					"system/status":                       1,
-					"asset/assetDistributionHistory":      1,
-					"asset/query/trading-fee":             1,
-					"asset/query/trading-volume":          1,
-					"sub-account/spotSummary":             1,
-					"sub-account/status":                  1,
-					"otc/coinPairs":                       1,
-					"otc/orders/{orderId}":                1,
-					"otc/orders":                          1,
-					"ocbs/orders":                         1,
-					"capital/config/getall":               1,
-					"capital/withdraw/history":            1,
-					"fiatpayment/query/withdraw/history":  1,
-					"capital/deposit/address":             1,
-					"capital/deposit/hisrec":              1,
-					"fiatpayment/query/deposit/history":   1,
-					"capital/sub-account/deposit/address": 1,
-					"capital/sub-account/deposit/history": 1,
-					"asset/query/dust-logs":               1,
-					"asset/query/dust-assets":             1,
-					"marketing/referral/reward/history":   1,
-					"staking/asset":                       1,
-					"staking/stakingBalance":              1,
-					"staking/history":                     1,
-					"staking/stakingRewardsHistory":       1,
-					"custodian/balance":                   1,
-					"custodian/supportedAssetList":        1,
-					"custodian/walletTransferHistory":     1,
-					"custodian/custodianTransferHistory":  1,
-					"custodian/openOrders":                1,
-					"custodian/order":                     1,
-					"custodian/orderHistory":              1,
-					"custodian/tradeHistory":              1,
-					"custodian/settlementSetting":         1,
-					"custodian/settlementHistory":         1,
-					"cl/transferHistory":                  1,
-					"apipartner/checkEligibility":         1,
-					"apipartner/rebateHistory":            1,
-				},
-				"post": map[string]interface{}{
-					"otc/quotes":                  1,
-					"otc/orders":                  1,
-					"fiatpayment/withdraw/apply":  1,
-					"capital/withdraw/apply":      1,
-					"asset/dust":                  10,
-					"staking/stake":               1,
-					"staking/unstake":             1,
-					"custodian/walletTransfer":    1,
-					"custodian/custodianTransfer": 1,
-					"custodian/undoTransfer":      1,
-					"custodian/order":             1,
-					"custodian/ocoOrder":          1,
-					"cl/transfer":                 1,
-				},
-				"delete": map[string]interface{}{
-					"custodian/cancelOrder":          1,
-					"custodian/cancelOrdersBySymbol": 1,
-					"custodian/cancelOcoOrder":       1,
+				"delete": map[string]any{
+					"order": map[string]any{
+						"cost": 1,
+					},
+					"openOrders": map[string]any{
+						"cost": 1,
+					},
+					"orderList": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
-			"sapiV2": map[string]interface{}{
-				"get": map[string]interface{}{
-					"cl/account":      10,
-					"cl/alertHistory": 1,
+			"sapi": map[string]any{
+				"get": map[string]any{
+					"system/status": map[string]any{
+						"cost": 1,
+					},
+					"asset/assetDistributionHistory": map[string]any{
+						"cost": 1,
+					},
+					"asset/query/trading-fee": map[string]any{
+						"cost": 1,
+					},
+					"asset/query/trading-volume": map[string]any{
+						"cost": 1,
+					},
+					"sub-account/spotSummary": map[string]any{
+						"cost": 1,
+					},
+					"sub-account/status": map[string]any{
+						"cost": 1,
+					},
+					"otc/coinPairs": map[string]any{
+						"cost": 1,
+					},
+					"otc/orders/{orderId}": map[string]any{
+						"cost": 1,
+					},
+					"otc/orders": map[string]any{
+						"cost": 1,
+					},
+					"ocbs/orders": map[string]any{
+						"cost": 1,
+					},
+					"capital/config/getall": map[string]any{
+						"cost": 1,
+					},
+					"capital/withdraw/history": map[string]any{
+						"cost": 1,
+					},
+					"fiatpayment/query/withdraw/history": map[string]any{
+						"cost": 1,
+					},
+					"capital/deposit/address": map[string]any{
+						"cost": 1,
+					},
+					"capital/deposit/hisrec": map[string]any{
+						"cost": 1,
+					},
+					"fiatpayment/query/deposit/history": map[string]any{
+						"cost": 1,
+					},
+					"capital/sub-account/deposit/address": map[string]any{
+						"cost": 1,
+					},
+					"capital/sub-account/deposit/history": map[string]any{
+						"cost": 1,
+					},
+					"asset/query/dust-logs": map[string]any{
+						"cost": 1,
+					},
+					"asset/query/dust-assets": map[string]any{
+						"cost": 1,
+					},
+					"marketing/referral/reward/history": map[string]any{
+						"cost": 1,
+					},
+					"staking/asset": map[string]any{
+						"cost": 1,
+					},
+					"staking/stakingBalance": map[string]any{
+						"cost": 1,
+					},
+					"staking/history": map[string]any{
+						"cost": 1,
+					},
+					"staking/stakingRewardsHistory": map[string]any{
+						"cost": 1,
+					},
+					"custodian/balance": map[string]any{
+						"cost": 1,
+					},
+					"custodian/supportedAssetList": map[string]any{
+						"cost": 1,
+					},
+					"custodian/walletTransferHistory": map[string]any{
+						"cost": 1,
+					},
+					"custodian/custodianTransferHistory": map[string]any{
+						"cost": 1,
+					},
+					"custodian/openOrders": map[string]any{
+						"cost": 1,
+					},
+					"custodian/order": map[string]any{
+						"cost": 1,
+					},
+					"custodian/orderHistory": map[string]any{
+						"cost": 1,
+					},
+					"custodian/tradeHistory": map[string]any{
+						"cost": 1,
+					},
+					"custodian/settlementSetting": map[string]any{
+						"cost": 1,
+					},
+					"custodian/settlementHistory": map[string]any{
+						"cost": 1,
+					},
+					"cl/transferHistory": map[string]any{
+						"cost": 1,
+					},
+					"apipartner/checkEligibility": map[string]any{
+						"cost": 1,
+					},
+					"apipartner/rebateHistory": map[string]any{
+						"cost": 1,
+					},
+				},
+				"post": map[string]any{
+					"otc/quotes": map[string]any{
+						"cost": 1,
+					},
+					"otc/orders": map[string]any{
+						"cost": 1,
+					},
+					"fiatpayment/withdraw/apply": map[string]any{
+						"cost": 1,
+					},
+					"capital/withdraw/apply": map[string]any{
+						"cost": 1,
+					},
+					"asset/dust": map[string]any{
+						"cost": 10,
+					},
+					"staking/stake": map[string]any{
+						"cost": 1,
+					},
+					"staking/unstake": map[string]any{
+						"cost": 1,
+					},
+					"custodian/walletTransfer": map[string]any{
+						"cost": 1,
+					},
+					"custodian/custodianTransfer": map[string]any{
+						"cost": 1,
+					},
+					"custodian/undoTransfer": map[string]any{
+						"cost": 1,
+					},
+					"custodian/order": map[string]any{
+						"cost": 1,
+					},
+					"custodian/ocoOrder": map[string]any{
+						"cost": 1,
+					},
+					"cl/transfer": map[string]any{
+						"cost": 1,
+					},
+				},
+				"delete": map[string]any{
+					"custodian/cancelOrder": map[string]any{
+						"cost": 1,
+					},
+					"custodian/cancelOrdersBySymbol": map[string]any{
+						"cost": 1,
+					},
+					"custodian/cancelOcoOrder": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
-			"sapiV3": map[string]interface{}{
-				"get": map[string]interface{}{
-					"accountStatus":                1,
-					"apiTradingStatus":             1,
-					"sub-account/list":             1,
-					"sub-account/transfer/history": 1,
-					"sub-account/assets":           1,
+			"sapiV2": map[string]any{
+				"get": map[string]any{
+					"cl/account": map[string]any{
+						"cost": 10,
+					},
+					"cl/alertHistory": map[string]any{
+						"cost": 1,
+					},
 				},
-				"post": map[string]interface{}{
-					"sub-account/transfer": 1,
+			},
+			"sapiV3": map[string]any{
+				"get": map[string]any{
+					"accountStatus": map[string]any{
+						"cost": 1,
+					},
+					"apiTradingStatus": map[string]any{
+						"cost": 1,
+					},
+					"sub-account/list": map[string]any{
+						"cost": 1,
+					},
+					"sub-account/transfer/history": map[string]any{
+						"cost": 1,
+					},
+					"sub-account/assets": map[string]any{
+						"cost": 1,
+					},
+				},
+				"post": map[string]any{
+					"sub-account/transfer": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
-		"features": map[string]interface{}{
-			"swap": map[string]interface{}{
+		"features": map[string]any{
+			"swap": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
 			},
-			"future": map[string]interface{}{
+			"future": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
 			},
@@ -276,7 +449,7 @@ func (this *BinanceusCore) Describe() interface{} {
 	})
 }
 
-func (this *BinanceusCore) Init(userConfig map[string]interface{}) {
+func (this *BinanceusCore) Init(userConfig map[string]any) {
 	this.BinanceCore.Init(this.DeepExtend(this.Describe(), userConfig))
 	this.Itf = this
 	this.Exchange.DerivedExchange = this

@@ -20,10 +20,10 @@ public partial class gemini
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an associative dictionary of currencies.</returns>
-    public async Task<Dictionary<string, object>> FetchCurrenciesFromWeb(Dictionary<string, object> parameters = null)
+    public async Task<Currencies> FetchCurrenciesFromWeb(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCurrenciesFromWeb(parameters);
-        return ((Dictionary<string, object>)res);
+        return new Currencies(res);
     }
     /// <summary>
     /// retrieves data on all markets for gemini
@@ -80,7 +80,7 @@ public partial class gemini
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -523,5 +523,25 @@ public partial class gemini
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+    }
+    /// <summary>
+    /// retrieves the open interest of a contract trading pair
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.gemini.com/rest/derivatives#get-risk-stats"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
+    public async Task<OpenInterest> FetchOpenInterest(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenInterest(symbol, parameters);
+        return new OpenInterest(res);
     }
 }

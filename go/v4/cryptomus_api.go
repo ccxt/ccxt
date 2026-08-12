@@ -7,66 +7,82 @@
 
 package ccxt
 
-func (this *CryptomusCore) PublicGetV2UserApiExchangeMarkets(args ...interface{}) <-chan interface{} {
+// PublicGetV2UserApiExchangeMarkets returns a channel that yields a JSON object.
+func (this *CryptomusCore) PublicGetV2UserApiExchangeMarkets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV2UserApiExchangeMarkets", args...)
 }
 
-func (this *CryptomusCore) PublicGetV2UserApiExchangeMarketPrice(args ...interface{}) <-chan interface{} {
+// PublicGetV2UserApiExchangeMarketPrice returns a channel that yields a JSON object.
+func (this *CryptomusCore) PublicGetV2UserApiExchangeMarketPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV2UserApiExchangeMarketPrice", args...)
 }
 
-func (this *CryptomusCore) PublicGetV1ExchangeMarketAssets(args ...interface{}) <-chan interface{} {
+// PublicGetV1ExchangeMarketAssets returns a channel that yields a JSON object.
+func (this *CryptomusCore) PublicGetV1ExchangeMarketAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1ExchangeMarketAssets", args...)
 }
 
-func (this *CryptomusCore) PublicGetV1ExchangeMarketOrderBookCurrencyPair(args ...interface{}) <-chan interface{} {
+// PublicGetV1ExchangeMarketOrderBookCurrencyPair returns a channel that yields a JSON object.
+func (this *CryptomusCore) PublicGetV1ExchangeMarketOrderBookCurrencyPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1ExchangeMarketOrderBookCurrencyPair", args...)
 }
 
-func (this *CryptomusCore) PublicGetV1ExchangeMarketTickers(args ...interface{}) <-chan interface{} {
+// PublicGetV1ExchangeMarketTickers returns a channel that yields a JSON object.
+func (this *CryptomusCore) PublicGetV1ExchangeMarketTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1ExchangeMarketTickers", args...)
 }
 
-func (this *CryptomusCore) PublicGetV1ExchangeMarketTradesCurrencyPair(args ...interface{}) <-chan interface{} {
+// PublicGetV1ExchangeMarketTradesCurrencyPair returns a channel that yields a JSON object.
+func (this *CryptomusCore) PublicGetV1ExchangeMarketTradesCurrencyPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1ExchangeMarketTradesCurrencyPair", args...)
 }
 
-func (this *CryptomusCore) PrivateGetV2UserApiExchangeOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetV2UserApiExchangeOrders returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivateGetV2UserApiExchangeOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2UserApiExchangeOrders", args...)
 }
 
-func (this *CryptomusCore) PrivateGetV2UserApiExchangeOrdersHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetV2UserApiExchangeOrdersHistory returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivateGetV2UserApiExchangeOrdersHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2UserApiExchangeOrdersHistory", args...)
 }
 
-func (this *CryptomusCore) PrivateGetV2UserApiExchangeAccountBalance(args ...interface{}) <-chan interface{} {
+// PrivateGetV2UserApiExchangeAccountBalance returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivateGetV2UserApiExchangeAccountBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2UserApiExchangeAccountBalance", args...)
 }
 
-func (this *CryptomusCore) PrivateGetV2UserApiExchangeAccountTariffs(args ...interface{}) <-chan interface{} {
+// PrivateGetV2UserApiExchangeAccountTariffs returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivateGetV2UserApiExchangeAccountTariffs(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2UserApiExchangeAccountTariffs", args...)
 }
 
-func (this *CryptomusCore) PrivateGetV2UserApiPaymentServices(args ...interface{}) <-chan interface{} {
+// PrivateGetV2UserApiPaymentServices returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivateGetV2UserApiPaymentServices(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2UserApiPaymentServices", args...)
 }
 
-func (this *CryptomusCore) PrivateGetV2UserApiPayoutServices(args ...interface{}) <-chan interface{} {
+// PrivateGetV2UserApiPayoutServices returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivateGetV2UserApiPayoutServices(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2UserApiPayoutServices", args...)
 }
 
-func (this *CryptomusCore) PrivateGetV2UserApiTransactionList(args ...interface{}) <-chan interface{} {
+// PrivateGetV2UserApiTransactionList returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivateGetV2UserApiTransactionList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2UserApiTransactionList", args...)
 }
 
-func (this *CryptomusCore) PrivatePostV2UserApiExchangeOrders(args ...interface{}) <-chan interface{} {
+// PrivatePostV2UserApiExchangeOrders returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivatePostV2UserApiExchangeOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV2UserApiExchangeOrders", args...)
 }
 
-func (this *CryptomusCore) PrivatePostV2UserApiExchangeOrdersMarket(args ...interface{}) <-chan interface{} {
+// PrivatePostV2UserApiExchangeOrdersMarket returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivatePostV2UserApiExchangeOrdersMarket(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV2UserApiExchangeOrdersMarket", args...)
 }
 
-func (this *CryptomusCore) PrivateDeleteV2UserApiExchangeOrdersOrderId(args ...interface{}) <-chan interface{} {
+// PrivateDeleteV2UserApiExchangeOrdersOrderId returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivateDeleteV2UserApiExchangeOrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteV2UserApiExchangeOrdersOrderId", args...)
 }

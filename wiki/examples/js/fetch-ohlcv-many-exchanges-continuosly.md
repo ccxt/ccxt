@@ -1,9 +1,5 @@
-- [Fetch Ohlcv Many Exchanges Continuosly](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
-// AUTO-TRANSPILE //
+```javascript
+import ccxt from '../../js/ccxt.js';
 // fetch and handle constinuosly
 async function fetchOHLCVContinuously(exchange, symbol) {
     while (true) {
@@ -41,5 +37,5 @@ async function example() {
     await Promise.all(promises);
 }
 await example();
- 
+
 ```

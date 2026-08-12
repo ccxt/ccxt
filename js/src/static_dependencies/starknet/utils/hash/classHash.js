@@ -7,11 +7,11 @@
 /**
  * Class Hash
  */
-import { poseidonHashMany } from '../../../scure-starknet/index.js';
+import { poseidonHashMany } from '@scure/starknet';
 import { ADDR_BOUND, API_VERSION } from '../../constants.js';
 import { CallData } from '../calldata/index.js';
 import { felt } from '../calldata/cairo.js';
-import { pedersen, poseidonHash, keccak } from '../../../scure-starknet/index.js';
+import { pedersen, poseidonHash, keccak } from '@scure/starknet';
 import { addHexPrefix, utf8ToArray } from '../encode.js';
 import { toHex } from '../num.js';
 import { encodeShortString, isString } from '../shortString.js';

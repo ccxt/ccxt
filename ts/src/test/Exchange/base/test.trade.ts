@@ -1,7 +1,13 @@
-import { Exchange } from "../../../../ccxt";
+import { Exchange } from "../../../../ccxt.js";
 import testSharedMethods from './test.sharedMethods.js';
+import type { Dict } from '../../../base/types.js';
 
 function testTrade (exchange: Exchange, skippedProperties: object, method: string, entry: object, symbol: string, now: number) {
+    // prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
+    // PredictionTrade type carries a single `fee` but omits the `fees` list entirely
+    if (exchange.safeBool (exchange.has, 'prediction', false)) {
+        skippedProperties = exchange.extend ({ 'symbol': true, 'fees': true }, skippedProperties);
+    }
     const format = {
         'info': { },
         'id': '12345-67890:09876/54321', // string trade id
@@ -15,7 +21,10 @@ function testTrade (exchange: Exchange, skippedProperties: object, method: strin
         'amount': exchange.parseNumber ('1.5'), // amount of base currency
         'cost': exchange.parseNumber ('0.10376526'), // total cost (including fees), `price * amount`
         'fees': [],
-        'fee': {},
+        'fee': {
+            'cost': exchange.parseNumber ('0.001'), // float, the fee amount in the quote currency
+            'currency': 'USDT', // string, the currency of the fee
+        },
     };
     // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
     // removed side because some public endpoints return trades without side
@@ -29,9 +38,9 @@ function testTrade (exchange: Exchange, skippedProperties: object, method: strin
     testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry, 'fee');
     if (!('fees' in skippedProperties)) {
         // todo: remove undefined check and probably non-empty array check later
-        if (entry['fees'] !== undefined) {
-            for (let i = 0; i < entry['fees'].length; i++) {
-                testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry['fees'], i);
+        if ((entry as Dict)['fees'] !== undefined) {
+            for (let i = 0; i < (entry as Dict)['fees'].length; i++) {
+                testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, (entry as Dict)['fees'], i);
             }
         }
     }

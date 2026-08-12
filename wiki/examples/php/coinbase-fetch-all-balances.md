@@ -1,8 +1,5 @@
-- [Coinbase Fetch All Balances](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -41,5 +38,5 @@ do {
 echo "======================================================================\n";
 var_dump($result);
 
-?> 
+?>
 ```

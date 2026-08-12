@@ -29,7 +29,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 0.00001,
+            "amount": 0.000001,
             "price": 0.01
         },
         "limits": {
@@ -39,7 +39,7 @@
             },
             "amount": {
                 "min": 0.00001,
-                "max": 1000
+                "max": 100
             },
             "price": {
                 "min": 20000,
@@ -61,10 +61,10 @@
             "pair_base": "btc",
             "pair_2": "usdt",
             "min_size": "0.00001",
-            "max_size": "1000",
+            "max_size": "100",
             "min_price": "20000",
             "max_price": "500000",
-            "increment_size": "0.00001",
+            "increment_size": "0.000001",
             "increment_price": "0.01",
             "active": true,
             "verified": true,
@@ -72,6 +72,7 @@
             "is_public": true,
             "estimated_price": "100000",
             "circuit_breaker": true,
+            "status": "full",
             "created_at": "2021-01-21T08:11:02.736Z",
             "updated_at": "2022-06-16T10:59:02.940Z",
             "created_by": "1"
@@ -152,6 +153,7 @@
             "is_public": true,
             "estimated_price": "75",
             "circuit_breaker": true,
+            "status": "full",
             "created_at": "2021-04-09T03:07:04.642Z",
             "updated_at": "2022-06-30T02:29:58.491Z",
             "created_by": "1"
@@ -232,6 +234,7 @@
             "is_public": true,
             "estimated_price": null,
             "circuit_breaker": true,
+            "status": "full",
             "created_at": "2021-03-17T16:56:18.464Z",
             "updated_at": "2021-03-18T06:26:52.399Z",
             "created_by": "1"
@@ -312,6 +315,7 @@
             "is_public": true,
             "estimated_price": "0.8",
             "circuit_breaker": true,
+            "status": "full",
             "created_at": "2021-01-21T08:46:15.429Z",
             "updated_at": "2021-01-22T05:40:39.196Z",
             "created_by": "1"
@@ -392,6 +396,7 @@
             "is_public": true,
             "estimated_price": "100",
             "circuit_breaker": true,
+            "status": "full",
             "created_at": "2021-09-03T08:20:58.862Z",
             "updated_at": "2022-11-15T14:06:05.922Z",
             "created_by": "1"
@@ -472,6 +477,7 @@
             "is_public": true,
             "estimated_price": null,
             "circuit_breaker": true,
+            "status": "full",
             "created_at": "2021-03-17T16:51:58.053Z",
             "updated_at": "2021-03-18T06:25:18.794Z",
             "created_by": "1"
@@ -518,8 +524,8 @@
                 "max": null
             },
             "amount": {
-                "min": 0.001,
-                "max": 100000
+                "min": 0.0001,
+                "max": 10000
             },
             "price": {
                 "min": 500,
@@ -540,8 +546,8 @@
             "name": "eth-usdt",
             "pair_base": "eth",
             "pair_2": "usdt",
-            "min_size": "0.001",
-            "max_size": "100000",
+            "min_size": "0.0001",
+            "max_size": "10000",
             "min_price": "500",
             "max_price": "10000",
             "increment_size": "0.0001",
@@ -550,8 +556,9 @@
             "verified": true,
             "code": "eth-usdt",
             "is_public": true,
-            "estimated_price": "1000",
+            "estimated_price": "2500",
             "circuit_breaker": true,
+            "status": "full",
             "created_at": "2021-01-21T08:11:27.380Z",
             "updated_at": "2022-06-16T11:03:09.095Z",
             "created_by": "1"

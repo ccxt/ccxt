@@ -176,7 +176,7 @@
                         "precision": null,
                         "type": null,
                         "name": null,
-                        "active": true,
+                        "active": null,
                         "deposit": true,
                         "withdraw": true,
                         "fee": 0.1,
@@ -185,7 +185,7 @@
                             "OMNI": {
                                 "id": "OMNI",
                                 "network": "OMNI",
-                                "active": false,
+                                "active": null,
                                 "deposit": false,
                                 "withdraw": false,
                                 "fee": 5,
@@ -215,7 +215,7 @@
                             "ERC20": {
                                 "id": "ERC20",
                                 "network": "ERC20",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 5,
@@ -245,7 +245,7 @@
                             "TRC20": {
                                 "id": "TRC20",
                                 "network": "TRC20",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 1,
@@ -275,7 +275,7 @@
                             "BEP20": {
                                 "id": "BEP20",
                                 "network": "BEP20",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 1,
@@ -305,7 +305,7 @@
                             "POLYGON": {
                                 "id": "Polygon",
                                 "network": "POLYGON",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 2,
@@ -335,7 +335,7 @@
                             "Arbitrum-One": {
                                 "id": "Arbitrum-One",
                                 "network": "Arbitrum-One",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.1,
@@ -365,7 +365,7 @@
                             "TON": {
                                 "id": "Ton",
                                 "network": "TON",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 1,

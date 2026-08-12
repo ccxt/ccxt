@@ -1,8 +1,5 @@
-- [Fetch Balance Asset Valuation](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -35,5 +32,5 @@ for code, amount in balance['total'].items():
         print(amount, code, '=', valuation, destination_code)
 
 
-print('Total', total_destination_value, destination_code) 
+print('Total', total_destination_value, destination_code)
 ```

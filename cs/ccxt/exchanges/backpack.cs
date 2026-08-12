@@ -136,7 +136,7 @@ public partial class backpack : Exchange
                 { "1M", "1month" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/cc04c278-679f-4554-9f72-930dd632b80f" },
+                { "logo", "https://github.com/user-attachments/assets/7f682234-3eb1-48ab-a5ec-250a3227c985" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.backpack.exchange" },
                     { "private", "https://api.backpack.exchange" },
@@ -148,72 +148,184 @@ public partial class backpack : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "api/v1/assets", 1 },
-                        { "api/v1/collateral", 1 },
-                        { "api/v1/borrowLend/markets", 1 },
-                        { "api/v1/borrowLend/markets/history", 1 },
-                        { "api/v1/markets", 1 },
-                        { "api/v1/market", 1 },
-                        { "api/v1/ticker", 1 },
-                        { "api/v1/tickers", 1 },
-                        { "api/v1/depth", 1 },
-                        { "api/v1/klines", 1 },
-                        { "api/v1/markPrices", 1 },
-                        { "api/v1/openInterest", 1 },
-                        { "api/v1/fundingRates", 1 },
-                        { "api/v1/status", 1 },
-                        { "api/v1/ping", 1 },
-                        { "api/v1/time", 1 },
-                        { "api/v1/wallets", 1 },
-                        { "api/v1/trades", 1 },
-                        { "api/v1/trades/history", 1 },
+                        { "api/v1/assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/collateral", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/borrowLend/markets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/borrowLend/markets/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/markets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/market", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/depth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/klines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/markPrices", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/openInterest", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/fundingRates", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/ping", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/wallets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/trades/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "api/v1/account", 1 },
-                        { "api/v1/account/limits/borrow", 1 },
-                        { "api/v1/account/limits/order", 1 },
-                        { "api/v1/account/limits/withdrawal", 1 },
-                        { "api/v1/borrowLend/positions", 1 },
-                        { "api/v1/capital", 1 },
-                        { "api/v1/capital/collateral", 1 },
-                        { "wapi/v1/capital/deposits", 1 },
-                        { "wapi/v1/capital/deposit/address", 1 },
-                        { "wapi/v1/capital/withdrawals", 1 },
-                        { "api/v1/position", 1 },
-                        { "wapi/v1/history/borrowLend", 1 },
-                        { "wapi/v1/history/interest", 1 },
-                        { "wapi/v1/history/borrowLend/positions", 1 },
-                        { "wapi/v1/history/dust", 1 },
-                        { "wapi/v1/history/fills", 1 },
-                        { "wapi/v1/history/funding", 1 },
-                        { "wapi/v1/history/orders", 1 },
-                        { "wapi/v1/history/rfq", 1 },
-                        { "wapi/v1/history/quote", 1 },
-                        { "wapi/v1/history/settlement", 1 },
-                        { "wapi/v1/history/strategies", 1 },
-                        { "api/v1/order", 1 },
-                        { "api/v1/orders", 1 },
+                        { "api/v1/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/limits/borrow", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/limits/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/limits/withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/borrowLend/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/capital", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/capital/collateral", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/capital/deposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/capital/deposit/address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/capital/withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/position", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/borrowLend", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/interest", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/borrowLend/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/dust", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/fills", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/funding", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/rfq", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/quote", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/settlement", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/strategies", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "api/v1/account/convertDust", 1 },
-                        { "api/v1/borrowLend", 1 },
-                        { "wapi/v1/capital/withdrawals", 1 },
-                        { "api/v1/order", 1 },
-                        { "api/v1/orders", 1 },
-                        { "api/v1/rfq", 1 },
-                        { "api/v1/rfq/accept", 1 },
-                        { "api/v1/rfq/refresh", 1 },
-                        { "api/v1/rfq/cancel", 1 },
-                        { "api/v1/rfq/quote", 1 },
+                        { "api/v1/account/convertDust", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/borrowLend", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/capital/withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/rfq", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/rfq/accept", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/rfq/refresh", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/rfq/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/rfq/quote", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "api/v1/order", 1 },
-                        { "api/v1/orders", 1 },
+                        { "api/v1/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "patch", new Dictionary<string, object>() {
-                        { "api/v1/account", 1 },
+                        { "api/v1/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -396,7 +508,7 @@ public partial class backpack : Exchange
                 { "adjustForTimeDifference", false },
                 { "networks", new Dictionary<string, object>() {
                     { "APT", "Aptos" },
-                    { "ARB", "Arbitrum" },
+                    { "ARBITRUM", "Arbitrum" },
                     { "AVAX", "Avalanche" },
                     { "BASE", "Base" },
                     { "BERA", "Berachain" },
@@ -421,7 +533,7 @@ public partial class backpack : Exchange
                 } },
                 { "networksById", new Dictionary<string, object>() {
                     { "aptos", "APT" },
-                    { "arbitrum", "ARB" },
+                    { "arbitrum", "ARBITRUM" },
                     { "avalanche", "AVAX" },
                     { "base", "BASE" },
                     { "berachain", "BERA" },
@@ -459,7 +571,7 @@ public partial class backpack : Exchange
                     { "INSUFFICIENT_SUPPLY", typeof(InsufficientFunds) },
                     { "INVALID_ASSET", typeof(BadRequest) },
                     { "INVALID_MARKET", typeof(BadSymbol) },
-                    { "INVALID_PRICE", typeof(BadRequest) },
+                    { "INVALID_PRICE", typeof(InvalidOrder) },
                     { "INVALID_POSITION_ID", typeof(BadRequest) },
                     { "INVALID_QUANTITY", typeof(BadRequest) },
                     { "INVALID_RANGE", typeof(BadRequest) },
@@ -522,20 +634,23 @@ public partial class backpack : Exchange
         //         ...
         //     ]
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        return this.parseCurrencies(response);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object currencyId = this.safeString(rawCurrency, "symbol");
+        object code = this.safeCurrencyCode(currencyId);
+        object networks = this.safeList(rawCurrency, "tokens", new List<object>() {});
+        object parsedNetworks = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
         {
-            object currecy = getValue(response, i);
-            object currencyId = this.safeString(currecy, "symbol");
-            object code = this.safeCurrencyCode(currencyId);
-            object networks = this.safeList(currecy, "tokens", new List<object>() {});
-            object parsedNetworks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
+            object network = getValue(networks, j);
+            object networkId = this.safeString(network, "blockchain");
+            object networkIdLowerCase = this.safeStringLower(network, "blockchain");
+            object networkCode = this.networkIdToCode(networkIdLowerCase, code);
+            if (isTrue(!isEqual(networkCode, null)))
             {
-                object network = getValue(networks, j);
-                object networkId = this.safeString(network, "blockchain");
-                object networkIdLowerCase = this.safeStringLower(network, "blockchain");
-                object networkCode = this.networkIdToCode(networkIdLowerCase);
                 ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "id", networkId },
                     { "network", networkCode },
@@ -557,40 +672,39 @@ public partial class backpack : Exchange
                     { "info", network },
                 };
             }
-            object active = null;
-            object deposit = null;
-            object withdraw = null;
-            if (isTrue(this.isEmpty(parsedNetworks)))
-            {
-                active = false;
-                deposit = false;
-                withdraw = false;
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", currencyId },
-                { "code", code },
-                { "precision", null },
-                { "type", "crypto" },
-                { "name", this.safeString(currecy, "displayName") },
-                { "active", active },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
-                { "fee", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "networks", parsedNetworks },
-                { "info", currecy },
-            });
         }
-        return result;
+        object active = null;
+        object deposit = null;
+        object withdraw = null;
+        if (isTrue(this.isEmpty(parsedNetworks)))
+        {
+            active = false;
+            deposit = false;
+            withdraw = false;
+        }
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", currencyId },
+            { "code", code },
+            { "precision", null },
+            { "type", "crypto" },
+            { "name", this.safeString(rawCurrency, "displayName") },
+            { "active", active },
+            { "deposit", deposit },
+            { "withdraw", withdraw },
+            { "fee", null },
+            { "limits", new Dictionary<string, object>() {
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", parsedNetworks },
+            { "info", rawCurrency },
+        });
     }
 
     /**
@@ -797,7 +911,7 @@ public partial class backpack : Exchange
             { "SPOT", "spot" },
             { "PERP", "swap" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     /**
@@ -812,7 +926,10 @@ public partial class backpack : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object response = await this.publicGetApiV1Tickers(this.extend(request, parameters));
         object tickers = this.parseTickers(response);
@@ -831,7 +948,10 @@ public partial class backpack : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -867,9 +987,15 @@ public partial class backpack : Exchange
         object low = this.safeString(ticker, "low");
         object baseVolume = this.safeString(ticker, "volume");
         object quoteVolume = this.safeString(ticker, "quoteVolume");
-        object percentage = this.safeString(ticker, "priceChangePercent");
+        object percentage = null;
+        object percentageNumber = this.safeFloat(ticker, "priceChangePercent");
+        // in some cases priceChangePercent is a non-numeric string like "N/A"
+        if (isTrue(!isEqual(percentageNumber, null)))
+        {
+            percentage = Precise.stringMul(this.safeString(ticker, "priceChangePercent"), "100");
+        }
         object change = this.safeString(ticker, "priceChange");
-        return this.safeTicker(new Dictionary<string, object>() {
+        object parsedTicker = this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
             { "datetime", null },
@@ -893,6 +1019,7 @@ public partial class backpack : Exchange
             { "indexPrice", null },
             { "info", ticker },
         }, market);
+        return parsedTicker;
     }
 
     /**
@@ -902,13 +1029,16 @@ public partial class backpack : Exchange
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_depth
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -929,6 +1059,10 @@ public partial class backpack : Exchange
         //     }
         //
         object microseconds = this.safeInteger(response, "timestamp");
+        if (isTrue(isEqual(microseconds, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchOrderBook() missing microseconds")) ;
+        }
         object timestamp = this.parseToInt(divide(microseconds, 1000));
         object orderbook = this.parseOrderBook(response, symbol, timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "lastUpdateId");
@@ -944,14 +1078,17 @@ public partial class backpack : Exchange
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in seconds of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (default 100)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object interval = this.safeString(this.timeframes, timeframe, timeframe);
         object request = new Dictionary<string, object>() {
@@ -988,7 +1125,8 @@ public partial class backpack : Exchange
             parameters = this.omit(parameters, "price");
         }
         object response = await this.publicGetApiV1Klines(this.extend(request, parameters));
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        object ohlcvs = this.toArray(response);
+        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1024,7 +1162,10 @@ public partial class backpack : Exchange
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         if (isTrue(getValue(market, "spot")))
         {
@@ -1087,7 +1228,10 @@ public partial class backpack : Exchange
     public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         if (isTrue(getValue(market, "spot")))
         {
@@ -1115,7 +1259,7 @@ public partial class backpack : Exchange
         object timestamp = this.safeInteger(interest, "timestamp");
         object openInterest = this.safeNumber(interest, "openInterest");
         return this.safeOpenInterest(new Dictionary<string, object>() {
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "openInterestAmount", null },
             { "openInterestValue", openInterest },
             { "timestamp", timestamp },
@@ -1142,7 +1286,10 @@ public partial class backpack : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1162,9 +1309,10 @@ public partial class backpack : Exchange
         //     ]
         //
         object rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object rawRates = this.toArray(response);
+        for (object i = 0; isLessThan(i, getArrayLength(rawRates)); postFixIncrement(ref i))
         {
-            object rate = getValue(response, i);
+            object rate = getValue(rawRates, i);
             object datetime = this.safeString(rate, "intervalEndTimestamp");
             object timestamp = this.parse8601(datetime);
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
@@ -1195,7 +1343,10 @@ public partial class backpack : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1213,7 +1364,8 @@ public partial class backpack : Exchange
         {
             response = await this.publicGetApiV1Trades(this.extend(request, parameters));
         }
-        return this.parseTrades(response, market, since, limit);
+        object responseList = this.toArray(response);
+        return this.parseTrades(responseList, market, since, limit);
     }
 
     /**
@@ -1232,7 +1384,10 @@ public partial class backpack : Exchange
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1260,7 +1415,8 @@ public partial class backpack : Exchange
             ((IDictionary<string,object>)request)["fillType"] = "User"; // default
         }
         object response = await this.privateGetWapiV1HistoryFills(this.extend(request, parameters));
-        return this.parseTrades(response, market, since, limit);
+        object responseList = this.toArray(response);
+        return this.parseTrades(responseList, market, since, limit);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1297,10 +1453,19 @@ public partial class backpack : Exchange
         market = this.safeMarket(marketId, market);
         object price = this.safeString(trade, "price");
         object amount = this.safeString(trade, "quantity");
-        object isMaker = this.safeBool(trade, "isMaker");
-        object takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
-        object orderId = this.safeString(trade, "orderId");
+        object isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
         object side = this.parseOrderSide(this.safeString(trade, "side"));
+        object isMaker = this.safeBool(trade, "isMaker");
+        object takerOrMaker = null;
+        if (isTrue(!isEqual(isMaker, null)))
+        {
+            takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+        } else if (isTrue(!isEqual(isBuyerMaker, null)))
+        {
+            takerOrMaker = "taker";
+            side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
+        }
+        object orderId = this.safeString(trade, "orderId");
         object fee = null;
         object feeAmount = this.safeString(trade, "fee");
         object timestamp = this.safeInteger(trade, "timestamp");
@@ -1355,6 +1520,10 @@ public partial class backpack : Exchange
         //     }
         //
         object status = this.safeString(response, "status");
+        if (isTrue(isEqual(status, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchStatus() missing status")) ;
+        }
         return new Dictionary<string, object>() {
             { "status", ((string)status).ToLower() },
             { "updated", null },
@@ -1393,7 +1562,10 @@ public partial class backpack : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetApiV1Capital(parameters);
         return this.parseBalance(response);
     }
@@ -1422,7 +1594,10 @@ public partial class backpack : Exchange
             object used = Precise.stringAdd(locked, staked);
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["used"] = used;
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1442,7 +1617,10 @@ public partial class backpack : Exchange
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
@@ -1484,7 +1662,10 @@ public partial class backpack : Exchange
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
@@ -1527,7 +1708,10 @@ public partial class backpack : Exchange
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(currency, "id") },
@@ -1541,7 +1725,7 @@ public partial class backpack : Exchange
         var networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
         var networkCode = ((IList<object>) networkCodequeryVariable)[0];
         var query = ((IList<object>) networkCodequeryVariable)[1];
-        object networkId = this.networkCodeToId(networkCode);
+        object networkId = this.networkCodeToId(networkCode, getValue(currency, "code"));
         if (isTrue(isEqual(networkId, null)))
         {
             throw new BadRequest ((string)add(this.id, " withdraw() requires a network parameter")) ;
@@ -1633,7 +1817,7 @@ public partial class backpack : Exchange
         object timestamp = this.parse8601(this.safeString(transaction, "createdAt"));
         object amount = this.safeNumber(transaction, "quantity");
         object networkId = this.safeStringLower2(transaction, "source", "blockchain");
-        object network = this.networkIdToCode(networkId);
+        object network = this.networkIdToCode(networkId, code);
         object addressTo = this.safeString(transaction, "toAddress");
         object addressFrom = this.safeString(transaction, "fromAddress");
         object tag = this.safeString(transaction, "platformMemo");
@@ -1699,7 +1883,10 @@ public partial class backpack : Exchange
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object networkCode = null;
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
@@ -1710,7 +1897,7 @@ public partial class backpack : Exchange
         }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
-            { "blockchain", this.networkCodeToId(networkCode) },
+            { "blockchain", this.networkCodeToId(networkCode, getValue(currency, "code")) },
         };
         object response = await this.privateGetWapiV1CapitalDepositAddress(this.extend(request, parameters));
         return this.parseDepositAddress(response, currency);
@@ -1768,7 +1955,10 @@ public partial class backpack : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = await this.privatePostApiV1Order(orderRequest);
@@ -1787,7 +1977,10 @@ public partial class backpack : Exchange
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object ordersRequests = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
@@ -1809,6 +2002,14 @@ public partial class backpack : Exchange
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1928,7 +2129,10 @@ public partial class backpack : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1946,14 +2150,17 @@ public partial class backpack : Exchange
      * @description fetch an open order by it's id
      * @see https://docs.backpack.exchange/#tag/Order/operation/get_order
      * @param {string} id order id
-     * @param {string} symbol not used by hollaex fetchOpenOrder ()
+     * @param {string} symbol not used by fetchOpenOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchOpenOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrder() requires a symbol argument")) ;
@@ -1980,7 +2187,10 @@ public partial class backpack : Exchange
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
@@ -2006,7 +2216,10 @@ public partial class backpack : Exchange
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
@@ -2024,16 +2237,19 @@ public partial class backpack : Exchange
      * @name backpack#fetchOrders
      * @description fetches information on multiple orders made by the user
      * @see https://docs.backpack.exchange/#tag/History/operation/get_order_history
-     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of  orde structures to retrieve (default 100, max 1000)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {int} [limit] the maximum number of order structures to retrieve (default 100, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -2228,7 +2444,10 @@ public partial class backpack : Exchange
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetApiV1Position(parameters);
         object positions = this.parsePositions(response);
         if (isTrue(this.isEmpty(symbols)))
@@ -2343,7 +2562,10 @@ public partial class backpack : Exchange
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))

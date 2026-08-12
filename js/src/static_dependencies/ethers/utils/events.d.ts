@@ -1,7 +1,7 @@
 /**
  *  A callback function called when a an event is triggered.
  */
-export declare type Listener = (...args: Array<any>) => void;
+export type Listener = (...args: Array<any>) => void;
 /**
  *  An **EventEmitterable** behaves similar to an EventEmitter
  *  except provides async access to its methods.

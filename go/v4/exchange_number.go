@@ -3,7 +3,6 @@ package ccxt
 import (
 	"fmt"
 	"math"
-	"regexp"
 	"strconv"
 	"strings"
 )
@@ -32,7 +31,7 @@ var precisionConstants = map[string]int{
 	"PAD_WITH_ZERO":      PAD_WITH_ZERO,
 }
 
-func (this *Exchange) NumberToString(x interface{}) interface{} {
+func (this *BaseExchange) NumberToString(x any) any {
 	res := NumberToString(x)
 	if res == "" {
 		return nil
@@ -40,63 +39,114 @@ func (this *Exchange) NumberToString(x interface{}) interface{} {
 	return res
 }
 
-func NumberToString(x interface{}) string {
+// zeroPad lets us append runs of '0' without allocating via strings.Repeat.
+const zeroPad = "0000000000000000000000000000000000000000000000000000000000000000"
+
+func writeZeros(b *strings.Builder, n int) {
+	for n > 0 {
+		chunk := n
+		if chunk > len(zeroPad) {
+			chunk = len(zeroPad)
+		}
+		b.WriteString(zeroPad[:chunk])
+		n -= chunk
+	}
+}
+
+func NumberToString(x any) string {
 	switch v := x.(type) {
 	case nil:
 		return ""
-	case float64, float32, int, int64, int32:
-		str := fmt.Sprintf("%v", v)
-		val := ToFloat64(v)
-
-		// Handle very large numbers (positive exponents)
-		if math.Abs(val) >= 1.0 {
-			parts := strings.Split(str, "e")
-			if len(parts) == 2 {
-				// Convert the exponent into an integer
-				exponent, _ := strconv.Atoi(parts[1])
-				// Split the mantissa into integer and fractional parts
-				mantissaParts := strings.Split(parts[0], ".")
-				integerPart := mantissaParts[0]
-				fractionalPart := ""
-				if len(mantissaParts) > 1 {
-					fractionalPart = mantissaParts[1]
-				}
-
-				// Adjust the number of zeros based on the exponent
-				if exponent >= 0 {
-					totalDigits := integerPart + fractionalPart
-					if exponent >= len(fractionalPart) {
-						zerosToAdd := exponent - len(fractionalPart)
-						return totalDigits + strings.Repeat("0", zerosToAdd)
-					} else {
-						return totalDigits[:len(integerPart)+exponent] + "." + totalDigits[len(integerPart)+exponent:]
-					}
-				}
-			}
-		}
-
-		// Handle numbers with negative exponents (fractions)
-		if math.Abs(val) < 1.0 {
-			parts := strings.Split(str, "e-")
-			if len(parts) == 2 {
-				n := strings.Replace(parts[0], ".", "", -1)
-				e, _ := strconv.Atoi(parts[1])
-				neg := str[0] == '-'
-				if e != 0 {
-					// Format the result with leading zeros
-					return fmt.Sprintf("%s0.%s%s", map[bool]string{true: "-", false: ""}[neg], strings.Repeat("0", e-1), strings.Replace(n, "-", "", 1))
-				}
-			}
-		}
-
-		// If no scientific notation, return the original string
-		return str
+	case string:
+		// fmt.Sprintf("%v", string) is the identity; skip formatting entirely
+		return v
+	case float64:
+		return float64ToString(v)
+	case int:
+		// %v never yields exponent notation for integers, so the exponent
+		// expansion below was always a no-op for them
+		return strconv.Itoa(v)
+	case int64:
+		return strconv.FormatInt(v, 10)
+	case int32:
+		return strconv.FormatInt(int64(v), 10)
+	case float32:
+		// Legacy behaviour preserved: ToFloat64 has no float32 case, so it
+		// returned NaN and neither exponent branch below ever ran for float32.
+		return strconv.FormatFloat(float64(v), 'g', -1, 32)
 	default:
 		return fmt.Sprintf("%v", x)
 	}
 }
 
-func (this *Exchange) NumberToString2(x interface{}) string {
+// float64ToString renders a float64 exactly the way fmt.Sprintf("%v", f) does
+// (shortest 'g' form), then expands scientific notation to plain decimals.
+func float64ToString(val float64) string {
+	str := strconv.FormatFloat(val, 'g', -1, 64)
+	ei := strings.IndexByte(str, 'e')
+	if ei < 0 {
+		// fast path: nothing to expand (also covers NaN / ±Inf)
+		return str
+	}
+
+	// Handle very large numbers (positive exponents)
+	if math.Abs(val) >= 1.0 {
+		exponent, err := strconv.Atoi(str[ei+1:])
+		if err != nil || exponent < 0 {
+			return str
+		}
+		mantissa := str[:ei]
+		integerPart := mantissa
+		fractionalPart := ""
+		if di := strings.IndexByte(mantissa, '.'); di >= 0 {
+			integerPart = mantissa[:di]
+			fractionalPart = mantissa[di+1:]
+		}
+		var b strings.Builder
+		if exponent >= len(fractionalPart) {
+			b.Grow(len(integerPart) + exponent)
+			b.WriteString(integerPart)
+			b.WriteString(fractionalPart)
+			writeZeros(&b, exponent-len(fractionalPart))
+			return b.String()
+		}
+		b.Grow(len(integerPart) + len(fractionalPart) + 1)
+		b.WriteString(integerPart)
+		b.WriteString(fractionalPart[:exponent])
+		b.WriteByte('.')
+		b.WriteString(fractionalPart[exponent:])
+		return b.String()
+	}
+
+	// Handle numbers with negative exponents (fractions)
+	if str[ei+1] != '-' {
+		return str
+	}
+	e, err := strconv.Atoi(str[ei+2:])
+	if err != nil || e == 0 {
+		return str
+	}
+	neg := str[0] == '-'
+	mantissa := str[:ei]
+	if neg {
+		mantissa = mantissa[1:]
+	}
+	var b strings.Builder
+	b.Grow(len(mantissa) + e + 3)
+	if neg {
+		b.WriteByte('-')
+	}
+	b.WriteString("0.")
+	writeZeros(&b, e-1)
+	for i := 0; i < len(mantissa); i++ { // mantissa digits, dot removed
+		if mantissa[i] != '.' {
+			b.WriteByte(mantissa[i])
+		}
+	}
+	return b.String()
+}
+
+func (this *BaseExchange) NumberToString2(x any) string {
 	switch v := x.(type) {
 	case nil:
 		return ""
@@ -130,7 +180,7 @@ func (this *Exchange) NumberToString2(x interface{}) string {
 	}
 }
 
-// func (this *Exchange) NumberToString(x interface{}) string {
+// func (this *BaseExchange) NumberToString(x any) string {
 // 	switch v := x.(type) {
 // 	case nil:
 // 		return ""
@@ -163,48 +213,103 @@ func (this *Exchange) NumberToString2(x interface{}) string {
 // 	}
 // }
 
-var truncateRegExpCache = make(map[int]*regexp.Regexp)
+// matchTruncatePrefix emulates `^([-]*\d+\.\d{0,precision})` and returns the
+// end index of the match, or -1 when it does not match. The character classes
+// are disjoint, so the greedy scan needs no backtracking.
+func matchTruncatePrefix(s string, precision int) int {
+	i := 0
+	n := len(s)
+	for i < n && s[i] == '-' { // [-]*
+		i++
+	}
+	start := i
+	for i < n && s[i] >= '0' && s[i] <= '9' { // \d+
+		i++
+	}
+	if i == start || i >= n || s[i] != '.' { // needs >=1 digit then a dot
+		return -1
+	}
+	i++
+	for k := 0; k < precision && i < n && s[i] >= '0' && s[i] <= '9'; k++ { // \d{0,precision}
+		i++
+	}
+	return i
+}
 
-func (this *Exchange) truncateToString(num interface{}, precision int) string {
+func (this *BaseExchange) truncateToString(num any, precision int) string {
 	numStr := NumberToString(num)
 	if precision > 0 {
-		re, exists := truncateRegExpCache[precision]
-		if !exists {
-			re = regexp.MustCompile(fmt.Sprintf(`^([-]*\d+\.\d{0,%d})`, precision))
-			truncateRegExpCache[precision] = re
-		}
-		match := re.FindStringSubmatch(numStr)
-		if len(match) > 1 {
-			result := match[1]
-			// If we have fewer decimal places than precision, return as-is
-			parts := strings.Split(result, ".")
-			if len(parts) == 2 && len(parts[1]) > precision {
-				result = parts[0] + "." + parts[1][:precision]
-			}
-			return result
+		if end := matchTruncatePrefix(numStr, precision); end > 0 {
+			return numStr[:end]
 		}
 	}
 	// Fallback for precision <= 0 or no decimal point
-	intNum, _ := strconv.Atoi(strings.Split(numStr, ".")[0])
+	intPart := numStr
+	if dot := strings.IndexByte(numStr, '.'); dot >= 0 {
+		intPart = numStr[:dot]
+	}
+	intNum, _ := strconv.Atoi(intPart)
 	return strconv.Itoa(intNum)
 }
 
-func (this *Exchange) truncate(num interface{}, precision int) float64 {
+func (this *BaseExchange) truncate(num any, precision int) float64 {
 	result, _ := strconv.ParseFloat(this.truncateToString(num, precision), 64)
 	return result
 }
 
-func (this *Exchange) PrecisionFromString(str2 interface{}) int {
+// matchExponentPrefix emulates one match of `\d\.?\d*[eE]` anchored at i and
+// returns the end index of the match, or -1 when there is no match at i.
+func matchExponentPrefix(s string, i int) int {
+	n := len(s)
+	if s[i] < '0' || s[i] > '9' { // \d
+		return -1
+	}
+	j := i + 1
+	if j < n && s[j] == '.' { // \.? greedy; on failure \d* cannot match '.' anyway
+		j++
+	}
+	for j < n && s[j] >= '0' && s[j] <= '9' { // \d* — digits and [eE] are disjoint,
+		j++ // so the greedy run is the only candidate
+	}
+	if j < n && (s[j] == 'e' || s[j] == 'E') {
+		return j + 1
+	}
+	return -1
+}
+
+func (this *BaseExchange) PrecisionFromString(str2 any) int {
 	str := str2.(string)
 	if strings.ContainsAny(str, "eE") {
-		numStr := regexp.MustCompile(`\d\.?\d*[eE]`).ReplaceAllString(str, "")
+		// equivalent to regexp `\d\.?\d*[eE]`.ReplaceAllString(str, "")
+		var b strings.Builder
+		last := 0
+		for i := 0; i < len(str); {
+			end := matchExponentPrefix(str, i)
+			if end < 0 {
+				i++
+				continue
+			}
+			b.WriteString(str[last:i])
+			last = end
+			i = end
+		}
+		numStr := str
+		if last != 0 {
+			b.WriteString(str[last:])
+			numStr = b.String()
+		}
 		precision, _ := strconv.Atoi(numStr)
 		return -precision
 	}
-	split := regexp.MustCompile(`0+$`).ReplaceAllString(str, "")
-	parts := strings.Split(split, ".")
-	if len(parts) > 1 {
-		return len(parts[1])
+	// equivalent to regexp `0+$`.ReplaceAllString(str, "") — Go's `$` is
+	// end-of-text here (no multiline flag), so TrimRight is exact.
+	split := strings.TrimRight(str, "0")
+	if dot := strings.IndexByte(split, '.'); dot >= 0 {
+		frac := split[dot+1:]
+		if next := strings.IndexByte(frac, '.'); next >= 0 {
+			frac = frac[:next] // matches the old strings.Split(...)[1]
+		}
+		return len(frac)
 	}
 	return 0
 }
@@ -224,13 +329,13 @@ func roundToDecimalPlaces(num float64, decimalPlaces int) float64 {
 	return math.Round(num*shift) / shift
 }
 
-func (this *Exchange) DecimalToPrecision(value interface{}, roundingMode interface{}, numPrecisionDigits interface{}, args ...interface{}) interface{} {
+func (this *BaseExchange) DecimalToPrecision(value any, roundingMode any, numPrecisionDigits any, args ...any) any {
 	countingMode := GetArg(args, 0, nil)
 	paddingMode := GetArg(args, 1, nil)
 	return this._decimalToPrecision(value, roundingMode, numPrecisionDigits, countingMode, paddingMode)
 }
 
-func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode2, numPrecisionDigits2 interface{}, countmode2, paddingMode interface{}) string {
+func (this *BaseExchange) _decimalToPrecision(x any, roundingMode2, numPrecisionDigits2 any, countmode2, paddingMode any) string {
 	if countmode2 == nil {
 		countmode2 = DECIMAL_PLACES
 	}
@@ -246,8 +351,8 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode2, numPreci
 		panic("TICK_SIZE can't be used with negative or zero numPrecisionDigits")
 	}
 
-	parsedX := ToFloat64(x)
 	if numPrecisionDigits < 0 {
+		parsedX := ToFloat64(x)
 		toNearest := math.Pow(10, math.Abs(numPrecisionDigits))
 		if roundingMode == ROUND {
 			res := this._decimalToPrecision(parsedX/toNearest, roundingMode, 0, countmode2, paddingMode)
@@ -279,6 +384,7 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode2, numPreci
 
 	// Handle tick size
 	if countMode == TICK_SIZE {
+		parsedX := ToFloat64(x)
 		precisionDigitsString := this._decimalToPrecision(numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING)
 		newNumPrecisionDigits := this.PrecisionFromString(precisionDigitsString)
 		if roundingMode == TRUNCATE {
@@ -489,7 +595,7 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode2, numPreci
 	return string(outArray)
 }
 
-// func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode interface{}, numPrecisionDigits2 interface{}, countingMode2 interface{}, paddingMode2 interface{}) string {
+// func (this *BaseExchange) _decimalToPrecision(x any, roundingMode any, numPrecisionDigits2 any, countingMode2 any, paddingMode2 any) string {
 // 	countingMode := countingMode2.(int)
 // 	paddingMode := paddingMode2.(int)
 // 	numPrecisionDigits := numPrecisionDigits2
@@ -636,7 +742,7 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode2, numPreci
 // 	return string(out)
 // }
 
-// func (this *Exchange) omitZero(stringNumber string) string {
+// func (this *BaseExchange) omitZero(stringNumber string) string {
 // 	if stringNumber == "" {
 // 		return ""
 // 	}

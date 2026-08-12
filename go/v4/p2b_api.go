@@ -7,74 +7,92 @@
 
 package ccxt
 
-func (this *P2bCore) PublicGetMarkets(args ...interface{}) <-chan interface{} {
+// PublicGetMarkets returns a channel that yields a JSON object.
+func (this *P2bCore) PublicGetMarkets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
-func (this *P2bCore) PublicGetMarket(args ...interface{}) <-chan interface{} {
+// PublicGetMarket returns a channel that yields a JSON object.
+func (this *P2bCore) PublicGetMarket(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarket", args...)
 }
 
-func (this *P2bCore) PublicGetTickers(args ...interface{}) <-chan interface{} {
+// PublicGetTickers returns a channel that yields a JSON object.
+func (this *P2bCore) PublicGetTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *P2bCore) PublicGetTicker(args ...interface{}) <-chan interface{} {
+// PublicGetTicker returns a channel that yields a JSON object.
+func (this *P2bCore) PublicGetTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *P2bCore) PublicGetBook(args ...interface{}) <-chan interface{} {
+// PublicGetBook returns a channel that yields a JSON object.
+func (this *P2bCore) PublicGetBook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetBook", args...)
 }
 
-func (this *P2bCore) PublicGetHistory(args ...interface{}) <-chan interface{} {
+// PublicGetHistory returns a channel that yields a JSON object.
+func (this *P2bCore) PublicGetHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetHistory", args...)
 }
 
-func (this *P2bCore) PublicGetDepthResult(args ...interface{}) <-chan interface{} {
+// PublicGetDepthResult returns a channel that yields a JSON object.
+func (this *P2bCore) PublicGetDepthResult(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetDepthResult", args...)
 }
 
-func (this *P2bCore) PublicGetMarketKline(args ...interface{}) <-chan interface{} {
+// PublicGetMarketKline returns a channel that yields a JSON object.
+func (this *P2bCore) PublicGetMarketKline(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketKline", args...)
 }
 
-func (this *P2bCore) PrivatePostAccountBalances(args ...interface{}) <-chan interface{} {
+// PrivatePostAccountBalances returns a channel that yields a JSON object.
+func (this *P2bCore) PrivatePostAccountBalances(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountBalances", args...)
 }
 
-func (this *P2bCore) PrivatePostAccountBalance(args ...interface{}) <-chan interface{} {
+// PrivatePostAccountBalance returns a channel that yields a JSON object.
+func (this *P2bCore) PrivatePostAccountBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountBalance", args...)
 }
 
-func (this *P2bCore) PrivatePostOrderNew(args ...interface{}) <-chan interface{} {
+// PrivatePostOrderNew returns a channel that yields a JSON object.
+func (this *P2bCore) PrivatePostOrderNew(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderNew", args...)
 }
 
-func (this *P2bCore) PrivatePostOrderCancel(args ...interface{}) <-chan interface{} {
+// PrivatePostOrderCancel returns a channel that yields a JSON object.
+func (this *P2bCore) PrivatePostOrderCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderCancel", args...)
 }
 
-func (this *P2bCore) PrivatePostOrders(args ...interface{}) <-chan interface{} {
+// PrivatePostOrders returns a channel that yields a JSON object.
+func (this *P2bCore) PrivatePostOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *P2bCore) PrivatePostAccountMarketOrderHistory(args ...interface{}) <-chan interface{} {
+// PrivatePostAccountMarketOrderHistory returns a channel that yields a JSON object.
+func (this *P2bCore) PrivatePostAccountMarketOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountMarketOrderHistory", args...)
 }
 
-func (this *P2bCore) PrivatePostAccountMarketDealHistory(args ...interface{}) <-chan interface{} {
+// PrivatePostAccountMarketDealHistory returns a channel that yields a JSON object.
+func (this *P2bCore) PrivatePostAccountMarketDealHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountMarketDealHistory", args...)
 }
 
-func (this *P2bCore) PrivatePostAccountOrder(args ...interface{}) <-chan interface{} {
+// PrivatePostAccountOrder returns a channel that yields a JSON object.
+func (this *P2bCore) PrivatePostAccountOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountOrder", args...)
 }
 
-func (this *P2bCore) PrivatePostAccountOrderHistory(args ...interface{}) <-chan interface{} {
+// PrivatePostAccountOrderHistory returns a channel that yields a JSON object.
+func (this *P2bCore) PrivatePostAccountOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountOrderHistory", args...)
 }
 
-func (this *P2bCore) PrivatePostAccountExecutedHistory(args ...interface{}) <-chan interface{} {
+// PrivatePostAccountExecutedHistory returns a channel that yields a JSON object.
+func (this *P2bCore) PrivatePostAccountExecutedHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountExecutedHistory", args...)
 }

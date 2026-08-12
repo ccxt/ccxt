@@ -1,5 +1,5 @@
 import Exchange from './abstract/mexc.js';
-import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, TradingFeeInterface } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, NullableDict, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, DepositWithdrawFees, Status, PositionModeInfo } from './base/types.js';
 /**
  * @class mexc
  * @augments Exchange
@@ -10,24 +10,18 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#test-connectivity
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/test-connectivity // spot
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-server-time // swap
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: any;
-        updated: any;
-        url: any;
-        eta: any;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name mexc#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#check-server-time
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/check-server-time // spot
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-server-time // swap
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -36,17 +30,18 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-the-currency-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
      * @name mexc#fetchMarkets
      * @description retrieves data on all markets for mexc
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/exchange-information // spot
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-info // swap
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -56,40 +51,40 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchMarkets
      * @description retrieves data on all spot markets for mexc
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/exchange-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchSpotMarkets(params?: {}): Promise<any[]>;
+    fetchSpotMarkets(params?: any): Promise<Market[]>;
     /**
      * @ignore
      * @method
      * @name mexc#fetchMarkets
      * @description retrieves data on all swap markets for mexc
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-info
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchSwapMarkets(params?: {}): Promise<any[]>;
+    fetchSwapMarkets(params?: any): Promise<Market[]>;
     /**
      * @method
      * @name mexc#fetchOrderBook
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#order-book
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/order-book // spot
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-order-book-depth // swap
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): number[];
+    parseOrderBookBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): Num[];
     /**
      * @method
      * @name mexc#fetchTrades
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#recent-trades-list
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#compressed-aggregate-trades-list
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-transaction-data
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/recent-trades-list // spot
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/compressedaggregate-trades-list // spot aggregated
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-recent-trades // swap
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -103,8 +98,10 @@ export default class mexc extends Exchange {
     /**
      * @method
      * @name mexc#fetchOHLCV
-     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints#klinecandlestick-data
-     * @see https://www.mexc.com/api-docs/futures/market-endpoints#get-candlestick-data
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/klinecandlestick-data // spot
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-candlestick-data // swap
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-index-price-candles // index
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-fair-price-candles // mark
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -121,8 +118,8 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/api-24hr-ticker-price-change-statistics // spot
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-ticker-contract-market-data // swap
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -132,8 +129,8 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/api-24hr-ticker-price-change-statistics // spot
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-ticker-contract-market-data // swap
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -144,7 +141,7 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#symbol-order-book-ticker
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/symbol-order-book-ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -154,7 +151,7 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#createMarketBuyOrderWithCost
      * @description create a market buy order by providing the symbol and cost
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -165,7 +162,7 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#createMarketSellOrderWithCost
      * @description create a market sell order by providing the symbol and cost
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -176,9 +173,9 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#createOrder
      * @description create a trade order
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order // spot
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-order // swap
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-plan-order // swap trigger
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -200,13 +197,13 @@ export default class mexc extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createSpotOrderRequest(market: any, type: any, side: any, amount: any, price?: any, marginMode?: any, params?: {}): any;
+    createSpotOrderRequest(market: any, type: any, side: any, amount: any, price?: Num, marginMode?: Str, params?: {}): any;
     /**
      * @ignore
      * @method
      * @name mexc#createSpotOrder
      * @description create a trade order
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order
      * @param {string} market unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -217,15 +214,14 @@ export default class mexc extends Exchange {
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createSpotOrder(market: any, type: any, side: any, amount: any, price?: any, marginMode?: any, params?: {}): Promise<Order>;
+    createSpotOrder(market: any, type: OrderType, side: any, amount: any, price?: Num, marginMode?: Str, params?: {}): Promise<Order>;
     /**
      * @ignore
      * @method
      * @name mexc#createSwapOrder
      * @description create a trade order
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-order
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-plan-order
      * @param {string} market unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -245,12 +241,12 @@ export default class mexc extends Exchange {
      * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createSwapOrder(market: any, type: any, side: any, amount: any, price?: any, marginMode?: any, params?: {}): Promise<Order>;
+    createSwapOrder(market: any, type: any, side: any, amount: any, price?: Num, marginMode?: Str, params?: {}): Promise<Order>;
     /**
      * @method
      * @name mexc#createOrders
      * @description *spot only*  *all orders must have the same symbol* create a list of trade orders
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#batch-orders
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/batch-orders
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to api endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -260,8 +256,8 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-order
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#query-the-order-based-on-the-order-number
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/query-order // spot
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-order-information-by-order-id // swap
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -273,9 +269,9 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/all-orders // spot
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-historical-orders // swap
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -290,9 +286,9 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#current-open-orders
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/current-open-orders // spot
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-current-orders // swap
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -305,9 +301,9 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/all-orders // spot
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-historical-orders // swap
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -319,9 +315,9 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchCanceledOrders
      * @description fetches information on multiple canceled orders made by the user
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/all-orders // spot
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-historical-orders // swap
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] timestamp in ms of the earliest order, default is undefined
      * @param {int} [limit] max number of orders to return, default is undefined
@@ -334,9 +330,9 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#cancelOrder
      * @description cancels an open order
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-order
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-order-under-maintenance
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-stop-limit-trigger-order-under-maintenance
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-order // spot
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-orders // swap
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-planned-orders // swap trigger
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -348,7 +344,7 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#cancelOrders
      * @description cancel multiple orders
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-order-under-maintenance
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-orders
      * @param {string[]} ids order ids
      * @param {string} symbol unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -359,28 +355,28 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#cancelAllOrders
      * @description cancel all open orders
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-all-open-orders-on-a-symbol
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-orders-under-a-contract-under-maintenance
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-trigger-orders-under-maintenance
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-all-open-orders-on-a-symbol // spot
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-all-orders // spot all symbols
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-orders-under-a-contract // swap
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-planned-orders // swap trigger
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderSide(status: any): string;
     parseOrderType(status: any): string;
-    parseOrderStatus(status: Str): string;
+    parseOrderStatus(status: Str): Str;
     parseOrderTimeInForce(status: any): string;
-    getTifFromRawOrderType(orderType?: Str): string;
+    getTifFromRawOrderType(orderType?: Str): Str;
     fetchAccountHelper(type: any, params: any): Promise<any>;
     /**
      * @method
      * @name mexc#fetchAccounts
      * @description fetch all the accounts associated with a profile
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-information // spot
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-account-assets // swap
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
@@ -389,7 +385,7 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchTradingFee
      * @description fetch the trading fees for a market
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-mx-deduct-status
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/query-symbol-commission
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -401,8 +397,8 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-information // spot
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-account-assets // swap
      * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.symbols] // required for margin, market id's separated by commas
@@ -413,8 +409,8 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-transaction-details-of-the-user-s-order
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-trade-list // spot
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-transaction-details-of-the-user-s-order // swap legacy endpoint
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -427,8 +423,8 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#query-the-order-based-on-the-order-number
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-trade-list // spot
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-trade-records-by-order-id // swap
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -437,12 +433,12 @@ export default class mexc extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    modifyMarginHelper(symbol: string, amount: any, addOrReduce: any, params?: {}): Promise<any>;
+    modifyMarginHelper(symbol: string, amount: any, addOrReduce: any, params?: {}): Promise<MarginModification>;
     /**
      * @method
      * @name mexc#reduceMargin
      * @description remove margin from a position
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-position-margin
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -453,7 +449,7 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#addMargin
      * @description add margin
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-position-margin
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -464,18 +460,18 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#setLeverage
      * @description set the level of leverage for a market
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-leverage
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name mexc#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-details-of-user-s-funding-rate
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-funding-fee-details
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -488,7 +484,7 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchFundingInterval
      * @description fetch the current funding rate interval
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-funding-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -498,7 +494,7 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-funding-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -508,7 +504,7 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate-history
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-funding-rate-history
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] not used by mexc, but filtered internally by ccxt
      * @param {int} [limit] mexc limit is page_size default 20, maximum is 100
@@ -520,7 +516,7 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchLeverageTiers
      * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for this market
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-info
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
@@ -532,7 +528,7 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchDepositAddressesByNetwork
      * @description fetch a dictionary of addresses for a currency, indexed by network
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-address-supporting-network
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
@@ -542,7 +538,7 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#createDepositAddress
      * @description create a currency deposit address
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/generate-deposit-address-supporting-network
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the blockchain network name
@@ -553,7 +549,7 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-address-supporting-network
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the chain of currency, this only apply for multi-chain currency, and there is no need for single chain currency
@@ -564,7 +560,7 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-historysupporting-network
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -576,7 +572,7 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/withdraw-history-supporting-network
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -585,12 +581,21 @@ export default class mexc extends Exchange {
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatusByType(status: any, type?: any): string;
+    parseTransactionStatusByType(status: any, type?: Str): string;
+    /**
+     * @method
+     * @name mexc#closeAllPositions
+     * @description closes all open swap positions
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/close-all
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    closeAllPositions(params?: {}): Promise<Position[]>;
     /**
      * @method
      * @name mexc#fetchPosition
      * @description fetch data on a single open contract trade position
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-open-positions
      * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -600,7 +605,7 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchPositions
      * @description fetch all open positions
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-open-positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -614,7 +619,7 @@ export default class mexc extends Exchange {
      * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry
      * @param {string} id transfer id
      * @param {string} [code] not used by mexc fetchTransfer
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     fetchTransfer(id: string, code?: Str, params?: {}): Promise<TransferEntry>;
@@ -622,10 +627,9 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchTransfers
      * @description fetch a history of internal transfers made on an account
-     * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
-     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history     * @param {string} code unified currency code of the currency transferred
-     * @param code
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-user-universal-transfer-history // spot universal transfer
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-asset-transfer-records // swap
+     * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of  transfers structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -638,7 +642,7 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/user-universal-transfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -655,8 +659,8 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#withdraw
      * @description make a withdrawal
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
-     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#internal-transfer
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/withdrawnew // on-chain withdrawal
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/internal-transfer // internal transfer
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -671,31 +675,28 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#setPositionMode
      * @description set hedged to true or false for a market
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#change-position-mode
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-user-position-mode
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by mexc setPositionMode ()
+     * @param {string} symbol not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name mexc#fetchPositionMode
      * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-position-mode
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-user-position-mode
      * @param {string} symbol not used by mexc fetchPositionMode
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    fetchPositionMode(symbol?: Str, params?: {}): Promise<{
-        info: any;
-        hedged: boolean;
-    }>;
+    fetchPositionMode(symbol?: Str, params?: {}): Promise<PositionModeInfo>;
     /**
      * @method
      * @name mexc#fetchTransactionFees
      * @description fetch deposit and withdrawal fees
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-the-currency-information
      * @param {string[]|undefined} codes returns fees for all currencies if undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -705,7 +706,7 @@ export default class mexc extends Exchange {
         deposit: {};
         info: any;
     }>;
-    parseTransactionFees(response: any, codes?: any): {
+    parseTransactionFees(response: any, codes?: Strings): {
         withdraw: Dict;
         deposit: {};
         info: any;
@@ -715,34 +716,34 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchDepositWithdrawFees
      * @description fetch deposit and withdrawal fees
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-the-currency-information
      * @param {string[]|undefined} codes returns fees for all currencies if undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<DepositWithdrawFees>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     /**
      * @method
      * @name mexc#fetchLeverage
      * @description fetch the set leverage for a market
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-position-leverage-multipliers
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
-    handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
+    handleMarginModeAndParams(methodName: string, params?: {}, defaultValue?: any): [any, Dict];
     /**
      * @method
      * @name mexc#fetchPositionsHistory
      * @description fetches historical positions
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-historical-positions
      * @param {string[]} [symbols] unified contract symbols
      * @param {int} [since] not used by mexc fetchPositionsHistory
      * @param {int} [limit] the maximum amount of candles to fetch, default=1000
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {int} [params.type] position type，1: long, 2: short
@@ -754,7 +755,7 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#setMarginMode
      * @description set margin mode to 'cross' or 'isolated'
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-leverage
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} [symbol] required when there is no position, else provide params["positionId"]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -762,13 +763,13 @@ export default class mexc extends Exchange {
      * @param {string} [params.direction] "long" or "short" required when there is no position
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
-        url: any;
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
+        url: Str;
         method: string;
-        body: any;
-        headers: any;
+        body: Str;
+        headers: NullableDict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

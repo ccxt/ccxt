@@ -1,5 +1,5 @@
 import Exchange from './abstract/lbank.js';
-import type { Balances, Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate, NullableDict, DepositWithdrawFees } from './base/types.js';
 /**
  * @class lbank
  * @augments Exchange
@@ -24,6 +24,7 @@ export default class lbank extends Exchange {
      * @returns {dict} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
      * @name lbank#fetchMarkets
@@ -34,8 +35,8 @@ export default class lbank extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchSpotMarkets(params?: {}): Promise<any[]>;
-    fetchSwapMarkets(params?: {}): Promise<any[]>;
+    fetchSpotMarkets(params?: any): Promise<Market[]>;
+    fetchSwapMarkets(params?: any): Promise<Market[]>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -67,7 +68,7 @@ export default class lbank extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTrade(trade: Dict, market?: Market): Trade;
@@ -162,7 +163,7 @@ export default class lbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name lbank#createOrder
@@ -178,7 +179,7 @@ export default class lbank extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    parseOrderStatus(status: Str): string;
+    parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -251,7 +252,7 @@ export default class lbank extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
-    getNetworkCodeForCurrency(currencyCode: any, params: any): string;
+    getNetworkCodeForCurrency(currencyCode: any, params: any): Str;
     /**
      * @method
      * @name lbank#fetchDepositAddress
@@ -278,7 +279,7 @@ export default class lbank extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
-    parseTransactionStatus(status: any, type: any): string;
+    parseTransactionStatus(status: Str, type: any): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -309,20 +310,20 @@ export default class lbank extends Exchange {
      * @name lbank#fetchTransactionFees
      * @deprecated
      * @description please use fetchDepositWithdrawFees instead
-     * @param {string[]|undefined} codes not used by lbank fetchTransactionFees ()
+     * @param {string[]|undefined} codes not used by fetchTransactionFees ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchTransactionFees(codes?: Strings, params?: {}): Promise<any>;
+    fetchTransactionFees(codes?: Strings, params?: {}): Promise<Dict>;
     fetchPrivateTransactionFees(params?: {}): Promise<{
         withdraw: Dict;
         deposit: {};
-        info: any;
+        info: Dict;
     }>;
     fetchPublicTransactionFees(params?: {}): Promise<{
         withdraw: Dict;
         deposit: {};
-        info: any;
+        info: Dict;
     }>;
     /**
      * @method
@@ -334,17 +335,17 @@ export default class lbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
-    fetchPrivateDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
-    fetchPublicDepositWithdrawFees(codes?: any, params?: {}): Promise<Dict>;
-    parsePublicDepositWithdrawFees(response: any, codes?: any): Dict;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<DepositWithdrawFees>;
+    fetchPrivateDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
+    fetchPublicDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dict>;
+    parsePublicDepositWithdrawFees(response: any, codes?: Strings): Dict;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: Str;
+        headers: NullableDict;
     };
     convertSecretToPem(secret: any): string;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

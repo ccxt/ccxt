@@ -1,0 +1,218 @@
+name: Java
+run-name: ${{ github.event.head_commit.message || github.event.pull_request.title || format('{0} · {1}', github.ref_name, github.sha) }}
+
+env:
+  HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ !contains(github.event.head_commit.message, '[Automated changes]') }}
+
+jobs:
+  build:
+    runs-on: [ self-hosted, linux, x64, java ]
+    if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
+    timeout-minutes: 30
+    steps:
+    - name: Generate App token
+      if: github.ref == 'refs/heads/master'
+      id: app-token
+      uses: actions/create-github-app-token@v3
+      with:
+        client-id: ${{ secrets.CCXT_APP_CLIENT_ID }}
+        private-key: ${{ secrets.CCXT_APP_PRIVATE_KEY }}
+        permission-contents: write
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 2
+        clean: false
+        token: ${{ github.ref == 'refs/heads/master' && steps.app-token.outputs.token || github.token }}
+    - name: Skip Automated Push Commits
+      id: check_commit
+      run: |
+        if [[ "$HEAD_COMMIT_MESSAGE" == *"[Automated changes]"* ]]; then
+          echo "This commit was made by the action. Skipping."
+          exit 0
+        fi
+    - uses: actions/setup-node@v5
+      with:
+        node-version: '22'
+    - name: Set up JDK
+      uses: actions/setup-java@v5
+      with:
+        distribution: temurin
+        java-version: '21'   # or '20' – but match what :lib is targeting
+    - name: Install npm dependencies
+      run: npm ci --include=dev
+    - name: Determine modified files
+      run: ./build/utils/init_actions.sh
+    - name: Pre-transpile (export exchanges and emit API)
+      run: npm run pre-transpile-java
+    - name: Transpile to Java
+      if: env.important_modified == 'true'
+      run: npm run force-transpileJava
+    - name: Transpile to Java (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run transpileJavaSingle -- $exchange
+        done
+        cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
+        for exchange in $cleaned_ws_files; do
+          npm run transpileJavaSingle -- --ws $exchange
+        done
+    - name: Transpile prediction to Java
+      if: env.prediction_modified == 'true'
+      run: npm run transpile-prediction-java
+    - name: Build Project
+      run: npm run buildJava
+    - name: Run Base Tests
+      if: env.important_modified == 'true'
+      run: npm run test-base-rest-java
+    - name: Run Id Tests
+      if: env.important_modified == 'true'
+      run: npm run id-tests-java
+    - name: Request tests
+      if: env.important_modified == 'true'
+      run: npm run request-java
+    - name: Request tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          ./java/gradlew -p java :tests:run --args="--requestTests $exchange"
+        done
+    - name: Response tests
+      if: env.important_modified == 'true'
+      run: npm run response-java
+    - name: Response tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          ./java/gradlew -p java :tests:run --args="--responseTests $exchange"
+        done
+    - name: Prediction request tests
+      if: env.prediction_modified == 'true'
+      run: npm run request-java-prediction
+    - name: Prediction response tests
+      if: env.prediction_modified == 'true'
+      run: npm run response-java-prediction
+    - name: Upload shared_env.txt
+      uses: actions/upload-artifact@v4
+      with:
+          name: shared_env
+          path: shared_env.txt
+    - name: Upload Java Files
+      uses: actions/upload-artifact@v4
+      with:
+        name: java-files
+        path: | 
+          java/
+          !java/**/build/**
+          !java/.gradle/**
+        retention-days: 1
+
+    - name: Get App bot user ID
+      if: github.ref == 'refs/heads/master'
+      id: app-user
+      env:
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
+      run: |
+        id=$(curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" \
+          "https://api.github.com/users/${{ steps.app-token.outputs.app-slug }}%5Bbot%5D" \
+          | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).id")
+        echo "id=${id}" >> "$GITHUB_OUTPUT"
+
+    - name: Push Java changes to master
+      if: github.ref == 'refs/heads/master' && github.actor != 'ccxt-release[bot]'
+      env:
+        APP_TOKEN: ${{ steps.app-token.outputs.token }}
+      run: |
+        git config user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
+        git config user.email "${{ steps.app-user.outputs.id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
+
+        git remote set-url origin \
+          "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+        git checkout HEAD README.md wiki  # only JS does wiki pushback
+
+        git add java/
+
+        if git diff --cached --quiet; then
+          echo "No changes to commit."
+          exit 0
+        fi
+
+        git commit -m "[Automated changes] Java files"
+
+        for attempt in 1 2 3 4 5; do
+          git fetch origin master
+          git rebase --autostash origin/master
+          if git push origin HEAD:master; then
+            echo "pushed on attempt ${attempt}"
+            exit 0
+          fi
+          echo "master moved, retrying (${attempt})..."
+          sleep $(( (RANDOM % 5) + 2 ))
+        done
+        echo "push failed after 5 attempts"
+        exit 1
+
+  live-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    # Local sweep on 48 GB / many cores finishes REST + WS in parallel in ~26 min.
+    # CI's 7 GB / 4-core runner is slower per JVM and contention from 10
+    # concurrent gradle JVMs (5 REST + 5 WS) extends wall-clock — 30 min wasn't
+    # enough. 60 min gives margin without burning runner time on a runaway hang.
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          clean: false
+      - name: Download shared_env
+        uses: actions/download-artifact@v4
+        with:
+          name: shared_env
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'   # or '20' – but match what :lib is targeting
+      - name: Download Java Files
+        uses: actions/download-artifact@v4
+        with:
+          name: java-files
+          path: java/
+      - name: Restore shared_env
+        run: ./build/utils/restore_shared_env.sh
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Install npm dependencies
+        run: npm ci --include=dev
+      - name: Export exchanges
+        run: npm run export-exchanges
+      - name: List Java/ contents
+        run: ls java/
+      - name: Build project again (rm later)
+        run: npm run buildJava
+      - name: Live tests
+        if: env.important_modified == 'true'
+        run: ./run-tests-simul.sh --java
+      - name: Live tests (specific)
+        if: env.important_modified == 'false'
+        run: ./run-tests-simul.sh --java "${{ env.rest_files }}" "${{ env.ws_files }}"

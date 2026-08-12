@@ -2,14 +2,14 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var ed25519_js = require('@noble/curves/ed25519.js');
+var sha3_js = require('@noble/hashes/sha3.js');
+var secp256k1_js = require('@noble/curves/secp256k1.js');
 var modetrade$1 = require('./abstract/modetrade.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var crypto = require('./base/functions/crypto.js');
-var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
-var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
-var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -22,13 +22,12 @@ class modetrade extends modetrade$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'modetrade',
             'name': 'Mode Trade',
-            'countries': ['KY'],
+            'countries': ['KY'], // Cayman Islands
             'rateLimit': 100,
             'version': 'v1',
             'certified': false,
             'pro': true,
             'dex': true,
-            'hostname': 'trade.mode.network',
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -50,6 +49,7 @@ class modetrade extends modetrade$1["default"] {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -60,6 +60,7 @@ class modetrade extends modetrade$1["default"] {
                 'createTrailingAmountOrder': false,
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': true,
+                'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchCanceledOrders': false,
@@ -128,7 +129,7 @@ class modetrade extends modetrade$1["default"] {
                 '1y': '1y',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/cec2b7f1-3b2b-4502-971b-447ee1937d6b',
+                'logo': 'https://github.com/user-attachments/assets/bbde7d00-6e40-404f-8f34-8fb15893eb24',
                 'api': {
                     'public': 'https://api-evm.orderly.org',
                     'private': 'https://api-evm.orderly.org',
@@ -147,133 +148,133 @@ class modetrade extends modetrade$1["default"] {
                 'v1': {
                     'public': {
                         'get': {
-                            'public/volume/stats': 1,
-                            'public/broker/name': 1,
-                            'public/chain_info/{broker_id}': 1,
-                            'public/system_info': 1,
-                            'public/vault_balance': 1,
-                            'public/insurancefund': 1,
-                            'public/chain_info': 1,
-                            'faucet/usdc': 1,
-                            'public/account': 1,
-                            'get_account': 1,
-                            'registration_nonce': 1,
-                            'get_orderly_key': 1,
-                            'public/liquidation': 1,
-                            'public/liquidated_positions': 1,
-                            'public/config': 1,
-                            'public/campaign/ranking': 10,
-                            'public/campaign/stats': 10,
-                            'public/campaign/user': 10,
-                            'public/campaign/stats/details': 10,
-                            'public/campaigns': 10,
-                            'public/points/leaderboard': 1,
-                            'client/points': 1,
-                            'public/points/epoch': 1,
-                            'public/points/epoch_dates': 1,
-                            'public/referral/check_ref_code': 1,
-                            'public/referral/verify_ref_code': 1,
-                            'referral/admin_info': 1,
-                            'referral/info': 1,
-                            'referral/referee_info': 1,
-                            'referral/referee_rebate_summary': 1,
-                            'referral/referee_history': 1,
-                            'referral/referral_history': 1,
-                            'referral/rebate_summary': 1,
-                            'client/distribution_history': 1,
-                            'tv/config': 1,
-                            'tv/history': 1,
-                            'tv/symbol_info': 1,
-                            'public/funding_rate_history': 1,
-                            'public/funding_rate/{symbol}': 0.33,
-                            'public/funding_rates': 1,
-                            'public/info': 1,
-                            'public/info/{symbol}': 1,
-                            'public/market_trades': 1,
-                            'public/token': 1,
-                            'public/futures': 1,
-                            'public/futures/{symbol}': 1,
+                            'public/volume/stats': { 'cost': 1 },
+                            'public/broker/name': { 'cost': 1 },
+                            'public/chain_info/{broker_id}': { 'cost': 1 },
+                            'public/system_info': { 'cost': 1 },
+                            'public/vault_balance': { 'cost': 1 },
+                            'public/insurancefund': { 'cost': 1 },
+                            'public/chain_info': { 'cost': 1 },
+                            'faucet/usdc': { 'cost': 1 },
+                            'public/account': { 'cost': 1 },
+                            'get_account': { 'cost': 1 },
+                            'registration_nonce': { 'cost': 1 },
+                            'get_orderly_key': { 'cost': 1 },
+                            'public/liquidation': { 'cost': 1 },
+                            'public/liquidated_positions': { 'cost': 1 },
+                            'public/config': { 'cost': 1 },
+                            'public/campaign/ranking': { 'cost': 10 },
+                            'public/campaign/stats': { 'cost': 10 },
+                            'public/campaign/user': { 'cost': 10 },
+                            'public/campaign/stats/details': { 'cost': 10 },
+                            'public/campaigns': { 'cost': 10 },
+                            'public/points/leaderboard': { 'cost': 1 },
+                            'client/points': { 'cost': 1 },
+                            'public/points/epoch': { 'cost': 1 },
+                            'public/points/epoch_dates': { 'cost': 1 },
+                            'public/referral/check_ref_code': { 'cost': 1 },
+                            'public/referral/verify_ref_code': { 'cost': 1 },
+                            'referral/admin_info': { 'cost': 1 },
+                            'referral/info': { 'cost': 1 },
+                            'referral/referee_info': { 'cost': 1 },
+                            'referral/referee_rebate_summary': { 'cost': 1 },
+                            'referral/referee_history': { 'cost': 1 },
+                            'referral/referral_history': { 'cost': 1 },
+                            'referral/rebate_summary': { 'cost': 1 },
+                            'client/distribution_history': { 'cost': 1 },
+                            'tv/config': { 'cost': 1 },
+                            'tv/history': { 'cost': 1 },
+                            'tv/symbol_info': { 'cost': 1 },
+                            'public/funding_rate_history': { 'cost': 1 },
+                            'public/funding_rate/{symbol}': { 'cost': 0.33 },
+                            'public/funding_rates': { 'cost': 1 },
+                            'public/info': { 'cost': 1 },
+                            'public/info/{symbol}': { 'cost': 1 },
+                            'public/market_trades': { 'cost': 1 },
+                            'public/token': { 'cost': 1 },
+                            'public/futures': { 'cost': 1 },
+                            'public/futures/{symbol}': { 'cost': 1 },
                         },
                         'post': {
-                            'register_account': 1,
+                            'register_account': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'get': {
-                            'client/key_info': 6,
-                            'client/orderly_key_ip_restriction': 6,
-                            'order/{oid}': 1,
-                            'client/order/{client_order_id}': 1,
-                            'algo/order/{oid}': 1,
-                            'algo/client/order/{client_order_id}': 1,
-                            'orders': 1,
-                            'algo/orders': 1,
-                            'trade/{tid}': 1,
-                            'trades': 1,
-                            'order/{oid}/trades': 1,
-                            'client/liquidator_liquidations': 1,
-                            'liquidations': 1,
-                            'asset/history': 60,
-                            'client/holding': 1,
-                            'withdraw_nonce': 1,
-                            'settle_nonce': 1,
-                            'pnl_settlement/history': 1,
-                            'volume/user/daily': 60,
-                            'volume/user/stats': 60,
-                            'client/statistics': 60,
-                            'client/info': 60,
-                            'client/statistics/daily': 60,
-                            'positions': 3.33,
-                            'position/{symbol}': 3.33,
-                            'funding_fee/history': 30,
-                            'notification/inbox/notifications': 60,
-                            'notification/inbox/unread': 60,
-                            'volume/broker/daily': 60,
-                            'broker/fee_rate/default': 10,
-                            'broker/user_info': 10,
-                            'orderbook/{symbol}': 1,
-                            'kline': 1,
+                            'client/key_info': { 'cost': 6 },
+                            'client/orderly_key_ip_restriction': { 'cost': 6 },
+                            'order/{oid}': { 'cost': 1 },
+                            'client/order/{client_order_id}': { 'cost': 1 },
+                            'algo/order/{oid}': { 'cost': 1 },
+                            'algo/client/order/{client_order_id}': { 'cost': 1 },
+                            'orders': { 'cost': 1 },
+                            'algo/orders': { 'cost': 1 },
+                            'trade/{tid}': { 'cost': 1 },
+                            'trades': { 'cost': 1 },
+                            'order/{oid}/trades': { 'cost': 1 },
+                            'client/liquidator_liquidations': { 'cost': 1 },
+                            'liquidations': { 'cost': 1 },
+                            'asset/history': { 'cost': 60 },
+                            'client/holding': { 'cost': 1 },
+                            'withdraw_nonce': { 'cost': 1 },
+                            'settle_nonce': { 'cost': 1 },
+                            'pnl_settlement/history': { 'cost': 1 },
+                            'volume/user/daily': { 'cost': 60 },
+                            'volume/user/stats': { 'cost': 60 },
+                            'client/statistics': { 'cost': 60 },
+                            'client/info': { 'cost': 60 },
+                            'client/statistics/daily': { 'cost': 60 },
+                            'positions': { 'cost': 3.33 },
+                            'position/{symbol}': { 'cost': 3.33 },
+                            'funding_fee/history': { 'cost': 30 },
+                            'notification/inbox/notifications': { 'cost': 60 },
+                            'notification/inbox/unread': { 'cost': 60 },
+                            'volume/broker/daily': { 'cost': 60 },
+                            'broker/fee_rate/default': { 'cost': 10 },
+                            'broker/user_info': { 'cost': 10 },
+                            'orderbook/{symbol}': { 'cost': 1 },
+                            'kline': { 'cost': 1 },
                         },
                         'post': {
-                            'orderly_key': 1,
-                            'client/set_orderly_key_ip_restriction': 6,
-                            'client/reset_orderly_key_ip_restriction': 6,
-                            'order': 1,
-                            'batch-order': 10,
-                            'algo/order': 1,
-                            'liquidation': 1,
-                            'claim_insurance_fund': 1,
-                            'withdraw_request': 1,
-                            'settle_pnl': 1,
-                            'notification/inbox/mark_read': 60,
-                            'notification/inbox/mark_read_all': 60,
-                            'client/leverage': 120,
-                            'client/maintenance_config': 60,
-                            'delegate_signer': 10,
-                            'delegate_orderly_key': 10,
-                            'delegate_settle_pnl': 10,
-                            'delegate_withdraw_request': 10,
-                            'broker/fee_rate/set': 10,
-                            'broker/fee_rate/set_default': 10,
-                            'broker/fee_rate/default': 10,
-                            'referral/create': 10,
-                            'referral/update': 10,
-                            'referral/bind': 10,
-                            'referral/edit_split': 10,
+                            'orderly_key': { 'cost': 1 },
+                            'client/set_orderly_key_ip_restriction': { 'cost': 6 },
+                            'client/reset_orderly_key_ip_restriction': { 'cost': 6 },
+                            'order': { 'cost': 1 },
+                            'batch-order': { 'cost': 10 },
+                            'algo/order': { 'cost': 1 },
+                            'liquidation': { 'cost': 1 },
+                            'claim_insurance_fund': { 'cost': 1 },
+                            'withdraw_request': { 'cost': 1 },
+                            'settle_pnl': { 'cost': 1 },
+                            'notification/inbox/mark_read': { 'cost': 60 },
+                            'notification/inbox/mark_read_all': { 'cost': 60 },
+                            'client/leverage': { 'cost': 120 },
+                            'client/maintenance_config': { 'cost': 60 },
+                            'delegate_signer': { 'cost': 10 },
+                            'delegate_orderly_key': { 'cost': 10 },
+                            'delegate_settle_pnl': { 'cost': 10 },
+                            'delegate_withdraw_request': { 'cost': 10 },
+                            'broker/fee_rate/set': { 'cost': 10 },
+                            'broker/fee_rate/set_default': { 'cost': 10 },
+                            'broker/fee_rate/default': { 'cost': 10 },
+                            'referral/create': { 'cost': 10 },
+                            'referral/update': { 'cost': 10 },
+                            'referral/bind': { 'cost': 10 },
+                            'referral/edit_split': { 'cost': 10 },
                         },
                         'put': {
-                            'order': 1,
-                            'algo/order': 1,
+                            'order': { 'cost': 1 },
+                            'algo/order': { 'cost': 1 },
                         },
                         'delete': {
-                            'order': 1,
-                            'algo/order': 1,
-                            'client/order': 1,
-                            'algo/client/order': 1,
-                            'algo/orders': 1,
-                            'orders': 1,
-                            'batch-order': 1,
-                            'client/batch-order': 1,
+                            'order': { 'cost': 1 },
+                            'algo/order': { 'cost': 1 },
+                            'client/order': { 'cost': 1 },
+                            'algo/client/order': { 'cost': 1 },
+                            'algo/orders': { 'cost': 1 },
+                            'orders': { 'cost': 1 },
+                            'batch-order': { 'cost': 1 },
+                            'client/batch-order': { 'cost': 1 },
                         },
                     },
                 },
@@ -305,8 +306,8 @@ class modetrade extends modetrade$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo by triggerPrice
+                        'takeProfitPrice': false, // todo by triggerPrice
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -316,7 +317,7 @@ class modetrade extends modetrade$1["default"] {
                         },
                         'hedged': false,
                         'trailing': true,
-                        'leverage': true,
+                        'leverage': true, // todo implement
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
                         'selfTradePrevention': false,
@@ -389,29 +390,29 @@ class modetrade extends modetrade$1["default"] {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '-1000': errors.ExchangeError,
-                    '-1001': errors.AuthenticationError,
-                    '-1002': errors.AuthenticationError,
-                    '-1003': errors.RateLimitExceeded,
-                    '-1004': errors.BadRequest,
-                    '-1005': errors.BadRequest,
-                    '-1006': errors.InvalidOrder,
-                    '-1007': errors.BadRequest,
-                    '-1008': errors.InvalidOrder,
-                    '-1009': errors.InsufficientFunds,
-                    '-1011': errors.NetworkError,
-                    '-1012': errors.BadRequest,
-                    '-1101': errors.InsufficientFunds,
-                    '-1102': errors.InvalidOrder,
-                    '-1103': errors.InvalidOrder,
-                    '-1104': errors.InvalidOrder,
-                    '-1105': errors.InvalidOrder,
-                    '-1201': errors.BadRequest,
-                    '-1202': errors.BadRequest,
-                    '29': errors.BadRequest,
-                    '9': errors.AuthenticationError,
-                    '3': errors.AuthenticationError,
-                    '2': errors.BadRequest,
+                    '-1000': errors.ExchangeError, // UNKNOWN The data does not exist
+                    '-1001': errors.AuthenticationError, // INVALID_SIGNATURE The api key or secret is in wrong format.
+                    '-1002': errors.AuthenticationError, // UNAUTHORIZED API key or secret is invalid, it may because key have insufficient permission or the key is expired/revoked.
+                    '-1003': errors.RateLimitExceeded, // TOO_MANY_REQUEST Rate limit exceed.
+                    '-1004': errors.BadRequest, // UNKNOWN_PARAM An unknown parameter was sent.
+                    '-1005': errors.BadRequest, // INVALID_PARAM Some parameters are in wrong format for api.
+                    '-1006': errors.InvalidOrder, // RESOURCE_NOT_FOUND The data is not found in server. For example, when client try canceling a CANCELLED order, will raise this error.
+                    '-1007': errors.BadRequest, // DUPLICATE_REQUEST The data is already exists or your request is duplicated.
+                    '-1008': errors.InvalidOrder, // QUANTITY_TOO_HIGH The quantity of settlement is too high than you can request.
+                    '-1009': errors.InsufficientFunds, // CAN_NOT_WITHDRAWAL Can not request withdrawal settlement, you need to deposit other arrears first.
+                    '-1011': errors.NetworkError, // RPC_NOT_CONNECT Can not place/cancel orders, it may because internal network error. Please try again in a few seconds.
+                    '-1012': errors.BadRequest, // RPC_REJECT The place/cancel order request is rejected by internal module, it may because the account is in liquidation or other internal errors. Please try again in a few seconds.
+                    '-1101': errors.InsufficientFunds, // RISK_TOO_HIGH The risk exposure for client is too high, it may cause by sending too big order or the leverage is too low. please refer to client info to check the current exposure.
+                    '-1102': errors.InvalidOrder, // MIN_NOTIONAL The order value (price * size) is too small.
+                    '-1103': errors.InvalidOrder, // PRICE_FILTER The order price is not following the tick size rule for the symbol.
+                    '-1104': errors.InvalidOrder, // SIZE_FILTER The order quantity is not following the step size rule for the symbol.
+                    '-1105': errors.InvalidOrder, // PERCENTAGE_FILTER Price is X% too high or X% too low from the mid price.
+                    '-1201': errors.BadRequest, // LIQUIDATION_REQUEST_RATIO_TOO_SMALL total notional < 10000, least req ratio should = 1
+                    '-1202': errors.BadRequest, // LIQUIDATION_STATUS_ERROR No need to liquidation because user margin is enough.
+                    '29': errors.BadRequest, // {"success":false,"code":29,"message":"Verify contract is invalid"}
+                    '9': errors.AuthenticationError, // {"success":false,"code":9,"message":"Address and signature do not match"}
+                    '3': errors.AuthenticationError, // {"success":false,"code":3,"message":"Signature error"}
+                    '2': errors.BadRequest, // {"success":false,"code":2,"message":"Timestamp expired"}
                     '15': errors.BadRequest, // {"success":false,"code":15,"message":"BrokerId is not exist"}
                 },
                 'broad': {},
@@ -512,7 +513,7 @@ class modetrade extends modetrade$1["default"] {
         //     "liquidation_tier": "1"
         //   }
         //
-        const marketId = this.safeString(market, 'symbol');
+        const marketId = this.safeString(market, 'symbol', '');
         const parts = marketId.split('_');
         const marketType = 'swap';
         const baseId = this.safeString(parts, 1);
@@ -522,7 +523,7 @@ class modetrade extends modetrade$1["default"] {
         const settleId = this.safeString(parts, 2);
         const settle = this.safeCurrencyCode(settleId);
         const symbol = base + '/' + quote + ':' + settle;
-        return {
+        return this.safeMarketStructure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -570,7 +571,7 @@ class modetrade extends modetrade$1["default"] {
             },
             'created': this.safeInteger(market, 'created_time'),
             'info': market,
-        };
+        });
     }
     /**
      * @method
@@ -630,7 +631,6 @@ class modetrade extends modetrade$1["default"] {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
-        const result = {};
         const response = await this.v1PublicGetPublicToken(params);
         //
         // {
@@ -656,66 +656,65 @@ class modetrade extends modetrade$1["default"] {
         //
         const data = this.safeDict(response, 'data', {});
         const tokenRows = this.safeList(data, 'rows', []);
-        for (let i = 0; i < tokenRows.length; i++) {
-            const token = tokenRows[i];
-            const currencyId = this.safeString(token, 'token');
-            const networks = this.safeList(token, 'chain_details');
-            const code = this.safeCurrencyCode(currencyId);
-            let minPrecision = undefined;
-            const resultingNetworks = {};
-            for (let j = 0; j < networks.length; j++) {
-                const network = networks[j];
-                // TODO: transform chain id to human readable name
-                const networkId = this.safeString(network, 'chain_id');
-                const precision = this.parsePrecision(this.safeString(network, 'decimals'));
-                if (precision !== undefined) {
-                    minPrecision = (minPrecision === undefined) ? precision : Precise["default"].stringMin(precision, minPrecision);
-                }
-                resultingNetworks[networkId] = {
-                    'id': networkId,
-                    'network': networkId,
-                    'limits': {
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                    'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': this.safeNumber(network, 'withdrawal_fee'),
-                    'precision': this.parseNumber(precision),
-                    'info': network,
-                };
+        return this.parseCurrencies(tokenRows);
+    }
+    parseCurrency(rawCurrency) {
+        const currencyId = this.safeString(rawCurrency, 'token');
+        const networks = this.safeList(rawCurrency, 'chain_details', []);
+        const code = this.safeCurrencyCode(currencyId);
+        let minPrecision = undefined;
+        const resultingNetworks = {};
+        for (let j = 0; j < networks.length; j++) {
+            const network = networks[j];
+            // TODO: transform chain id to human readable name
+            const networkId = this.safeString(network, 'chain_id', '');
+            const precision = this.parsePrecision(this.safeString(network, 'decimals'));
+            if (precision !== undefined) {
+                minPrecision = (minPrecision === undefined) ? precision : Precise["default"].stringMin(precision, minPrecision);
             }
-            result[code] = this.safeCurrencyStructure({
-                'id': currencyId,
-                'name': currencyId,
-                'code': code,
-                'precision': this.parseNumber(minPrecision),
-                'active': undefined,
-                'fee': undefined,
-                'networks': resultingNetworks,
-                'deposit': undefined,
-                'withdraw': undefined,
+            resultingNetworks[networkId] = {
+                'id': networkId,
+                'network': networkId,
                 'limits': {
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'deposit': {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'withdraw': {
-                        'min': this.safeNumber(token, 'minimum_withdraw_amount'),
-                        'max': undefined,
-                    },
                 },
-                'info': token,
-            });
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': this.safeNumber(network, 'withdrawal_fee'),
+                'precision': this.parseNumber(precision),
+                'info': network,
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': currencyId,
+            'name': currencyId,
+            'code': code,
+            'precision': this.parseNumber(minPrecision),
+            'active': undefined,
+            'fee': undefined,
+            'networks': resultingNetworks,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.safeNumber(rawCurrency, 'minimum_withdraw_amount'),
+                    'max': undefined,
+                },
+            },
+            'info': rawCurrency,
+        });
     }
     parseTokenAndFeeTemp(item, feeTokenKey, feeAmountKey) {
         const feeCost = this.safeString(item, feeAmountKey);
@@ -768,7 +767,7 @@ class modetrade extends modetrade$1["default"] {
         const order_id = this.safeString(trade, 'order_id');
         const fee = this.parseTokenAndFeeTemp(trade, 'fee_asset', 'fee');
         const feeCost = this.safeString(fee, 'cost');
-        if (feeCost !== undefined) {
+        if ((feeCost !== undefined) && (fee !== undefined)) {
             fee['cost'] = feeCost;
         }
         const cost = Precise["default"].stringMul(price, amount);
@@ -807,7 +806,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -848,16 +849,17 @@ class modetrade extends modetrade$1["default"] {
         //         }
         //
         const symbol = this.safeString(fundingRate, 'symbol');
-        market = this.market(symbol);
+        market = (symbol === undefined) ? market : this.market(symbol);
         const nextFundingTimestamp = this.safeInteger(fundingRate, 'next_funding_time');
         const estFundingRateTimestamp = this.safeInteger(fundingRate, 'est_funding_rate_timestamp');
         const lastFundingRateTimestamp = this.safeInteger(fundingRate, 'last_funding_rate_timestamp');
         const fundingTimeString = this.safeString(fundingRate, 'last_funding_rate_timestamp');
         const nextFundingTimeString = this.safeString(fundingRate, 'next_funding_time');
         const millisecondsInterval = Precise["default"].stringSub(nextFundingTimeString, fundingTimeString);
+        const fundingSymbol = (market !== undefined) ? market['symbol'] : undefined;
         return {
             'info': fundingRate,
-            'symbol': market['symbol'],
+            'symbol': fundingSymbol,
             'markPrice': undefined,
             'indexPrice': undefined,
             'interestRate': this.parseNumber('0'),
@@ -908,7 +910,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -942,7 +946,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.v1PublicGetPublicFundingRates(params);
         //
@@ -980,7 +986,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -1079,7 +1087,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
@@ -1139,7 +1149,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v1PrivateGetClientInfo(params);
         //
         // {
@@ -1172,16 +1184,19 @@ class modetrade extends modetrade$1["default"] {
         const maker = this.safeString(data, 'futures_maker_fee_rate');
         const taker = this.safeString(data, 'futures_taker_fee_rate');
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
-            result[symbol] = {
-                'info': response,
-                'symbol': symbol,
-                'maker': this.parseNumber(Precise["default"].stringDiv(maker, '10000')),
-                'taker': this.parseNumber(Precise["default"].stringDiv(taker, '10000')),
-                'percentage': true,
-                'tierBased': true,
-            };
+        const symbols = this.symbols;
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                result[symbol] = {
+                    'info': response,
+                    'symbol': symbol,
+                    'maker': this.parseNumber(Precise["default"].stringDiv(maker, '10000')),
+                    'taker': this.parseNumber(Precise["default"].stringDiv(taker, '10000')),
+                    'percentage': true,
+                    'tierBased': true,
+                };
+            }
         }
         return result;
     }
@@ -1193,10 +1208,12 @@ class modetrade extends modetrade$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1250,7 +1267,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1379,7 +1398,7 @@ class modetrade extends modetrade$1["default"] {
             'symbol': symbol,
             'type': this.parseOrderType(orderType),
             'timeInForce': this.parseTimeInForce(orderType),
-            'postOnly': undefined,
+            'postOnly': undefined, // TO_DO
             'reduceOnly': this.safeBool(order, 'reduce_only'),
             'side': side,
             'price': price,
@@ -1389,7 +1408,7 @@ class modetrade extends modetrade$1["default"] {
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': remaining, // TO_DO
             'cost': cost,
             'trades': transactions,
             'fee': {
@@ -1405,7 +1424,10 @@ class modetrade extends modetrade$1["default"] {
             'fok': 'FOK',
             'post_only': 'PO',
         };
-        return this.safeString(timeInForces, timeInForce, undefined);
+        if (timeInForce === undefined) {
+            return undefined;
+        }
+        return this.safeString(timeInForces, timeInForce);
     }
     parseOrderStatus(status) {
         if (status !== undefined) {
@@ -1420,6 +1442,9 @@ class modetrade extends modetrade$1["default"] {
                 'INCOMPLETE': 'open',
                 'COMPLETED': 'closed',
             };
+            if (status === undefined) {
+                return undefined;
+            }
             return this.safeString(statuses, status, status);
         }
         return status;
@@ -1430,9 +1455,18 @@ class modetrade extends modetrade$1["default"] {
             'MARKET': 'market',
             'POST_ONLY': 'limit',
         };
+        if (type === undefined) {
+            return undefined;
+        }
         return this.safeStringLower(types, type, type);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
         /**
          * @method
          * @ignore
@@ -1449,6 +1483,9 @@ class modetrade extends modetrade$1["default"] {
         const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
         const orderType = type.toUpperCase();
         const market = this.market(symbol);
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const orderSide = side.toUpperCase();
         const request = {
             'symbol': market['id'],
@@ -1529,7 +1566,7 @@ class modetrade extends modetrade$1["default"] {
                     'type': 'LIMIT',
                     'reduce_only': true,
                 };
-                outterOrder.push(takeProfitOrder);
+                childOrders.push(takeProfitOrder);
             }
             request['child_orders'] = [outterOrder];
         }
@@ -1559,7 +1596,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
@@ -1600,7 +1639,7 @@ class modetrade extends modetrade$1["default"] {
             // }
             //
         }
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         data['timestamp'] = this.safeInteger(response, 'timestamp');
         const order = this.parseOrder(data, market);
         order['type'] = type;
@@ -1616,12 +1655,17 @@ class modetrade extends modetrade$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString(rawOrder, 'symbol');
-            const type = this.safeString(rawOrder, 'type');
+            if (marketId === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');
+            }
+            const type = this.safeString(rawOrder, 'type', '');
             const side = this.safeString(rawOrder, 'side');
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
@@ -1643,7 +1687,7 @@ class modetrade extends modetrade$1["default"] {
         //
         //     {
         //         "success": true,
-        //         "timestamp": 1702989203989,
+        //         "timestamp": 1702989203988,
         //         "data": {
         //             "rows": [{
         //                 "order_id": 13,
@@ -1680,7 +1724,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'order_id': id,
@@ -1705,7 +1751,9 @@ class modetrade extends modetrade$1["default"] {
         }
         else {
             request['symbol'] = market['id'];
-            request['side'] = side.toUpperCase();
+            if (side !== undefined) {
+                request['side'] = side.toUpperCase();
+            }
             const orderType = type.toUpperCase();
             const timeInForce = this.safeStringLower(params, 'timeInForce');
             const isMarket = orderType === 'MARKET';
@@ -1765,18 +1813,20 @@ class modetrade extends modetrade$1["default"] {
         if (!trigger && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
         const request = {
-            'symbol': market['id'],
+            'symbol': this.safeString(market, 'id'),
         };
         const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let response = undefined;
+        let response;
         if (trigger) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
@@ -1840,7 +1890,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const clientOrderIds = this.safeListN(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
         params = this.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
         const request = {};
@@ -1872,13 +1924,15 @@ class modetrade extends modetrade$1["default"] {
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
      * @description cancel all open orders in a market
-     * @param {string} symbol unified market symbol
+     * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         const request = {};
@@ -1930,7 +1984,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2008,7 +2064,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
         const maxLimit = (isTrigger) ? 100 : 500;
@@ -2078,7 +2136,7 @@ class modetrade extends modetrade$1["default"] {
         //     }
         //
         const data = this.safeValue(response, 'data', response);
-        const orders = this.safeList(data, 'rows');
+        const orders = this.safeList(data, 'rows', []);
         return this.parseOrders(orders, market, since, limit);
     }
     /**
@@ -2099,7 +2157,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const extendedParams = this.extend(params, { 'status': 'INCOMPLETE' });
         return await this.fetchOrders(symbol, since, limit, extendedParams);
     }
@@ -2121,7 +2181,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const extendedParams = this.extend(params, { 'status': 'COMPLETED' });
         return await this.fetchOrders(symbol, since, limit, extendedParams);
     }
@@ -2138,7 +2200,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2186,7 +2250,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -2250,7 +2316,9 @@ class modetrade extends modetrade$1["default"] {
             const account = this.account();
             account['total'] = this.safeString(balance, 'holding');
             account['used'] = this.safeString(balance, 'frozen');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2263,7 +2331,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v1PrivateGetClientHolding(params);
         //
         // {
@@ -2284,7 +2354,9 @@ class modetrade extends modetrade$1["default"] {
         return this.parseBalance(data);
     }
     async getAssetHistoryRows(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -2360,7 +2432,7 @@ class modetrade extends modetrade$1["default"] {
     }
     parseLedgerEntryType(type) {
         const types = {
-            'BALANCE': 'transaction',
+            'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
         };
         return this.safeString(types, type, type);
@@ -2424,6 +2496,9 @@ class modetrade extends modetrade$1["default"] {
             'COMPLETED': 'ok',
             'CANCELED': 'canceled',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     /**
@@ -2475,7 +2550,7 @@ class modetrade extends modetrade$1["default"] {
         const request = {};
         const currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
         const currency = this.safeValue(currencyRows, 0);
-        const rows = this.safeList(currencyRows, 1);
+        const rows = this.safeList(currencyRows, 1, []);
         //
         //     {
         //         "rows":[],
@@ -2504,10 +2579,10 @@ class modetrade extends modetrade$1["default"] {
         return this.safeNumber(data, 'withdraw_nonce');
     }
     hashMessage(message) {
-        return '0x' + this.hash(message, sha3.keccak_256, 'hex');
+        return '0x' + this.hash(message, sha3_js.keccak_256, 'hex');
     }
     signHash(hash, privateKey) {
-        const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1.secp256k1, undefined);
+        const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
         const v = this.intToBase16(this.sum(27, signature['v']));
@@ -2529,7 +2604,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         this.checkAddress(address);
         if (code !== undefined) {
             code = code.toUpperCase();
@@ -2541,7 +2618,7 @@ class modetrade extends modetrade$1["default"] {
         const verifyingContractAddress = this.safeString(this.options, 'verifyingContractAddress');
         const chainId = this.safeString(params, 'chainId');
         const currencyNetworks = this.safeDict(currency, 'networks', {});
-        const coinNetwork = this.safeDict(currencyNetworks, chainId, {});
+        const coinNetwork = (chainId === undefined) ? {} : this.safeDict(currencyNetworks, chainId, {});
         const coinNetworkId = this.safeNumber(coinNetwork, 'id');
         if (coinNetworkId === undefined) {
             throw new errors.BadRequest(this.id + ' withdraw() require chainId parameter');
@@ -2600,7 +2677,7 @@ class modetrade extends modetrade$1["default"] {
         const leverageValue = this.safeInteger(leverage, 'max_leverage');
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': undefined,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
@@ -2616,7 +2693,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const response = await this.v1PrivateGetClientInfo(params);
         //
@@ -2660,7 +2739,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {object} response from the exchange
      */
     async setLeverage(leverage, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const isMinLeverage = leverage < 1;
         const isMaxLeverage = leverage > 50;
         if (isMinLeverage || isMaxLeverage) {
@@ -2752,7 +2833,12 @@ class modetrade extends modetrade$1["default"] {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchPosition() requires a symbol argument');
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2784,7 +2870,7 @@ class modetrade extends modetrade$1["default"] {
         //     }
         // }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parsePosition(data, market);
     }
     /**
@@ -2797,7 +2883,9 @@ class modetrade extends modetrade$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v1PrivateGetPositions(params);
         //
         // {
@@ -2848,8 +2936,7 @@ class modetrade extends modetrade$1["default"] {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams(path, params);
-        let url = this.implodeHostname(this.urls['api'][access]);
-        url += '/' + version + '/';
+        let url = this.urls['api'][access] + '/' + version + '/';
         params = this.omit(params, this.extractParams(path));
         params = this.keysort(params);
         if (access === 'public') {
@@ -2911,7 +2998,7 @@ class modetrade extends modetrade$1["default"] {
                 const parts = secret.split('ed25519:');
                 secret = parts[1];
             }
-            const signature = crypto.eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519.ed25519);
+            const signature = crypto.eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519_js.ed25519);
             headers['orderly-signature'] = this.urlencodeBase64(this.base64ToBinary(signature));
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

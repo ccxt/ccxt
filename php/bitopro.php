@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\bitopro as Exchange;
 
 class bitopro extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitopro',
@@ -93,7 +92,7 @@ class bitopro extends Exchange {
                 'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => false,
+                'fetchOrders' => true,
                 'fetchOrderTrades' => false,
                 'fetchPosition' => false,
                 'fetchPositionHistory' => false,
@@ -158,42 +157,42 @@ class bitopro extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'order-book/{pair}' => 1,
-                        'tickers' => 1,
-                        'tickers/{pair}' => 1,
-                        'trades/{pair}' => 1,
-                        'provisioning/currencies' => 1,
-                        'provisioning/trading-pairs' => 1,
-                        'provisioning/limitations-and-fees' => 1,
-                        'trading-history/{pair}' => 1,
-                        'price/otc/{currency}' => 1,
+                        'order-book/{pair}' => array( 'cost' => 1 ),
+                        'tickers' => array( 'cost' => 1 ),
+                        'tickers/{pair}' => array( 'cost' => 1 ),
+                        'trades/{pair}' => array( 'cost' => 1 ),
+                        'provisioning/currencies' => array( 'cost' => 1 ),
+                        'provisioning/trading-pairs' => array( 'cost' => 1 ),
+                        'provisioning/limitations-and-fees' => array( 'cost' => 1 ),
+                        'trading-history/{pair}' => array( 'cost' => 1 ),
+                        'price/otc/{currency}' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'accounts/balance' => 1,
-                        'orders/history' => 1,
-                        'orders/all/{pair}' => 1,
-                        'orders/trades/{pair}' => 1,
-                        'orders/{pair}/{orderId}' => 1,
-                        'wallet/withdraw/{currency}/{serial}' => 1,
-                        'wallet/withdraw/{currency}/id/{id}' => 1,
-                        'wallet/depositHistory/{currency}' => 1,
-                        'wallet/withdrawHistory/{currency}' => 1,
-                        'orders/open' => 1,
+                        'accounts/balance' => array( 'cost' => 1 ),
+                        'orders/history' => array( 'cost' => 1 ),
+                        'orders/all/{pair}' => array( 'cost' => 1 ),
+                        'orders/trades/{pair}' => array( 'cost' => 1 ),
+                        'orders/{pair}/{orderId}' => array( 'cost' => 1 ),
+                        'wallet/withdraw/{currency}/{serial}' => array( 'cost' => 1 ),
+                        'wallet/withdraw/{currency}/id/{id}' => array( 'cost' => 1 ),
+                        'wallet/depositHistory/{currency}' => array( 'cost' => 1 ),
+                        'wallet/withdrawHistory/{currency}' => array( 'cost' => 1 ),
+                        'orders/open' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'orders/{pair}' => 1 / 2, // 1200/m => 20/s => 10/20 = 1/2
-                        'orders/batch' => 20 / 3, // 90/m => 1.5/s => 10/1.5 = 20/3
-                        'wallet/withdraw/{currency}' => 10, // 60/m => 1/s => 10/1 = 10
+                        'orders/{pair}' => array( 'cost' => 1 / 2 ), // 1200/m => 20/s => 10/20 = 1/2
+                        'orders/batch' => array( 'cost' => 20 / 3 ), // 90/m => 1.5/s => 10/1.5 = 20/3
+                        'wallet/withdraw/{currency}' => array( 'cost' => 10 ), // 60/m => 1/s => 10/1 = 10
                     ),
                     'put' => array(
-                        'orders' => 5, // 2/s => 10/2 = 5
+                        'orders' => array( 'cost' => 5 ), // 2/s => 10/2 = 5
                     ),
                     'delete' => array(
-                        'orders/{pair}/{id}' => 2 / 3, // 900/m => 15/s => 10/15 = 2/3
-                        'orders/all' => 5, // 2/s => 10/2 = 5
-                        'orders/{pair}' => 5, // 2/s => 10/2 = 5
+                        'orders/{pair}/{id}' => array( 'cost' => 2 / 3 ), // 900/m => 15/s => 10/15 = 2/3
+                        'orders/all' => array( 'cost' => 5 ), // 2/s => 10/2 = 5
+                        'orders/{pair}' => array( 'cost' => 5 ), // 2/s => 10/2 = 5
                     ),
                 ),
             ),
@@ -234,7 +233,9 @@ class bitopro extends Exchange {
                     'BEP20' => 'BSC',
                     'BSC' => 'BSC',
                 ),
-                'fiatCurrencies' => array( 'TWD' ), // the only fiat currency for exchange
+                'fetchCurrencies' => array(
+                    'fiatCurrencies' => array( 'TWD' ), // the only fiat currency for exchange
+                ),
             ),
             'features' => array(
                 'spot' => array(
@@ -336,7 +337,7 @@ class bitopro extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available $currencies on an exchange
          *
@@ -345,8 +346,7 @@ class bitopro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of $currencies
          */
-        $response = $this->publicGetProvisioningCurrencies ($params);
-        $currencies = $this->safe_list($response, 'data', array());
+        $response = $this->publicGetProvisioningCurrencies($params);
         //
         //     {
         //         "data":array(
@@ -363,47 +363,43 @@ class bitopro extends Exchange {
         //         )
         //     }
         //
-        $result = array();
-        $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
-        for ($i = 0; $i < count($currencies); $i++) {
-            $currency = $currencies[$i];
-            $currencyId = $this->safe_string($currency, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $deposit = $this->safe_bool($currency, 'deposit');
-            $withdraw = $this->safe_bool($currency, 'withdraw');
-            $fee = $this->safe_number($currency, 'withdrawFee');
-            $withdrawMin = $this->safe_number($currency, 'minWithdraw');
-            $withdrawMax = $this->safe_number($currency, 'maxWithdraw');
-            $limits = array(
+        $currencies = $this->safe_list($response, 'data', array());
+        return $this->parse_currencies($currencies);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $fiatCurrencies = $this->handle_option('fetchCurrencies', 'fiatCurrencies', array());
+        $currencyId = $this->safe_string($rawCurrency, 'currency');
+        $code = $this->safe_currency_code($currencyId);
+        $deposit = $this->safe_bool($rawCurrency, 'deposit');
+        $withdraw = $this->safe_bool($rawCurrency, 'withdraw');
+        $isFiat = $this->in_array($code, $fiatCurrencies);
+        return $this->safe_currency_structure(array(
+            'id' => $currencyId,
+            'code' => $code,
+            'info' => $rawCurrency,
+            'type' => $isFiat ? 'fiat' : 'crypto',
+            'name' => null,
+            'active' => $deposit && $withdraw,
+            'deposit' => $deposit,
+            'withdraw' => $withdraw,
+            'fee' => $this->safe_number($rawCurrency, 'withdrawFee'),
+            'precision' => null,
+            'limits' => array(
                 'withdraw' => array(
-                    'min' => $withdrawMin,
-                    'max' => $withdrawMax,
+                    'min' => $this->safe_number($rawCurrency, 'minWithdraw'),
+                    'max' => $this->safe_number($rawCurrency, 'maxWithdraw'),
                 ),
                 'amount' => array(
                     'min' => null,
                     'max' => null,
                 ),
-            );
-            $isFiat = $this->in_array($code, $fiatCurrencies);
-            $result[$code] = array(
-                'id' => $currencyId,
-                'code' => $code,
-                'info' => $currency,
-                'type' => $isFiat ? 'fiat' : 'crypto',
-                'name' => null,
-                'active' => $deposit && $withdraw,
-                'deposit' => $deposit,
-                'withdraw' => $withdraw,
-                'fee' => $fee,
-                'precision' => null,
-                'limits' => $limits,
-                'networks' => null,
-            );
-        }
-        return $result;
+            ),
+            'networks' => null,
+        ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all $markets for bitopro
          *
@@ -412,7 +408,7 @@ class bitopro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $response = $this->publicGetProvisioningTradingPairs ();
+        $response = $this->publicGetProvisioningTradingPairs();
         $markets = $this->safe_list($response, 'data', array());
         //
         //     {
@@ -440,6 +436,9 @@ class bitopro extends Exchange {
     public function parse_market(array $market): array {
         $active = !$this->safe_bool($market, 'maintain');
         $id = $this->safe_string($market, 'pair');
+        if ($id === null) {
+            throw new ExchangeError($this->id . ' parseMarket() missing id');
+        }
         $uppercaseId = strtoupper($id);
         $baseId = $this->safe_string($market, 'base');
         $quoteId = $this->safe_string($market, 'quote');
@@ -464,7 +463,7 @@ class bitopro extends Exchange {
                 'max' => null,
             ),
         );
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'uppercaseId' => $uppercaseId,
             'symbol' => $symbol,
@@ -496,7 +495,7 @@ class bitopro extends Exchange {
             'active' => $active,
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -538,7 +537,7 @@ class bitopro extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -548,12 +547,14 @@ class bitopro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetTickersPair ($this->extend($request, $params));
+        $response = $this->publicGetTickersPair($this->extend($request, $params));
         $ticker = $this->safe_dict($response, 'data', array());
         //
         //     {
@@ -571,7 +572,7 @@ class bitopro extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          *
@@ -581,8 +582,10 @@ class bitopro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
-        $response = $this->publicGetTickers ();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->publicGetTickers();
         $tickers = $this->safe_list($response, 'data', array());
         //
         //     {
@@ -602,7 +605,7 @@ class bitopro extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -611,9 +614,11 @@ class bitopro extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
@@ -621,7 +626,7 @@ class bitopro extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetOrderBookPair ($this->extend($request, $params));
+        $response = $this->publicGetOrderBookPair($this->extend($request, $params));
         //
         //     {
         //         "bids":array(
@@ -732,7 +737,7 @@ class bitopro extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
          *
@@ -744,12 +749,14 @@ class bitopro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetTradesPair ($this->extend($request, $params));
+        $response = $this->publicGetTradesPair($this->extend($request, $params));
         $trades = $this->safe_list($response, 'data', array());
         //
         //     {
@@ -766,17 +773,19 @@ class bitopro extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()): array {
+    public function fetch_trading_fees($params = array()): array {
         /**
          * fetch the trading fees for multiple markets
          *
          * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_limitations_and_fees.md
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
          */
-        $this->load_markets();
-        $response = $this->publicGetProvisioningLimitationsAndFees ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->publicGetProvisioningLimitationsAndFees($params);
         $tradingFeeRate = $this->safe_dict($response, 'tradingFeeRate', array());
         $first = $this->safe_value($tradingFeeRate, 0);
         //
@@ -843,8 +852,9 @@ class bitopro extends Exchange {
         $result = array();
         $maker = $this->safe_number($first, 'makerFee');
         $taker = $this->safe_number($first, 'takerFee');
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        $symbols = $this->symbols;
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $result[$symbol] = array(
                 'info' => $first,
                 'symbol' => $symbol,
@@ -857,7 +867,7 @@ class bitopro extends Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 'timestamp'),
             $this->safe_number($ohlcv, 'open'),
@@ -868,7 +878,7 @@ class bitopro extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -881,7 +891,9 @@ class bitopro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $resolution = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $request = array(
@@ -892,7 +904,7 @@ class bitopro extends Exchange {
         if ($limit === null) {
             $limit = 500;
         } else {
-            $limit = min ($limit, 75000); // supports slightly more than 75k candles atm, but $limit here to avoid errors
+            $limit = min($limit, 75000); // supports slightly more than 75k candles atm, but $limit here to avoid errors
         }
         $timeframeInSeconds = $this->parse_timeframe($timeframe);
         $alignedSince = null;
@@ -905,7 +917,7 @@ class bitopro extends Exchange {
             $request['from'] = (int) floor($since / 1000);
             $request['to'] = $this->sum($request['from'], $limit * $timeframeInSeconds);
         }
-        $response = $this->publicGetTradingHistoryPair ($this->extend($request, $params));
+        $response = $this->publicGetTradingHistoryPair($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         //
         //     {
@@ -925,7 +937,7 @@ class bitopro extends Exchange {
         return $this->insert_missing_candles($sparse, $timeframeInSeconds, $alignedSince, $limit);
     }
 
-    public function insert_missing_candles($candles, $distance, $since, $limit) {
+    public function insert_missing_candles(mixed $candles, mixed $distance, mixed $since, mixed $limit) {
         // the exchange doesn't send zero volume $candles so we emulate them instead
         // otherwise sending a $limit arg leads to unexpected results
         $length = count($candles);
@@ -965,7 +977,7 @@ class bitopro extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         //
         //     [array(
         //         "currency":"twd",
@@ -988,12 +1000,14 @@ class bitopro extends Exchange {
                 'free' => $available,
                 'total' => $amount,
             );
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -1002,8 +1016,10 @@ class bitopro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
-        $response = $this->privateGetAccountsBalance ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privateGetAccountsBalance($params);
         $balances = $this->safe_list($response, 'data', array());
         //
         //     {
@@ -1031,7 +1047,7 @@ class bitopro extends Exchange {
             '4' => 'canceled',
             '6' => 'canceled',
         );
-        return $this->safe_string($statuses, $status, null);
+        return ($status === null) ? null : $this->safe_string($statuses, $status);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1072,6 +1088,9 @@ class bitopro extends Exchange {
         $id = $this->safe_string_2($order, 'id', 'orderId');
         $timestamp = $this->safe_integer_2($order, 'timestamp', 'createdTimestamp');
         $side = $this->safe_string($order, 'action');
+        if ($side === null) {
+            throw new ExchangeError($this->id . ' parseOrder() returned no side');
+        }
         $side = strtolower($side);
         $amount = $this->safe_string_2($order, 'amount', 'originalAmount');
         $price = $this->safe_string($order, 'price');
@@ -1123,7 +1142,7 @@ class bitopro extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade order
          *
@@ -1138,7 +1157,9 @@ class bitopro extends Exchange {
          * @param {array} [$params->triggerPrice] the $price at which a trigger order is triggered at
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'type' => $type,
@@ -1171,7 +1192,7 @@ class bitopro extends Exchange {
         if ($postOnly) {
             $request['timeInForce'] = 'POST_ONLY';
         }
-        $response = $this->privatePostOrdersPair ($this->extend($request, $params));
+        $response = $this->privatePostOrdersPair($this->extend($request, $params));
         //
         //     {
         //         "orderId" => "2220595581",
@@ -1185,7 +1206,7 @@ class bitopro extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open order
          *
@@ -1199,13 +1220,15 @@ class bitopro extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'id' => $id,
             'pair' => $market['id'],
         );
-        $response = $this->privateDeleteOrdersPairId ($this->extend($request, $params));
+        $response = $this->privateDeleteOrdersPairId($this->extend($request, $params));
         //
         //     {
         //         "orderId":"8777138788",
@@ -1218,7 +1241,7 @@ class bitopro extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function parse_cancel_orders($data) {
+    public function parse_cancel_orders(mixed $data) {
         $dataKeys = is_array($data) ? array_keys($data) : array();
         $orders = array();
         for ($i = 0; $i < count($dataKeys); $i++) {
@@ -1235,7 +1258,7 @@ class bitopro extends Exchange {
         return $orders;
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): array {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple orders
          *
@@ -1249,12 +1272,16 @@ class bitopro extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $id = $market['uppercaseId'];
         $request = array();
-        $request[$id] = $ids;
-        $response = $this->privatePutOrders ($this->extend($request, $params));
+        if ($id !== null) {
+            $request[$id] = $ids;
+        }
+        $response = $this->privatePutOrders($this->extend($request, $params));
         //
         //     {
         //         "data":{
@@ -1269,17 +1296,19 @@ class bitopro extends Exchange {
         return $this->parse_cancel_orders($data);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()): array {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders
          *
          * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_all_orders.md
          *
-         * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             // 'pair' => $market['id'], // optional
         );
@@ -1287,9 +1316,9 @@ class bitopro extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['pair'] = $market['id'];
-            $response = $this->privateDeleteOrdersPair ($this->extend($request, $params));
+            $response = $this->privateDeleteOrdersPair($this->extend($request, $params));
         } else {
-            $response = $this->privateDeleteOrdersAll ($this->extend($request, $params));
+            $response = $this->privateDeleteOrdersAll($this->extend($request, $params));
         }
         $data = $this->safe_dict($response, 'data', array());
         //
@@ -1305,7 +1334,7 @@ class bitopro extends Exchange {
         return $this->parse_cancel_orders($data);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an order made by the user
          *
@@ -1319,13 +1348,15 @@ class bitopro extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'orderId' => $id,
             'pair' => $market['id'],
         );
-        $response = $this->privateGetOrdersPairOrderId ($this->extend($request, $params));
+        $response = $this->privateGetOrdersPairOrderId($this->extend($request, $params));
         //
         //     {
         //         "id":"8777138788",
@@ -1352,7 +1383,7 @@ class bitopro extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple $orders made by the user
          *
@@ -1367,7 +1398,9 @@ class bitopro extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
@@ -1382,7 +1415,7 @@ class bitopro extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOrdersAllPair ($this->extend($request, $params));
+        $response = $this->privateGetOrdersAllPair($this->extend($request, $params));
         $orders = $this->safe_list($response, 'data', array());
         if ($orders === null) {
             $orders = array();
@@ -1416,7 +1449,7 @@ class bitopro extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all unfilled currently open $orders
          *
@@ -1428,19 +1461,21 @@ class bitopro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['pair'] = $market['id'];
         }
-        $response = $this->privateGetOrdersOpen ($this->extend($request, $params));
+        $response = $this->privateGetOrdersOpen($this->extend($request, $params));
         $orders = $this->safe_list($response, 'data', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed orders made by the user
          *
@@ -1458,7 +1493,7 @@ class bitopro extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all $trades made by the user
          *
@@ -1473,12 +1508,14 @@ class bitopro extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->privateGetOrdersTradesPair ($this->extend($request, $params));
+        $response = $this->privateGetOrdersTradesPair($this->extend($request, $params));
         $trades = $this->safe_list($response, 'data', array());
         //
         //     {
@@ -1578,7 +1615,7 @@ class bitopro extends Exchange {
             'txid' => $this->safe_string($transaction, 'txid'),
             'type' => null,
             'currency' => $code,
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'amount' => $this->safe_number($transaction, 'total'),
             'status' => $this->parse_transaction_status($status),
             'timestamp' => $timestamp,
@@ -1600,7 +1637,7 @@ class bitopro extends Exchange {
         );
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all deposits made to an account
          *
@@ -1615,7 +1652,9 @@ class bitopro extends Exchange {
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchDeposits() requires the $code argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->safe_currency($code);
         $request = array(
             'currency' => $currency['id'],
@@ -1629,7 +1668,7 @@ class bitopro extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetWalletDepositHistoryCurrency ($this->extend($request, $params));
+        $response = $this->privateGetWalletDepositHistoryCurrency($this->extend($request, $params));
         $result = $this->safe_list($response, 'data', array());
         //
         //     {
@@ -1653,7 +1692,7 @@ class bitopro extends Exchange {
         return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'deposit' ));
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all withdrawals made from an account
          *
@@ -1668,7 +1707,9 @@ class bitopro extends Exchange {
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires the $code argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->safe_currency($code);
         $request = array(
             'currency' => $currency['id'],
@@ -1682,7 +1723,7 @@ class bitopro extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetWalletWithdrawHistoryCurrency ($this->extend($request, $params));
+        $response = $this->privateGetWalletWithdrawHistoryCurrency($this->extend($request, $params));
         $result = $this->safe_list($response, 'data', array());
         //
         //     {
@@ -1705,7 +1746,7 @@ class bitopro extends Exchange {
         return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()) {
         /**
          * fetch data on a $currency withdrawal via the withdrawal $id
          *
@@ -1719,13 +1760,15 @@ class bitopro extends Exchange {
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires the $code argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->safe_currency($code);
         $request = array(
             'serial' => $id,
             'currency' => $currency['id'],
         );
-        $response = $this->privateGetWalletWithdrawCurrencySerial ($this->extend($request, $params));
+        $response = $this->privateGetWalletWithdrawCurrencySerial($this->extend($request, $params));
         $result = $this->safe_dict($response, 'data', array());
         //
         //     {
@@ -1746,7 +1789,7 @@ class bitopro extends Exchange {
         return $this->parse_transaction($result, $currency);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -1760,7 +1803,9 @@ class bitopro extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->check_address($address);
         $currency = $this->currency($code);
         $request = array(
@@ -1768,11 +1813,11 @@ class bitopro extends Exchange {
             'amount' => $this->number_to_string($amount),
             'address' => $address,
         );
-        if (is_array($params) && array_key_exists('network', $params)) {
+        if (is_array($params) && array_key_exists('network' ?? '', $params)) {
             $networks = $this->safe_dict($this->options, 'networks', array());
             $requestedNetwork = $this->safe_string_upper($params, 'network');
             $params = $this->omit($params, array( 'network' ));
-            $networkId = $this->safe_string($networks, $requestedNetwork);
+            $networkId = ($requestedNetwork === null) ? null : $this->safe_string($networks, $requestedNetwork);
             if ($networkId === null) {
                 throw new ExchangeError($this->id . ' invalid network ' . $requestedNetwork);
             }
@@ -1781,7 +1826,7 @@ class bitopro extends Exchange {
         if ($tag !== null) {
             $request['message'] = $tag;
         }
-        $response = $this->privatePostWalletWithdrawCurrency ($this->extend($request, $params));
+        $response = $this->privatePostWalletWithdrawCurrency($this->extend($request, $params));
         $result = $this->safe_dict($response, 'data', array());
         //
         //     {
@@ -1799,7 +1844,7 @@ class bitopro extends Exchange {
         return $this->parse_transaction($result, $currency);
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //    {
         //        "currency":"eth",
         //        "withdrawFee":"0.007",
@@ -1824,7 +1869,7 @@ class bitopro extends Exchange {
         );
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
         /**
          * fetch deposit and withdraw fees
          *
@@ -1834,8 +1879,10 @@ class bitopro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
-        $this->load_markets();
-        $response = $this->publicGetProvisioningCurrencies ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->publicGetProvisioningCurrencies($params);
         //
         //     {
         //         "data":array(
@@ -1856,7 +1903,7 @@ class bitopro extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($headers === null) {
@@ -1896,7 +1943,7 @@ class bitopro extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to the default $error handler
         }

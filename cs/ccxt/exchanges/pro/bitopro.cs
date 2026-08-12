@@ -59,7 +59,7 @@ public partial class bitopro : ccxt.bitopro
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -71,7 +71,10 @@ public partial class bitopro : ccxt.bitopro
                 throw new ExchangeError ((string)add(this.id, " watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000")) ;
             }
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add(add("ORDER_BOOK", ":"), symbol);
@@ -140,7 +143,10 @@ public partial class bitopro : ccxt.bitopro
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add(add("TRADE", ":"), symbol);
@@ -209,7 +215,10 @@ public partial class bitopro : ccxt.bitopro
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object messageHash = "USER_TRADE";
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -365,7 +374,10 @@ public partial class bitopro : ccxt.bitopro
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add(add("TICKER", ":"), symbol);
@@ -392,9 +404,13 @@ public partial class bitopro : ccxt.bitopro
         //         "low24hr": "1179321"
         //     }
         //
-        object marketId = this.safeString(message, "pair");
+        object marketId = this.safeStringLower(message, "pair");
+        if (isTrue(isEqual(marketId, null)))
+        {
+            return;  // some TICKER frames arrive without a pair - nothing to resolve them against
+        }
         // market-ids are lowercase in REST API and uppercase in WS API
-        object market = this.safeMarket(((string)marketId).ToLower(), null, "_");
+        object market = this.safeMarket(marketId, null, "_");
         object symbol = getValue(market, "symbol");
         object eventVar = this.safeString(message, "event");
         object messageHash = add(add(eventVar, ":"), symbol);
@@ -455,7 +471,10 @@ public partial class bitopro : ccxt.bitopro
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object messageHash = "ACCOUNT_BALANCE";
         object url = add(add(getValue(getValue(this.urls, "ws"), "private"), "/"), "account-balance");
         this.authenticate(url);
@@ -499,7 +518,10 @@ public partial class bitopro : ccxt.bitopro
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "amount");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         this.balance = this.safeBalance(result);
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, eventVar});

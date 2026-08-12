@@ -7,218 +7,272 @@
 
 package ccxt
 
-func (this *DydxCore) IndexerGetAddressesAddress(args ...interface{}) <-chan interface{} {
+// IndexerGetAddressesAddress returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetAddressesAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetAddressesAddress", args...)
 }
 
-func (this *DydxCore) IndexerGetAddressesAddressParentSubaccountNumberNumber(args ...interface{}) <-chan interface{} {
+// IndexerGetAddressesAddressParentSubaccountNumberNumber returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetAddressesAddressParentSubaccountNumberNumber(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetAddressesAddressParentSubaccountNumberNumber", args...)
 }
 
-func (this *DydxCore) IndexerGetAddressesAddressSubaccountNumberSubaccountNumber(args ...interface{}) <-chan interface{} {
+// IndexerGetAddressesAddressSubaccountNumberSubaccountNumber returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetAddressesAddressSubaccountNumberSubaccountNumber(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetAddressesAddressSubaccountNumberSubaccountNumber", args...)
 }
 
-func (this *DydxCore) IndexerGetAssetPositions(args ...interface{}) <-chan interface{} {
+// IndexerGetAssetPositions returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetAssetPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetAssetPositions", args...)
 }
 
-func (this *DydxCore) IndexerGetAssetPositionsParentSubaccountNumber(args ...interface{}) <-chan interface{} {
+// IndexerGetAssetPositionsParentSubaccountNumber returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetAssetPositionsParentSubaccountNumber(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetAssetPositionsParentSubaccountNumber", args...)
 }
 
-func (this *DydxCore) IndexerGetCandlesPerpetualMarketsMarket(args ...interface{}) <-chan interface{} {
+// IndexerGetCandlesPerpetualMarketsMarket returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetCandlesPerpetualMarketsMarket(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetCandlesPerpetualMarketsMarket", args...)
 }
 
-func (this *DydxCore) IndexerGetComplianceScreenAddress(args ...interface{}) <-chan interface{} {
+// IndexerGetComplianceScreenAddress returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetComplianceScreenAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetComplianceScreenAddress", args...)
 }
 
-func (this *DydxCore) IndexerGetFills(args ...interface{}) <-chan interface{} {
+// IndexerGetFills returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetFills(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetFills", args...)
 }
 
-func (this *DydxCore) IndexerGetFillsParentSubaccountNumber(args ...interface{}) <-chan interface{} {
+// IndexerGetFillsParentSubaccountNumber returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetFillsParentSubaccountNumber(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetFillsParentSubaccountNumber", args...)
 }
 
-func (this *DydxCore) IndexerGetFundingPayments(args ...interface{}) <-chan interface{} {
+// IndexerGetFundingPayments returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetFundingPayments(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetFundingPayments", args...)
 }
 
-func (this *DydxCore) IndexerGetFundingPaymentsParentSubaccount(args ...interface{}) <-chan interface{} {
+// IndexerGetFundingPaymentsParentSubaccount returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetFundingPaymentsParentSubaccount(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetFundingPaymentsParentSubaccount", args...)
 }
 
-func (this *DydxCore) IndexerGetHeight(args ...interface{}) <-chan interface{} {
+// IndexerGetHeight returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetHeight(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetHeight", args...)
 }
 
-func (this *DydxCore) IndexerGetHistoricalPnl(args ...interface{}) <-chan interface{} {
+// IndexerGetHistoricalPnl returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetHistoricalPnl(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetHistoricalPnl", args...)
 }
 
-func (this *DydxCore) IndexerGetHistoricalPnlParentSubaccountNumber(args ...interface{}) <-chan interface{} {
+// IndexerGetHistoricalPnlParentSubaccountNumber returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetHistoricalPnlParentSubaccountNumber(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetHistoricalPnlParentSubaccountNumber", args...)
 }
 
-func (this *DydxCore) IndexerGetHistoricalBlockTradingRewardsAddress(args ...interface{}) <-chan interface{} {
+// IndexerGetHistoricalBlockTradingRewardsAddress returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetHistoricalBlockTradingRewardsAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetHistoricalBlockTradingRewardsAddress", args...)
 }
 
-func (this *DydxCore) IndexerGetHistoricalFundingMarket(args ...interface{}) <-chan interface{} {
+// IndexerGetHistoricalFundingMarket returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetHistoricalFundingMarket(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetHistoricalFundingMarket", args...)
 }
 
-func (this *DydxCore) IndexerGetHistoricalTradingRewardAggregationsAddress(args ...interface{}) <-chan interface{} {
+// IndexerGetHistoricalTradingRewardAggregationsAddress returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetHistoricalTradingRewardAggregationsAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetHistoricalTradingRewardAggregationsAddress", args...)
 }
 
-func (this *DydxCore) IndexerGetOrderbooksPerpetualMarketMarket(args ...interface{}) <-chan interface{} {
+// IndexerGetOrderbooksPerpetualMarketMarket returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetOrderbooksPerpetualMarketMarket(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetOrderbooksPerpetualMarketMarket", args...)
 }
 
-func (this *DydxCore) IndexerGetOrders(args ...interface{}) <-chan interface{} {
+// IndexerGetOrders returns a channel that yields a JSON array.
+func (this *DydxCore) IndexerGetOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetOrders", args...)
 }
 
-func (this *DydxCore) IndexerGetOrdersParentSubaccountNumber(args ...interface{}) <-chan interface{} {
+// IndexerGetOrdersParentSubaccountNumber returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetOrdersParentSubaccountNumber(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetOrdersParentSubaccountNumber", args...)
 }
 
-func (this *DydxCore) IndexerGetOrdersOrderId(args ...interface{}) <-chan interface{} {
+// IndexerGetOrdersOrderId returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetOrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetOrdersOrderId", args...)
 }
 
-func (this *DydxCore) IndexerGetPerpetualMarkets(args ...interface{}) <-chan interface{} {
+// IndexerGetPerpetualMarkets returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetPerpetualMarkets(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetPerpetualMarkets", args...)
 }
 
-func (this *DydxCore) IndexerGetPerpetualPositions(args ...interface{}) <-chan interface{} {
+// IndexerGetPerpetualPositions returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetPerpetualPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetPerpetualPositions", args...)
 }
 
-func (this *DydxCore) IndexerGetPerpetualPositionsParentSubaccountNumber(args ...interface{}) <-chan interface{} {
+// IndexerGetPerpetualPositionsParentSubaccountNumber returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetPerpetualPositionsParentSubaccountNumber(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetPerpetualPositionsParentSubaccountNumber", args...)
 }
 
-func (this *DydxCore) IndexerGetScreen(args ...interface{}) <-chan interface{} {
+// IndexerGetScreen returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetScreen(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetScreen", args...)
 }
 
-func (this *DydxCore) IndexerGetSparklines(args ...interface{}) <-chan interface{} {
+// IndexerGetSparklines returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetSparklines(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetSparklines", args...)
 }
 
-func (this *DydxCore) IndexerGetTime(args ...interface{}) <-chan interface{} {
+// IndexerGetTime returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetTime(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetTime", args...)
 }
 
-func (this *DydxCore) IndexerGetTradesPerpetualMarketMarket(args ...interface{}) <-chan interface{} {
+// IndexerGetTradesPerpetualMarketMarket returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetTradesPerpetualMarketMarket(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetTradesPerpetualMarketMarket", args...)
 }
 
-func (this *DydxCore) IndexerGetTransfers(args ...interface{}) <-chan interface{} {
+// IndexerGetTransfers returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetTransfers(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetTransfers", args...)
 }
 
-func (this *DydxCore) IndexerGetTransfersBetween(args ...interface{}) <-chan interface{} {
+// IndexerGetTransfersBetween returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetTransfersBetween(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetTransfersBetween", args...)
 }
 
-func (this *DydxCore) IndexerGetTransfersParentSubaccountNumber(args ...interface{}) <-chan interface{} {
+// IndexerGetTransfersParentSubaccountNumber returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetTransfersParentSubaccountNumber(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetTransfersParentSubaccountNumber", args...)
 }
 
-func (this *DydxCore) IndexerGetVaultV1MegavaultHistoricalPnl(args ...interface{}) <-chan interface{} {
+// IndexerGetVaultV1MegavaultHistoricalPnl returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetVaultV1MegavaultHistoricalPnl(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetVaultV1MegavaultHistoricalPnl", args...)
 }
 
-func (this *DydxCore) IndexerGetVaultV1MegavaultPositions(args ...interface{}) <-chan interface{} {
+// IndexerGetVaultV1MegavaultPositions returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetVaultV1MegavaultPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetVaultV1MegavaultPositions", args...)
 }
 
-func (this *DydxCore) IndexerGetVaultV1VaultsHistoricalPnl(args ...interface{}) <-chan interface{} {
+// IndexerGetVaultV1VaultsHistoricalPnl returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetVaultV1VaultsHistoricalPnl(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetVaultV1VaultsHistoricalPnl", args...)
 }
 
-func (this *DydxCore) IndexerGetPerpetualMarketSparklines(args ...interface{}) <-chan interface{} {
+// IndexerGetPerpetualMarketSparklines returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetPerpetualMarketSparklines(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetPerpetualMarketSparklines", args...)
 }
 
-func (this *DydxCore) IndexerGetPerpetualMarketsTicker(args ...interface{}) <-chan interface{} {
+// IndexerGetPerpetualMarketsTicker returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetPerpetualMarketsTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetPerpetualMarketsTicker", args...)
 }
 
-func (this *DydxCore) IndexerGetPerpetualMarketsTickerOrderbook(args ...interface{}) <-chan interface{} {
+// IndexerGetPerpetualMarketsTickerOrderbook returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetPerpetualMarketsTickerOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetPerpetualMarketsTickerOrderbook", args...)
 }
 
-func (this *DydxCore) IndexerGetTradesPerpetualMarketTicker(args ...interface{}) <-chan interface{} {
+// IndexerGetTradesPerpetualMarketTicker returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetTradesPerpetualMarketTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetTradesPerpetualMarketTicker", args...)
 }
 
-func (this *DydxCore) IndexerGetHistoricalFundingTicker(args ...interface{}) <-chan interface{} {
+// IndexerGetHistoricalFundingTicker returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetHistoricalFundingTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetHistoricalFundingTicker", args...)
 }
 
-func (this *DydxCore) IndexerGetCandlesTickerResolution(args ...interface{}) <-chan interface{} {
+// IndexerGetCandlesTickerResolution returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetCandlesTickerResolution(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetCandlesTickerResolution", args...)
 }
 
-func (this *DydxCore) IndexerGetAddressesAddressSubaccounts(args ...interface{}) <-chan interface{} {
+// IndexerGetAddressesAddressSubaccounts returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetAddressesAddressSubaccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetAddressesAddressSubaccounts", args...)
 }
 
-func (this *DydxCore) IndexerGetAddressesAddressSubaccountNumberSubaccountNumberAssetPositions(args ...interface{}) <-chan interface{} {
+// IndexerGetAddressesAddressSubaccountNumberSubaccountNumberAssetPositions returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetAddressesAddressSubaccountNumberSubaccountNumberAssetPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetAddressesAddressSubaccountNumberSubaccountNumberAssetPositions", args...)
 }
 
-func (this *DydxCore) IndexerGetAddressesAddressSubaccountNumberSubaccountNumberPerpetualPositions(args ...interface{}) <-chan interface{} {
+// IndexerGetAddressesAddressSubaccountNumberSubaccountNumberPerpetualPositions returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetAddressesAddressSubaccountNumberSubaccountNumberPerpetualPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetAddressesAddressSubaccountNumberSubaccountNumberPerpetualPositions", args...)
 }
 
-func (this *DydxCore) IndexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders(args ...interface{}) <-chan interface{} {
+// IndexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders", args...)
 }
 
-func (this *DydxCore) IndexerGetFillsParentSubaccount(args ...interface{}) <-chan interface{} {
+// IndexerGetFillsParentSubaccount returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetFillsParentSubaccount(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetFillsParentSubaccount", args...)
 }
 
-func (this *DydxCore) IndexerGetHistoricalPnlParentSubaccount(args ...interface{}) <-chan interface{} {
+// IndexerGetHistoricalPnlParentSubaccount returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetHistoricalPnlParentSubaccount(args ...any) <-chan any {
 	return this.callEndpointAsync("indexerGetHistoricalPnlParentSubaccount", args...)
 }
 
-func (this *DydxCore) NodeRpcGetAbciInfo(args ...interface{}) <-chan interface{} {
+// NodeRpcGetAbciInfo returns a channel that yields a JSON object.
+func (this *DydxCore) NodeRpcGetAbciInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("nodeRpcGetAbciInfo", args...)
 }
 
-func (this *DydxCore) NodeRpcGetBlock(args ...interface{}) <-chan interface{} {
+// NodeRpcGetBlock returns a channel that yields a JSON object.
+func (this *DydxCore) NodeRpcGetBlock(args ...any) <-chan any {
 	return this.callEndpointAsync("nodeRpcGetBlock", args...)
 }
 
-func (this *DydxCore) NodeRpcGetBroadcastTxAsync(args ...interface{}) <-chan interface{} {
+// NodeRpcGetBroadcastTxAsync returns a channel that yields a JSON object.
+func (this *DydxCore) NodeRpcGetBroadcastTxAsync(args ...any) <-chan any {
 	return this.callEndpointAsync("nodeRpcGetBroadcastTxAsync", args...)
 }
 
-func (this *DydxCore) NodeRpcGetBroadcastTxSync(args ...interface{}) <-chan interface{} {
+// NodeRpcGetBroadcastTxSync returns a channel that yields a JSON object.
+func (this *DydxCore) NodeRpcGetBroadcastTxSync(args ...any) <-chan any {
 	return this.callEndpointAsync("nodeRpcGetBroadcastTxSync", args...)
 }
 
-func (this *DydxCore) NodeRpcGetTx(args ...interface{}) <-chan interface{} {
+// NodeRpcGetTx returns a channel that yields a JSON object.
+func (this *DydxCore) NodeRpcGetTx(args ...any) <-chan any {
 	return this.callEndpointAsync("nodeRpcGetTx", args...)
 }
 
-func (this *DydxCore) NodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(args ...interface{}) <-chan interface{} {
+// NodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress returns a channel that yields a JSON object.
+func (this *DydxCore) NodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress", args...)
 }
 
-func (this *DydxCore) NodeRestPostCosmosTxV1beta1Encode(args ...interface{}) <-chan interface{} {
+// NodeRestPostCosmosTxV1beta1Encode returns a channel that yields a JSON object.
+func (this *DydxCore) NodeRestPostCosmosTxV1beta1Encode(args ...any) <-chan any {
 	return this.callEndpointAsync("nodeRestPostCosmosTxV1beta1Encode", args...)
 }
 
-func (this *DydxCore) NodeRestPostCosmosTxV1beta1Simulate(args ...interface{}) <-chan interface{} {
+// NodeRestPostCosmosTxV1beta1Simulate returns a channel that yields a JSON object.
+func (this *DydxCore) NodeRestPostCosmosTxV1beta1Simulate(args ...any) <-chan any {
 	return this.callEndpointAsync("nodeRestPostCosmosTxV1beta1Simulate", args...)
 }

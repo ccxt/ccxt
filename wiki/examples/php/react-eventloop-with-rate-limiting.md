@@ -1,8 +1,5 @@
-- [React Eventloop With Rate Limiting](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 require dirname(__FILE__).'/../vendor/autoload.php';
 include dirname(__FILE__) ."/../vendor/ccxt/ccxt/ccxt.php";
@@ -30,5 +27,5 @@ $tick_function = function () use ($exchange, $loop, &$tick_function) {
 };
 
 $loop->futureTick ($tick_function);
-$loop->run (); 
+$loop->run ();
 ```

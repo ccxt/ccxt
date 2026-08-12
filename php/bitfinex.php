@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\bitfinex as Exchange;
 
 class bitfinex extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitfinex',
@@ -36,6 +35,7 @@ class bitfinex extends Exchange {
                 'createLimitOrder' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -76,6 +76,7 @@ class bitfinex extends Exchange {
                 'fetchLiquidations' => true,
                 'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => false,
+                'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -95,8 +96,10 @@ class bitfinex extends Exchange {
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => false,
+                'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => null,
@@ -147,150 +150,150 @@ class bitfinex extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'conf/{config}' => 2.7, // 90 requests a minute, 90/60 = 1.5, 1000 / (250 * 2.66) = 1.503, use 2.7 instead of 2.66 to ensure rateLimitExceeded is not triggered
-                        'conf/pub:{action}:{object}' => 2.7,
-                        'conf/pub:{action}:{object}:{detail}' => 2.7,
-                        'conf/pub:map:{object}' => 2.7,
-                        'conf/pub:map:{object}:{detail}' => 2.7,
-                        'conf/pub:map:currency:{detail}' => 2.7,
-                        'conf/pub:map:currency:sym' => 2.7, // maps symbols to their API symbols, BAB > BCH
-                        'conf/pub:map:currency:label' => 2.7, // verbose friendly names, BNT > Bancor
-                        'conf/pub:map:currency:unit' => 2.7, // maps symbols to unit of measure where applicable
-                        'conf/pub:map:currency:undl' => 2.7, // maps derivatives symbols to their underlying currency
-                        'conf/pub:map:currency:pool' => 2.7, // maps symbols to underlying network/protocol they operate on
-                        'conf/pub:map:currency:explorer' => 2.7, // maps symbols to their recognised block explorer URLs
-                        'conf/pub:map:currency:tx:fee' => 2.7, // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
-                        'conf/pub:map:tx:method' => 2.7,
-                        'conf/pub:list:{object}' => 2.7,
-                        'conf/pub:list:{object}:{detail}' => 2.7,
-                        'conf/pub:list:currency' => 2.7,
-                        'conf/pub:list:pair:exchange' => 2.7,
-                        'conf/pub:list:pair:margin' => 2.7,
-                        'conf/pub:list:pair:futures' => 2.7,
-                        'conf/pub:list:competitions' => 2.7,
-                        'conf/pub:info:{object}' => 2.7,
-                        'conf/pub:info:{object}:{detail}' => 2.7,
-                        'conf/pub:info:pair' => 2.7,
-                        'conf/pub:info:pair:futures' => 2.7,
-                        'conf/pub:info:tx:status' => 2.7, // array( deposit, withdrawal ) statuses 1 = active, 0 = maintenance
-                        'conf/pub:fees' => 2.7,
-                        'platform/status' => 8, // 30 requests per minute = 0.5 requests per second => ( 1000ms / rateLimit ) / 0.5 = 8
-                        'tickers' => 2.7, // 90 requests a minute = 1.5 requests per second => ( 1000 / rateLimit ) / 1.5 = 2.666666666
-                        'ticker/{symbol}' => 2.7,
-                        'tickers/hist' => 2.7,
-                        'trades/{symbol}/hist' => 2.7,
-                        'book/{symbol}/{precision}' => 1, // 240 requests a minute
-                        'book/{symbol}/P0' => 1,
-                        'book/{symbol}/P1' => 1,
-                        'book/{symbol}/P2' => 1,
-                        'book/{symbol}/P3' => 1,
-                        'book/{symbol}/R0' => 1,
-                        'stats1/{key}:{size}:{symbol}:{side}/{section}' => 2.7,
-                        'stats1/{key}:{size}:{symbol}:{side}/last' => 2.7,
-                        'stats1/{key}:{size}:{symbol}:{side}/hist' => 2.7,
-                        'stats1/{key}:{size}:{symbol}/{section}' => 2.7,
-                        'stats1/{key}:{size}:{symbol}/last' => 2.7,
-                        'stats1/{key}:{size}:{symbol}/hist' => 2.7,
-                        'stats1/{key}:{size}:{symbol}:long/last' => 2.7,
-                        'stats1/{key}:{size}:{symbol}:long/hist' => 2.7,
-                        'stats1/{key}:{size}:{symbol}:short/last' => 2.7,
-                        'stats1/{key}:{size}:{symbol}:short/hist' => 2.7,
-                        'candles/trade:{timeframe}:{symbol}:{period}/{section}' => 2.7,
-                        'candles/trade:{timeframe}:{symbol}/{section}' => 2.7,
-                        'candles/trade:{timeframe}:{symbol}/last' => 2.7,
-                        'candles/trade:{timeframe}:{symbol}/hist' => 2.7,
-                        'status/{type}' => 2.7,
-                        'status/deriv' => 2.7,
-                        'status/deriv/{symbol}/hist' => 2.7,
-                        'liquidations/hist' => 80, // 3 requests a minute = 0.05 requests a second => ( 1000ms / rateLimit ) / 0.05 = 80
-                        'rankings/{key}:{timeframe}:{symbol}/{section}' => 2.7,
-                        'rankings/{key}:{timeframe}:{symbol}/hist' => 2.7,
-                        'pulse/hist' => 2.7,
-                        'pulse/profile/{nickname}' => 2.7,
-                        'funding/stats/{symbol}/hist' => 10, // ratelimit not in docs
-                        'ext/vasps' => 1,
+                        'conf/{config}' => array( 'cost' => 2.7 ), // 90 requests a minute, 90/60 = 1.5, 1000 / (250 * 2.66) = 1.503, use 2.7 instead of 2.66 to ensure rateLimitExceeded is not triggered
+                        'conf/pub:{action}:{object}' => array( 'cost' => 2.7 ),
+                        'conf/pub:{action}:{object}:{detail}' => array( 'cost' => 2.7 ),
+                        'conf/pub:map:{object}' => array( 'cost' => 2.7 ),
+                        'conf/pub:map:{object}:{detail}' => array( 'cost' => 2.7 ),
+                        'conf/pub:map:currency:{detail}' => array( 'cost' => 2.7 ),
+                        'conf/pub:map:currency:sym' => array( 'cost' => 2.7 ), // maps symbols to their API symbols, BAB > BCH
+                        'conf/pub:map:currency:label' => array( 'cost' => 2.7 ), // verbose friendly names, BNT > Bancor
+                        'conf/pub:map:currency:unit' => array( 'cost' => 2.7 ), // maps symbols to unit of measure where applicable
+                        'conf/pub:map:currency:undl' => array( 'cost' => 2.7 ), // maps derivatives symbols to their underlying currency
+                        'conf/pub:map:currency:pool' => array( 'cost' => 2.7 ), // maps symbols to underlying network/protocol they operate on
+                        'conf/pub:map:currency:explorer' => array( 'cost' => 2.7 ), // maps symbols to their recognised block explorer URLs
+                        'conf/pub:map:currency:tx:fee' => array( 'cost' => 2.7 ), // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
+                        'conf/pub:map:tx:method' => array( 'cost' => 2.7 ),
+                        'conf/pub:list:{object}' => array( 'cost' => 2.7 ),
+                        'conf/pub:list:{object}:{detail}' => array( 'cost' => 2.7 ),
+                        'conf/pub:list:currency' => array( 'cost' => 2.7 ),
+                        'conf/pub:list:pair:exchange' => array( 'cost' => 2.7 ),
+                        'conf/pub:list:pair:margin' => array( 'cost' => 2.7 ),
+                        'conf/pub:list:pair:futures' => array( 'cost' => 2.7 ),
+                        'conf/pub:list:competitions' => array( 'cost' => 2.7 ),
+                        'conf/pub:info:{object}' => array( 'cost' => 2.7 ),
+                        'conf/pub:info:{object}:{detail}' => array( 'cost' => 2.7 ),
+                        'conf/pub:info:pair' => array( 'cost' => 2.7 ),
+                        'conf/pub:info:pair:futures' => array( 'cost' => 2.7 ),
+                        'conf/pub:info:tx:status' => array( 'cost' => 2.7 ), // array( deposit, withdrawal ) statuses 1 = active, 0 = maintenance
+                        'conf/pub:fees' => array( 'cost' => 2.7 ),
+                        'platform/status' => array( 'cost' => 8 ), // 30 requests per minute = 0.5 requests per second => ( 1000ms / rateLimit ) / 0.5 = 8
+                        'tickers' => array( 'cost' => 2.7 ), // 90 requests a minute = 1.5 requests per second => ( 1000 / rateLimit ) / 1.5 = 2.666666666
+                        'ticker/{symbol}' => array( 'cost' => 2.7 ),
+                        'tickers/hist' => array( 'cost' => 2.7 ),
+                        'trades/{symbol}/hist' => array( 'cost' => 2.7 ),
+                        'book/{symbol}/{precision}' => array( 'cost' => 1 ), // 240 requests a minute
+                        'book/{symbol}/P0' => array( 'cost' => 1 ),
+                        'book/{symbol}/P1' => array( 'cost' => 1 ),
+                        'book/{symbol}/P2' => array( 'cost' => 1 ),
+                        'book/{symbol}/P3' => array( 'cost' => 1 ),
+                        'book/{symbol}/R0' => array( 'cost' => 1 ),
+                        'stats1/{key}:{size}:{symbol}:{side}/{section}' => array( 'cost' => 2.7 ),
+                        'stats1/{key}:{size}:{symbol}:{side}/last' => array( 'cost' => 2.7 ),
+                        'stats1/{key}:{size}:{symbol}:{side}/hist' => array( 'cost' => 2.7 ),
+                        'stats1/{key}:{size}:{symbol}/{section}' => array( 'cost' => 2.7 ),
+                        'stats1/{key}:{size}:{symbol}/last' => array( 'cost' => 2.7 ),
+                        'stats1/{key}:{size}:{symbol}/hist' => array( 'cost' => 2.7 ),
+                        'stats1/{key}:{size}:{symbol}:long/last' => array( 'cost' => 2.7 ),
+                        'stats1/{key}:{size}:{symbol}:long/hist' => array( 'cost' => 2.7 ),
+                        'stats1/{key}:{size}:{symbol}:short/last' => array( 'cost' => 2.7 ),
+                        'stats1/{key}:{size}:{symbol}:short/hist' => array( 'cost' => 2.7 ),
+                        'candles/trade:{timeframe}:{symbol}:{period}/{section}' => array( 'cost' => 2.7 ),
+                        'candles/trade:{timeframe}:{symbol}/{section}' => array( 'cost' => 2.7 ),
+                        'candles/trade:{timeframe}:{symbol}/last' => array( 'cost' => 2.7 ),
+                        'candles/trade:{timeframe}:{symbol}/hist' => array( 'cost' => 2.7 ),
+                        'status/{type}' => array( 'cost' => 2.7 ),
+                        'status/deriv' => array( 'cost' => 2.7 ),
+                        'status/deriv/{symbol}/hist' => array( 'cost' => 2.7 ),
+                        'liquidations/hist' => array( 'cost' => 80 ), // 3 requests a minute = 0.05 requests a second => ( 1000ms / rateLimit ) / 0.05 = 80
+                        'rankings/{key}:{timeframe}:{symbol}/{section}' => array( 'cost' => 2.7 ),
+                        'rankings/{key}:{timeframe}:{symbol}/hist' => array( 'cost' => 2.7 ),
+                        'pulse/hist' => array( 'cost' => 2.7 ),
+                        'pulse/profile/{nickname}' => array( 'cost' => 2.7 ),
+                        'funding/stats/{symbol}/hist' => array( 'cost' => 10 ), // ratelimit not in docs
+                        'ext/vasps' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'calc/trade/avg' => 2.7,
-                        'calc/fx' => 2.7,
+                        'calc/trade/avg' => array( 'cost' => 2.7 ),
+                        'calc/fx' => array( 'cost' => 2.7 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
                         // 'auth/r/orders/{symbol}/new', // outdated
                         // 'auth/r/stats/perf:{timeframe}/hist', // outdated
-                        'auth/r/wallets' => 2.7,
-                        'auth/r/wallets/hist' => 2.7,
-                        'auth/r/orders' => 2.7,
-                        'auth/r/orders/{symbol}' => 2.7,
-                        'auth/w/order/submit' => 2.7,
-                        'auth/w/order/update' => 2.7,
-                        'auth/w/order/cancel' => 2.7,
-                        'auth/w/order/multi' => 2.7,
-                        'auth/w/order/cancel/multi' => 2.7,
-                        'auth/r/orders/{symbol}/hist' => 2.7,
-                        'auth/r/orders/hist' => 2.7,
-                        'auth/r/order/{symbol}:{id}/trades' => 2.7,
-                        'auth/r/trades/{symbol}/hist' => 2.7,
-                        'auth/r/trades/hist' => 2.7,
-                        'auth/r/ledgers/{currency}/hist' => 2.7,
-                        'auth/r/ledgers/hist' => 2.7,
-                        'auth/r/info/margin/{key}' => 2.7,
-                        'auth/r/info/margin/base' => 2.7,
-                        'auth/r/info/margin/sym_all' => 2.7,
-                        'auth/r/positions' => 2.7,
-                        'auth/w/position/claim' => 2.7,
-                        'auth/w/position/increase:' => 2.7,
-                        'auth/r/position/increase/info' => 2.7,
-                        'auth/r/positions/hist' => 2.7,
-                        'auth/r/positions/audit' => 2.7,
-                        'auth/r/positions/snap' => 2.7,
-                        'auth/w/deriv/collateral/set' => 2.7,
-                        'auth/w/deriv/collateral/limits' => 2.7,
-                        'auth/r/funding/offers' => 2.7,
-                        'auth/r/funding/offers/{symbol}' => 2.7,
-                        'auth/w/funding/offer/submit' => 2.7,
-                        'auth/w/funding/offer/cancel' => 2.7,
-                        'auth/w/funding/offer/cancel/all' => 2.7,
-                        'auth/w/funding/close' => 2.7,
-                        'auth/w/funding/auto' => 2.7,
-                        'auth/w/funding/keep' => 2.7,
-                        'auth/r/funding/offers/{symbol}/hist' => 2.7,
-                        'auth/r/funding/offers/hist' => 2.7,
-                        'auth/r/funding/loans' => 2.7,
-                        'auth/r/funding/loans/hist' => 2.7,
-                        'auth/r/funding/loans/{symbol}' => 2.7,
-                        'auth/r/funding/loans/{symbol}/hist' => 2.7,
-                        'auth/r/funding/credits' => 2.7,
-                        'auth/r/funding/credits/hist' => 2.7,
-                        'auth/r/funding/credits/{symbol}' => 2.7,
-                        'auth/r/funding/credits/{symbol}/hist' => 2.7,
-                        'auth/r/funding/trades/{symbol}/hist' => 2.7,
-                        'auth/r/funding/trades/hist' => 2.7,
-                        'auth/r/info/funding/{key}' => 2.7,
-                        'auth/r/info/user' => 2.7,
-                        'auth/r/summary' => 2.7,
-                        'auth/r/logins/hist' => 2.7,
-                        'auth/r/permissions' => 2.7,
-                        'auth/w/token' => 2.7,
-                        'auth/r/audit/hist' => 2.7,
-                        'auth/w/transfer' => 2.7, // ratelimit not in docs...
-                        'auth/w/deposit/address' => 24, // 10 requests a minute = 0.166 requests per second => ( 1000ms / rateLimit ) / 0.166 = 24
-                        'auth/w/deposit/invoice' => 24, // ratelimit not in docs
-                        'auth/w/withdraw' => 24, // ratelimit not in docs
-                        'auth/r/movements/{currency}/hist' => 2.7,
-                        'auth/r/movements/hist' => 2.7,
-                        'auth/r/alerts' => 5.34, // 45 requests a minute = 0.75 requests per second => ( 1000ms / rateLimit ) / 0.749 => 5.34
-                        'auth/w/alert/set' => 2.7,
-                        'auth/w/alert/price:{symbol}:{price}/del' => 2.7,
-                        'auth/w/alert/{type}:{symbol}:{price}/del' => 2.7,
-                        'auth/calc/order/avail' => 2.7,
-                        'auth/w/settings/set' => 2.7,
-                        'auth/r/settings' => 2.7,
-                        'auth/w/settings/del' => 2.7,
-                        'auth/r/pulse/hist' => 2.7,
-                        'auth/w/pulse/add' => 16, // 15 requests a minute = 0.25 requests per second => ( 1000ms / rateLimit ) / 0.25 => 16
-                        'auth/w/pulse/del' => 2.7,
+                        'auth/r/wallets' => array( 'cost' => 2.7 ),
+                        'auth/r/wallets/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/orders' => array( 'cost' => 2.7 ),
+                        'auth/r/orders/{symbol}' => array( 'cost' => 2.7 ),
+                        'auth/w/order/submit' => array( 'cost' => 2.7 ),
+                        'auth/w/order/update' => array( 'cost' => 2.7 ),
+                        'auth/w/order/cancel' => array( 'cost' => 2.7 ),
+                        'auth/w/order/multi' => array( 'cost' => 2.7 ),
+                        'auth/w/order/cancel/multi' => array( 'cost' => 2.7 ),
+                        'auth/r/orders/{symbol}/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/orders/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/order/{symbol}:{id}/trades' => array( 'cost' => 2.7 ),
+                        'auth/r/trades/{symbol}/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/trades/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/ledgers/{currency}/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/ledgers/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/info/margin/{key}' => array( 'cost' => 2.7 ),
+                        'auth/r/info/margin/base' => array( 'cost' => 2.7 ),
+                        'auth/r/info/margin/sym_all' => array( 'cost' => 2.7 ),
+                        'auth/r/positions' => array( 'cost' => 2.7 ),
+                        'auth/w/position/claim' => array( 'cost' => 2.7 ),
+                        'auth/w/position/increase:' => array( 'cost' => 2.7 ),
+                        'auth/r/position/increase/info' => array( 'cost' => 2.7 ),
+                        'auth/r/positions/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/positions/audit' => array( 'cost' => 2.7 ),
+                        'auth/r/positions/snap' => array( 'cost' => 2.7 ),
+                        'auth/w/deriv/collateral/set' => array( 'cost' => 2.7 ),
+                        'auth/w/deriv/collateral/limits' => array( 'cost' => 2.7 ),
+                        'auth/r/funding/offers' => array( 'cost' => 2.7 ),
+                        'auth/r/funding/offers/{symbol}' => array( 'cost' => 2.7 ),
+                        'auth/w/funding/offer/submit' => array( 'cost' => 2.7 ),
+                        'auth/w/funding/offer/cancel' => array( 'cost' => 2.7 ),
+                        'auth/w/funding/offer/cancel/all' => array( 'cost' => 2.7 ),
+                        'auth/w/funding/close' => array( 'cost' => 2.7 ),
+                        'auth/w/funding/auto' => array( 'cost' => 2.7 ),
+                        'auth/w/funding/keep' => array( 'cost' => 2.7 ),
+                        'auth/r/funding/offers/{symbol}/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/funding/offers/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/funding/loans' => array( 'cost' => 2.7 ),
+                        'auth/r/funding/loans/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/funding/loans/{symbol}' => array( 'cost' => 2.7 ),
+                        'auth/r/funding/loans/{symbol}/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/funding/credits' => array( 'cost' => 2.7 ),
+                        'auth/r/funding/credits/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/funding/credits/{symbol}' => array( 'cost' => 2.7 ),
+                        'auth/r/funding/credits/{symbol}/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/funding/trades/{symbol}/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/funding/trades/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/info/funding/{key}' => array( 'cost' => 2.7 ),
+                        'auth/r/info/user' => array( 'cost' => 2.7 ),
+                        'auth/r/summary' => array( 'cost' => 2.7 ),
+                        'auth/r/logins/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/permissions' => array( 'cost' => 2.7 ),
+                        'auth/w/token' => array( 'cost' => 2.7 ),
+                        'auth/r/audit/hist' => array( 'cost' => 2.7 ),
+                        'auth/w/transfer' => array( 'cost' => 2.7 ), // ratelimit not in docs...
+                        'auth/w/deposit/address' => array( 'cost' => 24 ), // 10 requests a minute = 0.166 requests per second => ( 1000ms / rateLimit ) / 0.166 = 24
+                        'auth/w/deposit/invoice' => array( 'cost' => 24 ), // ratelimit not in docs
+                        'auth/w/withdraw' => array( 'cost' => 24 ), // ratelimit not in docs
+                        'auth/r/movements/{currency}/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/movements/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/alerts' => array( 'cost' => 5.34 ), // 45 requests a minute = 0.75 requests per second => ( 1000ms / rateLimit ) / 0.749 => 5.34
+                        'auth/w/alert/set' => array( 'cost' => 2.7 ),
+                        'auth/w/alert/price:{symbol}:{price}/del' => array( 'cost' => 2.7 ),
+                        'auth/w/alert/{type}:{symbol}:{price}/del' => array( 'cost' => 2.7 ),
+                        'auth/calc/order/avail' => array( 'cost' => 2.7 ),
+                        'auth/w/settings/set' => array( 'cost' => 2.7 ),
+                        'auth/r/settings' => array( 'cost' => 2.7 ),
+                        'auth/w/settings/del' => array( 'cost' => 2.7 ),
+                        'auth/r/pulse/hist' => array( 'cost' => 2.7 ),
+                        'auth/w/pulse/add' => array( 'cost' => 16 ), // 15 requests a minute = 0.25 requests per second => ( 1000ms / rateLimit ) / 0.25 => 16
+                        'auth/w/pulse/del' => array( 'cost' => 2.7 ),
                     ),
                 ),
             ),
@@ -336,7 +339,12 @@ class bitfinex extends Exchange {
             ),
             'precisionMode' => SIGNIFICANT_DIGITS,
             'options' => array(
-                'precision' => 'R0', // P0, P1, P2, P3, P4, R0
+                'fetchOrderBook' => array(
+                    'precision' => 'R0', // P0, P1, P2, P3, P4, R0
+                ),
+                'fetchCurrencies' => array(
+                    'defaultPrecision' => 8, // default currency precision
+                ),
                 // convert 'EXCHANGE MARKET' to lowercase 'market'
                 // convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 // everything else remains uppercase
@@ -541,29 +549,31 @@ class bitfinex extends Exchange {
         ));
     }
 
-    public function is_fiat($code) {
-        return (is_array($this->options['fiat']) && array_key_exists($code, $this->options['fiat']));
+    public function is_fiat(mixed $code) {
+        return (is_array($this->options['fiat']) && array_key_exists($code ?? '', $this->options['fiat']));
     }
 
-    public function get_currency_name($code) {
+    public function get_currency_name(mixed $code) {
         // temporary fix for transpiler recognition, even though this is in parent class
-        if (is_array($this->options['currencyNames']) && array_key_exists($code, $this->options['currencyNames'])) {
+        if (is_array($this->options['currencyNames']) && array_key_exists($code ?? '', $this->options['currencyNames'])) {
             return $this->options['currencyNames'][$code];
         }
         throw new NotSupported($this->id . ' ' . $code . ' not supported for withdrawal');
     }
 
-    public function amount_to_precision($symbol, $amount) {
+    public function amount_to_precision(?string $symbol, mixed $amount) {
         // https://docs.bitfinex.com/docs/introduction#$amount-precision
         // The $amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
         $symbol = $this->safe_symbol($symbol);
-        return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
+        $market = $this->market($symbol);
+        return $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], DECIMAL_PLACES);
     }
 
-    public function price_to_precision($symbol, $price) {
+    public function price_to_precision(?string $symbol, mixed $price) {
         $symbol = $this->safe_symbol($symbol);
-        $price = $this->decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
+        $market = $this->market($symbol);
+        $price = $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode);
         // https://docs.bitfinex.com/docs/introduction#$price-precision
         // The precision level of all trading prices is based on significant figures.
         // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
@@ -571,7 +581,7 @@ class bitfinex extends Exchange {
         return $this->decimal_to_precision($price, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
-    public function fetch_status($params = array ()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -584,7 +594,7 @@ class bitfinex extends Exchange {
         //    [1] // operative
         //    [0] // maintenance
         //
-        $response = $this->publicGetPlatformStatus ($params);
+        $response = $this->publicGetPlatformStatus($params);
         $statusRaw = $this->safe_string($response, 0);
         return array(
             'status' => $this->safe_string(array( '0' => 'maintenance', '1' => 'ok' ), $statusRaw, $statusRaw),
@@ -595,7 +605,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all $markets for bitfinex
          *
@@ -604,43 +614,40 @@ class bitfinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
-        $spotMarketsInfoPromise = $this->publicGetConfPubInfoPair ($params);
-        $futuresMarketsInfoPromise = $this->publicGetConfPubInfoPairFutures ($params);
-        $marginIdsPromise = $this->publicGetConfPubListPairMargin ($params);
-        list($spotMarketsInfo, $futuresMarketsInfo, $marginIds) = array( $spotMarketsInfoPromise, $futuresMarketsInfoPromise, $marginIdsPromise );
-        $spotMarketsInfo = $this->safe_list($spotMarketsInfo, 0, array());
-        $futuresMarketsInfo = $this->safe_list($futuresMarketsInfo, 0, array());
+        $labels = array(
+            'pub:info:pair',
+            // sample => 'AAVE:USD' with fields null,null,null,"0.02","5000.0",null,null,null,null,null,null,null
+            'pub:info:pair:futures',
+            // sample => 'AAVEF0:USTF0' with fields null,null,null,"0.02","5000.0",null,null,null,0.01,0.005
+            'pub:list:pair:securities',
+            // sample => "ALT2612:USD","ALT2612:UST","BMN2:BTC","BMN2:USD","TITAN1:GBP","TITAN1:USD","TITAN2:GBP","TITAN2:USD","USTBL:USD","USTBL:UST"
+            'pub:list:pair:margin',
+            // sample => 'ADABTC', 'AVAX:BTC', ... // delimiter inconsistency
+        );
+        $config = implode(',', $labels);
+        $request = array(
+            'config' => $config,
+        );
+        $response = $this->publicGetConfConfig($this->extend($request, $params));
+        $spotMarketsInfo = $this->safe_list($response, 0, array());
+        $futuresMarketsInfo = $this->safe_list($response, 1, array());
+        $securitiesMarketsIds = $this->safe_list($response, 2, array());
+        $marginIds = $this->safe_list($response, 3, array());
         $markets = $this->array_concat($spotMarketsInfo, $futuresMarketsInfo);
-        $marginIds = $this->safe_value($marginIds, 0, array());
-        //
-        //    array(
-        //        "1INCH:USD",
-        //        array(
-        //           null,
-        //           null,
-        //           null,
-        //           "2.0",
-        //           "100000.0",
-        //           null,
-        //           null,
-        //           null,
-        //           null,
-        //           null,
-        //           null,
-        //           null
-        //        )
-        //    )
-        //
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
-            $pair = $markets[$i];
-            $id = $this->safe_string_upper($pair, 0);
-            $market = $this->safe_value($pair, 1, array());
+            $pairObj = $markets[$i];
+            $id = $this->safe_string_upper($pairObj, 0);
+            $market = $this->safe_value($pairObj, 1, array());
             $spot = true;
+            $type = null;
             if (mb_strpos($id, 'F0') !== false) {
                 $spot = false;
+                $type = 'swap';
+            } else {
+                $type = 'spot';
             }
-            $swap = !$spot;
+            $swap = $type === 'swap';
             $baseId = null;
             $quoteId = null;
             if (mb_strpos($id, ':') !== false) {
@@ -669,10 +676,6 @@ class bitfinex extends Exchange {
             }
             $minOrderSizeString = $this->safe_string($market, 3);
             $maxOrderSizeString = $this->safe_string($market, 4);
-            $margin = false;
-            if ($spot && $this->in_array($id, $marginIds)) {
-                $margin = true;
-            }
             $result[] = array(
                 'id' => 't' . $id,
                 'symbol' => $symbol,
@@ -682,14 +685,15 @@ class bitfinex extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'settleId' => $settleId,
-                'type' => $spot ? 'spot' : 'swap',
+                'type' => $type,
                 'spot' => $spot,
-                'margin' => $margin,
+                'tradfi' => $this->in_array($id, $securitiesMarketsIds),
+                'margin' => ($spot && $this->in_array($id, $marginIds)),
                 'swap' => $swap,
                 'future' => false,
                 'option' => false,
                 'active' => true,
-                'contract' => $swap,
+                'contract' => !$spot,
                 'linear' => $swap ? true : null,
                 'inverse' => $swap ? false : null,
                 'contractSize' => $swap ? $this->parse_number('1') : null,
@@ -726,7 +730,7 @@ class bitfinex extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -743,15 +747,16 @@ class bitfinex extends Exchange {
             'pub:map:currency:undl', // maps derivatives symbols to their underlying currency
             'pub:map:currency:pool', // maps symbols to underlying network/protocol they operate on
             'pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
-            'pub:map:currency:tx:fee', // maps currencies to their withdrawal $fees https://github.com/ccxt/ccxt/issues/7745,
+            'pub:map:currency:tx:fee', // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745,
             'pub:map:tx:method', // maps withdrawal/deposit methods to their API symbols
             'pub:info:tx:status', // maps withdrawal/deposit statuses, coins => 1 = enabled, 0 = maintenance
+            'pub:list:currency:margin', // margin enabled currencies
         );
         $config = implode(',', $labels);
         $request = array(
             'config' => $config,
         );
-        $response = $this->publicGetConfConfig ($this->extend($request, $params));
+        $response = $this->publicGetConfConfig($this->extend($request, $params));
         //
         //     [
         //
@@ -777,7 +782,7 @@ class bitfinex extends Exchange {
         //             array( "YYW", "YOYOW" ),
         //             // ...
         //         ),
-        //         // $label
+        //         // label
         //         // verbose friendly names, BNT > Bancor
         //         array(
         //             array( "BAB", "Bitcoin Cash" ),
@@ -792,14 +797,14 @@ class bitfinex extends Exchange {
         //         array(
         //             array( "IOT", "Mi|MegaIOTA" ),
         //         ),
-        //         // $undl
+        //         // undl
         //         // maps derivatives symbols to their underlying currency
         //         array(
         //             array( "USTF0", "UST" ),
         //             array( "BTCF0", "BTC" ),
         //             array( "ETHF0", "ETH" ),
         //         ),
-        //         // $pool
+        //         // pool
         //         // maps symbols to underlying network/protocol they operate on
         //         array(
         //             array( 'SAN', 'ETH' ), array( 'OMG', 'ETH' ), array( 'AVT', 'ETH' ), array( "EDO", "ETH" ),
@@ -821,18 +826,18 @@ class bitfinex extends Exchange {
         //             ),
         //             // ...
         //         ),
-        //         // $fee
-        //         // maps currencies to their withdrawal $fees
+        //         // fee
+        //         // maps currencies to their withdrawal fees
         //         [
         //             ["AAA",[0,0]],
         //             ["ABS",[0,131.3]],
         //             ["ADA",[0,0.3]],
         //         ],
         //         // deposit/withdrawal data
-        //         [
+        //         array(
         //           ["BITCOIN", 1, 1, null, null, null, null, 0, 0, null, null, 3],
         //           ...
-        //         ]
+        //         )
         //     ]
         //
         $indexed = array(
@@ -845,6 +850,7 @@ class bitfinex extends Exchange {
             'fees' => $this->index_by($this->safe_list($response, 7, array()), 0),
             'networks' => $this->safe_list($response, 8, array()),
             'statuses' => $this->index_by($this->safe_list($response, 9, array()), 0),
+            'marginables' => $this->safe_list($response, 10, array()),
         );
         $indexedNetworks = array();
         for ($i = 0; $i < count($indexed['networks']); $i++) {
@@ -858,43 +864,66 @@ class bitfinex extends Exchange {
             $indexedNetworks[$networkName] = $networksList;
         }
         $ids = $this->safe_list($response, 0, array());
-        $result = array();
+        return $this->parse_currencies_custom($ids, $indexed, $indexedNetworks);
+    }
+
+    public function parse_currencies_custom(mixed $ids, mixed $indexed, mixed $indexedNetworks) {
+        $allowedIds = array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             if (str_ends_with($id, 'F0')) {
                 // we get a lot of F0 currencies, skip those
                 continue;
             }
-            $code = $this->safe_currency_code($id);
-            $label = $this->safe_list($indexed['label'], $id, array());
-            $name = $this->safe_string($label, 1);
-            $pool = $this->safe_list($indexed['pool'], $id, array());
-            $rawType = $this->safe_string($pool, 1);
-            $isCryptoCoin = ($rawType !== null) || (is_array($indexed['explorer']) && array_key_exists($id, $indexed['explorer'])); // "hacky" solution
-            $type = null;
-            if ($isCryptoCoin) {
-                $type = 'crypto';
+            $allowedIds[] = $id;
+        }
+        $result = array();
+        $arr = $this->to_array($allowedIds);
+        for ($i = 0; $i < count($arr); $i++) {
+            $parsed = $this->parse_currency_custom($arr[$i], $indexed, $indexedNetworks);
+            $code = $parsed['code'];
+            $result[$code] = $parsed;
+        }
+        return $result;
+    }
+
+    public function parse_currency_custom(mixed $id, mixed $indexed, mixed $indexedNetworks): array {
+        $code = $this->safe_currency_code($id);
+        $label = $this->safe_list($indexed['label'], $id, array());
+        $name = $this->safe_string($label, 1);
+        $pool = $this->safe_list($indexed['pool'], $id, array());
+        $rawType = $this->safe_string($pool, 1);
+        $isCryptoCoin = ($rawType !== null) || (is_array($indexed['explorer']) && array_key_exists($id ?? '', $indexed['explorer'])); // "hacky" solution
+        $type = $isCryptoCoin ? 'crypto' : null;
+        $feeValues = $this->safe_list($indexed['fees'], $id, array());
+        $fees = $this->safe_list($feeValues, 1, array());
+        $fee = $this->safe_number($fees, 1);
+        $undl = $this->safe_list($indexed['undl'], $id, array());
+        $defaultCurrencyPrecision = $this->safe_string($this->options, 'defaultCurrencyPrecision', '8'); // kept here for backward-compatibility
+        // numberToString instead of an `as string` cast => the describe() default for this option is the
+        // NUMBER 8 (and users may override with numbers too), and the hard cast makes the C# build throw
+        // InvalidCastException Int32 to 'strval' here, breaking bitfinex loadMarkets entirely in C#
+        $precision = $this->number_to_string($this->handle_option('fetchCurrencies', 'defaultPrecision', $defaultCurrencyPrecision));
+        $networks = array();
+        $networkIds = $this->safe_list($indexedNetworks, $id, array());
+        for ($j = 0; $j < count($networkIds); $j++) {
+            // safeString instead of raw access => the venue config payload can carry numeric
+            // $network ids, and the raw value flows into toLowerCase and a dictionary key,
+            // which hard-casts to string in the C# build and throws InvalidCastException
+            $networkId = $this->safe_string($networkIds, $j);
+            if ($networkId === null) {
+                continue;
             }
-            $feeValues = $this->safe_list($indexed['fees'], $id, array());
-            $fees = $this->safe_list($feeValues, 1, array());
-            $fee = $this->safe_number($fees, 1);
-            $undl = $this->safe_list($indexed['undl'], $id, array());
-            $precision = '8'; // default $precision, todo => fix "magic constants"
-            $dwStatuses = $this->safe_list($indexed['statuses'], $id, array());
-            $depositEnabled = $this->safe_integer($dwStatuses, 1) === 1;
-            $withdrawEnabled = $this->safe_integer($dwStatuses, 2) === 1;
-            $networks = array();
-            $netwokIds = $this->safe_list($indexedNetworks, $id, array());
-            for ($j = 0; $j < count($netwokIds); $j++) {
-                $networkId = $netwokIds[$j];
-                $network = $this->network_id_to_code($networkId);
+            $network = $this->network_id_to_code($networkId, $code);
+            $dwStatuses = $this->safe_list($indexed['statuses'], $networkId, array());
+            if ($network !== null) {
                 $networks[$network] = array(
                     'info' => $networkId,
                     'id' => strtolower($networkId),
                     'network' => $networkId,
                     'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
+                    'deposit' => $this->safe_integer($dwStatuses, 1) === 1,
+                    'withdraw' => $this->safe_integer($dwStatuses, 2) === 1,
                     'fee' => null,
                     'precision' => null,
                     'limits' => array(
@@ -905,34 +934,34 @@ class bitfinex extends Exchange {
                     ),
                 );
             }
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $id,
-                'code' => $code,
-                'info' => array( $id, $label, $pool, $feeValues, $undl ),
-                'type' => $type,
-                'name' => $name,
-                'active' => true,
-                'deposit' => $depositEnabled,
-                'withdraw' => $withdrawEnabled,
-                'fee' => $fee,
-                'precision' => intval($precision),
-                'limits' => array(
-                    'amount' => array(
-                        'min' => $this->parse_number($this->parse_precision($precision)),
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => $fee,
-                        'max' => null,
-                    ),
-                ),
-                'networks' => $networks,
-            ));
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'info' => array( $id, $label, $pool, $feeValues, $undl ),
+            'type' => $type,
+            'name' => $name,
+            'active' => true,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => $fee,
+            'precision' => $this->parse_number($precision),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $fee,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+            'margin' => $this->in_array($id, $indexed['marginables']),
+        ));
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * $query for $balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -941,9 +970,11 @@ class bitfinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
          */
-        // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
+        // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero $balances)
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $accountsByType = $this->safe_value($this->options, 'v2AccountsByType', array());
         $requestedType = $this->safe_string($params, 'type', 'exchange');
         $accountType = $this->safe_string($accountsByType, $requestedType, $requestedType);
@@ -953,10 +984,11 @@ class bitfinex extends Exchange {
         }
         $isDerivative = $requestedType === 'derivatives';
         $query = $this->omit($params, 'type');
-        $response = $this->privatePostAuthRWallets ($query);
+        $response = $this->privatePostAuthRWallets($query);
+        $balances = $this->to_array($response);
         $result = array( 'info' => $response );
-        for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $balances[$i];
             $account = $this->account();
             $interest = $this->safe_string($balance, 3);
             if ($interest !== '0') {
@@ -972,13 +1004,15 @@ class bitfinex extends Exchange {
                 $code = $this->safe_currency_code($currencyId);
                 $account['total'] = $this->safe_string($balance, 2);
                 $account['free'] = $this->safe_string($balance, 4);
-                $result[$code] = $account;
+                if ($code !== null) {
+                    $result[$code] = $account;
+                }
             }
         }
         return $this->safe_balance($result);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
          * transfer $currency internally between wallets on the same account
          *
@@ -993,7 +1027,9 @@ class bitfinex extends Exchange {
          */
         // transferring between derivatives wallet and regular wallet is not documented in their API
         // however we support it in CCXT (from just looking at web inspector)
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $accountsByType = $this->safe_value($this->options, 'v2AccountsByType', array());
         $fromId = $this->safe_string($accountsByType, $fromAccount);
         if ($fromId === null) {
@@ -1017,7 +1053,7 @@ class bitfinex extends Exchange {
             'from' => $fromId,
             'to' => $toId,
         );
-        $response = $this->privatePostAuthWTransfer ($this->extend($request, $params));
+        $response = $this->privatePostAuthWTransfer($this->extend($request, $params));
         //
         //     array(
         //         1616451183763,
@@ -1102,7 +1138,7 @@ class bitfinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function convert_derivatives_id($currency, $type) {
+    public function convert_derivatives_id(mixed $currency, mixed $type) {
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         // {
         //   "id" => "fUSTF0",
@@ -1127,19 +1163,21 @@ class bitfinex extends Exchange {
         return $currencyId;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * fetches information on open $orders with bid (buy) and ask (sell) prices, volumes and other data
          *
          * @see https://docs.bitfinex.com/reference/rest-public-book
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the $order book for
          * @param {int} [$limit] the maximum $amount of $order book entries to return, bitfinex only allows 1, 25, or 100
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=$order-book-structure $order book structures~ indexed by $market symbols
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$order-book-structure $order book structure~
          */
-        $this->load_markets();
-        $precision = $this->safe_value($this->options, 'precision', 'R0');
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $precision = $this->handle_option('fetchOrderBook', 'precision', 'R0');
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1149,7 +1187,7 @@ class bitfinex extends Exchange {
             $request['len'] = $limit;
         }
         $fullRequest = $this->extend($request, $params);
-        $orderbook = $this->publicGetBookSymbolPrecision ($fullRequest);
+        $orderbook = $this->publicGetBookSymbolPrecision($fullRequest);
         $timestamp = $this->milliseconds();
         $result = array(
             'symbol' => $market['symbol'],
@@ -1160,14 +1198,14 @@ class bitfinex extends Exchange {
             'nonce' => null,
         );
         $priceIndex = ($fullRequest['precision'] === 'R0') ? 1 : 0;
-        for ($i = 0; $i < count($orderbook); $i++) {
-            $order = $orderbook[$i];
+        $orders = $this->to_array($orderbook);
+        for ($i = 0; $i < count($orders); $i++) {
+            $order = $orders[$i];
             $price = $this->safe_number($order, $priceIndex);
             $signedAmount = $this->safe_string($order, 2);
             $amount = Precise::string_abs($signedAmount);
             $side = Precise::string_gt($signedAmount, '0') ? 'bids' : 'asks';
-            $resultSide = $result[$side];
-            $resultSide[] = array( $price, $this->parse_number($amount) );
+            $result[$side][] = array( $price, $this->parse_number($amount) );
         }
         $result['bids'] = $this->sort_by($result['bids'], 0, true);
         $result['asks'] = $this->sort_by($result['asks'], 0);
@@ -1216,18 +1254,17 @@ class bitfinex extends Exchange {
         //     )
         //
         $length = count($ticker);
-        $isFetchTicker = ($length === 10) || ($length === 16);
+        $firstValue = $this->safe_number($ticker, 0);
+        $isFetchTicker = $firstValue !== null; // if it's Nan, then it's string ($symbol)
         $symbol = null;
         $minusIndex = 0;
-        $isFundingCurrency = false;
         if ($isFetchTicker) {
             $minusIndex = 1;
-            $isFundingCurrency = ($length === 16);
         } else {
             $marketId = $this->safe_string($ticker, 0);
             $market = $this->safe_market($marketId, $market);
-            $isFundingCurrency = ($length === 17);
         }
+        $isFundingCurrency = $length >= 17;
         $symbol = $this->safe_symbol(null, $market);
         $last = null;
         $bid = null;
@@ -1283,7 +1320,7 @@ class bitfinex extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          *
@@ -1293,7 +1330,9 @@ class bitfinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $request = array();
         if ($symbols !== null) {
@@ -1302,7 +1341,7 @@ class bitfinex extends Exchange {
         } else {
             $request['symbols'] = 'ALL';
         }
-        $tickers = $this->publicGetTickers ($this->extend($request, $params));
+        $tickers = $this->publicGetTickers($this->extend($request, $params));
         //
         //     array(
         //         // on trading pairs (ex. tBTCUSD)
@@ -1345,7 +1384,7 @@ class bitfinex extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -1355,12 +1394,14 @@ class bitfinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
-        $ticker = $this->publicGetTickerSymbol ($this->extend($request, $params));
+        $ticker = $this->publicGetTickerSymbol($this->extend($request, $params));
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -1448,7 +1489,7 @@ class bitfinex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
          *
@@ -1462,7 +1503,9 @@ class bitfinex extends Exchange {
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
         if ($paginate) {
@@ -1478,11 +1521,11 @@ class bitfinex extends Exchange {
             $sort = '1';
         }
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 10000); // default 120, max 10000
+            $request['limit'] = min($limit, 10000); // default 120, max 10000
         }
         $request['sort'] = $sort;
         list($request, $params) = $this->handle_until_option('end', $request, $params);
-        $response = $this->publicGetTradesSymbolHist ($this->extend($request, $params));
+        $response = $this->publicGetTradesSymbolHist($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1493,7 +1536,8 @@ class bitfinex extends Exchange {
         //         )
         //     )
         //
-        $trades = $this->sort_by($response, 1);
+        $rawTrades = $this->to_array($response);
+        $trades = $this->sort_by($rawTrades, 1);
         $tradesList = array();
         for ($i = 0; $i < count($trades); $i++) {
             $tradesList[] = array( 'result' => $trades[$i] ); // convert to array of dicts to match parseOrder signature
@@ -1501,7 +1545,7 @@ class bitfinex extends Exchange {
         return $this->parse_trades($tradesList, $market, null, $limit);
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = 100, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = 100, $params = array()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1516,7 +1560,9 @@ class bitfinex extends Exchange {
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
         if ($paginate) {
@@ -1526,30 +1572,30 @@ class bitfinex extends Exchange {
         if ($limit === null) {
             $limit = 10000;
         } else {
-            $limit = min ($limit, 10000);
+            $limit = min($limit, 10000);
         }
         $request = array(
             'symbol' => $market['id'],
             'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            'sort' => 1,
             'limit' => $limit,
         );
         if ($since !== null) {
             $request['start'] = $since;
+            $request['sort'] = 1;
         }
         list($request, $params) = $this->handle_until_option('end', $request, $params);
-        $response = $this->publicGetCandlesTradeTimeframeSymbolHist ($this->extend($request, $params));
+        $response = $this->publicGetCandlesTradeTimeframeSymbolHist($this->extend($request, $params));
         //
-        //     [
+        //     array(
         //         [1591503840000,0.025069,0.025068,0.025069,0.025068,1.97828998],
         //         [1591504500000,0.025065,0.025065,0.025065,0.025065,1.0164],
         //         [1591504620000,0.025062,0.025062,0.025062,0.025062,0.5],
-        //     ]
+        //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1457539800000,
@@ -1591,7 +1637,7 @@ class bitfinex extends Exchange {
         return $this->safe_string($statuses, $state, $status);
     }
 
-    public function parse_order_flags($flags) {
+    public function parse_order_flags(mixed $flags) {
         // $flags can be added to each other...
         $flagValues = array(
             '1024' => array( 'reduceOnly' ),
@@ -1605,7 +1651,7 @@ class bitfinex extends Exchange {
         return $this->safe_value($flagValues, $flags, null);
     }
 
-    public function parse_time_in_force($orderType) {
+    public function parse_time_in_force(mixed $orderType) {
         $orderTypes = array(
             'EXCHANGE IOC' => 'IOC',
             'EXCHANGE FOK' => 'FOK',
@@ -1682,7 +1728,13 @@ class bitfinex extends Exchange {
         ), $market);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         /**
          * @ignore
          * helper function to build an order $request
@@ -1705,7 +1757,7 @@ class bitfinex extends Exchange {
          */
         $market = $this->market($symbol);
         $amountString = $this->amount_to_precision($symbol, $amount);
-        $amountString = ($side === 'buy') ? $amountString : Precise::string_neg($amountString);
+        $amountString = ($side === 'buy') ? $amountString : (Precise::string_neg($amountString));
         $request = array(
             'symbol' => $market['id'],
             'amount' => $amountString,
@@ -1772,7 +1824,7 @@ class bitfinex extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create an $order on the exchange
          *
@@ -1795,10 +1847,12 @@ class bitfinex extends Exchange {
          * @param {string} [$params->trailingAmount] *swap only* the quote $amount to trail away from the current $market $price
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-        $response = $this->privatePostAuthWOrderSubmit ($request);
+        $response = $this->privatePostAuthWOrderSubmit($request);
         //
         //      array(
         //          1653325121,   // Timestamp in milliseconds
@@ -1841,16 +1895,16 @@ class bitfinex extends Exchange {
         //                      array("$F7":1)               // additional meta information about the $order ( $F7 = IS_POST_ONLY (0 if false, 1 if true), $F33 = Leverage (int))
         //                  )
         //              ),
-        //          null,      // CODE (is_array(progress) && array_key_exists(work, progress))
+        //          null,      // CODE (is_array(progress) && array_key_exists(work ?? '', progress))
         //          "SUCCESS",                    // Status of the $request
         //          "Submitting 1 $orders->"      // Message
         //       )
         //
         $status = $this->safe_string($response, 6);
         if ($status !== 'SUCCESS') {
-            $errorCode = $response[5];
-            $errorText = $response[7];
-            throw new ExchangeError($this->id . ' ' . $response[6] . ' => ' . $errorText . ' (#' . $errorCode . ')');
+            $errorCode = $this->safe_string($response, 5);
+            $errorText = $this->safe_string($response, 7);
+            throw new ExchangeError($this->id . ' ' . $status . ' => ' . $errorText . ' (#' . $errorCode . ')');
         }
         $orders = $this->safe_list($response, 4, array());
         $order = $this->safe_list($orders, 0);
@@ -1858,7 +1912,7 @@ class bitfinex extends Exchange {
         return $this->parse_order($newOrder, $market);
     }
 
-    public function create_orders(array $orders, $params = array ()) {
+    public function create_orders(array $orders, $params = array()) {
         /**
          * create a list of trade $orders
          *
@@ -1868,7 +1922,9 @@ class bitfinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $orders[$i];
@@ -1884,31 +1940,31 @@ class bitfinex extends Exchange {
         $request = array(
             'ops' => $ordersRequests,
         );
-        $response = $this->privatePostAuthWOrderMulti ($request);
+        $response = $this->privatePostAuthWOrderMulti($request);
         //
-        //     [
+        //     array(
         //         1706762515553,
         //         "ox_multi-req",
         //         null,
         //         null,
-        //         [
-        //             [
+        //         array(
+        //             array(
         //                 1706762515,
         //                 "on-req",
         //                 null,
         //                 null,
-        //                 [
+        //                 array(
         //                     [139567428547,null,1706762515551,"tBTCUST",1706762515551,1706762515551,0.0001,0.0001,"EXCHANGE LIMIT",null,null,null,0,"ACTIVE",null,null,35000,0,0,0,null,null,null,0,0,null,null,null,"API>BFX",null,null,array()]
-        //                 ],
+        //                 ),
         //                 null,
         //                 "SUCCESS",
         //                 "Submitting 1 $orders->"
-        //             ],
-        //         ],
+        //             ),
+        //         ),
         //         null,
         //         "SUCCESS",
         //         "Submitting 2 order operations."
-        //     ]
+        //     )
         //
         $results = array();
         $data = $this->safe_list($response, 4, array());
@@ -1920,21 +1976,23 @@ class bitfinex extends Exchange {
         return $this->parse_orders($results);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * cancel all open $orders
          *
          * @see https://docs.bitfinex.com/reference/rest-auth-cancel-$orders-multiple
          *
-         * @param {string} $symbol unified market $symbol, only $orders in the market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified market $symbol, only $orders in the market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'all' => 1,
         );
-        $response = $this->privatePostAuthWOrderCancelMulti ($this->extend($request, $params));
+        $response = $this->privatePostAuthWOrderCancelMulti($this->extend($request, $params));
         $orders = $this->safe_list($response, 4, array());
         $ordersList = array();
         for ($i = 0; $i < count($orders); $i++) {
@@ -1943,7 +2001,7 @@ class bitfinex extends Exchange {
         return $this->parse_orders($ordersList);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open $order
          *
@@ -1954,9 +2012,10 @@ class bitfinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $cid = $this->safe_value_2($params, 'cid', 'clientOrderId'); // client $order $id
-        $request = null;
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1976,13 +2035,13 @@ class bitfinex extends Exchange {
                 'id' => intval($id),
             );
         }
-        $response = $this->privatePostAuthWOrderCancel ($this->extend($request, $params));
+        $response = $this->privatePostAuthWOrderCancel($this->extend($request, $params));
         $order = $this->safe_value($response, 4);
         $newOrder = array( 'result' => $order );
         return $this->parse_order($newOrder, $market);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
         /**
          * cancel multiple $orders at the same time
          *
@@ -1993,7 +2052,9 @@ class bitfinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an array of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $numericIds = array();
         for ($i = 0; $i < count($ids); $i++) {
             // $numericIds[$i] = $this->parse_to_numeric($ids[$i]);
@@ -2006,7 +2067,7 @@ class bitfinex extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $response = $this->privatePostAuthWOrderCancelMulti ($this->extend($request, $params));
+        $response = $this->privatePostAuthWOrderCancelMulti($this->extend($request, $params));
         //
         //     array(
         //         1706740198811,
@@ -2065,7 +2126,7 @@ class bitfinex extends Exchange {
         return $this->parse_orders($ordersList, $market);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetch an open $order by it's $id
          *
@@ -2088,7 +2149,7 @@ class bitfinex extends Exchange {
         return $order;
     }
 
-    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetch an open $order by it's $id
          *
@@ -2111,7 +2172,7 @@ class bitfinex extends Exchange {
         return $order;
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -2124,16 +2185,17 @@ class bitfinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
-        $response = null;
         if ($symbol === null) {
-            $response = $this->privatePostAuthROrders ($this->extend($request, $params));
+            $response = $this->privatePostAuthROrders($this->extend($request, $params));
         } else {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-            $response = $this->privatePostAuthROrdersSymbol ($this->extend($request, $params));
+            $response = $this->privatePostAuthROrdersSymbol($this->extend($request, $params));
         }
         //
         //      array(
@@ -2180,7 +2242,7 @@ class bitfinex extends Exchange {
         return $this->parse_orders($ordersList, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed orders made by the user
          *
@@ -2196,7 +2258,9 @@ class bitfinex extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         // returns the most recent closed or canceled orders up to circa two weeks ago
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'paginate');
         if ($paginate) {
@@ -2211,13 +2275,12 @@ class bitfinex extends Exchange {
         }
         list($request, $params) = $this->handle_until_option('end', $request, $params);
         $market = null;
-        $response = null;
         if ($symbol === null) {
-            $response = $this->privatePostAuthROrdersHist ($this->extend($request, $params));
+            $response = $this->privatePostAuthROrdersHist($this->extend($request, $params));
         } else {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-            $response = $this->privatePostAuthROrdersSymbolHist ($this->extend($request, $params));
+            $response = $this->privatePostAuthROrdersSymbolHist($this->extend($request, $params));
         }
         //
         //      array(
@@ -2264,7 +2327,7 @@ class bitfinex extends Exchange {
         return $this->parse_orders($ordersList, $market, $since, $limit);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all the trades made from a single order
          *
@@ -2280,23 +2343,26 @@ class bitfinex extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $orderId = intval($id);
         $request = array(
             'id' => $orderId,
             'symbol' => $market['id'],
         );
-        // valid for trades upto 10 days old
-        $response = $this->privatePostAuthROrderSymbolIdTrades ($this->extend($request, $params));
+        // valid for trades up to 10 days old
+        $response = $this->privatePostAuthROrderSymbolIdTrades($this->extend($request, $params));
+        $rawTrades = $this->to_array($response);
         $tradesList = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $tradesList[] = array( 'result' => $response[$i] ); // convert to array of dicts to match parseOrder signature
+        for ($i = 0; $i < count($rawTrades); $i++) {
+            $tradesList[] = array( 'result' => $rawTrades[$i] ); // convert to array of dicts to match parseOrder signature
         }
         return $this->parse_trades($tradesList, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all trades made by the user
          *
@@ -2309,7 +2375,9 @@ class bitfinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         $request = array(
             'end' => $this->milliseconds(),
@@ -2320,13 +2388,12 @@ class bitfinex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 25, max 1000
         }
-        $response = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-            $response = $this->privatePostAuthRTradesSymbolHist ($this->extend($request, $params));
+            $response = $this->privatePostAuthRTradesSymbolHist($this->extend($request, $params));
         } else {
-            $response = $this->privatePostAuthRTradesHist ($this->extend($request, $params));
+            $response = $this->privatePostAuthRTradesHist($this->extend($request, $params));
         }
         $tradesList = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -2335,7 +2402,7 @@ class bitfinex extends Exchange {
         return $this->parse_trades($tradesList, $market, $since, $limit);
     }
 
-    public function create_deposit_address(string $code, $params = array ()): array {
+    public function create_deposit_address(string $code, $params = array()): array {
         /**
          * create a currency deposit address
          *
@@ -2345,14 +2412,16 @@ class bitfinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'op_renew' => 1,
         );
         return $this->fetch_deposit_address($code, $this->extend($request, $params));
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): array {
+    public function fetch_deposit_address(string $code, $params = array()): array {
         /**
          * fetch the deposit $address for a $currency associated with this account
          *
@@ -2362,7 +2431,9 @@ class bitfinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         // if not provided explicitly we will try to match using the $currency name
         $network = $this->safe_string($params, 'network', $code);
@@ -2379,7 +2450,7 @@ class bitfinex extends Exchange {
             'wallet' => $wallet,
             'op_renew' => 0, // a value of 1 will generate a new $address
         );
-        $response = $this->privatePostAuthWDepositAddress ($this->extend($request, $params));
+        $response = $this->privatePostAuthWDepositAddress($this->extend($request, $params));
         //
         //     array(
         //         1582269616687, // MTS Millisecond Time Stamp of the update
@@ -2516,13 +2587,13 @@ class bitfinex extends Exchange {
             $tag = $this->safe_string($data, 3);
             $type = 'withdrawal';
             $networkId = $this->safe_string($data, 2);
-            $network = $this->network_id_to_code(strtoupper($networkId)); // withdraw returns in lowercase
+            $network = $this->network_id_to_code(strtoupper($networkId), $code); // withdraw returns in lowercase
         } elseif ($transactionLength === 22) {
             $id = $this->safe_string($transaction, 0);
             $currencyId = $this->safe_string($transaction, 1);
             $code = $this->safe_currency_code($currencyId, $currency);
             $networkId = $this->safe_string($transaction, 2);
-            $network = $this->network_id_to_code($networkId);
+            $network = $this->network_id_to_code($networkId, $code);
             $timestamp = $this->safe_integer($transaction, 5);
             $updated = $this->safe_integer($transaction, 6);
             $status = $this->parse_transaction_status($this->safe_string($transaction, 9));
@@ -2571,7 +2642,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function fetch_trading_fees($params = array ()): array {
+    public function fetch_trading_fees($params = array()): array {
         /**
          * fetch the trading fees for multiple markets
          *
@@ -2580,8 +2651,10 @@ class bitfinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market symbols
          */
-        $this->load_markets();
-        $response = $this->privatePostAuthRSummary ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privatePostAuthRSummary($params);
         //
         //      Response Spec:
         //      array(
@@ -2669,7 +2742,7 @@ class bitfinex extends Exchange {
                 'percentage' => true,
                 'tierBased' => true,
             );
-            if (is_array($fiat) && array_key_exists($market['quote'], $fiat)) {
+            if (is_array($fiat) && array_key_exists($market['quote'] ?? '', $fiat)) {
                 $fee['maker'] = $makerFeeFiat;
                 $fee['taker'] = $takerFeeFiat;
             } elseif ($market['contract']) {
@@ -2684,12 +2757,12 @@ class bitfinex extends Exchange {
         return $result;
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch history of deposits and withdrawals
          *
          * @see https://docs.bitfinex.com/reference/movement-info
-         * @see https://docs.bitfinex.com/reference/rest-auth-movements
+         * @see https://docs.bitfinex.com/reference/rest-auth-$movements
          *
          * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
@@ -2697,7 +2770,9 @@ class bitfinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = null;
         $request = array();
         if ($since !== null) {
@@ -2706,13 +2781,14 @@ class bitfinex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // max 1000
         }
-        $response = null;
         if ($code !== null) {
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
-            $response = $this->privatePostAuthRMovementsCurrencyHist ($this->extend($request, $params));
+            $currencyMovements = $this->privatePostAuthRMovementsCurrencyHist($this->extend($request, $params));
+            $response = $this->to_array($currencyMovements);
         } else {
-            $response = $this->privatePostAuthRMovementsHist ($this->extend($request, $params));
+            $movements = $this->privatePostAuthRMovementsHist($this->extend($request, $params));
+            $response = $this->to_array($movements);
         }
         //
         //     array(
@@ -2745,7 +2821,7 @@ class bitfinex extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -2759,7 +2835,9 @@ class bitfinex extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         $this->check_address($address);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         // if not provided explicitly we will try to match using the $currency name
         $network = $this->safe_string($params, 'network', $code);
@@ -2786,7 +2864,7 @@ class bitfinex extends Exchange {
         if ($includeFee) {
             $request['fee_deduct'] = 1;
         }
-        $response = $this->privatePostAuthWWithdraw ($this->extend($request, $params));
+        $response = $this->privatePostAuthWWithdraw($this->extend($request, $params));
         //
         //     array(
         //         1582271520931, // MTS Millisecond Time Stamp of the update
@@ -2833,7 +2911,7 @@ class bitfinex extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): array {
+    public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
          * fetch all open positions
          *
@@ -2843,9 +2921,11 @@ class bitfinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
-        $response = $this->privatePostAuthRPositions ($params);
+        $response = $this->privatePostAuthRPositions($params);
         //
         //     array(
         //         array(
@@ -2880,9 +2960,10 @@ class bitfinex extends Exchange {
         //         )
         //     )
         //
+        $rawPositions = $this->to_array($response);
         $positionsList = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $positionsList[] = array( 'result' => $response[$i] );
+        for ($i = 0; $i < count($rawPositions); $i++) {
+            $positionsList[] = array( 'result' => $rawPositions[$i] );
         }
         return $this->parse_positions($positionsList, $symbols);
     }
@@ -2962,7 +3043,7 @@ class bitfinex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'v1') {
@@ -2992,7 +3073,7 @@ class bitfinex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($statusCode, $statusText, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $statusCode, mixed $statusText, mixed $url, mixed $method, mixed $headers, mixed $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         // ["error", 11010, "ratelimit => error"]
         if ($response !== null) {
             if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
@@ -3091,7 +3172,7 @@ class bitfinex extends Exchange {
         ), $currency);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
@@ -3105,7 +3186,9 @@ class bitfinex extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
         if ($paginate) {
@@ -3120,13 +3203,12 @@ class bitfinex extends Exchange {
             $request['limit'] = $limit;
         }
         list($request, $params) = $this->handle_until_option('end', $request, $params);
-        $response = null;
         if ($code !== null) {
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
-            $response = $this->privatePostAuthRLedgersCurrencyHist ($this->extend($request, $params));
+            $response = $this->privatePostAuthRLedgersCurrencyHist($this->extend($request, $params));
         } else {
-            $response = $this->privatePostAuthRLedgersHist ($this->extend($request, $params));
+            $response = $this->privatePostAuthRLedgersHist($this->extend($request, $params));
         }
         //
         //     array(
@@ -3151,7 +3233,7 @@ class bitfinex extends Exchange {
         return $this->parse_ledger($ledgerObjects, $currency, $since, $limit);
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
+    public function fetch_funding_rates(?array $symbols = null, $params = array()): array {
         /**
          * fetch the current funding rate for multiple $symbols
          *
@@ -3164,12 +3246,14 @@ class bitfinex extends Exchange {
         if ($symbols === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRates() requires a $symbols argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $marketIds = $this->market_ids($symbols);
         $request = array(
             'keys' => implode(',', $marketIds),
         );
-        $response = $this->publicGetStatusDeriv ($this->extend($request, $params));
+        $response = $this->publicGetStatusDeriv($this->extend($request, $params));
         //
         //   array(
         //       array(
@@ -3203,7 +3287,7 @@ class bitfinex extends Exchange {
         return $this->parse_funding_rates($response, $symbols);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding $rate prices
          *
@@ -3220,7 +3304,9 @@ class bitfinex extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
@@ -3234,7 +3320,7 @@ class bitfinex extends Exchange {
             $request['start'] = $since;
         }
         list($request, $params) = $this->handle_until_option('end', $request, $params);
-        $response = $this->publicGetStatusDerivSymbolHist ($this->extend($request, $params));
+        $response = $this->publicGetStatusDerivSymbolHist($this->extend($request, $params));
         //
         //   array(
         //       array(
@@ -3265,9 +3351,10 @@ class bitfinex extends Exchange {
         //       )
         //   )
         //
+        $rawRatesData = $this->to_array($response);
         $rates = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $fr = $response[$i];
+        for ($i = 0; $i < count($rawRatesData); $i++) {
+            $fr = $rawRatesData[$i];
             $rate = $this->parse_funding_rate_history($fr, $market);
             $rates[] = $rate;
         }
@@ -3282,7 +3369,7 @@ class bitfinex extends Exchange {
         return $reversedArray;
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //       array(
         //          "tBTCF0:USTF0",
@@ -3336,7 +3423,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function parse_funding_rate_history($contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
         //
         // array(
         //     1691165494000,
@@ -3387,7 +3474,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function fetch_open_interests(?array $symbols = null, $params = array ()) {
+    public function fetch_open_interests(?array $symbols = null, $params = array()) {
         /**
          * Retrieves the open interest for a list of $symbols
          *
@@ -3397,7 +3484,9 @@ class bitfinex extends Exchange {
          * @param {array} [$params] exchange specific parameters
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $marketIds = array( 'ALL' );
         if ($symbols !== null) {
@@ -3406,7 +3495,7 @@ class bitfinex extends Exchange {
         $request = array(
             'keys' => implode(',', $marketIds),
         );
-        $response = $this->publicGetStatusDeriv ($this->extend($request, $params));
+        $response = $this->publicGetStatusDeriv($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -3440,7 +3529,7 @@ class bitfinex extends Exchange {
         return $this->parse_open_interests($response, $symbols);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array ()) {
+    public function fetch_open_interest(string $symbol, $params = array()) {
         /**
          * retrieves the open interest of a contract trading pair
          *
@@ -3450,12 +3539,14 @@ class bitfinex extends Exchange {
          * @param {array} [$params] exchange specific parameters
          * @return {array} an ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'keys' => $market['id'],
         );
-        $response = $this->publicGetStatusDeriv ($this->extend($request, $params));
+        $response = $this->publicGetStatusDeriv($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -3490,7 +3581,7 @@ class bitfinex extends Exchange {
         return $this->parse_open_interest($oi, $market);
     }
 
-    public function fetch_open_interest_history(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_interest_history(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * retrieves the open interest history of a currency
          *
@@ -3505,7 +3596,9 @@ class bitfinex extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return An array of ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenInterestHistory', 'paginate');
         if ($paginate) {
@@ -3522,7 +3615,7 @@ class bitfinex extends Exchange {
             $request['limit'] = $limit;
         }
         list($request, $params) = $this->handle_until_option('end', $request, $params);
-        $response = $this->publicGetStatusDerivSymbolHist ($this->extend($request, $params));
+        $response = $this->publicGetStatusDerivSymbolHist($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -3555,7 +3648,7 @@ class bitfinex extends Exchange {
         return $this->parse_open_interests_history($response, $market, $since, $limit);
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         // fetchOpenInterest:
         //
@@ -3628,7 +3721,7 @@ class bitfinex extends Exchange {
         ), $market);
     }
 
-    public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * retrieves the public liquidations of a trading pair
          *
@@ -3642,7 +3735,9 @@ class bitfinex extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLiquidations', 'paginate');
         if ($paginate) {
@@ -3657,7 +3752,7 @@ class bitfinex extends Exchange {
             $request['limit'] = $limit;
         }
         list($request, $params) = $this->handle_until_option('end', $request, $params);
-        $response = $this->publicGetLiquidationsHist ($this->extend($request, $params));
+        $response = $this->publicGetLiquidationsHist($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -3678,10 +3773,10 @@ class bitfinex extends Exchange {
         //         ),
         //     )
         //
-        return $this->parse_liquidations($response, $market, $since, $limit);
+        return $this->parse_liquidations($this->to_array($response), $market, $since, $limit);
     }
 
-    public function parse_liquidation($liquidation, ?array $market = null) {
+    public function parse_liquidation(mixed $liquidation, ?array $market = null) {
         //
         //     array(
         //         array(
@@ -3723,7 +3818,7 @@ class bitfinex extends Exchange {
         ));
     }
 
-    public function set_margin(string $symbol, float $amount, $params = array ()): array {
+    public function set_margin(string $symbol, float $amount, $params = array()): array {
         /**
          * either adds or reduces margin in a swap position in order to set the margin to a specific value
          *
@@ -3734,7 +3829,9 @@ class bitfinex extends Exchange {
          * @param {array} [$params] parameters specific to the exchange API endpoint
          * @return {array} A {@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure margin structure}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (!$market['swap']) {
             throw new NotSupported($this->id . ' setMargin() only support swap markets');
@@ -3743,7 +3840,7 @@ class bitfinex extends Exchange {
             'symbol' => $market['id'],
             'collateral' => $this->parse_to_numeric($amount),
         );
-        $response = $this->privatePostAuthWDerivCollateralSet ($this->extend($request, $params));
+        $response = $this->privatePostAuthWDerivCollateralSet($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -3755,7 +3852,7 @@ class bitfinex extends Exchange {
         return $this->parse_margin_modification($data, $market);
     }
 
-    public function parse_margin_modification($data, $market = null): array {
+    public function parse_margin_modification(mixed $data, ?array $market = null): array {
         //
         // setMargin
         //
@@ -3769,7 +3866,7 @@ class bitfinex extends Exchange {
         $marginStatus = ($marginStatusRaw === 1) ? 'ok' : 'failed';
         return array(
             'info' => $data,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'type' => null,
             'marginMode' => 'isolated',
             'amount' => null,
@@ -3781,7 +3878,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an $order made by the user
          *
@@ -3793,18 +3890,19 @@ class bitfinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'id' => array( $this->parse_to_numeric($id) ),
         );
         $market = null;
-        $response = null;
         if ($symbol === null) {
-            $response = $this->privatePostAuthROrders ($this->extend($request, $params));
+            $response = $this->privatePostAuthROrders($this->extend($request, $params));
         } else {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-            $response = $this->privatePostAuthROrdersSymbol ($this->extend($request, $params));
+            $response = $this->privatePostAuthROrdersSymbol($this->extend($request, $params));
         }
         //
         //     array(
@@ -3849,7 +3947,7 @@ class bitfinex extends Exchange {
         return $this->parse_order($newOrder, $market);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         /**
          * edit a trade $order
          *
@@ -3871,14 +3969,16 @@ class bitfinex extends Exchange {
          * @param {float} [$params->trailingAmount] *swap only* the quote $amount to trail away from the current $market $price
          * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'id' => $this->parse_to_numeric($id),
         );
         if ($amount !== null) {
             $amountString = $this->amount_to_precision($symbol, $amount);
-            $amountString = ($side === 'buy') ? $amountString : Precise::string_neg($amountString);
+            $amountString = ($side === 'buy') ? $amountString : (Precise::string_neg($amountString));
             $request['amount'] = $amountString;
         }
         $triggerPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
@@ -3919,7 +4019,7 @@ class bitfinex extends Exchange {
             $request['lev'] = $leverage;
         }
         $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId', 'leverage' ));
-        $response = $this->privatePostAuthWOrderUpdate ($this->extend($request, $params));
+        $response = $this->privatePostAuthWOrderUpdate($this->extend($request, $params));
         //
         //     array(
         //         1706845376402,
@@ -3967,9 +4067,9 @@ class bitfinex extends Exchange {
         //
         $status = $this->safe_string($response, 6);
         if ($status !== 'SUCCESS') {
-            $errorCode = $response[5];
-            $errorText = $response[7];
-            throw new ExchangeError($this->id . ' ' . $response[6] . ' => ' . $errorText . ' (#' . $errorCode . ')');
+            $errorCode = $this->safe_string($response, 5);
+            $errorText = $this->safe_string($response, 7);
+            throw new ExchangeError($this->id . ' ' . $status . ' => ' . $errorText . ' (#' . $errorCode . ')');
         }
         $order = $this->safe_list($response, 4, array());
         $newOrder = array( 'result' => $order );

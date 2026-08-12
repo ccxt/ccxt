@@ -14,7 +14,7 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_order_book.php';
 function test_fetch_l2_order_book($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchL2OrderBook';
-        $order_book = Async\await($exchange->fetch_l2_order_book($symbol));
+        $order_book = \React\Async\await($exchange->fetch_l2_order_book($symbol));
         test_order_book($exchange, $skipped_properties, $method, $order_book, $symbol);
         return true;
     }) ();

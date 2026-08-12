@@ -38,13 +38,14 @@ public partial class okxus : okx
                 { "option", false },
             } },
             { "features", new Dictionary<string, object>() {
-                { "swap", new Dictionary<string, object>() {
-                    { "linear", null },
-                    { "inverse", null },
-                } },
                 { "future", new Dictionary<string, object>() {
                     { "linear", null },
                     { "inverse", null },
+                } },
+            } },
+            { "options", new Dictionary<string, object>() {
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "types", new List<object>() {"spot"} },
                 } },
             } },
         });

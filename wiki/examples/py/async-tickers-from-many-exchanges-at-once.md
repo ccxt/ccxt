@@ -1,10 +1,11 @@
-- [Async Tickers From Many Exchanges At Once](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import ccxt
 import ccxt.async_support as ccxta  # noqa: E402
 import time
@@ -35,10 +36,10 @@ async def multi_tickers(exchanges):
 if __name__ == '__main__':
 
     # Consider review request rate limit in the methods you call
-    exchanges = ["coinex", "bittrex", "bitfinex", "poloniex", "hitbtc"]
+    exchanges = ["coinex", "bitfinex", "poloniex", "hitbtc"]
 
     tic = time.time()
-    a = asyncio.run(multi_tickers(exchanges))
+    a = run(multi_tickers(exchanges))
     print("async call spend:", time.time() - tic)
 
     time.sleep(1)
@@ -46,5 +47,5 @@ if __name__ == '__main__':
     tic = time.time()
     a = [sync_client(exchange) for exchange in exchanges]
     print("sync call spend:", time.time() - tic)
- 
+
 ```

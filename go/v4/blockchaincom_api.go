@@ -7,98 +7,122 @@
 
 package ccxt
 
-func (this *BlockchaincomCore) PublicGetTickers(args ...interface{}) <-chan interface{} {
+// PublicGetTickers returns a channel that yields a JSON array.
+func (this *BlockchaincomCore) PublicGetTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *BlockchaincomCore) PublicGetTickersSymbol(args ...interface{}) <-chan interface{} {
+// PublicGetTickersSymbol returns a channel that yields a JSON object.
+func (this *BlockchaincomCore) PublicGetTickersSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickersSymbol", args...)
 }
 
-func (this *BlockchaincomCore) PublicGetSymbols(args ...interface{}) <-chan interface{} {
+// PublicGetSymbols returns a channel that yields a JSON object.
+func (this *BlockchaincomCore) PublicGetSymbols(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSymbols", args...)
 }
 
-func (this *BlockchaincomCore) PublicGetSymbolsSymbol(args ...interface{}) <-chan interface{} {
+// PublicGetSymbolsSymbol returns a channel that yields a JSON object.
+func (this *BlockchaincomCore) PublicGetSymbolsSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSymbolsSymbol", args...)
 }
 
-func (this *BlockchaincomCore) PublicGetL2Symbol(args ...interface{}) <-chan interface{} {
+// PublicGetL2Symbol returns a channel that yields a JSON object.
+func (this *BlockchaincomCore) PublicGetL2Symbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetL2Symbol", args...)
 }
 
-func (this *BlockchaincomCore) PublicGetL3Symbol(args ...interface{}) <-chan interface{} {
+// PublicGetL3Symbol returns a channel that yields a JSON object.
+func (this *BlockchaincomCore) PublicGetL3Symbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetL3Symbol", args...)
 }
 
-func (this *BlockchaincomCore) PrivateGetFees(args ...interface{}) <-chan interface{} {
+// PrivateGetFees returns a channel that yields a JSON object.
+func (this *BlockchaincomCore) PrivateGetFees(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFees", args...)
 }
 
-func (this *BlockchaincomCore) PrivateGetOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetOrders returns a channel that yields a JSON array.
+func (this *BlockchaincomCore) PrivateGetOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *BlockchaincomCore) PrivateGetOrdersOrderId(args ...interface{}) <-chan interface{} {
+// PrivateGetOrdersOrderId returns a channel that yields a JSON object.
+func (this *BlockchaincomCore) PrivateGetOrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrdersOrderId", args...)
 }
 
-func (this *BlockchaincomCore) PrivateGetTrades(args ...interface{}) <-chan interface{} {
+// PrivateGetTrades returns a channel that yields a JSON array.
+func (this *BlockchaincomCore) PrivateGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTrades", args...)
 }
 
-func (this *BlockchaincomCore) PrivateGetFills(args ...interface{}) <-chan interface{} {
+// PrivateGetFills returns a channel that yields a JSON array.
+func (this *BlockchaincomCore) PrivateGetFills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFills", args...)
 }
 
-func (this *BlockchaincomCore) PrivateGetDeposits(args ...interface{}) <-chan interface{} {
+// PrivateGetDeposits returns a channel that yields a JSON array.
+func (this *BlockchaincomCore) PrivateGetDeposits(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetDeposits", args...)
 }
 
-func (this *BlockchaincomCore) PrivateGetDepositsDepositId(args ...interface{}) <-chan interface{} {
+// PrivateGetDepositsDepositId returns a channel that yields a JSON object.
+func (this *BlockchaincomCore) PrivateGetDepositsDepositId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetDepositsDepositId", args...)
 }
 
-func (this *BlockchaincomCore) PrivateGetAccounts(args ...interface{}) <-chan interface{} {
+// PrivateGetAccounts returns a channel that yields a JSON object.
+func (this *BlockchaincomCore) PrivateGetAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccounts", args...)
 }
 
-func (this *BlockchaincomCore) PrivateGetAccountsAccountCurrency(args ...interface{}) <-chan interface{} {
+// PrivateGetAccountsAccountCurrency returns a channel that yields a JSON object.
+func (this *BlockchaincomCore) PrivateGetAccountsAccountCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountsAccountCurrency", args...)
 }
 
-func (this *BlockchaincomCore) PrivateGetWhitelist(args ...interface{}) <-chan interface{} {
+// PrivateGetWhitelist returns a channel that yields a JSON array.
+func (this *BlockchaincomCore) PrivateGetWhitelist(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWhitelist", args...)
 }
 
-func (this *BlockchaincomCore) PrivateGetWhitelistCurrency(args ...interface{}) <-chan interface{} {
+// PrivateGetWhitelistCurrency returns a channel that yields a JSON array.
+func (this *BlockchaincomCore) PrivateGetWhitelistCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWhitelistCurrency", args...)
 }
 
-func (this *BlockchaincomCore) PrivateGetWithdrawals(args ...interface{}) <-chan interface{} {
+// PrivateGetWithdrawals returns a channel that yields a JSON array.
+func (this *BlockchaincomCore) PrivateGetWithdrawals(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWithdrawals", args...)
 }
 
-func (this *BlockchaincomCore) PrivateGetWithdrawalsWithdrawalId(args ...interface{}) <-chan interface{} {
+// PrivateGetWithdrawalsWithdrawalId returns a channel that yields a JSON object.
+func (this *BlockchaincomCore) PrivateGetWithdrawalsWithdrawalId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWithdrawalsWithdrawalId", args...)
 }
 
-func (this *BlockchaincomCore) PrivatePostOrders(args ...interface{}) <-chan interface{} {
+// PrivatePostOrders returns a channel that yields a JSON object.
+func (this *BlockchaincomCore) PrivatePostOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *BlockchaincomCore) PrivatePostDepositsCurrency(args ...interface{}) <-chan interface{} {
+// PrivatePostDepositsCurrency returns a channel that yields a JSON object.
+func (this *BlockchaincomCore) PrivatePostDepositsCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDepositsCurrency", args...)
 }
 
-func (this *BlockchaincomCore) PrivatePostWithdrawals(args ...interface{}) <-chan interface{} {
+// PrivatePostWithdrawals returns a channel that yields a JSON object.
+func (this *BlockchaincomCore) PrivatePostWithdrawals(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawals", args...)
 }
 
-func (this *BlockchaincomCore) PrivateDeleteOrders(args ...interface{}) <-chan interface{} {
+// PrivateDeleteOrders returns a channel that yields a JSON object.
+func (this *BlockchaincomCore) PrivateDeleteOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrders", args...)
 }
 
-func (this *BlockchaincomCore) PrivateDeleteOrdersOrderId(args ...interface{}) <-chan interface{} {
+// PrivateDeleteOrdersOrderId returns a channel that yields a JSON object.
+func (this *BlockchaincomCore) PrivateDeleteOrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrdersOrderId", args...)
 }

@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\myokx as okx;
 
 class myokx extends okx {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'myokx',
@@ -37,7 +36,7 @@ class myokx extends okx {
                 'CORS' => null,
                 'spot' => true,
                 'margin' => null,
-                'swap' => false,
+                'swap' => true,
                 'future' => false,
                 'option' => false,
             ),
@@ -49,6 +48,12 @@ class myokx extends okx {
                 'future' => array(
                     'linear' => null,
                     'inverse' => null,
+                ),
+            ),
+            'options' => array(
+                'mica' => true,
+                'fetchMarkets' => array(
+                    'types' => array( 'spot', 'swap' ),
                 ),
             ),
         ));

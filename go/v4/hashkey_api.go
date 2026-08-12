@@ -7,254 +7,337 @@
 
 package ccxt
 
-func (this *HashkeyCore) PublicGetApiV1ExchangeInfo(args ...interface{}) <-chan interface{} {
+// PublicGetApiV1ExchangeInfo returns a channel that yields a JSON object.
+func (this *HashkeyCore) PublicGetApiV1ExchangeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1ExchangeInfo", args...)
 }
 
-func (this *HashkeyCore) PublicGetQuoteV1Depth(args ...interface{}) <-chan interface{} {
+// PublicGetQuoteV1Depth returns a channel that yields a JSON object.
+func (this *HashkeyCore) PublicGetQuoteV1Depth(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetQuoteV1Depth", args...)
 }
 
-func (this *HashkeyCore) PublicGetQuoteV1Trades(args ...interface{}) <-chan interface{} {
+// PublicGetQuoteV1Trades returns a channel that yields a JSON array.
+func (this *HashkeyCore) PublicGetQuoteV1Trades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetQuoteV1Trades", args...)
 }
 
-func (this *HashkeyCore) PublicGetQuoteV1Klines(args ...interface{}) <-chan interface{} {
+// PublicGetQuoteV1Klines returns a channel that yields a JSON array.
+func (this *HashkeyCore) PublicGetQuoteV1Klines(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetQuoteV1Klines", args...)
 }
 
-func (this *HashkeyCore) PublicGetQuoteV1Ticker24hr(args ...interface{}) <-chan interface{} {
+// PublicGetQuoteV1Ticker24hr returns a channel that yields a JSON array.
+func (this *HashkeyCore) PublicGetQuoteV1Ticker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetQuoteV1Ticker24hr", args...)
 }
 
-func (this *HashkeyCore) PublicGetQuoteV1TickerPrice(args ...interface{}) <-chan interface{} {
+// PublicGetQuoteV1TickerPrice returns a channel that yields a JSON array.
+func (this *HashkeyCore) PublicGetQuoteV1TickerPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetQuoteV1TickerPrice", args...)
 }
 
-func (this *HashkeyCore) PublicGetQuoteV1TickerBookTicker(args ...interface{}) <-chan interface{} {
+// PublicGetQuoteV1TickerBookTicker returns a channel that yields a JSON array.
+func (this *HashkeyCore) PublicGetQuoteV1TickerBookTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetQuoteV1TickerBookTicker", args...)
 }
 
-func (this *HashkeyCore) PublicGetQuoteV1DepthMerged(args ...interface{}) <-chan interface{} {
+// PublicGetQuoteV1DepthMerged returns a channel that yields a JSON object.
+func (this *HashkeyCore) PublicGetQuoteV1DepthMerged(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetQuoteV1DepthMerged", args...)
 }
 
-func (this *HashkeyCore) PublicGetQuoteV1MarkPrice(args ...interface{}) <-chan interface{} {
+// PublicGetQuoteV1MarkPrice returns a channel that yields a JSON object.
+func (this *HashkeyCore) PublicGetQuoteV1MarkPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetQuoteV1MarkPrice", args...)
 }
 
-func (this *HashkeyCore) PublicGetQuoteV1Index(args ...interface{}) <-chan interface{} {
+// PublicGetQuoteV1Index returns a channel that yields a JSON object.
+func (this *HashkeyCore) PublicGetQuoteV1Index(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetQuoteV1Index", args...)
 }
 
-func (this *HashkeyCore) PublicGetApiV1FuturesFundingRate(args ...interface{}) <-chan interface{} {
+// PublicGetApiV1FuturesFundingRate returns a channel that yields a JSON array.
+func (this *HashkeyCore) PublicGetApiV1FuturesFundingRate(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1FuturesFundingRate", args...)
 }
 
-func (this *HashkeyCore) PublicGetApiV1FuturesHistoryFundingRate(args ...interface{}) <-chan interface{} {
+// PublicGetApiV1FuturesHistoryFundingRate returns a channel that yields a JSON array.
+func (this *HashkeyCore) PublicGetApiV1FuturesHistoryFundingRate(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1FuturesHistoryFundingRate", args...)
 }
 
-func (this *HashkeyCore) PublicGetApiV1Ping(args ...interface{}) <-chan interface{} {
+// PublicGetApiV1Ping returns a channel that yields a JSON object.
+func (this *HashkeyCore) PublicGetApiV1Ping(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1Ping", args...)
 }
 
-func (this *HashkeyCore) PublicGetApiV1Time(args ...interface{}) <-chan interface{} {
+// PublicGetApiV1Time returns a channel that yields a JSON object.
+func (this *HashkeyCore) PublicGetApiV1Time(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1Time", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1SpotOrder(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1SpotOrder returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivateGetApiV1SpotOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1SpotOrder", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1SpotOpenOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1SpotOpenOrders returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1SpotOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1SpotOpenOrders", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1SpotTradeOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1SpotTradeOrders returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1SpotTradeOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1SpotTradeOrders", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1FuturesLeverage(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1FuturesLeverage returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1FuturesLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesLeverage", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1FuturesOrder(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1FuturesOrder returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivateGetApiV1FuturesOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesOrder", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1FuturesOpenOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1FuturesOpenOrders returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1FuturesOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesOpenOrders", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1FuturesUserTrades(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1FuturesUserTrades returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1FuturesUserTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesUserTrades", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1FuturesPositions(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1FuturesPositions returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1FuturesPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesPositions", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1FuturesHistoryOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1FuturesHistoryOrders returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1FuturesHistoryOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesHistoryOrders", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1FuturesBalance(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1FuturesBalance returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1FuturesBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesBalance", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1FuturesLiquidationAssignStatus(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1FuturesLiquidationAssignStatus returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1FuturesLiquidationAssignStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesLiquidationAssignStatus", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1FuturesRiskLimit(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1FuturesRiskLimit returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1FuturesRiskLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesRiskLimit", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1FuturesCommissionRate(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1FuturesCommissionRate returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivateGetApiV1FuturesCommissionRate(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesCommissionRate", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1FuturesGetBestOrder(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1FuturesGetBestOrder returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivateGetApiV1FuturesGetBestOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesGetBestOrder", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1AccountVipInfo(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1CoinInfo returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivateGetApiV1CoinInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV1CoinInfo", args...)
+}
+
+// PrivateGetApiV1AccountVipInfo returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivateGetApiV1AccountVipInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountVipInfo", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1Account(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1Account returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivateGetApiV1Account(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1Account", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1AccountTrades(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1AccountTrades returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1AccountTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountTrades", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1AccountType(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1AccountType returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1AccountType(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountType", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1AccountCheckApiKey(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1AccountChainType returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1AccountChainType(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV1AccountChainType", args...)
+}
+
+// PrivateGetApiV1AccountCheckApiKey returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivateGetApiV1AccountCheckApiKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountCheckApiKey", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1AccountBalanceFlow(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1AccountBalanceFlow returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1AccountBalanceFlow(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountBalanceFlow", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1SpotSubAccountOpenOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1SpotSubAccountOpenOrders returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1SpotSubAccountOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1SpotSubAccountOpenOrders", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1SpotSubAccountTradeOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1SpotSubAccountTradeOrders returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1SpotSubAccountTradeOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1SpotSubAccountTradeOrders", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1SubAccountTrades(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1SubAccountTrades returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1SubAccountTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1SubAccountTrades", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1FuturesSubAccountOpenOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1FuturesSubAccountOpenOrders returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1FuturesSubAccountOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesSubAccountOpenOrders", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1FuturesSubAccountHistoryOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1FuturesSubAccountHistoryOrders returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1FuturesSubAccountHistoryOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesSubAccountHistoryOrders", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1FuturesSubAccountUserTrades(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1FuturesSubAccountUserTrades returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1FuturesSubAccountUserTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesSubAccountUserTrades", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1AccountDepositAddress(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1AccountDepositAddress returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivateGetApiV1AccountDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountDepositAddress", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1AccountDepositOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1AccountDepositOrders returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1AccountDepositOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountDepositOrders", args...)
 }
 
-func (this *HashkeyCore) PrivateGetApiV1AccountWithdrawOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetApiV1AccountWithdrawOrders returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1AccountWithdrawOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountWithdrawOrders", args...)
 }
 
-func (this *HashkeyCore) PrivatePostApiV1UserDataStream(args ...interface{}) <-chan interface{} {
+// PrivatePostApiV1UserDataStream returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivatePostApiV1UserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1UserDataStream", args...)
 }
 
-func (this *HashkeyCore) PrivatePostApiV1SpotOrderTest(args ...interface{}) <-chan interface{} {
+// PrivatePostApiV1SpotOrderTest returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivatePostApiV1SpotOrderTest(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1SpotOrderTest", args...)
 }
 
-func (this *HashkeyCore) PrivatePostApiV1SpotOrder(args ...interface{}) <-chan interface{} {
+// PrivatePostApiV1SpotOrder returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivatePostApiV1SpotOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1SpotOrder", args...)
 }
 
-func (this *HashkeyCore) PrivatePostApiV11SpotOrder(args ...interface{}) <-chan interface{} {
+// PrivatePostApiV11SpotOrder returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivatePostApiV11SpotOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV11SpotOrder", args...)
 }
 
-func (this *HashkeyCore) PrivatePostApiV1SpotBatchOrders(args ...interface{}) <-chan interface{} {
+// PrivatePostApiV1SpotBatchOrders returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivatePostApiV1SpotBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1SpotBatchOrders", args...)
 }
 
-func (this *HashkeyCore) PrivatePostApiV1FuturesLeverage(args ...interface{}) <-chan interface{} {
+// PrivatePostApiV1FuturesLeverage returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivatePostApiV1FuturesLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1FuturesLeverage", args...)
 }
 
-func (this *HashkeyCore) PrivatePostApiV1FuturesOrder(args ...interface{}) <-chan interface{} {
+// PrivatePostApiV1FuturesOrder returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivatePostApiV1FuturesOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1FuturesOrder", args...)
 }
 
-func (this *HashkeyCore) PrivatePostApiV1FuturesPositionTradingStop(args ...interface{}) <-chan interface{} {
+// PrivatePostApiV1FuturesMarginType returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivatePostApiV1FuturesMarginType(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostApiV1FuturesMarginType", args...)
+}
+
+// PrivatePostApiV1FuturesPositionMargin returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivatePostApiV1FuturesPositionMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostApiV1FuturesPositionMargin", args...)
+}
+
+// PrivatePostApiV1FuturesPositionTradingStop returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivatePostApiV1FuturesPositionTradingStop(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1FuturesPositionTradingStop", args...)
 }
 
-func (this *HashkeyCore) PrivatePostApiV1FuturesBatchOrders(args ...interface{}) <-chan interface{} {
+// PrivatePostApiV1FuturesBatchOrders returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivatePostApiV1FuturesBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1FuturesBatchOrders", args...)
 }
 
-func (this *HashkeyCore) PrivatePostApiV1AccountAssetTransfer(args ...interface{}) <-chan interface{} {
+// PrivatePostApiV1AccountAssetTransfer returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivatePostApiV1AccountAssetTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1AccountAssetTransfer", args...)
 }
 
-func (this *HashkeyCore) PrivatePostApiV1AccountAuthAddress(args ...interface{}) <-chan interface{} {
+// PrivatePostApiV1AccountAuthAddress returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivatePostApiV1AccountAuthAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1AccountAuthAddress", args...)
 }
 
-func (this *HashkeyCore) PrivatePostApiV1AccountWithdraw(args ...interface{}) <-chan interface{} {
+// PrivatePostApiV1AccountWithdraw returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivatePostApiV1AccountWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1AccountWithdraw", args...)
 }
 
-func (this *HashkeyCore) PrivatePutApiV1UserDataStream(args ...interface{}) <-chan interface{} {
+// PrivatePutApiV1UserDataStream returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivatePutApiV1UserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutApiV1UserDataStream", args...)
 }
 
-func (this *HashkeyCore) PrivateDeleteApiV1SpotOrder(args ...interface{}) <-chan interface{} {
+// PrivateDeleteApiV1SpotOrder returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivateDeleteApiV1SpotOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteApiV1SpotOrder", args...)
 }
 
-func (this *HashkeyCore) PrivateDeleteApiV1SpotOpenOrders(args ...interface{}) <-chan interface{} {
+// PrivateDeleteApiV1SpotOpenOrders returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateDeleteApiV1SpotOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteApiV1SpotOpenOrders", args...)
 }
 
-func (this *HashkeyCore) PrivateDeleteApiV1SpotCancelOrderByIds(args ...interface{}) <-chan interface{} {
+// PrivateDeleteApiV1SpotCancelOrderByIds returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivateDeleteApiV1SpotCancelOrderByIds(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteApiV1SpotCancelOrderByIds", args...)
 }
 
-func (this *HashkeyCore) PrivateDeleteApiV1FuturesOrder(args ...interface{}) <-chan interface{} {
+// PrivateDeleteApiV1FuturesOrder returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivateDeleteApiV1FuturesOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteApiV1FuturesOrder", args...)
 }
 
-func (this *HashkeyCore) PrivateDeleteApiV1FuturesBatchOrders(args ...interface{}) <-chan interface{} {
+// PrivateDeleteApiV1FuturesBatchOrders returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivateDeleteApiV1FuturesBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteApiV1FuturesBatchOrders", args...)
 }
 
-func (this *HashkeyCore) PrivateDeleteApiV1FuturesCancelOrderByIds(args ...interface{}) <-chan interface{} {
+// PrivateDeleteApiV1FuturesCancelOrderByIds returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivateDeleteApiV1FuturesCancelOrderByIds(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteApiV1FuturesCancelOrderByIds", args...)
 }
 
-func (this *HashkeyCore) PrivateDeleteApiV1UserDataStream(args ...interface{}) <-chan interface{} {
+// PrivateDeleteApiV1UserDataStream returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivateDeleteApiV1UserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteApiV1UserDataStream", args...)
 }

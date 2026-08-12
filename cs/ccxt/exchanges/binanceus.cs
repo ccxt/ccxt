@@ -45,6 +45,7 @@ public partial class binanceus : binance
                 { "defaultType", "spot" },
                 { "fetchMargins", false },
                 { "quoteOrderQty", false },
+                { "fetchCurrencies", false },
             } },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
@@ -117,22 +118,38 @@ public partial class binanceus : binance
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "ping", 1 },
-                        { "time", 1 },
-                        { "exchangeInfo", 10 },
-                        { "trades", 1 },
-                        { "historicalTrades", 5 },
-                        { "aggTrades", 1 },
+                        { "ping", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchangeInfo", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "historicalTrades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "aggTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "depth", new Dictionary<string, object>() {
                             { "cost", 1 },
                             { "byLimit", new List<object>() {new List<object>() {100, 1}, new List<object>() {500, 5}, new List<object>() {1000, 10}, new List<object>() {5000, 50}} },
                         } },
-                        { "klines", 1 },
+                        { "klines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "ticker/price", new Dictionary<string, object>() {
                             { "cost", 1 },
                             { "noSymbol", 2 },
                         } },
-                        { "avgPrice", 1 },
+                        { "avgPrice", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "ticker/bookTicker", new Dictionary<string, object>() {
                             { "cost", 1 },
                             { "noSymbol", 2 },
@@ -149,110 +166,266 @@ public partial class binanceus : binance
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "account", 10 },
-                        { "rateLimit/order", 20 },
-                        { "order", 2 },
+                        { "account", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "rateLimit/order", new Dictionary<string, object>() {
+                            { "cost", 20 },
+                        } },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
                         { "openOrders", new Dictionary<string, object>() {
                             { "cost", 3 },
                             { "noSymbol", 40 },
                         } },
-                        { "myTrades", 10 },
-                        { "myPreventedMatches", 10 },
-                        { "allOrders", 10 },
-                        { "orderList", 2 },
-                        { "allOrderList", 10 },
-                        { "openOrderList", 3 },
+                        { "myTrades", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "myPreventedMatches", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "allOrders", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "orderList", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "allOrderList", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "openOrderList", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "order", 1 },
-                        { "order/test", 1 },
-                        { "order/cancelReplace", 1 },
-                        { "order/oco", 1 },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/test", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/cancelReplace", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/oco", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "order", 1 },
-                        { "openOrders", 1 },
-                        { "orderList", 1 },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderList", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "sapi", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "system/status", 1 },
-                        { "asset/assetDistributionHistory", 1 },
-                        { "asset/query/trading-fee", 1 },
-                        { "asset/query/trading-volume", 1 },
-                        { "sub-account/spotSummary", 1 },
-                        { "sub-account/status", 1 },
-                        { "otc/coinPairs", 1 },
-                        { "otc/orders/{orderId}", 1 },
-                        { "otc/orders", 1 },
-                        { "ocbs/orders", 1 },
-                        { "capital/config/getall", 1 },
-                        { "capital/withdraw/history", 1 },
-                        { "fiatpayment/query/withdraw/history", 1 },
-                        { "capital/deposit/address", 1 },
-                        { "capital/deposit/hisrec", 1 },
-                        { "fiatpayment/query/deposit/history", 1 },
-                        { "capital/sub-account/deposit/address", 1 },
-                        { "capital/sub-account/deposit/history", 1 },
-                        { "asset/query/dust-logs", 1 },
-                        { "asset/query/dust-assets", 1 },
-                        { "marketing/referral/reward/history", 1 },
-                        { "staking/asset", 1 },
-                        { "staking/stakingBalance", 1 },
-                        { "staking/history", 1 },
-                        { "staking/stakingRewardsHistory", 1 },
-                        { "custodian/balance", 1 },
-                        { "custodian/supportedAssetList", 1 },
-                        { "custodian/walletTransferHistory", 1 },
-                        { "custodian/custodianTransferHistory", 1 },
-                        { "custodian/openOrders", 1 },
-                        { "custodian/order", 1 },
-                        { "custodian/orderHistory", 1 },
-                        { "custodian/tradeHistory", 1 },
-                        { "custodian/settlementSetting", 1 },
-                        { "custodian/settlementHistory", 1 },
-                        { "cl/transferHistory", 1 },
-                        { "apipartner/checkEligibility", 1 },
-                        { "apipartner/rebateHistory", 1 },
+                        { "system/status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "asset/assetDistributionHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "asset/query/trading-fee", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "asset/query/trading-volume", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sub-account/spotSummary", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sub-account/status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "otc/coinPairs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "otc/orders/{orderId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "otc/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ocbs/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "capital/config/getall", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "capital/withdraw/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fiatpayment/query/withdraw/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "capital/deposit/address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "capital/deposit/hisrec", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fiatpayment/query/deposit/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "capital/sub-account/deposit/address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "capital/sub-account/deposit/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "asset/query/dust-logs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "asset/query/dust-assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "marketing/referral/reward/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "staking/asset", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "staking/stakingBalance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "staking/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "staking/stakingRewardsHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "custodian/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "custodian/supportedAssetList", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "custodian/walletTransferHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "custodian/custodianTransferHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "custodian/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "custodian/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "custodian/orderHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "custodian/tradeHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "custodian/settlementSetting", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "custodian/settlementHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cl/transferHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "apipartner/checkEligibility", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "apipartner/rebateHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "otc/quotes", 1 },
-                        { "otc/orders", 1 },
-                        { "fiatpayment/withdraw/apply", 1 },
-                        { "capital/withdraw/apply", 1 },
-                        { "asset/dust", 10 },
-                        { "staking/stake", 1 },
-                        { "staking/unstake", 1 },
-                        { "custodian/walletTransfer", 1 },
-                        { "custodian/custodianTransfer", 1 },
-                        { "custodian/undoTransfer", 1 },
-                        { "custodian/order", 1 },
-                        { "custodian/ocoOrder", 1 },
-                        { "cl/transfer", 1 },
+                        { "otc/quotes", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "otc/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fiatpayment/withdraw/apply", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "capital/withdraw/apply", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "asset/dust", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "staking/stake", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "staking/unstake", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "custodian/walletTransfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "custodian/custodianTransfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "custodian/undoTransfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "custodian/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "custodian/ocoOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cl/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "custodian/cancelOrder", 1 },
-                        { "custodian/cancelOrdersBySymbol", 1 },
-                        { "custodian/cancelOcoOrder", 1 },
+                        { "custodian/cancelOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "custodian/cancelOrdersBySymbol", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "custodian/cancelOcoOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "sapiV2", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "cl/account", 10 },
-                        { "cl/alertHistory", 1 },
+                        { "cl/account", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "cl/alertHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "sapiV3", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "accountStatus", 1 },
-                        { "apiTradingStatus", 1 },
-                        { "sub-account/list", 1 },
-                        { "sub-account/transfer/history", 1 },
-                        { "sub-account/assets", 1 },
+                        { "accountStatus", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "apiTradingStatus", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sub-account/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sub-account/transfer/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sub-account/assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "sub-account/transfer", 1 },
+                        { "sub-account/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },

@@ -1,8 +1,8 @@
-- [Coinbase Fetch Ohlcv](./examples/py/)
+```python
+# -*- coding: utf-8 -*-
 
-
- ```python
- # -*- coding: utf-8 -*-
+# fetchOHLCV is a one-shot REST call. For live updates, prefer watchOHLCV
+# (WebSocket) instead of polling this in a loop — see coinbase-watch-ohlcv.py.
 
 import os
 import sys
@@ -28,5 +28,5 @@ try:
     pprint(candles)
 except Exception as err:
     print(err)
- 
+
 ```

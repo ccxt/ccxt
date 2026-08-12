@@ -24,7 +24,6 @@ public partial class gemini : ccxt.gemini
                 { "watchOrderBookForSymbols", true },
                 { "watchOHLCV", true },
             } },
-            { "hostname", "api.gemini.com" },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
                     { "ws", "wss://api.gemini.com" },
@@ -50,10 +49,17 @@ public partial class gemini : ccxt.gemini
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object messageHash = add("trades:", getValue(market, "symbol"));
         object marketId = getValue(market, "id");
+        if (isTrue(isEqual(marketId, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " watchTrades() marketId is required")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "subscriptions", new List<object>() {new Dictionary<string, object>() {
@@ -176,7 +182,10 @@ public partial class gemini : ccxt.gemini
         if (isTrue(isEqual(stored, null)))
         {
             stored = new ArrayCache(tradesLimit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            }
         }
         callDynamically(stored, "append", new object[] {trade});
         object messageHash = add("trades:", symbol);
@@ -295,14 +304,17 @@ public partial class gemini : ccxt.gemini
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object timeframeId = this.safeString(this.timeframes, timeframe, timeframe);
         object request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "subscriptions", new List<object>() {new Dictionary<string, object>() {
     { "name", add("candles_", timeframeId) },
-    { "symbols", new List<object> {((string)getValue(market, "id")).ToUpper()} },
+    { "symbols", new List<object> {this.safeStringUpper(market, "id")} },
 }} },
         };
         object messageHash = add(add(add("ohlcv:", getValue(market, "symbol")), ":"), timeframeId);
@@ -356,12 +368,15 @@ public partial class gemini : ccxt.gemini
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
         }
-        object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
+        object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (isTrue(isEqual(stored, null)))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
+            if (isTrue(isTrue(!isEqual(symbol, null)) && isTrue(!isEqual(timeframe, null))))
+            {
+                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
+            }
         }
         object changesLength = getArrayLength(changes);
         // reverse order of array to store candles in ascending order
@@ -384,15 +399,22 @@ public partial class gemini : ccxt.gemini
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object messageHash = add("orderbook:", getValue(market, "symbol"));
         object marketId = getValue(market, "id");
+        if (isTrue(isEqual(marketId, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " watchOrderBook() marketId is required")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "subscriptions", new List<object>() {new Dictionary<string, object>() {
@@ -408,6 +430,7 @@ public partial class gemini : ccxt.gemini
 
     public virtual void handleOrderBook(WebSocketClient client, object message)
     {
+        object isInitial = isTrue(isTrue((inOp(message, "auction_events"))) && isTrue((inOp(message, "trades")))) && isTrue((inOp(message, "changes")));
         object changes = this.safeValue(message, "changes", new List<object>() {});
         object marketId = this.safeStringLower(message, "symbol");
         object market = this.safeMarket(marketId);
@@ -416,6 +439,14 @@ public partial class gemini : ccxt.gemini
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
+        } else if (isTrue(isInitial))
+        {
+            // handle https://github.com/ccxt/ccxt/issues/29210
+            if (isTrue(inOp(this.orderbooks, symbol)))
+            {
+                ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+            }
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
         object orderbook = getValue(this.orderbooks, symbol);
@@ -442,7 +473,7 @@ public partial class gemini : ccxt.gemini
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -539,7 +570,10 @@ public partial class gemini : ccxt.gemini
     public async virtual Task<object> helperForWatchMultipleConstruct(object itemHashName, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isEqual(symbols, null)))
         {
             throw new NotSupported ((string)add(this.id, " watchMultiple requires at least one symbol")) ;
@@ -686,7 +720,10 @@ public partial class gemini : ccxt.gemini
     {
         parameters ??= new Dictionary<string, object>();
         object url = add(getValue(getValue(this.urls, "api"), "ws"), "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked");
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object authParams = new Dictionary<string, object>() {
             { "url", url },
         };
@@ -940,6 +977,10 @@ public partial class gemini : ccxt.gemini
             object ts = this.safeInteger(message, "timestampms", this.milliseconds());
             object eventId = this.safeInteger(message, "eventId");
             object events = this.safeList(message, "events");
+            if (isTrue(isEqual(events, null)))
+            {
+                return;
+            }
             object orderBookItems = new List<object>() {};
             object bidaskItems = new List<object>() {};
             object collectedEventsOfTrades = new List<object>() {};
@@ -984,6 +1025,10 @@ public partial class gemini : ccxt.gemini
     {
         parameters ??= new Dictionary<string, object>();
         object url = this.safeString(parameters, "url");
+        if (isTrue(isEqual(url, null)))
+        {
+            return;
+        }
         if (isTrue(isTrue((!isEqual(this.clients, null))) && isTrue((inOp(this.clients, url)))))
         {
             return;

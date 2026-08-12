@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Liquidation, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -14,7 +14,6 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import ChecksumError
 
 
 class okx(ccxt.async_support.okx):
@@ -117,8 +116,10 @@ class okx(ccxt.async_support.okx):
             },
         })
 
-    def get_url(self, channel: str, access='public'):
+    def get_url(self, channel: Str, access='public'):
         # for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
+        if channel is None:
+            raise ArgumentsRequired(self.id + ' getUrl() requires a channel argument')
         isSandbox = self.options['sandboxMode']
         sandboxSuffix = '?brokerId=9999' if isSandbox else ''
         isBusiness = (access == 'business')
@@ -130,39 +131,47 @@ class okx(ccxt.async_support.okx):
             return url + '/public' + sandboxSuffix
         return url + '/private' + sandboxSuffix
 
-    async def subscribe_multiple(self, access, channel, symbols: Strings = None, params={}):
-        await self.load_markets()
+    async def subscribe_multiple(self, access: Any, channel: Any, symbols: Strings = None, params={}):
+        if self.markets is None:
+            await self.load_markets()
         if symbols is None:
             symbols = self.symbols
         symbols = self.market_symbols(symbols)
         url = self.get_url(channel, access)
         messageHashes = []
         args = []
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' subscribeMultiple() symbols is required')
         for i in range(0, len(symbols)):
+            if symbols is None:
+                raise ArgumentsRequired(self.id + ' subscribeMultiple() symbols is required')
             marketId = self.market_id(symbols[i])
-            arg: dict = {
+            arg = {
                 'channel': channel,
                 'instId': marketId,
             }
             args.append(self.extend(arg, params))
+            if symbols is None:
+                raise ArgumentsRequired(self.id + ' subscribeMultiple() symbols is required')
             messageHashes.append(channel + '::' + symbols[i])
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': args,
         }
         return await self.watch_multiple(url, messageHashes, request, messageHashes)
 
-    async def subscribe(self, access, messageHash, channel, symbol, params={}):
-        await self.load_markets()
+    async def subscribe(self, access: Any, messageHash: Any, channel: Any, symbol: Any, params={}):
+        if self.markets is None:
+            await self.load_markets()
         url = self.get_url(channel, access)
-        firstArgument: dict = {
+        firstArgument = {
             'channel': channel,
         }
         if symbol is not None:
             market = self.market(symbol)
             messageHash += ':' + market['id']
             firstArgument['instId'] = market['id']
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': [
                 self.deep_extend(firstArgument, params),
@@ -170,7 +179,7 @@ class okx(ccxt.async_support.okx):
         }
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
 
         https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-trades-channel
@@ -183,7 +192,7 @@ class okx(ccxt.async_support.okx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+        return self.watch_trades_for_symbols([symbol], since, limit, params)
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -202,7 +211,8 @@ class okx(ccxt.async_support.okx):
         symbolsLength = len(symbols)
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchTradesForSymbols() requires a non-empty array of symbols')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchTrades', 'channel', 'trades')
@@ -212,12 +222,12 @@ class okx(ccxt.async_support.okx):
             symbol = symbols[i]
             messageHashes.append(channel + ':' + symbol)
             marketId = self.market_id(symbol)
-            topic: dict = {
+            topic = {
                 'channel': channel,
                 'instId': marketId,
             }
             topics.append(topic)
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': topics,
         }
@@ -241,7 +251,8 @@ class okx(ccxt.async_support.okx):
         :param str [params.channel]: the channel to subscribe to, trades by default. Can be trades, trades-all
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchTrades', 'channel', 'trades')
@@ -251,12 +262,12 @@ class okx(ccxt.async_support.okx):
             symbol = symbols[i]
             messageHashes.append('unsubscribe:' + channel + ':' + symbol)
             marketId = self.market_id(symbol)
-            topic: dict = {
+            topic = {
                 'channel': channel,
                 'instId': marketId,
             }
             topics.append(topic)
-        request: dict = {
+        request = {
             'op': 'unsubscribe',
             'args': topics,
         }
@@ -267,16 +278,16 @@ class okx(ccxt.async_support.okx):
         url = self.get_url(channel, access)
         return await self.watch_multiple(url, messageHashes, request, messageHashes)
 
-    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+    def un_watch_trades(self, symbol: str, params={}) -> Any:
         """
         unWatches from the stream channel
         :param str symbol: unified symbol of the market to fetch trades for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return await self.un_watch_trades_for_symbols([symbol], params)
+        return self.un_watch_trades_for_symbols([symbol], params)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         #     {
         #         "arg": {channel: "trades", instId: "BTC-USDT"},
@@ -339,17 +350,20 @@ class okx(ccxt.async_support.okx):
         fr = await self.watch_funding_rates([symbol], params)
         return fr[symbol]
 
-    async def watch_funding_rates(self, symbols: List[str], params={}) -> FundingRates:
+    async def watch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         watch the funding rate for multiple markets
 
         https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
 
-        :param str[] symbols: list of unified market symbols
+        :param str[] symbols: a list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexe by market symbols
+        :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/?id=funding-rate-structure>`, indexed by market symbols
         """
-        await self.load_markets()
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' watchFundingRates() requires an array of symbols')
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         channel = 'funding-rate'
         topics = []
@@ -358,12 +372,12 @@ class okx(ccxt.async_support.okx):
             symbol = symbols[i]
             messageHashes.append(channel + ':' + symbol)
             marketId = self.market_id(symbol)
-            topic: dict = {
+            topic = {
                 'channel': channel,
                 'instId': marketId,
             }
             topics.append(topic)
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': topics,
         }
@@ -371,12 +385,13 @@ class okx(ccxt.async_support.okx):
         fundingRate = await self.watch_multiple(url, messageHashes, request, messageHashes)
         if self.newUpdates:
             symbol = self.safe_string(fundingRate, 'symbol')
-            result: dict = {}
-            result[symbol] = fundingRate
+            result = {}
+            if symbol is not None:
+                result[symbol] = fundingRate
             return result
         return self.filter_by_array(self.fundingRates, 'symbol', symbols)
 
-    def handle_funding_rate(self, client: Client, message):
+    def handle_funding_rate(self, client: Client, message: Any):
         #
         # "data":[
         #     {
@@ -401,10 +416,11 @@ class okx(ccxt.async_support.okx):
             rawfr = data[i]
             fundingRate = self.parse_funding_rate(rawfr)
             symbol = fundingRate['symbol']
-            self.fundingRates[symbol] = fundingRate
+            if symbol is not None:
+                self.fundingRates[symbol] = fundingRate
             client.resolve(fundingRate, 'funding-rate' + ':' + fundingRate['symbol'])
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
 
         https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
@@ -423,7 +439,7 @@ class okx(ccxt.async_support.okx):
         ticker = await self.watch_tickers([symbol], params)
         return self.safe_value(ticker, symbol)
 
-    async def un_watch_ticker(self, symbol: str, params={}) -> Any:
+    def un_watch_ticker(self, symbol: str, params={}) -> Any:
         """
 
         https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
@@ -434,7 +450,7 @@ class okx(ccxt.async_support.okx):
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.un_watch_tickers([symbol], params)
+        return self.un_watch_tickers([symbol], params)
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -447,7 +463,8 @@ class okx(ccxt.async_support.okx):
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', 'tickers')
@@ -456,7 +473,7 @@ class okx(ccxt.async_support.okx):
             return newTickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def watch_mark_price(self, symbol: str, params={}) -> Ticker:
+    async def watch_mark_price(self, symbol: str, params: dict = {}) -> Ticker:
         """
 
         https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
@@ -486,7 +503,8 @@ class okx(ccxt.async_support.okx):
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchMarkPrices', 'channel', 'mark-price')
@@ -506,7 +524,8 @@ class okx(ccxt.async_support.okx):
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', 'tickers')
@@ -516,19 +535,19 @@ class okx(ccxt.async_support.okx):
             symbol = symbols[i]
             messageHashes.append('unsubscribe:ticker:' + symbol)
             marketId = self.market_id(symbol)
-            topic: dict = {
+            topic = {
                 'channel': channel,
                 'instId': marketId,
             }
             topics.append(topic)
-        request: dict = {
+        request = {
             'op': 'unsubscribe',
             'args': topics,
         }
         url = self.get_url(channel, 'public')
         return await self.watch_multiple(url, messageHashes, request, messageHashes)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         #     {
         #         "arg": {channel: "tickers", instId: "BTC-USDT"},
@@ -561,7 +580,7 @@ class okx(ccxt.async_support.okx):
         symbol = market['symbol']
         channel = self.safe_string(arg, 'channel')
         data = self.safe_value(message, 'data', [])
-        newTickers: dict = {}
+        newTickers = {}
         for i in range(0, len(data)):
             ticker = self.parse_ticker(data[i])
             self.tickers[symbol] = ticker
@@ -579,7 +598,8 @@ class okx(ccxt.async_support.okx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchBidsAsks', 'channel', 'tickers')
@@ -588,24 +608,24 @@ class okx(ccxt.async_support.okx):
         args = []
         for i in range(0, len(symbols)):
             marketId = self.market_id(symbols[i])
-            arg: dict = {
+            arg = {
                 'channel': channel,
                 'instId': marketId,
             }
             args.append(self.extend(arg, params))
             messageHashes.append('bidask::' + symbols[i])
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': args,
         }
         newTickers = await self.watch_multiple(url, messageHashes, request, messageHashes)
         if self.newUpdates:
-            tickers: dict = {}
+            tickers = {}
             tickers[newTickers['symbol']] = newTickers
             return tickers
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
 
-    def handle_bid_ask(self, client: Client, message):
+    def handle_bid_ask(self, client: Client, message: Any):
         #
         #     {
         #         "arg": {channel: "tickers", instId: "BTC-USDT"},
@@ -635,11 +655,12 @@ class okx(ccxt.async_support.okx):
         ticker = self.safe_dict(data, 0, {})
         parsedTicker = self.parse_ws_bid_ask(ticker)
         symbol = parsedTicker['symbol']
-        self.bidsasks[symbol] = parsedTicker
+        if symbol is not None:
+            self.bidsasks[symbol] = parsedTicker
         messageHash = 'bidask::' + symbol
         client.resolve(parsedTicker, messageHash)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker: Any, market: Market = None):
         marketId = self.safe_string(ticker, 'instId')
         market = self.safe_market(marketId, market)
         symbol = self.safe_string(market, 'symbol')
@@ -667,7 +688,8 @@ class okx(ccxt.async_support.okx):
         :param dict [params]: exchange specific parameters for the okx api endpoint
         :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True)
         messageHash = 'liquidations'
         messageHashes = []
@@ -685,6 +707,8 @@ class okx(ccxt.async_support.okx):
             type = 'SWAP'
         elif type == 'future':
             type = 'futures'
+        if type is None:
+            raise ArgumentsRequired(self.id + ' watchLiquidationsForSymbols() type is required')
         uppercaseType = type.upper()
         request = {
             'op': 'subscribe',
@@ -701,7 +725,7 @@ class okx(ccxt.async_support.okx):
             return newLiquidations
         return self.filter_by_symbols_since_limit(self.liquidations, symbols, since, limit, True)
 
-    def handle_liquidation(self, client: Client, message):
+    def handle_liquidation(self, client: Client, message: Any):
         #
         #    {
         #        "arg": {
@@ -735,7 +759,8 @@ class okx(ccxt.async_support.okx):
             liquidation = self.parse_ws_liquidation(rawLiquidation)
             symbol = self.safe_string(liquidation, 'symbol')
             if self.liquidations is None:
-                self.liquidations = ArrayCacheBySymbolBySide()
+                limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
+                self.liquidations = ArrayCache(limit)
             cache = self.liquidations
             cache.append(liquidation)
             client.resolve([liquidation], 'liquidations')
@@ -753,7 +778,8 @@ class okx(ccxt.async_support.okx):
         :param dict [params]: exchange specific parameters for the okx api endpoint
         :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         isTrigger = self.safe_value_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
         await self.authenticate({'access': 'business' if isTrigger else 'private'})
@@ -767,7 +793,7 @@ class okx(ccxt.async_support.okx):
         else:
             messageHashes.append(messageHash)
         channel = 'balance_and_position'
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': [
                 {
@@ -781,7 +807,7 @@ class okx(ccxt.async_support.okx):
             return newLiquidations
         return self.filter_by_symbols_since_limit(self.liquidations, symbols, since, limit, True)
 
-    def handle_my_liquidation(self, client: Client, message):
+    def handle_my_liquidation(self, client: Client, message: Any):
         #
         #    {
         #        "arg": {
@@ -825,13 +851,14 @@ class okx(ccxt.async_support.okx):
             liquidation = self.parse_ws_my_liquidation(rawLiquidation)
             symbol = self.safe_string(liquidation, 'symbol')
             if self.liquidations is None:
-                self.liquidations = ArrayCacheBySymbolBySide()
+                limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
+                self.liquidations = ArrayCache(limit)
             cache = self.liquidations
             cache.append(liquidation)
             client.resolve([liquidation], 'myLiquidations')
             client.resolve([liquidation], 'myLiquidations::' + symbol)
 
-    def parse_ws_my_liquidation(self, liquidation, market=None):
+    def parse_ws_my_liquidation(self, liquidation: Any, market: Market = None):
         #
         #    {
         #        "pTime": "1597026383085",
@@ -877,7 +904,7 @@ class okx(ccxt.async_support.okx):
             'datetime': self.iso8601(timestamp),
         })
 
-    def parse_ws_liquidation(self, liquidation, market=None):
+    def parse_ws_liquidation(self, liquidation: Any, market: Market = None):
         #
         # public liquidation
         #    {
@@ -919,6 +946,9 @@ class okx(ccxt.async_support.okx):
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -926,7 +956,8 @@ class okx(ccxt.async_support.okx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'candle' + interval
@@ -935,20 +966,25 @@ class okx(ccxt.async_support.okx):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
+    def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
-        return await self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
+        return self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
 
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel
+
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
@@ -958,7 +994,8 @@ class okx(ccxt.async_support.okx):
         symbolsLength = len(symbolsAndTimeframes)
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
             raise ArgumentsRequired(self.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         topics = []
         messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
@@ -968,13 +1005,13 @@ class okx(ccxt.async_support.okx):
             marketId = self.market_id(sym)
             interval = self.safe_string(self.timeframes, tf, tf)
             channel = 'candle' + interval
-            topic: dict = {
+            topic = {
                 'channel': channel,
                 'instId': marketId,
             }
             topics.append(topic)
             messageHashes.append('multi:' + channel + ':' + sym)
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': topics,
         }
@@ -988,6 +1025,9 @@ class okx(ccxt.async_support.okx):
     async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], params={}) -> Any:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel
+
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
@@ -995,7 +1035,8 @@ class okx(ccxt.async_support.okx):
         symbolsLength = len(symbolsAndTimeframes)
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
             raise ArgumentsRequired(self.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         topics = []
         messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
@@ -1005,20 +1046,20 @@ class okx(ccxt.async_support.okx):
             marketId = self.market_id(sym)
             interval = self.safe_string(self.timeframes, tf, tf)
             channel = 'candle' + interval
-            topic: dict = {
+            topic = {
                 'channel': channel,
                 'instId': marketId,
             }
             topics.append(topic)
             messageHashes.append('unsubscribe:multi:' + channel + ':' + sym)
-        request: dict = {
+        request = {
             'op': 'unsubscribe',
             'args': topics,
         }
         url = self.get_url('candle', 'public')
         return await self.watch_multiple(url, messageHashes, request, messageHashes)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         #     {
         #         "arg": {channel: "candle1m", instId: "BTC-USDT"},
@@ -1037,6 +1078,8 @@ class okx(ccxt.async_support.okx):
         #
         arg = self.safe_value(message, 'arg', {})
         channel = self.safe_string(arg, 'channel')
+        if channel is None:
+            return
         data = self.safe_value(message, 'data', [])
         marketId = self.safe_string(arg, 'instId')
         market = self.safe_market(marketId)
@@ -1047,11 +1090,12 @@ class okx(ccxt.async_support.okx):
         for i in range(0, len(data)):
             parsed = self.parse_ohlcv(data[i], market)
             self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-            stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+            stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
-                self.ohlcvs[symbol][timeframe] = stored
+                if symbol is not None and timeframe is not None:
+                    self.ohlcvs[symbol][timeframe] = stored
             stored.append(parsed)
             messageHash = channel + ':' + market['id']
             client.resolve(stored, messageHash)
@@ -1061,7 +1105,7 @@ class okx(ccxt.async_support.okx):
             messageHashForMulti = 'multi:' + channel + ':' + symbol
             client.resolve([symbol, timeframe, stored], messageHashForMulti)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
 
         https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
@@ -1071,7 +1115,7 @@ class okx(ccxt.async_support.okx):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.depth]: okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         #
         # bbo-tbt
@@ -1096,7 +1140,7 @@ class okx(ccxt.async_support.okx):
         # 2. Public depth channel, verification not required
         # 3. Data feeds will be delivered every 100ms(vs. every 200ms now)
         #
-        return await self.watch_order_book_for_symbols([symbol], limit, params)
+        return self.watch_order_book_for_symbols([symbol], limit, params)
 
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
@@ -1108,9 +1152,10 @@ class okx(ccxt.async_support.okx):
         :param int [limit]: 1,5, 400, 50(l2-tbt, vip4+) or 40000(vip5+) the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.depth]: okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         depth = None
         depth, params = self.handle_option_and_params(params, 'watchOrderBook', 'depth', 'books')
@@ -1133,12 +1178,12 @@ class okx(ccxt.async_support.okx):
             symbol = symbols[i]
             messageHashes.append(depth + ':' + symbol)
             marketId = self.market_id(symbol)
-            topic: dict = {
+            topic = {
                 'channel': depth,
                 'instId': marketId,
             }
             topics.append(topic)
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': topics,
         }
@@ -1156,9 +1201,10 @@ class okx(ccxt.async_support.okx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.limit]: the maximum amount of order book entries to return
         :param str [params.depth]: okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         depth = None
         depth, params = self.handle_option_and_params(params, 'watchOrderBook', 'depth', 'books')
@@ -1180,19 +1226,19 @@ class okx(ccxt.async_support.okx):
             subMessageHashes.append(depth + ':' + symbol)
             messageHashes.append('unsubscribe:orderbook:' + symbol)
             marketId = self.market_id(symbol)
-            topic: dict = {
+            topic = {
                 'channel': depth,
                 'instId': marketId,
             }
             topics.append(topic)
-        request: dict = {
+        request = {
             'op': 'unsubscribe',
             'args': topics,
         }
         url = self.get_url(depth, 'public')
         return await self.watch_multiple(url, messageHashes, request, messageHashes)
 
-    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+    def un_watch_order_book(self, symbol: str, params={}) -> Any:
         """
 
         https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
@@ -1202,11 +1248,11 @@ class okx(ccxt.async_support.okx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.limit]: the maximum amount of order book entries to return
         :param str [params.depth]: okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        return await self.un_watch_order_book_for_symbols([symbol], params)
+        return self.un_watch_order_book_for_symbols([symbol], params)
 
-    def handle_delta(self, bookside, delta):
+    def handle_delta(self, bookside: Any, delta: Any):
         #
         #     [
         #         "31685",  # price
@@ -1219,11 +1265,11 @@ class okx(ccxt.async_support.okx):
         amount = self.safe_float(delta, 1)
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside, deltas):
+    def handle_deltas(self, bookside: Any, deltas: Any):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book_message(self, client: Client, message, orderbook, messageHash, market=None):
+    def handle_order_book_message(self, client: Client, message: Any, orderbook: Any, messageHash: Any, market: Market = None):
         #
         #     {
         #         "asks": [
@@ -1251,41 +1297,24 @@ class okx(ccxt.async_support.okx):
         self.handle_deltas(storedBids, bids)
         marketId = self.safe_string(message, 'instId')
         symbol = self.safe_symbol(marketId, market)
-        checksum = self.handle_option('watchOrderBook', 'checksum', True)
         seqId = self.safe_integer(message, 'seqId')
-        if checksum:
-            prevSeqId = self.safe_integer(message, 'prevSeqId')
-            nonce = orderbook['nonce']
-            asksLength = len(storedAsks)
-            bidsLength = len(storedBids)
-            payloadArray = []
-            for i in range(0, 25):
-                if i < bidsLength:
-                    payloadArray.append(self.number_to_string(storedBids[i][0]))
-                    payloadArray.append(self.number_to_string(storedBids[i][1]))
-                if i < asksLength:
-                    payloadArray.append(self.number_to_string(storedAsks[i][0]))
-                    payloadArray.append(self.number_to_string(storedAsks[i][1]))
-            payload = ':'.join(payloadArray)
-            responseChecksum = self.safe_integer(message, 'checksum')
-            localChecksum = self.crc32(payload, True)
-            error = None
-            if prevSeqId != -1 and nonce != prevSeqId:
-                error = InvalidNonce(self.id + ' watchOrderBook received invalid nonce')
-            if responseChecksum != localChecksum:
-                error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
-            if error is not None:
-                del client.subscriptions[messageHash]
-                if symbol is not None:
-                    del self.orderbooks[symbol]
-                client.reject(error, messageHash)
+        prevSeqId = self.safe_integer(message, 'prevSeqId')
+        nonce = orderbook['nonce']
+        error = None
+        if prevSeqId is not None and prevSeqId != -1 and nonce != prevSeqId:
+            error = InvalidNonce(self.id + ' watchOrderBook received invalid nonce')
+        if error is not None:
+            del client.subscriptions[messageHash]
+            if symbol is not None:
+                del self.orderbooks[symbol]
+            client.reject(error, messageHash)
         timestamp = self.safe_integer(message, 'ts')
         orderbook['nonce'] = seqId
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
         return orderbook
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         # snapshot
         #
@@ -1378,7 +1407,7 @@ class okx(ccxt.async_support.okx):
         marketId = self.safe_string(arg, 'instId')
         market = self.safe_market(marketId)
         symbol = market['symbol']
-        depths: dict = {
+        depths = {
             'bbo-tbt': 1,
             'books': 400,
             'books5': 5,
@@ -1430,7 +1459,7 @@ class okx(ccxt.async_support.okx):
             auth = timestamp + method + path
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             operation = 'login'
-            request: dict = {
+            request = {
                 'op': operation,
                 'args': [
                     {
@@ -1449,71 +1478,119 @@ class okx(ccxt.async_support.okx):
 
     async def watch_balance(self, params={}) -> Balances:
         """
+
+        https://www.okx.com/docs-v5/en/#trading-account-websocket-account-channel
+
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         return await self.subscribe('private', 'account', 'account', None, params)
 
-    def handle_balance_and_position(self, client: Client, message):
+    def handle_balance_and_position(self, client: Client, message: Any):
         self.handle_my_liquidation(client, message)
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: Any):
         #
         #     {
-        #         "arg": {channel: "account"},
-        #         "data": [
+        #         arg: {
+        #             channel: 'account',
+        #             uid: '158635852459810816'
+        #         },
+        #         eventType: 'snapshot',
+        #         curPage: 1,
+        #         lastPage: True,
+        #         data: [
         #             {
-        #                 "adjEq": '',
-        #                 "details": [
+        #                 adjEq: '100942.13298468884',
+        #                 availEq: '98461.99074635761',
+        #                 borrowFroz: '409.3702076072169',
+        #                 delta: '',
+        #                 deltaLever: '',
+        #                 deltaNeutralStatus: '',
+        #                 details: [
         #                     {
-        #                         "availBal": '',
-        #                         "availEq": "8.21009913",
-        #                         "cashBal": "8.21009913",
-        #                         "ccy": "USDT",
-        #                         "coinUsdPrice": "0.99994",
-        #                         "crossLiab": '',
-        #                         "disEq": "8.2096065240522",
-        #                         "eq": "8.21009913",
-        #                         "eqUsd": "8.2096065240522",
-        #                         "frozenBal": "0",
-        #                         "interest": '',
-        #                         "isoEq": "0",
-        #                         "isoLiab": '',
-        #                         "liab": '',
-        #                         "maxLoan": '',
-        #                         "mgnRatio": '',
-        #                         "notionalLever": "0",
-        #                         "ordFrozen": "0",
-        #                         "twap": "0",
-        #                         "uTime": "1621927314996",
-        #                         "upl": "0"
-        #                     },
+        #                         accAvgPx: '',
+        #                         autoLendAmt: '0',
+        #                         autoLendMtAmt: '0',
+        #                         autoLendStatus: 'unsupported',
+        #                         autoStakingStatus: 'unsupported',
+        #                         availBal: '2900',
+        #                         availEq: '2900',
+        #                         borrowFroz: '0',
+        #                         cashBal: '2900',
+        #                         ccy: 'TUSD',
+        #                         clSpotInUseAmt: '',
+        #                         coinUsdPrice: '200.026',
+        #                         colBorrAutoConversion: '0',
+        #                         colRes: '0',
+        #                         collateralEnabled: False,
+        #                         collateralRestrict: False,
+        #                         crossLiab: '0',
+        #                         disEq: '0',
+        #                         eq: '2900',
+        #                         eqUsd: '580075.4',
+        #                         fixedBal: '0',
+        #                         frozenBal: '0',
+        #                         frpType: '0',
+        #                         imr: '',
+        #                         interest: '0',
+        #                         isoEq: '0',
+        #                         isoLiab: '0',
+        #                         isoUpl: '0',
+        #                         liab: '0',
+        #                         maxLoan: '0',
+        #                         maxSpotInUseAmt: '',
+        #                         mgnRatio: '',
+        #                         mmr: '',
+        #                         notionalLever: '',
+        #                         openAvgPx: '',
+        #                         ordFrozen: '0',
+        #                         rewardBal: '',
+        #                         smtSyncEq: '0',
+        #                         spotBal: '',
+        #                         spotCopyTradingEq: '0',
+        #                         spotInUseAmt: '',
+        #                         spotIsoBal: '0',
+        #                         spotUpl: '',
+        #                         spotUplRatio: '',
+        #                         stgyEq: '0',
+        #                         totalPnl: '',
+        #                         totalPnlRatio: '',
+        #                         twap: '0',
+        #                         uTime: '1752243427083',
+        #                         upl: '0',
+        #                         uplLiab: '0'
+        #                     }
         #                 ],
-        #                 "imr": '',
-        #                 "isoEq": "0",
-        #                 "mgnRatio": '',
-        #                 "mmr": '',
-        #                 "notionalUsd": '',
-        #                 "ordFroz": '',
-        #                 "totalEq": "22.1930992296832",
-        #                 "uTime": "1626692120916"
+        #                 imr: '2480.1422383312265',
+        #                 isoEq: '0',
+        #                 mgnRatio: '1814.5924297007082',
+        #                 mmr: '52.196024182958055',
+        #                 notionalUsd: '4634.0971302081125',
+        #                 notionalUsdForBorrow: '2046.8510380360844',
+        #                 notionalUsdForFutures: '101.11322817202809',
+        #                 notionalUsdForOption: '0',
+        #                 notionalUsdForSwap: '2486.1328640000006',
+        #                 ordFroz: '1208.3566666666668',
+        #                 totalEq: '711018.8951315446',
+        #                 uTime: '1773837554158',
+        #                 upl: '9.244336372701904'
         #             }
         #         ]
         #     }
         #
         arg = self.safe_value(message, 'arg', {})
         channel = self.safe_string(arg, 'channel')
-        type = 'spot'
         balance = self.parseTradingBalance(message)
-        oldBalance = self.safe_value(self.balance, type, {})
-        newBalance = self.deep_extend(oldBalance, balance)
-        self.balance[type] = self.safe_balance(newBalance)
-        client.resolve(self.balance[type], channel)
+        newBalance = self.deep_extend(self.balance, balance)
+        self.balance = self.safe_balance(newBalance)
+        client.resolve(self.balance, channel)
 
-    def order_to_trade(self, order, market=None):
+    def order_to_trade(self, order: Any, market: Market = None):
         info = self.safe_value(order, 'info', {})
         timestamp = self.safe_integer(info, 'fillTime')
         feeMarketId = self.safe_string(info, 'fillFeeCcy')
@@ -1557,7 +1634,8 @@ class okx(ccxt.async_support.okx):
         type, params = self.handle_option_and_params(params, 'watchMyTrades', 'type', 'ANY')
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         params = self.omit(params, ['trigger', 'stop'])
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate({'access': 'business' if isTrigger else 'private'})
         channel = 'orders-algo' if isTrigger else 'orders'
         messageHash = channel + '::myTrades'
@@ -1569,13 +1647,15 @@ class okx(ccxt.async_support.okx):
             messageHash = messageHash + '::' + symbol
         if type == 'future':
             type = 'futures'
+        if type is None:
+            raise ArgumentsRequired(self.id + ' watchMyTrades() type is required')
         uppercaseType = type.upper()
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('watchMyTrades', params)
         if uppercaseType == 'SPOT':
             if marginMode is not None:
                 uppercaseType = 'MARGIN'
-        request: dict = {
+        request = {
             'instType': uppercaseType,
         }
         orders = await self.subscribe('private', messageHash, channel, None, self.extend(request, params))
@@ -1589,27 +1669,28 @@ class okx(ccxt.async_support.okx):
         https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-channel
 
         watch all open positions
-        :param str[]|None symbols: list of unified market symbols
- @param since
- @param limit
-        :param dict params: extra parameters specific to the exchange API endpoint
+        :param str[] [symbols]: list of unified market symbols
+        :param int [since]: timestamp in ms of the earliest position to fetch
+        :param int [limit]: the maximum number of positions to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate(params)
         symbols = self.market_symbols(symbols)
-        request: dict = {
+        request = {
             'instType': 'ANY',
         }
         channel = 'positions'
         newPositions = None
         if symbols is None:
-            arg: dict = {
+            arg = {
                 'channel': 'positions',
                 'instType': 'ANY',
             }
             args = [self.extend(arg, params)]
-            nonSymbolRequest: dict = {
+            nonSymbolRequest = {
                 'op': 'subscribe',
                 'args': args,
             }
@@ -1618,10 +1699,10 @@ class okx(ccxt.async_support.okx):
         else:
             newPositions = await self.subscribe_multiple('private', channel, symbols, self.extend(request, params))
         if self.newUpdates:
-            return newPositions
+            return [] if (newPositions is None) else newPositions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
-    def handle_positions(self, client, message):
+    def handle_positions(self, client: Any, message: Any):
         #
         #    {
         #        arg: {
@@ -1701,7 +1782,7 @@ class okx(ccxt.async_support.okx):
         for i in range(0, len(data)):
             rawPosition = data[i]
             position = self.parse_position(rawPosition)
-            if position['contracts'] == 0:
+            if position['contracts'] == 0 and rawPosition['posSide'] == 'net':
                 position['side'] = 'long'
                 shortPosition = self.clone(position)
                 shortPosition['side'] = 'short'
@@ -1734,7 +1815,8 @@ class okx(ccxt.async_support.okx):
         type, params = self.handle_option_and_params(params, 'watchOrders', 'type', 'ANY')
         isTrigger = self.safe_value_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate({'access': 'business' if isTrigger else 'private'})
         market = None
         if symbol is not None:
@@ -1743,13 +1825,15 @@ class okx(ccxt.async_support.okx):
             type = market['type']
         if type == 'future':
             type = 'futures'
+        if type is None:
+            raise ArgumentsRequired(self.id + ' watchOrders() type is required')
         uppercaseType = type.upper()
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('watchOrders', params)
         if uppercaseType == 'SPOT':
             if marginMode is not None:
                 uppercaseType = 'MARGIN'
-        request: dict = {
+        request = {
             'instType': uppercaseType,
         }
         channel = 'orders-algo' if isTrigger else 'orders'
@@ -1758,7 +1842,7 @@ class okx(ccxt.async_support.okx):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client: Client, message):
+    def handle_orders(self, client: Client, message: Any):
         #
         #     {
         #         "arg":{
@@ -1837,7 +1921,7 @@ class okx(ccxt.async_support.okx):
                 messageHash = channel + ':' + marketIds[i]
                 client.resolve(stored, messageHash)
 
-    def handle_my_trades(self, client: Client, message):
+    def handle_my_trades(self, client: Client, message: Any):
         #
         #     {
         #         "arg":{
@@ -1910,13 +1994,14 @@ class okx(ccxt.async_support.okx):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
         myTrades = self.myTrades
-        symbols: dict = {}
+        symbols = {}
         for i in range(0, len(filteredOrders)):
             rawTrade = filteredOrders[i]
             trade = self.order_to_trade(rawTrade)
             myTrades.append(trade)
             symbol = trade['symbol']
-            symbols[symbol] = True
+            if symbol is not None:
+                symbols[symbol] = True
         messageHash = channel + '::myTrades'
         client.resolve(self.myTrades, messageHash)
         tradeSymbols = list(symbols.keys())
@@ -1945,7 +2030,8 @@ class okx(ccxt.async_support.okx):
         :param boolean params['test']: test order, default False
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
         messageHash = self.request_id()
@@ -1962,14 +2048,14 @@ class okx(ccxt.async_support.okx):
             raise BadRequest(self.id + ' createOrderWs() does not support algo trading. self.options["createOrderWs"]["op"] must be either order or batch-order')
         if (op != 'order') and (op != 'batch-orders'):
             raise BadRequest(self.id + ' createOrderWs() does not support algo trading. self.options["createOrderWs"]["op"] must be either order or privatePostTradeOrder or privatePostTradeOrderAlgo')
-        request: dict = {
+        request = {
             'id': messageHash,
             'op': op,
             'args': [args],
         }
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_place_orders(self, client: Client, message):
+    def handle_place_orders(self, client: Client, message: Any):
         #
         #  batch-orders/order/cancel-order
         #    {
@@ -2017,7 +2103,8 @@ class okx(ccxt.async_support.okx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
         messageHash = self.request_id()
@@ -2029,7 +2116,7 @@ class okx(ccxt.async_support.okx):
         if instIdCode is not None:
             del args['instId']
             args['instIdCode'] = instIdCode
-        request: dict = {
+        request = {
             'id': messageHash,
             'op': op,
             'args': [args],
@@ -2039,7 +2126,7 @@ class okx(ccxt.async_support.okx):
     async def cancel_order_ws(self, id: str, symbol: Str = None, params={}) -> Order:
         """
 
-        https://okx-docs.github.io/apidocs/websocket_api/en/#cancel-order-trade
+        https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-cancel-order
 
         cancel multiple orders
         :param str id: order id
@@ -2050,7 +2137,8 @@ class okx(ccxt.async_support.okx):
         """
         if symbol is None:
             raise BadRequest(self.id + ' cancelOrderWs() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
         messageHash = self.request_id()
@@ -2058,14 +2146,14 @@ class okx(ccxt.async_support.okx):
         params = self.omit(params, ['clientOrderId', 'clOrdId'])
         market = self.market(symbol)
         instIdCode = self.safe_integer(market, 'instIdCode')
-        arg: dict = {
+        arg = {
             'instIdCode': instIdCode,
         }
         if clientOrderId is not None:
             arg['clOrdId'] = clientOrderId
         else:
             arg['ordId'] = id
-        request: dict = {
+        request = {
             'id': messageHash,
             'op': 'cancel-order',
             'args': [self.extend(arg, params)],
@@ -2075,7 +2163,7 @@ class okx(ccxt.async_support.okx):
     async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
         """
 
-        https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order
+        https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-cancel-multiple-orders
 
         cancel multiple orders
         :param str[] ids: order ids
@@ -2083,12 +2171,13 @@ class okx(ccxt.async_support.okx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        idsLength: number = len(ids)
+        idsLength = len(ids)
         if idsLength > 20:
             raise BadRequest(self.id + ' cancelOrdersWs() accepts up to 20 ids at a time')
         if symbol is None:
             raise BadRequest(self.id + ' cancelOrdersWs() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
         messageHash = self.request_id()
@@ -2099,11 +2188,11 @@ class okx(ccxt.async_support.okx):
             'instIdCode': instIdCode,
         }
         for i in range(0, idsLength):
-            arg: dict = self.extend(instParams, {
+            arg = self.extend(instParams, {
                 'ordId': ids[i],
             })
             args.append(arg)
-        request: dict = {
+        request = {
             'id': messageHash,
             'op': 'batch-cancel-orders',
             'args': args,
@@ -2113,7 +2202,7 @@ class okx(ccxt.async_support.okx):
     async def cancel_all_orders_ws(self, symbol: Str = None, params={}) -> List[Order]:
         """
 
-        https://docs.okx.com/websockets/#message-cancelAll
+        https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order
 
         cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -2122,14 +2211,15 @@ class okx(ccxt.async_support.okx):
         """
         if symbol is None:
             raise BadRequest(self.id + ' cancelAllOrdersWs() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
         if market['type'] != 'option':
             raise BadRequest(self.id + ' cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.')
         url = self.get_url('private', 'private')
         messageHash = self.request_id()
-        request: dict = {
+        request = {
             'id': messageHash,
             'op': 'mass-cancel',
             'args': [self.extend({
@@ -2139,7 +2229,7 @@ class okx(ccxt.async_support.okx):
         }
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_cancel_all_orders(self, client: Client, message):
+    def handle_cancel_all_orders(self, client: Client, message: Any):
         #
         #    {
         #        "id": "1512",
@@ -2157,7 +2247,7 @@ class okx(ccxt.async_support.okx):
         data = self.safe_value(message, 'data', [])
         client.resolve(data, messageHash)
 
-    def handle_subscription_status(self, client: Client, message):
+    def handle_subscription_status(self, client: Client, message: Any):
         #
         #     {event: 'subscribe', arg: {channel: "tickers", instId: "BTC-USDT"}}
         #
@@ -2165,7 +2255,7 @@ class okx(ccxt.async_support.okx):
         # client.subscriptions[channel] = message
         return message
 
-    def handle_authenticate(self, client: Client, message):
+    def handle_authenticate(self, client: Client, message: Any):
         #
         #     {event: "login", success: True}
         #
@@ -2177,11 +2267,11 @@ class okx(ccxt.async_support.okx):
         # Instead, it requires a custom text-based ping-pong mechanism.
         return 'ping'
 
-    def handle_pong(self, client: Client, message):
+    def handle_pong(self, client: Client, message: Any):
         client.lastPong = self.milliseconds()
         return message
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         #     {event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012"}
         #     {event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018"}
@@ -2203,7 +2293,7 @@ class okx(ccxt.async_support.okx):
                         errorCode = self.safe_string(d, 'sCode')
                         if errorCode is not None:
                             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
-                        messageString = self.safe_value(message, 'sMsg')
+                        messageString = self.safe_value(d, 'sMsg')
                         if messageString is not None:
                             self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
                 raise ExchangeError(feedback)
@@ -2225,7 +2315,7 @@ class okx(ccxt.async_support.okx):
             return False
         return True
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         if not self.handle_error_message(client, message):
             return
         #
@@ -2274,7 +2364,7 @@ class okx(ccxt.async_support.okx):
         # if table is None:
         event = self.safe_string_2(message, 'event', 'op')
         if event is not None:
-            methods: dict = {
+            methods = {
                 # 'info': self.handleSystemStatus,
                 # 'book': 'handleOrderBook',
                 'login': self.handle_authenticate,
@@ -2293,7 +2383,9 @@ class okx(ccxt.async_support.okx):
         else:
             arg = self.safe_value(message, 'arg', {})
             channel = self.safe_string(arg, 'channel')
-            methods: dict = {
+            if channel is None:
+                return
+            methods = {
                 'bbo-tbt': self.handle_order_book,  # newly added channel that sends tick-by-tick Level 1 data, all API users can subscribe, public depth channel, verification not required
                 'books': self.handle_order_book,  # all API users can subscribe, public depth channel, verification not required
                 'books5': self.handle_order_book,  # all API users can subscribe, public depth channel, verification not required, data feeds will be delivered every 100ms(vs. every 200ms now)
@@ -2339,20 +2431,22 @@ class okx(ccxt.async_support.okx):
     def handle_unsubscription_ohlcv(self, client: Client, symbol: str, channel: str):
         tf = channel.replace('candle', '')
         timeframe = self.find_timeframe(tf)
+        if timeframe is None:
+            return
         subMessageHash = 'multi:' + channel + ':' + symbol
         messageHash = 'unsubscribe:' + subMessageHash
         self.clean_unsubscription(client, subMessageHash, messageHash)
-        if timeframe in self.ohlcvs[symbol]:
+        if (symbol is not None) and (timeframe is not None) and (timeframe in self.ohlcvs[symbol]):
             del self.ohlcvs[symbol][timeframe]
 
-    def handle_unsubscription_ticker(self, client: Client, symbol: str, channel):
+    def handle_unsubscription_ticker(self, client: Client, symbol: str, channel: Any):
         subMessageHash = channel + '::' + symbol
         messageHash = 'unsubscribe:ticker:' + symbol
         self.clean_unsubscription(client, subMessageHash, messageHash)
         if symbol in self.tickers:
             del self.tickers[symbol]
 
-    def handle_unsubscription(self, client: Client, message):
+    def handle_unsubscription(self, client: Client, message: Any):
         #
         # {
         #     "event": "unsubscribe",

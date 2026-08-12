@@ -5,14 +5,14 @@ using System.Globalization;
 using dict = IDictionary<string, object>;
 using list = List<object>;
 
-public partial class Exchange
+public partial class BaseExchange
 {
     public List<object> sortBy(object array, object value1, object desc2 = null, object defaultValue2 = null)
     {
         desc2 ??= false;
         var defaultValue = defaultValue2 ?? "";
         var desc = (bool)desc2;
-        var list = (List<object>)array;
+        var list = (IList<object>)array;
 
         if (value1.GetType() == typeof(string))
         {
@@ -45,7 +45,7 @@ public partial class Exchange
         // todo :: check this later
         desc2 ??= false;
         var desc = (bool)desc2;
-        var list = (List<object>)array;
+        var list = (IList<object>)array;
 
         if (key1.GetType() == typeof(string))
         {
@@ -174,14 +174,7 @@ public partial class Exchange
                     }
                     else
                     {
-                        if (arg2 != null)
-                        {
-                            ((dict)outObj)[k] = arg2;
-                        }
-                        else
-                        {
-                            ((dict)outObj)[k] = arg1;
-                        }
+                        ((dict)outObj)[k] = arg2;
                     }
                 }
             }
@@ -382,6 +375,11 @@ public partial class Exchange
             return value;
         }
 
+    }
+
+    public virtual object isDictionary(object value)
+    {
+        return isTrue(isTrue((!isEqual(value, null))) && isTrue(((value is IDictionary<string, object>)))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
     }
 
     public virtual object sum(params object[] args)

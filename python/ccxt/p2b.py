@@ -149,9 +149,8 @@ class p2b(Exchange, ImplicitAPI):
                 '1d': '1d',
             },
             'urls': {
-                'extension': '.json',
                 'referral': 'https://p2pb2b.com?referral=ee784c53',
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755',
+                'logo': 'https://github.com/user-attachments/assets/122f0c86-f3a6-4334-910f-4d8edc865696',
                 'api': {
                     'public': 'https://api.p2pb2b.com/api/v2/public',
                     'private': 'https://api.p2pb2b.com/api/v2',
@@ -163,28 +162,28 @@ class p2b(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'markets': 1,
-                        'market': 1,
-                        'tickers': 1,
-                        'ticker': 1,
-                        'book': 1,
-                        'history': 1,
-                        'depth/result': 1,
-                        'market/kline': 1,
+                        'markets': {'cost': 1},
+                        'market': {'cost': 1},
+                        'tickers': {'cost': 1},
+                        'ticker': {'cost': 1},
+                        'book': {'cost': 1},
+                        'history': {'cost': 1},
+                        'depth/result': {'cost': 1},
+                        'market/kline': {'cost': 1},
                     },
                 },
                 'private': {
                     'post': {
-                        'account/balances': 1,
-                        'account/balance': 1,
-                        'order/new': 1,
-                        'order/cancel': 1,
-                        'orders': 1,
-                        'account/market_order_history': 1,
-                        'account/market_deal_history': 1,
-                        'account/order': 1,
-                        'account/order_history': 1,
-                        'account/executed_history': 1,
+                        'account/balances': {'cost': 1},
+                        'account/balance': {'cost': 1},
+                        'order/new': {'cost': 1},
+                        'order/cancel': {'cost': 1},
+                        'orders': {'cost': 1},
+                        'account/market_order_history': {'cost': 1},
+                        'account/market_deal_history': {'cost': 1},
+                        'account/order': {'cost': 1},
+                        'account/order_history': {'cost': 1},
+                        'account/executed_history': {'cost': 1},
                     },
                 },
             },
@@ -446,7 +445,8 @@ class p2b(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.publicGetTickers(params)
         #
         #    {
@@ -486,9 +486,10 @@ class p2b(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = self.publicGetTicker(self.extend(request, params))
@@ -519,7 +520,7 @@ class p2b(Exchange, ImplicitAPI):
             self.parse_ticker(result, market)
         )
 
-    def parse_ticker(self, ticker, market: Market = None):
+    def parse_ticker(self, ticker: Any, market: Market = None):
         #
         # parseTickers
         #
@@ -590,11 +591,12 @@ class p2b(Exchange, ImplicitAPI):
 
  EXCHANGE SPECIFIC PARAMETERS
         :param str [params.interval]: 0(default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         if limit is not None:
@@ -642,12 +644,13 @@ class p2b(Exchange, ImplicitAPI):
         :param int params['lastId']: order id
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         lastId = self.safe_integer(params, 'lastId')
         if lastId is None:
             raise ArgumentsRequired(self.id + ' fetchTrades() requires an extra parameter params["lastId"]')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
             'lastId': lastId,
         }
@@ -737,7 +740,7 @@ class p2b(Exchange, ImplicitAPI):
             'amount': self.safe_string(trade, 'amount'),
             'cost': self.safe_string(trade, 'deal'),
             'fee': {
-                'currency': market['quote'],
+                'currency': self.safe_string(market, 'quote'),
                 'cost': self.safe_string_2(trade, 'fee', 'deal_fee'),
             },
         }, market)
@@ -756,9 +759,10 @@ class p2b(Exchange, ImplicitAPI):
         :param int [params.offset]: default=0, with self value the last candles are returned
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
             'interval': timeframe,
         }
@@ -790,7 +794,7 @@ class p2b(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #    [
         #        1699253400,       # Kline open time
@@ -821,7 +825,8 @@ class p2b(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privatePostAccountBalances(params)
         #
         #    {
@@ -843,7 +848,7 @@ class p2b(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_balance(result)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response: Any):
         #
         #    {
         #        "USDT": {
@@ -856,7 +861,7 @@ class p2b(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        result: dict = {
+        result = {
             'info': response,
         }
         keys = list(response.keys())
@@ -866,7 +871,7 @@ class p2b(Exchange, ImplicitAPI):
             code = self.safe_currency_code(currencyId)
             used = self.safe_string(balance, 'freeze')
             available = self.safe_string(balance, 'available')
-            account: dict = {
+            account = {
                 'free': available,
                 'used': used,
             }
@@ -887,11 +892,12 @@ class p2b(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         if type == 'market':
             raise BadRequest(self.id + ' createOrder() can only accept orders with type "limit"')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
             'side': side,
             'amount': self.amount_to_precision(symbol, amount),
@@ -936,9 +942,10 @@ class p2b(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
             'orderId': id,
         }
@@ -985,9 +992,10 @@ class p2b(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires the symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         if limit is not None:
@@ -1037,9 +1045,10 @@ class p2b(Exchange, ImplicitAPI):
         :param int [params.offset]: 0-10000, default=0
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.safe_market(symbol)
-        request: dict = {
+        request = {
             'orderId': id,
         }
         if limit is not None:
@@ -1090,7 +1099,8 @@ class p2b(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         until = self.safe_integer(params, 'until')
         params = self.omit(params, 'until')
         if until is None:
@@ -1103,10 +1113,12 @@ class p2b(Exchange, ImplicitAPI):
         if (until - since) > 86400000:
             raise BadRequest(self.id + ' fetchMyTrades() the time between since and params["until"] cannot be greater than 24 hours')
         market = self.market(symbol)
-        request: dict = {
+        sinceSec = self.parse_to_int(since / 1000)
+        untilSec = self.parse_to_int(until / 1000)
+        request = {
             'market': market['id'],
-            'startTime': self.parse_to_int(since / 1000),
-            'endTime': self.parse_to_int(until / 1000),
+            'startTime': sinceSec,
+            'endTime': untilSec,
         }
         if limit is not None:
             request['limit'] = limit
@@ -1157,10 +1169,11 @@ class p2b(Exchange, ImplicitAPI):
         :param int [params.offset]: 0-10000, default=0
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         until = self.safe_integer(params, 'until')
         params = self.omit(params, 'until')
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
         if until is None:
@@ -1172,9 +1185,11 @@ class p2b(Exchange, ImplicitAPI):
             since = until - 86400000
         if (until - since) > 86400000:
             raise BadRequest(self.id + ' fetchClosedOrders() the time between since and params["until"] cannot be greater than 24 hours')
-        request: dict = {
-            'startTime': self.parse_to_int(since / 1000),
-            'endTime': self.parse_to_int(until / 1000),
+        sinceSec = self.parse_to_int(since / 1000)
+        untilSec = self.parse_to_int(until / 1000)
+        request = {
+            'startTime': sinceSec,
+            'endTime': untilSec,
         }
         if market is not None:
             request['market'] = market['id']
@@ -1285,7 +1300,7 @@ class p2b(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
         if method == 'GET':
@@ -1304,7 +1319,7 @@ class p2b(Exchange, ImplicitAPI):
             body = self.json(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         if code == 400:

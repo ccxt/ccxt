@@ -40,13 +40,14 @@ export default class okxus extends okx {
                 'option': false,
             },
             'features': {
-                'swap': {
-                    'linear': undefined,
-                    'inverse': undefined,
-                },
                 'future': {
                     'linear': undefined,
                     'inverse': undefined,
+                },
+            },
+            'options': {
+                'fetchMarkets': {
+                    'types': ['spot'], // only spot supported for now
                 },
             },
         });

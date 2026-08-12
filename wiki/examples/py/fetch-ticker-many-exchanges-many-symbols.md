@@ -1,12 +1,13 @@
-- [Fetch Ticker Many Exchanges Many Symbols](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
-from asyncio import gather, run
+from asyncio import gather
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 
 
 import ccxt.async_support as ccxt  # noqa: E402
@@ -14,9 +15,9 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 print('CCXT Version:', ccxt.__version__)
 
-exchange_ids = ['binance', 'okx', 'gate', 'huobi', 'bitget']
+exchange_ids = ['binance', 'okx', 'gate', 'htx', 'bitget']
 symbols = ['BTC/USDT', 'ETH/USDT', 'LTC/USDT', 'XRP/USDT']
-from asyncio import gather, run
+from asyncio import gather
 
 
 async def fetch_price(exchange, symbol):
@@ -62,5 +63,5 @@ async def main():
 
 if __name__ == '__main__':
     run(main())
- 
+
 ```

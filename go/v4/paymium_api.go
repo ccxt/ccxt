@@ -7,98 +7,122 @@
 
 package ccxt
 
-func (this *PaymiumCore) PublicGetCountries(args ...interface{}) <-chan interface{} {
+// PublicGetCountries returns a channel that yields a JSON array.
+func (this *PaymiumCore) PublicGetCountries(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCountries", args...)
 }
 
-func (this *PaymiumCore) PublicGetCurrencies(args ...interface{}) <-chan interface{} {
+// PublicGetCurrencies returns a channel that yields a JSON array.
+func (this *PaymiumCore) PublicGetCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCurrencies", args...)
 }
 
-func (this *PaymiumCore) PublicGetDataCurrencyTicker(args ...interface{}) <-chan interface{} {
+// PublicGetDataCurrencyTicker returns a channel that yields a JSON object.
+func (this *PaymiumCore) PublicGetDataCurrencyTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetDataCurrencyTicker", args...)
 }
 
-func (this *PaymiumCore) PublicGetDataCurrencyTrades(args ...interface{}) <-chan interface{} {
+// PublicGetDataCurrencyTrades returns a channel that yields a JSON array.
+func (this *PaymiumCore) PublicGetDataCurrencyTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetDataCurrencyTrades", args...)
 }
 
-func (this *PaymiumCore) PublicGetDataCurrencyDepth(args ...interface{}) <-chan interface{} {
+// PublicGetDataCurrencyDepth returns a channel that yields a JSON object.
+func (this *PaymiumCore) PublicGetDataCurrencyDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetDataCurrencyDepth", args...)
 }
 
-func (this *PaymiumCore) PublicGetBitcoinChartsIdTrades(args ...interface{}) <-chan interface{} {
+// PublicGetBitcoinChartsIdTrades returns a channel that yields a JSON array.
+func (this *PaymiumCore) PublicGetBitcoinChartsIdTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetBitcoinChartsIdTrades", args...)
 }
 
-func (this *PaymiumCore) PublicGetBitcoinChartsIdDepth(args ...interface{}) <-chan interface{} {
+// PublicGetBitcoinChartsIdDepth returns a channel that yields a JSON object.
+func (this *PaymiumCore) PublicGetBitcoinChartsIdDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetBitcoinChartsIdDepth", args...)
 }
 
-func (this *PaymiumCore) PrivateGetUser(args ...interface{}) <-chan interface{} {
+// PrivateGetUser returns a channel that yields a JSON object.
+func (this *PaymiumCore) PrivateGetUser(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUser", args...)
 }
 
-func (this *PaymiumCore) PrivateGetUserAddresses(args ...interface{}) <-chan interface{} {
+// PrivateGetUserAddresses returns a channel that yields a JSON array.
+func (this *PaymiumCore) PrivateGetUserAddresses(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserAddresses", args...)
 }
 
-func (this *PaymiumCore) PrivateGetUserAddressesAddress(args ...interface{}) <-chan interface{} {
+// PrivateGetUserAddressesAddress returns a channel that yields a JSON object.
+func (this *PaymiumCore) PrivateGetUserAddressesAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserAddressesAddress", args...)
 }
 
-func (this *PaymiumCore) PrivateGetUserOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetUserOrders returns a channel that yields a JSON array.
+func (this *PaymiumCore) PrivateGetUserOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserOrders", args...)
 }
 
-func (this *PaymiumCore) PrivateGetUserOrdersUuid(args ...interface{}) <-chan interface{} {
+// PrivateGetUserOrdersUuid returns a channel that yields a JSON object.
+func (this *PaymiumCore) PrivateGetUserOrdersUuid(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserOrdersUuid", args...)
 }
 
-func (this *PaymiumCore) PrivateGetUserPriceAlerts(args ...interface{}) <-chan interface{} {
+// PrivateGetUserPriceAlerts returns a channel that yields a JSON array.
+func (this *PaymiumCore) PrivateGetUserPriceAlerts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserPriceAlerts", args...)
 }
 
-func (this *PaymiumCore) PrivateGetMerchantGetPaymentUuid(args ...interface{}) <-chan interface{} {
+// PrivateGetMerchantGetPaymentUuid returns a channel that yields a JSON object.
+func (this *PaymiumCore) PrivateGetMerchantGetPaymentUuid(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetMerchantGetPaymentUuid", args...)
 }
 
-func (this *PaymiumCore) PrivatePostUserAddresses(args ...interface{}) <-chan interface{} {
+// PrivatePostUserAddresses returns a channel that yields a JSON object.
+func (this *PaymiumCore) PrivatePostUserAddresses(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserAddresses", args...)
 }
 
-func (this *PaymiumCore) PrivatePostUserOrders(args ...interface{}) <-chan interface{} {
+// PrivatePostUserOrders returns a channel that yields a JSON object.
+func (this *PaymiumCore) PrivatePostUserOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserOrders", args...)
 }
 
-func (this *PaymiumCore) PrivatePostUserWithdrawals(args ...interface{}) <-chan interface{} {
+// PrivatePostUserWithdrawals returns a channel that yields a JSON object.
+func (this *PaymiumCore) PrivatePostUserWithdrawals(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserWithdrawals", args...)
 }
 
-func (this *PaymiumCore) PrivatePostUserEmailTransfers(args ...interface{}) <-chan interface{} {
+// PrivatePostUserEmailTransfers returns a channel that yields a JSON object.
+func (this *PaymiumCore) PrivatePostUserEmailTransfers(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserEmailTransfers", args...)
 }
 
-func (this *PaymiumCore) PrivatePostUserPaymentRequests(args ...interface{}) <-chan interface{} {
+// PrivatePostUserPaymentRequests returns a channel that yields a JSON array.
+func (this *PaymiumCore) PrivatePostUserPaymentRequests(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserPaymentRequests", args...)
 }
 
-func (this *PaymiumCore) PrivatePostUserPriceAlerts(args ...interface{}) <-chan interface{} {
+// PrivatePostUserPriceAlerts returns a channel that yields a JSON object.
+func (this *PaymiumCore) PrivatePostUserPriceAlerts(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserPriceAlerts", args...)
 }
 
-func (this *PaymiumCore) PrivatePostMerchantCreatePayment(args ...interface{}) <-chan interface{} {
+// PrivatePostMerchantCreatePayment returns a channel that yields a JSON object.
+func (this *PaymiumCore) PrivatePostMerchantCreatePayment(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMerchantCreatePayment", args...)
 }
 
-func (this *PaymiumCore) PrivateDeleteUserOrdersUuid(args ...interface{}) <-chan interface{} {
+// PrivateDeleteUserOrdersUuid returns a channel that yields a JSON object.
+func (this *PaymiumCore) PrivateDeleteUserOrdersUuid(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteUserOrdersUuid", args...)
 }
 
-func (this *PaymiumCore) PrivateDeleteUserOrdersUuidCancel(args ...interface{}) <-chan interface{} {
+// PrivateDeleteUserOrdersUuidCancel returns a channel that yields a JSON object.
+func (this *PaymiumCore) PrivateDeleteUserOrdersUuidCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteUserOrdersUuidCancel", args...)
 }
 
-func (this *PaymiumCore) PrivateDeleteUserPriceAlertsId(args ...interface{}) <-chan interface{} {
+// PrivateDeleteUserPriceAlertsId returns a channel that yields a JSON object.
+func (this *PaymiumCore) PrivateDeleteUserPriceAlertsId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteUserPriceAlertsId", args...)
 }

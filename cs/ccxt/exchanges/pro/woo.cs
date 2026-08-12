@@ -13,6 +13,8 @@ public partial class woo : ccxt.woo
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
                 { "watchBalance", true },
+                { "watchFundingRate", true },
+                { "watchFundingRates", false },
                 { "watchMyTrades", true },
                 { "watchOHLCV", true },
                 { "watchOrderBook", true },
@@ -131,12 +133,15 @@ public partial class woo : ccxt.woo
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either (default) 'orderbook' or 'orderbookupdate', default is 'orderbook'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object method = null;
         var methodparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "method", "orderbook");
         method = ((IList<object>)methodparametersVariable)[0];
@@ -174,12 +179,15 @@ public partial class woo : ccxt.woo
      * @see https://docs.woox.io/#orderbook
      * @param {string} symbol unified symbol of the market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object method = null;
         var methodparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "method", "orderbook");
         method = ((IList<object>)methodparametersVariable)[0];
@@ -219,6 +227,10 @@ public partial class woo : ccxt.woo
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object topic = this.safeString(message, "topic");
+        if (isTrue(isEqual(topic, null)))
+        {
+            return;
+        }
         object method = this.safeString(((string)topic).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>(), 1);
         if (isTrue(isEqual(method, "orderbookupdate")))
         {
@@ -236,6 +248,10 @@ public partial class woo : ccxt.woo
                 try
                 {
                     object ts = this.safeInteger(message, "ts");
+                    if (isTrue(isEqual(ts, null)))
+                    {
+                        return;
+                    }
                     if (isTrue(isGreaterThan(ts, timestamp)))
                     {
                         this.handleOrderBookMessage(client as WebSocketClient, message, orderbook);
@@ -244,7 +260,10 @@ public partial class woo : ccxt.woo
                 } catch(Exception e)
                 {
                     ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
-                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)topic);
+                    if (isTrue(!isEqual(topic, null)))
+                    {
+                        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)topic);
+                    }
                     ((WebSocketClient)client).reject(e, topic);
                 }
             }
@@ -253,7 +272,7 @@ public partial class woo : ccxt.woo
             if (!isTrue((inOp(this.orderbooks, symbol))))
             {
                 object defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
-                object subscription = getValue(((WebSocketClient)client).subscriptions, topic);
+                object subscription = this.safeValue(((WebSocketClient)client).subscriptions, topic);
                 object limit = this.safeInteger(subscription, "limit", defaultLimit);
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             }
@@ -270,6 +289,10 @@ public partial class woo : ccxt.woo
         object defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
         object limit = this.safeInteger(subscription, "limit", defaultLimit);
         object symbol = this.safeString(subscription, "symbol"); // watchOrderBook
+        if (isTrue(isEqual(symbol, null)))
+        {
+            return;
+        }
         if (isTrue(inOp(this.orderbooks, symbol)))
         {
             ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
@@ -293,13 +316,17 @@ public partial class woo : ccxt.woo
                 // if the orderbook is dropped before the snapshot is received
                 return;
             }
-            object orderbook = getValue(this.orderbooks, symbol);
+            object orderbook = this.safeValue(this.orderbooks, symbol);
             (orderbook as IOrderBook).reset(snapshot);
             object messages = (orderbook as ccxt.pro.OrderBook).cache;
             for (object i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
             {
                 object messageItem = getValue(messages, i);
                 object ts = this.safeInteger(messageItem, "ts");
+                if (isTrue(isEqual(ts, null)))
+                {
+                    continue;
+                }
                 if (isTrue(isLessThan(ts, getValue(orderbook, "timestamp"))))
                 {
                     continue;
@@ -308,11 +335,17 @@ public partial class woo : ccxt.woo
                     this.handleOrderBookMessage(client as WebSocketClient, messageItem, orderbook);
                 }
             }
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+            }
             callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
         } catch(Exception e)
         {
-            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+            if (isTrue(!isEqual(messageHash, null)))
+            {
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+            }
             ((WebSocketClient)client).reject(e, messageHash);
         }
     }
@@ -354,7 +387,10 @@ public partial class woo : ccxt.woo
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "ticker";
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
@@ -378,7 +414,10 @@ public partial class woo : ccxt.woo
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object method = null;
         var methodparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "method", "ticker");
         method = ((IList<object>)methodparametersVariable)[0];
@@ -470,7 +509,10 @@ public partial class woo : ccxt.woo
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object name = "tickers";
         object topic = name;
@@ -495,7 +537,10 @@ public partial class woo : ccxt.woo
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(!isEqual(symbols, null)))
         {
             throw new NotSupported ((string)add(this.id, " unWatchTickers() does not support a symbols argument. Only unwatch all tickers at once")) ;
@@ -565,7 +610,10 @@ public partial class woo : ccxt.woo
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object name = "bbos";
         object topic = name;
@@ -594,7 +642,10 @@ public partial class woo : ccxt.woo
     public async override Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(!isEqual(symbols, null)))
         {
             throw new NotSupported ((string)add(this.id, " unWatchBidsAsks() does not support a symbols argument. Only unwatch all bidsAsks at once")) ;
@@ -628,11 +679,21 @@ public partial class woo : ccxt.woo
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object ticker = this.safeDict(data, i);
+            if (isTrue(isEqual(ticker, null)))
+            {
+                continue;
+            }
             ((IDictionary<string,object>)ticker)["ts"] = timestamp;
             object parsedTicker = this.parseWsBidAsk(ticker);
             object symbol = getValue(parsedTicker, "symbol");
-            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
-            ((IDictionary<string,object>)result)[(string)symbol] = parsedTicker;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
+            }
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)symbol] = parsedTicker;
+            }
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {result, topic});
     }
@@ -671,7 +732,10 @@ public partial class woo : ccxt.woo
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((!isEqual(timeframe, "1m"))) && isTrue((!isEqual(timeframe, "5m")))) && isTrue((!isEqual(timeframe, "15m")))) && isTrue((!isEqual(timeframe, "30m")))) && isTrue((!isEqual(timeframe, "1h")))) && isTrue((!isEqual(timeframe, "1d")))) && isTrue((!isEqual(timeframe, "1w")))) && isTrue((!isEqual(timeframe, "1M")))))
         {
             throw new ExchangeError ((string)add(this.id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")) ;
@@ -708,7 +772,10 @@ public partial class woo : ccxt.woo
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object interval = this.safeString(this.timeframes, timeframe, timeframe);
         object topic = "ohlcv";
@@ -747,12 +814,15 @@ public partial class woo : ccxt.woo
         object timeframe = this.findTimeframe(interval);
         object parsed = new List<object> {this.safeInteger(data, "startTime"), this.safeFloat(data, "open"), this.safeFloat(data, "high"), this.safeFloat(data, "low"), this.safeFloat(data, "close"), this.safeFloat(data, "volume")};
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
+        object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (isTrue(isEqual(stored, null)))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
+            if (isTrue(isTrue(!isEqual(symbol, null)) && isTrue(!isEqual(timeframe, null))))
+            {
+                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
+            }
         }
         callDynamically(stored, "append", new object[] {parsed});
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, topic});
@@ -772,7 +842,10 @@ public partial class woo : ccxt.woo
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object topic = add(getValue(market, "id"), "@trade");
@@ -801,7 +874,10 @@ public partial class woo : ccxt.woo
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object topic = "trades";
         object subHash = add(getValue(market, "id"), "@trade");
@@ -892,7 +968,7 @@ public partial class woo : ccxt.woo
         object cost = Precise.stringMul(price, amount);
         object side = this.safeStringLower(trade, "side");
         object timestamp = this.safeInteger(trade, "timestamp");
-        object maker = this.safeBool(trade, "marker");
+        object maker = this.safeBool(trade, "maker");
         object takerOrMaker = null;
         if (isTrue(!isEqual(maker, null)))
         {
@@ -1012,7 +1088,10 @@ public partial class woo : ccxt.woo
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object trigger = this.safeBool2(parameters, "stop", "trigger", false);
         object topic = ((bool) isTrue((trigger))) ? "algoexecutionreportv2" : "executionreport";
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
@@ -1052,7 +1131,10 @@ public partial class woo : ccxt.woo
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object trigger = this.safeBool2(parameters, "stop", "trigger", false);
         object topic = ((bool) isTrue((trigger))) ? "algoexecutionreportv2" : "executionreport";
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
@@ -1098,7 +1180,7 @@ public partial class woo : ccxt.woo
         //         "orderTag": "default",
         //         "totalFee": 0,
         //         "visible": 0.01,
-        //         "timestamp": 1657515556799,
+        //         "timestamp": 1657515556798,
         //         "reduceOnly": false,
         //         "maker": false
         //     }
@@ -1161,16 +1243,10 @@ public partial class woo : ccxt.woo
         {
             price = avgPrice;
         }
-        object amount = this.safeFloat(order, "quantity");
+        object amount = this.safeString(order, "quantity");
         object side = this.safeStringLower(order, "side");
         object type = this.safeStringLower(order, "type");
-        object filled = this.safeNumber(order, "totalExecutedQuantity");
-        object totalExecQuantity = this.safeFloat(order, "totalExecutedQuantity");
-        object remaining = amount;
-        if (isTrue(isGreaterThanOrEqual(amount, totalExecQuantity)))
-        {
-            remaining = subtract(remaining, totalExecQuantity);
-        }
+        object filled = this.safeString2(order, "totalExecutedQuantity", "executed");
         object rawStatus = this.safeString2(order, "status", "algoStatus");
         object status = this.parseOrderStatus(rawStatus);
         object trades = null;
@@ -1196,7 +1272,7 @@ public partial class woo : ccxt.woo
             { "cost", null },
             { "average", avgPrice },
             { "filled", filled },
-            { "remaining", remaining },
+            { "remaining", null },
             { "status", status },
             { "fee", fee },
             { "trades", trades },
@@ -1350,22 +1426,33 @@ public partial class woo : ccxt.woo
      * @name woo#watchPositions
      * @see https://docs.woox.io/#position-push
      * @description watch all open positions
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param since
-     * @param limit
-     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object messageHashes = new List<object>() {};
         symbols = this.marketSymbols(symbols);
         if (!isTrue(this.isEmpty(symbols)))
         {
+            if (isTrue(isEqual(symbols, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " watchPositions() symbols is required")) ;
+            }
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
+                if (isTrue(isEqual(symbols, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " watchPositions() symbols is required")) ;
+                }
                 object symbol = getValue(symbols, i);
                 ((IList<object>)messageHashes).Add(add("positions::", symbol));
             }
@@ -1421,7 +1508,7 @@ public partial class woo : ccxt.woo
         {
             object position = getValue(positions, i);
             object contracts = this.safeNumber(position, "contracts", 0);
-            if (isTrue(isGreaterThan(contracts, 0)))
+            if (isTrue(isTrue((!isEqual(contracts, null))) && isTrue((isGreaterThan(contracts, 0)))))
             {
                 callDynamically(cache, "append", new object[] {position});
             }
@@ -1496,7 +1583,10 @@ public partial class woo : ccxt.woo
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object topic = "balance";
         object messageHash = topic;
         object request = new Dictionary<string, object>() {
@@ -1549,16 +1639,74 @@ public partial class woo : ccxt.woo
             object key = getValue(keys, i);
             object value = getValue(balances, key);
             object code = this.safeCurrencyCode(key);
-            object account = ((bool) isTrue((inOp(this.balance, code)))) ? getValue(this.balance, code) : this.account();
+            object account = this.account();
+            if (isTrue(isTrue((!isEqual(code, null))) && isTrue((inOp(this.balance, code)))))
+            {
+                account = getValue(this.balance, code);
+            }
             object total = this.safeString(value, "holding");
             object used = this.safeString(value, "frozen");
             ((IDictionary<string,object>)account)["total"] = total;
             ((IDictionary<string,object>)account)["used"] = used;
             ((IDictionary<string,object>)account)["free"] = Precise.stringSub(total, used);
-            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            }
         }
         this.balance = this.safeBalance(this.balance);
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, "balance"});
+    }
+
+    /**
+     * @method
+     * @name woo#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://docs.woox.io/#estfundingrate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public async override Task<object> watchFundingRate(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
+        object topic = add(getValue(market, "id"), "@estfundingrate");
+        object request = new Dictionary<string, object>() {
+            { "event", "subscribe" },
+            { "topic", topic },
+        };
+        object message = this.extend(request, parameters);
+        return await this.watchPublic(topic, message);
+    }
+
+    public virtual void handleFundingRate(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "topic": "PERP_BTC_USDT@estfundingrate",
+        //         "ts": 1771484159016,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDT",
+        //             "fundingRate": 0.0001,
+        //             "fundingTs": 1771488000000
+        //         }
+        //     }
+        //
+        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object fundingRate = this.parseFundingRate(data);
+        object symbol = getValue(fundingRate, "symbol");
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+        }
+        object messageHash = this.safeString(message, "topic");
+        callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, messageHash});
     }
 
     public virtual object handleErrorMessage(WebSocketClient client, object message)
@@ -1650,6 +1798,7 @@ public partial class woo : ccxt.woo
             { "balance", this.handleBalance },
             { "position", this.handlePositions },
             { "bbos", this.handleBidAsk },
+            { "estfundingrate", this.handleFundingRate },
         };
         object eventVar = this.safeString(message, "event");
         object method = this.safeValue(methods, eventVar);
@@ -1672,6 +1821,10 @@ public partial class woo : ccxt.woo
             if (isTrue(isEqual(splitLength, 2)))
             {
                 object name = this.safeString(splitTopic, 1);
+                if (isTrue(isEqual(name, null)))
+                {
+                    return;
+                }
                 method = this.safeValue(methods, name);
                 if (isTrue(!isEqual(method, null)))
                 {
@@ -1699,11 +1852,16 @@ public partial class woo : ccxt.woo
         };
     }
 
-    public virtual object handlePing(WebSocketClient client, object message)
+    public async virtual Task pong(WebSocketClient client, object message)
     {
-        return new Dictionary<string, object>() {
+        await client.send(new Dictionary<string, object>() {
             { "event", "pong" },
-        };
+        });
+    }
+
+    public virtual void handlePing(WebSocketClient client, object message)
+    {
+        this.spawn(this.pong, new object[] { client, message});
     }
 
     public virtual object handlePong(WebSocketClient client, object message)

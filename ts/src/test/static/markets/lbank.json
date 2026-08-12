@@ -94,7 +94,7 @@
     "strike": null,
     "optionType": null,
     "precision": {
-      "amount": 0.0001,
+      "amount": 0.00001,
       "price": 0.01
     },
     "limits": {
@@ -103,7 +103,7 @@
         "max": null
       },
       "amount": {
-        "min": 0.0001,
+        "min": 0.00001,
         "max": null
       },
       "price": {
@@ -122,8 +122,8 @@
     "created": null,
     "info": {
       "symbol": "btc_usdt",
-      "quantityAccuracy": "4",
-      "minTranQua": "0.0001",
+      "quantityAccuracy": "5",
+      "minTranQua": "0.00001",
       "priceAccuracy": "2"
     },
     "tierBased": null,
@@ -298,7 +298,7 @@
         "max": null
       },
       "amount": {
-        "min": 10,
+        "min": 2,
         "max": null
       },
       "price": {
@@ -318,7 +318,7 @@
     "info": {
       "symbol": "xrp_usdt",
       "quantityAccuracy": "2",
-      "minTranQua": "10",
+      "minTranQua": "2",
       "priceAccuracy": "4"
     },
     "tierBased": null,
@@ -474,7 +474,7 @@
     "active": true,
     "contract": true,
     "linear": true,
-    "inverse": null,
+    "inverse": false,
     "subType": "linear",
     "taker": 0.001,
     "maker": 0.001,
@@ -497,8 +497,8 @@
         "max": 100000
       },
       "price": {
-        "min": 0.01,
-        "max": 0.01
+        "min": 0.1,
+        "max": 0.1
       },
       "cost": {
         "min": 5,
@@ -511,20 +511,22 @@
     },
     "created": null,
     "info": {
-      "priceLimitUpperValue": "0.01",
+      "priceLimitUpperValue": "0.1",
       "symbol": "LTCUSDT",
       "volumeTick": "0.001",
-      "indexPrice": "101.17540000",
+      "indexPrice": "51.11",
       "minOrderVolume": "0.001",
       "priceTick": "0.01",
       "maxOrderVolume": "100000.0",
       "baseCurrency": "LTC",
       "maxLeverage": "75",
+      "needSuspend": "0",
       "volumeMultiple": "1.0",
       "exchangeID": "Exchange",
       "priceCurrency": "USDT",
-      "priceLimitLowerValue": "0.01",
+      "priceLimitLowerValue": "0.1",
       "clearCurrency": "USDT",
+      "symbolAlias": "LTC",
       "symbolName": "LTCUSDT",
       "defaultLeverage": "20.0",
       "minOrderCost": "5.0"
@@ -552,7 +554,7 @@
     "active": true,
     "contract": true,
     "linear": true,
-    "inverse": null,
+    "inverse": false,
     "subType": "linear",
     "taker": 0.001,
     "maker": 0.001,
@@ -572,11 +574,11 @@
       },
       "amount": {
         "min": 0.0001,
-        "max": 600
+        "max": 60
       },
       "price": {
-        "min": 0.01,
-        "max": 0.01
+        "min": 0.05,
+        "max": 0.05
       },
       "cost": {
         "min": 1,
@@ -589,20 +591,22 @@
     },
     "created": null,
     "info": {
-      "priceLimitUpperValue": "0.01",
+      "priceLimitUpperValue": "0.05",
       "symbol": "BTCUSDT",
       "volumeTick": "0.0001",
-      "indexPrice": "110781.92400000",
+      "indexPrice": "72730.7",
       "minOrderVolume": "0.0001",
       "priceTick": "0.1",
-      "maxOrderVolume": "600.0",
+      "maxOrderVolume": "60.0",
       "baseCurrency": "BTC",
       "maxLeverage": "200",
+      "needSuspend": "0",
       "volumeMultiple": "1.0",
       "exchangeID": "Exchange",
       "priceCurrency": "USDT",
-      "priceLimitLowerValue": "0.01",
+      "priceLimitLowerValue": "0.05",
       "clearCurrency": "USDT",
+      "symbolAlias": "BTC",
       "symbolName": "BTCUSDT",
       "defaultLeverage": "20.0",
       "minOrderCost": "1.0"
@@ -630,7 +634,7 @@
     "active": true,
     "contract": true,
     "linear": true,
-    "inverse": null,
+    "inverse": false,
     "subType": "linear",
     "taker": 0.001,
     "maker": 0.001,
@@ -670,17 +674,19 @@
       "priceLimitUpperValue": "0.2",
       "symbol": "ADAUSDT",
       "volumeTick": "1.0",
-      "indexPrice": "0.82570760",
+      "indexPrice": "0.2313",
       "minOrderVolume": "1.0",
       "priceTick": "0.0001",
       "maxOrderVolume": "200000000.0",
       "baseCurrency": "ADA",
       "maxLeverage": "75",
+      "needSuspend": "0",
       "volumeMultiple": "1.0",
       "exchangeID": "Exchange",
       "priceCurrency": "USDT",
       "priceLimitLowerValue": "0.2",
       "clearCurrency": "USDT",
+      "symbolAlias": "ADA",
       "symbolName": "ADAUSDT",
       "defaultLeverage": "20.0",
       "minOrderCost": "5.0"
@@ -708,7 +714,7 @@
     "active": true,
     "contract": true,
     "linear": true,
-    "inverse": null,
+    "inverse": false,
     "subType": "linear",
     "taker": 0.001,
     "maker": 0.001,
@@ -731,8 +737,8 @@
         "max": 6500000000
       },
       "price": {
-        "min": 0.01,
-        "max": 0.01
+        "min": 0.1,
+        "max": 0.1
       },
       "cost": {
         "min": 5,
@@ -745,20 +751,22 @@
     },
     "created": null,
     "info": {
-      "priceLimitUpperValue": "0.01",
+      "priceLimitUpperValue": "0.1",
       "symbol": "XRPUSDT",
       "volumeTick": "0.1",
-      "indexPrice": "2.45178800",
+      "indexPrice": "1.3048",
       "minOrderVolume": "0.1",
       "priceTick": "0.0001",
       "maxOrderVolume": "6500000000.0",
       "baseCurrency": "XRP",
       "maxLeverage": "75",
+      "needSuspend": "0",
       "volumeMultiple": "1.0",
       "exchangeID": "Exchange",
       "priceCurrency": "USDT",
-      "priceLimitLowerValue": "0.01",
+      "priceLimitLowerValue": "0.1",
       "clearCurrency": "USDT",
+      "symbolAlias": "XRP",
       "symbolName": "XRPUSDT",
       "defaultLeverage": "20.0",
       "minOrderCost": "5.0"
@@ -786,7 +794,7 @@
     "active": true,
     "contract": true,
     "linear": true,
-    "inverse": null,
+    "inverse": false,
     "subType": "linear",
     "taker": 0.001,
     "maker": 0.001,
@@ -826,17 +834,19 @@
       "priceLimitUpperValue": "0.2",
       "symbol": "TRXUSDT",
       "volumeTick": "1.0",
-      "indexPrice": "0.27340180",
+      "indexPrice": "0.3509",
       "minOrderVolume": "1.0",
       "priceTick": "0.00001",
       "maxOrderVolume": "50000000.0",
       "baseCurrency": "TRX",
       "maxLeverage": "75",
+      "needSuspend": "0",
       "volumeMultiple": "1.0",
       "exchangeID": "Exchange",
       "priceCurrency": "USDT",
       "priceLimitLowerValue": "0.2",
       "clearCurrency": "USDT",
+      "symbolAlias": "TRX",
       "symbolName": "TRXUSDT",
       "defaultLeverage": "20.0",
       "minOrderCost": "5.0"
@@ -929,7 +939,7 @@
     "active": true,
     "contract": true,
     "linear": true,
-    "inverse": null,
+    "inverse": false,
     "subType": "linear",
     "taker": 0.001,
     "maker": 0.001,
@@ -949,11 +959,11 @@
       },
       "amount": {
         "min": 0.001,
-        "max": 6000
+        "max": 1000
       },
       "price": {
-        "min": 0.01,
-        "max": 0.01
+        "min": 0.05,
+        "max": 0.05
       },
       "cost": {
         "min": 5,
@@ -966,20 +976,22 @@
     },
     "created": null,
     "info": {
-      "priceLimitUpperValue": "0.01",
+      "priceLimitUpperValue": "0.05",
       "symbol": "ETHUSDT",
       "volumeTick": "0.001",
-      "indexPrice": "2694.93200000",
+      "indexPrice": "1984.92",
       "minOrderVolume": "0.001",
       "priceTick": "0.01",
-      "maxOrderVolume": "6000.0",
+      "maxOrderVolume": "1000.0",
       "baseCurrency": "ETH",
       "maxLeverage": "200",
+      "needSuspend": "0",
       "volumeMultiple": "1.0",
       "exchangeID": "Exchange",
       "priceCurrency": "USDT",
-      "priceLimitLowerValue": "0.01",
+      "priceLimitLowerValue": "0.05",
       "clearCurrency": "USDT",
+      "symbolAlias": "ETH",
       "symbolName": "ETHUSDT",
       "defaultLeverage": "20.0",
       "minOrderCost": "5.0"

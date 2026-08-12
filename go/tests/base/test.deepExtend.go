@@ -8,22 +8,22 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestDeepExtend() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	var obj1 map[string]interface{} = map[string]interface{}{
+	}, map[string]any{}, exchange)
+	var obj1 map[string]any = map[string]any{
 		"a": 1,
-		"b": []interface{}{1, 2, 3},
-		"c": []interface{}{map[string]interface{}{
+		"b": []any{1, 2, 3},
+		"c": []any{map[string]any{
 			"test1": 1,
 			"test2": 1,
 		}},
 		"d": nil,
 		"e": "not_undefined",
-		"sub": map[string]interface{}{
+		"sub": map[string]any{
 			"a": 1,
-			"b": []interface{}{1, 2},
-			"c": []interface{}{map[string]interface{}{
+			"b": []any{1, 2},
+			"c": []any{map[string]any{
 				"test1": 1,
 				"test2": 2,
 			}},
@@ -33,19 +33,19 @@ func TestDeepExtend() {
 		},
 		"other1": "x",
 	}
-	var obj2 map[string]interface{} = map[string]interface{}{
+	var obj2 map[string]any = map[string]any{
 		"a": 2,
-		"b": []interface{}{3, 4},
-		"c": []interface{}{map[string]interface{}{
+		"b": []any{3, 4},
+		"c": []any{map[string]any{
 			"test1": 2,
 			"test3": 3,
 		}},
 		"d": "not_undefined",
 		"e": nil,
-		"sub": map[string]interface{}{
+		"sub": map[string]any{
 			"a": 2,
-			"b": []interface{}{3, 4},
-			"c": []interface{}{map[string]interface{}{
+			"b": []any{3, 4},
+			"c": []any{map[string]any{
 				"test1": 2,
 				"test3": 3,
 			}},
@@ -56,20 +56,20 @@ func TestDeepExtend() {
 		"other2": "y",
 	}
 	// deepExtend
-	var deepExtended interface{} = exchange.DeepExtend(obj1, obj2)
-	var compareTo map[string]interface{} = map[string]interface{}{
+	var deepExtended any = exchange.DeepExtend(obj1, obj2)
+	var compareTo map[string]any = map[string]any{
 		"a": 2,
-		"b": []interface{}{3, 4},
-		"c": []interface{}{map[string]interface{}{
+		"b": []any{3, 4},
+		"c": []any{map[string]any{
 			"test1": 2,
 			"test3": 3,
 		}},
 		"d": "not_undefined",
 		"e": nil,
-		"sub": map[string]interface{}{
+		"sub": map[string]any{
 			"a": 2,
-			"b": []interface{}{3, 4},
-			"c": []interface{}{map[string]interface{}{
+			"b": []any{3, 4},
+			"c": []any{map[string]any{
 				"test1": 2,
 				"test3": 3,
 			}},

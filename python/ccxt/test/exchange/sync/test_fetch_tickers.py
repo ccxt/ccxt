@@ -16,17 +16,23 @@ from ccxt.test.exchange.base import test_ticker  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_fetch_tickers(exchange, skipped_properties, symbol):
-    without_symbol = test_fetch_tickers_helper(exchange, skipped_properties, None)
-    with_symbol = test_fetch_tickers_helper(exchange, skipped_properties, [symbol])
+    # prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
+    # is impractical and the "every active market has a ticker" check doesn't apply — test
+    # fetchTickers by the outcome handle instead
+    if exchange.safe_bool(exchange.has, 'prediction', False):
+        prediction_result = fetch_tickers_helper_test(exchange, skipped_properties, [symbol])
+        return [prediction_result]
+    without_symbol = fetch_tickers_helper_test(exchange, skipped_properties, None)
+    with_symbol = fetch_tickers_helper_test(exchange, skipped_properties, [symbol])
     results = asyncio.gather(*[without_symbol, with_symbol])
-    test_fetch_tickers_amounts(exchange, skipped_properties, results[0])
+    fetch_tickers_amounts_test(exchange, skipped_properties, results[0])
     return results
 
 
-def test_fetch_tickers_helper(exchange, skipped_properties, arg_symbols, arg_params={}):
+def fetch_tickers_helper_test(exchange, skipped_properties, arg_symbols, arg_params={}):
     method = 'fetchTickers'
     response = exchange.fetch_tickers(arg_symbols, arg_params)
-    assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + exchange.json(arg_symbols) + ' must return an object. ' + exchange.json(response)
+    test_shared_methods.assert_dictionary_response(exchange, method, response, exchange.json(arg_symbols))
     values = list(response.values())
     checked_symbol = None
     if arg_symbols is not None and len(arg_symbols) == 1:
@@ -35,11 +41,18 @@ def test_fetch_tickers_helper(exchange, skipped_properties, arg_symbols, arg_par
     for i in range(0, len(values)):
         # todo: symbol check here
         ticker = values[i]
-        test_ticker(exchange, skipped_properties, method, ticker, checked_symbol)
+        try:
+            test_ticker(exchange, skipped_properties, method, ticker, checked_symbol)
+        except Exception as ex:
+            ohlcv = None
+            ticker_symbol = ticker['symbol']
+            if (ticker_symbol is not None) and test_shared_methods.ticker_exception_needs_ohlcv(ex, exchange, ticker):
+                ohlcv = exchange.fetch_ohlcv(ticker_symbol, '1d', None, 5)
+            test_shared_methods.validate_ticker_exception_for_percentage(ex, exchange, ticker, ohlcv)
     return response
 
 
-def test_fetch_tickers_amounts(exchange, skipped_properties, tickers):
+def fetch_tickers_amounts_test(exchange, skipped_properties, tickers):
     tickers_values = list(tickers.values())
     if not ('checkActiveSymbols' in skipped_properties):
         #
@@ -54,5 +67,7 @@ def test_fetch_tickers_amounts(exchange, skipped_properties, tickers):
         # ensure tickers length is less than markets length
         #
         all_markets = exchange.markets
+        if all_markets is None:
+            return
         all_markets_length = len(list(all_markets.keys()))
         assert obtained_tickers_length <= all_markets_length, exchange.id + ' ' + 'fetchTickers' + ' must return <= than all markets, but returned: ' + str(obtained_tickers_length) + ' tickers, ' + str(all_markets_length) + ' markets'

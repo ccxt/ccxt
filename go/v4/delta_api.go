@@ -7,202 +7,262 @@
 
 package ccxt
 
-func (this *DeltaCore) PublicGetAssets(args ...interface{}) <-chan interface{} {
+// PublicGetAssets returns a channel that yields a JSON object.
+func (this *DeltaCore) PublicGetAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAssets", args...)
 }
 
-func (this *DeltaCore) PublicGetIndices(args ...interface{}) <-chan interface{} {
+// PublicGetIndices returns a channel that yields a JSON object.
+func (this *DeltaCore) PublicGetIndices(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetIndices", args...)
 }
 
-func (this *DeltaCore) PublicGetProducts(args ...interface{}) <-chan interface{} {
+// PublicGetProducts returns a channel that yields a JSON object.
+func (this *DeltaCore) PublicGetProducts(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetProducts", args...)
 }
 
-func (this *DeltaCore) PublicGetProductsSymbol(args ...interface{}) <-chan interface{} {
+// PublicGetProductsSymbol returns a channel that yields a JSON object.
+func (this *DeltaCore) PublicGetProductsSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetProductsSymbol", args...)
 }
 
-func (this *DeltaCore) PublicGetTickers(args ...interface{}) <-chan interface{} {
+// PublicGetTickers returns a channel that yields a JSON object.
+func (this *DeltaCore) PublicGetTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *DeltaCore) PublicGetTickersSymbol(args ...interface{}) <-chan interface{} {
+// PublicGetTickersSymbol returns a channel that yields a JSON object.
+func (this *DeltaCore) PublicGetTickersSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickersSymbol", args...)
 }
 
-func (this *DeltaCore) PublicGetL2orderbookSymbol(args ...interface{}) <-chan interface{} {
+// PublicGetL2orderbookSymbol returns a channel that yields a JSON object.
+func (this *DeltaCore) PublicGetL2orderbookSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetL2orderbookSymbol", args...)
 }
 
-func (this *DeltaCore) PublicGetTradesSymbol(args ...interface{}) <-chan interface{} {
+// PublicGetTradesSymbol returns a channel that yields a JSON object.
+func (this *DeltaCore) PublicGetTradesSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradesSymbol", args...)
 }
 
-func (this *DeltaCore) PublicGetStats(args ...interface{}) <-chan interface{} {
+// PublicGetStats returns a channel that yields a JSON array.
+func (this *DeltaCore) PublicGetStats(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetStats", args...)
 }
 
-func (this *DeltaCore) PublicGetHistoryCandles(args ...interface{}) <-chan interface{} {
+// PublicGetHistoryCandles returns a channel that yields a JSON object.
+func (this *DeltaCore) PublicGetHistoryCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetHistoryCandles", args...)
 }
 
-func (this *DeltaCore) PublicGetHistorySparklines(args ...interface{}) <-chan interface{} {
+// PublicGetHistorySparklines returns a channel that yields a JSON object.
+func (this *DeltaCore) PublicGetHistorySparklines(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetHistorySparklines", args...)
 }
 
-func (this *DeltaCore) PublicGetSettings(args ...interface{}) <-chan interface{} {
+// PublicGetSettings returns a channel that yields a JSON object.
+func (this *DeltaCore) PublicGetSettings(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSettings", args...)
 }
 
-func (this *DeltaCore) PrivateGetOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetOrders returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateGetOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *DeltaCore) PrivateGetOrdersOrderId(args ...interface{}) <-chan interface{} {
+// PrivateGetOrdersOrderId returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateGetOrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrdersOrderId", args...)
 }
 
-func (this *DeltaCore) PrivateGetOrdersClientOrderIdClientOid(args ...interface{}) <-chan interface{} {
+// PrivateGetOrdersClientOrderIdClientOid returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateGetOrdersClientOrderIdClientOid(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrdersClientOrderIdClientOid", args...)
 }
 
-func (this *DeltaCore) PrivateGetProductsProductIdOrdersLeverage(args ...interface{}) <-chan interface{} {
+// PrivateGetProductsProductIdOrdersLeverage returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateGetProductsProductIdOrdersLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetProductsProductIdOrdersLeverage", args...)
 }
 
-func (this *DeltaCore) PrivateGetPositionsMargined(args ...interface{}) <-chan interface{} {
+// PrivateGetPositionsMargined returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateGetPositionsMargined(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPositionsMargined", args...)
 }
 
-func (this *DeltaCore) PrivateGetPositions(args ...interface{}) <-chan interface{} {
+// PrivateGetPositions returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateGetPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPositions", args...)
 }
 
-func (this *DeltaCore) PrivateGetOrdersHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetOrdersHistory returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateGetOrdersHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrdersHistory", args...)
 }
 
-func (this *DeltaCore) PrivateGetFills(args ...interface{}) <-chan interface{} {
+// PrivateGetFills returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateGetFills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFills", args...)
 }
 
-func (this *DeltaCore) PrivateGetFillsHistoryDownloadCsv(args ...interface{}) <-chan interface{} {
+// PrivateGetFillsHistoryDownloadCsv returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateGetFillsHistoryDownloadCsv(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFillsHistoryDownloadCsv", args...)
 }
 
-func (this *DeltaCore) PrivateGetWalletBalances(args ...interface{}) <-chan interface{} {
+// PrivateGetWalletBalances returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateGetWalletBalances(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWalletBalances", args...)
 }
 
-func (this *DeltaCore) PrivateGetWalletTransactions(args ...interface{}) <-chan interface{} {
+// PrivateGetWalletTransactions returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateGetWalletTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWalletTransactions", args...)
 }
 
-func (this *DeltaCore) PrivateGetWalletTransactionsDownload(args ...interface{}) <-chan interface{} {
+// PrivateGetWalletTransactionsDownload returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateGetWalletTransactionsDownload(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWalletTransactionsDownload", args...)
 }
 
-func (this *DeltaCore) PrivateGetWalletsSubAccountsTransferHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetWalletsSubAccountsTransferHistory returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateGetWalletsSubAccountsTransferHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWalletsSubAccountsTransferHistory", args...)
 }
 
-func (this *DeltaCore) PrivateGetUsersTradingPreferences(args ...interface{}) <-chan interface{} {
+// PrivateGetUsersTradingPreferences returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateGetUsersTradingPreferences(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUsersTradingPreferences", args...)
 }
 
-func (this *DeltaCore) PrivateGetSubAccounts(args ...interface{}) <-chan interface{} {
+// PrivateGetSubAccounts returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateGetSubAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSubAccounts", args...)
 }
 
-func (this *DeltaCore) PrivateGetProfile(args ...interface{}) <-chan interface{} {
+// PrivateGetProfile returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateGetProfile(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetProfile", args...)
 }
 
-func (this *DeltaCore) PrivateGetHeartbeat(args ...interface{}) <-chan interface{} {
+// PrivateGetRateLimitsQuota returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateGetRateLimitsQuota(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetRateLimitsQuota", args...)
+}
+
+// PrivateGetHeartbeat returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateGetHeartbeat(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetHeartbeat", args...)
 }
 
-func (this *DeltaCore) PrivateGetDepositsAddress(args ...interface{}) <-chan interface{} {
+// PrivateGetDepositsAddress returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateGetDepositsAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetDepositsAddress", args...)
 }
 
-func (this *DeltaCore) PrivatePostOrders(args ...interface{}) <-chan interface{} {
+// PrivatePostOrders returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivatePostOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *DeltaCore) PrivatePostOrdersBracket(args ...interface{}) <-chan interface{} {
+// PrivatePostOrdersBracket returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivatePostOrdersBracket(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrdersBracket", args...)
 }
 
-func (this *DeltaCore) PrivatePostOrdersBatch(args ...interface{}) <-chan interface{} {
+// PrivatePostOrdersBatch returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivatePostOrdersBatch(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrdersBatch", args...)
 }
 
-func (this *DeltaCore) PrivatePostProductsProductIdOrdersLeverage(args ...interface{}) <-chan interface{} {
+// PrivatePostProductsProductIdOrdersLeverage returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivatePostProductsProductIdOrdersLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostProductsProductIdOrdersLeverage", args...)
 }
 
-func (this *DeltaCore) PrivatePostPositionsChangeMargin(args ...interface{}) <-chan interface{} {
+// PrivatePostPositionsChangeMargin returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivatePostPositionsChangeMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPositionsChangeMargin", args...)
 }
 
-func (this *DeltaCore) PrivatePostPositionsCloseAll(args ...interface{}) <-chan interface{} {
+// PrivatePostPositionsCloseAll returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivatePostPositionsCloseAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPositionsCloseAll", args...)
 }
 
-func (this *DeltaCore) PrivatePostWalletsSubAccountBalanceTransfer(args ...interface{}) <-chan interface{} {
+// PrivatePostWalletsSubAccountBalanceTransfer returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivatePostWalletsSubAccountBalanceTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWalletsSubAccountBalanceTransfer", args...)
 }
 
-func (this *DeltaCore) PrivatePostHeartbeatCreate(args ...interface{}) <-chan interface{} {
+// PrivatePostHeartbeatCreate returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivatePostHeartbeatCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostHeartbeatCreate", args...)
 }
 
-func (this *DeltaCore) PrivatePostHeartbeat(args ...interface{}) <-chan interface{} {
+// PrivatePostHeartbeat returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivatePostHeartbeat(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostHeartbeat", args...)
 }
 
-func (this *DeltaCore) PrivatePostOrdersCancelAfter(args ...interface{}) <-chan interface{} {
+// PrivatePostOrdersCancelAfter returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivatePostOrdersCancelAfter(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrdersCancelAfter", args...)
 }
 
-func (this *DeltaCore) PrivatePostOrdersLeverage(args ...interface{}) <-chan interface{} {
+// PrivatePostOrdersLeverage returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivatePostOrdersLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrdersLeverage", args...)
 }
 
-func (this *DeltaCore) PrivatePutOrders(args ...interface{}) <-chan interface{} {
+// PrivatePutOrders returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivatePutOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutOrders", args...)
 }
 
-func (this *DeltaCore) PrivatePutOrdersBracket(args ...interface{}) <-chan interface{} {
+// PrivatePutOrdersBracket returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivatePutOrdersBracket(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutOrdersBracket", args...)
 }
 
-func (this *DeltaCore) PrivatePutOrdersBatch(args ...interface{}) <-chan interface{} {
+// PrivatePutOrdersBatch returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivatePutOrdersBatch(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutOrdersBatch", args...)
 }
 
-func (this *DeltaCore) PrivatePutPositionsAutoTopup(args ...interface{}) <-chan interface{} {
+// PrivatePutPositionsAutoTopup returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivatePutPositionsAutoTopup(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutPositionsAutoTopup", args...)
 }
 
-func (this *DeltaCore) PrivatePutUsersUpdateMmp(args ...interface{}) <-chan interface{} {
+// PrivatePutUsersUpdateMmp returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivatePutUsersUpdateMmp(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutUsersUpdateMmp", args...)
 }
 
-func (this *DeltaCore) PrivatePutUsersResetMmp(args ...interface{}) <-chan interface{} {
+// PrivatePutUsersResetMmp returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivatePutUsersResetMmp(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutUsersResetMmp", args...)
 }
 
-func (this *DeltaCore) PrivateDeleteOrders(args ...interface{}) <-chan interface{} {
+// PrivatePutUsersMarginMode returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivatePutUsersMarginMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutUsersMarginMode", args...)
+}
+
+// PrivateDeleteOrders returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateDeleteOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrders", args...)
 }
 
-func (this *DeltaCore) PrivateDeleteOrdersAll(args ...interface{}) <-chan interface{} {
+// PrivateDeleteOrdersAll returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateDeleteOrdersAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrdersAll", args...)
 }
 
-func (this *DeltaCore) PrivateDeleteOrdersBatch(args ...interface{}) <-chan interface{} {
+// PrivateDeleteOrdersBatch returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivateDeleteOrdersBatch(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrdersBatch", args...)
 }

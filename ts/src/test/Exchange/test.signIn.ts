@@ -1,4 +1,4 @@
-import { Exchange } from "../../../ccxt";
+import { Exchange } from "../../../ccxt.js";
 
 async function testSignIn (exchange: Exchange, skippedProperties: object) {
     const method = 'signIn';

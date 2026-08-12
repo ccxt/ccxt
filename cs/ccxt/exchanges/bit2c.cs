@@ -117,11 +117,83 @@ public partial class bit2c : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"Exchanges/{pair}/Ticker", "Exchanges/{pair}/orderbook", "Exchanges/{pair}/trades", "Exchanges/{pair}/lasttrades"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "Exchanges/{pair}/Ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Exchanges/{pair}/orderbook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Exchanges/{pair}/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Exchanges/{pair}/lasttrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "post", new List<object>() {"Merchant/CreateCheckout", "Funds/AddCoinFundsRequest", "Order/AddFund", "Order/AddOrder", "Order/GetById", "Order/AddOrderMarketPriceBuy", "Order/AddOrderMarketPriceSell", "Order/CancelOrder", "Order/AddCoinFundsRequest", "Order/AddStopOrder", "Payment/GetMyId", "Payment/Send", "Payment/Pay"} },
-                    { "get", new List<object>() {"Account/Balance", "Account/Balance/v2", "Order/MyOrders", "Order/GetById", "Order/AccountHistory", "Order/OrderHistory"} },
+                    { "post", new Dictionary<string, object>() {
+                        { "Merchant/CreateCheckout", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Funds/AddCoinFundsRequest", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Order/AddFund", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Order/AddOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Order/GetById", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Order/AddOrderMarketPriceBuy", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Order/AddOrderMarketPriceSell", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Order/CancelOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Order/AddCoinFundsRequest", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Order/AddStopOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Payment/GetMyId", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Payment/Send", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Payment/Pay", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "get", new Dictionary<string, object>() {
+                        { "Account/Balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Account/Balance/v2", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Order/MyOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Order/GetById", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Order/AccountHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Order/OrderHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "markets", new Dictionary<string, object>() {
@@ -179,7 +251,9 @@ public partial class bit2c : Exchange
                 } },
             } },
             { "options", new Dictionary<string, object>() {
-                { "fetchTradesMethod", "public_get_exchanges_pair_trades" },
+                { "fetchTrades", new Dictionary<string, object>() {
+                    { "method", "public_get_exchanges_pair_trades" },
+                } },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -289,7 +363,10 @@ public partial class bit2c : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetAccountBalanceV2(parameters);
         //
         //     {
@@ -344,12 +421,15 @@ public partial class bit2c : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -400,7 +480,10 @@ public partial class bit2c : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -424,9 +507,13 @@ public partial class bit2c : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
-        object method = getValue(this.options, "fetchTradesMethod"); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+        object optionValue = this.safeString(this.options, "fetchTradesMethod"); // kept here for backward compatibility #29154
+        object method = this.handleOption("fetchTrades", "method", optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };
@@ -438,26 +525,32 @@ public partial class bit2c : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // max 100000
         }
-        object response = null;
+        object responseList = new List<object>() {};
         if (isTrue(isEqual(method, "public_get_exchanges_pair_trades")))
         {
-            response = await this.publicGetExchangesPairTrades(this.extend(request, parameters));
+            object response = await this.publicGetExchangesPairTrades(this.extend(request, parameters));
+            //
+            //     [
+            //         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
+            //         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
+            //         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
+            //     ]
+            //
+            if (isTrue((response is string)))
+            {
+                throw new ExchangeError ((string)response) ;
+            }
+            responseList = this.toArray(response);
         } else
         {
-            response = await this.publicGetExchangesPairLasttrades(this.extend(request, parameters));
+            object response = await this.publicGetExchangesPairLasttrades(this.extend(request, parameters));
+            if (isTrue((response is string)))
+            {
+                throw new ExchangeError ((string)response) ;
+            }
+            responseList = this.toArray(response);
         }
-        //
-        //     [
-        //         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
-        //         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
-        //         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
-        //     ]
-        //
-        if (isTrue((response is string)))
-        {
-            throw new ExchangeError ((string)response) ;
-        }
-        return this.parseTrades(response, market, since, limit);
+        return this.parseTrades(responseList, market, since, limit);
     }
 
     /**
@@ -471,7 +564,10 @@ public partial class bit2c : Exchange
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetAccountBalance(parameters);
         //
         //     {
@@ -529,7 +625,10 @@ public partial class bit2c : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object method = "privatePostOrderAddOrder";
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
@@ -589,7 +688,10 @@ public partial class bit2c : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -614,7 +716,10 @@ public partial class bit2c : Exchange
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "id", id },
@@ -780,7 +885,10 @@ public partial class bit2c : Exchange
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(limit, null)))
@@ -837,7 +945,12 @@ public partial class bit2c : Exchange
         //         }
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        object responseList = new List<object>() {};
+        if (isTrue(!isEqual(response, null)))
+        {
+            responseList = this.toArray(response);
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
 
     public virtual object removeCommaFromValue(object str)
@@ -977,7 +1090,10 @@ public partial class bit2c : Exchange
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         if (isTrue(this.isFiat(code)))
         {

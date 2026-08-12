@@ -1,12 +1,12 @@
 
 // ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, DepositAddress, Dict, FundingRate, FundingRates, int, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, NullResponse } from '../ccxt.js';
+import type { Balances, Bool, Currency, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, Transaction, TransferEntry, Endpoint } from './base/types.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, NullResponse } from './base/errors.js';
 
 // ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, Invali
  * @augments Exchange
  */
 export default class deepcoin extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'deepcoin',
             'name': 'DeepCoin',
@@ -153,65 +153,65 @@ export default class deepcoin extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'deepcoin/market/books': 1,
-                        'deepcoin/market/candles': 1,
-                        'deepcoin/market/instruments': 1,
-                        'deepcoin/market/tickers': 1,
-                        'deepcoin/market/index-candles': 1,
-                        'deepcoin/market/trades': 1,
-                        'deepcoin/market/mark-price-candles': 1,
-                        'deepcoin/market/step-margin': 5,
-                        'deepcoin/trade/funding-rate': 5,
-                        'deepcoin/trade/fund-rate/current-funding-rate': 5,
-                        'deepcoin/trade/fund-rate/history': 5,
+                        'deepcoin/market/books': { 'cost': 1 } as Endpoint<Dict>,
+                        'deepcoin/market/candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'deepcoin/market/instruments': { 'cost': 1 } as Endpoint<Dict>,
+                        'deepcoin/market/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        'deepcoin/market/index-candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'deepcoin/market/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'deepcoin/market/mark-price-candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'deepcoin/market/step-margin': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/funding-rate': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/fund-rate/current-funding-rate': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/fund-rate/history': { 'cost': 5 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'deepcoin/account/balances': 5,
-                        'deepcoin/account/bills': 5,
-                        'deepcoin/account/positions': 5,
-                        'deepcoin/trade/fills': 5,
-                        'deepcoin/trade/orderByID': 5,
-                        'deepcoin/trade/finishOrderByID': 5,
-                        'deepcoin/trade/orders-history': 5,
-                        'deepcoin/trade/v2/orders-pending': 5,
-                        'deepcoin/trade/trigger-orders-pending': 5,
-                        'deepcoin/trade/trigger-orders-history': 5,
-                        'deepcoin/copytrading/support-contracts': 5,
-                        'deepcoin/copytrading/leader-position': 5,
-                        'deepcoin/copytrading/estimate-profit': 5,
-                        'deepcoin/copytrading/history-profit': 5,
-                        'deepcoin/copytrading/follower-rank': 5,
-                        'deepcoin/internal-transfer/support': 5,
-                        'deepcoin/internal-transfer/history-order': 5,
-                        'deepcoin/rebate/config': 5,
-                        'deepcoin/agents/users': 5,
-                        'deepcoin/agents/users/rebate-list': 5,
-                        'deepcoin/agents/users/rebates': 5,
-                        'deepcoin/asset/deposit-list': 5,
-                        'deepcoin/asset/withdraw-list': 5,
-                        'deepcoin/asset/recharge-chain-list': 5,
-                        'deepcoin/listenkey/acquire': 5,
-                        'deepcoin/listenkey/extend': 5,
+                        'deepcoin/account/balances': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/account/bills': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/account/positions': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/fills': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/orderByID': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/finishOrderByID': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/orders-history': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/v2/orders-pending': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/trigger-orders-pending': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/trigger-orders-history': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/copytrading/support-contracts': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/copytrading/leader-position': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/copytrading/estimate-profit': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/copytrading/history-profit': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/copytrading/follower-rank': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/internal-transfer/support': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/internal-transfer/history-order': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/rebate/config': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/agents/users': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/agents/users/rebate-list': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/agents/users/rebates': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/asset/deposit-list': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/asset/withdraw-list': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/asset/recharge-chain-list': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/listenkey/acquire': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/listenkey/extend': { 'cost': 5 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'deepcoin/account/set-leverage': 5,
-                        'deepcoin/trade/order': 5,
-                        'deepcoin/trade/replace-order': 5,
-                        'deepcoin/trade/cancel-order': 5,
-                        'deepcoin/trade/batch-cancel-order': 5,
-                        'deepcoin/trade/cancel-trigger-order': 1 / 6,
-                        'deepcoin/trade/swap/cancel-all': 5,
-                        'deepcoin/trade/trigger-order': 5,
-                        'deepcoin/trade/batch-close-position': 5,
-                        'deepcoin/trade/replace-order-sltp': 5,
-                        'deepcoin/trade/close-position-by-ids': 5,
-                        'deepcoin/copytrading/leader-settings': 5,
-                        'deepcoin/copytrading/set-contracts': 5,
-                        'deepcoin/internal-transfer': 5,
-                        'deepcoin/rebate/config': 5,
-                        'deepcoin/asset/transfer': 5,
+                        'deepcoin/account/set-leverage': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/order': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/replace-order': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/cancel-order': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/batch-cancel-order': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/cancel-trigger-order': { 'cost': 1 / 6 } as Endpoint<Dict>,
+                        'deepcoin/trade/swap/cancel-all': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/trigger-order': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/batch-close-position': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/replace-order-sltp': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/close-position-by-ids': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/copytrading/leader-settings': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/copytrading/set-contracts': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/internal-transfer': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/rebate/config': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/asset/transfer': { 'cost': 5 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -309,7 +309,7 @@ export default class deepcoin extends Exchange {
                 'networks': {
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
-                    'ARB': 'ARBITRUM',
+                    'ARBITRUM': 'ARBITRUM',
                     'BSC': 'BSC(BEP20)',
                     'SOL': 'SOL',
                     'BTC': 'Bitcoin',
@@ -366,7 +366,7 @@ export default class deepcoin extends Exchange {
         });
     }
 
-    handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue = undefined): any {
+    override handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue: any = undefined): any {
         const instType = this.safeString (params, 'instType');
         params = this.omit (params, 'instType');
         const type = this.safeString (params, 'type');
@@ -376,9 +376,9 @@ export default class deepcoin extends Exchange {
         return super.handleMarketTypeAndParams (methodName, market, params, defaultValue);
     }
 
-    convertToInstrumentType (type) {
+    convertToInstrumentType (type: any) {
         const exchangeTypes = this.safeDict (this.options, 'exchangeType', {});
-        return this.safeString (exchangeTypes, type, type);
+        return this.safeString (exchangeTypes, (type as string), type);
     }
 
     /**
@@ -389,16 +389,16 @@ export default class deepcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
-        let types = [ 'spot', 'swap' ];
+    override async fetchMarkets (params = {}): Promise<Market[]> {
+        let types: List = [ 'spot', 'swap' ];
         const fetchMarketsOption = this.safeDict (this.options, 'fetchMarkets');
         if (fetchMarketsOption !== undefined) {
-            types = this.safeList (fetchMarketsOption, 'types', types);
+            types = this.safeList (fetchMarketsOption, 'types', types) as List;
         } else {
-            types = this.safeList (this.options, 'fetchMarkets', types); // backward-support
+            types = this.safeList (this.options, 'fetchMarkets', types) as List; // backward-support
         }
-        let promises = [];
-        let result = [];
+        let promises: List = [];
+        let result: List = [];
         for (let i = 0; i < types.length; i++) {
             promises.push (this.fetchMarketsByType (types[i], params));
         }
@@ -409,7 +409,7 @@ export default class deepcoin extends Exchange {
         return result;
     }
 
-    async fetchMarketsByType (type, params = {}) {
+    async fetchMarketsByType (type: any, params = {}) {
         const request: Dict = {
             'instType': this.convertToInstrumentType (type),
         };
@@ -447,7 +447,7 @@ export default class deepcoin extends Exchange {
         return this.parseMarkets (dataResponse);
     }
 
-    parseMarket (market: Dict): Market {
+    override parseMarket (market: Dict): Market {
         //
         // spot markets
         //
@@ -499,25 +499,27 @@ export default class deepcoin extends Exchange {
         const swap = (type === 'swap');
         const baseId = this.safeString (market, 'baseCcy');
         const quoteId = this.safeString (market, 'quoteCcy', '');
-        let settleId = undefined;
-        let settle = undefined;
+        let settleId: Str = undefined;
+        let settle: Str = undefined;
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
-        let isLinear = undefined;
+        let isLinear: Bool = undefined;
         if (swap) {
             isLinear = (quoteId !== 'USD');
             settleId = isLinear ? quoteId : baseId;
             settle = this.safeCurrencyCode (settleId);
             symbol = symbol + ':' + settle;
         }
-        const fees = this.safeDict2 (this.fees, type, 'trading', {});
-        let maxLeverage = this.safeString (market, 'lever', '1');
+        const fees = this.safeDict2 (this.fees, type, 'trading', {}) as Dict;
+        let maxLeverage: Str = this.safeString (market, 'lever', '1');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
         const maxMarketSize = this.safeString (market, 'maxMktSz');
         const maxLimitSize = this.safeString (market, 'maxLmtSz');
         const maxAmount = this.parseNumber (Precise.stringMax (maxMarketSize, maxLimitSize));
         const state = this.safeString (market, 'state');
+        const isMargin = spot && (Precise.stringGt (maxLeverage, '1'));
+        const isInverse = swap ? (!isLinear) : undefined;
         return this.extend (fees, {
             'id': id,
             'symbol': symbol,
@@ -529,14 +531,14 @@ export default class deepcoin extends Exchange {
             'settleId': settleId,
             'type': type,
             'spot': spot,
-            'margin': spot && (Precise.stringGt (maxLeverage, '1')),
+            'margin': isMargin,
             'swap': swap,
             'future': false,
             'option': false,
             'active': state === 'live',
             'contract': swap,
             'linear': isLinear,
-            'inverse': swap ? (!isLinear) : undefined,
+            'inverse': isInverse,
             'contractSize': swap ? this.safeNumber (market, 'ctVal') : undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -569,18 +571,20 @@ export default class deepcoin extends Exchange {
         });
     }
 
-    setMarkets (markets, currencies = undefined) {
-        markets = super.setMarkets (markets, currencies);
-        const symbols = Object.keys (markets);
+    override setMarkets (markets: any, currencies = undefined) {
+        const result = super.setMarkets (markets, currencies);
+        const symbols = Object.keys (result);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const market = markets[symbol];
-            if (market['swap']) {
-                const additionalId = market['baseId'] + market['quoteId'];
-                this.markets_by_id[additionalId] = [ market ]; // some endpoints return swap market id as base+quote
+            const market = result[symbol];
+            if ((market !== undefined) && market['swap']) {
+                const additionalId = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', '');
+                if (this.markets_by_id !== undefined) {
+                    this.markets_by_id[additionalId] = [ market ]; // some endpoints return swap market id as base+quote
+                }
             }
         }
-        return this.markets;
+        return result;
     }
 
     /**
@@ -591,10 +595,12 @@ export default class deepcoin extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (limit === undefined) {
             limit = 400;
@@ -620,7 +626,7 @@ export default class deepcoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {}) as Dict;
         return this.parseOrderBook (data, symbol, undefined, 'bids', 'asks', 0, 1);
     }
 
@@ -641,8 +647,10 @@ export default class deepcoin extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+    override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const maxLimit = 300;
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
@@ -671,7 +679,7 @@ export default class deepcoin extends Exchange {
             params = this.omit (params, 'calculateUntil');
             if (since !== undefined) {
                 // the exchange do not have a since param for this endpoint
-                // we canlculate until (after) for correct pagination
+                // we calculate until (after) for correct pagination
                 const duration = this.parseTimeframe (timeframe);
                 const numberOfCandles = (limit === undefined) ? maxLimit : limit;
                 let endTime = since + (duration * numberOfCandles) * 1000;
@@ -716,7 +724,7 @@ export default class deepcoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -729,11 +737,13 @@ export default class deepcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const market = this.getMarketFromSymbols (symbols);
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const request: Dict = {
             'instType': this.convertToInstrumentType (marketType),
@@ -743,7 +753,7 @@ export default class deepcoin extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "instType": "SWAP",
@@ -816,26 +826,28 @@ export default class deepcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'instId': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 500
+            request['limit'] = Math.min (limit, 500);
         }
         const productGroup = this.getProductGroupFromMarket (market);
         request['productGroup'] = productGroup;
         const response = await this.publicGetDeepcoinMarketTrades (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTrades (data, market, since, limit);
     }
 
     getProductGroupFromMarket (market: Market): string {
         let productGroup = 'Spot';
-        if (market['swap']) {
-            if (market['linear']) {
+        if (this.safeBool (market, 'swap')) {
+            if (this.safeBool (market, 'linear')) {
                 productGroup = 'SwapU';
             } else {
                 productGroup = 'Swap';
@@ -844,7 +856,7 @@ export default class deepcoin extends Exchange {
         return productGroup;
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public fetchTrades
         //
@@ -881,7 +893,7 @@ export default class deepcoin extends Exchange {
         const timestamp = this.safeInteger (trade, 'ts');
         const side = this.safeString (trade, 'side');
         const execType = this.safeString (trade, 'execType');
-        let fee = undefined;
+        let fee: FeeString = undefined;
         const feeCost = this.safeString (trade, 'fee');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeCcy');
@@ -913,7 +925,7 @@ export default class deepcoin extends Exchange {
             'T': 'taker',
             'M': 'maker',
         };
-        return this.safeString (types, execType, execType);
+        return this.safeString (types, execType as string, execType);
     }
 
     /**
@@ -925,9 +937,11 @@ export default class deepcoin extends Exchange {
      * @param {string} [params.type] "spot" or "swap", the market type for the balance
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
-        let marketType = 'spot';
+    override async fetchBalance (params = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, marketType);
         const request: Dict = {
             'instType': this.convertToInstrumentType (marketType),
@@ -936,7 +950,7 @@ export default class deepcoin extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         //
         //     {
         //         "code": "0",
@@ -956,7 +970,7 @@ export default class deepcoin extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const balances = this.safeList (response, 'data', []);
+        const balances = this.safeList (response, 'data', []) as List;
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const symbol = this.safeString (balance, 'ccy');
@@ -965,7 +979,7 @@ export default class deepcoin extends Exchange {
             account['total'] = this.safeString (balance, 'bal');
             account['used'] = this.safeString (balance, 'frozenBal');
             account['free'] = this.safeString (balance, 'availBal');
-            result[code] = account;
+            result[code as string] = account;
         }
         return this.safeBalance (result);
     }
@@ -983,15 +997,17 @@ export default class deepcoin extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'code', undefined, 1, 50) as Transaction[];
         }
         const request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -1009,7 +1025,7 @@ export default class deepcoin extends Exchange {
         }
         const response = await this.privateGetDeepcoinAssetDepositList (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        const items = this.safeList (data, 'data', []);
+        const items = this.safeList (data, 'data', []) as List;
         const transactionParams: Dict = {
             'type': 'deposit',
         };
@@ -1029,15 +1045,17 @@ export default class deepcoin extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate', false);
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'code', undefined, 1, 50) as Transaction[];
+            return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, params, 'code', undefined, 1, 50) as Transaction[];
         }
         const request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -1055,14 +1073,14 @@ export default class deepcoin extends Exchange {
         }
         const response = await this.privateGetDeepcoinAssetWithdrawList (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        const items = this.safeList (data, 'data', []);
+        const items = this.safeList (data, 'data', []) as List;
         const transactionParams: Dict = {
             'type': 'withdrawal',
         };
         return this.parseTransactions (items, currency, since, limit, transactionParams);
     }
 
-    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //     {
@@ -1080,7 +1098,7 @@ export default class deepcoin extends Exchange {
         const amount = this.safeNumber (transaction, 'amount');
         const timestamp = this.safeTimestamp (transaction, 'createTime');
         const networkId = this.safeString (transaction, 'chainName');
-        const network = this.networkIdToCode (networkId);
+        const network = this.networkIdToCode (networkId, code);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         return {
             'info': transaction,
@@ -1114,7 +1132,7 @@ export default class deepcoin extends Exchange {
             'confirming': 'pending',
             'succeed': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     /**
@@ -1126,8 +1144,10 @@ export default class deepcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
-        await this.loadMarkets ();
+    override async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (codes === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddresses requires a list with one currency code');
         }
@@ -1186,8 +1206,10 @@ export default class deepcoin extends Exchange {
      * @param {string} [params.network] unified network code for deposit chain
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        await this.loadMarkets ();
+    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let network = this.safeString (params, 'network');
         const defaultNetworks = this.safeDict (this.options, 'defaultNetworks', {});
         const defaultNetwork = this.safeString (defaultNetworks, code);
@@ -1209,7 +1231,7 @@ export default class deepcoin extends Exchange {
         return address as DepositAddress;
     }
 
-    parseDepositAddress (response, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (response: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "chain": "TRC20",
@@ -1231,13 +1253,14 @@ export default class deepcoin extends Exchange {
         const chain = this.safeString (response, 'chain');
         const address = this.safeString (response, 'address');
         this.checkAddress (address);
+        const code = this.safeString (currency, 'code');
         return {
             'info': response,
             'currency': undefined,
-            'network': this.networkIdToCode (chain),
+            'network': this.networkIdToCode (chain, code),
             'address': address,
             'tag': this.safeString (response, 'memo'),
-        } as DepositAddress;
+        };
     }
 
     /**
@@ -1253,14 +1276,16 @@ export default class deepcoin extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap', the market type for the ledger (default 'spot')
      * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
-        await this.loadMarkets ();
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params, marketType);
         const request: Dict = {
             'instType': this.convertToInstrumentType (marketType),
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['ccy'] = currency['id'];
@@ -1303,11 +1328,11 @@ export default class deepcoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseLedger (data, currency, since, limit);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+    override parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         //     {
         //         "billId": "1001044652247714",
@@ -1345,7 +1370,7 @@ export default class deepcoin extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const ledgerType: Dict = {
             '1': 'trade',
             '2': 'trade',
@@ -1353,7 +1378,7 @@ export default class deepcoin extends Exchange {
             '4': 'transfer',
             '5': 'fee',
         };
-        return this.safeString (ledgerType, type, type);
+        return this.safeString (ledgerType, (type as string), type);
     }
 
     /**
@@ -1369,14 +1394,16 @@ export default class deepcoin extends Exchange {
      * @param {string} [params.userId] user id
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        let userId = undefined;
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+        let userId: Str = undefined;
         [ userId, params ] = this.handleOptionAndParams (params, 'transfer', 'userId');
         userId = userId ? userId : this.safeString (params, 'uid');
         if (userId === undefined) {
             throw new ArgumentsRequired (this.id + ' transfer() requires a userId parameter');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
@@ -1412,7 +1439,7 @@ export default class deepcoin extends Exchange {
         return transfer;
     }
 
-    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+    override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         //     {
         //         "retCode": 0,
@@ -1466,8 +1493,10 @@ export default class deepcoin extends Exchange {
      * @param {string} [params.marginMode] *swap only*'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const triggerPrice = this.safeString (params, 'triggerPrice');
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
@@ -1492,17 +1521,23 @@ export default class deepcoin extends Exchange {
             //
             response = await this.privatePostDeepcoinTradeOrder (request);
         }
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {}) as Dict;
         return this.parseOrder (data, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
         /**
          * @method
          * @ignore
          * @name deepcoin#createOrderRequest
          * @description helper function to build request
          */
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         const triggerPrice = this.safeString (params, 'triggerPrice');
         // const isTriggerOrder = (triggerPrice !== undefined) || this.safeString2 (params, 'stopLossPrice', 'takeProfitPrice') !== undefined;
@@ -1520,7 +1555,7 @@ export default class deepcoin extends Exchange {
         }
     }
 
-    createRegularOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createRegularOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
         /**
          * @method
          * @ignore
@@ -1542,6 +1577,12 @@ export default class deepcoin extends Exchange {
          * @param {string} [params.marginMode] *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
          * @param {string} [params.mrgPosition] *swap only* 'merge' or 'split', the default is 'merge'
          */
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         let orderType = type;
         [ orderType, params ] = this.handleTypePostOnlyAndTimeInForce (type, params);
@@ -1631,7 +1672,7 @@ export default class deepcoin extends Exchange {
         return this.extend (request, params);
     }
 
-    createTriggerOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createTriggerOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
         /**
          * @method
          * @ignore
@@ -1646,6 +1687,12 @@ export default class deepcoin extends Exchange {
          * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin orders
          * @param {string} [params.marginMode] *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
          */
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'instId': market['id'],
@@ -1709,7 +1756,7 @@ export default class deepcoin extends Exchange {
         return this.extend (request, params);
     }
 
-    handleTypePostOnlyAndTimeInForce (type: OrderType, params) {
+    handleTypePostOnlyAndTimeInForce (type: Str, params: any) {
         let postOnly = false;
         [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
         if (postOnly) {
@@ -1733,7 +1780,7 @@ export default class deepcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
+    override async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
         params = this.extend (params, { 'cost': cost });
         return await this.createOrder (symbol, 'market', side, 0, undefined, params);
     }
@@ -1747,7 +1794,7 @@ export default class deepcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}): Promise<Order> {
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}): Promise<Order> {
         params = this.extend (params, { 'cost': cost });
         return await this.createOrder (symbol, 'market', 'buy', 0, undefined, params);
     }
@@ -1761,7 +1808,7 @@ export default class deepcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createMarketSellOrderWithCost (symbol: string, cost: number, params = {}): Promise<Order> {
+    override async createMarketSellOrderWithCost (symbol: string, cost: number, params = {}): Promise<Order> {
         params = this.extend (params, { 'cost': cost });
         return await this.createOrder (symbol, 'market', 'sell', 0, undefined, params);
     }
@@ -1777,7 +1824,9 @@ export default class deepcoin extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrder() requires a symbol argument');
         }
@@ -1834,7 +1883,7 @@ export default class deepcoin extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const entry = this.safeDict (data, 0, {});
+        const entry = this.safeDict (data, 0, {}) as Dict;
         return this.parseOrder (entry, market);
     }
 
@@ -1849,7 +1898,9 @@ export default class deepcoin extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrder() requires a symbol argument');
         }
@@ -1859,12 +1910,12 @@ export default class deepcoin extends Exchange {
             'ordId': id,
         };
         const response = await this.privateGetDeepcoinTradeOrderByID (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const length = data.length;
         if (length === 0) {
-            return undefined;
+            throw new OrderNotFound (this.id + ' fetchOpenOrder() could not find order id ' + id);
         }
-        const entry = this.safeDict (data, 0, {});
+        const entry = this.safeDict (data, 0, {}) as Dict;
         return this.parseOrder (entry, market);
     }
 
@@ -1885,8 +1936,10 @@ export default class deepcoin extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate');
         if (paginate) {
@@ -1994,7 +2047,7 @@ export default class deepcoin extends Exchange {
             response = await this.privateGetDeepcoinTradeOrdersHistory (this.extend (request, params));
         }
         // todo handle with since, until and pagination
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -2010,7 +2063,7 @@ export default class deepcoin extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap', the market type for the orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const methodName = 'fetchCanceledOrders';
         params = this.extend (params, { 'methodName': methodName });
         params = this.extend (params, { 'state': 'canceled' });
@@ -2029,7 +2082,7 @@ export default class deepcoin extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap', the market type for the orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const methodName = 'fetchClosedOrders';
         params = this.extend (params, { 'methodName': methodName });
         params = this.extend (params, { 'state': 'filled' });
@@ -2051,8 +2104,10 @@ export default class deepcoin extends Exchange {
      * @param {string} [params.orderType] *trigger orders only* 'limit' or 'market'
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -2151,7 +2206,7 @@ export default class deepcoin extends Exchange {
             //
             response = await this.privateGetDeepcoinTradeV2OrdersPending (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data, market, since, limit, { 'status': 'open' });
     }
 
@@ -2166,8 +2221,10 @@ export default class deepcoin extends Exchange {
      * @param {bool} [params.trigger] whether the order is a trigger/algo order (default false)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -2184,7 +2241,7 @@ export default class deepcoin extends Exchange {
         } else {
             response = await this.privatePostDeepcoinTradeCancelOrder (this.extend (request, params));
         }
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {}) as Dict;
         return this.parseOrder (data, market);
     }
 
@@ -2199,8 +2256,10 @@ export default class deepcoin extends Exchange {
      * @param {bool} [params.merged] *swap only* true for merged positions, false for split positions (default true)
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+    override async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
@@ -2219,14 +2278,15 @@ export default class deepcoin extends Exchange {
         }
         let merged = true;
         [ merged, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'merged', merged);
+        const isMergedMode = merged ? 1 : 0;
         const request: Dict = {
             'InstrumentID': market['id'],
             'ProductGroup': productGroup,
             'IsCrossMargin': encodedMarginMode,
-            'IsMergeMode': merged ? 1 : 0,
+            'IsMergeMode': isMergedMode,
         };
         const response = await this.privatePostDeepcoinTradeSwapCancelAll (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data, market);
     }
 
@@ -2247,8 +2307,10 @@ export default class deepcoin extends Exchange {
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'OrderSysID': id,
         };
@@ -2293,7 +2355,7 @@ export default class deepcoin extends Exchange {
             }
             response = await this.privatePostDeepcoinTradeReplaceOrder (this.extend (request, params));
         }
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {}) as Dict;
         return this.parseOrder (data);
     }
 
@@ -2306,8 +2368,10 @@ export default class deepcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2319,11 +2383,11 @@ export default class deepcoin extends Exchange {
             'OrderSysIDs': ids,
         };
         const response = await this.privatePostDeepcoinTradeBatchCancelOrder (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data, market);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // regular order
         //     {
@@ -2393,7 +2457,7 @@ export default class deepcoin extends Exchange {
         const marketId = this.safeString (order, 'instId');
         market = this.safeMarket (marketId, market);
         let timestamp = this.safeInteger (order, 'cTime');
-        const timestampString = this.safeString (order, 'cTime', '');
+        const timestampString = this.safeString (order, 'cTime', '') as string;
         if (timestampString.length < 13) {
             timestamp = this.safeTimestamp (order, 'cTime');
         }
@@ -2404,7 +2468,7 @@ export default class deepcoin extends Exchange {
             average = undefined;
         }
         const feeCurrencyId = this.safeString (order, 'feeCcy');
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (feeCurrencyId !== undefined) {
             const feeCost = this.safeString (order, 'fee');
             fee = {
@@ -2429,7 +2493,7 @@ export default class deepcoin extends Exchange {
             'amount': this.safeString (order, 'sz'),
             'filled': this.safeString (order, 'accFillSz'),
             'remaining': undefined,
-            'triggerPrice': this.omitZero (this.safeString (order, 'triggerPx')),
+            'triggerPrice': this.omitZero (this.safeString (order, 'triggerPx') as string),
             'takeProfitPrice': this.safeString2 (order, 'tpTriggerPx', 'tpTriggerPrice'),
             'stopLossPrice': this.safeString2 (order, 'slTriggerPx', 'slTriggerPrice'),
             'cost': undefined,
@@ -2448,7 +2512,7 @@ export default class deepcoin extends Exchange {
             'canceled': 'canceled',
             'partially_filled': 'open',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrderType (type: Str): Str {
@@ -2459,7 +2523,7 @@ export default class deepcoin extends Exchange {
             'ioc': 'market',
             'TPSL': 'market',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseOrderTimeInForce (type: Str): Str {
@@ -2469,7 +2533,7 @@ export default class deepcoin extends Exchange {
             'limit': 'GTC',
             'market': 'GTC',
         };
-        return this.safeString (timeInForces, type, type);
+        return this.safeString (timeInForces, (type as string), type);
     }
 
     /**
@@ -2482,8 +2546,10 @@ export default class deepcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+    override async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const instrumentType = this.convertToInstrumentType (market['type']);
         const request: Dict = {
@@ -2491,7 +2557,7 @@ export default class deepcoin extends Exchange {
             'instId': market['id'],
         };
         const response = await this.privateGetDeepcoinAccountPositions (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parsePositions (data, [ market['symbol'] ]);
     }
 
@@ -2504,8 +2570,10 @@ export default class deepcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, true, true);
         let marketType = 'swap';
         let market: Market = undefined;
@@ -2543,11 +2611,11 @@ export default class deepcoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parsePositions (data, symbols);
     }
 
-    parsePosition (position: Dict, market: Market = undefined): Position {
+    override parsePosition (position: Dict, market: Market = undefined): Position {
         //
         //     {
         //         "instType": "SWAP",
@@ -2578,7 +2646,7 @@ export default class deepcoin extends Exchange {
             'contractSize': undefined,
             'side': this.safeString (position, 'posSide'),
             'notional': undefined,
-            'leverage': this.omitZero (this.safeString (position, 'lever')),
+            'leverage': this.omitZero (this.safeString (position, 'lever') as string),
             'unrealizedPnl': undefined,
             'realizedPnl': undefined,
             'collateral': undefined,
@@ -2613,7 +2681,7 @@ export default class deepcoin extends Exchange {
      * @param {string} [params.mrgPosition] 'merge' or 'split', default is merge
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -2622,7 +2690,9 @@ export default class deepcoin extends Exchange {
         if (leverage < 1) {
             throw new BadRequest (this.id + ' setLeverage() leverage should be minimum 1');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         let marginMode = 'cross';
         [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params, marginMode);
@@ -2668,10 +2738,12 @@ export default class deepcoin extends Exchange {
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
-        await this.loadMarkets ();
+    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, 'swap', true, true, true);
-        let subType = 'linear';
+        let subType: SubType = 'linear';
         let firstMarket: Market = undefined;
         if (symbols !== undefined) {
             const firstSymbol = this.safeString (symbols, 0);
@@ -2720,8 +2792,10 @@ export default class deepcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
-        await this.loadMarkets ();
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (!market['swap']) {
             throw new ExchangeError (this.id + ' fetchFundingRate() is only valid for swap markets');
@@ -2751,7 +2825,7 @@ export default class deepcoin extends Exchange {
         return this.parseFundingRate (entry, market);
     }
 
-    parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "instrumentId": "ETHUSDT",
@@ -2794,11 +2868,13 @@ export default class deepcoin extends Exchange {
      * @param {int} [params.page] pagination page number
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'instId': market['id'],
@@ -2834,7 +2910,7 @@ export default class deepcoin extends Exchange {
         return this.parseFundingRateHistories (rows, market, since, limit);
     }
 
-    parseFundingRateHistory (info, market: Market = undefined) {
+    override parseFundingRateHistory (info: any, market: Market = undefined): FundingRateHistory {
         //
         //     {
         //         "instrumentID": "ETHUSD",
@@ -2849,7 +2925,7 @@ export default class deepcoin extends Exchange {
         return {
             'info': info,
             'symbol': market['symbol'],
-            'fundingRate': this.safeNumber (info, 'rate'),
+            'fundingRate': this.safeNumber (info, 'rate') as number,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
@@ -2869,8 +2945,10 @@ export default class deepcoin extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -2925,7 +3003,7 @@ export default class deepcoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -2942,8 +3020,10 @@ export default class deepcoin extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap', the market type for the trades
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const marketType = this.safeString (params, 'type');
         if (symbol === undefined && marketType === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrderTrades requires a symbol argument or a market type in the params');
@@ -2965,8 +3045,10 @@ export default class deepcoin extends Exchange {
      * @param {string[]|undefined} [params.positionIds] list of position ids to close (for batch closing)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+    override async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const productGroup = this.getProductGroupFromMarket (market);
         const positionId = this.safeString (params, 'positionId');
@@ -2985,11 +3067,11 @@ export default class deepcoin extends Exchange {
             }
             response = await this.privatePostDeepcoinTradeClosePositionByIds (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrder (data, market);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let requestPath = path;
         if (method === 'GET') {
             const query = this.urlencode (params);
@@ -3020,7 +3102,7 @@ export default class deepcoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         const data = this.safeDict (response, 'data', {});
         let msg = this.safeString (response, 'msg');
         const messageCode = this.safeString (response, 'code');

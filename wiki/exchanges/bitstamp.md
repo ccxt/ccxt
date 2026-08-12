@@ -18,13 +18,16 @@
 * [fetchTransactionFees](#fetchtransactionfees)
 * [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
 * [createOrder](#createorder)
+* [editOrder](#editorder)
 * [cancelOrder](#cancelorder)
 * [cancelAllOrders](#cancelallorders)
 * [fetchOrder](#fetchorder)
 * [fetchMyTrades](#fetchmytrades)
+* [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchDepositsWithdrawals](#fetchdepositswithdrawals)
 * [fetchWithdrawals](#fetchwithdrawals)
 * [fetchLedger](#fetchledger)
+* [fetchFundingRate](#fetchfundingrate)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchDepositAddress](#fetchdepositaddress)
 * [withdraw](#withdraw)
@@ -49,7 +52,7 @@ retrieves data on all markets for bitstamp
 
 
 ```javascript
-bitstamp.fetchMarkets ([params])
+bitstamp.fetchMarkets (params?)
 ```
 
 
@@ -69,7 +72,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bitstamp.fetchCurrencies ([params])
+bitstamp.fetchCurrencies (params?)
 ```
 
 
@@ -79,7 +82,7 @@ bitstamp.fetchCurrencies ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitstamp</code>](#bitstamp)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.bitstamp.net/api/#tag/Order-book/operation/GetOrderBook  
 
@@ -91,7 +94,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitstamp.fetchOrderBook (symbol[, limit, params])
+bitstamp.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -112,7 +115,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitstamp.fetchTicker (symbol[, params])
+bitstamp.fetchTicker (symbol, params?)
 ```
 
 
@@ -133,7 +136,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bitstamp.fetchTickers (symbols[, params])
+bitstamp.fetchTickers (symbols, params?)
 ```
 
 
@@ -156,7 +159,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitstamp.fetchTrades (symbol[, since, limit, params])
+bitstamp.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -180,7 +183,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitstamp.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bitstamp.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -200,7 +203,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bitstamp.fetchBalance ([params])
+bitstamp.fetchBalance (params?)
 ```
 
 
@@ -221,7 +224,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-bitstamp.fetchTradingFee (symbol[, params])
+bitstamp.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -241,7 +244,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-bitstamp.fetchTradingFees ([params])
+bitstamp.fetchTradingFees (params?)
 ```
 
 
@@ -264,7 +267,7 @@ please use fetchDepositWithdrawFees instead
 
 
 ```javascript
-bitstamp.fetchTransactionFees (codes[, params])
+bitstamp.fetchTransactionFees (codes, params?)
 ```
 
 
@@ -285,7 +288,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-bitstamp.fetchDepositWithdrawFees (codes[, params])
+bitstamp.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -318,7 +321,36 @@ create a trade order
 
 
 ```javascript
-bitstamp.createOrder (symbol, type, side, amount[, price, params])
+bitstamp.createOrder (symbol, type, side, amount, price?, params?)
+```
+
+
+<a name="editOrder" id="editorder"></a>
+
+### editOrder{docsify-ignore}
+edit a trade order
+
+**Kind**: instance method of [<code>bitstamp</code>](#bitstamp)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://www.bitstamp.net/api/#tag/Orders/operation/ReplaceOrder  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | No | unified symbol of the market to create an order in |
+| type | <code>string</code> | No | 'market', 'limit' or 'stop_limit' |
+| side | <code>string</code> | No | 'buy' or 'sell' |
+| amount | <code>float</code> | No | how much of the currency you want to trade in units of the base currency |
+| price | <code>float</code> | No | the price for the order, in units of the quote currency, ignored in market orders |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.triggerPrice | <code>string</code> | No | the price to trigger a stop order |
+| params.timeInForce | <code>string</code> | No | for crypto trading either 'gtc' or 'ioc' can be used |
+| params.clientOrderId | <code>string</code> | No | a unique identifier for the order, automatically generated if not sent |
+
+
+```javascript
+bitstamp.editOrder (id, symbol?, type?, side?, amount?, price?, params?)
 ```
 
 
@@ -340,7 +372,7 @@ cancels an open order
 
 
 ```javascript
-bitstamp.cancelOrder (id, symbol[, params])
+bitstamp.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -360,12 +392,12 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitstamp.cancelAllOrders (symbol[, params])
+bitstamp.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -387,7 +419,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bitstamp.fetchOrder (id, symbol[, params])
+bitstamp.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -414,7 +446,33 @@ fetch all trades made by the user
 
 
 ```javascript
-bitstamp.fetchMyTrades (symbol[, since, limit, params])
+bitstamp.fetchMyTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchFundingRateHistory" id="fetchfundingratehistory"></a>
+
+### fetchFundingRateHistory{docsify-ignore}
+fetches historical funding rate prices
+
+**Kind**: instance method of [<code>bitstamp</code>](#bitstamp)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
+
+**See**: https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRateHistory  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
+| since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest funding rate |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
+
+
+```javascript
+bitstamp.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -437,7 +495,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-bitstamp.fetchDepositsWithdrawals ([code, since, limit, params])
+bitstamp.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -460,7 +518,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-bitstamp.fetchWithdrawals (code[, since, limit, params])
+bitstamp.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -483,7 +541,28 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-bitstamp.fetchLedger ([code, since, limit, params])
+bitstamp.fetchLedger (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchFundingRate" id="fetchfundingrate"></a>
+
+### fetchFundingRate{docsify-ignore}
+fetch the current funding rate
+
+**Kind**: instance method of [<code>bitstamp</code>](#bitstamp)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitstamp.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -510,7 +589,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bitstamp.fetchOpenOrders (symbol[, since, limit, params])
+bitstamp.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -531,7 +610,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bitstamp.fetchDepositAddress (code[, params])
+bitstamp.fetchDepositAddress (code, params?)
 ```
 
 
@@ -559,7 +638,7 @@ make a withdrawal
 
 
 ```javascript
-bitstamp.withdraw (code, amount, address, tag[, params])
+bitstamp.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -587,7 +666,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-bitstamp.transfer (code, amount, fromAccount, toAccount[, params])
+bitstamp.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -597,7 +676,7 @@ bitstamp.transfer (code, amount, fromAccount, toAccount[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitstamp</code>](#bitstamp)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -608,7 +687,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitstamp.watchOrderBook (symbol[, limit, params])
+bitstamp.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -630,7 +709,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitstamp.watchTrades (symbol[, since, limit, params])
+bitstamp.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -652,6 +731,6 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-bitstamp.watchOrders (symbol[, since, limit, params])
+bitstamp.watchOrders (symbol, since?, limit?, params?)
 ```
 

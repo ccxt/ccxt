@@ -7,158 +7,197 @@
 
 package ccxt
 
-func (this *IndependentreserveCore) PublicGetGetValidPrimaryCurrencyCodes(args ...interface{}) <-chan interface{} {
+// PublicGetGetValidPrimaryCurrencyCodes returns a channel that yields a JSON array.
+func (this *IndependentreserveCore) PublicGetGetValidPrimaryCurrencyCodes(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetValidPrimaryCurrencyCodes", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetValidSecondaryCurrencyCodes(args ...interface{}) <-chan interface{} {
+// PublicGetGetValidSecondaryCurrencyCodes returns a channel that yields a JSON array.
+func (this *IndependentreserveCore) PublicGetGetValidSecondaryCurrencyCodes(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetValidSecondaryCurrencyCodes", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetValidLimitOrderTypes(args ...interface{}) <-chan interface{} {
+// PublicGetGetValidLimitOrderTypes returns a channel that yields a JSON array.
+func (this *IndependentreserveCore) PublicGetGetValidLimitOrderTypes(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetValidLimitOrderTypes", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetValidMarketOrderTypes(args ...interface{}) <-chan interface{} {
+// PublicGetGetValidMarketOrderTypes returns a channel that yields a JSON array.
+func (this *IndependentreserveCore) PublicGetGetValidMarketOrderTypes(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetValidMarketOrderTypes", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetValidOrderTypes(args ...interface{}) <-chan interface{} {
+// PublicGetGetValidOrderTypes returns a channel that yields a JSON array.
+func (this *IndependentreserveCore) PublicGetGetValidOrderTypes(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetValidOrderTypes", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetValidTransactionTypes(args ...interface{}) <-chan interface{} {
+// PublicGetGetValidTransactionTypes returns a channel that yields a JSON array.
+func (this *IndependentreserveCore) PublicGetGetValidTransactionTypes(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetValidTransactionTypes", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetMarketSummary(args ...interface{}) <-chan interface{} {
+// PublicGetGetMarketSummary returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PublicGetGetMarketSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetMarketSummary", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetOrderBook(args ...interface{}) <-chan interface{} {
+// PublicGetGetOrderBook returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PublicGetGetOrderBook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetOrderBook", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetAllOrders(args ...interface{}) <-chan interface{} {
+// PublicGetGetAllOrders returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PublicGetGetAllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetAllOrders", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetTradeHistorySummary(args ...interface{}) <-chan interface{} {
+// PublicGetGetTradeHistorySummary returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PublicGetGetTradeHistorySummary(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetTradeHistorySummary", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetRecentTrades(args ...interface{}) <-chan interface{} {
+// PublicGetGetRecentTrades returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PublicGetGetRecentTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetRecentTrades", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetFxRates(args ...interface{}) <-chan interface{} {
+// PublicGetGetFxRates returns a channel that yields a JSON array.
+func (this *IndependentreserveCore) PublicGetGetFxRates(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetFxRates", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetOrderMinimumVolumes(args ...interface{}) <-chan interface{} {
+// PublicGetGetOrderMinimumVolumes returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PublicGetGetOrderMinimumVolumes(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetOrderMinimumVolumes", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetCryptoWithdrawalFees(args ...interface{}) <-chan interface{} {
+// PublicGetGetCryptoWithdrawalFees returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PublicGetGetCryptoWithdrawalFees(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetCryptoWithdrawalFees", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetCryptoWithdrawalFees2(args ...interface{}) <-chan interface{} {
+// PublicGetGetCryptoWithdrawalFees2 returns a channel that yields a JSON array.
+func (this *IndependentreserveCore) PublicGetGetCryptoWithdrawalFees2(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetCryptoWithdrawalFees2", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetNetworks(args ...interface{}) <-chan interface{} {
+// PublicGetGetNetworks returns a channel that yields a JSON array.
+func (this *IndependentreserveCore) PublicGetGetNetworks(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetNetworks", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetPrimaryCurrencyConfig2(args ...interface{}) <-chan interface{} {
+// PublicGetGetPrimaryCurrencyConfig2 returns a channel that yields a JSON array.
+func (this *IndependentreserveCore) PublicGetGetPrimaryCurrencyConfig2(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetPrimaryCurrencyConfig2", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetOpenOrders(args ...interface{}) <-chan interface{} {
+// PrivatePostGetOpenOrders returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostGetOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetOpenOrders", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetClosedOrders(args ...interface{}) <-chan interface{} {
+// PrivatePostGetClosedOrders returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostGetClosedOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetClosedOrders", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetClosedFilledOrders(args ...interface{}) <-chan interface{} {
+// PrivatePostGetClosedFilledOrders returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostGetClosedFilledOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetClosedFilledOrders", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetOrderDetails(args ...interface{}) <-chan interface{} {
+// PrivatePostGetOrderDetails returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostGetOrderDetails(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetOrderDetails", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetAccounts(args ...interface{}) <-chan interface{} {
+// PrivatePostGetAccounts returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostGetAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetAccounts", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetTransactions(args ...interface{}) <-chan interface{} {
+// PrivatePostGetTransactions returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostGetTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetTransactions", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetFiatBankAccounts(args ...interface{}) <-chan interface{} {
+// PrivatePostGetFiatBankAccounts returns a channel that yields a JSON array.
+func (this *IndependentreserveCore) PrivatePostGetFiatBankAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetFiatBankAccounts", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyDepositAddress(args ...interface{}) <-chan interface{} {
+// PrivatePostGetDigitalCurrencyDepositAddress returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetDigitalCurrencyDepositAddress", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyDepositAddress2(args ...interface{}) <-chan interface{} {
+// PrivatePostGetDigitalCurrencyDepositAddress2 returns a channel that yields a JSON array.
+func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyDepositAddress2(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetDigitalCurrencyDepositAddress2", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyDepositAddresses(args ...interface{}) <-chan interface{} {
+// PrivatePostGetDigitalCurrencyDepositAddresses returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyDepositAddresses(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetDigitalCurrencyDepositAddresses", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyDepositAddresses2(args ...interface{}) <-chan interface{} {
+// PrivatePostGetDigitalCurrencyDepositAddresses2 returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyDepositAddresses2(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetDigitalCurrencyDepositAddresses2", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetTrades(args ...interface{}) <-chan interface{} {
+// PrivatePostGetTrades returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetTrades", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetBrokerageFees(args ...interface{}) <-chan interface{} {
+// PrivatePostGetBrokerageFees returns a channel that yields a JSON array.
+func (this *IndependentreserveCore) PrivatePostGetBrokerageFees(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetBrokerageFees", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyWithdrawal(args ...interface{}) <-chan interface{} {
+// PrivatePostGetDigitalCurrencyWithdrawal returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetDigitalCurrencyWithdrawal", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostPlaceLimitOrder(args ...interface{}) <-chan interface{} {
+// PrivatePostPlaceLimitOrder returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostPlaceLimitOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPlaceLimitOrder", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostPlaceMarketOrder(args ...interface{}) <-chan interface{} {
+// PrivatePostPlaceMarketOrder returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostPlaceMarketOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPlaceMarketOrder", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostCancelOrder(args ...interface{}) <-chan interface{} {
+// PrivatePostCancelOrder returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelOrder", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostSynchDigitalCurrencyDepositAddressWithBlockchain(args ...interface{}) <-chan interface{} {
+// PrivatePostSynchDigitalCurrencyDepositAddressWithBlockchain returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostSynchDigitalCurrencyDepositAddressWithBlockchain(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSynchDigitalCurrencyDepositAddressWithBlockchain", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostRequestFiatWithdrawal(args ...interface{}) <-chan interface{} {
+// PrivatePostRequestFiatWithdrawal returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostRequestFiatWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostRequestFiatWithdrawal", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostWithdrawFiatCurrency(args ...interface{}) <-chan interface{} {
+// PrivatePostWithdrawFiatCurrency returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostWithdrawFiatCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawFiatCurrency", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostWithdrawDigitalCurrency(args ...interface{}) <-chan interface{} {
+// PrivatePostWithdrawDigitalCurrency returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostWithdrawDigitalCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawDigitalCurrency", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostWithdrawCrypto(args ...interface{}) <-chan interface{} {
+// PrivatePostWithdrawCrypto returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostWithdrawCrypto(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawCrypto", args...)
 }

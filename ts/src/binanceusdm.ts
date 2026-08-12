@@ -7,7 +7,7 @@ import { InvalidOrder } from './base/errors.js';
 //  ---------------------------------------------------------------------------
 
 export default class binanceusdm extends binance {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'binanceusdm',
             'name': 'Binance USDⓈ-M',
@@ -32,6 +32,7 @@ export default class binanceusdm extends binance {
                 'fetchMarkets': {
                     'types': [ 'linear' ],
                 },
+                'defaultType': 'swap',
                 'defaultSubType': 'linear',
                 // https://www.binance.com/en/support/faq/360033162192
                 // tier amount, maintenance margin, initial margin,
@@ -51,12 +52,12 @@ export default class binanceusdm extends binance {
         });
     }
 
-    async transferIn (code: string, amount, params = {}) {
+    async transferIn (code: string, amount: any, params = {}) {
         // transfer from spot wallet to usdm futures wallet
         return await this.futuresTransfer (code, amount, 1, params);
     }
 
-    async transferOut (code: string, amount, params = {}) {
+    async transferOut (code: string, amount: any, params = {}) {
         // transfer from usdm futures wallet to spot wallet
         return await this.futuresTransfer (code, amount, 2, params);
     }

@@ -14,6 +14,19 @@
     "methods": {
         "cancelOrderWithClientOrderId": [
             {
+                "description": "cancel inverse swap conditional order by client order id",
+                "method": "cancelOrderWithClientOrderId",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder?timestamp=1782213044315&symbol=ETHUSD_PERP&clientAlgoId=Q2ayA6g41m6hGYhnZANh5E&recvWindow=10000&signature=175d59e6ede5d9d423a708f6c130a1b9a6dd50c252419644c6a6964fd5f3c289",
+                "input": [
+                    "Q2ayA6g41m6hGYhnZANh5E",
+                    "ETH/USD:ETH",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "cancel order with clientOrderId",
                 "method": "cancelOrderWithClientOrderId",
                 "url": "https://demo-fapi.binance.com/fapi/v1/order?timestamp=1762259428215&symbol=LTCUSDT&origClientOrderId=myid123&recvWindow=10000&signature=daf4d5fb32379b627965552800d412f40252494e7bd40bafab3cef56435378a5",
@@ -53,6 +66,38 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "Swap inverse market sell with stopLossPrice",
+                "method": "createOrder",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
+                "input": [
+                    "ETH/USD:ETH",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "stopLossPrice": 1000
+                    }
+                ],
+                "output": "timestamp=1782212047354&symbol=ETHUSD_PERP&side=SELL&newClientOrderId=x-xcKtGhcu816e735bb2af4b22b03c68&newOrderRespType=RESULT&type=STOP_MARKET&quantity=1&triggerPrice=1000&algoType=CONDITIONAL&recvWindow=10000&signature=4c24bc0d0b5f62ac7c86a3f27622211990b457bde44e8ba598bc8044d770a2e7"
+            },
+            {
+                "description": "Swap inverse limit sell with takeProfitPrice (type 2)",
+                "method": "createOrder",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
+                "input": [
+                    "ETH/USD:ETH",
+                    "limit",
+                    "sell",
+                    1,
+                    2500,
+                    {
+                        "takeProfitPrice": 2600
+                    }
+                ],
+                "output": "timestamp=1782211898027&symbol=ETHUSD_PERP&side=SELL&newClientOrderId=x-xcKtGhcu18b6588661a442c2a47097&newOrderRespType=RESULT&type=TAKE_PROFIT&quantity=1&price=2500&triggerPrice=2600&algoType=CONDITIONAL&recvWindow=10000&signature=2892c8bde1aa58603b1747ebc11638aa97bffb35ea45678ce25a1a0d50436d87"
+            },
             {
                 "description": "spot +selfTradePrevention +iceberg",
                 "method": "createOrder",
@@ -682,6 +727,54 @@
                     }
                 ],
                 "output": "timestamp=1763533028784&symbol=BTCUSDT&side=BUY&newClientOrderId=x-cvBPrNm99e7956fa804b4991ade549&newOrderRespType=RESULT&type=STOP&quantity=0.002&price=102000&triggerPrice=100000&algoType=CONDITIONAL&recvWindow=10000&signature=567d2b949b203ebba8540fa2d1fda447093a3e65b7892874d952b2fc5a00fe44"
+            },
+            {
+                "description": "stock limit buy order createOrder",
+                "method": "createOrder",
+                "url": "https://api.binance.com/sapi/v1/equity/order/place",
+                "input": [
+                    "AAPL/USDC",
+                    "limit",
+                    "buy",
+                    0.05,
+                    290,
+                    {
+                        "clientOrderId": "x-TKT5PX2F989bcdc4d06c430e92b8f4"
+                    }
+                ],
+                "output": "timestamp=1785924334141&symbol=AAPL&side=BUY&clientOrderId=x-TKT5PX2F989bcdc4d06c430e92b8f4&orderType=LIMIT&tradingSession=24H&quantity=0.05&price=290&timeInForce=GTC&recvWindow=10000&signature=45c2f8a7df907128bcf7a0860f1fd7070b509727b2946dc2d80190085b91bb3e"
+            },
+            {
+                "description": "stock market buy order createOrder",
+                "method": "createOrder",
+                "url": "https://api.binance.com/sapi/v1/equity/order/place",
+                "input": [
+                    "AAPL/USDC",
+                    "market",
+                    "buy",
+                    0.06,
+                    300,
+                    {
+                        "clientOrderId": "x-TKT5PX2Fa3ca94f976ff4ae2b9197e"
+                    }
+                ],
+                "output": "timestamp=1785927754015&symbol=AAPL&side=BUY&clientOrderId=x-TKT5PX2Fa3ca94f976ff4ae2b9197e&orderType=MARKET&notional=18&recvWindow=10000&signature=c7514dc98b54e133c483d19f7cb7fd84504d51fdaa468c511a938dce3f14d4bb"
+            },
+            {
+                "description": "stock market sell order createOrder",
+                "method": "createOrder",
+                "url": "https://api.binance.com/sapi/v1/equity/order/place",
+                "input": [
+                    "AAPL/USDC",
+                    "market",
+                    "sell",
+                    0.0576724,
+                    null,
+                    {
+                        "clientOrderId": "x-TKT5PX2F512ee9e3711341369454f9"
+                    }
+                ],
+                "output": "timestamp=1785987650308&symbol=AAPL&side=SELL&clientOrderId=x-TKT5PX2F512ee9e3711341369454f9&orderType=MARKET&quantity=0.0576724&recvWindow=10000&signature=d071ca15633e8122f8ce7f4b8926aecc1065f5f156ebc09e042f42fe823d1a60"
             }
         ],
         "createOrders": [
@@ -826,6 +919,19 @@
             }
         ],
         "cancelOrder": [
+            {
+                "description": "cancel inverse swap conditional order by id",
+                "method": "cancelOrder",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder?timestamp=1782212844546&symbol=ETHUSD_PERP&algoId=1000000114315066&recvWindow=10000&signature=8cacd463296502fd6f6aa77dedc90b13bc4b15329ad957344bfab96124630a08",
+                "input": [
+                    1000000114315066,
+                    "ETH/USD:ETH",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "Swap cancelOrder",
                 "method": "cancelOrder",
@@ -986,6 +1092,16 @@
                         "trigger": true
                     }
                 ]
+            },
+            {
+                "description": "stock cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://api.binance.com/sapi/v1/equity/order/cancel",
+                "input": [
+                    "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+                    "AAPL/USDC"
+                ],
+                "output": "timestamp=1785925627906&orderId=edf82072-9f42-4d47-b09e-602c8f1b35c9&recvWindow=10000&signature=b0f782caa4b714548bc847131d6b413e0bdccad9c9e74587de50e9a7d43f98b6"
             }
         ],
         "cancelOrders": [
@@ -1118,6 +1234,15 @@
                         "trigger": true
                     }
                 ]
+            },
+            {
+                "description": "stock cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://api.binance.com/sapi/v1/equity/order/cancel-all",
+                "input": [
+                    "AAPL/USDC"
+                ],
+                "output": "timestamp=1785925792691&recvWindow=10000&signature=96d7cca0dda90c731e219b3872c8cbdb446d14b575909eb82f0b497f807adcb4"
             }
         ],
         "fetchBalance": [
@@ -1297,6 +1422,19 @@
                         "portfolioMargin": true
                     }
                 ]
+            },
+            {
+                "description": "stock fetchMyTrades",
+                "method": "fetchMyTrades",
+                "url": "https://api.binance.com/sapi/v1/equity/trade/history?timestamp=1785977357791&symbol=AAPL&endTime=1785977357790&startTime=1785372557790&recvWindow=10000&signature=2da5834144b04b30d315bf2219d5f5666aa90ba05655ca0ab3a959f6f48f676b",
+                "input": [
+                    "AAPL/USDC",
+                    1785372557790,
+                    null,
+                    {
+                        "endTime": 1785977357790
+                    }
+                ]
             }
         ],
         "fetchOrders": [
@@ -1437,6 +1575,19 @@
                         "trigger": true
                     }
                 ]
+            },
+            {
+                "description": "stock fetchOrders",
+                "method": "fetchOrders",
+                "url": "https://api.binance.com/sapi/v1/equity/order/history?timestamp=1785925976373&symbol=AAPL&endTime=1785925976372&startTime=1785321176372&recvWindow=10000&signature=8cfe001e2184b35eac4f7ad9972a73caa718dccf45617dba3a041efe007c5aad",
+                "input": [
+                    "AAPL/USDC",
+                    1785321176372,
+                    null,
+                    {
+                        "endTime": 1785925976372
+                    }
+                ]
             }
         ],
         "fetchOrder": [
@@ -1548,9 +1699,32 @@
                         "trigger": true
                     }
                 ]
+            },
+            {
+                "description": "stock fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://api.binance.com/sapi/v1/equity/order/detail?timestamp=1785924722988&orderId=edf82072-9f42-4d47-b09e-602c8f1b35c9&recvWindow=10000&signature=250b4ed8d25bd90638afcf507afa08ad07cdc38108273fd24d1e45d33d1bb400",
+                "input": [
+                    "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+                    "AAPL/USDC"
+                ]
             }
         ],
         "fetchOpenOrders": [
+            {
+                "description": "Inverse swap conditional open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://demo-dapi.binance.com/dapi/v1/openAlgoOrders?timestamp=1782212489051&symbol=ETHUSD_PERP&recvWindow=10000&signature=39a95cad2f9f060dea469731b5207adf30f60c4916f95e91496cdc40b7d1fe3e",
+                "input": [
+                    "ETH/USD:ETH",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "Swap open orders",
                 "method": "fetchOpenOrders",
@@ -1689,6 +1863,14 @@
                         "trigger": true
                     }
                 ]
+            },
+            {
+                "description": "stock fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.binance.com/sapi/v1/equity/order/open-orders?timestamp=1785925074542&recvWindow=10000&signature=3a541a367591db0f8333d2967e154a5a4c525687b98a94408165b83688b837e4",
+                "input": [
+                    "AAPL/USDC"
+                ]
             }
         ],
         "fetchCanceledOrders": [
@@ -1766,6 +1948,19 @@
                     {
                         "portfolioMargin": true,
                         "stop": true
+                    }
+                ]
+            },
+            {
+                "description": "stock fetchCanceledOrders",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.binance.com/sapi/v1/equity/order/history?timestamp=1785926663068&symbol=AAPL&endTime=1785926663067&startTime=1785321863067&orderStatus=CANCELED&recvWindow=10000&signature=4c9fac804b79bd51dcb6f72dd559df85679d3a9c83ed70f58eaa7507698791e9",
+                "input": [
+                    "AAPL/USDC",
+                    1785321863067,
+                    null,
+                    {
+                        "endTime": 1785926663067
                     }
                 ]
             }
@@ -2024,11 +2219,11 @@
                 "url": "https://api.binance.com/sapi/v1/asset/transfer",
                 "input": [
                   "USDT",
-                  1.23434223,
+                  1.23434,
                   "main",
                   "funding"
                 ],
-                "output": "timestamp=1718723373536&asset=USDT&amount=1.23434223&type=MAIN_FUNDING&recvWindow=10000&signature=731b5bbe83853c1cb5b3715a569fd67554e39681ecf5098c1646264e9c98a555"
+                "output": "timestamp=1718723373536&asset=USDT&amount=1.23434&type=MAIN_FUNDING&recvWindow=10000&signature=731b5bbe83853c1cb5b3715a569fd67554e39681ecf5098c1646264e9c98a555"
             }
         ],
         "fetchDeposits": [
@@ -2502,7 +2697,7 @@
             {
                 "description": "ohlcv with since and until should use maxLimit spot",
                 "method": "fetchOHLCV",
-                "url": "https://api.binance.com/api/v3/klines?interval=1h&limit=1500&symbol=BTCUSDT&startTime=1714921949000&endTime=1725549149000",
+                "url": "https://api.binance.com/api/v3/klines?interval=1h&limit=1000&symbol=BTCUSDT&startTime=1714921949000&endTime=1725549149000",
                 "input": [
                   "BTC/USDT",
                   "1h",
@@ -2516,7 +2711,7 @@
             {
                 "description": "ohlcv with since and until should use maxLimit swap",
                 "method": "fetchOHLCV",
-                "url": "https://fapi.binance.com/fapi/v1/klines?interval=1h&limit=1500&symbol=BTCUSDT&startTime=1714921949000&endTime=1725549149000",
+                "url": "https://fapi.binance.com/fapi/v1/klines?interval=1h&limit=1000&symbol=BTCUSDT&startTime=1714921949000&endTime=1725549149000",
                 "input": [
                   "BTC/USDT:USDT",
                   "1h",
@@ -3533,6 +3728,19 @@
                 "input": [
                     "XRP/USDT"
                 ]
+            },
+            {
+                "description": "stock fetchCanceledAndClosedOrders",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.binance.com/sapi/v1/equity/order/history?timestamp=1785926721018&symbol=AAPL&endTime=1785926721017&startTime=1785321921017&orderStatus=FILLED%2CCANCELED&recvWindow=10000&signature=06f9139be153d95dc65e483a48ff43af08ea59ee5ff0b41ea6d1b73e36bedf69",
+                "input": [
+                    "AAPL/USDC",
+                    1785321921017,
+                    null,
+                    {
+                        "endTime": 1785926721017
+                    }
+                ]
             }
         ],
         "fetchLeverage": [
@@ -3620,6 +3828,14 @@
                 "url": "https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT",
                 "input": [
                     "BTC/USDT"
+                ]
+            },
+            {
+                "description": "tokenized stock fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://api.binance.com/sapi/v1/equity/market/quote?timestamp=1785378371612&symbol=AAPL&recvWindow=10000&signature=51be9e25b027a14a4b7117f16ff0876104607c74c6dd2c27d1b3fa0982c981e0",
+                "input": [
+                    "AAPL/USDC"
                 ]
             }
         ],
@@ -3836,15 +4052,15 @@
                 "method": "withdraw",
                 "url": "https://api.binance.com/sapi/v1/capital/withdraw/apply",
                 "input": [
-                  "ASR",
+                  "USDT",
                   10.34,
                   "xyz",
                   null,
                   {
-                    "network": "CHZ"
+                    "network": "TRX"
                   }
                 ],
-                "output": "timestamp=1718724487672&coin=ASR&address=xyz&amount=10&network=CHZ&recvWindow=10000&signature=signature"
+                "output": "timestamp=1718724487672&coin=USDT&address=xyz&amount=10.34&network=TRX&recvWindow=10000&signature=signature"
             }
         ],
         "fetchCurrencies": [
@@ -4005,6 +4221,26 @@
                     [
                         "ETH/USDT:USDT-231229-800-C"
                     ]
+                ]
+            }
+        ],
+        "fetchADLRank": [
+            {
+                "description": "linear swap fetchADLRank",
+                "method": "fetchADLRank",
+                "url": "https://fapi.binance.com/fapi/v1/symbolAdlRisk?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap fetch position ADL rank",
+                "method": "fetchPositionADLRank",
+                "url": "https://demo-fapi.binance.com/fapi/v1/adlQuantile?timestamp=1766829520899&recvWindow=10000&signature=76a1e4da69c84a85add9bbf6dae25445f0f8ba5150ffa4c4186135b317d1352d",
+                "input": [
+                    "BTC/USDT:USDT"
                 ]
             }
         ]

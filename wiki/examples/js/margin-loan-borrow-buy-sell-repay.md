@@ -1,9 +1,5 @@
-- [Margin Loan Borrow Buy Sell Repay](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
-// AUTO-TRANSPILE //
+```javascript
+import ccxt from '../../js/ccxt.js';
 // Note, this is just an example and might not yet work on other exchanges, which are being still unified.
 async function example() {
     // ########## user inputs ##########
@@ -72,5 +68,5 @@ async function example() {
     }
 }
 await example();
- 
+
 ```

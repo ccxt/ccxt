@@ -7,90 +7,142 @@
 
 package ccxt
 
-func (this *HibachiCore) PublicGetMarketExchangeInfo(args ...interface{}) <-chan interface{} {
+// PublicGetMarketExchangeInfo returns a channel that yields a JSON object.
+func (this *HibachiCore) PublicGetMarketExchangeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketExchangeInfo", args...)
 }
 
-func (this *HibachiCore) PublicGetMarketDataTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketDataTrades", args...)
+// PublicGetMarketInventory returns a channel that yields a JSON object.
+func (this *HibachiCore) PublicGetMarketInventory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketInventory", args...)
 }
 
-func (this *HibachiCore) PublicGetMarketDataPrices(args ...interface{}) <-chan interface{} {
+// PublicGetMarketDataPrices returns a channel that yields a JSON object.
+func (this *HibachiCore) PublicGetMarketDataPrices(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketDataPrices", args...)
 }
 
-func (this *HibachiCore) PublicGetMarketDataStats(args ...interface{}) <-chan interface{} {
+// PublicGetMarketDataStats returns a channel that yields a JSON object.
+func (this *HibachiCore) PublicGetMarketDataStats(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketDataStats", args...)
 }
 
-func (this *HibachiCore) PublicGetMarketDataKlines(args ...interface{}) <-chan interface{} {
+// PublicGetMarketDataTrades returns a channel that yields a JSON object.
+func (this *HibachiCore) PublicGetMarketDataTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketDataTrades", args...)
+}
+
+// PublicGetMarketDataKlines returns a channel that yields a JSON object.
+func (this *HibachiCore) PublicGetMarketDataKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketDataKlines", args...)
 }
 
-func (this *HibachiCore) PublicGetMarketDataOrderbook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketDataOrderbook", args...)
-}
-
-func (this *HibachiCore) PublicGetMarketDataOpenInterest(args ...interface{}) <-chan interface{} {
+// PublicGetMarketDataOpenInterest returns a channel that yields a JSON object.
+func (this *HibachiCore) PublicGetMarketDataOpenInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketDataOpenInterest", args...)
 }
 
-func (this *HibachiCore) PublicGetMarketDataFundingRates(args ...interface{}) <-chan interface{} {
+// PublicGetMarketDataOrderbook returns a channel that yields a JSON object.
+func (this *HibachiCore) PublicGetMarketDataOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketDataOrderbook", args...)
+}
+
+// PublicGetMarketDataFundingRates returns a channel that yields a JSON object.
+func (this *HibachiCore) PublicGetMarketDataFundingRates(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketDataFundingRates", args...)
 }
 
-func (this *HibachiCore) PublicGetExchangeUtcTimestamp(args ...interface{}) <-chan interface{} {
+// PublicGetExchangeUtcTimestamp returns a channel that yields a JSON object.
+func (this *HibachiCore) PublicGetExchangeUtcTimestamp(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetExchangeUtcTimestamp", args...)
 }
 
-func (this *HibachiCore) PrivateGetCapitalDepositInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetCapitalDepositInfo", args...)
+// PrivateGetCapitalBalance returns a channel that yields a JSON object.
+func (this *HibachiCore) PrivateGetCapitalBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetCapitalBalance", args...)
 }
 
-func (this *HibachiCore) PrivateGetCapitalHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetCapitalHistory returns a channel that yields a JSON object.
+func (this *HibachiCore) PrivateGetCapitalHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetCapitalHistory", args...)
 }
 
-func (this *HibachiCore) PrivateGetTradeAccountTradingHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTradeAccountTradingHistory", args...)
+// PrivateGetCapitalDepositInfo returns a channel that yields a JSON object.
+func (this *HibachiCore) PrivateGetCapitalDepositInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetCapitalDepositInfo", args...)
 }
 
-func (this *HibachiCore) PrivateGetTradeAccountInfo(args ...interface{}) <-chan interface{} {
+// PrivateGetTradeAccountInfo returns a channel that yields a JSON object.
+func (this *HibachiCore) PrivateGetTradeAccountInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTradeAccountInfo", args...)
 }
 
-func (this *HibachiCore) PrivateGetTradeOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTradeOrder", args...)
-}
-
-func (this *HibachiCore) PrivateGetTradeAccountTrades(args ...interface{}) <-chan interface{} {
+// PrivateGetTradeAccountTrades returns a channel that yields a JSON object.
+func (this *HibachiCore) PrivateGetTradeAccountTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTradeAccountTrades", args...)
 }
 
-func (this *HibachiCore) PrivateGetTradeOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetTradeAccountTradingHistory returns a channel that yields a JSON object.
+func (this *HibachiCore) PrivateGetTradeAccountTradingHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradeAccountTradingHistory", args...)
+}
+
+// PrivateGetTradeAccountSettlementsHistory returns a channel that yields a JSON object.
+func (this *HibachiCore) PrivateGetTradeAccountSettlementsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradeAccountSettlementsHistory", args...)
+}
+
+// PrivateGetTradeOrders returns a channel that yields a JSON array.
+func (this *HibachiCore) PrivateGetTradeOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTradeOrders", args...)
 }
 
-func (this *HibachiCore) PrivatePutTradeOrder(args ...interface{}) <-chan interface{} {
+// PrivateGetTradeOrder returns a channel that yields a JSON object.
+func (this *HibachiCore) PrivateGetTradeOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradeOrder", args...)
+}
+
+// PrivateGetTradeOrdersHistory returns a channel that yields a JSON object.
+func (this *HibachiCore) PrivateGetTradeOrdersHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradeOrdersHistory", args...)
+}
+
+// PrivatePutTradeOrder returns a channel that yields a JSON object.
+func (this *HibachiCore) PrivatePutTradeOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutTradeOrder", args...)
 }
 
-func (this *HibachiCore) PrivateDeleteTradeOrder(args ...interface{}) <-chan interface{} {
+// PrivateDeleteTradeOrder returns a channel that yields a JSON object.
+func (this *HibachiCore) PrivateDeleteTradeOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteTradeOrder", args...)
 }
 
-func (this *HibachiCore) PrivateDeleteTradeOrders(args ...interface{}) <-chan interface{} {
+// PrivateDeleteTradeOrders returns a channel that yields a JSON object.
+func (this *HibachiCore) PrivateDeleteTradeOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteTradeOrders", args...)
 }
 
-func (this *HibachiCore) PrivatePostTradeOrder(args ...interface{}) <-chan interface{} {
+// PrivatePostTradeOrder returns a channel that yields a JSON object.
+func (this *HibachiCore) PrivatePostTradeOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeOrder", args...)
 }
 
-func (this *HibachiCore) PrivatePostTradeOrders(args ...interface{}) <-chan interface{} {
+// PrivatePostTradeOrders returns a channel that yields a JSON object.
+func (this *HibachiCore) PrivatePostTradeOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeOrders", args...)
 }
 
-func (this *HibachiCore) PrivatePostCapitalWithdraw(args ...interface{}) <-chan interface{} {
+// PrivatePostCapitalWithdraw returns a channel that yields a JSON object.
+func (this *HibachiCore) PrivatePostCapitalWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCapitalWithdraw", args...)
+}
+
+// PrivatePostCapitalTransfer returns a channel that yields a JSON object.
+func (this *HibachiCore) PrivatePostCapitalTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCapitalTransfer", args...)
+}
+
+// PrivatePostTradeAccountLeverage returns a channel that yields a JSON object.
+func (this *HibachiCore) PrivatePostTradeAccountLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeAccountLeverage", args...)
 }

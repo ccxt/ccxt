@@ -1,8 +1,5 @@
-- [Async Await Fetch](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 // Instead of yield generators, now users can use modern Async/Await syntax
 include dirname(dirname(dirname(__FILE__))) . '/ccxt.php';
 use function React\Async\async;
@@ -60,5 +57,5 @@ function myFunc ($exchange, $symbol) {
 }
 await(myFunc($exchange, $symbols[0])());
 // ###########################################
- 
+
 ```

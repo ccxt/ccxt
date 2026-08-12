@@ -26,4 +26,4 @@ export declare function isUrl(s?: string): boolean;
  *
  * result = "https://starknetjs.com/docs"
  */
-export declare function buildUrl(baseUrl: string, defaultPath: string, urlOrPath?: string): string;
+export declare function buildUrl(baseUrl: string, defaultPath: string, urlOrPath?: string): string | undefined;

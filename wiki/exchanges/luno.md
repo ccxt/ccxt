@@ -25,6 +25,7 @@
 * [fetchLedger](#fetchledger)
 * [createDepositAddress](#createdepositaddress)
 * [fetchDepositAddress](#fetchdepositaddress)
+* [fetchDepositWithdrawFee](#fetchdepositwithdrawfee)
 * [watchTrades](#watchtrades)
 * [watchOrderBook](#watchorderbook)
 
@@ -36,6 +37,7 @@ fetches all available currencies on an exchange
 **Kind**: instance method of [<code>luno</code>](#luno)  
 **Returns**: <code>dict</code> - an associative dictionary of currencies
 
+**See**: https://www.luno.com/en/developers/api#tag/Send/operation/ListSupportedNetworks  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -43,7 +45,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-luno.fetchCurrencies ([params])
+luno.fetchCurrencies (params?)
 ```
 
 
@@ -63,7 +65,7 @@ retrieves data on all markets for luno
 
 
 ```javascript
-luno.fetchMarkets ([params])
+luno.fetchMarkets (params?)
 ```
 
 
@@ -83,7 +85,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-luno.fetchAccounts ([params])
+luno.fetchAccounts (params?)
 ```
 
 
@@ -103,7 +105,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-luno.fetchBalance ([params])
+luno.fetchBalance (params?)
 ```
 
 
@@ -113,7 +115,7 @@ luno.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -129,7 +131,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-luno.fetchOrderBook (symbol[, limit, params])
+luno.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -151,7 +153,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-luno.fetchOrder (id, symbol[, params])
+luno.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -174,7 +176,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-luno.fetchOrders (symbol[, since, limit, params])
+luno.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -197,7 +199,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-luno.fetchOpenOrders (symbol[, since, limit, params])
+luno.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -220,7 +222,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-luno.fetchClosedOrders (symbol[, since, limit, params])
+luno.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -241,7 +243,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-luno.fetchTickers (symbols[, params])
+luno.fetchTickers (symbols, params?)
 ```
 
 
@@ -262,7 +264,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-luno.fetchTicker (symbol[, params])
+luno.fetchTicker (symbol, params?)
 ```
 
 
@@ -285,7 +287,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-luno.fetchTrades (symbol[, since, limit, params])
+luno.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -305,11 +307,11 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | Yes | extra parameters specific to the luno api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-luno.fetchOHLCV (symbol, timeframe[, since, limit, params])
+luno.fetchOHLCV (symbol, timeframe, since?, limit?, params)
 ```
 
 
@@ -332,7 +334,7 @@ fetch all trades made by the user
 
 
 ```javascript
-luno.fetchMyTrades (symbol[, since, limit, params])
+luno.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -353,7 +355,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-luno.fetchTradingFee (symbol[, params])
+luno.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -382,7 +384,7 @@ create a trade order
 
 
 ```javascript
-luno.createOrder (symbol, type, side, amount[, price, params])
+luno.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -404,7 +406,7 @@ cancels an open order
 
 
 ```javascript
-luno.cancelOrder (id, symbol[, params])
+luno.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -427,7 +429,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-luno.fetchLedger ([code, since, limit, params])
+luno.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -447,10 +449,11 @@ create a currency deposit address
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.name | <code>string</code> | No | an optional name for the new address |
 | params.account_id | <code>int</code> | No | an optional account id for the new address |
+| params.network | <code>int</code> | No | the blockchain network id to use |
 
 
 ```javascript
-luno.createDepositAddress (code[, params])
+luno.createDepositAddress (code, params?)
 ```
 
 
@@ -469,10 +472,33 @@ fetch the deposit address for a currency associated with this account
 | code | <code>string</code> | Yes | unified currency code |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.address | <code>string</code> | No | a specific cryptocurrency address to retrieve |
+| params.network | <code>int</code> | No | the blockchain network id to use |
 
 
 ```javascript
-luno.fetchDepositAddress (code[, params])
+luno.fetchDepositAddress (code, params?)
+```
+
+
+<a name="fetchDepositWithdrawFee" id="fetchdepositwithdrawfee"></a>
+
+### fetchDepositWithdrawFee{docsify-ignore}
+fetch the fee for sending (withdrawing) a currency to a specific address; luno quotes the network fee per destination, so an address is required, see https://github.com/ccxt/ccxt/issues/25830
+
+**Kind**: instance method of [<code>luno</code>](#luno)  
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
+
+**See**: https://www.luno.com/en/developers/api#tag/Send/operation/SendFee  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.address | <code>string</code> | Yes | the destination address luno should quote the send fee for (required by the exchange) |
+
+
+```javascript
+luno.fetchDepositWithdrawFee (code, params?)
 ```
 
 
@@ -495,7 +521,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-luno.watchTrades (symbol[, since, limit, params])
+luno.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -505,8 +531,9 @@ luno.watchTrades (symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
+**See**: https://www.luno.com/en/developers/api#tag/Streaming-API  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -517,6 +544,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-luno.watchOrderBook (symbol[, limit, params])
+luno.watchOrderBook (symbol, limit?, params?)
 ```
 

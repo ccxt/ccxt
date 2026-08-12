@@ -1,4 +1,4 @@
-import { base64 } from '../../scure-base/index.js';
+import { base64 } from '@scure/base';
 
 /* eslint-disable no-param-reassign */
 export const IS_BROWSER = typeof window !== 'undefined';

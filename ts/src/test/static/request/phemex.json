@@ -5,6 +5,17 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchPositionHistory": [
+            {
+                "description": "default",
+                "method": "fetchPositionHistory",
+                "url": "https://api.phemex.com/api-data/g-futures/closedPosition?symbol=ETHUSDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "setMarginMode": [
             {
                 "description": "cross",
@@ -35,7 +46,7 @@
         ],
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
+                "description": "default",
                 "method": "fetchCurrencies",
                 "url": "https://api.phemex.com/public/products",
                 "input": [],
@@ -174,6 +185,19 @@
                     "limit",
                     "buy",
                     0.1,
+                    "55"
+                ],
+                "output": "{\"symbol\":\"sLTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"ccxt202269fb13ce74759a10\",\"qtyType\":\"ByBase\",\"baseQtyEv\":10000000,\"priceEp\":5500000000}"
+            },
+            {
+                "description": "Spot limit buy with float-artifact amount rounds to market precision",
+                "method": "createOrder",
+                "url": "https://testnet-api.phemex.com/spot/orders",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.10000000800000003,
                     "55"
                 ],
                 "output": "{\"symbol\":\"sLTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"ccxt202269fb13ce74759a10\",\"qtyType\":\"ByBase\",\"baseQtyEv\":10000000,\"priceEp\":5500000000}"
@@ -886,6 +910,20 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "swap ohlcv with until only",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline/list?symbol=BTCUSDT&resolution=60&limit=2000&from=1718517717&to=1718637717",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1m",
+                  null,
+                  2000,
+                  {
+                    "until": 1718637717000
+                  }
+                ]
             }
         ],
         "fetchFundingRateHistory": [
@@ -962,6 +1000,24 @@
                   "USDT",
                   null,
                   1
+                ]
+            }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "url": "https://testnet-api.phemex.com/g-accounts/accountPositions?currency=USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "url": "https://testnet-api.phemex.com/accounts/accountPositions?currency=BTC",
+                "input": [
+                    "BTC/USD:BTC"
                 ]
             }
         ]

@@ -19,10 +19,10 @@ public partial class hashkey : Exchange
                 { "CORS", null },
                 { "spot", true },
                 { "margin", false },
-                { "swap", false },
+                { "swap", true },
                 { "future", false },
                 { "option", false },
-                { "addMargin", false },
+                { "addMargin", true },
                 { "borrowCrossMargin", false },
                 { "borrowIsolatedMargin", false },
                 { "borrowMargin", false },
@@ -40,6 +40,7 @@ public partial class hashkey : Exchange
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "createOrders", true },
                 { "createOrderWithTakeProfitAndStopLoss", false },
                 { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },
@@ -86,6 +87,7 @@ public partial class hashkey : Exchange
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchIsolatedPositions", false },
+                { "fetchLastPrices", true },
                 { "fetchLedger", true },
                 { "fetchLeverage", true },
                 { "fetchLeverages", false },
@@ -137,13 +139,13 @@ public partial class hashkey : Exchange
                 { "fetchUnderlyingAssets", false },
                 { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", true },
-                { "reduceMargin", false },
+                { "reduceMargin", true },
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
                 { "sandbox", false },
                 { "setLeverage", true },
                 { "setMargin", false },
-                { "setMarginMode", false },
+                { "setMarginMode", true },
                 { "setPositionMode", false },
                 { "transfer", true },
                 { "withdraw", true },
@@ -165,7 +167,7 @@ public partial class hashkey : Exchange
                 { "1M", "1M" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/6dd6127b-cc19-4a13-9b29-a98d81f80e98" },
+                { "logo", "https://github.com/user-attachments/assets/3dd65db2-5da9-4ecc-93ac-6d420f36261c" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api-glb.hashkey.com" },
                     { "private", "https://api-glb.hashkey.com" },
@@ -182,79 +184,217 @@ public partial class hashkey : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "api/v1/exchangeInfo", 5 },
-                        { "quote/v1/depth", 1 },
-                        { "quote/v1/trades", 1 },
-                        { "quote/v1/klines", 1 },
-                        { "quote/v1/ticker/24hr", 1 },
-                        { "quote/v1/ticker/price", 1 },
-                        { "quote/v1/ticker/bookTicker", 1 },
-                        { "quote/v1/depth/merged", 1 },
-                        { "quote/v1/markPrice", 1 },
-                        { "quote/v1/index", 1 },
-                        { "api/v1/futures/fundingRate", 1 },
-                        { "api/v1/futures/historyFundingRate", 1 },
-                        { "api/v1/ping", 1 },
-                        { "api/v1/time", 1 },
+                        { "api/v1/exchangeInfo", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "quote/v1/depth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quote/v1/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quote/v1/klines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quote/v1/ticker/24hr", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quote/v1/ticker/price", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quote/v1/ticker/bookTicker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quote/v1/depth/merged", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quote/v1/markPrice", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quote/v1/index", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/fundingRate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/historyFundingRate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/ping", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "api/v1/spot/order", 1 },
-                        { "api/v1/spot/openOrders", 1 },
-                        { "api/v1/spot/tradeOrders", 5 },
-                        { "api/v1/futures/leverage", 1 },
-                        { "api/v1/futures/order", 1 },
-                        { "api/v1/futures/openOrders", 1 },
-                        { "api/v1/futures/userTrades", 1 },
-                        { "api/v1/futures/positions", 1 },
-                        { "api/v1/futures/historyOrders", 1 },
-                        { "api/v1/futures/balance", 1 },
-                        { "api/v1/futures/liquidationAssignStatus", 1 },
-                        { "api/v1/futures/riskLimit", 1 },
-                        { "api/v1/futures/commissionRate", 1 },
-                        { "api/v1/futures/getBestOrder", 1 },
-                        { "api/v1/account/vipInfo", 1 },
-                        { "api/v1/account", 1 },
-                        { "api/v1/account/trades", 5 },
-                        { "api/v1/account/type", 5 },
-                        { "api/v1/account/checkApiKey", 1 },
-                        { "api/v1/account/balanceFlow", 5 },
-                        { "api/v1/spot/subAccount/openOrders", 1 },
-                        { "api/v1/spot/subAccount/tradeOrders", 1 },
-                        { "api/v1/subAccount/trades", 1 },
-                        { "api/v1/futures/subAccount/openOrders", 1 },
-                        { "api/v1/futures/subAccount/historyOrders", 1 },
-                        { "api/v1/futures/subAccount/userTrades", 1 },
-                        { "api/v1/account/deposit/address", 1 },
-                        { "api/v1/account/depositOrders", 1 },
-                        { "api/v1/account/withdrawOrders", 1 },
+                        { "api/v1/spot/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/spot/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/spot/tradeOrders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/v1/futures/leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/userTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/historyOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/liquidationAssignStatus", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/riskLimit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/commissionRate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/getBestOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/coinInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/vipInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/trades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/v1/account/type", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/v1/account/chainType", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/checkApiKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/balanceFlow", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/v1/spot/subAccount/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/spot/subAccount/tradeOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/subAccount/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/subAccount/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/subAccount/historyOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/subAccount/userTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/deposit/address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/depositOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/withdrawOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "api/v1/userDataStream", 1 },
-                        { "api/v1/spot/orderTest", 1 },
-                        { "api/v1/spot/order", 1 },
-                        { "api/v1.1/spot/order", 1 },
-                        { "api/v1/spot/batchOrders", 5 },
-                        { "api/v1/futures/leverage", 1 },
-                        { "api/v1/futures/order", 1 },
-                        { "api/v1/futures/position/trading-stop", 3 },
-                        { "api/v1/futures/batchOrders", 5 },
-                        { "api/v1/account/assetTransfer", 1 },
-                        { "api/v1/account/authAddress", 1 },
-                        { "api/v1/account/withdraw", 1 },
+                        { "api/v1/userDataStream", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/spot/orderTest", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/spot/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1.1/spot/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/spot/batchOrders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/v1/futures/leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/marginType", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/positionMargin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/position/trading-stop", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "api/v1/futures/batchOrders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/v1/account/assetTransfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/authAddress", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
-                        { "api/v1/userDataStream", 1 },
+                        { "api/v1/userDataStream", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "api/v1/spot/order", 1 },
-                        { "api/v1/spot/openOrders", 5 },
-                        { "api/v1/spot/cancelOrderByIds", 5 },
-                        { "api/v1/futures/order", 1 },
-                        { "api/v1/futures/batchOrders", 1 },
-                        { "api/v1/futures/cancelOrderByIds", 1 },
-                        { "api/v1/userDataStream", 1 },
+                        { "api/v1/spot/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/spot/openOrders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/v1/spot/cancelOrderByIds", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/v1/futures/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/batchOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/cancelOrderByIds", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/userDataStream", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -298,7 +438,7 @@ public partial class hashkey : Exchange
                     { "DOT", "Polkadot" },
                     { "LTC", "LTC" },
                     { "OPTIMISM", "Optimism" },
-                    { "ARB", "Arbitrum" },
+                    { "ARBITRUM", "Arbitrum" },
                     { "DOGE", "Dogecoin" },
                     { "TRC20", "Tron" },
                     { "ZKSYNC", "zkSync" },
@@ -315,7 +455,7 @@ public partial class hashkey : Exchange
                     { "AVAX C-Chain", "AVAX" },
                     { "Solana", "SOL" },
                     { "Cosmos", "ATOM" },
-                    { "Arbitrum", "ARB" },
+                    { "Arbitrum", "ARBITRUM" },
                     { "Polygon", "MATIC" },
                     { "Optimism", "OPTIMISM" },
                     { "Polkadot", "DOT" },
@@ -823,7 +963,7 @@ public partial class hashkey : Exchange
         object markets = this.arrayConcat(spotMarkets, swapMarkets);
         if (isTrue(this.isEmpty(markets)))
         {
-            markets = new List<object>() {response}; // if user provides params.symbol the exchange returns a single object insted of list of objects
+            markets = new List<object>() {response}; // if user provides params.symbol the exchange returns a single object instead of list of objects
         }
         return this.parseMarkets(markets);
     }
@@ -981,11 +1121,11 @@ public partial class hashkey : Exchange
         object settleId = this.safeString(market, "marginToken");
         object settle = this.safeCurrencyCode(settleId);
         object baseId = this.safeString(market, "baseAsset");
-        object marketType = ((object)"spot");
+        object marketType = "spot";
         object isSpot = true;
         object isSwap = false;
         object suffix = "";
-        object parts = ((string)marketId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)((string)marketId)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         object secondPart = this.safeString(parts, 1);
         if (isTrue(isEqual(secondPart, "PERPETUAL")))
         {
@@ -1148,19 +1288,22 @@ public partial class hashkey : Exchange
         //         ]
         //     }
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(coins)); postFixIncrement(ref i))
+        return this.parseCurrencies(coins);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object currencyId = this.safeString(rawCurrency, "coinId");
+        object code = this.safeCurrencyCode(currencyId);
+        object networks = this.safeList(rawCurrency, "chainTypes");
+        object parsedNetworks = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
         {
-            object currecy = getValue(coins, i);
-            object currencyId = this.safeString(currecy, "coinId");
-            object code = this.safeCurrencyCode(currencyId);
-            object networks = this.safeList(currecy, "chainTypes");
-            object parsedNetworks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
+            object network = getValue(networks, j);
+            object networkId = this.safeString(network, "chainType");
+            object networkCode = this.networkCodeToId(networkId, code);
+            if (isTrue(!isEqual(networkCode, null)))
             {
-                object network = getValue(networks, j);
-                object networkId = this.safeString(network, "chainType");
-                object networkCode = this.networkCodeToId(networkId);
                 ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "id", networkId },
                     { "network", networkCode },
@@ -1182,33 +1325,32 @@ public partial class hashkey : Exchange
                     { "info", network },
                 };
             }
-            object rawType = this.safeString(currecy, "tokenType");
-            object type = ((bool) isTrue((isEqual(rawType, "REAL_MONEY")))) ? "fiat" : "crypto";
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", currencyId },
-                { "code", code },
-                { "precision", null },
-                { "type", type },
-                { "name", this.safeString(currecy, "coinFullName") },
-                { "active", null },
-                { "deposit", this.safeBool(currecy, "allowDeposit") },
-                { "withdraw", this.safeBool(currecy, "allowWithdraw") },
-                { "fee", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "networks", parsedNetworks },
-                { "info", currecy },
-            });
         }
-        return result;
+        object rawType = this.safeString(rawCurrency, "tokenType");
+        object type = ((bool) isTrue((isEqual(rawType, "REAL_MONEY")))) ? "fiat" : "crypto";
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", currencyId },
+            { "code", code },
+            { "precision", null },
+            { "type", type },
+            { "name", this.safeString(rawCurrency, "coinFullName") },
+            { "active", null },
+            { "deposit", this.safeBool(rawCurrency, "allowDeposit") },
+            { "withdraw", this.safeBool(rawCurrency, "allowWithdraw") },
+            { "fee", null },
+            { "limits", new Dictionary<string, object>() {
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", parsedNetworks },
+            { "info", rawCurrency },
+        });
     }
 
     /**
@@ -1219,12 +1361,15 @@ public partial class hashkey : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (maximum value is 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1267,7 +1412,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1314,7 +1462,10 @@ public partial class hashkey : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchMyTrades";
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1363,7 +1514,7 @@ public partial class hashkey : Exchange
             {
                 throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a symbol argument for swap markets")) ;
             }
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             if (isTrue(!isEqual(accountId, null)))
             {
                 ((IDictionary<string,object>)request)["subAccountId"] = accountId;
@@ -1448,7 +1599,7 @@ public partial class hashkey : Exchange
             side = ((bool) isTrue(isBuyer)) ? "buy" : "sell";
         }
         object takerOrMaker = null;
-        object isMaker = this.safeBoolN(trade, new List<object>() {"isMaker", "isMarker"});
+        object isMaker = this.safeBool2(trade, "isMaker", "isMarker");
         if (isTrue(!isEqual(isMaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
@@ -1512,7 +1663,10 @@ public partial class hashkey : Exchange
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchOHLCV";
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, methodName, "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -1522,7 +1676,7 @@ public partial class hashkey : Exchange
             return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000);
         }
         object market = this.market(symbol);
-        timeframe = this.safeString(this.timeframes, timeframe, timeframe);
+        timeframe = ((string)this.safeString(this.timeframes, timeframe, timeframe));
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "interval", timeframe },
@@ -1560,7 +1714,8 @@ public partial class hashkey : Exchange
         //         ...
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        object ohlcvs = this.toArray(response);
+        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1593,7 +1748,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1631,7 +1789,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object response = await this.publicGetQuoteV1Ticker24hr(parameters);
         return this.parseTickers(response, symbols);
@@ -1695,7 +1856,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchLastPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object request = new Dictionary<string, object>() {};
         object response = await this.publicGetQuoteV1TickerPrice(this.extend(request, parameters));
@@ -1738,7 +1902,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object methodName = "fetchBalance";
         object marketType = "spot";
@@ -1819,7 +1986,10 @@ public partial class hashkey : Exchange
             ((IDictionary<string,object>)account)["total"] = this.safeString(balanceEntry, "total");
             ((IDictionary<string,object>)account)["free"] = this.safeString(balanceEntry, "free");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balanceEntry, "locked");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1846,7 +2016,10 @@ public partial class hashkey : Exchange
         object result = new Dictionary<string, object>() {
             { "info", balance },
         };
-        ((IDictionary<string,object>)result)[(string)code] = account;
+        if (isTrue(!isEqual(code, null)))
+        {
+            ((IDictionary<string,object>)result)[(string)code] = account;
+        }
         return this.safeBalance(result);
     }
 
@@ -1863,7 +2036,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
@@ -1918,7 +2094,7 @@ public partial class hashkey : Exchange
         }
         return new Dictionary<string, object>() {
             { "info", depositAddress },
-            { "currency", getValue(currency, "code") },
+            { "currency", this.safeString(currency, "code") },
             { "network", null },
             { "address", address },
             { "tag", tag },
@@ -1942,7 +2118,10 @@ public partial class hashkey : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchDeposits";
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
@@ -2002,7 +2181,10 @@ public partial class hashkey : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchWithdrawals";
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
@@ -2074,7 +2256,10 @@ public partial class hashkey : Exchange
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
@@ -2091,7 +2276,7 @@ public partial class hashkey : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["chainType"] = this.networkCodeToId(networkCode);
+            ((IDictionary<string,object>)request)["chainType"] = this.networkCodeToId(networkCode, getValue(currency, "code"));
         }
         object response = await this.privatePostApiV1AccountWithdraw(this.extend(request, parameters));
         //
@@ -2239,7 +2424,10 @@ public partial class hashkey : Exchange
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
@@ -2293,7 +2481,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetApiV1AccountType(parameters);
         //
         //     [
@@ -2338,7 +2529,7 @@ public partial class hashkey : Exchange
             { "5", "custody account" },
             { "6", "fiat account" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public virtual object encodeAccountType(object type)
@@ -2348,7 +2539,7 @@ public partial class hashkey : Exchange
             { "swap", "3" },
             { "custody", "5" },
         };
-        return this.safeInteger(types, type, type);
+        return this.safeInteger(types, ((string)type), type);
     }
 
     public virtual object encodeFlowType(object type)
@@ -2360,7 +2551,7 @@ public partial class hashkey : Exchange
             { "deposit", "900" },
             { "withdraw", "904" },
         };
-        return this.safeInteger(types, type, type);
+        return this.safeInteger(types, ((string)type), type);
     }
 
     /**
@@ -2393,7 +2584,10 @@ public partial class hashkey : Exchange
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires an until argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)request)["startTime"] = since;
@@ -2449,7 +2643,7 @@ public partial class hashkey : Exchange
             { "900", "deposit" },
             { "904", "withdraw" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseLedgerEntry(object item, object currency = null)
@@ -2479,7 +2673,7 @@ public partial class hashkey : Exchange
         object amountString = this.safeString(item, "change");
         object amount = this.parseNumber(amountString);
         object direction = "in";
-        if (isTrue(isGreaterThanOrEqual(getIndexOf(amountString, "-"), 0)))
+        if (isTrue(isGreaterThanOrEqual(getIndexOf(((string)amountString), "-"), 0)))
         {
             direction = "out";
         }
@@ -2530,7 +2724,10 @@ public partial class hashkey : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         if (isTrue(getValue(market, "spot")))
         {
@@ -2556,7 +2753,10 @@ public partial class hashkey : Exchange
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "spot")))
         {
@@ -2595,7 +2795,10 @@ public partial class hashkey : Exchange
         {
             throw new NotSupported ((string)add(this.id, " trigger orders are not supported for spot markets")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object isMarketBuy = isTrue((isEqual(type, "market"))) && isTrue((isEqual(side, "buy")));
         object cost = this.safeString(parameters, "cost");
@@ -2623,6 +2826,14 @@ public partial class hashkey : Exchange
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
         if (isTrue(getValue(market, "spot")))
         {
@@ -2638,29 +2849,37 @@ public partial class hashkey : Exchange
 
     public virtual object createSpotOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @ignore
-        * @name hashkey#createSpotOrderRequest
-        * @description helper function to build request
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit' or 'LIMIT_MAKER'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
-        * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
-        * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
-        * @param {string} [params.clientOrderId] a unique id for the order
-        * @returns {object} request to be sent to the exchange
-        */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name hashkey#createSpotOrderRequest
+         * @description helper function to build request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit' or 'LIMIT_MAKER'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
+         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+         * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
+         * @param {string} [params.clientOrderId] a unique id for the order
+         * @returns {object} request to be sent to the exchange
+         */
         object market = this.market(symbol);
         type = ((string)type).ToUpper();
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "side", ((string)side).ToUpper() },
+            { "side", ((string)((string)side)).ToUpper() },
             { "type", type },
         };
         if (isTrue(!isEqual(amount, null)))
@@ -2745,7 +2964,7 @@ public partial class hashkey : Exchange
         {
             suffix = "_CLOSE";
         }
-        ((IDictionary<string,object>)request)["side"] = add(((string)side).ToUpper(), suffix);
+        ((IDictionary<string,object>)request)["side"] = add(((string)((string)side)).ToUpper(), suffix);
         object timeInForce = null;
         var timeInForceparametersVariable = this.handleParamString(parameters, "timeInForce");
         timeInForce = ((IList<object>)timeInForceparametersVariable)[0];
@@ -2798,7 +3017,10 @@ public partial class hashkey : Exchange
     public async virtual Task<object> createSwapOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = this.createSwapOrderRequest(symbol, type, side, amount, price, parameters);
         object response = await this.privatePostApiV1FuturesOrder(this.extend(request, parameters));
@@ -2839,7 +3061,10 @@ public partial class hashkey : Exchange
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object ordersRequests = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
@@ -2906,7 +3131,10 @@ public partial class hashkey : Exchange
         parameters ??= new Dictionary<string, object>();
         object methodName = "cancelOrder";
         this.checkTypeParam(methodName, parameters);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(isEqual(clientOrderId, null)))
@@ -2971,7 +3199,10 @@ public partial class hashkey : Exchange
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -3013,7 +3244,10 @@ public partial class hashkey : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object methodName = "cancelOrders";
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object orderIds = String.Join(",", ((IList<object>)ids).ToArray());
         ((IDictionary<string,object>)request)["ids"] = orderIds;
@@ -3029,10 +3263,10 @@ public partial class hashkey : Exchange
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
         {
-            response = await this.privateDeleteApiV1SpotCancelOrderByIds(this.extend(request));
+            response = await this.privateDeleteApiV1SpotCancelOrderByIds(request);
         } else if (isTrue(isEqual(marketType, "swap")))
         {
-            response = this.privateDeleteApiV1FuturesCancelOrderByIds(this.extend(request));
+            response = await this.privateDeleteApiV1FuturesCancelOrderByIds(request);
         } else
         {
             throw new NotSupported ((string)add(add(add(add(add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
@@ -3063,7 +3297,10 @@ public partial class hashkey : Exchange
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchOrder";
         this.checkTypeParam(methodName, parameters);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object clientOrderId = null;
         var clientOrderIdparametersVariable = this.handleParamString(parameters, "clientOrderId");
@@ -3134,7 +3371,10 @@ public partial class hashkey : Exchange
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchOpenOrders";
         this.checkTypeParam(methodName, parameters);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -3178,7 +3418,10 @@ public partial class hashkey : Exchange
     public async virtual Task<object> fetchOpenSpotOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object methodName = "fetchOpenSpotOrders";
         var methodNameparametersVariable = this.handleParamString(parameters, "methodName", methodName);
         methodName = ((IList<object>)methodNameparametersVariable)[0];
@@ -3299,7 +3542,10 @@ public partial class hashkey : Exchange
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchCanceledAndClosedOrders";
         this.checkTypeParam(methodName, parameters);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(limit, null)))
         {
@@ -3348,7 +3594,7 @@ public partial class hashkey : Exchange
             {
                 throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a symbol argument for swap markets")) ;
             }
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             object isTrigger = false;
             var isTriggerparametersVariable = this.handleTriggerOptionAndParams(parameters, methodName, isTrigger);
             isTrigger = ((IList<object>)isTriggerparametersVariable)[0];
@@ -3563,17 +3809,17 @@ public partial class hashkey : Exchange
             { "side", side },
             { "price", price },
             { "average", average },
-            { "amount", this.omitZero(this.safeString(order, "origQty")) },
+            { "amount", this.omitZero(((string)this.safeString(order, "origQty"))) },
             { "filled", this.safeString(order, "executedQty") },
             { "remaining", null },
-            { "triggerPrice", this.omitZero(this.safeString(order, "stopPrice")) },
+            { "triggerPrice", this.omitZero(((string)this.safeString(order, "stopPrice"))) },
             { "takeProfitPrice", null },
             { "stopLossPrice", null },
-            { "cost", this.omitZero(this.safeString2(order, "cumulativeQuoteQty", "cummulativeQuoteQty")) },
+            { "cost", this.omitZero(((string)this.safeString2(order, "cumulativeQuoteQty", "cummulativeQuoteQty"))) },
             { "trades", null },
             { "fee", new Dictionary<string, object>() {
                 { "currency", this.safeCurrencyCode(feeCurrncyId) },
-                { "amount", this.omitZero(this.safeString(order, "feeAmount")) },
+                { "amount", this.omitZero(((string)this.safeString(order, "feeAmount"))) },
             } },
             { "reduceOnly", reduceOnly },
             { "postOnly", postOnly },
@@ -3639,7 +3885,7 @@ public partial class hashkey : Exchange
             { "LIMIT_MAKER", "limit" },
             { "MARKET_OF_BASE", "market" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     /**
@@ -3654,7 +3900,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -3682,7 +3931,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object request = new Dictionary<string, object>() {
             { "timestamp", this.milliseconds() },
@@ -3748,7 +4000,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -3774,9 +4029,10 @@ public partial class hashkey : Exchange
         //     ]
         //
         object rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object rows = this.toArray(response);
+        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
-            object entry = getValue(response, i);
+            object entry = getValue(rows, i);
             object timestamp = this.safeInteger(entry, "settleTime");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -3816,7 +4072,10 @@ public partial class hashkey : Exchange
                 throw new NotSupported ((string)add(add(add(this.id, " "), methodName), "() is supported for a symbol argument with one single market symbol only")) ;
             }
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         return await this.fetchPositionsForSymbol(getValue(symbols, 0), this.extend(new Dictionary<string, object>() {
             { "methodName", "fetchPositions" },
         }, parameters));
@@ -3836,7 +4095,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchPositionsForSymbol(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object methodName = "fetchPosition";
         var methodNameparametersVariable = this.handleParamString(parameters, "methodName", methodName);
@@ -3923,7 +4185,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -3948,7 +4213,7 @@ public partial class hashkey : Exchange
         object leverageValue = this.safeNumber(leverage, "leverage");
         return new Dictionary<string, object>() {
             { "info", leverage },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "marginMode", marginMode },
             { "longLeverage", leverageValue },
             { "shortLeverage", leverageValue },
@@ -3972,7 +4237,10 @@ public partial class hashkey : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " setLeverage() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "leverage", leverage },
         };
@@ -3991,6 +4259,153 @@ public partial class hashkey : Exchange
 
     /**
      * @method
+     * @name hashkey#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/change-margin-type
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a symbol argument")) ;
+        }
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        marginMode = ((string)marginMode).ToUpper();
+        if (isTrue(isEqual(marginMode, "CROSSED")))
+        {
+            marginMode = "CROSS";
+        }
+        if (isTrue(isTrue((!isEqual(marginMode, "CROSS"))) && isTrue((!isEqual(marginMode, "ISOLATED")))))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() marginMode must be either cross or isolated")) ;
+        }
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "swap")))
+        {
+            throw new BadSymbol ((string)add(this.id, " setMarginMode() supports swap markets only")) ;
+        }
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "marginType", marginMode },
+        };
+        return await this.privatePostApiV1FuturesMarginType(this.extend(request, parameters));
+    }
+
+    /**
+     * @method
+     * @name hashkey#addMargin
+     * @description add margin
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.side position side, either 'long' or 'short'
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.modifyMarginHelper(symbol, amount, "add", parameters);
+    }
+
+    /**
+     * @method
+     * @name hashkey#reduceMargin
+     * @description remove margin from a position
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.side position side, either 'long' or 'short'
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.modifyMarginHelper(symbol, amount, "reduce", parameters);
+    }
+
+    public async virtual Task<object> modifyMarginHelper(object symbol, object amount, object type, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "swap")))
+        {
+            throw new BadSymbol ((string)add(this.id, " modifyMarginHelper() supports swap markets only")) ;
+        }
+        object side = null;
+        var sideparametersVariable = this.handleParamString(parameters, "side");
+        side = ((IList<object>)sideparametersVariable)[0];
+        parameters = ((IList<object>)sideparametersVariable)[1];
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " "), type), "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"")) ;
+        }
+        side = ((string)side).ToUpper();
+        if (isTrue(isTrue((!isEqual(side, "LONG"))) && isTrue((!isEqual(side, "SHORT")))))
+        {
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " "), type), "Margin() params[\"side\"] must be either long or short")) ;
+        }
+        object amountString = this.numberToString(amount);
+        if (isTrue(isEqual(type, "reduce")))
+        {
+            amountString = Precise.stringMul(amountString, "-1");
+        }
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "side", side },
+            { "amount", amountString },
+        };
+        object response = await this.privatePostApiV1FuturesPositionMargin(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "0000",
+        //         "symbol": "BTCUSDT-PERPETUAL",
+        //         "margin": "12344.345",
+        //         "timestamp": "1726869763318"
+        //     }
+        //
+        return this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
+            { "type", type },
+            { "amount", amount },
+        });
+    }
+
+    public override object parseMarginModification(object data, object market = null)
+    {
+        object marketId = this.safeString(data, "symbol");
+        market = this.safeMarket(marketId, market, null, "swap");
+        object timestamp = this.safeInteger(data, "timestamp");
+        object errorCode = this.safeString(data, "code");
+        object success = isEqual(errorCode, "0000");
+        return new Dictionary<string, object>() {
+            { "info", data },
+            { "symbol", getValue(market, "symbol") },
+            { "type", null },
+            { "marginMode", "isolated" },
+            { "amount", null },
+            { "total", this.safeNumber(data, "margin") },
+            { "code", getValue(market, "settle") },
+            { "status", ((bool) isTrue((success))) ? "ok" : "failed" },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        };
+    }
+
+    /**
+     * @method
      * @name hashkey#fetchLeverageTiers
      * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
      * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
@@ -4001,7 +4416,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.publicGetApiV1ExchangeInfo(parameters);
         // response is the same as in fetchMarkets()
         object data = this.safeList(response, "contracts", new List<object>() {});
@@ -4114,7 +4532,7 @@ public partial class hashkey : Exchange
      * @method
      * @name hashkey#fetchTradingFee
      * @description fetch the trading fees for a market
-     * @see https://developers.binance.com/docs/wallet/asset/trade-fee // spot
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information // spot
      * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight // swap
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4123,7 +4541,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object methodName = "fetchTradingFee";
         object response = null;
@@ -4147,14 +4568,17 @@ public partial class hashkey : Exchange
      * @method
      * @name hashkey#fetchTradingFees
      * @description *for spot markets only* fetch the trading fees for multiple markets
-     * @see https://developers.binance.com/docs/wallet/asset/trade-fee
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetApiV1AccountVipInfo(parameters);
         //
         //     {
@@ -4184,7 +4608,7 @@ public partial class hashkey : Exchange
         {
             object fee = this.safeDict(data, i, new Dictionary<string, object>() {});
             object parsedFee = this.parseTradingFee(fee);
-            ((IDictionary<string,object>)result)[(string)getValue(parsedFee, "symbol")] = parsedFee;
+            ((IDictionary<string,object>)result)[(string)((string)getValue(parsedFee, "symbol"))] = parsedFee;
         }
         return result;
     }
@@ -4252,7 +4676,7 @@ public partial class hashkey : Exchange
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
                 body = this.json(this.safeList(parameters, "orders"));
-                signature = this.hmac(this.encode(this.customUrlencode(additionalParams)), this.encode(this.secret), sha256);
+                signature = this.hmac(this.encode(((string)this.customUrlencode(additionalParams))), this.encode(this.secret), sha256);
                 query = this.customUrlencode(this.extend(additionalParams, new Dictionary<string, object>() {
                     { "signature", signature },
                 }));
@@ -4260,7 +4684,7 @@ public partial class hashkey : Exchange
             } else
             {
                 object totalParams = this.extend(additionalParams, parameters);
-                signature = this.hmac(this.encode(this.customUrlencode(totalParams)), this.encode(this.secret), sha256);
+                signature = this.hmac(this.encode(((string)this.customUrlencode(totalParams))), this.encode(this.secret), sha256);
                 ((IDictionary<string,object>)totalParams)["signature"] = signature;
                 query = this.customUrlencode(totalParams);
                 if (isTrue(isEqual(method, "GET")))
@@ -4276,7 +4700,7 @@ public partial class hashkey : Exchange
         } else
         {
             query = this.urlencode(parameters);
-            if (isTrue(!isEqual(((string)query).Length, 0)))
+            if (isTrue(!isEqual(getArrayLength(query), 0)))
             {
                 url = add(url, add("?", query));
             }
@@ -4304,8 +4728,8 @@ public partial class hashkey : Exchange
             return null;
         }
         object errorInArray = false;
-        object responseCodeString = this.safeString(response, "code", null);
-        object responseCodeInteger = this.safeInteger(response, "code", null); // some codes in response are returned as '0000' others as 0
+        object responseCodeString = this.safeString(response, "code");
+        object responseCodeInteger = this.safeInteger(response, "code"); // some codes in response are returned as '0000' others as 0
         if (isTrue(isEqual(responseCodeInteger, 0)))
         {
             object result = this.safeList(response, "result", new List<object>() {}); // for batch methods

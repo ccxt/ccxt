@@ -3,6 +3,22 @@
     "skipKeys": [],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://api.bequant.io/api/3/public/currency",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://api.bequant.io/api/3/public/currency",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot private trades ",

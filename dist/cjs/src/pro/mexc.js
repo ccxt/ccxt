@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var mexc$1 = require('../mexc.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -24,6 +24,8 @@ class mexc extends mexc$1["default"] {
                 'fetchOrderWs': false,
                 'fetchTradesWs': false,
                 'watchBalance': true,
+                'watchFundingRate': true,
+                'watchFundingRates': false,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
@@ -81,16 +83,16 @@ class mexc extends mexc$1["default"] {
      * @method
      * @name mexc#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#miniticker
+     * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/individual-symbol-book-ticker-streams // spot
+     * @see https://www.mexc.com/api-docs/futures/websocket-api/get-a-single-ticker // swap
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.miniTicker] set to true for using the miniTicker endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'ticker:' + market['symbol'];
         if (market['spot']) {
@@ -179,14 +181,17 @@ class mexc extends mexc$1["default"] {
         const timestamp = this.safeInteger2(message, 't', 'sendTime');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
-        let ticker = undefined;
+        let ticker;
         if (market['spot']) {
             ticker = this.parseWsTicker(rawTicker, market);
             ticker['timestamp'] = timestamp;
             ticker['datetime'] = this.iso8601(timestamp);
         }
-        else {
+        else if (rawTicker !== undefined) {
             ticker = this.parseTicker(rawTicker, market);
+        }
+        else {
+            return;
         }
         this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
@@ -196,16 +201,15 @@ class mexc extends mexc$1["default"] {
      * @method
      * @name mexc#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#minitickers
+     * @see https://www.mexc.com/api-docs/futures/websocket-api/tickers
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.miniTicker] set to true for using the miniTicker endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined);
         const messageHashes = [];
         const firstSymbol = this.safeString(symbols, 0);
@@ -321,7 +325,7 @@ class mexc extends mexc$1["default"] {
         //         "s": "BTCUSDT"
         //     }
         //
-        const data = this.safeList2(message, 'data', 'd');
+        const data = this.safeList2(message, 'data', 'd', []);
         const channel = this.safeString(message, 'c', '');
         const marketId = this.safeString(message, 's');
         const market = this.safeMarket(marketId);
@@ -334,7 +338,7 @@ class mexc extends mexc$1["default"] {
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
-            let ticker = undefined;
+            let ticker;
             if (isSpot) {
                 ticker = this.parseWsTicker(entry, market);
             }
@@ -342,7 +346,9 @@ class mexc extends mexc$1["default"] {
                 ticker = this.parseTicker(entry);
             }
             const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
+            if (symbol !== undefined) {
+                this.tickers[symbol] = ticker;
+            }
             result.push(ticker);
             const messageHash = 'ticker:' + symbol;
             client.resolve(ticker, messageHash);
@@ -411,20 +417,22 @@ class mexc extends mexc$1["default"] {
     /**
      * @method
      * @name mexc#watchBidsAsks
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
+     * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/individual-symbol-book-ticker-streams
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, false, true);
         let marketType = undefined;
         if (symbols === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchBidsAsks required symbols argument');
         }
-        const markets = this.marketsForSymbols(symbols);
+        const markets = this.requireValue(this.marketsForSymbols(symbols), 'watchBidsAsks() markets is required');
         [marketType, params] = this.handleMarketTypeAndParams('watchBidsAsks', markets[0], params);
         const isSpot = marketType === 'spot';
         if (!isSpot) {
@@ -528,7 +536,7 @@ class mexc extends mexc$1["default"] {
         const url = this.urls['api']['ws']['swap'];
         const timestamp = this.milliseconds().toString();
         const payload = this.apiKey + timestamp;
-        const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256);
+        const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256);
         const request = {
             'method': channel,
             'param': {
@@ -543,7 +551,8 @@ class mexc extends mexc$1["default"] {
     /**
      * @method
      * @name mexc#watchOHLCV
-     * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams
+     * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/k-line-streams // spot
+     * @see https://www.mexc.com/api-docs/futures/websocket-api/k-line-data // swap
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -553,7 +562,9 @@ class mexc extends mexc$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const timeframes = this.safeValue(this.options, 'timeframes', {});
@@ -572,6 +583,7 @@ class mexc extends mexc$1["default"] {
             };
             ohlcv = await this.watchSwapPublic(channel, messageHash, requestParams, params);
         }
+        ohlcv = this.requireValue(ohlcv, 'watchOHLCV() ohlcv is required');
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
@@ -642,7 +654,7 @@ class mexc extends mexc$1["default"] {
         //    }
         // }
         //
-        let parsed = undefined;
+        let parsed;
         let symbol = undefined;
         let timeframe = undefined;
         if ('publicSpotKline' in message) {
@@ -664,12 +676,15 @@ class mexc extends mexc$1["default"] {
             parsed = this.parseWsOHLCV(rawOhlcv, market);
         }
         const messageHash = 'candles:' + symbol + ':' + timeframe;
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+        const symbolOhlcvs = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = symbolOhlcvs;
+        let stored = this.safeValue(symbolOhlcvs, timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new Cache.ArrayCacheByTimestamp(limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            if (timeframe !== undefined) {
+                symbolOhlcvs[timeframe] = stored;
+            }
         }
         stored.append(parsed);
         client.resolve(stored, messageHash);
@@ -718,29 +733,37 @@ class mexc extends mexc$1["default"] {
         //       "amount":"366804.43",
         //       "windowEnd":"1754737980"
         //
+        let volume = this.safeNumber2(ohlcv, 'v', 'volume');
+        // MEXC swap websocket klines publish contracts volume in `q`,
+        // while spot/protobuf uses `v`/`volume`.
+        if ((market !== undefined) && (!this.safeBool(market, 'spot')) && (volume === undefined)) {
+            volume = this.safeNumber2(ohlcv, 'q', 'v');
+        }
         return [
             this.safeTimestamp2(ohlcv, 't', 'windowStart'),
             this.safeNumber2(ohlcv, 'o', 'openingPrice'),
             this.safeNumber2(ohlcv, 'h', 'highestPrice'),
             this.safeNumber2(ohlcv, 'l', 'lowestPrice'),
             this.safeNumber2(ohlcv, 'c', 'closingPrice'),
-            this.safeNumber2(ohlcv, 'v', 'volume'),
+            volume,
         ];
     }
     /**
      * @method
      * @name mexc#watchOrderBook
-     * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+     * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/diffdepth-stream // spot
+     * @see https://www.mexc.com/api-docs/futures/websocket-api/order-book-depth // swap
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
@@ -758,13 +781,14 @@ class mexc extends mexc$1["default"] {
             };
             orderbook = await this.watchSwapPublic(channel, messageHash, requestParams, params);
         }
+        orderbook = this.requireValue(orderbook, 'watchOrderBook() orderbook is required');
         return orderbook.limit();
     }
     handleOrderBookSubscription(client, message) {
         // spot
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
-        const msg = this.safeString(message, 'msg');
+        const msg = this.safeString(message, 'msg', '');
         const parts = msg.split('@');
         const marketId = this.safeString(parts, 2);
         const symbol = this.safeSymbol(marketId);
@@ -775,12 +799,18 @@ class mexc extends mexc$1["default"] {
         const nonce = this.safeInteger(orderbook, 'nonce');
         const firstDelta = this.safeValue(cache, 0);
         const firstDeltaNonce = this.safeIntegerN(firstDelta, ['r', 'version', 'fromVersion']);
+        if ((nonce === undefined) || (firstDeltaNonce === undefined)) {
+            return -1;
+        }
         if (nonce < firstDeltaNonce - 1) {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
             const delta = cache[i];
             const deltaNonce = this.safeIntegerN(delta, ['r', 'version', 'fromVersion']);
+            if (deltaNonce === undefined) {
+                continue;
+            }
             if (deltaNonce >= nonce) {
                 return i;
             }
@@ -914,7 +944,7 @@ class mexc extends mexc$1["default"] {
     handleDelta(orderbook, delta) {
         const existingNonce = this.safeInteger(orderbook, 'nonce');
         const deltaNonce = this.safeIntegerN(delta, ['r', 'version', 'fromVersion']);
-        if (deltaNonce < existingNonce) {
+        if ((deltaNonce !== undefined) && (existingNonce !== undefined) && (deltaNonce < existingNonce)) {
             // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
             // so, we just skip old updates
             return;
@@ -930,8 +960,8 @@ class mexc extends mexc$1["default"] {
     /**
      * @method
      * @name mexc#watchTrades
-     * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+     * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/trade-streams // spot
+     * @see https://www.mexc.com/api-docs/futures/websocket-api/deal // swap
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -940,7 +970,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'trades:' + symbol;
@@ -956,6 +988,7 @@ class mexc extends mexc$1["default"] {
             };
             trades = await this.watchSwapPublic(channel, messageHash, requestParams, params);
         }
+        trades = this.requireValue(trades, 'watchTrades() trades is required');
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
@@ -1028,7 +1061,7 @@ class mexc extends mexc$1["default"] {
             trades = this.safeList(message, 'data', []);
         }
         for (let j = 0; j < trades.length; j++) {
-            let parsedTrade = undefined;
+            let parsedTrade;
             if (market['spot']) {
                 parsedTrade = this.parseWsTrade(trades[j], market);
             }
@@ -1042,8 +1075,8 @@ class mexc extends mexc$1["default"] {
     /**
      * @method
      * @name mexc#watchMyTrades
-     * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-deals
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#private-channels
+     * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-deals // spot
+     * @see https://www.mexc.com/api-docs/futures/websocket-api/fill-details // swap
      * @description watches information on multiple trades made by the user
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1052,7 +1085,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'myTrades';
         let market = undefined;
         if (symbol !== undefined) {
@@ -1070,6 +1105,7 @@ class mexc extends mexc$1["default"] {
         else {
             trades = await this.watchSwapPrivate(messageHash, params);
         }
+        trades = this.requireValue(trades, 'watchMyTrades() trades is required');
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
@@ -1116,12 +1152,15 @@ class mexc extends mexc$1["default"] {
         const marketId = this.safeString2(message, 's', 'symbol', futuresMarketId);
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
-        let trade = undefined;
+        let trade;
         if (market['spot']) {
             trade = this.parseWsTrade(data, market);
         }
-        else {
+        else if (data !== undefined) {
             trade = this.parseTrade(data, market);
+        }
+        else {
+            return;
         }
         let trades = this.myTrades;
         if (trades === undefined) {
@@ -1219,18 +1258,20 @@ class mexc extends mexc$1["default"] {
     /**
      * @method
      * @name mexc#watchOrders
-     * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-orders
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
+     * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-orders // spot
+     * @see https://www.mexc.com/api-docs/futures/websocket-api/order // swap
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'margin'
+     * @param {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'swap'
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'orders';
         let market = undefined;
         if (symbol !== undefined) {
@@ -1248,6 +1289,7 @@ class mexc extends mexc$1["default"] {
         else {
             orders = await this.watchSwapPrivate(messageHash, params);
         }
+        orders = this.requireValue(orders, 'watchOrders() orders is required');
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
@@ -1332,12 +1374,19 @@ class mexc extends mexc$1["default"] {
         const marketId = this.safeString2(message, 's', 'symbol', futuresMarketId);
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
-        let parsed = undefined;
+        let parsed;
         if (market['spot']) {
             parsed = this.parseWsOrder(data, market);
+            const sendTime = this.safeInteger(message, 'sendTime');
+            if (sendTime !== undefined) {
+                parsed['lastTradeTimestamp'] = sendTime;
+            }
+        }
+        else if (data !== undefined) {
+            parsed = this.parseOrder(data, market);
         }
         else {
-            parsed = this.parseOrder(data, market);
+            return;
         }
         let orders = this.orders;
         if (orders === undefined) {
@@ -1420,7 +1469,7 @@ class mexc extends mexc$1["default"] {
         //
         const timestamp = this.safeInteger(order, 'createTime');
         const side = this.safeString(order, 'tradeType');
-        const status = this.safeString(order, 'status');
+        const status = this.safeString2(order, 'status', 'state');
         const type = this.safeString(order, 'orderType');
         let fee = undefined;
         const feeCurrency = this.safeString(order, 'N');
@@ -1442,8 +1491,8 @@ class mexc extends mexc$1["default"] {
             'timeInForce': this.parseWsTimeInForce(type),
             'side': (side === '1') ? 'buy' : 'sell',
             'price': this.safeString(order, 'price'),
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': this.safeString2(order, 'triggerPrice', 'P'),
+            'triggerPrice': this.safeString2(order, 'triggerPrice', 'P'),
             'average': this.safeString(order, 'avgPrice'),
             'amount': this.safeString(order, 'quantity'),
             'cost': this.safeString(order, 'amount'),
@@ -1456,11 +1505,12 @@ class mexc extends mexc$1["default"] {
     }
     parseWsOrderStatus(status, market = undefined) {
         const statuses = {
-            '1': 'open',
-            '2': 'closed',
-            '3': 'open',
-            '4': 'canceled',
-            '5': 'closed',
+            '0': 'open', // new/pending (OCO orders)
+            '1': 'open', // new order
+            '2': 'closed', // filled
+            '3': 'open', // partially filled
+            '4': 'canceled', // canceled
+            '5': 'closed', // partially filled then canceled
             'NEW': 'open',
             'CANCELED': 'canceled',
             'EXECUTED': 'closed',
@@ -1470,36 +1520,43 @@ class mexc extends mexc$1["default"] {
     }
     parseWsOrderType(type) {
         const types = {
-            '1': 'limit',
-            '2': 'limit',
-            '3': undefined,
-            '4': undefined,
-            '5': 'market',
+            '1': 'limit', // LIMIT_ORDER
+            '2': 'limit', // POST_ONLY
+            '3': undefined, // IMMEDIATE_OR_CANCEL
+            '4': undefined, // FILL_OR_KILL
+            '5': 'market', // MARKET_ORDER
             '100': 'limit', // STOP_LIMIT
+            '101': 'limit', // OCO_STOP_LIMIT
+            '102': 'limit', // OCO_LIMIT
         };
         return this.safeString(types, type);
     }
     parseWsTimeInForce(timeInForce) {
         const timeInForceIds = {
-            '1': 'GTC',
-            '2': 'PO',
-            '3': 'IOC',
-            '4': 'FOK',
-            '5': 'GTC',
+            '1': 'GTC', // LIMIT_ORDER
+            '2': 'PO', // POST_ONLY
+            '3': 'IOC', // IMMEDIATE_OR_CANCEL
+            '4': 'FOK', // FILL_OR_KILL
+            '5': 'GTC', // MARKET_ORDER
             '100': 'GTC', // STOP_LIMIT
+            '101': 'GTC', // OCO_STOP_LIMIT
+            '102': 'GTC', // OCO_LIMIT
         };
         return this.safeString(timeInForceIds, timeInForce);
     }
     /**
      * @method
      * @name mexc#watchBalance
-     * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-update
+     * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-update // spot
+     * @see https://www.mexc.com/api-docs/futures/websocket-api/assets // swap
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
         const messageHash = 'balance:' + type;
@@ -1543,7 +1600,7 @@ class mexc extends mexc$1["default"] {
         //             "frozenBalance": 0,
         //             "positionMargin": 1.36945756
         //         },
-        //         "ts": 1680059188190
+        //         "ts": 1680059188191
         //     }
         //
         const channel = this.safeString(message, 'channel');
@@ -1558,14 +1615,85 @@ class mexc extends mexc$1["default"] {
         this.balance[type]['info'] = data;
         this.balance[type]['timestamp'] = timestamp;
         this.balance[type]['datetime'] = this.iso8601(timestamp);
-        const currencyId = this.safeStringN(data, ['currency', 'vcoinName']);
+        const currencyId = this.safeString2(data, 'currency', 'vcoinName');
         const code = this.safeCurrencyCode(currencyId);
         const account = this.account();
         account['free'] = this.safeString2(data, 'balanceAmount', 'availableBalance');
-        account['used'] = this.safeStringN(data, ['frozenBalance', 'frozenAmount']);
-        this.balance[type][code] = account;
+        account['used'] = this.safeString2(data, 'frozenBalance', 'frozenAmount');
+        if (code !== undefined) {
+            this.balance[type][code] = account;
+        }
         this.balance[type] = this.safeBalance(this.balance[type]);
         client.resolve(this.balance[type], messageHash);
+    }
+    /**
+     * @method
+     * @name mexc#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://www.mexc.com/api-docs/futures/websocket-api/funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async watchFundingRate(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const messageHash = 'fundingRate:' + market['symbol'];
+        const channel = 'sub.funding.rate';
+        const requestParams = {
+            'symbol': market['id'],
+        };
+        return await this.watchSwapPublic(channel, messageHash, requestParams, params);
+    }
+    /**
+     * @method
+     * @name mexc#unWatchFundingRate
+     * @description unWatches the current funding rate for a symbol
+     * @see https://www.mexc.com/api-docs/futures/websocket-api/funding-rate
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async unWatchFundingRate(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const messageHash = 'unsubscribe:fundingRate:' + market['symbol'];
+        let url = undefined;
+        const channel = 'unsub.funding.rate';
+        const requestParams = {
+            'symbol': market['id'],
+        };
+        url = this.urls['api']['ws']['swap'];
+        this.watchSwapPublic(channel, messageHash, requestParams, params);
+        const client = this.client(url);
+        this.handleUnsubscriptions(client, [messageHash]);
+        return undefined;
+    }
+    handleFundingRate(client, message) {
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "data": {
+        //             "symbol": "BTC_USDT",
+        //             "rate": -0.000021,
+        //             "nextSettleTime": 1771084800000
+        //         },
+        //         "channel": "push.funding.rate",
+        //         "ts": 1771069020506
+        //     }
+        //
+        const data = this.safeDict(message, 'data', {});
+        const fundingRate = this.parseFundingRate(data);
+        const symbol = fundingRate['symbol'];
+        if (symbol !== undefined) {
+            this.fundingRates[symbol] = fundingRate;
+        }
+        const messageHash = 'fundingRate:' + symbol;
+        client.resolve(fundingRate, messageHash);
     }
     /**
      * @method
@@ -1576,7 +1704,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'unsubscribe:ticker:' + market['symbol'];
         let url = undefined;
@@ -1608,7 +1738,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined);
         const messageHashes = [];
         const firstSymbol = this.safeString(symbols, 0);
@@ -1669,13 +1801,15 @@ class mexc extends mexc$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, false, true);
         let marketType = undefined;
         if (symbols === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchBidsAsks required symbols argument');
         }
-        const markets = this.marketsForSymbols(symbols);
+        const markets = this.requireValue(this.marketsForSymbols(symbols), 'unWatchBidsAsks() markets is required');
         [marketType, params] = this.handleMarketTypeAndParams('watchBidsAsks', markets[0], params);
         const isSpot = marketType === 'spot';
         if (!isSpot) {
@@ -1711,7 +1845,9 @@ class mexc extends mexc$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const timeframes = this.safeValue(this.options, 'timeframes', {});
@@ -1744,10 +1880,12 @@ class mexc extends mexc$1["default"] {
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'unsubscribe:orderbook:' + symbol;
@@ -1782,7 +1920,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTrades(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'unsubscribe:trades:' + symbol;
@@ -1832,10 +1972,11 @@ class mexc extends mexc$1["default"] {
             else if (messageHash.indexOf('candles') >= 0) {
                 const splitHashes = messageHash.split(':');
                 let symbol = this.safeString(splitHashes, 2);
-                if (splitHashes.length > 4) {
+                const splitHashesLength = splitHashes.length; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+                if (splitHashesLength > 4) {
                     symbol += ':' + this.safeString(splitHashes, 3);
                 }
-                if (symbol in this.ohlcvs) {
+                if ((symbol !== undefined) && (symbol in this.ohlcvs)) {
                     delete this.ohlcvs[symbol];
                 }
             }
@@ -1851,6 +1992,12 @@ class mexc extends mexc$1["default"] {
                     delete this.trades[symbol];
                 }
             }
+            else if (messageHash.indexOf('fundingRate') >= 0) {
+                const symbol = messageHash.replace('unsubscribe:fundingRate:', '');
+                if (symbol in this.fundingRates) {
+                    delete this.fundingRates[symbol];
+                }
+            }
         }
     }
     async authenticate(subscriptionHash, params = {}) {
@@ -1859,7 +2006,29 @@ class mexc extends mexc$1["default"] {
         if (listenKey !== undefined) {
             return listenKey;
         }
-        const response = await this.spotPrivatePostUserDataStream(params);
+        // guard against concurrent listenKey requests with a future on the base
+        // spot ws client - the first caller fetches the listenKey, concurrent
+        // callers wait on the future and resume when the listenKey is ready,
+        // otherwise the user-data subscriptions would be split across two connections
+        const client = this.client(this.urls['api']['ws']['spot']);
+        const messageHash = 'authenticate:listenKey';
+        const isFetching = this.safeBool(this.options, 'listenKeyFetching', false);
+        if (isFetching) {
+            await client.future(messageHash);
+            return this.safeString(this.options, 'listenKey');
+        }
+        this.options['listenKeyFetching'] = true;
+        client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
+        let response = undefined;
+        try {
+            response = await this.spotPrivatePostUserDataStream(params);
+        }
+        catch (e) {
+            this.options['listenKeyFetching'] = false;
+            client.reject(e, messageHash);
+            throw e;
+        }
+        this.options['listenKeyFetching'] = false;
         //
         //    {
         //        "listenKey": "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
@@ -1867,6 +2036,7 @@ class mexc extends mexc$1["default"] {
         //
         listenKey = this.safeString(response, 'listenKey');
         this.options['listenKey'] = listenKey;
+        client.resolve(listenKey, messageHash);
         const listenKeyRefreshRate = this.safeInteger(this.options, 'listenKeyRefreshRate', 1200000);
         this.delay(listenKeyRefreshRate, this.keepAliveListenKey, listenKey, params);
         return listenKey;
@@ -1939,7 +2109,7 @@ class mexc extends mexc$1["default"] {
         //       "windowEnd":"1754737980"
         //    }
         // }
-        const channel = this.safeString(message, 'channel');
+        const channel = this.safeString(message, 'channel', '');
         const channelParts = channel.split('@');
         const channelId = this.safeString(channelParts, 1);
         if (channelId === 'public.kline.v3.api.pb') {
@@ -1989,7 +2159,7 @@ class mexc extends mexc$1["default"] {
         }
         else {
             const parts = c.split('@');
-            channel = this.safeString(parts, 1);
+            channel = this.safeString(parts, 1, '');
         }
         const methods = {
             'public.deals.v3.api': this.handleTrades,
@@ -2010,8 +2180,9 @@ class mexc extends mexc$1["default"] {
             'private.deals.v3.api': this.handleMyTrade,
             'push.personal.order.deal': this.handleMyTrade,
             'pong': this.handlePong,
+            'push.funding.rate': this.handleFundingRate,
         };
-        if (channel in methods) {
+        if ((channel !== undefined) && (channel in methods)) {
             const method = methods[channel];
             method.call(this, client, message);
         }

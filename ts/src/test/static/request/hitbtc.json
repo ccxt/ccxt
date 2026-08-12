@@ -5,7 +5,7 @@
     "methods": {
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
+                "description": "default",
                 "method": "fetchCurrencies",
                 "url": "https://api.hitbtc.com/api/3/public/currency",
                 "input": [],

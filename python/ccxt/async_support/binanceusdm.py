@@ -36,6 +36,7 @@ class binanceusdm(binance, ImplicitAPI):
                 'fetchMarkets': {
                     'types': ['linear'],
                 },
+                'defaultType': 'swap',
                 'defaultSubType': 'linear',
                 # https://www.binance.com/en/support/faq/360033162192
                 # tier amount, maintenance margin, initial margin,
@@ -54,10 +55,10 @@ class binanceusdm(binance, ImplicitAPI):
             },
         })
 
-    async def transfer_in(self, code: str, amount, params={}):
+    async def transfer_in(self, code: str, amount: Any, params={}):
         # transfer from spot wallet to usdm futures wallet
         return await self.futuresTransfer(code, amount, 1, params)
 
-    async def transfer_out(self, code: str, amount, params={}):
+    async def transfer_out(self, code: str, amount: Any, params={}):
         # transfer from usdm futures wallet to spot wallet
         return await self.futuresTransfer(code, amount, 2, params)

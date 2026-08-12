@@ -68,7 +68,7 @@
                     "maxQty": "10",
                     "stepSize": "0.001",
                     "marketOrderMinQty": "0.001",
-                    "marketOrderMaxQty": "8",
+                    "marketOrderMaxQty": "3",
                     "filterType": "LOT_SIZE"
                 },
                 {
@@ -115,133 +115,133 @@
             "underlying": "BTC",
             "riskLimits": [
                 {
-                    "riskLimitId": "200006938",
+                    "riskLimitId": "200011082",
                     "quantity": "1000.00",
                     "initialMargin": "0.05",
                     "maintMargin": "0.005",
                     "isWhite": false
                 },
                 {
-                    "riskLimitId": "200006939",
+                    "riskLimitId": "200011083",
                     "quantity": "2000.00",
                     "initialMargin": "0.05",
                     "maintMargin": "0.01",
                     "isWhite": false
                 },
                 {
-                    "riskLimitId": "200006940",
+                    "riskLimitId": "200011084",
                     "quantity": "3500.00",
                     "initialMargin": "0.05",
                     "maintMargin": "0.015",
                     "isWhite": false
                 },
                 {
-                    "riskLimitId": "200006941",
+                    "riskLimitId": "200011085",
                     "quantity": "5000.00",
                     "initialMargin": "0.05",
                     "maintMargin": "0.02",
                     "isWhite": false
                 },
                 {
-                    "riskLimitId": "200006942",
+                    "riskLimitId": "200011086",
                     "quantity": "6500.00",
                     "initialMargin": "0.05",
                     "maintMargin": "0.025",
                     "isWhite": false
                 },
                 {
-                    "riskLimitId": "200006943",
+                    "riskLimitId": "200011087",
                     "quantity": "8000.00",
                     "initialMargin": "0.10",
                     "maintMargin": "0.03",
                     "isWhite": false
                 },
                 {
-                    "riskLimitId": "200006944",
+                    "riskLimitId": "200011088",
                     "quantity": "10000.00",
                     "initialMargin": "0.10",
                     "maintMargin": "0.035",
                     "isWhite": false
                 },
                 {
-                    "riskLimitId": "200006945",
+                    "riskLimitId": "200011089",
                     "quantity": "12000.00",
                     "initialMargin": "0.10",
                     "maintMargin": "0.04",
                     "isWhite": false
                 },
                 {
-                    "riskLimitId": "200006946",
+                    "riskLimitId": "200011090",
                     "quantity": "14000.00",
                     "initialMargin": "0.10",
                     "maintMargin": "0.045",
                     "isWhite": false
                 },
                 {
-                    "riskLimitId": "200006947",
+                    "riskLimitId": "200011091",
                     "quantity": "16000.00",
                     "initialMargin": "0.10",
                     "maintMargin": "0.05",
                     "isWhite": false
                 },
                 {
-                    "riskLimitId": "200006948",
+                    "riskLimitId": "200011092",
                     "quantity": "30000.00",
                     "initialMargin": "0.1111",
                     "maintMargin": "0.055",
                     "isWhite": false
                 },
                 {
-                    "riskLimitId": "200006949",
+                    "riskLimitId": "200011093",
                     "quantity": "45000.00",
                     "initialMargin": "0.125",
                     "maintMargin": "0.065",
                     "isWhite": false
                 },
                 {
-                    "riskLimitId": "200006950",
+                    "riskLimitId": "200011094",
                     "quantity": "60000.00",
                     "initialMargin": "0.1428",
                     "maintMargin": "0.075",
                     "isWhite": false
                 },
                 {
-                    "riskLimitId": "200006951",
+                    "riskLimitId": "200011095",
                     "quantity": "75000.00",
                     "initialMargin": "0.1666",
                     "maintMargin": "0.085",
                     "isWhite": false
                 },
                 {
-                    "riskLimitId": "200006952",
+                    "riskLimitId": "200011096",
                     "quantity": "90000.00",
                     "initialMargin": "0.20",
                     "maintMargin": "0.10",
                     "isWhite": false
                 },
                 {
-                    "riskLimitId": "200006953",
+                    "riskLimitId": "200011097",
                     "quantity": "105000.00",
                     "initialMargin": "0.25",
                     "maintMargin": "0.125",
                     "isWhite": false
                 },
                 {
-                    "riskLimitId": "200006954",
+                    "riskLimitId": "200011098",
                     "quantity": "120000.00",
                     "initialMargin": "0.3333",
                     "maintMargin": "0.165",
                     "isWhite": false
                 },
                 {
-                    "riskLimitId": "200006955",
+                    "riskLimitId": "200011099",
                     "quantity": "135000.00",
                     "initialMargin": "0.50",
                     "maintMargin": "0.25",
                     "isWhite": false
                 },
                 {
-                    "riskLimitId": "200006956",
+                    "riskLimitId": "200011100",
                     "quantity": "150000.00",
                     "initialMargin": "1.00",
                     "maintMargin": "0.50",
@@ -550,9 +550,11 @@
             "baseAsset": "BTC",
             "baseAssetName": "BTC",
             "baseAssetPrecision": "0.00001",
+            "baseUcid": "",
             "quoteAsset": "USDT",
             "quoteAssetName": "USDT",
             "quotePrecision": "0.0000001",
+            "quoteUcid": "",
             "retailAllowed": true,
             "piAllowed": true,
             "corporateAllowed": true,
@@ -591,6 +593,7 @@
                     "maxSellPrice": "0",
                     "buyPriceUpRate": "0.05",
                     "sellPriceDownRate": "0.05",
+                    "maxEntrustNum": "300",
                     "filterType": "LIMIT_TRADING"
                 },
                 {
@@ -804,9 +807,11 @@
             "baseAsset": "ETH",
             "baseAssetName": "ETH",
             "baseAssetPrecision": "0.0001",
+            "baseUcid": "",
             "quoteAsset": "USDT",
             "quoteAssetName": "USDT",
             "quotePrecision": "0.000001",
+            "quoteUcid": "",
             "retailAllowed": true,
             "piAllowed": true,
             "corporateAllowed": true,
@@ -845,6 +850,7 @@
                     "maxSellPrice": "0",
                     "buyPriceUpRate": "0.05",
                     "sellPriceDownRate": "0.05",
+                    "maxEntrustNum": "300",
                     "filterType": "LIMIT_TRADING"
                 },
                 {

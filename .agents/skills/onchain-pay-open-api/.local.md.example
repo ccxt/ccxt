@@ -1,0 +1,10 @@
+## Connect Accounts
+
+### prod (default)
+- Base URL: https://api.commonservice.io
+- Client ID: your-client-id
+- API Key: your-api-key
+- PEM Path: /absolute/path/to/your/private.pem
+- Default Network: your-preferred-network
+- Default Address: your-wallet-address
+- Description: Production account

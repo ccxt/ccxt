@@ -69,7 +69,7 @@ class bullish(ccxt.async_support.bullish):
             'id': id,
         }
 
-    def handle_pong(self, client: Client, message):
+    def handle_pong(self, client: Client, message: Any):
         #
         #     {
         #         "id": "7",
@@ -126,11 +126,12 @@ class bullish(ccxt.async_support.bullish):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'trades::' + market['symbol']
         url = '/trading-api/v1/market-data/trades'
-        request: Any = {
+        request = {
             'topic': 'anonymousTrades',
             'symbol': market['id'],
         }
@@ -139,7 +140,7 @@ class bullish(ccxt.async_support.bullish):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         #     {
         #         "type": "snapshot",
@@ -191,14 +192,15 @@ class bullish(ccxt.async_support.bullish):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         url = self.urls['api']['ws']['public'] + '/trading-api/v1/market-data/tick/' + market['id']
         messageHash = 'ticker::' + symbol
         return await self.watch(url, messageHash, params, messageHash)  # no need to send a subscribe message, the server sends a ticker update on connect
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         #     {
         #         "type": "update",
@@ -248,10 +250,8 @@ class bullish(ccxt.async_support.bullish):
         marketId = self.safe_string(data, 'symbol')
         market = self.safe_market(marketId)
         symbol = market['symbol']
-        parsed = None
-        if (updateType == 'snapshot'):
-            parsed = self.parse_ticker(data, market)
-        elif updateType == 'update':
+        parsed = self.parse_ticker(data, market)
+        if updateType == 'update':
             ticker = self.safe_dict(self.tickers, symbol, {})
             rawTicker = self.safe_dict(ticker, 'info', {})
             merged = self.extend(rawTicker, data)
@@ -269,20 +269,21 @@ class bullish(ccxt.async_support.bullish):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         url = '/trading-api/v1/market-data/orderbook'
         messageHash = 'orderbook::' + market['symbol']
-        request: dict = {
+        request = {
             'topic': 'l2Orderbook',  # 'l2Orderbook' returns only snapshots while 'l1Orderbook' returns only updates
             'symbol': market['id'],
         }
         orderbook = await self.watch_public(url, messageHash, request, params)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         #     {
         #         "type": "snapshot",
@@ -328,7 +329,7 @@ class bullish(ccxt.async_support.bullish):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    def separate_bids_or_asks(self, entry):
+    def separate_bids_or_asks(self, entry: Any):
         result = []
         # 300 = '54885.0000000'
         # 301 = '0.06141566'
@@ -354,13 +355,14 @@ class bullish(ccxt.async_support.bullish):
         :param str [params.tradingAccountId]: the trading account id to fetch entries for
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         subscribeHash = 'orders'
         messageHash = subscribeHash
         if symbol is not None:
             symbol = self.symbol(symbol)
             messageHash = messageHash + '::' + symbol
-        request: dict = {
+        request = {
             'topic': 'orders',
         }
         tradingAccountId = self.safe_string(params, 'tradingAccountId')
@@ -372,7 +374,7 @@ class bullish(ccxt.async_support.bullish):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client: Client, message):
+    def handle_orders(self, client: Client, message: Any):
         # snapshot
         #     {
         #         "type": "snapshot",
@@ -424,18 +426,20 @@ class bullish(ccxt.async_support.bullish):
             rawOrders.append(data)  # update is a single order
         else:
             rawOrders = self.safe_list(message, 'data', [])  # snapshot is a list of orders
-        if len(rawOrders) > 0:
+        numRawOrders = len(rawOrders)  # hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if numRawOrders > 0:
             if self.orders is None:
                 limit = self.safe_integer(self.options, 'ordersLimit', 1000)
                 self.orders = ArrayCacheBySymbolById(limit)
             orders = self.orders
-            symbols: dict = {}
+            symbols = {}
             for i in range(0, len(rawOrders)):
                 rawOrder = rawOrders[i]
                 parsedOrder = self.parse_order(rawOrder)
                 orders.append(parsedOrder)
                 symbol = self.safe_string(parsedOrder, 'symbol')
-                symbols[symbol] = True
+                if symbol is not None:
+                    symbols[symbol] = True
             messageHash = 'orders'
             client.resolve(orders, messageHash)
             keys = list(symbols.keys())
@@ -457,13 +461,14 @@ class bullish(ccxt.async_support.bullish):
         :param str [params.tradingAccountId]: the trading account id to fetch entries for
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         subscribeHash = 'myTrades'
         messageHash = subscribeHash
         if symbol is not None:
             symbol = self.symbol(symbol)
             messageHash += '::' + symbol
-        request: dict = {
+        request = {
             'topic': 'trades',
         }
         tradingAccountId = self.safe_string(params, 'tradingAccountId')
@@ -475,7 +480,7 @@ class bullish(ccxt.async_support.bullish):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_my_trades(self, client: Client, message):
+    def handle_my_trades(self, client: Client, message: Any):
         #
         # snapshot
         #     {
@@ -520,18 +525,20 @@ class bullish(ccxt.async_support.bullish):
             rawTrades.append(data)  # update is a single trade
         else:
             rawTrades = self.safe_list(message, 'data', [])  # snapshot is a list of trades
-        if len(rawTrades) > 0:
+        numRawTrades = len(rawTrades)  # hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if numRawTrades > 0:
             if self.myTrades is None:
                 limit = self.safe_integer(self.options, 'tradesLimit', 1000)
                 self.myTrades = ArrayCacheBySymbolById(limit)
             trades = self.myTrades
-            symbols: dict = {}
+            symbols = {}
             for i in range(0, len(rawTrades)):
                 rawTrade = rawTrades[i]
                 parsedTrade = self.parse_trade(rawTrade)
                 trades.append(parsedTrade)
                 symbol = self.safe_string(parsedTrade, 'symbol')
-                symbols[symbol] = True
+                if symbol is not None:
+                    symbols[symbol] = True
             messageHash = 'myTrades'
             client.resolve(trades, messageHash)
             keys = list(symbols.keys())
@@ -550,8 +557,9 @@ class bullish(ccxt.async_support.bullish):
         :param str [params.tradingAccountId]: the trading account id to fetch entries for
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             'topic': 'assetAccounts',
         }
         messageHash = 'balance'
@@ -562,7 +570,7 @@ class bullish(ccxt.async_support.bullish):
             messageHash += '::' + tradingAccountId
         return await self.watch_private(messageHash, messageHash, request, params)
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: Any):
         #
         # snapshot
         #     {
@@ -605,6 +613,8 @@ class bullish(ccxt.async_support.bullish):
         #     }
         #
         tradingAccountId = self.safe_string(message, 'tradingAccountId')
+        if tradingAccountId is None:
+            return
         if not (tradingAccountId in self.balance):
             self.balance[tradingAccountId] = {}
         messageType = self.safe_string(message, 'type')
@@ -618,7 +628,8 @@ class bullish(ccxt.async_support.bullish):
             account['total'] = self.safe_string(data, 'availableQuantity')
             account['used'] = self.safe_string(data, 'lockedQuantity')
             code = self.safe_currency_code(assetId)
-            self.balance[tradingAccountId][code] = account
+            if (tradingAccountId is not None) and (code is not None):
+                self.balance[tradingAccountId][code] = account
             self.balance[tradingAccountId]['info'] = message
             self.balance[tradingAccountId] = self.safe_balance(self.balance[tradingAccountId])
         messageHash = 'balance'
@@ -638,13 +649,14 @@ class bullish(ccxt.async_support.bullish):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         subscribeHash = 'positions'
         messageHash = subscribeHash
-        if not self.is_empty(symbols):
+        if (symbols is not None) and not self.is_empty(symbols):
             symbols = self.market_symbols(symbols)
             messageHash += '::' + ','.join(symbols)
-        request: dict = {
+        request = {
             'topic': 'derivativesPositionsV2',
         }
         positions = await self.watch_private(messageHash, subscribeHash, request, params)
@@ -652,7 +664,7 @@ class bullish(ccxt.async_support.bullish):
             return positions
         return self.filter_by_symbols_since_limit(positions, symbols, since, limit, True)
 
-    def handle_positions(self, client: Client, message):
+    def handle_positions(self, client: Client, message: Any):
         # exchange does not return messages for sandbox mode
         # current method is implemented blindly
         # todo: check if self works with not-sandbox mode
@@ -683,7 +695,7 @@ class bullish(ccxt.async_support.bullish):
                 client.resolve(symbolPositions, messageHash)
         client.resolve(positions, 'positions')
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message: Any):
         #
         #     {
         #         "data": {
@@ -706,7 +718,7 @@ class bullish(ccxt.async_support.bullish):
         except Exception as e:
             client.reject(e)
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         dataType = self.safe_string(message, 'dataType')
         result = self.safe_dict(message, 'result')
         if result is not None:

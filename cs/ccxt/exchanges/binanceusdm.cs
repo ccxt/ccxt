@@ -27,6 +27,7 @@ public partial class binanceusdm : binance
                 { "fetchMarkets", new Dictionary<string, object>() {
                     { "types", new List<object>() {"linear"} },
                 } },
+                { "defaultType", "swap" },
                 { "defaultSubType", "linear" },
                 { "leverageBrackets", null },
                 { "marginTypes", new Dictionary<string, object>() {} },

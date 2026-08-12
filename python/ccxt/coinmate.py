@@ -103,6 +103,7 @@ class coinmate(Exchange, ImplicitAPI):
                 'fetchSettlementHistory': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
@@ -139,73 +140,73 @@ class coinmate(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'orderBook',
-                        'ticker',
-                        'tickerAll',
-                        'products',
-                        'transactions',
-                        'tradingPairs',
-                        'system/time',
-                    ],
+                    'get': {
+                        'orderBook': {'cost': 1},
+                        'ticker': {'cost': 1},
+                        'tickerAll': {'cost': 1},
+                        'products': {'cost': 1},
+                        'transactions': {'cost': 1},
+                        'tradingPairs': {'cost': 1},
+                        'system/time': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'post': [
-                        'currencies',
-                        'balances',
-                        'bitcoinCashWithdrawal',
-                        'bitcoinCashDepositAddresses',
-                        'bitcoinDepositAddresses',
-                        'bitcoinWithdrawal',
-                        'bitcoinWithdrawalFees',
-                        'buyInstant',
-                        'buyLimit',
-                        'cancelOrder',
-                        'cancelOrderWithInfo',
-                        'createVoucher',
-                        'dashDepositAddresses',
-                        'dashWithdrawal',
-                        'ethereumWithdrawal',
-                        'ethereumDepositAddresses',
-                        'litecoinWithdrawal',
-                        'litecoinDepositAddresses',
-                        'openOrders',
-                        'order',
-                        'orderHistory',
-                        'orderById',
-                        'pusherAuth',
-                        'redeemVoucher',
-                        'replaceByBuyLimit',
-                        'replaceByBuyInstant',
-                        'replaceBySellLimit',
-                        'replaceBySellInstant',
-                        'rippleDepositAddresses',
-                        'rippleWithdrawal',
-                        'sellInstant',
-                        'sellLimit',
-                        'transactionHistory',
-                        'traderFees',
-                        'tradeHistory',
-                        'transfer',
-                        'transferHistory',
-                        'unconfirmedBitcoinDeposits',
-                        'unconfirmedBitcoinCashDeposits',
-                        'unconfirmedDashDeposits',
-                        'unconfirmedEthereumDeposits',
-                        'unconfirmedLitecoinDeposits',
-                        'unconfirmedRippleDeposits',
-                        'cancelAllOpenOrders',
-                        'withdrawVirtualCurrency',
-                        'virtualCurrencyDepositAddresses',
-                        'unconfirmedVirtualCurrencyDeposits',
-                        'adaWithdrawal',
-                        'adaDepositAddresses',
-                        'unconfirmedAdaDeposits',
-                        'solWithdrawal',
-                        'solDepositAddresses',
-                        'unconfirmedSolDeposits',
-                        'bankWireWithdrawal',
-                    ],
+                    'post': {
+                        'currencies': {'cost': 1},
+                        'balances': {'cost': 1},
+                        'bitcoinCashWithdrawal': {'cost': 1},
+                        'bitcoinCashDepositAddresses': {'cost': 1},
+                        'bitcoinDepositAddresses': {'cost': 1},
+                        'bitcoinWithdrawal': {'cost': 1},
+                        'bitcoinWithdrawalFees': {'cost': 1},
+                        'buyInstant': {'cost': 1},
+                        'buyLimit': {'cost': 1},
+                        'cancelOrder': {'cost': 1},
+                        'cancelOrderWithInfo': {'cost': 1},
+                        'createVoucher': {'cost': 1},
+                        'dashDepositAddresses': {'cost': 1},
+                        'dashWithdrawal': {'cost': 1},
+                        'ethereumWithdrawal': {'cost': 1},
+                        'ethereumDepositAddresses': {'cost': 1},
+                        'litecoinWithdrawal': {'cost': 1},
+                        'litecoinDepositAddresses': {'cost': 1},
+                        'openOrders': {'cost': 1},
+                        'order': {'cost': 1},
+                        'orderHistory': {'cost': 1},
+                        'orderById': {'cost': 1},
+                        'pusherAuth': {'cost': 1},
+                        'redeemVoucher': {'cost': 1},
+                        'replaceByBuyLimit': {'cost': 1},
+                        'replaceByBuyInstant': {'cost': 1},
+                        'replaceBySellLimit': {'cost': 1},
+                        'replaceBySellInstant': {'cost': 1},
+                        'rippleDepositAddresses': {'cost': 1},
+                        'rippleWithdrawal': {'cost': 1},
+                        'sellInstant': {'cost': 1},
+                        'sellLimit': {'cost': 1},
+                        'transactionHistory': {'cost': 1},
+                        'traderFees': {'cost': 1},
+                        'tradeHistory': {'cost': 1},
+                        'transfer': {'cost': 1},
+                        'transferHistory': {'cost': 1},
+                        'unconfirmedBitcoinDeposits': {'cost': 1},
+                        'unconfirmedBitcoinCashDeposits': {'cost': 1},
+                        'unconfirmedDashDeposits': {'cost': 1},
+                        'unconfirmedEthereumDeposits': {'cost': 1},
+                        'unconfirmedLitecoinDeposits': {'cost': 1},
+                        'unconfirmedRippleDeposits': {'cost': 1},
+                        'cancelAllOpenOrders': {'cost': 1},
+                        'withdrawVirtualCurrency': {'cost': 1},
+                        'virtualCurrencyDepositAddresses': {'cost': 1},
+                        'unconfirmedVirtualCurrencyDeposits': {'cost': 1},
+                        'adaWithdrawal': {'cost': 1},
+                        'adaDepositAddresses': {'cost': 1},
+                        'unconfirmedAdaDeposits': {'cost': 1},
+                        'solWithdrawal': {'cost': 1},
+                        'solDepositAddresses': {'cost': 1},
+                        'unconfirmedSolDeposits': {'cost': 1},
+                        'bankWireWithdrawal': {'cost': 1},
+                    },
                 },
             },
             'fees': {
@@ -339,12 +340,12 @@ class coinmate(Exchange, ImplicitAPI):
 
     def fetch_time(self, params={}) -> Int:
         """
-        fetches the current integer timestamp in milliseconds from the bingx server
+        fetches the current integer timestamp in milliseconds from the exchange server
 
         https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int: the current integer timestamp in milliseconds from the bingx server
+        :returns int: the current integer timestamp in milliseconds from the exchange server
         """
         response = self.publicGetSystemTime(params)
         #
@@ -444,9 +445,9 @@ class coinmate(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         balances = self.safe_value(response, 'data', {})
-        result: dict = {'info': response}
+        result = {'info': response}
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
@@ -468,7 +469,8 @@ class coinmate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privatePostBalances(params)
         return self.parse_balance(response)
 
@@ -481,16 +483,17 @@ class coinmate(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currencyPair': market['id'],
             'groupByPriceLimit': 'False',
         }
         response = self.publicGetOrderBook(self.extend(request, params))
-        orderbook = response['data']
+        orderbook = self.safe_dict(response, 'data', {})
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
         return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount')
 
@@ -504,9 +507,10 @@ class coinmate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currencyPair': market['id'],
         }
         response = self.publicGetTicker(self.extend(request, params))
@@ -540,7 +544,8 @@ class coinmate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.publicGetTickerAll(params)
         #
@@ -564,7 +569,7 @@ class coinmate(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', {})
         keys = list(data.keys())
-        result: dict = {}
+        result = {}
         for i in range(0, len(keys)):
             market = self.market(keys[i])
             ticker = self.parse_ticker(self.safe_value(data, keys[i]), market)
@@ -588,7 +593,7 @@ class coinmate(Exchange, ImplicitAPI):
         timestamp = self.safe_timestamp(ticker, 'timestamp')
         last = self.safe_number(ticker, 'last')
         return self.safe_ticker({
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_number(ticker, 'high'),
@@ -622,8 +627,9 @@ class coinmate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'limit': 1000,
         }
         if limit is not None:
@@ -634,11 +640,11 @@ class coinmate(Exchange, ImplicitAPI):
             currency = self.currency(code)
             request['currency'] = currency['id']
         response = self.privatePostTransferHistory(self.extend(request, params))
-        items = response['data']
+        items = self.safe_list(response, 'data', [])
         return self.parse_transactions(items, None, since, limit)
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'COMPLETED': 'ok',
             'WAITING': 'pending',
             'SENT': 'pending',
@@ -740,7 +746,8 @@ class coinmate(Exchange, ImplicitAPI):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         withdrawOptions = self.safe_value(self.options, 'withdraw', {})
         methods = self.safe_value(withdrawOptions, 'methods', {})
@@ -748,7 +755,7 @@ class coinmate(Exchange, ImplicitAPI):
         if method is None:
             allowedCurrencies = list(methods.keys())
             raise ExchangeError(self.id + ' withdraw() only allows withdrawing the following currencies: ' + ', '.join(allowedCurrencies))
-        request: dict = {
+        request = {
             'amount': self.currency_to_precision(code, amount),
             'address': address,
         }
@@ -788,10 +795,11 @@ class coinmate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         if limit is None:
             limit = 1000
-        request: dict = {
+        request = {
             'limit': limit,
         }
         if symbol is not None:
@@ -877,9 +885,10 @@ class coinmate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currencyPair': market['id'],
             'minutesIntoHistory': 10,
         }
@@ -913,9 +922,10 @@ class coinmate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currencyPair': market['id'],
         }
         response = self.privatePostTraderFees(self.extend(request, params))
@@ -953,8 +963,9 @@ class coinmate(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         response = self.privatePostOpenOrders(self.extend({}, params))
-        extension: dict = {'status': 'open'}
-        return self.parse_orders(response['data'], None, since, limit, extension)
+        extension = {'status': 'open'}
+        data = self.safe_list(response, 'data', [])
+        return self.parse_orders(data, None, since, limit, extension)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -970,19 +981,21 @@ class coinmate(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currencyPair': market['id'],
         }
         # offset param that appears in other parts of the API doesn't appear to be supported here
         if limit is not None:
             request['limit'] = limit
         response = self.privatePostOrderHistory(self.extend(request, params))
-        return self.parse_orders(response['data'], market, since, limit)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_orders(data, market, since, limit)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
             'PARTIALLY_FILLED': 'open',
@@ -991,7 +1004,7 @@ class coinmate(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_order_type(self, type: Str):
-        types: dict = {
+        types = {
             'LIMIT': 'limit',
             'MARKET': 'market',
         }
@@ -1100,10 +1113,11 @@ class coinmate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         method = 'privatePost' + self.capitalize(side)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currencyPair': market['id'],
         }
         if type == 'market':
@@ -1135,8 +1149,9 @@ class coinmate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'orderId': id,
         }
         market = None
@@ -1153,12 +1168,12 @@ class coinmate(Exchange, ImplicitAPI):
         https://coinmate.docs.apiary.io/#reference/order/cancel-order/post
 
         :param str id: order id
-        :param str symbol: not used by coinmate cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         #   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
-        request: dict = {'orderId': id}
+        request = {'orderId': id}
         response = self.privatePostCancelOrderWithInfo(self.extend(request, params))
         #
         #    {
@@ -1176,8 +1191,8 @@ class coinmate(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api']['rest'] + '/' + path
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+        url = (self.urls['api'])['rest'] + '/' + path
         if api == 'public':
             if params:
                 url += '?' + self.urlencode(params)
@@ -1197,7 +1212,7 @@ class coinmate(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         #

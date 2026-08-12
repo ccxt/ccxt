@@ -7,282 +7,352 @@
 
 package ccxt
 
-func (this *AlpacaCore) TraderPrivateGetV2Account(args ...interface{}) <-chan interface{} {
+// TraderPrivateGetV2Account returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateGetV2Account(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateGetV2Account", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateGetV2Orders(args ...interface{}) <-chan interface{} {
+// TraderPrivateGetV2Orders returns a channel that yields a JSON array.
+func (this *AlpacaCore) TraderPrivateGetV2Orders(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateGetV2Orders", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateGetV2OrdersOrderId(args ...interface{}) <-chan interface{} {
+// TraderPrivateGetV2OrdersOrderId returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateGetV2OrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateGetV2OrdersOrderId", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateGetV2Positions(args ...interface{}) <-chan interface{} {
+// TraderPrivateGetV2Positions returns a channel that yields a JSON array.
+func (this *AlpacaCore) TraderPrivateGetV2Positions(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateGetV2Positions", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateGetV2PositionsSymbolOrAssetId(args ...interface{}) <-chan interface{} {
+// TraderPrivateGetV2PositionsSymbolOrAssetId returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateGetV2PositionsSymbolOrAssetId(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateGetV2PositionsSymbolOrAssetId", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateGetV2AccountPortfolioHistory(args ...interface{}) <-chan interface{} {
+// TraderPrivateGetV2AccountPortfolioHistory returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateGetV2AccountPortfolioHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateGetV2AccountPortfolioHistory", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateGetV2Watchlists(args ...interface{}) <-chan interface{} {
+// TraderPrivateGetV2Watchlists returns a channel that yields a JSON array.
+func (this *AlpacaCore) TraderPrivateGetV2Watchlists(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateGetV2Watchlists", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateGetV2WatchlistsWatchlistId(args ...interface{}) <-chan interface{} {
+// TraderPrivateGetV2WatchlistsWatchlistId returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateGetV2WatchlistsWatchlistId(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateGetV2WatchlistsWatchlistId", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateGetV2WatchlistsByName(args ...interface{}) <-chan interface{} {
+// TraderPrivateGetV2WatchlistsByName returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateGetV2WatchlistsByName(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateGetV2WatchlistsByName", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateGetV2AccountConfigurations(args ...interface{}) <-chan interface{} {
+// TraderPrivateGetV2AccountConfigurations returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateGetV2AccountConfigurations(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateGetV2AccountConfigurations", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateGetV2AccountActivities(args ...interface{}) <-chan interface{} {
+// TraderPrivateGetV2AccountActivities returns a channel that yields a JSON array.
+func (this *AlpacaCore) TraderPrivateGetV2AccountActivities(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateGetV2AccountActivities", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateGetV2AccountActivitiesActivityType(args ...interface{}) <-chan interface{} {
+// TraderPrivateGetV2AccountActivitiesActivityType returns a channel that yields a JSON array.
+func (this *AlpacaCore) TraderPrivateGetV2AccountActivitiesActivityType(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateGetV2AccountActivitiesActivityType", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateGetV2Calendar(args ...interface{}) <-chan interface{} {
+// TraderPrivateGetV2Calendar returns a channel that yields a JSON array.
+func (this *AlpacaCore) TraderPrivateGetV2Calendar(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateGetV2Calendar", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateGetV2Clock(args ...interface{}) <-chan interface{} {
+// TraderPrivateGetV2Clock returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateGetV2Clock(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateGetV2Clock", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateGetV2Assets(args ...interface{}) <-chan interface{} {
+// TraderPrivateGetV2Assets returns a channel that yields a JSON array.
+func (this *AlpacaCore) TraderPrivateGetV2Assets(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateGetV2Assets", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateGetV2AssetsSymbolOrAssetId(args ...interface{}) <-chan interface{} {
+// TraderPrivateGetV2AssetsSymbolOrAssetId returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateGetV2AssetsSymbolOrAssetId(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateGetV2AssetsSymbolOrAssetId", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateGetV2CorporateActionsAnnouncementsId(args ...interface{}) <-chan interface{} {
+// TraderPrivateGetV2CorporateActionsAnnouncementsId returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateGetV2CorporateActionsAnnouncementsId(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateGetV2CorporateActionsAnnouncementsId", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateGetV2CorporateActionsAnnouncements(args ...interface{}) <-chan interface{} {
+// TraderPrivateGetV2CorporateActionsAnnouncements returns a channel that yields a JSON array.
+func (this *AlpacaCore) TraderPrivateGetV2CorporateActionsAnnouncements(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateGetV2CorporateActionsAnnouncements", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateGetV2Wallets(args ...interface{}) <-chan interface{} {
+// TraderPrivateGetV2Wallets returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateGetV2Wallets(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateGetV2Wallets", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateGetV2WalletsTransfers(args ...interface{}) <-chan interface{} {
+// TraderPrivateGetV2WalletsTransfers returns a channel that yields a JSON array.
+func (this *AlpacaCore) TraderPrivateGetV2WalletsTransfers(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateGetV2WalletsTransfers", args...)
 }
 
-func (this *AlpacaCore) TraderPrivatePostV2Orders(args ...interface{}) <-chan interface{} {
+// TraderPrivatePostV2Orders returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivatePostV2Orders(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivatePostV2Orders", args...)
 }
 
-func (this *AlpacaCore) TraderPrivatePostV2Watchlists(args ...interface{}) <-chan interface{} {
+// TraderPrivatePostV2Watchlists returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivatePostV2Watchlists(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivatePostV2Watchlists", args...)
 }
 
-func (this *AlpacaCore) TraderPrivatePostV2WatchlistsWatchlistId(args ...interface{}) <-chan interface{} {
+// TraderPrivatePostV2WatchlistsWatchlistId returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivatePostV2WatchlistsWatchlistId(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivatePostV2WatchlistsWatchlistId", args...)
 }
 
-func (this *AlpacaCore) TraderPrivatePostV2WatchlistsByName(args ...interface{}) <-chan interface{} {
+// TraderPrivatePostV2WatchlistsByName returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivatePostV2WatchlistsByName(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivatePostV2WatchlistsByName", args...)
 }
 
-func (this *AlpacaCore) TraderPrivatePostV2WalletsTransfers(args ...interface{}) <-chan interface{} {
+// TraderPrivatePostV2WalletsTransfers returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivatePostV2WalletsTransfers(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivatePostV2WalletsTransfers", args...)
 }
 
-func (this *AlpacaCore) TraderPrivatePutV2OrdersOrderId(args ...interface{}) <-chan interface{} {
+// TraderPrivatePutV2OrdersOrderId returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivatePutV2OrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivatePutV2OrdersOrderId", args...)
 }
 
-func (this *AlpacaCore) TraderPrivatePutV2WatchlistsWatchlistId(args ...interface{}) <-chan interface{} {
+// TraderPrivatePutV2WatchlistsWatchlistId returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivatePutV2WatchlistsWatchlistId(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivatePutV2WatchlistsWatchlistId", args...)
 }
 
-func (this *AlpacaCore) TraderPrivatePutV2WatchlistsByName(args ...interface{}) <-chan interface{} {
+// TraderPrivatePutV2WatchlistsByName returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivatePutV2WatchlistsByName(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivatePutV2WatchlistsByName", args...)
 }
 
-func (this *AlpacaCore) TraderPrivatePatchV2OrdersOrderId(args ...interface{}) <-chan interface{} {
+// TraderPrivatePatchV2OrdersOrderId returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivatePatchV2OrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivatePatchV2OrdersOrderId", args...)
 }
 
-func (this *AlpacaCore) TraderPrivatePatchV2AccountConfigurations(args ...interface{}) <-chan interface{} {
+// TraderPrivatePatchV2AccountConfigurations returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivatePatchV2AccountConfigurations(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivatePatchV2AccountConfigurations", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateDeleteV2Orders(args ...interface{}) <-chan interface{} {
+// TraderPrivateDeleteV2Orders returns a channel that yields a JSON array.
+func (this *AlpacaCore) TraderPrivateDeleteV2Orders(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateDeleteV2Orders", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateDeleteV2OrdersOrderId(args ...interface{}) <-chan interface{} {
+// TraderPrivateDeleteV2OrdersOrderId returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateDeleteV2OrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateDeleteV2OrdersOrderId", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateDeleteV2Positions(args ...interface{}) <-chan interface{} {
+// TraderPrivateDeleteV2Positions returns a channel that yields a JSON array.
+func (this *AlpacaCore) TraderPrivateDeleteV2Positions(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateDeleteV2Positions", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateDeleteV2PositionsSymbolOrAssetId(args ...interface{}) <-chan interface{} {
+// TraderPrivateDeleteV2PositionsSymbolOrAssetId returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateDeleteV2PositionsSymbolOrAssetId(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateDeleteV2PositionsSymbolOrAssetId", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateDeleteV2WatchlistsWatchlistId(args ...interface{}) <-chan interface{} {
+// TraderPrivateDeleteV2WatchlistsWatchlistId returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateDeleteV2WatchlistsWatchlistId(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateDeleteV2WatchlistsWatchlistId", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateDeleteV2WatchlistsByName(args ...interface{}) <-chan interface{} {
+// TraderPrivateDeleteV2WatchlistsByName returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateDeleteV2WatchlistsByName(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateDeleteV2WatchlistsByName", args...)
 }
 
-func (this *AlpacaCore) TraderPrivateDeleteV2WatchlistsWatchlistIdSymbol(args ...interface{}) <-chan interface{} {
+// TraderPrivateDeleteV2WatchlistsWatchlistIdSymbol returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateDeleteV2WatchlistsWatchlistIdSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateDeleteV2WatchlistsWatchlistIdSymbol", args...)
 }
 
-func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocBars(args ...interface{}) <-chan interface{} {
+// MarketPublicGetV1beta3CryptoLocBars returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocBars(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocBars", args...)
 }
 
-func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocLatestBars(args ...interface{}) <-chan interface{} {
+// MarketPublicGetV1beta3CryptoLocLatestBars returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocLatestBars(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocLatestBars", args...)
 }
 
-func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocLatestOrderbooks(args ...interface{}) <-chan interface{} {
+// MarketPublicGetV1beta3CryptoLocLatestOrderbooks returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocLatestOrderbooks(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocLatestOrderbooks", args...)
 }
 
-func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocLatestQuotes(args ...interface{}) <-chan interface{} {
+// MarketPublicGetV1beta3CryptoLocLatestQuotes returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocLatestQuotes(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocLatestQuotes", args...)
 }
 
-func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocLatestTrades(args ...interface{}) <-chan interface{} {
+// MarketPublicGetV1beta3CryptoLocLatestTrades returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocLatestTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocLatestTrades", args...)
 }
 
-func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocQuotes(args ...interface{}) <-chan interface{} {
+// MarketPublicGetV1beta3CryptoLocQuotes returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocQuotes(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocQuotes", args...)
 }
 
-func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocSnapshots(args ...interface{}) <-chan interface{} {
+// MarketPublicGetV1beta3CryptoLocSnapshots returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocSnapshots(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocSnapshots", args...)
 }
 
-func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocTrades(args ...interface{}) <-chan interface{} {
+// MarketPublicGetV1beta3CryptoLocTrades returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocTrades", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV1beta1CorporateActions(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV1beta1CorporateActions returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV1beta1CorporateActions(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV1beta1CorporateActions", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV1beta1ForexLatestRates(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV1beta1ForexLatestRates returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV1beta1ForexLatestRates(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV1beta1ForexLatestRates", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV1beta1ForexRates(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV1beta1ForexRates returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV1beta1ForexRates(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV1beta1ForexRates", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV1beta1LogosSymbol(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV1beta1LogosSymbol returns a channel that yields a JSON scalar.
+func (this *AlpacaCore) MarketPrivateGetV1beta1LogosSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV1beta1LogosSymbol", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV1beta1News(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV1beta1News returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV1beta1News(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV1beta1News", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV1beta1ScreenerStocksMostActives(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV1beta1ScreenerStocksMostActives returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV1beta1ScreenerStocksMostActives(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV1beta1ScreenerStocksMostActives", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV1beta1ScreenerMarketTypeMovers(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV1beta1ScreenerMarketTypeMovers returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV1beta1ScreenerMarketTypeMovers(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV1beta1ScreenerMarketTypeMovers", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV2StocksAuctions(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV2StocksAuctions returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV2StocksAuctions(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV2StocksAuctions", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV2StocksBars(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV2StocksBars returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV2StocksBars(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV2StocksBars", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV2StocksBarsLatest(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV2StocksBarsLatest returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV2StocksBarsLatest(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV2StocksBarsLatest", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV2StocksMetaConditionsTicktype(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV2StocksMetaConditionsTicktype returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV2StocksMetaConditionsTicktype(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV2StocksMetaConditionsTicktype", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV2StocksMetaExchanges(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV2StocksMetaExchanges returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV2StocksMetaExchanges(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV2StocksMetaExchanges", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV2StocksQuotes(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV2StocksQuotes returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV2StocksQuotes(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV2StocksQuotes", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV2StocksQuotesLatest(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV2StocksQuotesLatest returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV2StocksQuotesLatest(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV2StocksQuotesLatest", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV2StocksSnapshots(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV2StocksSnapshots returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV2StocksSnapshots(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV2StocksSnapshots", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV2StocksTrades(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV2StocksTrades returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV2StocksTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV2StocksTrades", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV2StocksTradesLatest(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV2StocksTradesLatest returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV2StocksTradesLatest(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV2StocksTradesLatest", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolAuctions(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV2StocksSymbolAuctions returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolAuctions(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolAuctions", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolBars(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV2StocksSymbolBars returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolBars(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolBars", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolBarsLatest(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV2StocksSymbolBarsLatest returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolBarsLatest(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolBarsLatest", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolQuotes(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV2StocksSymbolQuotes returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolQuotes(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolQuotes", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolQuotesLatest(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV2StocksSymbolQuotesLatest returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolQuotesLatest(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolQuotesLatest", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolSnapshot(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV2StocksSymbolSnapshot returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolSnapshot(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolSnapshot", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolTrades(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV2StocksSymbolTrades returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolTrades", args...)
 }
 
-func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolTradesLatest(args ...interface{}) <-chan interface{} {
+// MarketPrivateGetV2StocksSymbolTradesLatest returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolTradesLatest(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolTradesLatest", args...)
 }

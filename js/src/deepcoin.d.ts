@@ -1,5 +1,5 @@
 import Exchange from './abstract/deepcoin.js';
-import type { Balances, Currency, DepositAddress, Dict, FundingRate, FundingRates, int, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 /**
  * @class deepcoin
  * @augments Exchange
@@ -17,9 +17,9 @@ export default class deepcoin extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchMarketsByType(type: any, params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
+    fetchMarketsByType(type: any, params?: {}): Promise<Market[]>;
     parseMarket(market: Dict): Market;
-    setMarkets(markets: any, currencies?: any): import("./base/types.js").Dictionary<any>;
+    setMarkets(markets: any, currencies?: undefined): import("./base/types.js").Dictionary<Market>;
     /**
      * @method
      * @name deepcoin#fetchOrderBook
@@ -28,7 +28,7 @@ export default class deepcoin extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -74,7 +74,7 @@ export default class deepcoin extends Exchange {
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     getProductGroupFromMarket(market: Market): string;
     parseTrade(trade: Dict, market?: Market): Trade;
-    parseTakerOrMaker(execType: Str): string;
+    parseTakerOrMaker(execType: Str): Str;
     /**
      * @method
      * @name deepcoin#fetchBalance
@@ -195,10 +195,10 @@ export default class deepcoin extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
-    createRegularOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
-    createTriggerOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
-    handleTypePostOnlyAndTimeInForce(type: OrderType, params: any): any[];
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
+    createRegularOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
+    createTriggerOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
+    handleTypePostOnlyAndTimeInForce(type: Str, params: any): any[];
     /**
      * @method
      * @name deepcoin#createMarketOrderWithCost
@@ -402,7 +402,7 @@ export default class deepcoin extends Exchange {
      * @param {string} [params.mrgPosition] 'merge' or 'split', default is merge
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name deepcoin#fetchFundingRates
@@ -437,14 +437,8 @@ export default class deepcoin extends Exchange {
      * @param {int} [params.page] pagination page number
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").FundingRateHistory[]>;
-    parseFundingRateHistory(info: any, market?: Market): {
-        info: any;
-        symbol: string;
-        fundingRate: number;
-        timestamp: number;
-        datetime: string;
-    };
+    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
+    parseFundingRateHistory(info: any, market?: Market): FundingRateHistory;
     /**
      * @method
      * @name deepcoin#fetchMyTrades
@@ -488,11 +482,11 @@ export default class deepcoin extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: Str;
+        headers: NullableDict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

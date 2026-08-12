@@ -1,5 +1,5 @@
 import Exchange from './abstract/derive.js';
-import type { Dict, Currencies, Transaction, Currency, FundingHistory, Market, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position } from './base/types.js';
+import type { Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict } from './base/types.js';
 /**
  * @class derive
  * @augments Exchange
@@ -15,7 +15,7 @@ export default class derive extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<number>;
+    fetchTime(params?: {}): Promise<Int>;
     /**
      * @method
      * @name derive#fetchCurrencies
@@ -25,6 +25,7 @@ export default class derive extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
      * @name derive#fetchMarkets
@@ -34,9 +35,9 @@ export default class derive extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchSpotMarkets(params?: {}): Promise<Market[]>;
-    fetchSwapMarkets(params?: {}): Promise<Market[]>;
-    fetchOptionMarkets(params?: {}): Promise<Market[]>;
+    fetchSpotMarkets(params?: any): Promise<Market[]>;
+    fetchSwapMarkets(params?: any): Promise<Market[]>;
+    fetchOptionMarkets(params?: any): Promise<Market[]>;
     parseMarket(market: Dict): Market;
     /**
      * @method
@@ -62,6 +63,7 @@ export default class derive extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    parseTrades(trades: List, market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -91,7 +93,7 @@ export default class derive extends Exchange {
     hashMessage(message: any): string;
     signHash(hash: any, privateKey: any): string;
     signMessage(message: any, privateKey: any): string;
-    parseUnits(num: string, dec?: string): string;
+    parseUnits(num: string, dec?: string): string | undefined;
     /**
      * @method
      * @name derive#createOrder
@@ -148,7 +150,7 @@ export default class derive extends Exchange {
      * @see https://docs.derive.xyz/reference/post_private-cancel-by-instrument
      * @see https://docs.derive.xyz/reference/post_private-cancel-all
      * @description cancel all open orders in a market
-     * @param {string} symbol unified market symbol
+     * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -208,8 +210,8 @@ export default class derive extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    parseTimeInForce(timeInForce: Str): string;
-    parseOrderStatus(status: Str): string;
+    parseTimeInForce(timeInForce: Str): Str;
+    parseOrderStatus(status: Str): string | undefined;
     parseOrder(rawOrder: Dict, market?: Market): Order;
     /**
      * @method
@@ -244,7 +246,7 @@ export default class derive extends Exchange {
      * @name derive#fetchPositions
      * @description fetch all open positions
      * @see https://docs.derive.xyz/reference/post_private-get-positions
-     * @param {string[]} [symbols] not used by kraken fetchPositions ()
+     * @param {string[]} [symbols] not used by fetchPositions ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -267,12 +269,12 @@ export default class derive extends Exchange {
     parseIncome(income: any, market?: Market): {
         info: any;
         symbol: string;
-        code: string;
-        timestamp: number;
-        datetime: string;
-        id: any;
-        amount: any;
-        rate: string;
+        code: Str;
+        timestamp: Int;
+        datetime: string | undefined;
+        id: undefined;
+        amount: undefined;
+        rate: Str;
     };
     /**
      * @method
@@ -311,14 +313,14 @@ export default class derive extends Exchange {
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): string;
-    handleDeriveSubaccountId(methodName: string, params: Dict): any[];
-    handleDeriveWalletAddress(methodName: string, params: Dict): any[];
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    parseTransactionStatus(status: Str): Str;
+    handleDeriveSubaccountId(methodName: string, params: Dict): [any, Dict];
+    handleDeriveWalletAddress(methodName: string, params: Dict): (string | Dict)[];
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: Str;
+        headers: NullableDict;
     };
 }

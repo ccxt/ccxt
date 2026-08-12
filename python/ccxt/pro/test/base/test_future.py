@@ -178,6 +178,39 @@ async def test_closed_by_user():
     except Exception as e:
         assert False, f"Received Exception {e}"
 
+async def test_race_broadcast_reject_no_unretrieved():
+    # a failed handshake broadcast-rejects every raced future in one sweep,
+    # the race must swallow the already-done losers or asyncio dumps
+    # "Future exception was never retrieved" walls at gc,
+    # see https://github.com/ccxt/ccxt/pull/29723
+    print("test_race_broadcast_reject_no_unretrieved")
+    import gc
+    loop = asyncio.get_event_loop()
+    complaints = []
+    previous_handler = loop.get_exception_handler()
+    loop.set_exception_handler(lambda l, context: complaints.append(context.get('message', '')))
+    try:
+        futures = [Future() for i in range(5)]
+        raced = Future.race(futures)
+        error = ExchangeClosedByUser('broadcast reject')
+        for future in futures:
+            future.reject(error)
+        try:
+            await asyncio.wait_for(raced, 1)
+            assert False, "race should have rejected"
+        except ExchangeClosedByUser:
+            pass
+        del raced
+        del futures
+        for i in range(3):
+            gc.collect()
+            await asyncio.sleep(0.05)
+        unretrieved = [message for message in complaints if 'never retrieved' in message]
+        assert len(unretrieved) == 0, f"broadcast reject leaked {len(unretrieved)} unretrieved exceptions"
+    finally:
+        loop.set_exception_handler(previous_handler)
+
+
 async def test_ws_future():
     await test_resolve_before()
     await test_reject()
@@ -191,4 +224,5 @@ async def test_ws_future():
     await test_race_with_wait_for_completion()
     await test_race_with_precompleted_future()
     await test_closed_by_user()
+    await test_race_broadcast_reject_no_unretrieved()
 

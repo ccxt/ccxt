@@ -7,458 +7,577 @@
 
 package ccxt
 
-func (this *PhemexCore) PublicGetCfgV2Products(args ...interface{}) <-chan interface{} {
+// PublicGetCfgV2Products returns a channel that yields a JSON object.
+func (this *PhemexCore) PublicGetCfgV2Products(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCfgV2Products", args...)
 }
 
-func (this *PhemexCore) PublicGetCfgFundingRates(args ...interface{}) <-chan interface{} {
+// PublicGetCfgFundingRates returns a channel that yields a JSON array.
+func (this *PhemexCore) PublicGetCfgFundingRates(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCfgFundingRates", args...)
 }
 
-func (this *PhemexCore) PublicGetProducts(args ...interface{}) <-chan interface{} {
+// PublicGetProducts returns a channel that yields a JSON object.
+func (this *PhemexCore) PublicGetProducts(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetProducts", args...)
 }
 
-func (this *PhemexCore) PublicGetNomicsTrades(args ...interface{}) <-chan interface{} {
+// PublicGetNomicsTrades returns a channel that yields a JSON object.
+func (this *PhemexCore) PublicGetNomicsTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetNomicsTrades", args...)
 }
 
-func (this *PhemexCore) PublicGetMdKline(args ...interface{}) <-chan interface{} {
+// PublicGetMdKline returns a channel that yields a JSON object.
+func (this *PhemexCore) PublicGetMdKline(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMdKline", args...)
 }
 
-func (this *PhemexCore) PublicGetMdV2KlineList(args ...interface{}) <-chan interface{} {
+// PublicGetMdV2KlineList returns a channel that yields a JSON object.
+func (this *PhemexCore) PublicGetMdV2KlineList(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMdV2KlineList", args...)
 }
 
-func (this *PhemexCore) PublicGetMdV2Kline(args ...interface{}) <-chan interface{} {
+// PublicGetMdV2Kline returns a channel that yields a JSON object.
+func (this *PhemexCore) PublicGetMdV2Kline(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMdV2Kline", args...)
 }
 
-func (this *PhemexCore) PublicGetMdV2KlineLast(args ...interface{}) <-chan interface{} {
+// PublicGetMdV2KlineLast returns a channel that yields a JSON object.
+func (this *PhemexCore) PublicGetMdV2KlineLast(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMdV2KlineLast", args...)
 }
 
-func (this *PhemexCore) PublicGetMdOrderbook(args ...interface{}) <-chan interface{} {
+// PublicGetMdOrderbook returns a channel that yields a JSON object.
+func (this *PhemexCore) PublicGetMdOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMdOrderbook", args...)
 }
 
-func (this *PhemexCore) PublicGetMdTrade(args ...interface{}) <-chan interface{} {
+// PublicGetMdTrade returns a channel that yields a JSON object.
+func (this *PhemexCore) PublicGetMdTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMdTrade", args...)
 }
 
-func (this *PhemexCore) PublicGetMdSpotTicker24hr(args ...interface{}) <-chan interface{} {
+// PublicGetMdSpotTicker24hr returns a channel that yields a JSON object.
+func (this *PhemexCore) PublicGetMdSpotTicker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMdSpotTicker24hr", args...)
 }
 
-func (this *PhemexCore) PublicGetExchangePublicCfgChainSettings(args ...interface{}) <-chan interface{} {
+// PublicGetExchangePublicCfgChainSettings returns a channel that yields a JSON object.
+func (this *PhemexCore) PublicGetExchangePublicCfgChainSettings(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetExchangePublicCfgChainSettings", args...)
 }
 
-func (this *PhemexCore) V1GetMdFullbook(args ...interface{}) <-chan interface{} {
+// V1GetMdFullbook returns a channel that yields a JSON object.
+func (this *PhemexCore) V1GetMdFullbook(args ...any) <-chan any {
 	return this.callEndpointAsync("v1GetMdFullbook", args...)
 }
 
-func (this *PhemexCore) V1GetMdOrderbook(args ...interface{}) <-chan interface{} {
+// V1GetMdOrderbook returns a channel that yields a JSON object.
+func (this *PhemexCore) V1GetMdOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("v1GetMdOrderbook", args...)
 }
 
-func (this *PhemexCore) V1GetMdTrade(args ...interface{}) <-chan interface{} {
+// V1GetMdTrade returns a channel that yields a JSON object.
+func (this *PhemexCore) V1GetMdTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("v1GetMdTrade", args...)
 }
 
-func (this *PhemexCore) V1GetMdTicker24hr(args ...interface{}) <-chan interface{} {
+// V1GetMdTicker24hr returns a channel that yields a JSON object.
+func (this *PhemexCore) V1GetMdTicker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("v1GetMdTicker24hr", args...)
 }
 
-func (this *PhemexCore) V1GetMdTicker24hrAll(args ...interface{}) <-chan interface{} {
+// V1GetMdTicker24hrAll returns a channel that yields a JSON object.
+func (this *PhemexCore) V1GetMdTicker24hrAll(args ...any) <-chan any {
 	return this.callEndpointAsync("v1GetMdTicker24hrAll", args...)
 }
 
-func (this *PhemexCore) V1GetMdSpotTicker24hr(args ...interface{}) <-chan interface{} {
+// V1GetMdSpotTicker24hr returns a channel that yields a JSON object.
+func (this *PhemexCore) V1GetMdSpotTicker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("v1GetMdSpotTicker24hr", args...)
 }
 
-func (this *PhemexCore) V1GetMdSpotTicker24hrAll(args ...interface{}) <-chan interface{} {
+// V1GetMdSpotTicker24hrAll returns a channel that yields a JSON object.
+func (this *PhemexCore) V1GetMdSpotTicker24hrAll(args ...any) <-chan any {
 	return this.callEndpointAsync("v1GetMdSpotTicker24hrAll", args...)
 }
 
-func (this *PhemexCore) V1GetExchangePublicProducts(args ...interface{}) <-chan interface{} {
+// V1GetExchangePublicProducts returns a channel that yields a JSON object.
+func (this *PhemexCore) V1GetExchangePublicProducts(args ...any) <-chan any {
 	return this.callEndpointAsync("v1GetExchangePublicProducts", args...)
 }
 
-func (this *PhemexCore) V1GetApiDataPublicDataFundingRateHistory(args ...interface{}) <-chan interface{} {
+// V1GetApiDataPublicDataFundingRateHistory returns a channel that yields a JSON object.
+func (this *PhemexCore) V1GetApiDataPublicDataFundingRateHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v1GetApiDataPublicDataFundingRateHistory", args...)
 }
 
-func (this *PhemexCore) V2GetPublicProducts(args ...interface{}) <-chan interface{} {
+// V2GetPublicProducts returns a channel that yields a JSON object.
+func (this *PhemexCore) V2GetPublicProducts(args ...any) <-chan any {
 	return this.callEndpointAsync("v2GetPublicProducts", args...)
 }
 
-func (this *PhemexCore) V2GetPublicProductsPlus(args ...interface{}) <-chan interface{} {
+// V2GetPublicProductsPlus returns a channel that yields a JSON object.
+func (this *PhemexCore) V2GetPublicProductsPlus(args ...any) <-chan any {
 	return this.callEndpointAsync("v2GetPublicProductsPlus", args...)
 }
 
-func (this *PhemexCore) V2GetMdV2Orderbook(args ...interface{}) <-chan interface{} {
+// V2GetMdV2Orderbook returns a channel that yields a JSON object.
+func (this *PhemexCore) V2GetMdV2Orderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("v2GetMdV2Orderbook", args...)
 }
 
-func (this *PhemexCore) V2GetMdV2Trade(args ...interface{}) <-chan interface{} {
+// V2GetMdV2Trade returns a channel that yields a JSON object.
+func (this *PhemexCore) V2GetMdV2Trade(args ...any) <-chan any {
 	return this.callEndpointAsync("v2GetMdV2Trade", args...)
 }
 
-func (this *PhemexCore) V2GetMdV2Ticker24hr(args ...interface{}) <-chan interface{} {
+// V2GetMdV2Ticker24hr returns a channel that yields a JSON object.
+func (this *PhemexCore) V2GetMdV2Ticker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("v2GetMdV2Ticker24hr", args...)
 }
 
-func (this *PhemexCore) V2GetMdV2Ticker24hrAll(args ...interface{}) <-chan interface{} {
+// V2GetMdV2Ticker24hrAll returns a channel that yields a JSON object.
+func (this *PhemexCore) V2GetMdV2Ticker24hrAll(args ...any) <-chan any {
 	return this.callEndpointAsync("v2GetMdV2Ticker24hrAll", args...)
 }
 
-func (this *PhemexCore) V2GetApiDataPublicDataFundingRateHistory(args ...interface{}) <-chan interface{} {
+// V2GetApiDataPublicDataFundingRateHistory returns a channel that yields a JSON object.
+func (this *PhemexCore) V2GetApiDataPublicDataFundingRateHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v2GetApiDataPublicDataFundingRateHistory", args...)
 }
 
-func (this *PhemexCore) PrivateGetSpotOrdersActive(args ...interface{}) <-chan interface{} {
+// PrivateGetSpotOrdersActive returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetSpotOrdersActive(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSpotOrdersActive", args...)
 }
 
-func (this *PhemexCore) PrivateGetSpotOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetSpotOrders returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetSpotOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSpotOrders", args...)
 }
 
-func (this *PhemexCore) PrivateGetSpotWallets(args ...interface{}) <-chan interface{} {
+// PrivateGetSpotWallets returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetSpotWallets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSpotWallets", args...)
 }
 
-func (this *PhemexCore) PrivateGetExchangeSpotOrder(args ...interface{}) <-chan interface{} {
+// PrivateGetExchangeSpotOrder returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetExchangeSpotOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetExchangeSpotOrder", args...)
 }
 
-func (this *PhemexCore) PrivateGetExchangeSpotOrderTrades(args ...interface{}) <-chan interface{} {
+// PrivateGetExchangeSpotOrderTrades returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetExchangeSpotOrderTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetExchangeSpotOrderTrades", args...)
 }
 
-func (this *PhemexCore) PrivateGetExchangeOrderV2OrderList(args ...interface{}) <-chan interface{} {
+// PrivateGetExchangeOrderV2OrderList returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetExchangeOrderV2OrderList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetExchangeOrderV2OrderList", args...)
 }
 
-func (this *PhemexCore) PrivateGetExchangeOrderV2TradingList(args ...interface{}) <-chan interface{} {
+// PrivateGetExchangeOrderV2TradingList returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetExchangeOrderV2TradingList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetExchangeOrderV2TradingList", args...)
 }
 
-func (this *PhemexCore) PrivateGetAccountsAccountPositions(args ...interface{}) <-chan interface{} {
+// PrivateGetAccountsAccountPositions returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetAccountsAccountPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountsAccountPositions", args...)
 }
 
-func (this *PhemexCore) PrivateGetGAccountsAccountPositions(args ...interface{}) <-chan interface{} {
+// PrivateGetGAccountsAccountPositions returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetGAccountsAccountPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGAccountsAccountPositions", args...)
 }
 
-func (this *PhemexCore) PrivateGetGAccountsPositions(args ...interface{}) <-chan interface{} {
+// PrivateGetGAccountsPositions returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetGAccountsPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGAccountsPositions", args...)
 }
 
-func (this *PhemexCore) PrivateGetGAccountsRiskUnit(args ...interface{}) <-chan interface{} {
+// PrivateGetGAccountsRiskUnit returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetGAccountsRiskUnit(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGAccountsRiskUnit", args...)
 }
 
-func (this *PhemexCore) PrivateGetApiDataFuturesFundingFees(args ...interface{}) <-chan interface{} {
+// PrivateGetApiDataFuturesFundingFees returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetApiDataFuturesFundingFees(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiDataFuturesFundingFees", args...)
 }
 
-func (this *PhemexCore) PrivateGetApiDataGFuturesFundingFees(args ...interface{}) <-chan interface{} {
+// PrivateGetApiDataGFuturesFundingFees returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetApiDataGFuturesFundingFees(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiDataGFuturesFundingFees", args...)
 }
 
-func (this *PhemexCore) PrivateGetApiDataFuturesOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetApiDataFuturesOrders returns a channel that yields a JSON array.
+func (this *PhemexCore) PrivateGetApiDataFuturesOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiDataFuturesOrders", args...)
 }
 
-func (this *PhemexCore) PrivateGetApiDataGFuturesOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetApiDataGFuturesOrders returns a channel that yields a JSON array.
+func (this *PhemexCore) PrivateGetApiDataGFuturesOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiDataGFuturesOrders", args...)
 }
 
-func (this *PhemexCore) PrivateGetApiDataFuturesOrdersByOrderId(args ...interface{}) <-chan interface{} {
+// PrivateGetApiDataFuturesOrdersByOrderId returns a channel that yields a JSON array.
+func (this *PhemexCore) PrivateGetApiDataFuturesOrdersByOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiDataFuturesOrdersByOrderId", args...)
 }
 
-func (this *PhemexCore) PrivateGetApiDataGFuturesOrdersByOrderId(args ...interface{}) <-chan interface{} {
+// PrivateGetApiDataGFuturesOrdersByOrderId returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetApiDataGFuturesOrdersByOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiDataGFuturesOrdersByOrderId", args...)
 }
 
-func (this *PhemexCore) PrivateGetApiDataFuturesTrades(args ...interface{}) <-chan interface{} {
+// PrivateGetApiDataFuturesTrades returns a channel that yields a JSON array.
+func (this *PhemexCore) PrivateGetApiDataFuturesTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiDataFuturesTrades", args...)
 }
 
-func (this *PhemexCore) PrivateGetApiDataGFuturesTrades(args ...interface{}) <-chan interface{} {
+// PrivateGetApiDataGFuturesTrades returns a channel that yields a JSON array.
+func (this *PhemexCore) PrivateGetApiDataGFuturesTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiDataGFuturesTrades", args...)
 }
 
-func (this *PhemexCore) PrivateGetApiDataFuturesTradingFees(args ...interface{}) <-chan interface{} {
+// PrivateGetApiDataFuturesTradingFees returns a channel that yields a JSON array.
+func (this *PhemexCore) PrivateGetApiDataFuturesTradingFees(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiDataFuturesTradingFees", args...)
 }
 
-func (this *PhemexCore) PrivateGetApiDataGFuturesTradingFees(args ...interface{}) <-chan interface{} {
+// PrivateGetApiDataGFuturesTradingFees returns a channel that yields a JSON array.
+func (this *PhemexCore) PrivateGetApiDataGFuturesTradingFees(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiDataGFuturesTradingFees", args...)
 }
 
-func (this *PhemexCore) PrivateGetApiDataFuturesV2TradeAccountDetail(args ...interface{}) <-chan interface{} {
+// PrivateGetApiDataFuturesV2TradeAccountDetail returns a channel that yields a JSON array.
+func (this *PhemexCore) PrivateGetApiDataFuturesV2TradeAccountDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiDataFuturesV2TradeAccountDetail", args...)
 }
 
-func (this *PhemexCore) PrivateGetGOrdersActiveList(args ...interface{}) <-chan interface{} {
+// PrivateGetApiDataGFuturesClosedPosition returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetApiDataGFuturesClosedPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiDataGFuturesClosedPosition", args...)
+}
+
+// PrivateGetGOrdersActiveList returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetGOrdersActiveList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGOrdersActiveList", args...)
 }
 
-func (this *PhemexCore) PrivateGetOrdersActiveList(args ...interface{}) <-chan interface{} {
+// PrivateGetOrdersActiveList returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetOrdersActiveList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrdersActiveList", args...)
 }
 
-func (this *PhemexCore) PrivateGetExchangeOrderList(args ...interface{}) <-chan interface{} {
+// PrivateGetExchangeOrderList returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetExchangeOrderList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetExchangeOrderList", args...)
 }
 
-func (this *PhemexCore) PrivateGetExchangeOrder(args ...interface{}) <-chan interface{} {
+// PrivateGetExchangeOrder returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetExchangeOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetExchangeOrder", args...)
 }
 
-func (this *PhemexCore) PrivateGetExchangeOrderTrade(args ...interface{}) <-chan interface{} {
+// PrivateGetExchangeOrderTrade returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetExchangeOrderTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetExchangeOrderTrade", args...)
 }
 
-func (this *PhemexCore) PrivateGetPhemexUserUsersChildren(args ...interface{}) <-chan interface{} {
+// PrivateGetPhemexUserUsersChildren returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetPhemexUserUsersChildren(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPhemexUserUsersChildren", args...)
 }
 
-func (this *PhemexCore) PrivateGetPhemexUserWalletsV2DepositAddress(args ...interface{}) <-chan interface{} {
+// PrivateGetPhemexUserWalletsV2DepositAddress returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetPhemexUserWalletsV2DepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPhemexUserWalletsV2DepositAddress", args...)
 }
 
-func (this *PhemexCore) PrivateGetPhemexUserWalletsTradeAccountDetail(args ...interface{}) <-chan interface{} {
+// PrivateGetPhemexUserWalletsTradeAccountDetail returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetPhemexUserWalletsTradeAccountDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPhemexUserWalletsTradeAccountDetail", args...)
 }
 
-func (this *PhemexCore) PrivateGetPhemexDepositWalletsApiDepositAddress(args ...interface{}) <-chan interface{} {
+// PrivateGetPhemexDepositWalletsApiDepositAddress returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetPhemexDepositWalletsApiDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPhemexDepositWalletsApiDepositAddress", args...)
 }
 
-func (this *PhemexCore) PrivateGetPhemexDepositWalletsApiDepositHist(args ...interface{}) <-chan interface{} {
+// PrivateGetPhemexDepositWalletsApiDepositHist returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetPhemexDepositWalletsApiDepositHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPhemexDepositWalletsApiDepositHist", args...)
 }
 
-func (this *PhemexCore) PrivateGetPhemexDepositWalletsApiChainCfg(args ...interface{}) <-chan interface{} {
+// PrivateGetPhemexDepositWalletsApiChainCfg returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetPhemexDepositWalletsApiChainCfg(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPhemexDepositWalletsApiChainCfg", args...)
 }
 
-func (this *PhemexCore) PrivateGetPhemexWithdrawWalletsApiWithdrawHist(args ...interface{}) <-chan interface{} {
+// PrivateGetPhemexWithdrawWalletsApiWithdrawHist returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetPhemexWithdrawWalletsApiWithdrawHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPhemexWithdrawWalletsApiWithdrawHist", args...)
 }
 
-func (this *PhemexCore) PrivateGetPhemexWithdrawWalletsApiAssetInfo(args ...interface{}) <-chan interface{} {
+// PrivateGetPhemexWithdrawWalletsApiAssetInfo returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetPhemexWithdrawWalletsApiAssetInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPhemexWithdrawWalletsApiAssetInfo", args...)
 }
 
-func (this *PhemexCore) PrivateGetPhemexUserOrderClosedPositionList(args ...interface{}) <-chan interface{} {
+// PrivateGetPhemexUserOrderClosedPositionList returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetPhemexUserOrderClosedPositionList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPhemexUserOrderClosedPositionList", args...)
 }
 
-func (this *PhemexCore) PrivateGetExchangeMarginsTransfer(args ...interface{}) <-chan interface{} {
+// PrivateGetExchangeMarginsTransfer returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetExchangeMarginsTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetExchangeMarginsTransfer", args...)
 }
 
-func (this *PhemexCore) PrivateGetExchangeWalletsConfirmWithdraw(args ...interface{}) <-chan interface{} {
+// PrivateGetExchangeWalletsConfirmWithdraw returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetExchangeWalletsConfirmWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetExchangeWalletsConfirmWithdraw", args...)
 }
 
-func (this *PhemexCore) PrivateGetExchangeWalletsWithdrawList(args ...interface{}) <-chan interface{} {
+// PrivateGetExchangeWalletsWithdrawList returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetExchangeWalletsWithdrawList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetExchangeWalletsWithdrawList", args...)
 }
 
-func (this *PhemexCore) PrivateGetExchangeWalletsDepositList(args ...interface{}) <-chan interface{} {
+// PrivateGetExchangeWalletsDepositList returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetExchangeWalletsDepositList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetExchangeWalletsDepositList", args...)
 }
 
-func (this *PhemexCore) PrivateGetExchangeWalletsV2DepositAddress(args ...interface{}) <-chan interface{} {
+// PrivateGetExchangeWalletsV2DepositAddress returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetExchangeWalletsV2DepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetExchangeWalletsV2DepositAddress", args...)
 }
 
-func (this *PhemexCore) PrivateGetApiDataSpotsFunds(args ...interface{}) <-chan interface{} {
+// PrivateGetApiDataSpotsFunds returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetApiDataSpotsFunds(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiDataSpotsFunds", args...)
 }
 
-func (this *PhemexCore) PrivateGetApiDataSpotsOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetApiDataSpotsOrders returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetApiDataSpotsOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiDataSpotsOrders", args...)
 }
 
-func (this *PhemexCore) PrivateGetApiDataSpotsOrdersByOrderId(args ...interface{}) <-chan interface{} {
+// PrivateGetApiDataSpotsOrdersByOrderId returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetApiDataSpotsOrdersByOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiDataSpotsOrdersByOrderId", args...)
 }
 
-func (this *PhemexCore) PrivateGetApiDataSpotsPnls(args ...interface{}) <-chan interface{} {
+// PrivateGetApiDataSpotsPnls returns a channel that yields a JSON array.
+func (this *PhemexCore) PrivateGetApiDataSpotsPnls(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiDataSpotsPnls", args...)
 }
 
-func (this *PhemexCore) PrivateGetApiDataSpotsTrades(args ...interface{}) <-chan interface{} {
+// PrivateGetApiDataSpotsTrades returns a channel that yields a JSON array.
+func (this *PhemexCore) PrivateGetApiDataSpotsTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiDataSpotsTrades", args...)
 }
 
-func (this *PhemexCore) PrivateGetApiDataSpotsTradesByOrderId(args ...interface{}) <-chan interface{} {
+// PrivateGetApiDataSpotsTradesByOrderId returns a channel that yields a JSON array.
+func (this *PhemexCore) PrivateGetApiDataSpotsTradesByOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiDataSpotsTradesByOrderId", args...)
 }
 
-func (this *PhemexCore) PrivateGetAssetsConvert(args ...interface{}) <-chan interface{} {
+// PrivateGetAssetsConvert returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetAssetsConvert(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetsConvert", args...)
 }
 
-func (this *PhemexCore) PrivateGetAssetsTransfer(args ...interface{}) <-chan interface{} {
+// PrivateGetAssetsTransfer returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetAssetsTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetsTransfer", args...)
 }
 
-func (this *PhemexCore) PrivateGetAssetsSpotsSubAccountsTransfer(args ...interface{}) <-chan interface{} {
+// PrivateGetAssetsSpotsSubAccountsTransfer returns a channel that yields a JSON array.
+func (this *PhemexCore) PrivateGetAssetsSpotsSubAccountsTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetsSpotsSubAccountsTransfer", args...)
 }
 
-func (this *PhemexCore) PrivateGetAssetsFuturesSubAccountsTransfer(args ...interface{}) <-chan interface{} {
+// PrivateGetAssetsFuturesSubAccountsTransfer returns a channel that yields a JSON array.
+func (this *PhemexCore) PrivateGetAssetsFuturesSubAccountsTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetsFuturesSubAccountsTransfer", args...)
 }
 
-func (this *PhemexCore) PrivateGetAssetsQuote(args ...interface{}) <-chan interface{} {
+// PrivateGetAssetsQuote returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetAssetsQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetsQuote", args...)
 }
 
-func (this *PhemexCore) PrivatePostSpotOrders(args ...interface{}) <-chan interface{} {
+// PrivatePostSpotOrders returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePostSpotOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSpotOrders", args...)
 }
 
-func (this *PhemexCore) PrivatePostOrders(args ...interface{}) <-chan interface{} {
+// PrivatePostOrders returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePostOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *PhemexCore) PrivatePostGOrders(args ...interface{}) <-chan interface{} {
+// PrivatePostGOrders returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePostGOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGOrders", args...)
 }
 
-func (this *PhemexCore) PrivatePostPositionsAssign(args ...interface{}) <-chan interface{} {
+// PrivatePostPositionsAssign returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePostPositionsAssign(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPositionsAssign", args...)
 }
 
-func (this *PhemexCore) PrivatePostExchangeWalletsTransferOut(args ...interface{}) <-chan interface{} {
+// PrivatePostExchangeWalletsTransferOut returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePostExchangeWalletsTransferOut(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostExchangeWalletsTransferOut", args...)
 }
 
-func (this *PhemexCore) PrivatePostExchangeWalletsTransferIn(args ...interface{}) <-chan interface{} {
+// PrivatePostExchangeWalletsTransferIn returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePostExchangeWalletsTransferIn(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostExchangeWalletsTransferIn", args...)
 }
 
-func (this *PhemexCore) PrivatePostExchangeMargins(args ...interface{}) <-chan interface{} {
+// PrivatePostExchangeMargins returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePostExchangeMargins(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostExchangeMargins", args...)
 }
 
-func (this *PhemexCore) PrivatePostExchangeWalletsCreateWithdraw(args ...interface{}) <-chan interface{} {
+// PrivatePostExchangeWalletsCreateWithdraw returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePostExchangeWalletsCreateWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostExchangeWalletsCreateWithdraw", args...)
 }
 
-func (this *PhemexCore) PrivatePostExchangeWalletsCancelWithdraw(args ...interface{}) <-chan interface{} {
+// PrivatePostExchangeWalletsCancelWithdraw returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePostExchangeWalletsCancelWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostExchangeWalletsCancelWithdraw", args...)
 }
 
-func (this *PhemexCore) PrivatePostExchangeWalletsCreateWithdrawAddress(args ...interface{}) <-chan interface{} {
+// PrivatePostExchangeWalletsCreateWithdrawAddress returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePostExchangeWalletsCreateWithdrawAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostExchangeWalletsCreateWithdrawAddress", args...)
 }
 
-func (this *PhemexCore) PrivatePostAssetsTransfer(args ...interface{}) <-chan interface{} {
+// PrivatePostAssetsTransfer returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePostAssetsTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAssetsTransfer", args...)
 }
 
-func (this *PhemexCore) PrivatePostAssetsSpotsSubAccountsTransfer(args ...interface{}) <-chan interface{} {
+// PrivatePostAssetsSpotsSubAccountsTransfer returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePostAssetsSpotsSubAccountsTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAssetsSpotsSubAccountsTransfer", args...)
 }
 
-func (this *PhemexCore) PrivatePostAssetsFuturesSubAccountsTransfer(args ...interface{}) <-chan interface{} {
+// PrivatePostAssetsFuturesSubAccountsTransfer returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePostAssetsFuturesSubAccountsTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAssetsFuturesSubAccountsTransfer", args...)
 }
 
-func (this *PhemexCore) PrivatePostAssetsUniversalTransfer(args ...interface{}) <-chan interface{} {
+// PrivatePostAssetsUniversalTransfer returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePostAssetsUniversalTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAssetsUniversalTransfer", args...)
 }
 
-func (this *PhemexCore) PrivatePostAssetsConvert(args ...interface{}) <-chan interface{} {
+// PrivatePostAssetsConvert returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePostAssetsConvert(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAssetsConvert", args...)
 }
 
-func (this *PhemexCore) PrivatePostPhemexWithdrawWalletsApiCreateWithdraw(args ...interface{}) <-chan interface{} {
+// PrivatePostPhemexWithdrawWalletsApiCreateWithdraw returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePostPhemexWithdrawWalletsApiCreateWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPhemexWithdrawWalletsApiCreateWithdraw", args...)
 }
 
-func (this *PhemexCore) PrivatePostPhemexWithdrawWalletsApiCancelWithdraw(args ...interface{}) <-chan interface{} {
+// PrivatePostPhemexWithdrawWalletsApiCancelWithdraw returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePostPhemexWithdrawWalletsApiCancelWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPhemexWithdrawWalletsApiCancelWithdraw", args...)
 }
 
-func (this *PhemexCore) PrivatePutSpotOrdersCreate(args ...interface{}) <-chan interface{} {
+// PrivatePutSpotOrdersCreate returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePutSpotOrdersCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutSpotOrdersCreate", args...)
 }
 
-func (this *PhemexCore) PrivatePutSpotOrders(args ...interface{}) <-chan interface{} {
+// PrivatePutSpotOrders returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePutSpotOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutSpotOrders", args...)
 }
 
-func (this *PhemexCore) PrivatePutOrdersReplace(args ...interface{}) <-chan interface{} {
+// PrivatePutOrdersReplace returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePutOrdersReplace(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutOrdersReplace", args...)
 }
 
-func (this *PhemexCore) PrivatePutGOrdersReplace(args ...interface{}) <-chan interface{} {
+// PrivatePutGOrdersReplace returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePutGOrdersReplace(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutGOrdersReplace", args...)
 }
 
-func (this *PhemexCore) PrivatePutGOrdersCreate(args ...interface{}) <-chan interface{} {
+// PrivatePutGOrdersCreate returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePutGOrdersCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutGOrdersCreate", args...)
 }
 
-func (this *PhemexCore) PrivatePutPositionsLeverage(args ...interface{}) <-chan interface{} {
+// PrivatePutPositionsLeverage returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePutPositionsLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutPositionsLeverage", args...)
 }
 
-func (this *PhemexCore) PrivatePutGPositionsLeverage(args ...interface{}) <-chan interface{} {
+// PrivatePutGPositionsLeverage returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePutGPositionsLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutGPositionsLeverage", args...)
 }
 
-func (this *PhemexCore) PrivatePutGPositionsSwitchPosModeSync(args ...interface{}) <-chan interface{} {
+// PrivatePutGPositionsSwitchPosModeSync returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePutGPositionsSwitchPosModeSync(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutGPositionsSwitchPosModeSync", args...)
 }
 
-func (this *PhemexCore) PrivatePutPositionsRiskLimit(args ...interface{}) <-chan interface{} {
+// PrivatePutPositionsRiskLimit returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePutPositionsRiskLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutPositionsRiskLimit", args...)
 }
 
-func (this *PhemexCore) PrivateDeleteSpotOrders(args ...interface{}) <-chan interface{} {
+// PrivateDeleteSpotOrders returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateDeleteSpotOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteSpotOrders", args...)
 }
 
-func (this *PhemexCore) PrivateDeleteSpotOrdersAll(args ...interface{}) <-chan interface{} {
+// PrivateDeleteSpotOrdersAll returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateDeleteSpotOrdersAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteSpotOrdersAll", args...)
 }
 
-func (this *PhemexCore) PrivateDeleteOrdersCancel(args ...interface{}) <-chan interface{} {
+// PrivateDeleteOrdersCancel returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateDeleteOrdersCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrdersCancel", args...)
 }
 
-func (this *PhemexCore) PrivateDeleteOrders(args ...interface{}) <-chan interface{} {
+// PrivateDeleteOrders returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateDeleteOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrders", args...)
 }
 
-func (this *PhemexCore) PrivateDeleteOrdersAll(args ...interface{}) <-chan interface{} {
+// PrivateDeleteOrdersAll returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateDeleteOrdersAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrdersAll", args...)
 }
 
-func (this *PhemexCore) PrivateDeleteGOrdersCancel(args ...interface{}) <-chan interface{} {
+// PrivateDeleteGOrdersCancel returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateDeleteGOrdersCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteGOrdersCancel", args...)
 }
 
-func (this *PhemexCore) PrivateDeleteGOrders(args ...interface{}) <-chan interface{} {
+// PrivateDeleteGOrders returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateDeleteGOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteGOrders", args...)
 }
 
-func (this *PhemexCore) PrivateDeleteGOrdersAll(args ...interface{}) <-chan interface{} {
+// PrivateDeleteGOrdersAll returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateDeleteGOrdersAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteGOrdersAll", args...)
 }

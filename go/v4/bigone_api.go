@@ -7,166 +7,207 @@
 
 package ccxt
 
-func (this *BigoneCore) PublicGetPing(args ...interface{}) <-chan interface{} {
+// PublicGetPing returns a channel that yields a JSON object.
+func (this *BigoneCore) PublicGetPing(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetPing", args...)
 }
 
-func (this *BigoneCore) PublicGetAssetPairs(args ...interface{}) <-chan interface{} {
+// PublicGetAssetPairs returns a channel that yields a JSON object.
+func (this *BigoneCore) PublicGetAssetPairs(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAssetPairs", args...)
 }
 
-func (this *BigoneCore) PublicGetAssetPairsAssetPairNameDepth(args ...interface{}) <-chan interface{} {
+// PublicGetAssetPairsAssetPairNameDepth returns a channel that yields a JSON object.
+func (this *BigoneCore) PublicGetAssetPairsAssetPairNameDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAssetPairsAssetPairNameDepth", args...)
 }
 
-func (this *BigoneCore) PublicGetAssetPairsAssetPairNameTrades(args ...interface{}) <-chan interface{} {
+// PublicGetAssetPairsAssetPairNameTrades returns a channel that yields a JSON object.
+func (this *BigoneCore) PublicGetAssetPairsAssetPairNameTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAssetPairsAssetPairNameTrades", args...)
 }
 
-func (this *BigoneCore) PublicGetAssetPairsAssetPairNameTicker(args ...interface{}) <-chan interface{} {
+// PublicGetAssetPairsAssetPairNameTicker returns a channel that yields a JSON object.
+func (this *BigoneCore) PublicGetAssetPairsAssetPairNameTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAssetPairsAssetPairNameTicker", args...)
 }
 
-func (this *BigoneCore) PublicGetAssetPairsAssetPairNameCandles(args ...interface{}) <-chan interface{} {
+// PublicGetAssetPairsAssetPairNameCandles returns a channel that yields a JSON object.
+func (this *BigoneCore) PublicGetAssetPairsAssetPairNameCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAssetPairsAssetPairNameCandles", args...)
 }
 
-func (this *BigoneCore) PublicGetAssetPairsTickers(args ...interface{}) <-chan interface{} {
+// PublicGetAssetPairsTickers returns a channel that yields a JSON object.
+func (this *BigoneCore) PublicGetAssetPairsTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAssetPairsTickers", args...)
 }
 
-func (this *BigoneCore) PrivateGetAccounts(args ...interface{}) <-chan interface{} {
+// PrivateGetAccounts returns a channel that yields a JSON object.
+func (this *BigoneCore) PrivateGetAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccounts", args...)
 }
 
-func (this *BigoneCore) PrivateGetFundAccounts(args ...interface{}) <-chan interface{} {
+// PrivateGetFundAccounts returns a channel that yields a JSON object.
+func (this *BigoneCore) PrivateGetFundAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFundAccounts", args...)
 }
 
-func (this *BigoneCore) PrivateGetAssetsAssetSymbolAddress(args ...interface{}) <-chan interface{} {
+// PrivateGetAssetsAssetSymbolAddress returns a channel that yields a JSON object.
+func (this *BigoneCore) PrivateGetAssetsAssetSymbolAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetsAssetSymbolAddress", args...)
 }
 
-func (this *BigoneCore) PrivateGetOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetOrders returns a channel that yields a JSON object.
+func (this *BigoneCore) PrivateGetOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *BigoneCore) PrivateGetOrdersId(args ...interface{}) <-chan interface{} {
+// PrivateGetOrdersId returns a channel that yields a JSON object.
+func (this *BigoneCore) PrivateGetOrdersId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrdersId", args...)
 }
 
-func (this *BigoneCore) PrivateGetOrdersMulti(args ...interface{}) <-chan interface{} {
+// PrivateGetOrdersMulti returns a channel that yields a JSON object.
+func (this *BigoneCore) PrivateGetOrdersMulti(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrdersMulti", args...)
 }
 
-func (this *BigoneCore) PrivateGetTrades(args ...interface{}) <-chan interface{} {
+// PrivateGetTrades returns a channel that yields a JSON object.
+func (this *BigoneCore) PrivateGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTrades", args...)
 }
 
-func (this *BigoneCore) PrivateGetWithdrawals(args ...interface{}) <-chan interface{} {
+// PrivateGetWithdrawals returns a channel that yields a JSON object.
+func (this *BigoneCore) PrivateGetWithdrawals(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWithdrawals", args...)
 }
 
-func (this *BigoneCore) PrivateGetDeposits(args ...interface{}) <-chan interface{} {
+// PrivateGetDeposits returns a channel that yields a JSON object.
+func (this *BigoneCore) PrivateGetDeposits(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetDeposits", args...)
 }
 
-func (this *BigoneCore) PrivatePostOrders(args ...interface{}) <-chan interface{} {
+// PrivatePostOrders returns a channel that yields a JSON object.
+func (this *BigoneCore) PrivatePostOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *BigoneCore) PrivatePostOrdersIdCancel(args ...interface{}) <-chan interface{} {
+// PrivatePostOrdersIdCancel returns a channel that yields a JSON object.
+func (this *BigoneCore) PrivatePostOrdersIdCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrdersIdCancel", args...)
 }
 
-func (this *BigoneCore) PrivatePostOrdersCancel(args ...interface{}) <-chan interface{} {
+// PrivatePostOrdersCancel returns a channel that yields a JSON object.
+func (this *BigoneCore) PrivatePostOrdersCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrdersCancel", args...)
 }
 
-func (this *BigoneCore) PrivatePostWithdrawals(args ...interface{}) <-chan interface{} {
+// PrivatePostWithdrawals returns a channel that yields a JSON object.
+func (this *BigoneCore) PrivatePostWithdrawals(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawals", args...)
 }
 
-func (this *BigoneCore) PrivatePostTransfer(args ...interface{}) <-chan interface{} {
+// PrivatePostTransfer returns a channel that yields a JSON object.
+func (this *BigoneCore) PrivatePostTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTransfer", args...)
 }
 
-func (this *BigoneCore) ContractPublicGetSymbols(args ...interface{}) <-chan interface{} {
+// ContractPublicGetSymbols returns a channel that yields a JSON array.
+func (this *BigoneCore) ContractPublicGetSymbols(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSymbols", args...)
 }
 
-func (this *BigoneCore) ContractPublicGetInstruments(args ...interface{}) <-chan interface{} {
+// ContractPublicGetInstruments returns a channel that yields a JSON array.
+func (this *BigoneCore) ContractPublicGetInstruments(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetInstruments", args...)
 }
 
-func (this *BigoneCore) ContractPublicGetDepthSymbolSnapshot(args ...interface{}) <-chan interface{} {
+// ContractPublicGetDepthSymbolSnapshot returns a channel that yields a JSON object.
+func (this *BigoneCore) ContractPublicGetDepthSymbolSnapshot(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetDepthSymbolSnapshot", args...)
 }
 
-func (this *BigoneCore) ContractPublicGetInstrumentsDifference(args ...interface{}) <-chan interface{} {
+// ContractPublicGetInstrumentsDifference returns a channel that yields a JSON object.
+func (this *BigoneCore) ContractPublicGetInstrumentsDifference(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetInstrumentsDifference", args...)
 }
 
-func (this *BigoneCore) ContractPublicGetInstrumentsPrices(args ...interface{}) <-chan interface{} {
+// ContractPublicGetInstrumentsPrices returns a channel that yields a JSON object.
+func (this *BigoneCore) ContractPublicGetInstrumentsPrices(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetInstrumentsPrices", args...)
 }
 
-func (this *BigoneCore) ContractPrivateGetAccounts(args ...interface{}) <-chan interface{} {
+// ContractPrivateGetAccounts returns a channel that yields a JSON array.
+func (this *BigoneCore) ContractPrivateGetAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetAccounts", args...)
 }
 
-func (this *BigoneCore) ContractPrivateGetOrdersId(args ...interface{}) <-chan interface{} {
+// ContractPrivateGetOrdersId returns a channel that yields a JSON object.
+func (this *BigoneCore) ContractPrivateGetOrdersId(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetOrdersId", args...)
 }
 
-func (this *BigoneCore) ContractPrivateGetOrders(args ...interface{}) <-chan interface{} {
+// ContractPrivateGetOrders returns a channel that yields a JSON array.
+func (this *BigoneCore) ContractPrivateGetOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetOrders", args...)
 }
 
-func (this *BigoneCore) ContractPrivateGetOrdersOpening(args ...interface{}) <-chan interface{} {
+// ContractPrivateGetOrdersOpening returns a channel that yields a JSON array.
+func (this *BigoneCore) ContractPrivateGetOrdersOpening(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetOrdersOpening", args...)
 }
 
-func (this *BigoneCore) ContractPrivateGetOrdersCount(args ...interface{}) <-chan interface{} {
+// ContractPrivateGetOrdersCount returns a channel that yields a JSON object.
+func (this *BigoneCore) ContractPrivateGetOrdersCount(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetOrdersCount", args...)
 }
 
-func (this *BigoneCore) ContractPrivateGetOrdersOpeningCount(args ...interface{}) <-chan interface{} {
+// ContractPrivateGetOrdersOpeningCount returns a channel that yields a JSON object.
+func (this *BigoneCore) ContractPrivateGetOrdersOpeningCount(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetOrdersOpeningCount", args...)
 }
 
-func (this *BigoneCore) ContractPrivateGetTrades(args ...interface{}) <-chan interface{} {
+// ContractPrivateGetTrades returns a channel that yields a JSON array.
+func (this *BigoneCore) ContractPrivateGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetTrades", args...)
 }
 
-func (this *BigoneCore) ContractPrivateGetTradesCount(args ...interface{}) <-chan interface{} {
+// ContractPrivateGetTradesCount returns a channel that yields a JSON object.
+func (this *BigoneCore) ContractPrivateGetTradesCount(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetTradesCount", args...)
 }
 
-func (this *BigoneCore) ContractPrivatePostOrders(args ...interface{}) <-chan interface{} {
+// ContractPrivatePostOrders returns a channel that yields a JSON object.
+func (this *BigoneCore) ContractPrivatePostOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostOrders", args...)
 }
 
-func (this *BigoneCore) ContractPrivatePostOrdersBatch(args ...interface{}) <-chan interface{} {
+// ContractPrivatePostOrdersBatch returns a channel that yields a JSON object.
+func (this *BigoneCore) ContractPrivatePostOrdersBatch(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostOrdersBatch", args...)
 }
 
-func (this *BigoneCore) ContractPrivatePutPositionsSymbolMargin(args ...interface{}) <-chan interface{} {
+// ContractPrivatePutPositionsSymbolMargin returns a channel that yields a JSON object.
+func (this *BigoneCore) ContractPrivatePutPositionsSymbolMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePutPositionsSymbolMargin", args...)
 }
 
-func (this *BigoneCore) ContractPrivatePutPositionsSymbolRiskLimit(args ...interface{}) <-chan interface{} {
+// ContractPrivatePutPositionsSymbolRiskLimit returns a channel that yields a JSON object.
+func (this *BigoneCore) ContractPrivatePutPositionsSymbolRiskLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePutPositionsSymbolRiskLimit", args...)
 }
 
-func (this *BigoneCore) ContractPrivateDeleteOrdersId(args ...interface{}) <-chan interface{} {
+// ContractPrivateDeleteOrdersId returns a channel that yields a JSON object.
+func (this *BigoneCore) ContractPrivateDeleteOrdersId(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateDeleteOrdersId", args...)
 }
 
-func (this *BigoneCore) ContractPrivateDeleteOrdersBatch(args ...interface{}) <-chan interface{} {
+// ContractPrivateDeleteOrdersBatch returns a channel that yields a JSON object.
+func (this *BigoneCore) ContractPrivateDeleteOrdersBatch(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateDeleteOrdersBatch", args...)
 }
 
-func (this *BigoneCore) WebExchangeGetV3Assets(args ...interface{}) <-chan interface{} {
+// WebExchangeGetV3Assets returns a channel that yields a JSON object.
+func (this *BigoneCore) WebExchangeGetV3Assets(args ...any) <-chan any {
 	return this.callEndpointAsync("webExchangeGetV3Assets", args...)
 }

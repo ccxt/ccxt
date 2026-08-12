@@ -152,7 +152,7 @@
             "liquidationPrice": null,
             "marginRatio": null,
             "marginMode": null,
-            "percentage": null
+            "percentage": 0
           }
         }
       ],
@@ -212,7 +212,7 @@
               "liquidationPrice": null,
               "marginRatio": null,
               "marginMode": null,
-              "percentage": null
+              "percentage": 0
             }
           ]
         },
@@ -273,7 +273,7 @@
               "liquidationPrice": null,
               "marginRatio": null,
               "marginMode": null,
-              "percentage": null
+              "percentage": 0
             }
           ]
         }
@@ -1156,7 +1156,7 @@
               "txid": null,
               "timestamp": 1710383738514,
               "datetime": "2024-03-14T02:35:38.514588Z",
-              "network": "ETH",
+              "network": "ERC20",
               "address": null,
               "addressTo": "0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB",
               "addressFrom": null,

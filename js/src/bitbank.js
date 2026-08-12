@@ -5,10 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitbank.js';
 import { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bitbank
@@ -21,7 +21,7 @@ export default class bitbank extends Exchange {
             'name': 'bitbank',
             'countries': ['JP'],
             'version': 'v1',
-            'rateLimit': 100,
+            'rateLimit': 100, // https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -75,6 +75,7 @@ export default class bitbank extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarginModes': false,
                 'fetchMarketLeverageTiers': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMarkPrices': false,
                 'fetchMyLiquidations': false,
@@ -142,44 +143,44 @@ export default class bitbank extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        '{pair}/ticker': 1,
-                        'tickers': 1,
-                        'tickers_jpy': 1,
-                        '{pair}/depth': 1,
-                        '{pair}/transactions': 1,
-                        '{pair}/transactions/{yyyymmdd}': 1,
-                        '{pair}/candlestick/{candletype}/{yyyymmdd}': 1,
-                        '{pair}/circuit_break_info': 1,
+                        '{pair}/ticker': { 'cost': 1 },
+                        'tickers': { 'cost': 1 },
+                        'tickers_jpy': { 'cost': 1 },
+                        '{pair}/depth': { 'cost': 1 },
+                        '{pair}/transactions': { 'cost': 1 },
+                        '{pair}/transactions/{yyyymmdd}': { 'cost': 1 },
+                        '{pair}/candlestick/{candletype}/{yyyymmdd}': { 'cost': 1 },
+                        '{pair}/circuit_break_info': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'user/assets': 1,
-                        'user/spot/order': 1,
-                        'user/spot/active_orders': 1,
-                        'user/margin/positions': 1,
-                        'user/spot/trade_history': 1,
-                        'user/deposit_history': 1,
-                        'user/unconfirmed_deposits': 1,
-                        'user/deposit_originators': 1,
-                        'user/withdrawal_account': 1,
-                        'user/withdrawal_history': 1,
-                        'spot/status': 1,
-                        'spot/pairs': 1,
+                        'user/assets': { 'cost': 1 },
+                        'user/spot/order': { 'cost': 1 },
+                        'user/spot/active_orders': { 'cost': 1 },
+                        'user/margin/positions': { 'cost': 1 },
+                        'user/spot/trade_history': { 'cost': 1 },
+                        'user/deposit_history': { 'cost': 1 },
+                        'user/unconfirmed_deposits': { 'cost': 1 },
+                        'user/deposit_originators': { 'cost': 1 },
+                        'user/withdrawal_account': { 'cost': 1 },
+                        'user/withdrawal_history': { 'cost': 1 },
+                        'spot/status': { 'cost': 1 },
+                        'spot/pairs': { 'cost': 1 },
                     },
                     'post': {
-                        'user/spot/order': 1.66,
-                        'user/spot/cancel_order': 1.66,
-                        'user/spot/cancel_orders': 1.66,
-                        'user/spot/orders_info': 1.66,
-                        'user/confirm_deposits': 1.66,
-                        'user/confirm_deposits_all': 1.66,
-                        'user/request_withdrawal': 1.66,
+                        'user/spot/order': { 'cost': 1.66 },
+                        'user/spot/cancel_order': { 'cost': 1.66 },
+                        'user/spot/cancel_orders': { 'cost': 1.66 },
+                        'user/spot/orders_info': { 'cost': 1.66 }, // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/confirm_deposits': { 'cost': 1.66 }, // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/confirm_deposits_all': { 'cost': 1.66 }, // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/request_withdrawal': { 'cost': 1.66 },
                     },
                 },
                 'markets': {
                     'get': {
-                        'spot/pairs': 1,
+                        'spot/pairs': { 'cost': 1 },
                     },
                 },
             },
@@ -188,7 +189,7 @@ export default class bitbank extends Exchange {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': true, // todo implement
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': false,
@@ -197,7 +198,7 @@ export default class bitbank extends Exchange {
                         'timeInForce': {
                             'IOC': false,
                             'FOK': false,
-                            'PO': true,
+                            'PO': true, // todo: implement
                             'GTD': false,
                         },
                         'hedged': false,
@@ -313,7 +314,7 @@ export default class bitbank extends Exchange {
         const quoteId = this.safeString(entry, 'quote_asset');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -363,7 +364,7 @@ export default class bitbank extends Exchange {
             },
             'created': undefined,
             'info': entry,
-        };
+        });
     }
     parseTicker(ticker, market = undefined) {
         const symbol = this.safeSymbol(undefined, market);
@@ -402,7 +403,9 @@ export default class bitbank extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -419,10 +422,12 @@ export default class bitbank extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -489,7 +494,9 @@ export default class bitbank extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -508,7 +515,9 @@ export default class bitbank extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.marketsGetSpotPairs(params);
         //
         //     {
@@ -597,7 +606,9 @@ export default class bitbank extends Exchange {
             const duration = this.parseTimeframe(timeframe);
             since = this.milliseconds() - duration * 1000 * limit;
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -645,7 +656,9 @@ export default class bitbank extends Exchange {
             account['free'] = this.safeString(balance, 'free_amount');
             account['used'] = this.safeString(balance, 'locked_amount');
             account['total'] = this.safeString(balance, 'onhand_amount');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -658,7 +671,9 @@ export default class bitbank extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetUserAssets(params);
         //
         //     {
@@ -756,7 +771,9 @@ export default class bitbank extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -782,7 +799,9 @@ export default class bitbank extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'order_id': id,
@@ -826,7 +845,9 @@ export default class bitbank extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'order_id': id,
@@ -870,7 +891,9 @@ export default class bitbank extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -898,7 +921,9 @@ export default class bitbank extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -926,7 +951,9 @@ export default class bitbank extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'asset': currency['id'],
@@ -962,7 +989,9 @@ export default class bitbank extends Exchange {
         if (!('uuid' in params)) {
             throw new ExchangeError(this.id + ' uuid is required for withdrawal');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'asset': currency['id'],
@@ -1045,8 +1074,22 @@ export default class bitbank extends Exchange {
         }
         else {
             this.checkRequiredCredentials();
+            // bitbank supports two auth methods, see https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#authorization
+            // 'timeWindow' (default): request time + validity window, stateless and safe for concurrent use of one key
+            // 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
+            // since bitbank offers no server time endpoint to compensate against
+            const authMethod = this.safeString(this.options, 'authMethod', 'timeWindow');
+            const isTimeWindow = (authMethod === 'timeWindow');
+            const requestTime = this.milliseconds().toString();
+            const timeWindow = this.safeString(this.options, 'timeWindow', '5000');
             const nonce = this.nonce().toString();
-            let auth = nonce;
+            let auth = undefined;
+            if (isTimeWindow) {
+                auth = requestTime + timeWindow;
+            }
+            else {
+                auth = nonce;
+            }
             url += this.version + '/' + this.implodeParams(path, params);
             if (method === 'POST') {
                 body = this.json(query);
@@ -1063,9 +1106,15 @@ export default class bitbank extends Exchange {
             headers = {
                 'Content-Type': 'application/json',
                 'ACCESS-KEY': this.apiKey,
-                'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': this.hmac(this.encode(auth), this.encode(this.secret), sha256),
             };
+            if (isTimeWindow) {
+                headers['ACCESS-REQUEST-TIME'] = requestTime;
+                headers['ACCESS-TIME-WINDOW'] = timeWindow;
+            }
+            else {
+                headers['ACCESS-NONCE'] = nonce;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

@@ -7,374 +7,522 @@
 
 package ccxt
 
-func (this *NdaxCore) PublicGetActivate2FA(args ...interface{}) <-chan interface{} {
+// PublicGetActivate2FA returns a channel that yields a JSON object.
+func (this *NdaxCore) PublicGetActivate2FA(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetActivate2FA", args...)
 }
 
-func (this *NdaxCore) PublicGetAuthenticate2FA(args ...interface{}) <-chan interface{} {
+// PublicGetAuthenticate2FA returns a channel that yields a JSON object.
+func (this *NdaxCore) PublicGetAuthenticate2FA(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAuthenticate2FA", args...)
 }
 
-func (this *NdaxCore) PublicGetAuthenticateUser(args ...interface{}) <-chan interface{} {
+// PublicGetAuthenticateUser returns a channel that yields a JSON object.
+func (this *NdaxCore) PublicGetAuthenticateUser(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAuthenticateUser", args...)
 }
 
-func (this *NdaxCore) PublicGetGetL2Snapshot(args ...interface{}) <-chan interface{} {
+// PublicGetEnableXP2FA returns a channel that yields a JSON object.
+func (this *NdaxCore) PublicGetEnableXP2FA(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetEnableXP2FA", args...)
+}
+
+// PublicGetGetL2Snapshot returns a channel that yields a JSON array.
+func (this *NdaxCore) PublicGetGetL2Snapshot(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetL2Snapshot", args...)
 }
 
-func (this *NdaxCore) PublicGetGetLevel1(args ...interface{}) <-chan interface{} {
+// PublicGetGetLevel1 returns a channel that yields a JSON object.
+func (this *NdaxCore) PublicGetGetLevel1(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetLevel1", args...)
 }
 
-func (this *NdaxCore) PublicGetGetValidate2FARequiredEndpoints(args ...interface{}) <-chan interface{} {
+// PublicGetGetValidate2FARequiredEndpoints returns a channel that yields a JSON array.
+func (this *NdaxCore) PublicGetGetValidate2FARequiredEndpoints(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetValidate2FARequiredEndpoints", args...)
 }
 
-func (this *NdaxCore) PublicGetLogOut(args ...interface{}) <-chan interface{} {
+// PublicGetLogOut returns a channel that yields a JSON object.
+func (this *NdaxCore) PublicGetLogOut(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetLogOut", args...)
 }
 
-func (this *NdaxCore) PublicGetGetTickerHistory(args ...interface{}) <-chan interface{} {
+// PublicGetGetTickerHistory returns a channel that yields a JSON array.
+func (this *NdaxCore) PublicGetGetTickerHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetTickerHistory", args...)
 }
 
-func (this *NdaxCore) PublicGetGetProduct(args ...interface{}) <-chan interface{} {
+// PublicGetGetProduct returns a channel that yields a JSON object.
+func (this *NdaxCore) PublicGetGetProduct(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetProduct", args...)
 }
 
-func (this *NdaxCore) PublicGetGetProducts(args ...interface{}) <-chan interface{} {
+// PublicGetGetProducts returns a channel that yields a JSON array.
+func (this *NdaxCore) PublicGetGetProducts(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetProducts", args...)
 }
 
-func (this *NdaxCore) PublicGetGetInstrument(args ...interface{}) <-chan interface{} {
+// PublicGetGetInstrument returns a channel that yields a JSON object.
+func (this *NdaxCore) PublicGetGetInstrument(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetInstrument", args...)
 }
 
-func (this *NdaxCore) PublicGetGetInstruments(args ...interface{}) <-chan interface{} {
+// PublicGetGetInstruments returns a channel that yields a JSON array.
+func (this *NdaxCore) PublicGetGetInstruments(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetInstruments", args...)
 }
 
-func (this *NdaxCore) PublicGetPing(args ...interface{}) <-chan interface{} {
+// PublicGetGetEarliestTickTime returns a channel that yields a JSON array.
+func (this *NdaxCore) PublicGetGetEarliestTickTime(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetGetEarliestTickTime", args...)
+}
+
+// PublicGetPing returns a channel that yields a JSON object.
+func (this *NdaxCore) PublicGetPing(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetPing", args...)
 }
 
-func (this *NdaxCore) PublicGetTrades(args ...interface{}) <-chan interface{} {
+// PublicGetAssets returns a channel that yields a JSON array.
+func (this *NdaxCore) PublicGetAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAssets", args...)
+}
+
+// PublicGetOrderbook returns a channel that yields a JSON object.
+func (this *NdaxCore) PublicGetOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrderbook", args...)
+}
+
+// PublicGetTicker returns a channel that yields a JSON object.
+func (this *NdaxCore) PublicGetTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTicker", args...)
+}
+
+// PublicGetSummary returns a channel that yields a JSON array.
+func (this *NdaxCore) PublicGetSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSummary", args...)
+}
+
+// PublicGetTrades returns a channel that yields a JSON array.
+func (this *NdaxCore) PublicGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *NdaxCore) PublicGetGetLastTrades(args ...interface{}) <-chan interface{} {
+// PublicGetGetLastTrades returns a channel that yields a JSON array.
+func (this *NdaxCore) PublicGetGetLastTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetLastTrades", args...)
 }
 
-func (this *NdaxCore) PublicGetSubscribeLevel1(args ...interface{}) <-chan interface{} {
+// PublicGetConfirmWithdraw returns a channel that yields a JSON object.
+func (this *NdaxCore) PublicGetConfirmWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetConfirmWithdraw", args...)
+}
+
+// PublicGetSubscribeLevel1 returns a channel that yields a JSON object.
+func (this *NdaxCore) PublicGetSubscribeLevel1(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSubscribeLevel1", args...)
 }
 
-func (this *NdaxCore) PublicGetSubscribeLevel2(args ...interface{}) <-chan interface{} {
+// PublicGetSubscribeLevel2 returns a channel that yields a JSON array.
+func (this *NdaxCore) PublicGetSubscribeLevel2(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSubscribeLevel2", args...)
 }
 
-func (this *NdaxCore) PublicGetSubscribeTicker(args ...interface{}) <-chan interface{} {
+// PublicGetSubscribeTicker returns a channel that yields a JSON array.
+func (this *NdaxCore) PublicGetSubscribeTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSubscribeTicker", args...)
 }
 
-func (this *NdaxCore) PublicGetSubscribeTrades(args ...interface{}) <-chan interface{} {
+// PublicGetSubscribeTrades returns a channel that yields a JSON array.
+func (this *NdaxCore) PublicGetSubscribeTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSubscribeTrades", args...)
 }
 
-func (this *NdaxCore) PublicGetSubscribeBlockTrades(args ...interface{}) <-chan interface{} {
+// PublicGetSubscribeBlockTrades returns a channel that yields a JSON array.
+func (this *NdaxCore) PublicGetSubscribeBlockTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSubscribeBlockTrades", args...)
 }
 
-func (this *NdaxCore) PublicGetUnsubscribeBlockTrades(args ...interface{}) <-chan interface{} {
+// PublicGetUnsubscribeBlockTrades returns a channel that yields a JSON object.
+func (this *NdaxCore) PublicGetUnsubscribeBlockTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetUnsubscribeBlockTrades", args...)
 }
 
-func (this *NdaxCore) PublicGetUnsubscribeLevel1(args ...interface{}) <-chan interface{} {
+// PublicGetUnsubscribeLevel1 returns a channel that yields a JSON object.
+func (this *NdaxCore) PublicGetUnsubscribeLevel1(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetUnsubscribeLevel1", args...)
 }
 
-func (this *NdaxCore) PublicGetUnsubscribeLevel2(args ...interface{}) <-chan interface{} {
+// PublicGetUnsubscribeLevel2 returns a channel that yields a JSON object.
+func (this *NdaxCore) PublicGetUnsubscribeLevel2(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetUnsubscribeLevel2", args...)
 }
 
-func (this *NdaxCore) PublicGetUnsubscribeTicker(args ...interface{}) <-chan interface{} {
+// PublicGetUnsubscribeTicker returns a channel that yields a JSON object.
+func (this *NdaxCore) PublicGetUnsubscribeTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetUnsubscribeTicker", args...)
 }
 
-func (this *NdaxCore) PublicGetUnsubscribeTrades(args ...interface{}) <-chan interface{} {
+// PublicGetUnsubscribeTrades returns a channel that yields a JSON object.
+func (this *NdaxCore) PublicGetUnsubscribeTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetUnsubscribeTrades", args...)
 }
 
-func (this *NdaxCore) PublicGetAuthenticate(args ...interface{}) <-chan interface{} {
+// PublicGetAuthenticate returns a channel that yields a JSON object.
+func (this *NdaxCore) PublicGetAuthenticate(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAuthenticate", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetUserAccountInfos(args ...interface{}) <-chan interface{} {
+// PrivateGetGetUserAccountInfos returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetUserAccountInfos(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetUserAccountInfos", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetUserAccounts(args ...interface{}) <-chan interface{} {
+// PrivateGetGetUserAccounts returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetUserAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetUserAccounts", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetUserAffiliateCount(args ...interface{}) <-chan interface{} {
+// PrivateGetGetUserAffiliateCount returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivateGetGetUserAffiliateCount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetUserAffiliateCount", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetUserAffiliateTag(args ...interface{}) <-chan interface{} {
+// PrivateGetGetUserAffiliateTag returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetUserAffiliateTag(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetUserAffiliateTag", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetUserConfig(args ...interface{}) <-chan interface{} {
+// PrivateGetGetUserConfig returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetUserConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetUserConfig", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetAllUnredactedUserConfigsForUser(args ...interface{}) <-chan interface{} {
+// PrivateGetGetAllUnredactedUserConfigsForUser returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetAllUnredactedUserConfigsForUser(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetAllUnredactedUserConfigsForUser", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetUnredactedUserConfigByKey(args ...interface{}) <-chan interface{} {
+// PrivateGetGetUnredactedUserConfigByKey returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetUnredactedUserConfigByKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetUnredactedUserConfigByKey", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetUserDevices(args ...interface{}) <-chan interface{} {
+// PrivateGetGetUserDevices returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetUserDevices(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetUserDevices", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetUserReportTickets(args ...interface{}) <-chan interface{} {
+// PrivateGetGetUserReportTickets returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetUserReportTickets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetUserReportTickets", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetUserReportWriterResultRecords(args ...interface{}) <-chan interface{} {
+// PrivateGetGetUserReportWriterResultRecords returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetUserReportWriterResultRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetUserReportWriterResultRecords", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetAccountInfo(args ...interface{}) <-chan interface{} {
+// PrivateGetGetAccountInfo returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivateGetGetAccountInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetAccountInfo", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetAccountPositions(args ...interface{}) <-chan interface{} {
+// PrivateGetGetAccountPositions returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivateGetGetAccountPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetAccountPositions", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetAllAccountConfigs(args ...interface{}) <-chan interface{} {
+// PrivateGetGetAllAccountConfigs returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetAllAccountConfigs(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetAllAccountConfigs", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetTreasuryProductsForAccount(args ...interface{}) <-chan interface{} {
+// PrivateGetGetTreasuryProductsForAccount returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetTreasuryProductsForAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetTreasuryProductsForAccount", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetAccountTrades(args ...interface{}) <-chan interface{} {
+// PrivateGetGetAccountTrades returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetAccountTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetAccountTrades", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetAccountTransactions(args ...interface{}) <-chan interface{} {
+// PrivateGetGetAccountTransactions returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetAccountTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetAccountTransactions", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetOpenTradeReports(args ...interface{}) <-chan interface{} {
+// PrivateGetGetOpenTradeReports returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetOpenTradeReports(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetOpenTradeReports", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetAllOpenTradeReports(args ...interface{}) <-chan interface{} {
+// PrivateGetGetAllOpenTradeReports returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetAllOpenTradeReports(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetAllOpenTradeReports", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetTradesHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetGetTradesHistory returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetTradesHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetTradesHistory", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetOpenOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetGetOpenOrders returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetOpenOrders", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetOpenQuotes(args ...interface{}) <-chan interface{} {
+// PrivateGetGetOpenQuotes returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivateGetGetOpenQuotes(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetOpenQuotes", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetOrderFee(args ...interface{}) <-chan interface{} {
+// PrivateGetGetOrderFee returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivateGetGetOrderFee(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetOrderFee", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetOrderHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetGetOrderHistory returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetOrderHistory", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetOrdersHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetGetOrdersHistory returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetOrdersHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetOrdersHistory", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetOrderStatus(args ...interface{}) <-chan interface{} {
+// PrivateGetGetOrderStatus returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivateGetGetOrderStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetOrderStatus", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetOmsFeeTiers(args ...interface{}) <-chan interface{} {
+// PrivateGetGetOmsFeeTiers returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetOmsFeeTiers(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetOmsFeeTiers", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetAccountDepositTransactions(args ...interface{}) <-chan interface{} {
+// PrivateGetGetAccountDepositTransactions returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetAccountDepositTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetAccountDepositTransactions", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetAccountWithdrawTransactions(args ...interface{}) <-chan interface{} {
+// PrivateGetGetAccountWithdrawTransactions returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetAccountWithdrawTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetAccountWithdrawTransactions", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetAllDepositRequestInfoTemplates(args ...interface{}) <-chan interface{} {
+// PrivateGetGetAllDepositRequestInfoTemplates returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetAllDepositRequestInfoTemplates(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetAllDepositRequestInfoTemplates", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetDepositInfo(args ...interface{}) <-chan interface{} {
+// PrivateGetGetDepositInfo returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivateGetGetDepositInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetDepositInfo", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetDepositRequestInfoTemplate(args ...interface{}) <-chan interface{} {
+// PrivateGetGetDepositRequestInfoTemplate returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivateGetGetDepositRequestInfoTemplate(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetDepositRequestInfoTemplate", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetDeposits(args ...interface{}) <-chan interface{} {
+// PrivateGetGetDeposits returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetDeposits(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetDeposits", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetDepositTicket(args ...interface{}) <-chan interface{} {
+// PrivateGetGetDepositTicket returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivateGetGetDepositTicket(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetDepositTicket", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetDepositTickets(args ...interface{}) <-chan interface{} {
+// PrivateGetGetDepositTickets returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetDepositTickets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetDepositTickets", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetOMSWithdrawFees(args ...interface{}) <-chan interface{} {
+// PrivateGetGetOMSWithdrawFees returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetOMSWithdrawFees(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetOMSWithdrawFees", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetWithdrawFee(args ...interface{}) <-chan interface{} {
+// PrivateGetGetWithdrawFee returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivateGetGetWithdrawFee(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetWithdrawFee", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetWithdraws(args ...interface{}) <-chan interface{} {
+// PrivateGetGetWithdraws returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetWithdraws(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetWithdraws", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetWithdrawTemplate(args ...interface{}) <-chan interface{} {
+// PrivateGetGetWithdrawTemplate returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivateGetGetWithdrawTemplate(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetWithdrawTemplate", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetWithdrawTemplateTypes(args ...interface{}) <-chan interface{} {
+// PrivateGetGetWithdrawTemplateTypes returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivateGetGetWithdrawTemplateTypes(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetWithdrawTemplateTypes", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetWithdrawTicket(args ...interface{}) <-chan interface{} {
+// PrivateGetGetWithdrawTicket returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivateGetGetWithdrawTicket(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetWithdrawTicket", args...)
 }
 
-func (this *NdaxCore) PrivateGetGetWithdrawTickets(args ...interface{}) <-chan interface{} {
+// PrivateGetGetWithdrawTicketAttachment returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivateGetGetWithdrawTicketAttachment(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetWithdrawTicketAttachment", args...)
+}
+
+// PrivateGetGetWithdrawTickets returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivateGetGetWithdrawTickets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetWithdrawTickets", args...)
 }
 
-func (this *NdaxCore) PrivatePostAddUserAffiliateTag(args ...interface{}) <-chan interface{} {
+// PrivateGetGetDepositTicketAttachment returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivateGetGetDepositTicketAttachment(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetDepositTicketAttachment", args...)
+}
+
+// PrivatePostAddUserAffiliateTag returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostAddUserAffiliateTag(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAddUserAffiliateTag", args...)
 }
 
-func (this *NdaxCore) PrivatePostCancelUserReport(args ...interface{}) <-chan interface{} {
+// PrivatePostAddDepositTicketAttachment returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostAddDepositTicketAttachment(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAddDepositTicketAttachment", args...)
+}
+
+// PrivatePostAddWithdrawTicketAttachment returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostAddWithdrawTicketAttachment(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAddWithdrawTicketAttachment", args...)
+}
+
+// PrivatePostCancelUserReport returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostCancelUserReport(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelUserReport", args...)
 }
 
-func (this *NdaxCore) PrivatePostRegisterNewDevice(args ...interface{}) <-chan interface{} {
+// PrivatePostRegisterNewDevice returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostRegisterNewDevice(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostRegisterNewDevice", args...)
 }
 
-func (this *NdaxCore) PrivatePostSubscribeAccountEvents(args ...interface{}) <-chan interface{} {
+// PrivatePostSubscribeAccountEvents returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostSubscribeAccountEvents(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSubscribeAccountEvents", args...)
 }
 
-func (this *NdaxCore) PrivatePostUpdateUserAffiliateTag(args ...interface{}) <-chan interface{} {
+// PrivatePostUpdateUserAffiliateTag returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostUpdateUserAffiliateTag(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUpdateUserAffiliateTag", args...)
 }
 
-func (this *NdaxCore) PrivatePostGenerateTradeActivityReport(args ...interface{}) <-chan interface{} {
+// PrivatePostGenerateTradeActivityReport returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostGenerateTradeActivityReport(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGenerateTradeActivityReport", args...)
 }
 
-func (this *NdaxCore) PrivatePostGenerateTransactionActivityReport(args ...interface{}) <-chan interface{} {
+// PrivatePostGenerateTransactionActivityReport returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostGenerateTransactionActivityReport(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGenerateTransactionActivityReport", args...)
 }
 
-func (this *NdaxCore) PrivatePostGenerateTreasuryActivityReport(args ...interface{}) <-chan interface{} {
+// PrivatePostGenerateTreasuryActivityReport returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostGenerateTreasuryActivityReport(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGenerateTreasuryActivityReport", args...)
 }
 
-func (this *NdaxCore) PrivatePostScheduleTradeActivityReport(args ...interface{}) <-chan interface{} {
+// PrivatePostScheduleTradeActivityReport returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostScheduleTradeActivityReport(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostScheduleTradeActivityReport", args...)
 }
 
-func (this *NdaxCore) PrivatePostScheduleTransactionActivityReport(args ...interface{}) <-chan interface{} {
+// PrivatePostScheduleTransactionActivityReport returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostScheduleTransactionActivityReport(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostScheduleTransactionActivityReport", args...)
 }
 
-func (this *NdaxCore) PrivatePostScheduleTreasuryActivityReport(args ...interface{}) <-chan interface{} {
+// PrivatePostScheduleTreasuryActivityReport returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostScheduleTreasuryActivityReport(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostScheduleTreasuryActivityReport", args...)
 }
 
-func (this *NdaxCore) PrivatePostCancelAllOrders(args ...interface{}) <-chan interface{} {
+// PrivatePostCancelAllOrders returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostCancelAllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelAllOrders", args...)
 }
 
-func (this *NdaxCore) PrivatePostCancelOrder(args ...interface{}) <-chan interface{} {
+// PrivatePostCancelOrder returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelOrder", args...)
 }
 
-func (this *NdaxCore) PrivatePostCancelQuote(args ...interface{}) <-chan interface{} {
+// PrivatePostCancelQuote returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostCancelQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelQuote", args...)
 }
 
-func (this *NdaxCore) PrivatePostCancelReplaceOrder(args ...interface{}) <-chan interface{} {
+// PrivatePostCancelReplaceOrder returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostCancelReplaceOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelReplaceOrder", args...)
 }
 
-func (this *NdaxCore) PrivatePostCreateQuote(args ...interface{}) <-chan interface{} {
+// PrivatePostCreateQuote returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostCreateQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCreateQuote", args...)
 }
 
-func (this *NdaxCore) PrivatePostModifyOrder(args ...interface{}) <-chan interface{} {
+// PrivatePostModifyOrder returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostModifyOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostModifyOrder", args...)
 }
 
-func (this *NdaxCore) PrivatePostSendOrder(args ...interface{}) <-chan interface{} {
+// PrivatePostSendOrder returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostSendOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSendOrder", args...)
 }
 
-func (this *NdaxCore) PrivatePostSubmitBlockTrade(args ...interface{}) <-chan interface{} {
+// PrivatePostSubmitBlockTrade returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostSubmitBlockTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSubmitBlockTrade", args...)
 }
 
-func (this *NdaxCore) PrivatePostUpdateQuote(args ...interface{}) <-chan interface{} {
+// PrivatePostUpdateQuote returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostUpdateQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUpdateQuote", args...)
 }
 
-func (this *NdaxCore) PrivatePostCancelWithdraw(args ...interface{}) <-chan interface{} {
+// PrivatePostCancelWithdraw returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostCancelWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelWithdraw", args...)
 }
 
-func (this *NdaxCore) PrivatePostCreateDepositTicket(args ...interface{}) <-chan interface{} {
+// PrivatePostCreateDepositTicket returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostCreateDepositTicket(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCreateDepositTicket", args...)
 }
 
-func (this *NdaxCore) PrivatePostCreateWithdrawTicket(args ...interface{}) <-chan interface{} {
+// PrivatePostCreateWithdrawTicket returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostCreateWithdrawTicket(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCreateWithdrawTicket", args...)
 }
 
-func (this *NdaxCore) PrivatePostSubmitDepositTicketComment(args ...interface{}) <-chan interface{} {
+// PrivatePostSubmitDepositTicketComment returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostSubmitDepositTicketComment(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSubmitDepositTicketComment", args...)
 }
 
-func (this *NdaxCore) PrivatePostSubmitWithdrawTicketComment(args ...interface{}) <-chan interface{} {
+// PrivatePostSubmitWithdrawTicketComment returns a channel that yields a JSON object.
+func (this *NdaxCore) PrivatePostSubmitWithdrawTicketComment(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSubmitWithdrawTicketComment", args...)
 }
 
-func (this *NdaxCore) PrivatePostGetOrderHistoryByOrderId(args ...interface{}) <-chan interface{} {
+// PrivatePostGetOrderHistoryByOrderId returns a channel that yields a JSON array.
+func (this *NdaxCore) PrivatePostGetOrderHistoryByOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetOrderHistoryByOrderId", args...)
 }

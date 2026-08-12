@@ -4,7 +4,7 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import { hexToBytes as hexToBytesNoble } from '../../noble-curves/abstract/utils.js';
+import { hexToBytes as hexToBytesNoble } from '@noble/curves/utils.js';
 import assert from './assert.js';
 import { addHexPrefix, removeHexPrefix } from './encode.js';
 /**

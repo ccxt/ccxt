@@ -1,8 +1,5 @@
-- [Fetch Ticker](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 // ##########################################
 // for asynchronous (async/await) version check: https://github.com/ccxt/ccxt/blob/master/examples/php/async-await.php
 // ##########################################
@@ -41,5 +38,5 @@ try {
         echo '['. get_class($e) . '] ' . $e->getMessage() . "\n";
     }
 }
- 
+
 ```

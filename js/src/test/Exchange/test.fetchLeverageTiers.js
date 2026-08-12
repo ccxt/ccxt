@@ -4,7 +4,6 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import assert from 'assert';
 import testLeverageTier from './base/test.leverageTier.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 async function testFetchLeverageTiers(exchange, skippedProperties, symbol) {
@@ -15,7 +14,7 @@ async function testFetchLeverageTiers(exchange, skippedProperties, symbol) {
     //       {},
     //     ],
     // };
-    assert(typeof tiers === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(tiers));
+    testSharedMethods.assertDictionaryResponse(exchange, method, tiers, symbol);
     const tierKeys = Object.keys(tiers);
     testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, tierKeys, symbol);
     for (let i = 0; i < tierKeys.length; i++) {

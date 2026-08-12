@@ -7,94 +7,207 @@
 
 package ccxt
 
-func (this *BitvavoCore) PublicGetTime(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTime", args...)
-}
-
-func (this *BitvavoCore) PublicGetMarkets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarkets", args...)
-}
-
-func (this *BitvavoCore) PublicGetAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetAssets", args...)
-}
-
-func (this *BitvavoCore) PublicGetMarketBook(args ...interface{}) <-chan interface{} {
+// PublicGetMarketBook returns a channel that yields a JSON object.
+func (this *BitvavoCore) PublicGetMarketBook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketBook", args...)
 }
 
-func (this *BitvavoCore) PublicGetMarketTrades(args ...interface{}) <-chan interface{} {
+// PublicGetReportMarketBook returns a channel that yields a JSON object.
+func (this *BitvavoCore) PublicGetReportMarketBook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetReportMarketBook", args...)
+}
+
+// PublicGetMarketTrades returns a channel that yields a JSON array.
+func (this *BitvavoCore) PublicGetMarketTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketTrades", args...)
 }
 
-func (this *BitvavoCore) PublicGetMarketCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketCandles", args...)
+// PublicGetReportMarketTrades returns a channel that yields a JSON array.
+func (this *BitvavoCore) PublicGetReportMarketTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetReportMarketTrades", args...)
 }
 
-func (this *BitvavoCore) PublicGetTickerPrice(args ...interface{}) <-chan interface{} {
+// PublicGetTickerPrice returns a channel that yields a JSON array.
+func (this *BitvavoCore) PublicGetTickerPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickerPrice", args...)
 }
 
-func (this *BitvavoCore) PublicGetTickerBook(args ...interface{}) <-chan interface{} {
+// PublicGetTickerBook returns a channel that yields a JSON array.
+func (this *BitvavoCore) PublicGetTickerBook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickerBook", args...)
 }
 
-func (this *BitvavoCore) PublicGetTicker24h(args ...interface{}) <-chan interface{} {
+// PublicGetMarketCandles returns a channel that yields a JSON array.
+func (this *BitvavoCore) PublicGetMarketCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketCandles", args...)
+}
+
+// PublicGetTicker24h returns a channel that yields a JSON object or a JSON array.
+func (this *BitvavoCore) PublicGetTicker24h(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTicker24h", args...)
 }
 
-func (this *BitvavoCore) PrivateGetAccount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAccount", args...)
+// PublicGetTime returns a channel that yields a JSON object.
+func (this *BitvavoCore) PublicGetTime(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTime", args...)
 }
 
-func (this *BitvavoCore) PrivateGetOrder(args ...interface{}) <-chan interface{} {
+// PublicGetMarkets returns a channel that yields a JSON array.
+func (this *BitvavoCore) PublicGetMarkets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarkets", args...)
+}
+
+// PublicGetAssets returns a channel that yields a JSON array.
+func (this *BitvavoCore) PublicGetAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAssets", args...)
+}
+
+// PrivateGetOrder returns a channel that yields a JSON object.
+func (this *BitvavoCore) PrivateGetOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrder", args...)
 }
 
-func (this *BitvavoCore) PrivateGetOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOrders", args...)
-}
-
-func (this *BitvavoCore) PrivateGetOrdersOpen(args ...interface{}) <-chan interface{} {
+// PrivateGetOrdersOpen returns a channel that yields a JSON array.
+func (this *BitvavoCore) PrivateGetOrdersOpen(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrdersOpen", args...)
 }
 
-func (this *BitvavoCore) PrivateGetTrades(args ...interface{}) <-chan interface{} {
+// PrivateGetTrades returns a channel that yields a JSON array.
+func (this *BitvavoCore) PrivateGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTrades", args...)
 }
 
-func (this *BitvavoCore) PrivateGetBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetBalance", args...)
+// PrivateGetOrders returns a channel that yields a JSON array.
+func (this *BitvavoCore) PrivateGetOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *BitvavoCore) PrivateGetDeposit(args ...interface{}) <-chan interface{} {
+// PrivateGetDeposit returns a channel that yields a JSON object.
+func (this *BitvavoCore) PrivateGetDeposit(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetDeposit", args...)
 }
 
-func (this *BitvavoCore) PrivateGetDepositHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetDepositHistory returns a channel that yields a JSON array.
+func (this *BitvavoCore) PrivateGetDepositHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetDepositHistory", args...)
 }
 
-func (this *BitvavoCore) PrivateGetWithdrawalHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetWithdrawalHistory returns a channel that yields a JSON array.
+func (this *BitvavoCore) PrivateGetWithdrawalHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWithdrawalHistory", args...)
 }
 
-func (this *BitvavoCore) PrivatePostOrder(args ...interface{}) <-chan interface{} {
+// PrivateGetAccount returns a channel that yields a JSON array.
+func (this *BitvavoCore) PrivateGetAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccount", args...)
+}
+
+// PrivateGetBalance returns a channel that yields a JSON array.
+func (this *BitvavoCore) PrivateGetBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetBalance", args...)
+}
+
+// PrivateGetStakingBalance returns a channel that yields a JSON array.
+func (this *BitvavoCore) PrivateGetStakingBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetStakingBalance", args...)
+}
+
+// PrivateGetAccountFees returns a channel that yields a JSON object.
+func (this *BitvavoCore) PrivateGetAccountFees(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountFees", args...)
+}
+
+// PrivateGetAccountHistory returns a channel that yields a JSON object.
+func (this *BitvavoCore) PrivateGetAccountHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountHistory", args...)
+}
+
+// PrivateGetSubaccounts returns a channel that yields a JSON object.
+func (this *BitvavoCore) PrivateGetSubaccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubaccounts", args...)
+}
+
+// PrivateGetSubaccountsTransfers returns a channel that yields a JSON object.
+func (this *BitvavoCore) PrivateGetSubaccountsTransfers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubaccountsTransfers", args...)
+}
+
+// PrivateGetSubaccountsTransfersTransferId returns a channel that yields a JSON object.
+func (this *BitvavoCore) PrivateGetSubaccountsTransfersTransferId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubaccountsTransfersTransferId", args...)
+}
+
+// PrivateGetInstitutionalSubaccountsBalance returns a channel that yields a JSON object.
+func (this *BitvavoCore) PrivateGetInstitutionalSubaccountsBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetInstitutionalSubaccountsBalance", args...)
+}
+
+// PrivateGetInstitutionalSubaccountsHistory returns a channel that yields a JSON object.
+func (this *BitvavoCore) PrivateGetInstitutionalSubaccountsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetInstitutionalSubaccountsHistory", args...)
+}
+
+// PrivateGetInstitutionalSubaccountsOrdersOpen returns a channel that yields a JSON array.
+func (this *BitvavoCore) PrivateGetInstitutionalSubaccountsOrdersOpen(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetInstitutionalSubaccountsOrdersOpen", args...)
+}
+
+// PrivatePostOrder returns a channel that yields a JSON object.
+func (this *BitvavoCore) PrivatePostOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrder", args...)
 }
 
-func (this *BitvavoCore) PrivatePostWithdrawal(args ...interface{}) <-chan interface{} {
+// PrivatePostCancelOrdersAfter returns a channel that yields a JSON object.
+func (this *BitvavoCore) PrivatePostCancelOrdersAfter(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelOrdersAfter", args...)
+}
+
+// PrivatePostWithdrawal returns a channel that yields a JSON object.
+func (this *BitvavoCore) PrivatePostWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawal", args...)
 }
 
-func (this *BitvavoCore) PrivatePutOrder(args ...interface{}) <-chan interface{} {
+// PrivatePostCryptoWithdrawal returns a channel that yields a JSON object.
+func (this *BitvavoCore) PrivatePostCryptoWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCryptoWithdrawal", args...)
+}
+
+// PrivatePostSubaccounts returns a channel that yields a JSON object.
+func (this *BitvavoCore) PrivatePostSubaccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSubaccounts", args...)
+}
+
+// PrivatePostSubaccountsTransfers returns a channel that yields a JSON object.
+func (this *BitvavoCore) PrivatePostSubaccountsTransfers(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSubaccountsTransfers", args...)
+}
+
+// PrivatePutOrder returns a channel that yields a JSON object.
+func (this *BitvavoCore) PrivatePutOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutOrder", args...)
 }
 
-func (this *BitvavoCore) PrivateDeleteOrder(args ...interface{}) <-chan interface{} {
+// PrivateDeleteOrder returns a channel that yields a JSON object.
+func (this *BitvavoCore) PrivateDeleteOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrder", args...)
 }
 
-func (this *BitvavoCore) PrivateDeleteOrders(args ...interface{}) <-chan interface{} {
+// PrivateDeleteOrders returns a channel that yields a JSON array.
+func (this *BitvavoCore) PrivateDeleteOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrders", args...)
+}
+
+// PrivateDeleteAtomicOrders returns a channel that yields a JSON array.
+func (this *BitvavoCore) PrivateDeleteAtomicOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteAtomicOrders", args...)
+}
+
+// PrivateDeleteInstitutionalSubaccountsOrder returns a channel that yields a JSON object.
+func (this *BitvavoCore) PrivateDeleteInstitutionalSubaccountsOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteInstitutionalSubaccountsOrder", args...)
+}
+
+// PrivateDeleteInstitutionalSubaccountsOrders returns a channel that yields a JSON object.
+func (this *BitvavoCore) PrivateDeleteInstitutionalSubaccountsOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteInstitutionalSubaccountsOrders", args...)
 }

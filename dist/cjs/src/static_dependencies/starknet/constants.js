@@ -2,7 +2,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-require('../scure-base/index.js');
+require('@scure/base');
 
 // ----------------------------------------------------------------------------
 /**

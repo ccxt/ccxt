@@ -1,8 +1,5 @@
-- [Bitmex Create Order](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -27,5 +24,5 @@ $params = array(
 $order = $exchange->create_order($symbol, $type, $side, $amount, $price, $params);
 
 print_r($order);
- 
+
 ```

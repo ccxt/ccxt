@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/delta.js';
 import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, OrderNotFound, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
+import type{ Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketInterface, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL, Status, Endpoint, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, O
  * @augments Exchange
  */
 export default class delta extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'delta',
             'name': 'Delta Exchange',
@@ -70,8 +70,10 @@ export default class delta extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': true,
+                'fetchPositionADLRank': true,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchPositionsADLRank': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': true,
                 'fetchStatus': true,
@@ -88,7 +90,7 @@ export default class delta extends Exchange {
                 'reduceMargin': true,
                 'setLeverage': true,
                 'setMargin': false,
-                'setMarginMode': false,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': false,
@@ -128,68 +130,70 @@ export default class delta extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'assets',
-                        'indices',
-                        'products',
-                        'products/{symbol}',
-                        'tickers',
-                        'tickers/{symbol}',
-                        'l2orderbook/{symbol}',
-                        'trades/{symbol}',
-                        'stats',
-                        'history/candles',
-                        'history/sparklines',
-                        'settings',
-                    ],
+                    'get': {
+                        'assets': { 'cost': 1 } as Endpoint<Dict>,
+                        'indices': { 'cost': 1 } as Endpoint<Dict>,
+                        'products': { 'cost': 1 } as Endpoint<Dict>,
+                        'products/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        'tickers/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'l2orderbook/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'stats': { 'cost': 1 } as Endpoint<List>,
+                        'history/candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'history/sparklines': { 'cost': 1 } as Endpoint<Dict>,
+                        'settings': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'orders',
-                        'orders/{order_id}',
-                        'orders/client_order_id/{client_oid}',
-                        'products/{product_id}/orders/leverage',
-                        'positions/margined',
-                        'positions',
-                        'orders/history',
-                        'fills',
-                        'fills/history/download/csv',
-                        'wallet/balances',
-                        'wallet/transactions',
-                        'wallet/transactions/download',
-                        'wallets/sub_accounts_transfer_history',
-                        'users/trading_preferences',
-                        'sub_accounts',
-                        'profile',
-                        'heartbeat',
-                        'deposits/address',
-                    ],
-                    'post': [
-                        'orders',
-                        'orders/bracket',
-                        'orders/batch',
-                        'products/{product_id}/orders/leverage',
-                        'positions/change_margin',
-                        'positions/close_all',
-                        'wallets/sub_account_balance_transfer',
-                        'heartbeat/create',
-                        'heartbeat',
-                        'orders/cancel_after',
-                        'orders/leverage',
-                    ],
-                    'put': [
-                        'orders',
-                        'orders/bracket',
-                        'orders/batch',
-                        'positions/auto_topup',
-                        'users/update_mmp',
-                        'users/reset_mmp',
-                    ],
-                    'delete': [
-                        'orders',
-                        'orders/all',
-                        'orders/batch',
-                    ],
+                    'get': {
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/client_order_id/{client_oid}': { 'cost': 1 } as Endpoint<Dict>,
+                        'products/{product_id}/orders/leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'positions/margined': { 'cost': 1 } as Endpoint<Dict>,
+                        'positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'fills': { 'cost': 1 } as Endpoint<Dict>,
+                        'fills/history/download/csv': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallet/balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallet/transactions': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallet/transactions/download': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallets/sub_accounts_transfer_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/trading_preferences': { 'cost': 1 } as Endpoint<Dict>,
+                        'sub_accounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'profile': { 'cost': 1 } as Endpoint<Dict>,
+                        'rate_limits/quota': { 'cost': 1 } as Endpoint<Dict>,
+                        'heartbeat': { 'cost': 1 } as Endpoint<Dict>,
+                        'deposits/address': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'post': {
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/bracket': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/batch': { 'cost': 1 } as Endpoint<Dict>,
+                        'products/{product_id}/orders/leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'positions/change_margin': { 'cost': 1 } as Endpoint<Dict>,
+                        'positions/close_all': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallets/sub_account_balance_transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'heartbeat/create': { 'cost': 1 } as Endpoint<Dict>,
+                        'heartbeat': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/cancel_after': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/leverage': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'put': {
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/bracket': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/batch': { 'cost': 1 } as Endpoint<Dict>,
+                        'positions/auto_topup': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/update_mmp': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/reset_mmp': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/margin_mode': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'delete': {
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/all': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/batch': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -340,14 +344,14 @@ export default class delta extends Exchange {
         });
     }
 
-    createExpiredOptionMarket (symbol: string) {
+    override createExpiredOptionMarket (symbol: string) {
         // support expired option contracts
         const quote = 'USDT';
         const optionParts = symbol.split ('-');
         const symbolBase = symbol.split ('/');
-        let base = undefined;
-        let expiry = undefined;
-        let optionType = undefined;
+        let base: Str = undefined;
+        let expiry: Str = undefined;
+        let optionType: Str = undefined;
         if (symbol.indexOf ('/') > -1) {
             base = this.safeString (symbolBase, 0);
             expiry = this.safeString (optionParts, 1);
@@ -364,7 +368,8 @@ export default class delta extends Exchange {
         const strike = this.safeString (optionParts, 2);
         const datetime = this.convertExpireDate (expiry);
         const timestamp = this.parse8601 (datetime);
-        return {
+        const optionTypeUnified = (optionType === 'C') ? 'call' : 'put';
+        return this.safeMarketStructure ({
             'id': optionType + '-' + base + '-' + strike + '-' + expiry,
             'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
             'base': base,
@@ -386,7 +391,7 @@ export default class delta extends Exchange {
             'contractSize': this.parseNumber ('1'),
             'expiry': timestamp,
             'expiryDatetime': datetime,
-            'optionType': (optionType === 'C') ? 'call' : 'put',
+            'optionType': optionTypeUnified,
             'strike': this.parseNumber (strike),
             'precision': {
                 'amount': undefined,
@@ -407,12 +412,12 @@ export default class delta extends Exchange {
                 },
             },
             'info': undefined,
-        } as MarketInterface;
+        }) as MarketInterface;
     }
 
-    safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
+    override safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         const isOption = (marketId !== undefined) && ((marketId.endsWith ('-C')) || (marketId.endsWith ('-P')) || (marketId.startsWith ('C-')) || (marketId.startsWith ('P-')));
-        if (isOption && !(marketId in this.markets_by_id)) {
+        if (isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket (marketId);
         }
@@ -426,7 +431,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetSettings (params);
         // full response sample under `fetchStatus`
         const result = this.safeDict (response, 'result', {});
@@ -440,7 +445,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.publicGetSettings (params);
         //
         //     {
@@ -516,7 +521,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params = {}): Promise<Currencies> {
         const response = await this.publicGetAssets (params);
         //
         //    {
@@ -567,18 +572,20 @@ export default class delta extends Exchange {
         //     }
         //
         const currencies = this.safeList (response, 'result', []);
-        const result: Dict = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const id = this.safeString (currency, 'symbol');
-            const numericId = this.safeInteger (currency, 'id');
-            const code = this.safeCurrencyCode (id);
-            const chains = this.safeList (currency, 'networks', []);
-            const networks = {};
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString (chain, 'network');
-                const networkCode = this.networkIdToCode (networkId);
+        return this.parseCurrencies (currencies);
+    }
+
+    override parseCurrency (rawCurrency: Dict): CurrencyInterface {
+        const id = this.safeString (rawCurrency, 'symbol');
+        const numericId = this.safeInteger (rawCurrency, 'id');
+        const code = this.safeCurrencyCode (id);
+        const chains = this.safeList (rawCurrency, 'networks', []);
+        const networks: Dict = {};
+        for (let j = 0; j < chains.length; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString (chain, 'network');
+            const networkCode = this.networkIdToCode (networkId, code);
+            if (networkCode !== undefined) {
                 networks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
@@ -600,32 +607,31 @@ export default class delta extends Exchange {
                     },
                 };
             }
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'numericId': numericId,
-                'code': code,
-                'name': this.safeString (currency, 'name'),
-                'info': currency, // the original payload
-                'active': undefined,
-                'deposit': this.safeString (currency, 'deposit_status') === 'enabled',
-                'withdraw': this.safeString (currency, 'withdrawal_status') === 'enabled',
-                'fee': this.safeNumber (currency, 'base_withdrawal_fee'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision'))),
-                'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': {
-                        'min': this.safeNumber (currency, 'min_withdrawal_amount'),
-                        'max': undefined,
-                    },
-                },
-                'networks': networks,
-                'type': 'crypto',
-            });
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'numericId': numericId,
+            'code': code,
+            'name': this.safeString (rawCurrency, 'name'),
+            'info': rawCurrency, // the original payload
+            'active': undefined,
+            'deposit': this.safeString (rawCurrency, 'deposit_status') === 'enabled',
+            'withdraw': this.safeString (rawCurrency, 'withdrawal_status') === 'enabled',
+            'fee': this.safeNumber (rawCurrency, 'base_withdrawal_fee'),
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'precision'))),
+            'limits': {
+                'amount': { 'min': undefined, 'max': undefined },
+                'withdraw': {
+                    'min': this.safeNumber (rawCurrency, 'min_withdrawal_amount'),
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+            'type': 'crypto',
+        });
     }
 
-    async loadMarkets (reload = false, params = {}) {
+    override async loadMarkets (reload = false, params = {}) {
         const markets = await super.loadMarkets (reload, params);
         const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId');
         if ((currenciesByNumericId === undefined) || reload) {
@@ -638,7 +644,7 @@ export default class delta extends Exchange {
         return markets;
     }
 
-    indexByStringifiedNumericId (input) {
+    indexByStringifiedNumericId (input: any) {
         const result: Dict = {};
         if (input === undefined) {
             return undefined;
@@ -664,7 +670,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params = {}): Promise<Market[]> {
         const response = await this.publicGetProducts (params);
         //
         //     {
@@ -845,11 +851,13 @@ export default class delta extends Exchange {
         //     }
         //
         const markets = this.safeList (response, 'result', []);
-        const result = [];
+        const result: Market[] = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             let type = this.safeString (market, 'contract_type');
-            if (type === 'options_combos') {
+            if ((type === 'options_combos') || (type === 'binary_call_options') || (type === 'binary_put_options')) {
+                // binary options can not be represented in the unified market
+                // structure, their symbols would collide with vanilla options
                 continue;
             }
             // const settlingAsset = this.safeValue (market, 'settling_asset', {});
@@ -876,7 +884,7 @@ export default class delta extends Exchange {
             const expiryDatetime = this.safeString (market, 'settlement_time');
             const expiry = this.parse8601 (expiryDatetime);
             const contractSize = this.safeNumber (market, 'contract_value');
-            let amountPrecision = undefined;
+            let amountPrecision: Num = undefined;
             if (spot) {
                 amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (productSpecs, 'underlying_precision'))); // seems inverse of 'impact_size'
             } else {
@@ -884,7 +892,7 @@ export default class delta extends Exchange {
                 amountPrecision = this.parseNumber ('1');
             }
             const linear = (settle === quote);
-            let optionType = undefined;
+            let optionType: Str = undefined;
             let symbol = base + '/' + quote;
             if (swap || future || option) {
                 symbol = symbol + ':' + settle;
@@ -910,7 +918,7 @@ export default class delta extends Exchange {
                 }
             }
             const state = this.safeString (market, 'state');
-            result.push ({
+            result.push (this.safeMarketStructure ({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
@@ -922,7 +930,7 @@ export default class delta extends Exchange {
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'margin': spot ? undefined : false,
+                'margin': false,
                 'swap': swap,
                 'future': future,
                 'option': option,
@@ -961,12 +969,12 @@ export default class delta extends Exchange {
                 },
                 'created': this.parse8601 (this.safeString (market, 'launch_time')),
                 'info': market,
-            });
+            }));
         }
         return result;
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // spot: fetchTicker, fetchTickers
         //
@@ -1122,7 +1130,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1266,7 +1274,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetTickers (params);
@@ -1403,9 +1411,17 @@ export default class delta extends Exchange {
         const tickers = this.safeList (response, 'result', []);
         const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
-            const ticker = this.parseTicker (tickers[i]);
+            const rawTicker = tickers[i];
+            const contractType = this.safeString (rawTicker, 'contract_type');
+            if ((contractType === 'options_combos') || (contractType === 'binary_call_options') || (contractType === 'binary_put_options')) {
+                // these instruments are excluded from the unified markets, see fetchMarkets
+                continue;
+            }
+            const ticker = this.parseTicker (rawTicker);
             const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
@@ -1418,9 +1434,9 @@ export default class delta extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1452,7 +1468,7 @@ export default class delta extends Exchange {
         return this.parseOrderBook (result, market['symbol'], undefined, 'buy', 'sell', 'price', 'size');
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public fetchTrades
         //
@@ -1525,7 +1541,7 @@ export default class delta extends Exchange {
             type = type.replace ('_order', '');
         }
         const feeCostString = this.safeString (trade, 'commission');
-        let fee = undefined;
+        let fee: FeeString = undefined;
         if (feeCostString !== undefined) {
             const settlingAsset = this.safeDict (product, 'settling_asset', {});
             const feeCurrencyId = this.safeString (settlingAsset, 'symbol');
@@ -1563,7 +1579,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1589,7 +1605,7 @@ export default class delta extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "time":1605393120,
@@ -1623,7 +1639,7 @@ export default class delta extends Exchange {
      * @param {string} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1639,6 +1655,9 @@ export default class delta extends Exchange {
         if (since === undefined) {
             const end = untilIsDefined ? until : this.seconds ();
             request['end'] = end;
+            if (end === undefined) {
+                throw new ExchangeError (this.id + ' fetchOHLCV() missing end');
+            }
             request['start'] = end - limit * duration;
         } else {
             const start = this.parseToInt (since / 1000);
@@ -1669,7 +1688,7 @@ export default class delta extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const balances = this.safeList (response, 'result', []);
         const result: Dict = { 'info': response };
         const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId', {});
@@ -1694,7 +1713,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         const response = await this.privateGetWalletBalances (params);
         //
@@ -1730,7 +1749,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPosition (symbol: string, params = {}) {
+    override async fetchPosition (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1760,7 +1779,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const response = await this.privateGetPositionsMargined (params);
         //
@@ -1788,7 +1807,7 @@ export default class delta extends Exchange {
         return this.parsePositions (result, symbols);
     }
 
-    parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined) {
         //
         // fetchPosition
         //
@@ -1821,7 +1840,7 @@ export default class delta extends Exchange {
         const symbol = market['symbol'];
         const timestamp = this.safeIntegerProduct (position, 'timestamp', 0.001);
         const sizeString = this.safeString (position, 'size');
-        let side = undefined;
+        let side: Str = undefined;
         if (sizeString !== undefined) {
             if (Precise.stringGt (sizeString, '0')) {
                 side = 'buy';
@@ -1868,7 +1887,7 @@ export default class delta extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
         //
@@ -1929,7 +1948,7 @@ export default class delta extends Exchange {
         const id = this.safeString (order, 'id');
         const clientOrderId = this.safeString (order, 'client_order_id');
         const createdAt = this.safeString (order, 'created_at');
-        let timestamp = undefined;
+        let timestamp: Int = undefined;
         if (createdAt !== undefined) {
             if (createdAt.indexOf ('-') >= 0) {
                 timestamp = this.parse8601 (createdAt);
@@ -1951,10 +1970,10 @@ export default class delta extends Exchange {
         const amount = this.safeString (order, 'size');
         const remaining = this.safeString (order, 'unfilled_size');
         const average = this.safeString (order, 'average_fill_price');
-        let fee = undefined;
+        let fee: FeeString = undefined;
         const feeCostString = this.safeString (order, 'paid_commission');
         if (feeCostString !== undefined) {
-            let feeCurrencyCode = undefined;
+            let feeCurrencyCode: Str = undefined;
             if (market !== undefined) {
                 const settlingAsset = this.safeDict (market['info'], 'settling_asset', {});
                 const feeCurrencyId = this.safeString (settlingAsset, 'symbol');
@@ -2001,7 +2020,7 @@ export default class delta extends Exchange {
      * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const orderType = type + '_order';
         const market = this.market (symbol);
@@ -2084,7 +2103,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -2094,7 +2113,11 @@ export default class delta extends Exchange {
             // "size": this.amountToPrecision (symbol, amount),
         };
         if (amount !== undefined) {
-            request['size'] = parseInt (this.amountToPrecision (symbol, amount));
+            let sizeString = this.amountToPrecision (symbol, amount);
+            if (sizeString === undefined) {
+                sizeString = '0';
+            }
+            request['size'] = parseInt (sizeString);
         }
         if (price !== undefined) {
             request['limit_price'] = this.priceToPrecision (symbol, price);
@@ -2117,7 +2140,7 @@ export default class delta extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeDict (response, 'result');
+        const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result, market);
     }
 
@@ -2131,7 +2154,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -2178,7 +2201,7 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const result = this.safeDict (response, 'result');
+        const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result, market);
     }
 
@@ -2191,7 +2214,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
@@ -2228,9 +2251,9 @@ export default class delta extends Exchange {
      * @param {string} [params.clientOrderId] client order id of the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    override async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2284,7 +2307,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         return await this.fetchOrdersWithMethod ('privateGetOrders', symbol, since, limit, params);
     }
 
@@ -2299,11 +2322,11 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         return await this.fetchOrdersWithMethod ('privateGetOrdersHistory', symbol, since, limit, params);
     }
 
-    async fetchOrdersWithMethod (method, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersWithMethod (method: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {
             // 'product_ids': market['id'], // comma-separated
@@ -2315,7 +2338,7 @@ export default class delta extends Exchange {
             // 'before', // before cursor for pagination
             // 'page_size': limit, // number of records per page
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['product_ids'] = market['numericId']; // accepts a comma-separated list of ids
@@ -2370,7 +2393,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {
             // 'product_ids': market['id'], // comma-separated
@@ -2381,7 +2404,7 @@ export default class delta extends Exchange {
             // 'before', // before cursor for pagination
             // 'page_size': limit, // number of records per page
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['product_ids'] = market['numericId']; // accepts a comma-separated list of ids
@@ -2453,7 +2476,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
         const request: Dict = {
             // 'asset_id': currency['numericId'],
@@ -2462,7 +2485,7 @@ export default class delta extends Exchange {
             // 'before': 'string', // before cursor for pagination
             // 'page_size': limit,
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['asset_id'] = currency['numericId'];
@@ -2496,7 +2519,7 @@ export default class delta extends Exchange {
         return this.parseLedger (result, currency, since, limit);
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             'pnl': 'pnl',
             'deposit': 'transaction',
@@ -2509,10 +2532,10 @@ export default class delta extends Exchange {
             'commission_rebate': 'rebate',
             // 'promo_credit': 'promo_credit',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+    override parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         //     {
         //         "amount":"29.889184",
@@ -2529,7 +2552,7 @@ export default class delta extends Exchange {
         //     }
         //
         const id = this.safeString (item, 'uuid');
-        let direction = undefined;
+        let direction: Str = undefined;
         const account = undefined;
         const metaData = this.safeDict (item, 'meta_data', {});
         const referenceId = this.safeString (metaData, 'transaction_id');
@@ -2578,7 +2601,7 @@ export default class delta extends Exchange {
      * @param {string} [params.network] unified network code
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request: Dict = {
@@ -2611,7 +2634,7 @@ export default class delta extends Exchange {
         return this.parseDepositAddress (result, currency);
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        "id": 1915615,
@@ -2629,11 +2652,12 @@ export default class delta extends Exchange {
         const address = this.safeString (depositAddress, 'address');
         const marketId = this.safeString (depositAddress, 'asset_symbol');
         const networkId = this.safeString (depositAddress, 'network');
+        const code = this.safeCurrencyCode (marketId, currency);
         this.checkAddress (address);
         return {
             'info': depositAddress,
-            'currency': this.safeCurrencyCode (marketId, currency),
-            'network': this.networkIdToCode (networkId),
+            'currency': code,
+            'network': this.networkIdToCode (networkId, code),
             'address': address,
             'tag': this.safeString (depositAddress, 'memo'),
         } as DepositAddress;
@@ -2648,7 +2672,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
@@ -2716,7 +2740,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request: Dict = {
@@ -2774,7 +2798,7 @@ export default class delta extends Exchange {
         return this.parseFundingRates (rates, symbols);
     }
 
-    parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "close": 30600.5,
@@ -2853,7 +2877,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
@@ -2867,11 +2891,11 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: any, type: any, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         amount = amount.toString ();
@@ -2910,7 +2934,7 @@ export default class delta extends Exchange {
         return this.parseMarginModification (result, market);
     }
 
-    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
+    override parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         //     {
         //         "auto_topup": false,
@@ -2956,7 +2980,7 @@ export default class delta extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    async fetchOpenInterest (symbol: string, params = {}) {
+    override async fetchOpenInterest (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['contract']) {
@@ -3022,7 +3046,7 @@ export default class delta extends Exchange {
         return this.parseOpenInterest (result, market);
     }
 
-    parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         //     {
         //         "close": 894.0,
@@ -3095,7 +3119,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+    override async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -3119,7 +3143,7 @@ export default class delta extends Exchange {
         return this.parseLeverage (result, market);
     }
 
-    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'index_symbol');
         const leverageValue = this.safeInteger (leverage, 'leverage');
         return {
@@ -3141,7 +3165,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3176,9 +3200,9 @@ export default class delta extends Exchange {
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -3250,10 +3274,10 @@ export default class delta extends Exchange {
         const result = this.safeList (response, 'result', []);
         const settlements = this.parseSettlements (result, market);
         const sorted = this.sortBy (settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit);
     }
 
-    parseSettlement (settlement, market) {
+    parseSettlement (settlement: any, market: any) {
         //
         //     {
         //         "contract_value": "0.001",
@@ -3318,8 +3342,8 @@ export default class delta extends Exchange {
         };
     }
 
-    parseSettlements (settlements, market) {
-        const result = [];
+    parseSettlements (settlements: any, market: any) {
+        const result: Dict[] = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push (this.parseSettlement (settlements[i], market));
         }
@@ -3335,7 +3359,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
-    async fetchGreeks (symbol: string, params = {}): Promise<Greeks> {
+    override async fetchGreeks (symbol: string, params = {}): Promise<Greeks> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -3398,7 +3422,7 @@ export default class delta extends Exchange {
         return this.parseGreeks (result, market);
     }
 
-    parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
+    override parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
         //
         //     {
         //         "close": 6793.0,
@@ -3470,7 +3494,7 @@ export default class delta extends Exchange {
             'bidPrice': this.safeNumber (quotes, 'best_bid'),
             'askPrice': this.safeNumber (quotes, 'best_ask'),
             'markPrice': this.safeNumber (greeks, 'mark_price'),
-            'lastPrice': undefined,
+            'lastPrice': this.safeNumber (greeks, 'last_price'),
             'underlyingPrice': this.safeNumber (greeks, 'spot_price'),
             'info': greeks,
         };
@@ -3485,7 +3509,7 @@ export default class delta extends Exchange {
      * @param {int} [params.user_id] the users id
      * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async closeAllPositions (params = {}): Promise<Position[]> {
+    override async closeAllPositions (params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const request: Dict = {
             'close_all_portfolio': true,
@@ -3509,9 +3533,9 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+    override async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -3583,8 +3607,8 @@ export default class delta extends Exchange {
         return this.parseMarginMode (result, market);
     }
 
-    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
-        let symbol = undefined;
+    override parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
+        let symbol: Str = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
@@ -3597,6 +3621,27 @@ export default class delta extends Exchange {
 
     /**
      * @method
+     * @name delta#setMarginMode
+     * @description set margin mode to 'isolated' or 'portfolio'
+     * @see https://docs.delta.exchange/#change-margin-mode
+     * @param {string} marginMode 'isolated' or 'portfolio'
+     * @param {string} [symbol] not used by delta.setMarginMode
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.subaccount_user_id the user id of the subaccount
+     * @returns {object} response from the exchange
+     */
+    override async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+        this.checkRequiredArgument ('setMarginMode', marginMode, 'marginMode', [ 'isolated', 'portfolio' ]);
+        const subaccountUserId = this.safeString (params, 'subaccount_user_id');
+        this.checkRequiredArgument ('setMarginMode', subaccountUserId, 'params["subaccount_user_id"]');
+        const request: Dict = {
+            'margin_mode': marginMode,
+        };
+        return await this.privatePutUsersMarginMode (this.extend (request, params));
+    }
+
+    /**
+     * @method
      * @name delta#fetchOption
      * @description fetches option data that is commonly found in an option chain
      * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
@@ -3604,7 +3649,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
-    async fetchOption (symbol: string, params = {}): Promise<Option> {
+    override async fetchOption (symbol: string, params = {}): Promise<Option> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -3667,7 +3712,7 @@ export default class delta extends Exchange {
         return this.parseOption (result, undefined, market);
     }
 
-    parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
+    override parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
         //
         //     {
         //         "close": 6793.0,
@@ -3723,7 +3768,7 @@ export default class delta extends Exchange {
         const timestamp = this.safeIntegerProduct (chain, 'timestamp', 0.001);
         return {
             'info': chain,
-            'currency': undefined,
+            'currency': this.safeString (chain, 'currency'),
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -3733,16 +3778,383 @@ export default class delta extends Exchange {
             'askPrice': this.safeNumber (quotes, 'best_ask'),
             'midPrice': this.safeNumber (quotes, 'impact_mid_price'),
             'markPrice': this.safeNumber (chain, 'mark_price'),
-            'lastPrice': undefined,
+            'lastPrice': this.safeNumber (chain, 'last_price'),
             'underlyingPrice': this.safeNumber (chain, 'spot_price'),
-            'change': undefined,
-            'percentage': undefined,
+            'change': this.safeNumber (chain, 'change'),
+            'percentage': this.safeNumber (chain, 'percentage'),
             'baseVolume': this.safeNumber (chain, 'volume'),
-            'quoteVolume': undefined,
+            'quoteVolume': this.safeNumber (chain, 'quote_volume'),
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    /**
+     * @method
+     * @name delta#fetchPositionsADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+     * @see https://docs.delta.exchange/#get-margined-positions
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    override async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const response = await this.privateGetPositionsMargined (params);
+        //
+        //     {
+        //         "result":
+        //             [
+        //                 {
+        //                     "adl_level": null,
+        //                     "auto_topup": false,
+        //                     "bankruptcy_price": "88618.22667",
+        //                     "commission": "0.03797924",
+        //                     "created_at": "2026-01-14T11:24:35.801586Z",
+        //                     "entry_price": "94948.1",
+        //                     "liquidation_price": "89092.96717",
+        //                     "margin": "6.32987333",
+        //                     "margin_mode": "isolated",
+        //                     "mark_price": "94942.90888022",
+        //                     "product": {
+        //                         "trading_status": "operational",
+        //                         "short_description": null,
+        //                         "quoting_asset": {
+        //                             "base_withdrawal_fee": "0.000000000000000000",
+        //                             "id": 4,
+        //                             "interest_credit": false,
+        //                             "interest_slabs": null,
+        //                             "kyc_deposit_limit": "0.000000000000000000",
+        //                             "kyc_withdrawal_limit": "0.000000000000000000",
+        //                             "min_withdrawal_amount": "0.000000000000000000",
+        //                             "minimum_precision": 2,
+        //                             "name": "Tether",
+        //                             "networks": [],
+        //                             "precision": 8,
+        //                             "sort_priority": null,
+        //                             "symbol": "USDT",
+        //                             "variable_withdrawal_fee": "0.000000000000000000"
+        //                         },
+        //                         "symbol": "BTCUSDT",
+        //                         "taker_commission_rate": "0.0004",
+        //                         "maintenance_margin_scaling_factor": "0",
+        //                         "spot_index": {
+        //                             "config": {
+        //                                 "impact_size": {
+        //                                     "max_impact_size": 150000,
+        //                                     "min_impact_size": 5000,
+        //                                     "step_value": 5000
+        //                                 },
+        //                                 "quoting_asset": "USDT",
+        //                                 "service_id": 1,
+        //                                 "underlying_asset": "BTC"
+        //                             },
+        //                             "constituent_exchanges": [
+        //                                 {
+        //                                     "exchange": "binance",
+        //                                     "health_interval": 3000,
+        //                                     "health_priority": 1,
+        //                                     "weight": 1
+        //                                 },
+        //                                 {
+        //                                     "exchange": "gateio",
+        //                                     "health_interval": 3000,
+        //                                     "health_priority": 3,
+        //                                     "weight": 1
+        //                                 },
+        //                                 {
+        //                                     "exchange": "bybit",
+        //                                     "health_interval": 3000,
+        //                                     "health_priority": 2,
+        //                                     "weight": 1
+        //                                 }
+        //                             ],
+        //                             "constituent_indices": null,
+        //                             "description": "BTC Spot",
+        //                             "health_interval": 300,
+        //                             "id": 2,
+        //                             "impact_size": "1.000000000000000000",
+        //                             "index_type": "spot_pair",
+        //                             "is_composite": false,
+        //                             "price_method": "ltp",
+        //                             "quoting_asset_id": 4,
+        //                             "symbol": ".DEXBTUSDT",
+        //                             "tick_size": "0.100000000000000000",
+        //                             "underlying_asset_id": 2
+        //                         },
+        //                         "liquidation_penalty_factor": "1",
+        //                         "auction_start_time": "2025-12-22T12:18:52Z",
+        //                         "is_quanto": false,
+        //                         "state": "live",
+        //                         "id": 84,
+        //                         "settling_asset": {
+        //                             "base_withdrawal_fee": "0.000000000000000000",
+        //                             "id": 4,
+        //                             "interest_credit": false,
+        //                             "interest_slabs": null,
+        //                             "kyc_deposit_limit": "0.000000000000000000",
+        //                             "kyc_withdrawal_limit": "0.000000000000000000",
+        //                             "min_withdrawal_amount": "0.000000000000000000",
+        //                             "minimum_precision": 2,
+        //                             "name": "Tether",
+        //                             "networks": [],
+        //                             "precision": 8,
+        //                             "sort_priority": null,
+        //                             "symbol": "USDT",
+        //                             "variable_withdrawal_fee": "0.000000000000000000"
+        //                         },
+        //                         "tick_size": "0.1",
+        //                         "impact_size": 4000,
+        //                         "insurance_fund_margin_contribution": "5",
+        //                         "maker_commission_rate": "0.0002",
+        //                         "ui_config": {
+        //                             "default_trading_view_candle": "15",
+        //                             "leverage_slider_values": [1,2,3,5,10,50,100],
+        //                             "price_clubbing_values": [0.1,1,10,50],
+        //                             "show_bracket_orders": false,
+        //                             "sort_priority": 1
+        //                         },
+        //                         "annualized_funding": "0",
+        //                         "strike_price": null,
+        //                         "price_band": "100",
+        //                         "funding_method": "mark_price",
+        //                         "contract_value": "0.001",
+        //                         "auction_finish_time": null,
+        //                         "product_specs": {
+        //                             "vol_expiry_time": 172800
+        //                         },
+        //                         "launch_time": "2020-04-20T08:37:05Z",
+        //                         "basis_factor_max_limit": "1000",
+        //                         "initial_margin": "1",
+        //                         "notional_type": "vanilla",
+        //                         "contract_unit_currency": "BTC",
+        //                         "disruption_reason": null,
+        //                         "underlying_asset": {
+        //                             "base_withdrawal_fee": "0.000000000000000000",
+        //                             "id": 2,
+        //                             "interest_credit": false,
+        //                             "interest_slabs": null,
+        //                             "kyc_deposit_limit": "0.000000000000000000",
+        //                             "kyc_withdrawal_limit": "0.000000000000000000",
+        //                             "min_withdrawal_amount": "0.000000000000000000",
+        //                             "minimum_precision": 4,
+        //                             "name": "Bitcoin",
+        //                             "networks": [],
+        //                             "precision": 8,
+        //                             "sort_priority": 1,
+        //                             "symbol": "BTC",
+        //                             "variable_withdrawal_fee": "0.000000000000000000"
+        //                         },
+        //                         "initial_margin_scaling_factor": "0",
+        //                         "position_size_limit": 10000000,
+        //                         "max_leverage_notional": "10000",
+        //                         "settlement_price": null,
+        //                         "barrier_price": null,
+        //                         "maintenance_margin": "0.5",
+        //                         "default_leverage": "50.000000000000000000",
+        //                         "settlement_time": null,
+        //                         "description": "BTCUSDT-Bitcoin Perpetual futures, quoted,settled & margined in Tether(USDT)",
+        //                         "contract_type": "perpetual_futures"
+        //                     },
+        //                     "product_id": 84,
+        //                     "product_symbol": "BTCUSDT",
+        //                     "realized_cashflow": "0.000000000000000000",
+        //                     "realized_funding": "0",
+        //                     "realized_holding_cost": "0",
+        //                     "realized_pnl": "0",
+        //                     "size": 1,
+        //                     "unrealized_pnl": "-0.00519112",
+        //                     "updated_at": "2026-01-14T11:24:35.801586Z",
+        //                     "user_id": 30084879
+        //                 }
+        //             ],
+        //         "success": true
+        //     }
+        //
+        const result = this.safeList (response, 'result', []);
+        return this.parseADLRanks (result, symbols);
+    }
+
+    override parseADLRank (info: Dict, market: Market = undefined): ADL {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "adl_level": null,
+        //         "auto_topup": false,
+        //         "bankruptcy_price": "88618.22667",
+        //         "commission": "0.03797924",
+        //         "created_at": "2026-01-14T11:24:35.801586Z",
+        //         "entry_price": "94948.1",
+        //         "liquidation_price": "89092.96717",
+        //         "margin": "6.32987333",
+        //         "margin_mode": "isolated",
+        //         "mark_price": "94942.90888022",
+        //         "product": {
+        //             "trading_status": "operational",
+        //             "short_description": null,
+        //             "quoting_asset": {
+        //                 "base_withdrawal_fee": "0.000000000000000000",
+        //                 "id": 4,
+        //                 "interest_credit": false,
+        //                 "interest_slabs": null,
+        //                 "kyc_deposit_limit": "0.000000000000000000",
+        //                 "kyc_withdrawal_limit": "0.000000000000000000",
+        //                 "min_withdrawal_amount": "0.000000000000000000",
+        //                 "minimum_precision": 2,
+        //                 "name": "Tether",
+        //                 "networks": [],
+        //                 "precision": 8,
+        //                 "sort_priority": null,
+        //                 "symbol": "USDT",
+        //                 "variable_withdrawal_fee": "0.000000000000000000"
+        //             },
+        //             "symbol": "BTCUSDT",
+        //             "taker_commission_rate": "0.0004",
+        //             "maintenance_margin_scaling_factor": "0",
+        //             "spot_index": {
+        //                 "config": {
+        //                     "impact_size": {
+        //                         "max_impact_size": 150000,
+        //                         "min_impact_size": 5000,
+        //                         "step_value": 5000
+        //                     },
+        //                     "quoting_asset": "USDT",
+        //                     "service_id": 1,
+        //                     "underlying_asset": "BTC"
+        //                 },
+        //                 "constituent_exchanges": [
+        //                     {
+        //                         "exchange": "binance",
+        //                         "health_interval": 3000,
+        //                         "health_priority": 1,
+        //                         "weight": 1
+        //                     },
+        //                     {
+        //                         "exchange": "gateio",
+        //                         "health_interval": 3000,
+        //                         "health_priority": 3,
+        //                         "weight": 1
+        //                     },
+        //                     {
+        //                         "exchange": "bybit",
+        //                         "health_interval": 3000,
+        //                         "health_priority": 2,
+        //                         "weight": 1
+        //                     }
+        //                 ],
+        //                 "constituent_indices": null,
+        //                 "description": "BTC Spot",
+        //                 "health_interval": 300,
+        //                 "id": 2,
+        //                 "impact_size": "1.000000000000000000",
+        //                 "index_type": "spot_pair",
+        //                 "is_composite": false,
+        //                 "price_method": "ltp",
+        //                 "quoting_asset_id": 4,
+        //                 "symbol": ".DEXBTUSDT",
+        //                 "tick_size": "0.100000000000000000",
+        //                 "underlying_asset_id": 2
+        //             },
+        //             "liquidation_penalty_factor": "1",
+        //             "auction_start_time": "2025-12-22T12:18:52Z",
+        //             "is_quanto": false,
+        //             "state": "live",
+        //             "id": 84,
+        //             "settling_asset": {
+        //                 "base_withdrawal_fee": "0.000000000000000000",
+        //                 "id": 4,
+        //                 "interest_credit": false,
+        //                 "interest_slabs": null,
+        //                 "kyc_deposit_limit": "0.000000000000000000",
+        //                 "kyc_withdrawal_limit": "0.000000000000000000",
+        //                 "min_withdrawal_amount": "0.000000000000000000",
+        //                 "minimum_precision": 2,
+        //                 "name": "Tether",
+        //                 "networks": [],
+        //                 "precision": 8,
+        //                 "sort_priority": null,
+        //                 "symbol": "USDT",
+        //                 "variable_withdrawal_fee": "0.000000000000000000"
+        //             },
+        //             "tick_size": "0.1",
+        //             "impact_size": 4000,
+        //             "insurance_fund_margin_contribution": "5",
+        //             "maker_commission_rate": "0.0002",
+        //             "ui_config": {
+        //                 "default_trading_view_candle": "15",
+        //                 "leverage_slider_values": [1,2,3,5,10,50,100],
+        //                 "price_clubbing_values": [0.1,1,10,50],
+        //                 "show_bracket_orders": false,
+        //                 "sort_priority": 1
+        //             },
+        //             "annualized_funding": "0",
+        //             "strike_price": null,
+        //             "price_band": "100",
+        //             "funding_method": "mark_price",
+        //             "contract_value": "0.001",
+        //             "auction_finish_time": null,
+        //             "product_specs": {
+        //                 "vol_expiry_time": 172800
+        //             },
+        //             "launch_time": "2020-04-20T08:37:05Z",
+        //             "basis_factor_max_limit": "1000",
+        //             "initial_margin": "1",
+        //             "notional_type": "vanilla",
+        //             "contract_unit_currency": "BTC",
+        //             "disruption_reason": null,
+        //             "underlying_asset": {
+        //                 "base_withdrawal_fee": "0.000000000000000000",
+        //                 "id": 2,
+        //                 "interest_credit": false,
+        //                 "interest_slabs": null,
+        //                 "kyc_deposit_limit": "0.000000000000000000",
+        //                 "kyc_withdrawal_limit": "0.000000000000000000",
+        //                 "min_withdrawal_amount": "0.000000000000000000",
+        //                 "minimum_precision": 4,
+        //                 "name": "Bitcoin",
+        //                 "networks": [],
+        //                 "precision": 8,
+        //                 "sort_priority": 1,
+        //                 "symbol": "BTC",
+        //                 "variable_withdrawal_fee": "0.000000000000000000"
+        //             },
+        //             "initial_margin_scaling_factor": "0",
+        //             "position_size_limit": 10000000,
+        //             "max_leverage_notional": "10000",
+        //             "settlement_price": null,
+        //             "barrier_price": null,
+        //             "maintenance_margin": "0.5",
+        //             "default_leverage": "50.000000000000000000",
+        //             "settlement_time": null,
+        //             "description": "BTCUSDT-Bitcoin Perpetual futures, quoted,settled & margined in Tether(USDT)",
+        //             "contract_type": "perpetual_futures"
+        //         },
+        //         "product_id": 84,
+        //         "product_symbol": "BTCUSDT",
+        //         "realized_cashflow": "0.000000000000000000",
+        //         "realized_funding": "0",
+        //         "realized_holding_cost": "0",
+        //         "realized_pnl": "0",
+        //         "size": 1,
+        //         "unrealized_pnl": "-0.00519112",
+        //         "updated_at": "2026-01-14T11:24:35.801586Z",
+        //         "user_id": 30084879
+        //     }
+        //
+        const marketId = this.safeString (info, 'product_symbol');
+        const datetime = this.safeString (info, 'created_at');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
+            'rank': this.safeInteger (info, 'adl_level'),
+            'rating': undefined,
+            'percentage': undefined,
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+        } as ADL;
+    }
+
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = {}, body: any = undefined) {
         const requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + requestPath;
         const query = this.omit (params, this.extractParams (path));
@@ -3775,7 +4187,7 @@ export default class delta extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }

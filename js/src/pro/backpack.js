@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { ed25519 } from '@noble/curves/ed25519.js';
 import backpackRest from '../backpack.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { eddsa } from '../base/functions/crypto.js';
-import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
 //  ---------------------------------------------------------------------------
 export default class backpack extends backpackRest {
     describe() {
@@ -59,7 +59,9 @@ export default class backpack extends backpackRest {
         });
     }
     async watchPublic(topics, messageHashes, params = {}, unwatch = false) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws']['public'];
         const method = unwatch ? 'UNSUBSCRIBE' : 'SUBSCRIBE';
         const request = {
@@ -119,7 +121,7 @@ export default class backpack extends backpackRest {
                 const splitHashes = messageHash.split(':');
                 const symbol = this.safeString(splitHashes, 2);
                 const timeframe = this.safeString(splitHashes, 3);
-                if (symbol in this.ohlcvs) {
+                if ((symbol !== undefined) && (timeframe !== undefined) && (symbol in this.ohlcvs)) {
                     if (timeframe in this.ohlcvs[symbol]) {
                         delete this.ohlcvs[symbol][timeframe];
                     }
@@ -140,16 +142,19 @@ export default class backpack extends backpackRest {
             else if (messageHash.indexOf('orders') >= 0) {
                 if (messageHash === 'unsubscribe:orders') {
                     const cache = this.orders;
-                    const keys = Object.keys(cache);
-                    for (let j = 0; j < keys.length; j++) {
-                        const symbol = keys[j];
-                        delete this.orders[symbol];
+                    if (cache !== undefined) {
+                        const keys = Object.keys(cache);
+                        for (let j = 0; j < keys.length; j++) {
+                            const symbol = keys[j];
+                            delete cache[symbol];
+                        }
                     }
                 }
                 else {
                     const symbol = messageHash.replace('unsubscribe:orders:', '');
-                    if (symbol in this.orders) {
-                        delete this.orders[symbol];
+                    const cache = this.orders;
+                    if ((cache !== undefined) && (symbol in cache)) {
+                        delete cache[symbol];
                     }
                 }
             }
@@ -181,7 +186,9 @@ export default class backpack extends backpackRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const topic = 'ticker' + '.' + market['id'];
@@ -197,8 +204,8 @@ export default class backpack extends backpackRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchTicker(symbol, params = {}) {
-        return await this.unWatchTickers([symbol], params);
+    unWatchTicker(symbol, params = {}) {
+        return this.unWatchTickers([symbol], params);
     }
     /**
      * @method
@@ -210,7 +217,9 @@ export default class backpack extends backpackRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const messageHashes = [];
         const topics = [];
@@ -233,7 +242,9 @@ export default class backpack extends backpackRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const topics = [];
         const messageHashes = [];
@@ -287,7 +298,7 @@ export default class backpack extends backpackRest {
         //         v: '5542.3911'
         //     }
         //
-        const microseconds = this.safeInteger(ticker, 'E');
+        const microseconds = this.safeInteger(ticker, 'E', 0);
         const timestamp = this.parseToInt(microseconds / 1000);
         const marketId = this.safeString(ticker, 's');
         market = this.safeMarket(marketId, market);
@@ -327,7 +338,9 @@ export default class backpack extends backpackRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const topics = [];
         const messageHashes = [];
@@ -349,7 +362,9 @@ export default class backpack extends backpackRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const topics = [];
         const messageHashes = [];
@@ -403,7 +418,7 @@ export default class backpack extends backpackRest {
         const marketId = this.safeString(ticker, 's');
         market = this.safeMarket(marketId, market);
         const symbol = this.safeString(market, 'symbol');
-        const microseconds = this.safeInteger(ticker, 'E');
+        const microseconds = this.safeInteger(ticker, 'E', 0);
         const timestamp = this.parseToInt(microseconds / 1000);
         const ask = this.safeString(ticker, 'a');
         const askVolume = this.safeString(ticker, 'A');
@@ -446,8 +461,8 @@ export default class backpack extends backpackRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
-        return await this.unWatchOHLCVForSymbols([[symbol, timeframe]], params);
+    unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        return this.unWatchOHLCVForSymbols([[symbol, timeframe]], params);
     }
     /**
      * @method
@@ -465,7 +480,9 @@ export default class backpack extends backpackRest {
         if (symbolsLength === 0 || !Array.isArray(symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired(this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
@@ -498,7 +515,9 @@ export default class backpack extends backpackRest {
         if (symbolsLength === 0 || !Array.isArray(symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired(this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
@@ -536,9 +555,9 @@ export default class backpack extends backpackRest {
         const marketId = this.safeString(data, 's');
         const market = this.market(marketId);
         const symbol = market['symbol'];
-        const stream = this.safeString(message, 'stream');
+        const stream = this.safeString(message, 'stream', '');
         const parts = stream.split('.');
-        const timeframe = this.safeString(parts, 1);
+        const timeframe = this.safeString(parts, 1, '');
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -590,8 +609,8 @@ export default class backpack extends backpackRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return await this.watchTradesForSymbols([symbol], since, limit, params);
+    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -602,8 +621,8 @@ export default class backpack extends backpackRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async unWatchTrades(symbol, params = {}) {
-        return await this.unWatchTradesForSymbols([symbol], params);
+    unWatchTrades(symbol, params = {}) {
+        return this.unWatchTradesForSymbols([symbol], params);
     }
     /**
      * @method
@@ -617,7 +636,9 @@ export default class backpack extends backpackRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
@@ -650,7 +671,9 @@ export default class backpack extends backpackRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTradesForSymbols(symbols, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
@@ -715,14 +738,23 @@ export default class backpack extends backpackRest {
         //         t: 10782547
         //     }
         //
-        const microseconds = this.safeInteger(trade, 'E');
+        const microseconds = this.safeInteger(trade, 'E', 0);
         const timestamp = this.parseToInt(microseconds / 1000);
         const id = this.safeString(trade, 't');
         const marketId = this.safeString(trade, 's');
         market = this.safeMarket(marketId, market);
-        const isMaker = this.safeBool(trade, 'm');
-        const side = isMaker ? 'sell' : 'buy';
-        const takerOrMaker = isMaker ? 'maker' : 'taker';
+        const isBuyerMaker = this.safeBool(trade, 'm');
+        let side = undefined;
+        let takerOrMaker = undefined;
+        if (isBuyerMaker !== undefined) {
+            takerOrMaker = 'taker';
+            if (isBuyerMaker) {
+                side = 'sell';
+            }
+            else {
+                side = 'buy';
+            }
+        }
         const price = this.safeString(trade, 'p');
         const amount = this.safeString(trade, 'q');
         let orderId = undefined;
@@ -759,10 +791,10 @@ export default class backpack extends backpackRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook(symbol, limit = undefined, params = {}) {
-        return await this.watchOrderBookForSymbols([symbol], limit, params);
+    watchOrderBook(symbol, limit = undefined, params = {}) {
+        return this.watchOrderBookForSymbols([symbol], limit, params);
     }
     /**
      * @method
@@ -773,10 +805,12 @@ export default class backpack extends backpackRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const marketIds = this.marketIds(symbols);
         const messageHashes = [];
@@ -797,10 +831,10 @@ export default class backpack extends backpackRest {
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async unWatchOrderBook(symbol, params = {}) {
-        return await this.unWatchOrderBookForSymbols([symbol], params);
+    unWatchOrderBook(symbol, params = {}) {
+        return this.unWatchOrderBookForSymbols([symbol], params);
     }
     /**
      * @method
@@ -809,10 +843,12 @@ export default class backpack extends backpackRest {
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBookForSymbols(symbols, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const marketIds = this.marketIds(symbols);
         const messageHashes = [];
@@ -866,14 +902,14 @@ export default class backpack extends backpackRest {
             storedOrderBook.cache.push(data);
             return;
         }
-        else if (nonce > deltaNonce) {
+        else if ((deltaNonce !== undefined) && (nonce > deltaNonce)) {
             return;
         }
         this.handleDelta(storedOrderBook, data);
         client.resolve(storedOrderBook, messageHash);
     }
     handleDelta(orderbook, delta) {
-        const timestamp = this.parseToInt(this.safeInteger(delta, 'T') / 1000);
+        const timestamp = this.parseToInt(this.safeInteger(delta, 'T', 0) / 1000);
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601(timestamp);
         orderbook['nonce'] = this.safeInteger(delta, 'u');
@@ -886,7 +922,7 @@ export default class backpack extends backpackRest {
     }
     handleBidAsks(bookSide, bidAsks) {
         for (let i = 0; i < bidAsks.length; i++) {
-            const bidAsk = this.parseBidAsk(bidAsks[i]);
+            const bidAsk = this.parseOrderBookBidAsk(bidAsks[i]);
             bookSide.storeArray(bidAsk);
         }
     }
@@ -896,6 +932,12 @@ export default class backpack extends backpackRest {
         const firstDelta = this.safeDict(cache, 0);
         const nonce = this.safeInteger(orderbook, 'nonce');
         const firstDeltaStart = this.safeInteger(firstDelta, 'U');
+        if (nonce === undefined) {
+            return cache.length;
+        }
+        if (firstDeltaStart === undefined) {
+            return -1;
+        }
         if (nonce < firstDeltaStart - 1) {
             return -1;
         }
@@ -903,6 +945,9 @@ export default class backpack extends backpackRest {
             const delta = cache[i];
             const deltaStart = this.safeInteger(delta, 'U');
             const deltaEnd = this.safeInteger(delta, 'u');
+            if ((deltaStart === undefined) || (deltaEnd === undefined)) {
+                return cache.length;
+            }
             if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
                 return i;
             }
@@ -921,7 +966,9 @@ export default class backpack extends backpackRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -949,7 +996,9 @@ export default class backpack extends backpackRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async unWatchOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1034,7 +1083,7 @@ export default class backpack extends backpackRest {
         //
         const id = this.safeString(order, 'i');
         const clientOrderId = this.safeString(order, 'c');
-        const microseconds = this.safeInteger(order, 'E');
+        const microseconds = this.safeInteger(order, 'E', 0);
         const timestamp = this.parseToInt(microseconds / 1000);
         const status = this.parseWsOrderStatus(this.safeString(order, 'X'), market);
         const marketId = this.safeString(order, 's');
@@ -1111,7 +1160,9 @@ export default class backpack extends backpackRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const messageHashes = [];
         const topics = [];
@@ -1142,7 +1193,9 @@ export default class backpack extends backpackRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async unWatchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const messageHashes = [];
         const topics = [];
@@ -1190,7 +1243,7 @@ export default class backpack extends backpackRest {
         }
         const cache = this.positions;
         const parsedPosition = this.parseWsPosition(data);
-        const microseconds = this.safeInteger(data, 'E');
+        const microseconds = this.safeInteger(data, 'E', 0);
         const timestamp = this.parseToInt(microseconds / 1000);
         parsedPosition['timestamp'] = timestamp;
         parsedPosition['datetime'] = this.iso8601(timestamp);
@@ -1222,8 +1275,9 @@ export default class backpack extends backpackRest {
         //
         const id = this.safeString(position, 'i');
         const marketId = this.safeString(position, 's');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        market = marketResolved;
+        const symbol = marketResolved['symbol'];
         const notional = this.safeString(position, 'n');
         const liquidationPrice = this.safeString(position, 'l');
         const entryPrice = this.safeString(position, 'b');
@@ -1234,14 +1288,16 @@ export default class backpack extends backpackRest {
         const netQuantity = this.safeNumber(position, 'q');
         let hedged = false;
         let side = 'long';
-        if (netQuantity < 0) {
-            side = 'short';
+        if (netQuantity !== undefined) {
+            if (netQuantity < 0) {
+                side = 'short';
+            }
         }
-        if (netQuantity === undefined) {
+        else {
             hedged = undefined;
             side = undefined;
         }
-        const microseconds = this.safeInteger(position, 'E');
+        const microseconds = this.safeInteger(position, 'E', 0);
         const timestamp = this.parseToInt(microseconds / 1000);
         const maintenanceMarginPercentage = this.safeNumber(position, 'm');
         const initialMarginPercentage = this.safeNumber(position, 'f');

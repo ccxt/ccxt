@@ -7,206 +7,257 @@
 
 package ccxt
 
-func (this *ExmoCore) WebGetCtrlFeesAndLimits(args ...interface{}) <-chan interface{} {
+// WebGetCtrlFeesAndLimits returns a channel that yields a JSON object.
+func (this *ExmoCore) WebGetCtrlFeesAndLimits(args ...any) <-chan any {
 	return this.callEndpointAsync("webGetCtrlFeesAndLimits", args...)
 }
 
-func (this *ExmoCore) WebGetEnDocsFees(args ...interface{}) <-chan interface{} {
+// WebGetEnDocsFees returns a channel that yields a JSON object.
+func (this *ExmoCore) WebGetEnDocsFees(args ...any) <-chan any {
 	return this.callEndpointAsync("webGetEnDocsFees", args...)
 }
 
-func (this *ExmoCore) PublicGetCurrency(args ...interface{}) <-chan interface{} {
+// PublicGetCurrency returns a channel that yields a JSON array.
+func (this *ExmoCore) PublicGetCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCurrency", args...)
 }
 
-func (this *ExmoCore) PublicGetCurrencyListExtended(args ...interface{}) <-chan interface{} {
+// PublicGetCurrencyListExtended returns a channel that yields a JSON array.
+func (this *ExmoCore) PublicGetCurrencyListExtended(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCurrencyListExtended", args...)
 }
 
-func (this *ExmoCore) PublicGetOrderBook(args ...interface{}) <-chan interface{} {
+// PublicGetOrderBook returns a channel that yields a JSON object.
+func (this *ExmoCore) PublicGetOrderBook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrderBook", args...)
 }
 
-func (this *ExmoCore) PublicGetPairSettings(args ...interface{}) <-chan interface{} {
+// PublicGetPairSettings returns a channel that yields a JSON object.
+func (this *ExmoCore) PublicGetPairSettings(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetPairSettings", args...)
 }
 
-func (this *ExmoCore) PublicGetTicker(args ...interface{}) <-chan interface{} {
+// PublicGetTicker returns a channel that yields a JSON object.
+func (this *ExmoCore) PublicGetTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *ExmoCore) PublicGetTrades(args ...interface{}) <-chan interface{} {
+// PublicGetTrades returns a channel that yields a JSON object.
+func (this *ExmoCore) PublicGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *ExmoCore) PublicGetCandlesHistory(args ...interface{}) <-chan interface{} {
+// PublicGetCandlesHistory returns a channel that yields a JSON object.
+func (this *ExmoCore) PublicGetCandlesHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCandlesHistory", args...)
 }
 
-func (this *ExmoCore) PublicGetRequiredAmount(args ...interface{}) <-chan interface{} {
+// PublicGetRequiredAmount returns a channel that yields a JSON object.
+func (this *ExmoCore) PublicGetRequiredAmount(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetRequiredAmount", args...)
 }
 
-func (this *ExmoCore) PublicGetPaymentsProvidersCryptoList(args ...interface{}) <-chan interface{} {
+// PublicGetPaymentsProvidersCryptoList returns a channel that yields a JSON object or a JSON array.
+func (this *ExmoCore) PublicGetPaymentsProvidersCryptoList(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetPaymentsProvidersCryptoList", args...)
 }
 
-func (this *ExmoCore) PrivatePostUserInfo(args ...interface{}) <-chan interface{} {
+// PrivatePostUserInfo returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostUserInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserInfo", args...)
 }
 
-func (this *ExmoCore) PrivatePostOrderCreate(args ...interface{}) <-chan interface{} {
+// PrivatePostOrderCreate returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostOrderCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderCreate", args...)
 }
 
-func (this *ExmoCore) PrivatePostOrderCancel(args ...interface{}) <-chan interface{} {
+// PrivatePostOrderCancel returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostOrderCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderCancel", args...)
 }
 
-func (this *ExmoCore) PrivatePostStopMarketOrderCreate(args ...interface{}) <-chan interface{} {
+// PrivatePostStopMarketOrderCreate returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostStopMarketOrderCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostStopMarketOrderCreate", args...)
 }
 
-func (this *ExmoCore) PrivatePostStopMarketOrderCancel(args ...interface{}) <-chan interface{} {
+// PrivatePostStopMarketOrderCancel returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostStopMarketOrderCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostStopMarketOrderCancel", args...)
 }
 
-func (this *ExmoCore) PrivatePostUserOpenOrders(args ...interface{}) <-chan interface{} {
+// PrivatePostUserOpenOrders returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostUserOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserOpenOrders", args...)
 }
 
-func (this *ExmoCore) PrivatePostUserTrades(args ...interface{}) <-chan interface{} {
+// PrivatePostUserTrades returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostUserTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserTrades", args...)
 }
 
-func (this *ExmoCore) PrivatePostUserCancelledOrders(args ...interface{}) <-chan interface{} {
+// PrivatePostUserCancelledOrders returns a channel that yields a JSON array.
+func (this *ExmoCore) PrivatePostUserCancelledOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserCancelledOrders", args...)
 }
 
-func (this *ExmoCore) PrivatePostOrderTrades(args ...interface{}) <-chan interface{} {
+// PrivatePostOrderTrades returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostOrderTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderTrades", args...)
 }
 
-func (this *ExmoCore) PrivatePostDepositAddress(args ...interface{}) <-chan interface{} {
+// PrivatePostDepositAddress returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDepositAddress", args...)
 }
 
-func (this *ExmoCore) PrivatePostWithdrawCrypt(args ...interface{}) <-chan interface{} {
+// PrivatePostWithdrawCrypt returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostWithdrawCrypt(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawCrypt", args...)
 }
 
-func (this *ExmoCore) PrivatePostWithdrawGetTxid(args ...interface{}) <-chan interface{} {
+// PrivatePostWithdrawGetTxid returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostWithdrawGetTxid(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawGetTxid", args...)
 }
 
-func (this *ExmoCore) PrivatePostExcodeCreate(args ...interface{}) <-chan interface{} {
+// PrivatePostExcodeCreate returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostExcodeCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostExcodeCreate", args...)
 }
 
-func (this *ExmoCore) PrivatePostExcodeLoad(args ...interface{}) <-chan interface{} {
+// PrivatePostExcodeLoad returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostExcodeLoad(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostExcodeLoad", args...)
 }
 
-func (this *ExmoCore) PrivatePostCodeCheck(args ...interface{}) <-chan interface{} {
+// PrivatePostCodeCheck returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostCodeCheck(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCodeCheck", args...)
 }
 
-func (this *ExmoCore) PrivatePostWalletHistory(args ...interface{}) <-chan interface{} {
+// PrivatePostWalletHistory returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostWalletHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWalletHistory", args...)
 }
 
-func (this *ExmoCore) PrivatePostWalletOperations(args ...interface{}) <-chan interface{} {
+// PrivatePostWalletOperations returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostWalletOperations(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWalletOperations", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserOrderCreate(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginUserOrderCreate returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginUserOrderCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginUserOrderCreate", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserOrderUpdate(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginUserOrderUpdate returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginUserOrderUpdate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginUserOrderUpdate", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserOrderCancel(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginUserOrderCancel returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginUserOrderCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginUserOrderCancel", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserPositionClose(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginUserPositionClose returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginUserPositionClose(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginUserPositionClose", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserPositionMarginAdd(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginUserPositionMarginAdd returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginUserPositionMarginAdd(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginUserPositionMarginAdd", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserPositionMarginRemove(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginUserPositionMarginRemove returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginUserPositionMarginRemove(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginUserPositionMarginRemove", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginCurrencyList(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginCurrencyList returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginCurrencyList(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginCurrencyList", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginPairList(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginPairList returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginPairList(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginPairList", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginSettings(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginSettings returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginSettings(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginSettings", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginFundingList(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginFundingList returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginFundingList(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginFundingList", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserInfo(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginUserInfo returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginUserInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginUserInfo", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserOrderList(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginUserOrderList returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginUserOrderList(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginUserOrderList", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserOrderHistory(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginUserOrderHistory returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginUserOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginUserOrderHistory", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserOrderTrades(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginUserOrderTrades returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginUserOrderTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginUserOrderTrades", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserOrderMaxQuantity(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginUserOrderMaxQuantity returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginUserOrderMaxQuantity(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginUserOrderMaxQuantity", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserPositionList(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginUserPositionList returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginUserPositionList(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginUserPositionList", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserPositionMarginRemoveInfo(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginUserPositionMarginRemoveInfo returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginUserPositionMarginRemoveInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginUserPositionMarginRemoveInfo", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserPositionMarginAddInfo(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginUserPositionMarginAddInfo returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginUserPositionMarginAddInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginUserPositionMarginAddInfo", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserWalletList(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginUserWalletList returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginUserWalletList(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginUserWalletList", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserWalletHistory(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginUserWalletHistory returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginUserWalletHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginUserWalletHistory", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserTradeList(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginUserTradeList returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginUserTradeList(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginUserTradeList", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginTrades(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginTrades returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginTrades", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginLiquidationFeed(args ...interface{}) <-chan interface{} {
+// PrivatePostMarginLiquidationFeed returns a channel that yields a JSON object.
+func (this *ExmoCore) PrivatePostMarginLiquidationFeed(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginLiquidationFeed", args...)
 }

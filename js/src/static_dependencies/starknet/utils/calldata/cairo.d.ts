@@ -12,7 +12,7 @@ export declare const isLen: (name: string) => boolean;
  * @param {string} type - The type to check.
  * @returns - True if the type is felt, false otherwise.
  */
-export declare const isTypeFelt: (type: string) => boolean;
+export declare const isTypeFelt: (type: string) => type is "core::felt252" | "felt";
 /**
  * Checks if the given type is an array type.
  *
@@ -91,35 +91,35 @@ export declare const isTypeLiteral: (type: string) => boolean;
  * @param {string} type - The type to be checked.
  * @returns - Returns true if the type is a boolean type, otherwise false.
  */
-export declare const isTypeBool: (type: string) => boolean;
+export declare const isTypeBool: (type: string) => type is "core::bool";
 /**
  * Checks if the provided type is equal to 'core::starknet::contract_address::ContractAddress'.
  * @param {string} type - The type to be checked.
  * @returns - true if the type matches 'core::starknet::contract_address::ContractAddress', false otherwise.
  */
-export declare const isTypeContractAddress: (type: string) => boolean;
+export declare const isTypeContractAddress: (type: string) => type is "core::starknet::contract_address::ContractAddress";
 /**
  * Determines if the given type is an Ethereum address type.
  *
  * @param {string} type - The type to check.
  * @returns - Returns true if the given type is 'core::starknet::eth_address::EthAddress', otherwise false.
  */
-export declare const isTypeEthAddress: (type: string) => boolean;
+export declare const isTypeEthAddress: (type: string) => type is "core::starknet::eth_address::EthAddress";
 /**
  * Checks if the given type is 'core::bytes_31::bytes31'.
  *
  * @param {string} type - The type to check.
  * @returns - True if the type is 'core::bytes_31::bytes31', false otherwise.
  */
-export declare const isTypeBytes31: (type: string) => boolean;
+export declare const isTypeBytes31: (type: string) => type is "core::bytes_31::bytes31";
 /**
  * Checks if the given type is equal to the 'core::byte_array::ByteArray'.
  *
  * @param {string} type - The type to check.
  * @returns - True if the given type is equal to 'core::byte_array::ByteArray', false otherwise.
  */
-export declare const isTypeByteArray: (type: string) => boolean;
-export declare const isTypeSecp256k1Point: (type: string) => boolean;
+export declare const isTypeByteArray: (type: string) => type is "core::byte_array::byteArray.js";
+export declare const isTypeSecp256k1Point: (type: string) => type is "core::starknet::secp256k1::Secp256k1Point";
 export declare const isCairo1Type: (type: string) => boolean;
 /**
  * Retrieves the array type from the given type string.

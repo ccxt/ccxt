@@ -32,6 +32,7 @@ class Client {
     public $futures = array();
     public $subscriptions = array();
     public $rejections = array();
+    public $pending_results = array(); // latest value resolved without a waiter, per message hash
     public $options = array();
 
     public $cookies = array();
@@ -64,7 +65,9 @@ class Client {
     public $heartbeat = null;
     public int $cost = 1;
     public $timeframes = null;
+    public $listenKeyRefreshRate = null;
     public $watchTradesForSymbols = null;
+    public $watchOrderBook = null;
     public $watchOrderBookForSymbols = null;
 
     public $decompressBinary = true;
@@ -76,6 +79,16 @@ class Client {
     // ------------------------------------------------------------------------
 
     public function future($message_hash) {
+        // a value that arrived while no future existed satisfies this
+        // consumer immediately, the spent future intentionally stays out of
+        // the map so the next consumer waits for fresh data
+        if (array_key_exists($message_hash, $this->pending_results)) {
+            $pending = $this->pending_results[$message_hash];
+            unset($this->pending_results[$message_hash]);
+            $spent = new Future();
+            $spent->resolve($pending);
+            return $spent;
+        }
         if (!array_key_exists($message_hash, $this->futures)) {
             $this->futures[$message_hash] = new Future();
         }
@@ -102,6 +115,14 @@ class Client {
             $promise = $this->futures[$message_hash];
             $promise->resolve($result);
             unset($this->futures[$message_hash]);
+        } else {
+            // no consumer future right now, keep the latest value so the
+            // next future() call is resolved with it instead of waiting for
+            // data that already arrived. A successful resolve after a
+            // retained error means the stream recovered, the stale error
+            // must not fail a later waiter
+            $this->pending_results[$message_hash] = $result;
+            unset($this->rejections[$message_hash]);
         }
         return $result;
     }
@@ -115,28 +136,32 @@ class Client {
             } else {
                 $this->rejections[$message_hash] = $result;
             }
+            // stale pre-error values must not satisfy post-error consumers
+            unset($this->pending_results[$message_hash]);
         } else {
             $message_hashes = array_keys($this->futures);
             foreach ($message_hashes as $message_hash) {
                 $this->reject($result, $message_hash);
             }
+            $this->pending_results = array();
         }
         return $result;
     }
 
     public function __construct(
-            $url,
-            callable $on_message_callback,
-            callable $on_error_callback,
-            callable $on_close_callback,
-            callable $on_connected_callback,
-            $config
-        ) {
+        $url,
+        callable $on_message_callback,
+        callable $on_error_callback,
+        callable $on_close_callback,
+        callable $on_connected_callback,
+        $config
+    ) {
 
         $this->url = $url;
         $this->futures = array();
         $this->subscriptions = array();
         $this->rejections = array();
+        $this->pending_results = array();
 
         $this->on_message_callback = $on_message_callback;
         $this->on_error_callback = $on_error_callback;
@@ -146,8 +171,8 @@ class Client {
         foreach ($config as $key => $value) {
             $this->{$key} =
                 (property_exists($this, $key) && is_array($this->{$key}) && is_array($value)) ?
-                    array_replace_recursive($this->{$key}, $value) :
-                    $value;
+                array_replace_recursive($this->{$key}, $value) :
+                $value;
         }
         $this->connected = new Future();
     }
@@ -186,7 +211,7 @@ class Client {
             }
             $promise = call_user_func($this->connector, $this->url, [], $headers);
             Timer\timeout($promise, $timeout, Loop::get())->then(
-                function(WebSocket $connection) {
+                function (WebSocket $connection) {
                     if ($this->verbose) {
                         echo date('c'), " connected\n";
                     }
@@ -200,7 +225,7 @@ class Client {
                     $on_connected_callback = $this->on_connected_callback;
                     $on_connected_callback($this);
                 },
-                function(\Exception $error) {
+                function (\Exception $error) {
                     // echo date('c'), ' connection failed ', get_class($error), ' ', $error->getMessage(), "\n";
                     // the ordering of these exceptions is important
                     // since one inherits another
@@ -283,7 +308,43 @@ class Client {
         }
     }
 
+    public $messageQueue = array();
+    public $processingQueue = false;
+    public $isNewPacket = true;
+
     public function on_message(Message $message) {
+        if ($this->isNewPacket) {
+            // If the queue still has unprocessed messages from a previous packet, we flush them 
+            // synchronously to prevent the backlog from growing infinitely (memory leak).
+            while (count($this->messageQueue) > 0) {
+                $msg = array_shift($this->messageQueue);
+                $this->handle_message($msg);
+            }
+            $this->isNewPacket = false;
+            // futureTick schedules this closure to run on the next event loop tick, 
+            // which runs after the current TCP packet has finished synchronously parsing.
+            Loop::futureTick(function () {
+                $this->isNewPacket = true;
+            });
+        }
+
+        $this->messageQueue[] = $message;
+        if (!$this->processingQueue) {
+            $this->processingQueue = true;
+            $callback_loop = function () use (&$callback_loop) {
+                if (count($this->messageQueue) > 0) {
+                    $msg = array_shift($this->messageQueue);
+                    $this->handle_message($msg);
+                    Loop::futureTick($callback_loop);
+                } else {
+                    $this->processingQueue = false;
+                }
+            };
+            Loop::futureTick($callback_loop);
+        }
+    }
+
+    public function handle_message(Message $message) {
         $is_binary = preg_match('~[^\x20-\x7E\t\r\n]~', $message) > 0;
         if ($is_binary) { // only decompress if the message is a binary
             if (!$this->decompressBinary) {
@@ -346,7 +407,7 @@ class Client {
     public function on_ping_interval() {
         if ($this->keepAlive && !$this->closed) {
             $now = $this->milliseconds();
-            $this->lastPong = isset ($this->lastPong) ? $this->lastPong : $now;
+            $this->lastPong = isset($this->lastPong) ? $this->lastPong : $now;
             if (($this->lastPong + $this->keepAlive * $this->maxPingPongMisses) < $now) {
                 $this->on_error(new RequestTimeout('Connection to ' . $this->url . ' timed out due to a ping-pong keepalive missing on time'));
             } else {

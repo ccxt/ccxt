@@ -40,12 +40,12 @@ class OrderBookSide extends Array {
         super();
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty(this, 'index', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: new Float64Array(SEED),
             writable: true,
         });
         Object.defineProperty(this, 'depth', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: depth || Number.MAX_SAFE_INTEGER,
             writable: true,
         });
@@ -99,6 +99,13 @@ class OrderBookSide extends Array {
             this.length = this.depth;
         }
     }
+    copy() {
+        const copy = new this.constructor([], this.depth);
+        for (let i = 0; i < this.length; i++) {
+            copy.storeArray(this[i].slice());
+        }
+        return copy;
+    }
 }
 // ----------------------------------------------------------------------------
 // overwrites absolute volumes at price levels
@@ -150,17 +157,17 @@ class IndexedOrderBookSide extends Array {
         super(deltas.length);
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty(this, 'hashmap', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: new Map(),
             writable: true,
         });
         Object.defineProperty(this, 'index', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: new Float64Array(SEED),
             writable: true,
         });
         Object.defineProperty(this, 'depth', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: depth || Number.MAX_SAFE_INTEGER,
             writable: true,
         });
@@ -191,26 +198,33 @@ class IndexedOrderBookSide extends Array {
                 // in case price is not sent
                 delta[0] = Math.abs(index_price);
                 if (index_price === old_price) {
-                    // find index by price and advance till the id is found
+                    // find index by price and advance till the id is found,
+                    // bounded so a stale hashmap entry degrades to a clean
+                    // reinsert below instead of walking off the live region
                     let index = bisectLeft(this.index, index_price);
-                    while (this[index][2] !== id) {
+                    while (index < this.length && this[index][2] !== id) {
                         index++;
                     }
-                    this.index[index] = index_price;
-                    this[index] = delta;
-                    return;
+                    if (index < this.length) {
+                        this.index[index] = index_price;
+                        this[index] = delta;
+                        return;
+                    }
                 }
                 else {
                     // remove old price from index
-                    // find index by price and advance till the id is found
+                    // find index by price and advance till the id is found,
+                    // bounded, a stale hashmap entry has nothing to remove
                     let old_index = bisectLeft(this.index, old_price);
-                    while (this[old_index][2] !== id) {
+                    while (old_index < this.length && this[old_index][2] !== id) {
                         old_index++;
                     }
-                    this.index.copyWithin(old_index, old_index + 1, this.index.length);
-                    this.index[this.length - 1] = Number.MAX_VALUE;
-                    this.copyWithin(old_index, old_index + 1, this.length);
-                    this.length--;
+                    if (old_index < this.length) {
+                        this.index.copyWithin(old_index, old_index + 1, this.index.length);
+                        this.index[this.length - 1] = Number.MAX_VALUE;
+                        this.copyWithin(old_index, old_index + 1, this.length);
+                        this.length--;
+                    }
                 }
             }
             // insert new price level
@@ -238,13 +252,15 @@ class IndexedOrderBookSide extends Array {
         else if (this.hashmap.has(id)) {
             const old_price = this.hashmap.get(id);
             let index = bisectLeft(this.index, old_price);
-            while (this[index][2] !== id) {
+            while (index < this.length && this[index][2] !== id) {
                 index++;
             }
-            this.index.copyWithin(index, index + 1, this.index.length);
-            this.index[this.length - 1] = Number.MAX_VALUE;
-            this.copyWithin(index, index + 1, this.length);
-            this.length--;
+            if (index < this.length) {
+                this.index.copyWithin(index, index + 1, this.index.length);
+                this.index[this.length - 1] = Number.MAX_VALUE;
+                this.copyWithin(index, index + 1, this.length);
+                this.length--;
+            }
             this.hashmap.delete(id);
         }
     }
@@ -252,12 +268,22 @@ class IndexedOrderBookSide extends Array {
     limit() {
         if (this.length > this.depth) {
             for (let i = this.depth; i < this.length; i++) {
-                // diff
-                this.hashmap.delete(this.index[i]);
+                // the hashmap is keyed by id, deleting by this.index[i], a
+                // price, never matched anything: trimmed ids leaked and the
+                // next delta for one of them walked off the live region and
+                // threw, delete by the trimmed row's id instead
+                this.hashmap.delete(this[i][2]);
                 this.index[i] = Number.MAX_VALUE;
             }
             this.length = this.depth;
         }
+    }
+    copy() {
+        const copy = new this.constructor([], this.depth);
+        for (let i = 0; i < this.length; i++) {
+            copy.storeArray(this[i].slice());
+        }
+        return copy;
     }
 }
 // ----------------------------------------------------------------------------

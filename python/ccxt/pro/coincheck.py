@@ -57,13 +57,14 @@ class coincheck(ccxt.async_support.coincheck):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'orderbook:' + market['symbol']
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'type': 'subscribe',
             'channel': market['id'] + '-orderbook',
         }
@@ -71,7 +72,7 @@ class coincheck(ccxt.async_support.coincheck):
         orderbook = await self.watch(url, messageHash, message, messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Any, message: Any):
         #
         #     [
         #         "btc_jpy",
@@ -118,12 +119,13 @@ class coincheck(ccxt.async_support.coincheck):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'trade:' + market['symbol']
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'type': 'subscribe',
             'channel': market['id'] + '-trades',
         }
@@ -133,7 +135,7 @@ class coincheck(ccxt.async_support.coincheck):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         #     [
         #         [
@@ -196,7 +198,7 @@ class coincheck(ccxt.async_support.coincheck):
             'fee': None,
         }, market)
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         data = self.safe_value(message, 0)
         if not isinstance(data, list):
             self.handle_order_book(client, message)

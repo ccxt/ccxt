@@ -7,374 +7,467 @@
 
 package ccxt
 
-func (this *BitmexCore) PublicGetAnnouncement(args ...interface{}) <-chan interface{} {
+// PublicGetAnnouncement returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetAnnouncement(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAnnouncement", args...)
 }
 
-func (this *BitmexCore) PublicGetAnnouncementUrgent(args ...interface{}) <-chan interface{} {
+// PublicGetAnnouncementUrgent returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetAnnouncementUrgent(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAnnouncementUrgent", args...)
 }
 
-func (this *BitmexCore) PublicGetChat(args ...interface{}) <-chan interface{} {
+// PublicGetChat returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetChat(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetChat", args...)
 }
 
-func (this *BitmexCore) PublicGetChatChannels(args ...interface{}) <-chan interface{} {
+// PublicGetChatChannels returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetChatChannels(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetChatChannels", args...)
 }
 
-func (this *BitmexCore) PublicGetChatConnected(args ...interface{}) <-chan interface{} {
+// PublicGetChatConnected returns a channel that yields a JSON object.
+func (this *BitmexCore) PublicGetChatConnected(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetChatConnected", args...)
 }
 
-func (this *BitmexCore) PublicGetChatPinned(args ...interface{}) <-chan interface{} {
+// PublicGetChatPinned returns a channel that yields a JSON object.
+func (this *BitmexCore) PublicGetChatPinned(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetChatPinned", args...)
 }
 
-func (this *BitmexCore) PublicGetFunding(args ...interface{}) <-chan interface{} {
+// PublicGetFunding returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetFunding(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetFunding", args...)
 }
 
-func (this *BitmexCore) PublicGetGuild(args ...interface{}) <-chan interface{} {
+// PublicGetGuild returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetGuild(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGuild", args...)
 }
 
-func (this *BitmexCore) PublicGetInstrument(args ...interface{}) <-chan interface{} {
+// PublicGetInstrument returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetInstrument(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetInstrument", args...)
 }
 
-func (this *BitmexCore) PublicGetInstrumentActive(args ...interface{}) <-chan interface{} {
+// PublicGetInstrumentActive returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetInstrumentActive(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetInstrumentActive", args...)
 }
 
-func (this *BitmexCore) PublicGetInstrumentActiveAndIndices(args ...interface{}) <-chan interface{} {
+// PublicGetInstrumentActiveAndIndices returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetInstrumentActiveAndIndices(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetInstrumentActiveAndIndices", args...)
 }
 
-func (this *BitmexCore) PublicGetInstrumentActiveIntervals(args ...interface{}) <-chan interface{} {
+// PublicGetInstrumentActiveIntervals returns a channel that yields a JSON object.
+func (this *BitmexCore) PublicGetInstrumentActiveIntervals(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetInstrumentActiveIntervals", args...)
 }
 
-func (this *BitmexCore) PublicGetInstrumentCompositeIndex(args ...interface{}) <-chan interface{} {
+// PublicGetInstrumentCompositeIndex returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetInstrumentCompositeIndex(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetInstrumentCompositeIndex", args...)
 }
 
-func (this *BitmexCore) PublicGetInstrumentIndices(args ...interface{}) <-chan interface{} {
+// PublicGetInstrumentIndices returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetInstrumentIndices(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetInstrumentIndices", args...)
 }
 
-func (this *BitmexCore) PublicGetInstrumentUsdVolume(args ...interface{}) <-chan interface{} {
+// PublicGetInstrumentUsdVolume returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetInstrumentUsdVolume(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetInstrumentUsdVolume", args...)
 }
 
-func (this *BitmexCore) PublicGetInsurance(args ...interface{}) <-chan interface{} {
+// PublicGetInsurance returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetInsurance(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetInsurance", args...)
 }
 
-func (this *BitmexCore) PublicGetLeaderboard(args ...interface{}) <-chan interface{} {
+// PublicGetLeaderboard returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetLeaderboard(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetLeaderboard", args...)
 }
 
-func (this *BitmexCore) PublicGetLiquidation(args ...interface{}) <-chan interface{} {
+// PublicGetLiquidation returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetLiquidation(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetLiquidation", args...)
 }
 
-func (this *BitmexCore) PublicGetOrderBookL2(args ...interface{}) <-chan interface{} {
+// PublicGetOrderBookL2 returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetOrderBookL2(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrderBookL2", args...)
 }
 
-func (this *BitmexCore) PublicGetPorlNonce(args ...interface{}) <-chan interface{} {
+// PublicGetPorlNonce returns a channel that yields a JSON object.
+func (this *BitmexCore) PublicGetPorlNonce(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetPorlNonce", args...)
 }
 
-func (this *BitmexCore) PublicGetQuote(args ...interface{}) <-chan interface{} {
+// PublicGetQuote returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetQuote", args...)
 }
 
-func (this *BitmexCore) PublicGetQuoteBucketed(args ...interface{}) <-chan interface{} {
+// PublicGetQuoteBucketed returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetQuoteBucketed(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetQuoteBucketed", args...)
 }
 
-func (this *BitmexCore) PublicGetSchema(args ...interface{}) <-chan interface{} {
+// PublicGetSchema returns a channel that yields a JSON object.
+func (this *BitmexCore) PublicGetSchema(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSchema", args...)
 }
 
-func (this *BitmexCore) PublicGetSchemaWebsocketHelp(args ...interface{}) <-chan interface{} {
+// PublicGetSchemaWebsocketHelp returns a channel that yields a JSON object.
+func (this *BitmexCore) PublicGetSchemaWebsocketHelp(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSchemaWebsocketHelp", args...)
 }
 
-func (this *BitmexCore) PublicGetSettlement(args ...interface{}) <-chan interface{} {
+// PublicGetSettlement returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetSettlement(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSettlement", args...)
 }
 
-func (this *BitmexCore) PublicGetStats(args ...interface{}) <-chan interface{} {
+// PublicGetStats returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetStats(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetStats", args...)
 }
 
-func (this *BitmexCore) PublicGetStatsHistory(args ...interface{}) <-chan interface{} {
+// PublicGetStatsHistory returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetStatsHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetStatsHistory", args...)
 }
 
-func (this *BitmexCore) PublicGetStatsHistoryUSD(args ...interface{}) <-chan interface{} {
+// PublicGetStatsHistoryUSD returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetStatsHistoryUSD(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetStatsHistoryUSD", args...)
 }
 
-func (this *BitmexCore) PublicGetTrade(args ...interface{}) <-chan interface{} {
+// PublicGetTrade returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTrade", args...)
 }
 
-func (this *BitmexCore) PublicGetTradeBucketed(args ...interface{}) <-chan interface{} {
+// PublicGetTradeBucketed returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetTradeBucketed(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeBucketed", args...)
 }
 
-func (this *BitmexCore) PublicGetWalletAssets(args ...interface{}) <-chan interface{} {
+// PublicGetWalletAssets returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetWalletAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetWalletAssets", args...)
 }
 
-func (this *BitmexCore) PublicGetWalletNetworks(args ...interface{}) <-chan interface{} {
+// PublicGetWalletNetworks returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetWalletNetworks(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetWalletNetworks", args...)
 }
 
-func (this *BitmexCore) PrivateGetAddress(args ...interface{}) <-chan interface{} {
+// PrivateGetAddress returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAddress", args...)
 }
 
-func (this *BitmexCore) PrivateGetApiKey(args ...interface{}) <-chan interface{} {
+// PrivateGetApiKey returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetApiKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiKey", args...)
 }
 
-func (this *BitmexCore) PrivateGetExecution(args ...interface{}) <-chan interface{} {
+// PrivateGetExecution returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetExecution(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetExecution", args...)
 }
 
-func (this *BitmexCore) PrivateGetExecutionTradeHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetExecutionTradeHistory returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetExecutionTradeHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetExecutionTradeHistory", args...)
 }
 
-func (this *BitmexCore) PrivateGetGlobalNotification(args ...interface{}) <-chan interface{} {
+// PrivateGetGlobalNotification returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetGlobalNotification(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGlobalNotification", args...)
 }
 
-func (this *BitmexCore) PrivateGetLeaderboardName(args ...interface{}) <-chan interface{} {
+// PrivateGetLeaderboardName returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateGetLeaderboardName(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetLeaderboardName", args...)
 }
 
-func (this *BitmexCore) PrivateGetOrder(args ...interface{}) <-chan interface{} {
+// PrivateGetOrder returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrder", args...)
 }
 
-func (this *BitmexCore) PrivateGetPorlSnapshots(args ...interface{}) <-chan interface{} {
+// PrivateGetPorlSnapshots returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetPorlSnapshots(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPorlSnapshots", args...)
 }
 
-func (this *BitmexCore) PrivateGetPosition(args ...interface{}) <-chan interface{} {
+// PrivateGetPosition returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetPosition(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPosition", args...)
 }
 
-func (this *BitmexCore) PrivateGetUser(args ...interface{}) <-chan interface{} {
+// PrivateGetUser returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateGetUser(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUser", args...)
 }
 
-func (this *BitmexCore) PrivateGetUserAffiliateStatus(args ...interface{}) <-chan interface{} {
+// PrivateGetUserAffiliateStatus returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateGetUserAffiliateStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserAffiliateStatus", args...)
 }
 
-func (this *BitmexCore) PrivateGetUserCheckReferralCode(args ...interface{}) <-chan interface{} {
+// PrivateGetUserCheckReferralCode returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateGetUserCheckReferralCode(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserCheckReferralCode", args...)
 }
 
-func (this *BitmexCore) PrivateGetUserCommission(args ...interface{}) <-chan interface{} {
+// PrivateGetUserCommission returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateGetUserCommission(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserCommission", args...)
 }
 
-func (this *BitmexCore) PrivateGetUserCsa(args ...interface{}) <-chan interface{} {
+// PrivateGetUserCsa returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateGetUserCsa(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserCsa", args...)
 }
 
-func (this *BitmexCore) PrivateGetUserDepositAddress(args ...interface{}) <-chan interface{} {
+// PrivateGetUserDepositAddress returns a channel that yields a JSON scalar.
+func (this *BitmexCore) PrivateGetUserDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserDepositAddress", args...)
 }
 
-func (this *BitmexCore) PrivateGetUserExecutionHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetUserExecutionHistory returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetUserExecutionHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserExecutionHistory", args...)
 }
 
-func (this *BitmexCore) PrivateGetUserGetWalletTransferAccounts(args ...interface{}) <-chan interface{} {
+// PrivateGetUserGetWalletTransferAccounts returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetUserGetWalletTransferAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserGetWalletTransferAccounts", args...)
 }
 
-func (this *BitmexCore) PrivateGetUserMargin(args ...interface{}) <-chan interface{} {
+// PrivateGetUserMargin returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateGetUserMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserMargin", args...)
 }
 
-func (this *BitmexCore) PrivateGetUserQuoteFillRatio(args ...interface{}) <-chan interface{} {
+// PrivateGetUserQuoteFillRatio returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateGetUserQuoteFillRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserQuoteFillRatio", args...)
 }
 
-func (this *BitmexCore) PrivateGetUserQuoteValueRatio(args ...interface{}) <-chan interface{} {
+// PrivateGetUserQuoteValueRatio returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateGetUserQuoteValueRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserQuoteValueRatio", args...)
 }
 
-func (this *BitmexCore) PrivateGetUserStaking(args ...interface{}) <-chan interface{} {
+// PrivateGetUserStaking returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetUserStaking(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserStaking", args...)
 }
 
-func (this *BitmexCore) PrivateGetUserStakingInstruments(args ...interface{}) <-chan interface{} {
+// PrivateGetUserStakingInstruments returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetUserStakingInstruments(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserStakingInstruments", args...)
 }
 
-func (this *BitmexCore) PrivateGetUserStakingTiers(args ...interface{}) <-chan interface{} {
+// PrivateGetUserStakingTiers returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateGetUserStakingTiers(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserStakingTiers", args...)
 }
 
-func (this *BitmexCore) PrivateGetUserTradingVolume(args ...interface{}) <-chan interface{} {
+// PrivateGetUserTradingVolume returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetUserTradingVolume(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserTradingVolume", args...)
 }
 
-func (this *BitmexCore) PrivateGetUserUnstakingRequests(args ...interface{}) <-chan interface{} {
+// PrivateGetUserUnstakingRequests returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetUserUnstakingRequests(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserUnstakingRequests", args...)
 }
 
-func (this *BitmexCore) PrivateGetUserWallet(args ...interface{}) <-chan interface{} {
+// PrivateGetUserWallet returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateGetUserWallet(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserWallet", args...)
 }
 
-func (this *BitmexCore) PrivateGetUserWalletHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetUserWalletHistory returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetUserWalletHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserWalletHistory", args...)
 }
 
-func (this *BitmexCore) PrivateGetUserWalletSummary(args ...interface{}) <-chan interface{} {
+// PrivateGetUserWalletSummary returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetUserWalletSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserWalletSummary", args...)
 }
 
-func (this *BitmexCore) PrivateGetUserAffiliates(args ...interface{}) <-chan interface{} {
+// PrivateGetUserAffiliates returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetUserAffiliates(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserAffiliates", args...)
 }
 
-func (this *BitmexCore) PrivateGetUserEvent(args ...interface{}) <-chan interface{} {
+// PrivateGetUserEvent returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetUserEvent(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserEvent", args...)
 }
 
-func (this *BitmexCore) PrivatePostAddress(args ...interface{}) <-chan interface{} {
+// PrivatePostAddress returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAddress", args...)
 }
 
-func (this *BitmexCore) PrivatePostChat(args ...interface{}) <-chan interface{} {
+// PrivatePostChat returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostChat(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostChat", args...)
 }
 
-func (this *BitmexCore) PrivatePostGuild(args ...interface{}) <-chan interface{} {
+// PrivatePostGuild returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostGuild(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGuild", args...)
 }
 
-func (this *BitmexCore) PrivatePostGuildArchive(args ...interface{}) <-chan interface{} {
+// PrivatePostGuildArchive returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostGuildArchive(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGuildArchive", args...)
 }
 
-func (this *BitmexCore) PrivatePostGuildJoin(args ...interface{}) <-chan interface{} {
+// PrivatePostGuildJoin returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostGuildJoin(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGuildJoin", args...)
 }
 
-func (this *BitmexCore) PrivatePostGuildKick(args ...interface{}) <-chan interface{} {
+// PrivatePostGuildKick returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostGuildKick(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGuildKick", args...)
 }
 
-func (this *BitmexCore) PrivatePostGuildLeave(args ...interface{}) <-chan interface{} {
+// PrivatePostGuildLeave returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostGuildLeave(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGuildLeave", args...)
 }
 
-func (this *BitmexCore) PrivatePostGuildSharesTrades(args ...interface{}) <-chan interface{} {
+// PrivatePostGuildSharesTrades returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostGuildSharesTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGuildSharesTrades", args...)
 }
 
-func (this *BitmexCore) PrivatePostOrder(args ...interface{}) <-chan interface{} {
+// PrivatePostOrder returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrder", args...)
 }
 
-func (this *BitmexCore) PrivatePostOrderCancelAllAfter(args ...interface{}) <-chan interface{} {
+// PrivatePostOrderCancelAllAfter returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostOrderCancelAllAfter(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderCancelAllAfter", args...)
 }
 
-func (this *BitmexCore) PrivatePostOrderClosePosition(args ...interface{}) <-chan interface{} {
+// PrivatePostOrderClosePosition returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostOrderClosePosition(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderClosePosition", args...)
 }
 
-func (this *BitmexCore) PrivatePostPositionIsolate(args ...interface{}) <-chan interface{} {
+// PrivatePostPositionIsolate returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostPositionIsolate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPositionIsolate", args...)
 }
 
-func (this *BitmexCore) PrivatePostPositionLeverage(args ...interface{}) <-chan interface{} {
+// PrivatePostPositionLeverage returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostPositionLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPositionLeverage", args...)
 }
 
-func (this *BitmexCore) PrivatePostPositionRiskLimit(args ...interface{}) <-chan interface{} {
+// PrivatePostPositionRiskLimit returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostPositionRiskLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPositionRiskLimit", args...)
 }
 
-func (this *BitmexCore) PrivatePostPositionTransferMargin(args ...interface{}) <-chan interface{} {
+// PrivatePostPositionTransferMargin returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostPositionTransferMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPositionTransferMargin", args...)
 }
 
-func (this *BitmexCore) PrivatePostUserAddSubaccount(args ...interface{}) <-chan interface{} {
+// PrivatePostUserAddSubaccount returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostUserAddSubaccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserAddSubaccount", args...)
 }
 
-func (this *BitmexCore) PrivatePostUserCancelWithdrawal(args ...interface{}) <-chan interface{} {
+// PrivatePostUserCancelWithdrawal returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostUserCancelWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserCancelWithdrawal", args...)
 }
 
-func (this *BitmexCore) PrivatePostUserCommunicationToken(args ...interface{}) <-chan interface{} {
+// PrivatePostUserCommunicationToken returns a channel that yields a JSON scalar.
+func (this *BitmexCore) PrivatePostUserCommunicationToken(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserCommunicationToken", args...)
 }
 
-func (this *BitmexCore) PrivatePostUserConfirmEmail(args ...interface{}) <-chan interface{} {
+// PrivatePostUserConfirmEmail returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostUserConfirmEmail(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserConfirmEmail", args...)
 }
 
-func (this *BitmexCore) PrivatePostUserConfirmWithdrawal(args ...interface{}) <-chan interface{} {
+// PrivatePostUserConfirmWithdrawal returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostUserConfirmWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserConfirmWithdrawal", args...)
 }
 
-func (this *BitmexCore) PrivatePostUserLogout(args ...interface{}) <-chan interface{} {
+// PrivatePostUserLogout returns a channel that yields a JSON scalar.
+func (this *BitmexCore) PrivatePostUserLogout(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserLogout", args...)
 }
 
-func (this *BitmexCore) PrivatePostUserPreferences(args ...interface{}) <-chan interface{} {
+// PrivatePostUserPreferences returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostUserPreferences(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserPreferences", args...)
 }
 
-func (this *BitmexCore) PrivatePostUserRequestWithdrawal(args ...interface{}) <-chan interface{} {
+// PrivatePostUserRequestWithdrawal returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostUserRequestWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserRequestWithdrawal", args...)
 }
 
-func (this *BitmexCore) PrivatePostUserUnstakingRequests(args ...interface{}) <-chan interface{} {
+// PrivatePostUserUnstakingRequests returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostUserUnstakingRequests(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserUnstakingRequests", args...)
 }
 
-func (this *BitmexCore) PrivatePostUserUpdateSubaccount(args ...interface{}) <-chan interface{} {
+// PrivatePostUserUpdateSubaccount returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostUserUpdateSubaccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserUpdateSubaccount", args...)
 }
 
-func (this *BitmexCore) PrivatePostUserWalletTransfer(args ...interface{}) <-chan interface{} {
+// PrivatePostUserWalletTransfer returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostUserWalletTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserWalletTransfer", args...)
 }
 
-func (this *BitmexCore) PrivatePutGuild(args ...interface{}) <-chan interface{} {
+// PrivatePutGuild returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePutGuild(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutGuild", args...)
 }
 
-func (this *BitmexCore) PrivatePutOrder(args ...interface{}) <-chan interface{} {
+// PrivatePutOrder returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePutOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutOrder", args...)
 }
 
-func (this *BitmexCore) PrivateDeleteOrder(args ...interface{}) <-chan interface{} {
+// PrivateDeleteOrder returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateDeleteOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrder", args...)
 }
 
-func (this *BitmexCore) PrivateDeleteOrderAll(args ...interface{}) <-chan interface{} {
+// PrivateDeleteOrderAll returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateDeleteOrderAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrderAll", args...)
 }
 
-func (this *BitmexCore) PrivateDeleteUserUnstakingRequests(args ...interface{}) <-chan interface{} {
+// PrivateDeleteUserUnstakingRequests returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateDeleteUserUnstakingRequests(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteUserUnstakingRequests", args...)
 }

@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Reflection;
+using System.Threading.Tasks;
 
 using ccxt;
 namespace Tests; // Note: actual namespace depends on the project name.
@@ -99,76 +100,102 @@ public class Tests
 
     static void Main(string[] args)
     {
+        MainAsync(args).GetAwaiter().GetResult();
+    }
 
+    static async Task MainAsync(string[] args)
+    {
         Console.WriteLine("C# version: " + Environment.Version.ToString());
-        Tests.args = args;
-        ReadConfig();
-        InitOptions(args);
-
-        RunBaseTests().Wait();
-
-        if (raceCondition)
+        try
         {
-            RaceConditionTests();
-            return;
-        }
+            Tests.args = args;
+            ReadConfig();
+            InitOptions(args);
 
-        if (isExchangeTests || isReqResTests || isAllTest) {
-            var testClass = new testMainClass();
-            testClass.init(exchangeId, symbol, methodName).Wait();
+            await RunBaseTests();
+
+            if (raceCondition)
+            {
+                RaceConditionTests();
+                return;
+            }
+
+            if (isExchangeTests || isReqResTests || isAllTest)
+            {
+                var testClass = new testMainClass();
+                await testClass.init(exchangeId, symbol, methodName);
+            }
+        }
+        catch (Exception ex)
+        {
+            testMainClass.dump("[TEST_FAILURE] " + ex.ToString()); // tell the wrapper this is failure
+            testMainClass.exitScript(1);
         }
     }
 
-    static Task RunBaseTests()
+    static async Task<Task> RunBaseTests()
     {
-        
+
         if (isBaseTests)
         {
             if (isWs)
             {
                 WsCacheTests();
                 WsOrderBookTests();
+                WsOrderBookDefaultsTests();
+                await WsClientRetentionTests();
+                await WsClientKeepAliveLivenessTests();
                 Helper.Green("[C#] base WS tests passed");
             }
-            else 
+            else
             {
-                RestBaseTests();
+                await baseTestInstance.baseTestsInit();
                 Helper.Green("[C#] base REST tests passed");
             }
         }
         return Task.CompletedTask;
     }
 
-    static void RestBaseTests()
-    {
-        baseTestInstance.testCryptography();
-        Helper.Green(" [C#] Crypto tests passed");
-        
-        // run auto-transpiled tests (all of them start by 'testFunction')
-        RunAutoTranspiledBaseTests (baseTestInstance);
-    }
-
-    static async void RunAutoTranspiledBaseTests(object testsInstance) {
-        MethodInfo[] methods = testsInstance.GetType()
-                        .GetMethods(BindingFlags.Instance | BindingFlags.Public)
-                        .Where(m => m.Name.StartsWith("test") && m.ReturnType == typeof(void))
-                        .ToArray();
-        // 2. Invoke Each Method
-        foreach (MethodInfo method in methods)
-        {
-            var res = method.Invoke(testsInstance, null);
-            if (res is Task)
-            {
-                await (Task)res;
-            }
-            Helper.Green(" [C#] " + method.ToString() + " tests passed");
-        }
-    }
+    // static async Task RunAutoTranspiledBaseTests(object testsInstance)
+    // {
+    //     MethodInfo[] methods = testsInstance.GetType()
+    //                     .GetMethods(BindingFlags.Instance | BindingFlags.Public)
+    //                     .Where(m => m.Name.StartsWith("test") && m.ReturnType == typeof(void))
+    //                     .ToArray();
+    //     // 2. Invoke Each Method
+    //     foreach (MethodInfo method in methods)
+    //     {
+    //         var res = method.Invoke(testsInstance, null);
+    //         if (res is Task)
+    //         {
+    //             await (Task)res;
+    //         }
+    //         Helper.Green(" [C#] " + method.ToString() + " tests passed");
+    //     }
+    // }
 
     static void WsCacheTests()
     {
         baseTestInstance.testWsCache();
         Helper.Green(" [C#] ArrayCache tests passed");
+    }
+
+    static async Task WsClientRetentionTests()
+    {
+        await baseTestInstance.testWsClientRetention();
+        Helper.Green(" [C#] WebSocketClient retention tests passed");
+    }
+
+    static void WsOrderBookDefaultsTests()
+    {
+        baseTestInstance.testWsOrderBookNullSnapshotDefaults();
+        Helper.Green(" [C#] OrderBook null-snapshot defaults tests passed");
+    }
+
+    static async Task WsClientKeepAliveLivenessTests()
+    {
+        await baseTestInstance.testWsClientKeepAliveLiveness();
+        Helper.Green(" [C#] WebSocketClient keepalive liveness tests passed");
     }
 
     static void WsOrderBookTests()

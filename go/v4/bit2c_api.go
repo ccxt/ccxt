@@ -7,94 +7,117 @@
 
 package ccxt
 
-func (this *Bit2cCore) PublicGetExchangesPairTicker(args ...interface{}) <-chan interface{} {
+// PublicGetExchangesPairTicker returns a channel that yields a JSON object.
+func (this *Bit2cCore) PublicGetExchangesPairTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetExchangesPairTicker", args...)
 }
 
-func (this *Bit2cCore) PublicGetExchangesPairOrderbook(args ...interface{}) <-chan interface{} {
+// PublicGetExchangesPairOrderbook returns a channel that yields a JSON object.
+func (this *Bit2cCore) PublicGetExchangesPairOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetExchangesPairOrderbook", args...)
 }
 
-func (this *Bit2cCore) PublicGetExchangesPairTrades(args ...interface{}) <-chan interface{} {
+// PublicGetExchangesPairTrades returns a channel that yields a JSON array.
+func (this *Bit2cCore) PublicGetExchangesPairTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetExchangesPairTrades", args...)
 }
 
-func (this *Bit2cCore) PublicGetExchangesPairLasttrades(args ...interface{}) <-chan interface{} {
+// PublicGetExchangesPairLasttrades returns a channel that yields a JSON array.
+func (this *Bit2cCore) PublicGetExchangesPairLasttrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetExchangesPairLasttrades", args...)
 }
 
-func (this *Bit2cCore) PrivatePostMerchantCreateCheckout(args ...interface{}) <-chan interface{} {
+// PrivatePostMerchantCreateCheckout returns a channel that yields a JSON object.
+func (this *Bit2cCore) PrivatePostMerchantCreateCheckout(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMerchantCreateCheckout", args...)
 }
 
-func (this *Bit2cCore) PrivatePostFundsAddCoinFundsRequest(args ...interface{}) <-chan interface{} {
+// PrivatePostFundsAddCoinFundsRequest returns a channel that yields a JSON object.
+func (this *Bit2cCore) PrivatePostFundsAddCoinFundsRequest(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostFundsAddCoinFundsRequest", args...)
 }
 
-func (this *Bit2cCore) PrivatePostOrderAddFund(args ...interface{}) <-chan interface{} {
+// PrivatePostOrderAddFund returns a channel that yields a JSON object.
+func (this *Bit2cCore) PrivatePostOrderAddFund(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderAddFund", args...)
 }
 
-func (this *Bit2cCore) PrivatePostOrderAddOrder(args ...interface{}) <-chan interface{} {
+// PrivatePostOrderAddOrder returns a channel that yields a JSON object.
+func (this *Bit2cCore) PrivatePostOrderAddOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderAddOrder", args...)
 }
 
-func (this *Bit2cCore) PrivatePostOrderGetById(args ...interface{}) <-chan interface{} {
+// PrivatePostOrderGetById returns a channel that yields a JSON object.
+func (this *Bit2cCore) PrivatePostOrderGetById(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderGetById", args...)
 }
 
-func (this *Bit2cCore) PrivatePostOrderAddOrderMarketPriceBuy(args ...interface{}) <-chan interface{} {
+// PrivatePostOrderAddOrderMarketPriceBuy returns a channel that yields a JSON object.
+func (this *Bit2cCore) PrivatePostOrderAddOrderMarketPriceBuy(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderAddOrderMarketPriceBuy", args...)
 }
 
-func (this *Bit2cCore) PrivatePostOrderAddOrderMarketPriceSell(args ...interface{}) <-chan interface{} {
+// PrivatePostOrderAddOrderMarketPriceSell returns a channel that yields a JSON object.
+func (this *Bit2cCore) PrivatePostOrderAddOrderMarketPriceSell(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderAddOrderMarketPriceSell", args...)
 }
 
-func (this *Bit2cCore) PrivatePostOrderCancelOrder(args ...interface{}) <-chan interface{} {
+// PrivatePostOrderCancelOrder returns a channel that yields a JSON object.
+func (this *Bit2cCore) PrivatePostOrderCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderCancelOrder", args...)
 }
 
-func (this *Bit2cCore) PrivatePostOrderAddCoinFundsRequest(args ...interface{}) <-chan interface{} {
+// PrivatePostOrderAddCoinFundsRequest returns a channel that yields a JSON object.
+func (this *Bit2cCore) PrivatePostOrderAddCoinFundsRequest(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderAddCoinFundsRequest", args...)
 }
 
-func (this *Bit2cCore) PrivatePostOrderAddStopOrder(args ...interface{}) <-chan interface{} {
+// PrivatePostOrderAddStopOrder returns a channel that yields a JSON object.
+func (this *Bit2cCore) PrivatePostOrderAddStopOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderAddStopOrder", args...)
 }
 
-func (this *Bit2cCore) PrivatePostPaymentGetMyId(args ...interface{}) <-chan interface{} {
+// PrivatePostPaymentGetMyId returns a channel that yields a JSON object.
+func (this *Bit2cCore) PrivatePostPaymentGetMyId(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPaymentGetMyId", args...)
 }
 
-func (this *Bit2cCore) PrivatePostPaymentSend(args ...interface{}) <-chan interface{} {
+// PrivatePostPaymentSend returns a channel that yields a JSON object.
+func (this *Bit2cCore) PrivatePostPaymentSend(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPaymentSend", args...)
 }
 
-func (this *Bit2cCore) PrivatePostPaymentPay(args ...interface{}) <-chan interface{} {
+// PrivatePostPaymentPay returns a channel that yields a JSON scalar.
+func (this *Bit2cCore) PrivatePostPaymentPay(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPaymentPay", args...)
 }
 
-func (this *Bit2cCore) PrivateGetAccountBalance(args ...interface{}) <-chan interface{} {
+// PrivateGetAccountBalance returns a channel that yields a JSON object.
+func (this *Bit2cCore) PrivateGetAccountBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountBalance", args...)
 }
 
-func (this *Bit2cCore) PrivateGetAccountBalanceV2(args ...interface{}) <-chan interface{} {
+// PrivateGetAccountBalanceV2 returns a channel that yields a JSON object.
+func (this *Bit2cCore) PrivateGetAccountBalanceV2(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountBalanceV2", args...)
 }
 
-func (this *Bit2cCore) PrivateGetOrderMyOrders(args ...interface{}) <-chan interface{} {
+// PrivateGetOrderMyOrders returns a channel that yields a JSON object.
+func (this *Bit2cCore) PrivateGetOrderMyOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrderMyOrders", args...)
 }
 
-func (this *Bit2cCore) PrivateGetOrderGetById(args ...interface{}) <-chan interface{} {
+// PrivateGetOrderGetById returns a channel that yields a JSON object.
+func (this *Bit2cCore) PrivateGetOrderGetById(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrderGetById", args...)
 }
 
-func (this *Bit2cCore) PrivateGetOrderAccountHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetOrderAccountHistory returns a channel that yields a JSON array.
+func (this *Bit2cCore) PrivateGetOrderAccountHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrderAccountHistory", args...)
 }
 
-func (this *Bit2cCore) PrivateGetOrderOrderHistory(args ...interface{}) <-chan interface{} {
+// PrivateGetOrderOrderHistory returns a channel that yields a JSON array.
+func (this *Bit2cCore) PrivateGetOrderOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrderOrderHistory", args...)
 }

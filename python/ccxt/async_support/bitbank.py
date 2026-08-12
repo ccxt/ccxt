@@ -80,6 +80,7 @@ class bitbank(Exchange, ImplicitAPI):
                 'fetchMarginMode': False,
                 'fetchMarginModes': False,
                 'fetchMarketLeverageTiers': False,
+                'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMarkPrices': False,
                 'fetchMyLiquidations': False,
@@ -147,44 +148,44 @@ class bitbank(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        '{pair}/ticker': 1,
-                        'tickers': 1,
-                        'tickers_jpy': 1,
-                        '{pair}/depth': 1,
-                        '{pair}/transactions': 1,
-                        '{pair}/transactions/{yyyymmdd}': 1,
-                        '{pair}/candlestick/{candletype}/{yyyymmdd}': 1,
-                        '{pair}/circuit_break_info': 1,
+                        '{pair}/ticker': {'cost': 1},
+                        'tickers': {'cost': 1},
+                        'tickers_jpy': {'cost': 1},
+                        '{pair}/depth': {'cost': 1},
+                        '{pair}/transactions': {'cost': 1},
+                        '{pair}/transactions/{yyyymmdd}': {'cost': 1},
+                        '{pair}/candlestick/{candletype}/{yyyymmdd}': {'cost': 1},
+                        '{pair}/circuit_break_info': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
-                        'user/assets': 1,
-                        'user/spot/order': 1,
-                        'user/spot/active_orders': 1,
-                        'user/margin/positions': 1,
-                        'user/spot/trade_history': 1,
-                        'user/deposit_history': 1,
-                        'user/unconfirmed_deposits': 1,
-                        'user/deposit_originators': 1,
-                        'user/withdrawal_account': 1,
-                        'user/withdrawal_history': 1,
-                        'spot/status': 1,
-                        'spot/pairs': 1,
+                        'user/assets': {'cost': 1},
+                        'user/spot/order': {'cost': 1},
+                        'user/spot/active_orders': {'cost': 1},
+                        'user/margin/positions': {'cost': 1},
+                        'user/spot/trade_history': {'cost': 1},
+                        'user/deposit_history': {'cost': 1},
+                        'user/unconfirmed_deposits': {'cost': 1},
+                        'user/deposit_originators': {'cost': 1},
+                        'user/withdrawal_account': {'cost': 1},
+                        'user/withdrawal_history': {'cost': 1},
+                        'spot/status': {'cost': 1},
+                        'spot/pairs': {'cost': 1},
                     },
                     'post': {
-                        'user/spot/order': 1.66,
-                        'user/spot/cancel_order': 1.66,
-                        'user/spot/cancel_orders': 1.66,
-                        'user/spot/orders_info': 1.66,  # might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
-                        'user/confirm_deposits': 1.66,  # might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
-                        'user/confirm_deposits_all': 1.66,  # might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
-                        'user/request_withdrawal': 1.66,
+                        'user/spot/order': {'cost': 1.66},
+                        'user/spot/cancel_order': {'cost': 1.66},
+                        'user/spot/cancel_orders': {'cost': 1.66},
+                        'user/spot/orders_info': {'cost': 1.66},  # might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/confirm_deposits': {'cost': 1.66},  # might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/confirm_deposits_all': {'cost': 1.66},  # might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/request_withdrawal': {'cost': 1.66},
                     },
                 },
                 'markets': {
                     'get': {
-                        'spot/pairs': 1,
+                        'spot/pairs': {'cost': 1},
                     },
                 },
             },
@@ -312,13 +313,13 @@ class bitbank(Exchange, ImplicitAPI):
         pairs = self.safe_value(data, 'pairs', [])
         return self.parse_markets(pairs)
 
-    def parse_market(self, entry) -> Market:
+    def parse_market(self, entry: Any) -> Market:
         id = self.safe_string(entry, 'name')
         baseId = self.safe_string(entry, 'base_asset')
         quoteId = self.safe_string(entry, 'quote_asset')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        return {
+        return self.safe_market_structure({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -368,7 +369,7 @@ class bitbank(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': entry,
-        }
+        })
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         symbol = self.safe_symbol(None, market)
@@ -407,9 +408,10 @@ class bitbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = await self.publicGetPairTicker(self.extend(request, params))
@@ -425,11 +427,12 @@ class bitbank(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = await self.publicGetPairDepth(self.extend(request, params))
@@ -493,9 +496,10 @@ class bitbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = await self.publicGetPairTransactions(self.extend(request, params))
@@ -512,7 +516,8 @@ class bitbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.marketsGetSpotPairs(params)
         #
         #     {
@@ -544,7 +549,7 @@ class bitbank(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', {})
         pairs = self.safe_value(data, 'pairs', [])
-        result: dict = {}
+        result = {}
         for i in range(0, len(pairs)):
             pair = pairs[i]
             marketId = self.safe_string(pair, 'name')
@@ -560,7 +565,7 @@ class bitbank(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     [
         #         "0.02501786",
@@ -598,9 +603,10 @@ class bitbank(Exchange, ImplicitAPI):
                 limit = 1000  # it doesn't have any defaults, might return 200, might 2000(i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
             duration = self.parse_timeframe(timeframe)
             since = self.milliseconds() - duration * 1000 * limit
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
             'candletype': self.safe_string(self.timeframes, timeframe, timeframe),
             'yyyymmdd': self.yyyymmdd(since, ''),
@@ -630,8 +636,8 @@ class bitbank(Exchange, ImplicitAPI):
         ohlcv = self.safe_list(first, 'ohlcv', [])
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
-    def parse_balance(self, response) -> Balances:
-        result: dict = {
+    def parse_balance(self, response: Any) -> Balances:
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -646,7 +652,8 @@ class bitbank(Exchange, ImplicitAPI):
             account['free'] = self.safe_string(balance, 'free_amount')
             account['used'] = self.safe_string(balance, 'locked_amount')
             account['total'] = self.safe_string(balance, 'onhand_amount')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -658,7 +665,8 @@ class bitbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetUserAssets(params)
         #
         #     {
@@ -696,7 +704,7 @@ class bitbank(Exchange, ImplicitAPI):
         return self.parse_balance(response)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'UNFILLED': 'open',
             'PARTIALLY_FILLED': 'open',
             'FULLY_FILLED': 'closed',
@@ -756,9 +764,10 @@ class bitbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
             'amount': self.amount_to_precision(symbol, amount),
             'side': side,
@@ -781,9 +790,10 @@ class bitbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'order_id': id,
             'pair': market['id'],
         }
@@ -825,9 +835,10 @@ class bitbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'order_id': id,
             'pair': market['id'],
         }
@@ -869,9 +880,10 @@ class bitbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         if limit is not None:
@@ -895,8 +907,9 @@ class bitbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -920,9 +933,10 @@ class bitbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'asset': currency['id'],
         }
         response = await self.privateGetUserWithdrawalAccount(self.extend(request, params))
@@ -955,9 +969,10 @@ class bitbank(Exchange, ImplicitAPI):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         if not ('uuid' in params):
             raise ExchangeError(self.id + ' uuid is required for withdrawal')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'asset': currency['id'],
             'amount': amount,
         }
@@ -1027,7 +1042,7 @@ class bitbank(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         query = self.omit(params, self.extract_params(path))
         url = self.implode_hostname(self.urls['api'][api]) + '/'
         if (api == 'public') or (api == 'markets'):
@@ -1036,8 +1051,20 @@ class bitbank(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
+            # bitbank supports two auth methods, see https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#authorization
+            # 'timeWindow'(default): request time + validity window, stateless and safe for concurrent use of one key
+            # 'nonce': legacy strictly-increasing nonce, kept escape hatch for clients with drifting clocks,
+            # since bitbank offers no server time endpoint to compensate against
+            authMethod = self.safe_string(self.options, 'authMethod', 'timeWindow')
+            isTimeWindow = (authMethod == 'timeWindow')
+            requestTime = str(self.milliseconds())
+            timeWindow = self.safe_string(self.options, 'timeWindow', '5000')
             nonce = str(self.nonce())
-            auth = nonce
+            auth = None
+            if isTimeWindow:
+                auth = requestTime + timeWindow
+            else:
+                auth = nonce
             url += self.version + '/' + self.implode_params(path, params)
             if method == 'POST':
                 body = self.json(query)
@@ -1051,18 +1078,22 @@ class bitbank(Exchange, ImplicitAPI):
             headers = {
                 'Content-Type': 'application/json',
                 'ACCESS-KEY': self.apiKey,
-                'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
             }
+            if isTimeWindow:
+                headers['ACCESS-REQUEST-TIME'] = requestTime
+                headers['ACCESS-TIME-WINDOW'] = timeWindow
+            else:
+                headers['ACCESS-NONCE'] = nonce
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         success = self.safe_integer(response, 'success')
         data = self.safe_value(response, 'data')
         if not success or not data:
-            errorMessages: dict = {
+            errorMessages = {
                 '10000': 'URL does not exist',
                 '10001': 'A system error occurred. Please contact support',
                 '10002': 'Invalid JSON format. Please check the contents of transmission',

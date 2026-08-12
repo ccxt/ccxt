@@ -115,7 +115,7 @@ public partial class cex
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the cex api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -135,7 +135,7 @@ public partial class cex
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the cex api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -218,7 +218,7 @@ public partial class cex
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://cex.io/websocket-api#orderbook-subscribe"/>  <br/>
+    /// See <see href="https://trade.cex.io/docs/#websocket-public-api-calls-order-book-subscribe"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -234,7 +234,7 @@ public partial class cex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -284,7 +284,7 @@ public partial class cex
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the cex api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -316,7 +316,7 @@ public partial class cex
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the cex api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -338,7 +338,7 @@ public partial class cex
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the kraken api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>
@@ -365,7 +365,7 @@ public partial class cex
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the cex api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -387,7 +387,7 @@ public partial class cex
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the cex api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -407,7 +407,7 @@ public partial class cex
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the cex api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>

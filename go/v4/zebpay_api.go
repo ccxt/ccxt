@@ -7,170 +7,212 @@
 
 package ccxt
 
-func (this *ZebpayCore) PublicSpotGetV2SystemTime(args ...interface{}) <-chan interface{} {
+// PublicSpotGetV2SystemTime returns a channel that yields a JSON object.
+func (this *ZebpayCore) PublicSpotGetV2SystemTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetV2SystemTime", args...)
 }
 
-func (this *ZebpayCore) PublicSpotGetV2SystemStatus(args ...interface{}) <-chan interface{} {
+// PublicSpotGetV2SystemStatus returns a channel that yields a JSON object.
+func (this *ZebpayCore) PublicSpotGetV2SystemStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetV2SystemStatus", args...)
 }
 
-func (this *ZebpayCore) PublicSpotGetV2MarketOrderbook(args ...interface{}) <-chan interface{} {
+// PublicSpotGetV2MarketOrderbook returns a channel that yields a JSON object.
+func (this *ZebpayCore) PublicSpotGetV2MarketOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetV2MarketOrderbook", args...)
 }
 
-func (this *ZebpayCore) PublicSpotGetV2MarketTrades(args ...interface{}) <-chan interface{} {
+// PublicSpotGetV2MarketTrades returns a channel that yields a JSON object.
+func (this *ZebpayCore) PublicSpotGetV2MarketTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetV2MarketTrades", args...)
 }
 
-func (this *ZebpayCore) PublicSpotGetV2MarketTicker(args ...interface{}) <-chan interface{} {
+// PublicSpotGetV2MarketTicker returns a channel that yields a JSON object.
+func (this *ZebpayCore) PublicSpotGetV2MarketTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetV2MarketTicker", args...)
 }
 
-func (this *ZebpayCore) PublicSpotGetV2MarketAllTickers(args ...interface{}) <-chan interface{} {
+// PublicSpotGetV2MarketAllTickers returns a channel that yields a JSON object.
+func (this *ZebpayCore) PublicSpotGetV2MarketAllTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetV2MarketAllTickers", args...)
 }
 
-func (this *ZebpayCore) PublicSpotGetV2ExExchangeInfo(args ...interface{}) <-chan interface{} {
+// PublicSpotGetV2ExExchangeInfo returns a channel that yields a JSON object.
+func (this *ZebpayCore) PublicSpotGetV2ExExchangeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetV2ExExchangeInfo", args...)
 }
 
-func (this *ZebpayCore) PublicSpotGetV2ExCurrencies(args ...interface{}) <-chan interface{} {
+// PublicSpotGetV2ExCurrencies returns a channel that yields a JSON object.
+func (this *ZebpayCore) PublicSpotGetV2ExCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetV2ExCurrencies", args...)
 }
 
-func (this *ZebpayCore) PublicSpotGetV2MarketKlines(args ...interface{}) <-chan interface{} {
+// PublicSpotGetV2MarketKlines returns a channel that yields a JSON object.
+func (this *ZebpayCore) PublicSpotGetV2MarketKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetV2MarketKlines", args...)
 }
 
-func (this *ZebpayCore) PublicSpotGetV2ExTradefees(args ...interface{}) <-chan interface{} {
+// PublicSpotGetV2ExTradefees returns a channel that yields a JSON object.
+func (this *ZebpayCore) PublicSpotGetV2ExTradefees(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetV2ExTradefees", args...)
 }
 
-func (this *ZebpayCore) PublicSwapGetV1SystemTime(args ...interface{}) <-chan interface{} {
+// PublicSwapGetV1SystemTime returns a channel that yields a JSON object.
+func (this *ZebpayCore) PublicSwapGetV1SystemTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSwapGetV1SystemTime", args...)
 }
 
-func (this *ZebpayCore) PublicSwapGetV1SystemStatus(args ...interface{}) <-chan interface{} {
+// PublicSwapGetV1SystemStatus returns a channel that yields a JSON object.
+func (this *ZebpayCore) PublicSwapGetV1SystemStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSwapGetV1SystemStatus", args...)
 }
 
-func (this *ZebpayCore) PublicSwapGetV1ExchangeTradefee(args ...interface{}) <-chan interface{} {
+// PublicSwapGetV1ExchangeTradefee returns a channel that yields a JSON object.
+func (this *ZebpayCore) PublicSwapGetV1ExchangeTradefee(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSwapGetV1ExchangeTradefee", args...)
 }
 
-func (this *ZebpayCore) PublicSwapGetV1ExchangeTradefees(args ...interface{}) <-chan interface{} {
+// PublicSwapGetV1ExchangeTradefees returns a channel that yields a JSON object.
+func (this *ZebpayCore) PublicSwapGetV1ExchangeTradefees(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSwapGetV1ExchangeTradefees", args...)
 }
 
-func (this *ZebpayCore) PublicSwapGetV1MarketOrderBook(args ...interface{}) <-chan interface{} {
+// PublicSwapGetV1MarketOrderBook returns a channel that yields a JSON object.
+func (this *ZebpayCore) PublicSwapGetV1MarketOrderBook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSwapGetV1MarketOrderBook", args...)
 }
 
-func (this *ZebpayCore) PublicSwapGetV1MarketTicker24Hr(args ...interface{}) <-chan interface{} {
+// PublicSwapGetV1MarketTicker24Hr returns a channel that yields a JSON object.
+func (this *ZebpayCore) PublicSwapGetV1MarketTicker24Hr(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSwapGetV1MarketTicker24Hr", args...)
 }
 
-func (this *ZebpayCore) PublicSwapGetV1MarketMarkets(args ...interface{}) <-chan interface{} {
+// PublicSwapGetV1MarketMarkets returns a channel that yields a JSON object.
+func (this *ZebpayCore) PublicSwapGetV1MarketMarkets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSwapGetV1MarketMarkets", args...)
 }
 
-func (this *ZebpayCore) PublicSwapGetV1MarketAggTrade(args ...interface{}) <-chan interface{} {
+// PublicSwapGetV1MarketAggTrade returns a channel that yields a JSON object.
+func (this *ZebpayCore) PublicSwapGetV1MarketAggTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSwapGetV1MarketAggTrade", args...)
 }
 
-func (this *ZebpayCore) PublicSwapPostV1MarketKlines(args ...interface{}) <-chan interface{} {
+// PublicSwapPostV1MarketKlines returns a channel that yields a JSON object.
+func (this *ZebpayCore) PublicSwapPostV1MarketKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSwapPostV1MarketKlines", args...)
 }
 
-func (this *ZebpayCore) PrivateSpotPostV2ExOrders(args ...interface{}) <-chan interface{} {
+// PrivateSpotPostV2ExOrders returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSpotPostV2ExOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostV2ExOrders", args...)
 }
 
-func (this *ZebpayCore) PrivateSpotGetV2ExOrders(args ...interface{}) <-chan interface{} {
+// PrivateSpotGetV2ExOrders returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSpotGetV2ExOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2ExOrders", args...)
 }
 
-func (this *ZebpayCore) PrivateSpotGetV2AccountBalance(args ...interface{}) <-chan interface{} {
+// PrivateSpotGetV2AccountBalance returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSpotGetV2AccountBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2AccountBalance", args...)
 }
 
-func (this *ZebpayCore) PrivateSpotGetV2ExTradefee(args ...interface{}) <-chan interface{} {
+// PrivateSpotGetV2ExTradefee returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSpotGetV2ExTradefee(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2ExTradefee", args...)
 }
 
-func (this *ZebpayCore) PrivateSpotGetV2ExOrder(args ...interface{}) <-chan interface{} {
+// PrivateSpotGetV2ExOrder returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSpotGetV2ExOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2ExOrder", args...)
 }
 
-func (this *ZebpayCore) PrivateSpotGetV2ExOrderFills(args ...interface{}) <-chan interface{} {
+// PrivateSpotGetV2ExOrderFills returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSpotGetV2ExOrderFills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2ExOrderFills", args...)
 }
 
-func (this *ZebpayCore) PrivateSpotDeleteV2ExOrder(args ...interface{}) <-chan interface{} {
+// PrivateSpotDeleteV2ExOrder returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSpotDeleteV2ExOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotDeleteV2ExOrder", args...)
 }
 
-func (this *ZebpayCore) PrivateSpotDeleteV2ExOrders(args ...interface{}) <-chan interface{} {
+// PrivateSpotDeleteV2ExOrders returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSpotDeleteV2ExOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotDeleteV2ExOrders", args...)
 }
 
-func (this *ZebpayCore) PrivateSpotDeleteV2ExOrdersCancelAll(args ...interface{}) <-chan interface{} {
+// PrivateSpotDeleteV2ExOrdersCancelAll returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSpotDeleteV2ExOrdersCancelAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotDeleteV2ExOrdersCancelAll", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapGetV1WalletBalance(args ...interface{}) <-chan interface{} {
+// PrivateSwapGetV1WalletBalance returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSwapGetV1WalletBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSwapGetV1WalletBalance", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapGetV1TradeOrder(args ...interface{}) <-chan interface{} {
+// PrivateSwapGetV1TradeOrder returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSwapGetV1TradeOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSwapGetV1TradeOrder", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapGetV1TradeOrderOpenOrders(args ...interface{}) <-chan interface{} {
+// PrivateSwapGetV1TradeOrderOpenOrders returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSwapGetV1TradeOrderOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSwapGetV1TradeOrderOpenOrders", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapGetV1TradeUserLeverages(args ...interface{}) <-chan interface{} {
+// PrivateSwapGetV1TradeUserLeverages returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSwapGetV1TradeUserLeverages(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSwapGetV1TradeUserLeverages", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapGetV1TradeUserLeverage(args ...interface{}) <-chan interface{} {
+// PrivateSwapGetV1TradeUserLeverage returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSwapGetV1TradeUserLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSwapGetV1TradeUserLeverage", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapGetV1TradePositions(args ...interface{}) <-chan interface{} {
+// PrivateSwapGetV1TradePositions returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSwapGetV1TradePositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSwapGetV1TradePositions", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapGetV1TradeHistory(args ...interface{}) <-chan interface{} {
+// PrivateSwapGetV1TradeHistory returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSwapGetV1TradeHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSwapGetV1TradeHistory", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapPostV1TradeOrder(args ...interface{}) <-chan interface{} {
+// PrivateSwapPostV1TradeOrder returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSwapPostV1TradeOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSwapPostV1TradeOrder", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapPostV1TradeOrderAddTPSL(args ...interface{}) <-chan interface{} {
+// PrivateSwapPostV1TradeOrderAddTPSL returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSwapPostV1TradeOrderAddTPSL(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSwapPostV1TradeOrderAddTPSL", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapPostV1TradeAddMargin(args ...interface{}) <-chan interface{} {
+// PrivateSwapPostV1TradeAddMargin returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSwapPostV1TradeAddMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSwapPostV1TradeAddMargin", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapPostV1TradeReduceMargin(args ...interface{}) <-chan interface{} {
+// PrivateSwapPostV1TradeReduceMargin returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSwapPostV1TradeReduceMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSwapPostV1TradeReduceMargin", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapPostV1TradePositionClose(args ...interface{}) <-chan interface{} {
+// PrivateSwapPostV1TradePositionClose returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSwapPostV1TradePositionClose(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSwapPostV1TradePositionClose", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapPostV1TradeUpdateUserLeverage(args ...interface{}) <-chan interface{} {
+// PrivateSwapPostV1TradeUpdateUserLeverage returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSwapPostV1TradeUpdateUserLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSwapPostV1TradeUpdateUserLeverage", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapDeleteV1TradeOrder(args ...interface{}) <-chan interface{} {
+// PrivateSwapDeleteV1TradeOrder returns a channel that yields a JSON object.
+func (this *ZebpayCore) PrivateSwapDeleteV1TradeOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSwapDeleteV1TradeOrder", args...)
 }

@@ -1,8 +1,5 @@
-- [Huobi Open Close Position Bbo](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import os
@@ -64,5 +61,5 @@ async def main():
 asyncio.run(main())
 
 
- 
+
 ```

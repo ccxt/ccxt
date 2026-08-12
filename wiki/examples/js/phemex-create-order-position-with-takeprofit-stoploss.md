@@ -1,10 +1,6 @@
-- [Phemex Create Order Position With Takeprofit Stoploss](./examples/js/)
-
-
- ```javascript
- // @ts-nocheck
+```javascript
+// @ts-nocheck
 import ccxt from '../../js/ccxt.js';
-// AUTO-TRANSPILE //
 // ------------------------------------------------------------------------------
 async function example() {
     const exchange = new ccxt.phemex({
@@ -24,7 +20,7 @@ async function example() {
     await exchange.loadMarkets();
     // when symbol's price reaches your predefined "trigger price", stop-loss order would be activated as a "market order". but if you want it to be activated as a "limit order", then set a 'price' parameter for it
     const params = {
-        'posSide': 'Long',
+        'posSide': 'Long', // "Long" / "Short" for hedge mode
         'stopLoss': {
             'triggerPrice': stop_loss_trigger_price,
             'type': 'limit',
@@ -51,5 +47,5 @@ async function example() {
     }
 }
 await example();
- 
+
 ```

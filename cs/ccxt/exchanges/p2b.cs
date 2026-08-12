@@ -137,9 +137,8 @@ public partial class p2b : Exchange
                 { "1d", "1d" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "extension", ".json" },
                 { "referral", "https://p2pb2b.com?referral=ee784c53" },
-                { "logo", "https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755" },
+                { "logo", "https://github.com/user-attachments/assets/122f0c86-f3a6-4334-910f-4d8edc865696" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.p2pb2b.com/api/v2/public" },
                     { "private", "https://api.p2pb2b.com/api/v2" },
@@ -151,28 +150,64 @@ public partial class p2b : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "markets", 1 },
-                        { "market", 1 },
-                        { "tickers", 1 },
-                        { "ticker", 1 },
-                        { "book", 1 },
-                        { "history", 1 },
-                        { "depth/result", 1 },
-                        { "market/kline", 1 },
+                        { "markets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "depth/result", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/kline", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "account/balances", 1 },
-                        { "account/balance", 1 },
-                        { "order/new", 1 },
-                        { "order/cancel", 1 },
-                        { "orders", 1 },
-                        { "account/market_order_history", 1 },
-                        { "account/market_deal_history", 1 },
-                        { "account/order", 1 },
-                        { "account/order_history", 1 },
-                        { "account/executed_history", 1 },
+                        { "account/balances", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/new", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/market_order_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/market_deal_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/order_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/executed_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -348,8 +383,8 @@ public partial class p2b : Exchange
         object marketId = this.safeString(market, "name");
         object baseId = this.safeString(market, "stock");
         object quoteId = this.safeString(market, "money");
-        object bs = this.safeCurrencyCode(baseId);
-        object quote = this.safeCurrencyCode(quoteId);
+        object bs = ((string)this.safeCurrencyCode(baseId));
+        object quote = ((string)this.safeCurrencyCode(quoteId));
         object limits = this.safeValue(market, "limits");
         object maxAmount = this.safeString(limits, "max_amount");
         object maxPrice = this.safeString(limits, "max_price");
@@ -388,11 +423,11 @@ public partial class p2b : Exchange
                 } },
                 { "amount", new Dictionary<string, object>() {
                     { "min", this.safeNumber(limits, "min_amount") },
-                    { "max", this.parseNumber(this.omitZero(maxAmount)) },
+                    { "max", this.parseNumber(this.omitZero(((string)maxAmount))) },
                 } },
                 { "price", new Dictionary<string, object>() {
                     { "min", this.safeNumber(limits, "min_price") },
-                    { "max", this.parseNumber(this.omitZero(maxPrice)) },
+                    { "max", this.parseNumber(this.omitZero(((string)maxPrice))) },
                 } },
                 { "cost", new Dictionary<string, object>() {
                     { "min", null },
@@ -416,7 +451,10 @@ public partial class p2b : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.publicGetTickers(parameters);
         //
         //    {
@@ -459,7 +497,10 @@ public partial class p2b : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -567,12 +608,15 @@ public partial class p2b : Exchange
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -627,7 +671,10 @@ public partial class p2b : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object lastId = this.safeInteger(parameters, "lastId");
         if (isTrue(isEqual(lastId, null)))
         {
@@ -731,7 +778,7 @@ public partial class p2b : Exchange
             { "amount", this.safeString(trade, "amount") },
             { "cost", this.safeString(trade, "deal") },
             { "fee", new Dictionary<string, object>() {
-                { "currency", getValue(market, "quote") },
+                { "currency", this.safeString(market, "quote") },
                 { "cost", this.safeString2(trade, "fee", "deal_fee") },
             } },
         }, market);
@@ -754,7 +801,10 @@ public partial class p2b : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -819,7 +869,10 @@ public partial class p2b : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privatePostAccountBalances(parameters);
         //
         //    {
@@ -871,7 +924,7 @@ public partial class p2b : Exchange
                 { "free", available },
                 { "used", used },
             };
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            ((IDictionary<string,object>)result)[(string)((string)code)] = account;
         }
         return this.safeBalance(result);
     }
@@ -892,7 +945,10 @@ public partial class p2b : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isEqual(type, "market")))
         {
             throw new BadRequest ((string)add(this.id, " createOrder () can only accept orders with type \"limit\"")) ;
@@ -948,7 +1004,10 @@ public partial class p2b : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -1002,7 +1061,10 @@ public partial class p2b : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders () requires the symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -1059,7 +1121,10 @@ public partial class p2b : Exchange
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.safeMarket(symbol);
         object request = new Dictionary<string, object>() {
             { "orderId", id },
@@ -1119,7 +1184,10 @@ public partial class p2b : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
         if (isTrue(isEqual(until, null)))
@@ -1141,10 +1209,12 @@ public partial class p2b : Exchange
             throw new BadRequest ((string)add(this.id, " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
         }
         object market = this.market(symbol);
+        object sinceSec = this.parseToInt(divide(since, 1000));
+        object untilSec = this.parseToInt(divide(until, 1000));
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
-            { "startTime", this.parseToInt(divide(since, 1000)) },
-            { "endTime", this.parseToInt(divide(until, 1000)) },
+            { "startTime", sinceSec },
+            { "endTime", untilSec },
         };
         if (isTrue(!isEqual(limit, null)))
         {
@@ -1200,7 +1270,10 @@ public partial class p2b : Exchange
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
         object market = null;
@@ -1226,9 +1299,11 @@ public partial class p2b : Exchange
         {
             throw new BadRequest ((string)add(this.id, " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
         }
+        object sinceSec = this.parseToInt(divide(since, 1000));
+        object untilSec = this.parseToInt(divide(until, 1000));
         object request = new Dictionary<string, object>() {
-            { "startTime", this.parseToInt(divide(since, 1000)) },
-            { "endTime", this.parseToInt(divide(until, 1000)) },
+            { "startTime", sinceSec },
+            { "endTime", untilSec },
         };
         if (isTrue(!isEqual(market, null)))
         {

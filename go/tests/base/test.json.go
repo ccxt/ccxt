@@ -8,17 +8,17 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestJson() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "regirock",
-	}, map[string]interface{}{}, exchange)
+	}, map[string]any{}, exchange)
 	// Test: object
-	var obj map[string]interface{} = map[string]interface{}{
+	var obj map[string]any = map[string]any{
 		"k": "v",
 	}
-	var objJson interface{} = exchange.Json(obj)
+	var objJson any = exchange.Json(obj)
 	Assert(ccxt.IsEqual(objJson, "{\"k\":\"v\"}"))
 	// Test: list
-	var list interface{} = []interface{}{1, 2}
-	var listJson interface{} = exchange.Json(list)
+	var list any = []any{1, 2}
+	var listJson any = exchange.Json(list)
 	Assert(ccxt.IsEqual(listJson, "[1,2]"))
 }

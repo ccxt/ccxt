@@ -160,7 +160,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -195,7 +195,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(List<string> symbols, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -486,9 +486,9 @@ public partial class bitget
         var res = await this.watchBalance(parameters);
         return new Balances(res);
     }
-    public async Task<Dictionary<string, object>> WatchPublicMultiple(object messageHashes, object argsArray, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> WatchPublicMultiple(object uta, object messageHashes, object argsArray, Dictionary<string, object> parameters = null)
     {
-        var res = await this.watchPublicMultiple(messageHashes, argsArray, parameters);
+        var res = await this.watchPublicMultiple(uta, messageHashes, argsArray, parameters);
         return ((Dictionary<string, object>)res);
     }
 }

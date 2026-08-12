@@ -6,15 +6,18 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class paradex extends \ccxt\async\paradex {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'watchFundingRate' => true,
+                'watchFundingRates' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchOrderBook' => true,
@@ -48,30 +51,32 @@ class paradex extends \ccxt\async\paradex {
         return $requestId;
     }
 
-    public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            $url = $this->urls['api']['ws'];
-            $client = $this->client($url);
-            $messageHash = 'authenticated';
-            $future = $client->reusableFuture ('authenticated');
-            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-            if ($authenticated === null) {
-                $token = Async\await($this->authenticateRest ());
-                $request = array(
-                    'jsonrpc' => '2.0',
-                    'id' => $this->request_id(),
-                    'method' => 'auth',
-                    'params' => array(
-                        'bearer' => $token,
-                    ),
-                );
-                $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
-            }
-            return Async\await($future);
-        }) ();
+    public function authenticate($params = array()) {
+        return Async\async(self::do_authenticate(...))($params);
     }
 
-    public function handle_authentication_message(Client $client, $message) {
+    private function do_authenticate($params = array()) {
+        $url = $this->urls['api']['ws'];
+        $client = $this->client($url);
+        $messageHash = 'authenticated';
+        $future = $client->reusableFuture('authenticated');
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
+            $token = Async\await($this->authenticateRest());
+            $request = array(
+                'jsonrpc' => '2.0',
+                'id' => $this->request_id(),
+                'method' => 'auth',
+                'params' => array(
+                    'bearer' => $token,
+                ),
+            );
+            $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
+        }
+        return Async\await($future);
+    }
+
+    public function handle_authentication_message(Client $client, mixed $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -81,52 +86,56 @@ class paradex extends \ccxt\async\paradex {
         //
         $result = $this->safe_dict($message, 'result');
         if ($result !== null) {
-            // $client->resolve (true, messageHash);
+            // $client->resolve(true, messageHash);
             $future = $this->safe_value($client->futures, 'authenticated');
             if ($future !== null) {
-                $future->resolve (true);
+                $future->resolve(true);
             }
         }
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent $trades for a particular $symbol
-             *
-             * @see https://docs.paradex.trade/ws/web-socket-channels/trades/trades
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
-             */
-            Async\await($this->load_markets());
-            $messageHash = 'trades.';
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $messageHash .= $market['id'];
-            } else {
-                $messageHash .= 'ALL';
-            }
-            $url = $this->urls['api']['ws'];
-            $request = array(
-                'jsonrpc' => '2.0',
-                'method' => 'subscribe',
-                'params' => array(
-                    'channel' => $messageHash,
-                ),
-            );
-            $trades = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
     }
 
-    public function handle_trade(Client $client, $message) {
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/trades/trades
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $messageHash = 'trades.';
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $messageHash .= $market['id'];
+        } else {
+            $messageHash .= 'ALL';
+        }
+        $url = $this->urls['api']['ws'];
+        $request = array(
+            'jsonrpc' => '2.0',
+            'method' => 'subscribe',
+            'params' => array(
+                'channel' => $messageHash,
+            ),
+        );
+        $trades = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+    }
+
+    public function handle_trade(Client $client, mixed $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -152,43 +161,47 @@ class paradex extends \ccxt\async\paradex {
         $messageHash = $this->safe_string($params, 'channel');
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
-            $stored = new ArrayCache ($this->safe_integer($this->options, 'tradesLimit', 1000));
+            $stored = new ArrayCache($this->safe_integer($this->options, 'tradesLimit', 1000));
             $this->trades[$symbol] = $stored;
         }
-        $stored->append ($parsedTrade);
-        $client->resolve ($stored, $messageHash);
+        $stored->append($parsedTrade);
+        $client->resolve($stored, $messageHash);
         return $message;
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://docs.paradex.trade/ws/web-socket-channels/order-book/order-book
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
-             */
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $messageHash = 'order_book.' . $market['id'] . '.snapshot@15@100ms';
-            $url = $this->urls['api']['ws'];
-            $request = array(
-                'jsonrpc' => '2.0',
-                'method' => 'subscribe',
-                'params' => array(
-                    'channel' => $messageHash,
-                ),
-            );
-            $orderbook = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
-            return $orderbook->limit ();
-        }) ();
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
     }
 
-    public function handle_order_book(Client $client, $message) {
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/order-book/order-book
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $messageHash = 'order_book.' . $market['id'] . '.snapshot@15@100ms';
+        $url = $this->urls['api']['ws'];
+        $request = array(
+            'jsonrpc' => '2.0',
+            'method' => 'subscribe',
+            'params' => array(
+                'channel' => $messageHash,
+            ),
+        );
+        $orderbook = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+        return $orderbook->limit();
+    }
+
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -224,7 +237,7 @@ class paradex extends \ccxt\async\paradex {
         $market = $this->safe_market($marketId);
         $timestamp = $this->safe_integer($data, 'last_updated_at');
         $symbol = $market['symbol'];
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbookData = array(
@@ -232,7 +245,7 @@ class paradex extends \ccxt\async\paradex {
             'asks' => array(),
         );
         $inserts = $this->safe_list($data, 'inserts');
-        for ($i = 0; $i < count($inserts); $i++) {
+        for ($i = 0; $i < count(($inserts)); $i++) {
             $insert = $this->safe_dict($inserts, $i);
             $side = $this->safe_string($insert, 'side');
             $price = $this->safe_string($insert, 'price');
@@ -245,122 +258,134 @@ class paradex extends \ccxt\async\paradex {
         }
         $orderbook = $this->orderbooks[$symbol];
         $snapshot = $this->parse_order_book($orderbookData, $symbol, $timestamp, 'bids', 'asks');
-        $snapshot['nonce'] = $this->safe_number($data, 'seq_no');
-        $orderbook->reset ($snapshot);
+        $snapshot['nonce'] = $this->safe_integer($data, 'seq_no');
+        $orderbook->reset($snapshot);
         $messageHash = $this->safe_string($params, 'channel');
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve($orderbook, $messageHash);
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             *
-             * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbol = $this->symbol($symbol);
-            $channel = 'markets_summary';
-            $url = $this->urls['api']['ws'];
-            $request = array(
-                'jsonrpc' => '2.0',
-                'method' => 'subscribe',
-                'params' => array(
-                    'channel' => $channel,
-                ),
-            );
-            $messageHash = $channel . '.' . $symbol;
-            return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
-        }) ();
+        }
+        $symbol = $this->symbol($symbol);
+        $channel = 'markets_summary';
+        $url = $this->urls['api']['ws'];
+        $request = array(
+            'jsonrpc' => '2.0',
+            'method' => 'subscribe',
+            'params' => array(
+                'channel' => $channel,
+            ),
+        );
+        $messageHash = $channel . '.' . $symbol;
+        return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             *
-             * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
-             *
-             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
+    public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+         *
+         * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
-            $channel = 'markets_summary';
-            $url = $this->urls['api']['ws'];
-            $request = array(
-                'jsonrpc' => '2.0',
-                'method' => 'subscribe',
-                'params' => array(
-                    'channel' => $channel,
-                ),
-            );
-            $messageHashes = array();
-            if ((gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)))) {
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $messageHash = $channel . '.' . $symbols[$i];
-                    $messageHashes[] = $messageHash;
-                }
-            } else {
-                $messageHashes[] = $channel;
+        }
+        $symbols = $this->market_symbols($symbols);
+        $channel = 'markets_summary';
+        $url = $this->urls['api']['ws'];
+        $request = array(
+            'jsonrpc' => '2.0',
+            'method' => 'subscribe',
+            'params' => array(
+                'channel' => $channel,
+            ),
+        );
+        $messageHashes = array();
+        if ($symbols !== null && (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)))) {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $messageHash = $channel . '.' . $symbols[$i];
+                $messageHashes[] = $messageHash;
             }
-            $newTickers = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
-            if ($this->newUpdates) {
-                $result = array();
-                $result[$newTickers['symbol']] = $newTickers;
-                return $result;
-            }
-            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        }) ();
+        } else {
+            $messageHashes[] = $channel;
+        }
+        $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
+        if ($this->newUpdates) {
+            $result = array();
+            $result[$newTicker['symbol']] = $newTicker;
+            return $result;
+        }
+        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $orders made by the user
-             *
-             * @see https://docs.paradex.trade/ws/web-socket-channels/orders/orders
-             *
-             * @param {string} [$symbol] unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $orders made by the user
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/orders/orders
+         *
+         * @param {string} [$symbol] unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            Async\await($this->authenticate());
-            $messageHash = 'orders';
-            $channel = 'orders.';
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-                $channel .= $market['id'];
-                $messageHash .= ':' . $symbol;
-            } else {
-                $channel .= 'ALL';
-            }
-            $url = $this->urls['api']['ws'];
-            $request = array(
-                'jsonrpc' => '2.0',
-                'method' => 'subscribe',
-                'params' => array(
-                    'channel' => $channel,
-                ),
-            );
-            $orders = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel));
-            if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        }) ();
+        }
+        Async\await($this->authenticate());
+        $messageHash = 'orders';
+        $channel = 'orders.';
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $channel .= $market['id'];
+            $messageHash .= ':' . $symbol;
+        } else {
+            $channel .= 'ALL';
+        }
+        $url = $this->urls['api']['ws'];
+        $request = array(
+            'jsonrpc' => '2.0',
+            'method' => 'subscribe',
+            'params' => array(
+                'channel' => $channel,
+            ),
+        );
+        $orders = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel));
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -394,18 +419,18 @@ class paradex extends \ccxt\async\paradex {
         $symbol = $this->safe_string($parsed, 'symbol');
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
-        $this->orders.append ($parsed);
+        $this->orders->append($parsed);
         $messageHash = 'orders';
-        $client->resolve ($this->orders, $messageHash);
+        $client->resolve($this->orders, $messageHash);
         if ($symbol !== null) {
             $symbolMessageHash = $messageHash . ':' . $symbol;
-            $client->resolve ($this->orders, $symbolMessageHash);
+            $client->resolve($this->orders, $symbolMessageHash);
         }
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -439,12 +464,160 @@ class paradex extends \ccxt\async\paradex {
         $messageHash = $channel . '.' . $symbol;
         $ticker = $this->parse_ticker($data, $market);
         $this->tickers[$symbol] = $ticker;
-        $client->resolve ($ticker, $channel);
-        $client->resolve ($ticker, $messageHash);
+        $client->resolve($ticker, $channel);
+        $client->resolve($ticker, $messageHash);
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function watch_funding_rate(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_funding_rate(...))($symbol, $params);
+    }
+
+    private function do_watch_funding_rate(string $symbol, $params = array()) {
+        /**
+         * watch the current funding rate for a $symbol
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/funding-data-market-symbol/funding-data-market-$symbol
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbol = $this->symbol($symbol);
+        $channel = 'funding_data';
+        $url = $this->urls['api']['ws'];
+        $request = array(
+            'jsonrpc' => '2.0',
+            'method' => 'subscribe',
+            'params' => array(
+                'channel' => $channel,
+            ),
+        );
+        $messageHash = $channel . '.' . $symbol;
+        return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+    }
+
+    public function watch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_funding_rates(...))($symbols, $params);
+    }
+
+    private function do_watch_funding_rates(?array $symbols = null, $params = array()) {
+        /**
+         * watch the funding rate for multiple markets
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+         *
+         * @param {string[]} [$symbols] a list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $channel = 'funding_data';
+        $url = $this->urls['api']['ws'];
+        $request = array(
+            'jsonrpc' => '2.0',
+            'method' => 'subscribe',
+            'params' => array(
+                'channel' => $channel,
+            ),
+        );
+        $messageHashes = array();
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength > 0) {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $messageHash = $channel . '.' . $symbols[$i];
+                    $messageHashes[] = $messageHash;
+                }
+            } else {
+                $messageHashes[] = $channel; // if an empty array is passed, subscribe to all funding rates
+            }
+        } else {
+            $messageHashes[] = $channel;
+        }
+        $newFundingRates = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
+        if ($this->newUpdates) {
+            $result = array();
+            $result[$newFundingRates['symbol']] = $newFundingRates;
+            return $result;
+        }
+        return $this->filter_by_array($this->fundingRates, 'symbol', $symbols);
+    }
+
+    public function handle_funding_rate(Client $client, mixed $message) {
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "method" => "subscription",
+        //         "params" => {
+        //             "channel" => "funding_data",
+        //             "data" => {
+        //                 "market" => "TRUMP-USD-PERP",
+        //                 "funding_index" => "-0.551694014226244835",
+        //                 "funding_premium" => "-0.000509914923994872836",
+        //                 "funding_rate" => "-0.00014969570582",
+        //                 "funding_rate_8h" => "-0.00014969",
+        //                 "funding_period_hours" => 8,
+        //                 "created_at" => 1771506636154
+        //             }
+        //         }
+        //     }
+        //
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_dict($params, 'data', array());
+        $fundingRate = $this->parse_funding_rate_ws($data);
+        $symbol = $fundingRate['symbol'];
+        $this->fundingRates[$symbol] = $fundingRate;
+        $channel = $this->safe_string($params, 'channel');
+        $messageHash = $channel . '.' . $symbol;
+        $client->resolve($fundingRate, $messageHash);
+    }
+
+    public function parse_funding_rate_ws(mixed $contract, ?array $market = null): array {
+        //
+        //     {
+        //         "market" => "TRUMP-USD-PERP",
+        //         "funding_index" => "-0.551694014226244835",
+        //         "funding_premium" => "-0.000509914923994872836",
+        //         "funding_rate" => "-0.00014969570582",
+        //         "funding_rate_8h" => "-0.00014969",
+        //         "funding_period_hours" => 8,
+        //         "created_at" => 1771506636154
+        //     }
+        //
+        $marketId = $this->safe_string($contract, 'market');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $timestamp = $this->safe_integer($contract, 'created_at');
+        $fundingPeriod = $this->safe_string($contract, 'funding_period_hours');
+        return array(
+            'info' => $contract,
+            'symbol' => $symbol,
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => $this->parse_number('0'),
+            'estimatedSettlePrice' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'fundingRate' => $this->safe_number($contract, 'funding_rate'),
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+            'interval' => $fundingPeriod . 'h',
+        );
+    }
+
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -476,7 +649,7 @@ class paradex extends \ccxt\async\paradex {
         }
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if (!$this->handle_error_message($client, $message)) {
             return;
         }
@@ -523,6 +696,7 @@ class paradex extends \ccxt\async\paradex {
                 'order_book' => array($this, 'handle_order_book'),
                 'markets_summary' => array($this, 'handle_ticker'),
                 'orders' => array($this, 'handle_order'),
+                'funding_data' => array($this, 'handle_funding_rate'),
             );
             $method = $this->safe_value($methods, $name);
             if ($method !== null) {

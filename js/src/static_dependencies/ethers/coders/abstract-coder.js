@@ -4,18 +4,6 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
-    if (kind === "m") throw new TypeError("Private method is not writable");
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-};
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
-var _Result_names, _Writer_instances, _Writer_data, _Writer_dataLength, _Writer_writeData, _Reader_instances, _Reader_data, _Reader_offset, _Reader_bytesRead, _Reader_parent, _Reader_maxInflation, _Reader_incrementBytesRead, _Reader_peekBytes;
 import { defineProperties, concat, getBytesCopy, getNumber, hexlify, toBeArray, toBigInt, toNumber, assert, assertArgument } from "../utils/index.js";
 /**
  * @_ignore:
@@ -39,6 +27,7 @@ function throwError(name, error) {
  *  @_docloc: api/abi
  */
 export class Result extends Array {
+    #names;
     /**
      *  @private
      */
@@ -61,7 +50,6 @@ export class Result extends Array {
         // Can't just pass in ...items since an array of length 1
         // is a special case in the super.
         super(items.length);
-        _Result_names.set(this, void 0);
         items.forEach((item, index) => { this[index] = item; });
         // Find all unique keys
         const nameCounts = names.reduce((accum, name) => {
@@ -71,13 +59,13 @@ export class Result extends Array {
             return accum;
         }, (new Map()));
         // Remove any key thats not unique
-        __classPrivateFieldSet(this, _Result_names, Object.freeze(items.map((item, index) => {
+        this.#names = Object.freeze(items.map((item, index) => {
             const name = names[index];
             if (name != null && nameCounts.get(name) === 1) {
                 return name;
             }
             return null;
-        })), "f");
+        }));
         if (!wrap) {
             return;
         }
@@ -143,7 +131,7 @@ export class Result extends Array {
      *  any outstanding deferred errors.
      */
     toObject() {
-        return __classPrivateFieldGet(this, _Result_names, "f").reduce((accum, name, index) => {
+        return this.#names.reduce((accum, name, index) => {
             assert(name != null, "value at index ${ index } unnamed", "UNSUPPORTED_OPERATION", {
                 operation: "toObject()"
             });
@@ -182,7 +170,7 @@ export class Result extends Array {
         const result = [], names = [];
         for (let i = start; i < end; i++) {
             result.push(this[i]);
-            names.push(__classPrivateFieldGet(this, _Result_names, "f")[i]);
+            names.push(this.#names[i]);
         }
         return new Result(_guard, result, names);
     }
@@ -198,7 +186,7 @@ export class Result extends Array {
             }
             if (callback.call(thisArg, item, i, this)) {
                 result.push(item);
-                names.push(__classPrivateFieldGet(this, _Result_names, "f")[i]);
+                names.push(this.#names[i]);
             }
         }
         return new Result(_guard, result, names);
@@ -226,7 +214,7 @@ export class Result extends Array {
      *  accessible by name.
      */
     getValue(name) {
-        const index = __classPrivateFieldGet(this, _Result_names, "f").indexOf(name);
+        const index = this.#names.indexOf(name);
         if (index === -1) {
             return undefined;
         }
@@ -244,7 +232,6 @@ export class Result extends Array {
         return new Result(_guard, items, keys);
     }
 }
-_Result_names = new WeakMap();
 /**
  *  Returns all errors found in a [[Result]].
  *
@@ -304,20 +291,24 @@ export class Coder {
  *  @_ignore
  */
 export class Writer {
+    // An array of WordSize lengthed objects to concatenation
+    #data;
+    #dataLength;
     constructor() {
-        _Writer_instances.add(this);
-        // An array of WordSize lengthed objects to concatenation
-        _Writer_data.set(this, void 0);
-        _Writer_dataLength.set(this, void 0);
-        __classPrivateFieldSet(this, _Writer_data, [], "f");
-        __classPrivateFieldSet(this, _Writer_dataLength, 0, "f");
+        this.#data = [];
+        this.#dataLength = 0;
     }
     get data() {
-        return concat(__classPrivateFieldGet(this, _Writer_data, "f"));
+        return concat(this.#data);
     }
-    get length() { return __classPrivateFieldGet(this, _Writer_dataLength, "f"); }
+    get length() { return this.#dataLength; }
+    #writeData(data) {
+        this.#data.push(data);
+        this.#dataLength += data.length;
+        return data.length;
+    }
     appendWriter(writer) {
-        return __classPrivateFieldGet(this, _Writer_instances, "m", _Writer_writeData).call(this, getBytesCopy(writer.data));
+        return this.#writeData(getBytesCopy(writer.data));
     }
     // Arrayish item; pad on the right to *nearest* WordSize
     writeBytes(value) {
@@ -326,61 +317,85 @@ export class Writer {
         if (paddingOffset) {
             bytes = getBytesCopy(concat([bytes, Padding.slice(paddingOffset)]));
         }
-        return __classPrivateFieldGet(this, _Writer_instances, "m", _Writer_writeData).call(this, bytes);
+        return this.#writeData(bytes);
     }
     // Numeric item; pad on the left *to* WordSize
     writeValue(value) {
-        return __classPrivateFieldGet(this, _Writer_instances, "m", _Writer_writeData).call(this, getValue(value));
+        return this.#writeData(getValue(value));
     }
     // Inserts a numeric place-holder, returning a callback that can
     // be used to asjust the value later
     writeUpdatableValue() {
-        const offset = __classPrivateFieldGet(this, _Writer_data, "f").length;
-        __classPrivateFieldGet(this, _Writer_data, "f").push(Padding);
-        __classPrivateFieldSet(this, _Writer_dataLength, __classPrivateFieldGet(this, _Writer_dataLength, "f") + WordSize, "f");
+        const offset = this.#data.length;
+        this.#data.push(Padding);
+        this.#dataLength += WordSize;
         return (value) => {
-            __classPrivateFieldGet(this, _Writer_data, "f")[offset] = getValue(value);
+            this.#data[offset] = getValue(value);
         };
     }
 }
-_Writer_data = new WeakMap(), _Writer_dataLength = new WeakMap(), _Writer_instances = new WeakSet(), _Writer_writeData = function _Writer_writeData(data) {
-    __classPrivateFieldGet(this, _Writer_data, "f").push(data);
-    __classPrivateFieldSet(this, _Writer_dataLength, __classPrivateFieldGet(this, _Writer_dataLength, "f") + data.length, "f");
-    return data.length;
-};
 /**
  *  @_ignore
  */
 export class Reader {
+    #data;
+    #offset;
+    #bytesRead;
+    #parent;
+    #maxInflation;
     constructor(data, allowLoose, maxInflation) {
-        _Reader_instances.add(this);
-        _Reader_data.set(this, void 0);
-        _Reader_offset.set(this, void 0);
-        _Reader_bytesRead.set(this, void 0);
-        _Reader_parent.set(this, void 0);
-        _Reader_maxInflation.set(this, void 0);
         defineProperties(this, { allowLoose: !!allowLoose });
-        __classPrivateFieldSet(this, _Reader_data, getBytesCopy(data), "f");
-        __classPrivateFieldSet(this, _Reader_bytesRead, 0, "f");
-        __classPrivateFieldSet(this, _Reader_parent, null, "f");
-        __classPrivateFieldSet(this, _Reader_maxInflation, (maxInflation != null) ? maxInflation : 1024, "f");
-        __classPrivateFieldSet(this, _Reader_offset, 0, "f");
+        this.#data = getBytesCopy(data);
+        this.#bytesRead = 0;
+        this.#parent = null;
+        this.#maxInflation = (maxInflation != null) ? maxInflation : 1024;
+        this.#offset = 0;
     }
-    get data() { return hexlify(__classPrivateFieldGet(this, _Reader_data, "f")); }
-    get dataLength() { return __classPrivateFieldGet(this, _Reader_data, "f").length; }
-    get consumed() { return __classPrivateFieldGet(this, _Reader_offset, "f"); }
-    get bytes() { return new Uint8Array(__classPrivateFieldGet(this, _Reader_data, "f")); }
+    get data() { return hexlify(this.#data); }
+    get dataLength() { return this.#data.length; }
+    get consumed() { return this.#offset; }
+    get bytes() { return new Uint8Array(this.#data); }
+    #incrementBytesRead(count) {
+        if (this.#parent) {
+            return this.#parent.#incrementBytesRead(count);
+        }
+        this.#bytesRead += count;
+        // Check for excessive inflation (see: #4537)
+        assert(this.#maxInflation < 1 || this.#bytesRead <= this.#maxInflation * this.dataLength, `compressed ABI data exceeds inflation ratio of ${this.#maxInflation} ( see: https:/\/github.com/ethers-io/ethers.js/issues/4537 )`, "BUFFER_OVERRUN", {
+            buffer: getBytesCopy(this.#data), offset: this.#offset,
+            length: count, info: {
+                bytesRead: this.#bytesRead,
+                dataLength: this.dataLength
+            }
+        });
+    }
+    #peekBytes(offset, length, loose) {
+        let alignedLength = Math.ceil(length / WordSize) * WordSize;
+        if (this.#offset + alignedLength > this.#data.length) {
+            if (this.allowLoose && loose && this.#offset + length <= this.#data.length) {
+                alignedLength = length;
+            }
+            else {
+                assert(false, "data out-of-bounds", "BUFFER_OVERRUN", {
+                    buffer: getBytesCopy(this.#data),
+                    length: this.#data.length,
+                    offset: this.#offset + alignedLength
+                });
+            }
+        }
+        return this.#data.slice(this.#offset, this.#offset + alignedLength);
+    }
     // Create a sub-reader with the same underlying data, but offset
     subReader(offset) {
-        const reader = new Reader(__classPrivateFieldGet(this, _Reader_data, "f").slice(__classPrivateFieldGet(this, _Reader_offset, "f") + offset), this.allowLoose, __classPrivateFieldGet(this, _Reader_maxInflation, "f"));
-        __classPrivateFieldSet(reader, _Reader_parent, this, "f");
+        const reader = new Reader(this.#data.slice(this.#offset + offset), this.allowLoose, this.#maxInflation);
+        reader.#parent = this;
         return reader;
     }
     // Read bytes
     readBytes(length, loose) {
-        let bytes = __classPrivateFieldGet(this, _Reader_instances, "m", _Reader_peekBytes).call(this, 0, length, !!loose);
-        __classPrivateFieldGet(this, _Reader_instances, "m", _Reader_incrementBytesRead).call(this, length);
-        __classPrivateFieldSet(this, _Reader_offset, __classPrivateFieldGet(this, _Reader_offset, "f") + bytes.length, "f");
+        let bytes = this.#peekBytes(0, length, !!loose);
+        this.#incrementBytesRead(length);
+        this.#offset += bytes.length;
         // @TODO: Make sure the length..end bytes are all 0?
         return bytes.slice(0, length);
     }
@@ -392,33 +407,3 @@ export class Reader {
         return toNumber(this.readBytes(WordSize));
     }
 }
-_Reader_data = new WeakMap(), _Reader_offset = new WeakMap(), _Reader_bytesRead = new WeakMap(), _Reader_parent = new WeakMap(), _Reader_maxInflation = new WeakMap(), _Reader_instances = new WeakSet(), _Reader_incrementBytesRead = function _Reader_incrementBytesRead(count) {
-    var _a;
-    if (__classPrivateFieldGet(this, _Reader_parent, "f")) {
-        return __classPrivateFieldGet((_a = __classPrivateFieldGet(this, _Reader_parent, "f")), _Reader_instances, "m", _Reader_incrementBytesRead).call(_a, count);
-    }
-    __classPrivateFieldSet(this, _Reader_bytesRead, __classPrivateFieldGet(this, _Reader_bytesRead, "f") + count, "f");
-    // Check for excessive inflation (see: #4537)
-    assert(__classPrivateFieldGet(this, _Reader_maxInflation, "f") < 1 || __classPrivateFieldGet(this, _Reader_bytesRead, "f") <= __classPrivateFieldGet(this, _Reader_maxInflation, "f") * this.dataLength, `compressed ABI data exceeds inflation ratio of ${__classPrivateFieldGet(this, _Reader_maxInflation, "f")} ( see: https:/\/github.com/ethers-io/ethers.js/issues/4537 )`, "BUFFER_OVERRUN", {
-        buffer: getBytesCopy(__classPrivateFieldGet(this, _Reader_data, "f")), offset: __classPrivateFieldGet(this, _Reader_offset, "f"),
-        length: count, info: {
-            bytesRead: __classPrivateFieldGet(this, _Reader_bytesRead, "f"),
-            dataLength: this.dataLength
-        }
-    });
-}, _Reader_peekBytes = function _Reader_peekBytes(offset, length, loose) {
-    let alignedLength = Math.ceil(length / WordSize) * WordSize;
-    if (__classPrivateFieldGet(this, _Reader_offset, "f") + alignedLength > __classPrivateFieldGet(this, _Reader_data, "f").length) {
-        if (this.allowLoose && loose && __classPrivateFieldGet(this, _Reader_offset, "f") + length <= __classPrivateFieldGet(this, _Reader_data, "f").length) {
-            alignedLength = length;
-        }
-        else {
-            assert(false, "data out-of-bounds", "BUFFER_OVERRUN", {
-                buffer: getBytesCopy(__classPrivateFieldGet(this, _Reader_data, "f")),
-                length: __classPrivateFieldGet(this, _Reader_data, "f").length,
-                offset: __classPrivateFieldGet(this, _Reader_offset, "f") + alignedLength
-            });
-        }
-    }
-    return __classPrivateFieldGet(this, _Reader_data, "f").slice(__classPrivateFieldGet(this, _Reader_offset, "f"), __classPrivateFieldGet(this, _Reader_offset, "f") + alignedLength);
-};

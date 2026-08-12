@@ -26,70 +26,77 @@ import (
 )
 
 type ClientInterface interface {
-	Resolve(data interface{}, subHash interface{}) interface{}
-	Future(messageHash interface{}) <-chan interface{}
-	ReusableFuture(messageHash interface{}) *Future
-	Reject(err interface{}, messageHash ...interface{})
-	Send(message interface{}) <-chan interface{}
-	Reset(err interface{})
+	Resolve(data any, subHash any) any
+	Future(messageHash any) <-chan any
+	ReusableFuture(messageHash any) *Future
+	Reject(err any, messageHash ...any)
+	Send(message any) <-chan any
+	Reset(err any)
 	OnPong()
 	GetError() error
 	SetError(err error)
 	GetUrl() string
-	GetSubscriptions() map[string]interface{}
-	GetLastPong() interface{}
-	SetLastPong(lastPong interface{})
-	GetKeepAlive() interface{}
-	SetKeepAlive(keepAlive interface{})
-	GetFutures() map[string]interface{}
+	GetSubscriptions() any
+	GetRejections() map[string]any
+	GetLastPong() any
+	SetLastPong(lastPong any)
+	GetKeepAlive() any
+	SetKeepAlive(keepAlive any)
+	GetFutures() map[string]any
 }
 
 // Client is a thin wrapper around a single ws:// or wss:// connection.
 // Subscriptions are identified by an arbitrary hash string
 // Each Subscribe call returns a receive-only channel that the caller reads updates from.
 type Client struct {
-	Futures   map[string]interface{}
-	FuturesMu sync.RWMutex // protects Futures map
-	Url       string
+	Futures   map[string]any
+	FuturesMu sync.RWMutex // protects Futures map, PendingResults and Rejections
+	// PendingResults holds the latest resolved value per messageHash that
+	// arrived while no consumer future existed, so an update landing between
+	// a resolve and the consumer's next future is delivered instead of
+	// silently dropped, latest value wins matching watch coalescing
+	// semantics, see https://github.com/ccxt/ccxt/issues/28089 and
+	// https://github.com/ccxt/ccxt/issues/23251
+	PendingResults map[string]any
+	Url            string
 
 	Connection   *websocket.Conn
 	ConnectionMu sync.Mutex // protects conn writes
 
 	PongSetMu sync.RWMutex // protects LastPong set
 
-	Subscriptions   map[string]interface{} // map[string]chan interface{}
-	SubscriptionsMu sync.RWMutex
-	ConnectMu       sync.RWMutex // protects Connect calls
-	ReadLoopClosed  chan struct{}
+	Subscriptions  *sync.Map    // map[string]chan any - concurrency-safe, no external mutex required
+	ConnectMu      sync.RWMutex // protects Connect calls
+	ReadLoopClosed chan struct{}
 
 	Error error // last error, nil if connection considered healthy
 
-	Connected             interface{}            // *Future             		// signal channel for connection established
-	Disconnected          interface{}            // *Future              	// future for disconnection
-	Rejections            map[string]interface{} // map for rejection info
-	KeepAlive             interface{}            // number in milliseconds or seconds
-	ConnectionTimeout     interface{}            // e.g. *time.Timer or context.CancelFunc
-	Verbose               bool                   // default false
+	Connected             any            // *Future             		// signal channel for connection established
+	Disconnected          any            // *Future              	// future for disconnection
+	Rejections            map[string]any // map for rejection info
+	KeepAlive             any            // number in milliseconds or seconds
+	ConnectionTimeout     any            // e.g. *time.Timer or context.CancelFunc
+	Verbose               bool           // default false
 	DecompressBinary      bool
-	ConnectionTimer       interface{}                                   // e.g. *time.Timer or custom timer
-	LastPong              interface{}                                   // time or timestamp type recommended
-	MaxPingPongMisses     interface{}                                   // int or counter type
-	PingInterval          interface{}                                   // time.Duration recommended
-	ConnectionEstablished interface{}                                   // signal or state variable
-	Gunzip                interface{}                                   // gzip decompressor (e.g. io.Reader)
-	Inflate               interface{}                                   // zlib inflater or similar
-	URL                   string                                        // URL string
-	IsConnected           interface{}                                   // bool or state variable
-	OnConnectedCallback   func(client interface{}, message interface{}) // callback function signature - adjust as needed
-	OnMessageCallback     func(client interface{}, message interface{}) // example callback with message
-	OnErrorCallback       func(client interface{}, err interface{})     // error callback
-	OnCloseCallback       func(client interface{}, err interface{})     // connection closed callback
-	Ping                  interface{}                                   // e.g. timer or pong/ping state
-	Throttle              interface{}                                   // throttling mechanism (rate limiter, etc.)
-	// Owner interface{} 											// pointer to the exchange that created the client
+	ConnectionTimer       any                           // e.g. *time.Timer or custom timer
+	LastPong              any                           // time or timestamp type recommended
+	MaxPingPongMisses     any                           // int or counter type
+	PingInterval          any                           // time.Duration recommended
+	ConnectionEstablished any                           // signal or state variable
+	Gunzip                any                           // gzip decompressor (e.g. io.Reader)
+	Inflate               any                           // zlib inflater or similar
+	URL                   string                        // URL string
+	IsConnected           any                           // bool or state variable
+	OnConnectedCallback   func(client any, message any) // callback function signature - adjust as needed
+	OnMessageCallback     func(client any, message any) // example callback with message
+	OnErrorCallback       func(client any, err any)     // error callback
+	OnCloseCallback       func(client any, err any)     // connection closed callback
+	Ping                  any                           // e.g. timer or pong/ping state
+	Throttle              any                           // throttling mechanism (rate limiter, etc.)
+	// Owner any 											// pointer to the exchange that created the client
 }
 
-func (this *Client) Resolve(data interface{}, subHash interface{}) interface{} {
+func (this *Client) Resolve(data any, subHash any) any {
 	hash, ok := subHash.(string)
 	if !ok {
 		panic(fmt.Sprintf("subHash must be a string, got %T: %v", subHash, subHash))
@@ -101,44 +108,76 @@ func (this *Client) Resolve(data interface{}, subHash interface{}) interface{} {
 		// Print("Inside resolve, existed future for hash: " + hash)
 		fut.(*Future).Resolve(data)
 		delete(this.Futures, hash)
+	} else {
+		// no consumer future right now, keep the latest value so the next
+		// NewFuture call is resolved with it instead of waiting for data
+		// that already arrived
+		if this.PendingResults == nil {
+			this.PendingResults = map[string]any{}
+		}
+		this.PendingResults[hash] = data
+		// a successful resolve after a retained error means the stream
+		// recovered, the stale error must not fail a later waiter, pending
+		// value and retained rejection stay mutually exclusive per hash
+		delete(this.Rejections, hash)
 	}
 	this.FuturesMu.Unlock()
 	return data
 }
 
-func (this *Client) Future(messageHash interface{}) <-chan interface{} {
+func (this *Client) Future(messageHash any) <-chan any {
 	future := this.NewFuture(messageHash)
 	return future.Await()
 }
 
-func (this *Client) ReusableFuture(messageHash interface{}) *Future {
+func (this *Client) ReusableFuture(messageHash any) *Future {
 	future := this.NewFuture(messageHash)
 	return future
 }
 
-func (this *Client) NewFuture(messageHash interface{}) *Future {
+func (this *Client) NewFuture(messageHash any) *Future {
 	hash, _ := messageHash.(string)
 	this.FuturesMu.Lock()
+	// a value that arrived while no future existed satisfies this consumer
+	// immediately, the spent future intentionally stays out of the map so
+	// the next consumer waits for fresh data
+	if pending, ok := this.PendingResults[hash]; ok {
+		delete(this.PendingResults, hash)
+		this.FuturesMu.Unlock()
+		future := NewFuture()
+		future.Resolve(pending)
+		return future
+	}
+	// a retained rejection fails this consumer fast, symmetric with the
+	// pending drain above: the spent future stays out of the map so the
+	// next consumer is not poisoned by the old error. Rejections shares
+	// FuturesMu, the unlocked read and delete here was a concurrent map
+	// access race with Reject
+	if err, ok := this.Rejections[hash]; ok {
+		delete(this.Rejections, hash)
+		this.FuturesMu.Unlock()
+		future := NewFuture()
+		future.Reject(err.(error))
+		return future
+	}
 	if _, ok := this.Futures[hash]; !ok {
 		this.Futures[hash] = NewFuture()
 	}
 	future := this.Futures[hash]
 	this.FuturesMu.Unlock()
-	if err, ok := this.Rejections[hash]; ok {
-		future.(*Future).Reject(err.(error))
-		delete(this.Rejections, hash)
-	}
 	return future.(*Future)
 }
 
 // Reject rejects specific future or all
-func (this *Client) Reject(err interface{}, messageHash ...interface{}) {
+func (this *Client) Reject(err any, messageHash ...any) {
 	this.FuturesMu.Lock()
 	if len(messageHash) == 0 {
 		for hash := range this.Futures {
 			this.Futures[hash].(*Future).Reject(err.(error))
 			delete(this.Futures, hash)
 		}
+		// stale pre-error values must not satisfy post-error consumers
+		this.PendingResults = nil
 		this.FuturesMu.Unlock()
 		return
 	}
@@ -146,7 +185,17 @@ func (this *Client) Reject(err interface{}, messageHash ...interface{}) {
 	if fut, ok := this.Futures[hash.(string)]; ok {
 		fut.(*Future).Reject(err.(error))
 		delete(this.Futures, hash.(string))
+	} else {
+		// ts parity: an error arriving while no consumer future exists is
+		// retained so the next NewFuture fails fast instead of the error
+		// being dropped, the same arrived before waiter class as the
+		// resolve retention above
+		if this.Rejections == nil {
+			this.Rejections = map[string]any{}
+		}
+		this.Rejections[hash.(string)] = err
 	}
+	delete(this.PendingResults, hash.(string))
 	this.FuturesMu.Unlock()
 }
 
@@ -169,9 +218,9 @@ func (this *Client) Close() error {
 
 // NewClient creates a new WebSocket client with the given URL and callbacks
 // Matches the TypeScript constructor exactly with all the same properties
-func NewClient(url string, onMessageCallback func(client interface{}, err interface{}), onErrorCallback func(client interface{}, err interface{}), onCloseCallback func(client interface{}, err interface{}), onConnectedCallback func(client interface{}, err interface{}), config ...map[string]interface{}) *Client {
+func NewClient(url string, onMessageCallback func(client any, err any), onErrorCallback func(client any, err any), onCloseCallback func(client any, err any), onConnectedCallback func(client any, err any), config ...map[string]any) *Client {
 	// Set up defaults exactly like TypeScript constructor
-	defaults := map[string]interface{}{
+	defaults := map[string]any{
 		"Url":                   url,
 		"OnMessageCallback":     onMessageCallback,
 		"OnErrorCallback":       onErrorCallback,
@@ -180,9 +229,9 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 		"Verbose":               false,
 		"Protocols":             nil,
 		"Options":               nil,
-		"Futures":               make(map[string]interface{}),
-		"Subscriptions":         make(map[string]interface{}), // map[string]chan interface{}
-		"Rejections":            make(map[string]interface{}),
+		"Futures":               make(map[string]any),
+		"Subscriptions":         &sync.Map{}, // map[string]chan any
+		"Rejections":            make(map[string]any),
 		"Connected":             nil,
 		"Error":                 nil,
 		"ConnectionStarted":     nil,
@@ -214,9 +263,10 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 	// Create the client with all properties from TypeScript constructor
 	c := &Client{
 		Url:                 url,
-		Futures:             finalConfig["Futures"].(map[string]interface{}),
-		Subscriptions:       finalConfig["Subscriptions"].(map[string]interface{}), // map[string]chan interface{}
-		Rejections:          finalConfig["Rejections"].(map[string]interface{}),
+		Futures:             finalConfig["Futures"].(map[string]any),
+		PendingResults:      map[string]any{},
+		Subscriptions:       finalConfig["Subscriptions"].(*sync.Map), // map[string]chan any
+		Rejections:          finalConfig["Rejections"].(map[string]any),
 		Verbose:             finalConfig["Verbose"].(bool),
 		KeepAlive:           ParseInt(finalConfig["keepAlive"]),
 		MaxPingPongMisses:   finalConfig["MaxPingPongMisses"],
@@ -284,9 +334,9 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 
 // 		// forward decoded JSON frames to exchange.HandleMessage
 // 		if this.Owner != nil {
-// 			var msg interface{}
+// 			var msg any
 // 			if err := json.Unmarshal(data, &msg); err == nil {
-// 				if h, ok := this.Owner.(interface{ HandleMessage(client interface{}, message interface{}) }); ok {
+// 				if h, ok := this.Owner.(interface{ HandleMessage(client any, message any) }); ok {
 // 					h.HandleMessage(this, msg)
 // 				}
 // 			}
@@ -304,7 +354,7 @@ func (this *Client) OnPong() {
 	}
 }
 
-func (this *Client) Reset(err interface{}) {
+func (this *Client) Reset(err any) {
 	// Stop any active timers/intervals
 	if t, ok := this.ConnectionTimer.(*time.Timer); ok {
 		t.Stop()
@@ -321,16 +371,16 @@ func (this *Client) Reset(err interface{}) {
 	this.Reject(err)
 }
 
-func (this *Client) Log(args ...interface{}) {
+func (this *Client) Log(args ...any) {
 	fmt.Println(args...)
 	// fmt.Printf("%+v\n", args) // equivalent to console.dir with depth
 }
 
-func (this *Client) Connect(backoffDelay ...int) (interface{}, error) {
+func (this *Client) Connect(backoffDelay ...int) (any, error) {
 	return nil, NotSupported(this.Url + " connect() not implemented yet")
 }
 
-func (this *Client) IsOpen() (interface{}, error) {
+func (this *Client) IsOpen() (any, error) {
 	return nil, NotSupported(this.Url + " isOpen() not implemented yet")
 }
 
@@ -378,7 +428,7 @@ func (this *Client) OnPongTS() {
 	}
 }
 
-func (this *Client) OnError(err interface{}) {
+func (this *Client) OnError(err any) {
 	if this.Verbose {
 		this.Log(time.Now(), "onError", err)
 	}
@@ -393,7 +443,7 @@ func (this *Client) OnError(err interface{}) {
 	}
 }
 
-func (this *Client) OnClose(event interface{}) {
+func (this *Client) OnClose(event any) {
 	if this.Verbose {
 		this.Log(time.Now(), "onClose", event)
 	}
@@ -414,13 +464,13 @@ func (this *Client) OnClose(event interface{}) {
 
 // this method is not used at this time
 // but may be used to read protocol-level data like cookies, headers, etc
-func (this *Client) OnUpgrade(message interface{}) {
+func (this *Client) OnUpgrade(message any) {
 	if this.Verbose {
 		this.Log(time.Now(), "onUpgrade")
 	}
 }
 
-func (this *Client) Send(message interface{}) <-chan interface{} {
+func (this *Client) Send(message any) <-chan any {
 	var msgStr string
 	if str, ok := message.(string); ok {
 		msgStr = str
@@ -434,13 +484,16 @@ func (this *Client) Send(message interface{}) <-chan interface{} {
 	}
 
 	future := NewFuture()
-	ch := make(chan interface{})
+	ch := make(chan any)
 	go func() {
 		this.ConnectionMu.Lock()
 		// ? if (isNode)
 		if this.Connection == nil {
 			err := NetworkError("not connected to " + this.Url)
 			future.Reject(err)
+			// the caller receives on ch (see Exchange.watch); without sending here
+			// it would block forever when the connection is not established
+			ch <- err
 		} else {
 			err := this.Connection.WriteMessage(websocket.TextMessage, []byte(msgStr))
 			if err != nil {
@@ -458,7 +511,7 @@ func (this *Client) Send(message interface{}) <-chan interface{} {
 	return ch
 }
 
-func (this *Client) CloseConnection() (interface{}, error) {
+func (this *Client) CloseConnection() (any, error) {
 	return nil, NotSupported(this.Url + " close() not implemented yet")
 }
 
@@ -477,16 +530,16 @@ func gunzipData(data []byte) ([]byte, error) {
 }
 
 func IsJSON(b []byte) bool {
-	var js interface{}
+	var js any
 	return json.Unmarshal(b, &js) == nil
 }
 
-func (this *Client) OnMessage(messageEvent interface{}) {
+func (this *Client) OnMessage(messageEvent any) {
 	// if we use onmessage we get MessageEvent objects
 	// MessageEvent {isTrusted: true, data: "{"e":"depthUpdate","E":1581358737706,"s":"ETHBTC",…"0.06200000"]],"a":[["0.02261300","0.00000000"]]}", origin: "wss://stream.binance.com:9443", lastEventId: "", source: null, …}
 
-	var message interface{}
-	if eventMap, ok := messageEvent.(map[string]interface{}); ok {
+	var message any
+	if eventMap, ok := messageEvent.(map[string]any); ok {
 		if data, exists := eventMap["data"]; exists {
 			message = data
 		}
@@ -523,7 +576,7 @@ func (this *Client) OnMessage(messageEvent interface{}) {
 	}
 
 	// Try to parse as JSON
-	var parsedMessage interface{}
+	var parsedMessage any
 	if this.IsJsonEncodedObject(messageStr) {
 		// Replace large numbers with strings to prevent precision loss
 		re := regexp.MustCompile(`:(\d{15,}),`)
@@ -577,30 +630,37 @@ func (this *Client) GetUrl() string {
 	return this.Url
 }
 
-func (this *Client) GetSubscriptions() map[string]interface{} {
+// GetSubscriptions returns the live *sync.Map of subscriptions (by reference), so callers
+// (and the *sync.Map-aware helpers like Remove/AddElementToObject/ObjectKeys) mutate the
+// real subscriptions. It is concurrency-safe: sync.Map handles concurrent access internally.
+func (this *Client) GetSubscriptions() any {
 	return this.Subscriptions
 }
 
-func (this *Client) GetLastPong() interface{} {
+func (this *Client) GetRejections() map[string]any {
+	return this.Rejections
+}
+
+func (this *Client) GetLastPong() any {
 	this.PongSetMu.RLock()
 	defer this.PongSetMu.RUnlock()
 	return this.LastPong
 }
-func (this *Client) SetLastPong(lastPong interface{}) {
+func (this *Client) SetLastPong(lastPong any) {
 	this.PongSetMu.Lock()
 	defer this.PongSetMu.Unlock()
 	this.LastPong = lastPong
 }
-func (this *Client) SetKeepAlive(keepAlive interface{}) {
+func (this *Client) SetKeepAlive(keepAlive any) {
 	this.KeepAlive = keepAlive
 }
-func (this *Client) GetKeepAlive() interface{} {
+func (this *Client) GetKeepAlive() any {
 	return this.KeepAlive
 }
-func (this *Client) GetFutures() map[string]interface{} {
+func (this *Client) GetFutures() map[string]any {
 	return this.Futures
 }
 
 type wsMessageHandler interface {
-	HandleMessage(client *Client, msg interface{})
+	HandleMessage(client *Client, msg any)
 }

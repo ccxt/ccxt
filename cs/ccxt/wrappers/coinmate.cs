@@ -7,7 +7,7 @@ namespace ccxt;
 public partial class coinmate
 {
     /// <summary>
-    /// fetches the current integer timestamp in milliseconds from the bingx server
+    /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
     /// See <see href="https://coinmate.docs.apiary.io/#reference/system/get-server-time/get"/>  <br/>
@@ -20,7 +20,7 @@ public partial class coinmate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>int</term> the current integer timestamp in milliseconds from the bingx server.</returns>
+    /// <returns> <term>int</term> the current integer timestamp in milliseconds from the exchange server.</returns>
     public async Task<Int64> FetchTime(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTime(parameters);
@@ -86,7 +86,7 @@ public partial class coinmate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;

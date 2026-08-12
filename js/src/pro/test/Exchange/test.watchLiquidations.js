@@ -13,14 +13,16 @@ async function testWatchLiquidations(exchange, skippedProperties, symbol) {
     // we have to skip some exchanges here due to the frequency of trading
     const skippedExchanges = [];
     if (exchange.inArray(exchange.id, skippedExchanges)) {
-        console.log(exchange.id, method + '() test skipped');
+        const m1 = (exchange.id + ' ' + method + '() test skipped');
+        console.log(m1);
         return false;
     }
     if (!exchange.has[method]) {
-        console.log(exchange.id, 'does not support', method + '() method');
+        const m2 = (exchange.id + ' does not support ' + method + '() method');
+        console.log(m2);
         return false;
     }
-    let response = undefined;
+    let response = [];
     let now = Date.now();
     const ends = now + 10000;
     while (now < ends) {
@@ -29,7 +31,8 @@ async function testWatchLiquidations(exchange, skippedProperties, symbol) {
             now = Date.now();
             const isArray = Array.isArray(response);
             assert(isArray, "response must be an array");
-            console.log(exchange.iso8601(now), exchange.id, symbol, method, Object.values(response).length, 'liquidations');
+            const m3 = (exchange.id + ' ' + method + '() returned ' + response.length + ' liquidations');
+            console.log(m3);
             // log.noLocate (asTable (response))
             for (let i = 0; i < response.length; i++) {
                 testLiquidation(exchange, skippedProperties, method, response[i], symbol);

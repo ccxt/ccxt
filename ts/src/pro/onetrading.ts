@@ -2,16 +2,16 @@
 //  ---------------------------------------------------------------------------
 
 import onetradingRest from '../onetrading.js';
-import { NotSupported, ExchangeError } from '../base/errors.js';
+import { ArgumentsRequired, NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, Bool } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, List, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class onetrading extends onetradingRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -27,7 +27,7 @@ export default class onetrading extends onetradingRest {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://streams.onetrading.com/',
+                    'ws': 'wss://streams.fast.onetrading.com',
                 },
             },
             'options': {
@@ -86,7 +86,7 @@ export default class onetrading extends onetradingRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         await this.authenticate (params);
         const url = this.urls['api']['ws'];
         const messageHash = 'balance';
@@ -105,7 +105,7 @@ export default class onetrading extends onetradingRest {
         return await this.watch (url, messageHash, request, subscribeHash, request);
     }
 
-    handleBalanceSnapshot (client, message) {
+    handleBalanceSnapshot (client: Client, message: any) {
         //
         // snapshot
         //     {
@@ -148,8 +148,10 @@ export default class onetrading extends onetradingRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const subscriptionHash = 'MARKET_TICKER';
@@ -175,8 +177,10 @@ export default class onetrading extends onetradingRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         if (symbols === undefined) {
             symbols = [];
@@ -196,7 +200,7 @@ export default class onetrading extends onetradingRest {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //     {
         //         "ticker_updates": [{
@@ -228,7 +232,7 @@ export default class onetrading extends onetradingRest {
         client.resolve (this.tickers, 'tickers');
     }
 
-    parseWSTicker (ticker, market = undefined) {
+    parseWSTicker (ticker: any, market: Market = undefined) {
         //
         //     {
         //         "instrument": "ETH_BTC",
@@ -276,8 +280,10 @@ export default class onetrading extends onetradingRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -313,15 +319,17 @@ export default class onetrading extends onetradingRest {
     /**
      * @method
      * @name onetrading#watchOrderBook
-     * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
+     * @see https://docs.onetrading.com/websocket/orderbook/introduction
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'book:' + symbol;
@@ -343,7 +351,7 @@ export default class onetrading extends onetradingRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //  snapshot
         //     {
@@ -398,11 +406,11 @@ export default class onetrading extends onetradingRest {
         client.resolve (orderbook, channel);
     }
 
-    handleDelta (orderbook, delta) {
+    override handleDelta (orderbook: any, delta: any) {
         //
         //   [ 'BUY', "0.053595", "0" ]
         //
-        const bidAsk = this.parseBidAsk (delta, 1, 2);
+        const bidAsk = this.parseOrderBookBidAsk (delta, 1, 2);
         const type = this.safeString (delta, 0);
         if (type === 'BUY') {
             const bids = orderbook['bids'];
@@ -415,7 +423,7 @@ export default class onetrading extends onetradingRest {
         }
     }
 
-    handleDeltas (orderbook, deltas) {
+    override handleDeltas (orderbook: any, deltas: any) {
         //
         //    [
         //       [ 'BUY', "0.053593", "0" ],
@@ -439,8 +447,10 @@ export default class onetrading extends onetradingRest {
      * @param {string} [params.channel] can listen to orders using ACCOUNT_HISTORY or TRADING
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let messageHash = 'orders';
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -473,7 +483,7 @@ export default class onetrading extends onetradingRest {
         return orders;
     }
 
-    handleTrading (client: Client, message) {
+    handleTrading (client: Client, message: any) {
         //
         //     {
         //         "order_book_sequence": 892925263,
@@ -529,7 +539,7 @@ export default class onetrading extends onetradingRest {
         client.resolve (this.orders, 'orders');
     }
 
-    parseTradingOrder (order, market = undefined) {
+    parseTradingOrder (order: any, market: Market = undefined) {
         //
         //     {
         //         "order_book_sequence": 892925263,
@@ -642,7 +652,7 @@ export default class onetrading extends onetradingRest {
         }, market);
     }
 
-    parseTradingOrderStatus (status) {
+    parseTradingOrderStatus (status: any) {
         const statuses: Dict = {
             'CANCELLED': 'canceled',
             'SELF_TRADE': 'rejected',
@@ -655,7 +665,7 @@ export default class onetrading extends onetradingRest {
         return this.safeString (statuses, status, status);
     }
 
-    handleOrders (client: Client, message) {
+    handleOrders (client: Client, message: any) {
         //
         //  snapshot
         //     {
@@ -742,7 +752,7 @@ export default class onetrading extends onetradingRest {
         client.resolve (this.myTrades, 'myTrades');
     }
 
-    handleAccountUpdate (client: Client, message) {
+    handleAccountUpdate (client: Client, message: any) {
         //
         // order created
         //     {
@@ -972,7 +982,7 @@ export default class onetrading extends onetradingRest {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
-        let symbol = undefined;
+        let symbol: Str = undefined;
         const orders = this.orders;
         const update = this.safeValue (message, 'update', {});
         const updateType = this.safeString (update, 'type');
@@ -1022,7 +1032,7 @@ export default class onetrading extends onetradingRest {
         }
     }
 
-    parseWsOrderStatus (status) {
+    parseWsOrderStatus (status: any) {
         const statuses: Dict = {
             'ORDER_REJECTED': 'rejected',
             'ORDER_CLOSED': 'closed',
@@ -1031,7 +1041,7 @@ export default class onetrading extends onetradingRest {
         return this.safeString (statuses, status, status);
     }
 
-    updateBalance (balance) {
+    updateBalance (balance: any) {
         //
         //     {
         //         "currency_code": "EUR",
@@ -1045,7 +1055,9 @@ export default class onetrading extends onetradingRest {
         const account = this.account ();
         account['free'] = this.safeString (balance, 'new_available');
         account['used'] = this.safeString (balance, 'new_locked');
-        this.balance[code] = account;
+        if (code !== undefined) {
+            this.balance[code] = account;
+        }
         this.balance = this.safeBalance (this.balance);
     }
 
@@ -1061,8 +1073,10 @@ export default class onetrading extends onetradingRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const marketId = market['id'];
@@ -1076,7 +1090,7 @@ export default class onetrading extends onetradingRest {
         const subscriptionHash = 'CANDLESTICKS';
         const client = this.safeValue (this.clients, url);
         let type = 'SUBSCRIBE';
-        let subscription = {};
+        let subscription: Dict = {};
         if (client !== undefined) {
             subscription = this.safeValue (client.subscriptions, subscriptionHash);
             if (subscription !== undefined) {
@@ -1092,10 +1106,14 @@ export default class onetrading extends onetradingRest {
         }
         const subscriptionMarketId = this.safeValue (subscription, marketId);
         if (subscriptionMarketId === undefined) {
-            subscription[marketId] = {};
+            if (marketId !== undefined) {
+                subscription[marketId] = {};
+            }
         }
-        subscription[marketId][timeframe] = true;
-        const properties = [];
+        if ((marketId !== undefined) && (timeframe !== undefined)) {
+            subscription[marketId][timeframe] = true;
+        }
+        const properties: List = [];
         const marketIds = Object.keys (subscription);
         for (let i = 0; i < marketIds.length; i++) {
             const marketIdtimeframes = Object.keys (subscription[marketIds[i]]);
@@ -1124,7 +1142,7 @@ export default class onetrading extends onetradingRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //  snapshot
         //     {
@@ -1175,18 +1193,23 @@ export default class onetrading extends onetradingRest {
             this.safeNumber (message, 'volume'),
         ];
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
         }
         stored.append (parsed);
-        this.ohlcvs[symbol][timeframe] = stored;
+        if (symbol !== undefined && timeframe !== undefined) {
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
         client.resolve (stored, channel);
     }
 
-    findTimeframe (timeframe, timeframes = undefined) {
+    override findTimeframe (timeframe: any, timeframes: any = undefined) {
         timeframes = timeframes || this.timeframes;
+        if (timeframes === undefined) {
+            throw new ArgumentsRequired (this.id + ' findTimeframe() timeframes is required');
+        }
         const keys = Object.keys (timeframes);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -1197,7 +1220,7 @@ export default class onetrading extends onetradingRest {
         return undefined;
     }
 
-    handleSubscriptions (client: Client, message) {
+    handleSubscriptions (client: Client, message: any) {
         //
         //     {
         //         "channels": [{
@@ -1212,7 +1235,7 @@ export default class onetrading extends onetradingRest {
         return message;
     }
 
-    handleHeartbeat (client: Client, message) {
+    handleHeartbeat (client: Client, message: any) {
         //
         //     {
         //         "subscription": "SYSTEM",
@@ -1224,7 +1247,7 @@ export default class onetrading extends onetradingRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //     {
         //         "error": "MALFORMED_JSON",
@@ -1236,7 +1259,7 @@ export default class onetrading extends onetradingRest {
         throw new ExchangeError (this.id + ' ' + this.json (message));
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         const error = this.safeValue (message, 'error');
         if (error !== undefined) {
             this.handleErrorMessage (client, message);
@@ -1275,7 +1298,7 @@ export default class onetrading extends onetradingRest {
         }
     }
 
-    handlePricePointUpdates (client: Client, message) {
+    handlePricePointUpdates (client: Client, message: any) {
         //
         //     {
         //         "channel_name": "MARKET_TICKER",
@@ -1297,7 +1320,7 @@ export default class onetrading extends onetradingRest {
         return message;
     }
 
-    handleAuthenticationMessage (client: Client, message) {
+    handleAuthenticationMessage (client: Client, message: any) {
         //
         //    {
         //        "channel_name": "SYSTEM",
@@ -1312,18 +1335,22 @@ export default class onetrading extends onetradingRest {
         return message;
     }
 
-    async watchMany (messageHash, request, subscriptionHash, symbols: Strings = [], params = {}) {
-        let marketIds = [];
+    async watchMany (messageHash: any, request: any, subscriptionHash: any, symbols: Strings = [], params = {}) {
+        let marketIds: string[] = [];
         const numSymbols = symbols.length;
         if (numSymbols === 0) {
-            marketIds = Object.keys (this.markets_by_id);
+            const marketsById = this.markets_by_id;
+            if (marketsById === undefined) {
+                return [];
+            }
+            marketIds = Object.keys (marketsById);
         } else {
             marketIds = this.marketIds (symbols);
         }
         const url = this.urls['api']['ws'];
         const client = this.safeValue (this.clients, url);
         let type = 'SUBSCRIBE';
-        let subscription = {};
+        let subscription: Dict = {};
         if (client !== undefined) {
             subscription = this.safeValue (client.subscriptions, subscriptionHash);
             if (subscription !== undefined) {

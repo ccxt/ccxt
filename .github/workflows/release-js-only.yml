@@ -9,8 +9,8 @@ on:
         default: 'default-value'
 
 permissions:
+  id-token: write
   contents: write
-
 
 jobs:
   manual-job:
@@ -23,21 +23,31 @@ jobs:
         run: |
           echo "This workflow was triggered manually."
           echo "Input value: ${{ github.event.inputs.example_input }}"
-      - uses: actions/checkout@v4
+      - name: Generate App token
         if: github.ref == 'refs/heads/master'
+        id: app-token
+        uses: actions/create-github-app-token@v3
         with:
-          token: ${{ secrets.GH_TOKEN }}
+          client-id: ${{ secrets.CCXT_APP_CLIENT_ID }}
+          private-key: ${{ secrets.CCXT_APP_PRIVATE_KEY }}
+          permission-contents: write
+      - uses: actions/checkout@v6
+        with:
+          token: ${{ github.ref == 'refs/heads/master' && steps.app-token.outputs.token || github.token }}
           fetch-depth: 2
           fetch-tags: true
-      - uses: actions/checkout@v4
-        if: github.ref != 'refs/heads/master'
+      - uses: actions/setup-node@v6
         with:
-          fetch-depth: 2
-          fetch-tags: true
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false  # never use caching in release builds
       - name: Install NPM dependencies
         run: npm ci
+      - name: Pre-transpile
+        run: npm run  pre-transpile-js
       - name: Transpile TS
         run: npm run tsBuild
-      - uses: JS-DevTools/npm-publish@v3
-        with:
-          token: ${{ secrets.NPM_PROD }}
+      - run: node -v && npm -v
+      - run: npm publish --provenance
+        env:
+          NPM_CONFIG_PROVENANCE: true

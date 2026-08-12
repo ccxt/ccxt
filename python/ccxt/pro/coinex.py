@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -105,7 +105,7 @@ class coinex(ccxt.async_support.coinex):
         self.unlock_id()
         return requestId
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         #  spot
         #
@@ -186,7 +186,7 @@ class coinex(ccxt.async_support.coinex):
                 client.resolve(tickers, messageHash)
         client.resolve(newTickers, 'tickers')
 
-    def parse_ws_ticker(self, ticker, market=None):
+    def parse_ws_ticker(self, ticker: Any, market: Market = None):
         #
         #  spot
         #
@@ -261,7 +261,8 @@ class coinex(ccxt.async_support.coinex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params, 'spot')
         await self.authenticate(type)
@@ -277,7 +278,7 @@ class coinex(ccxt.async_support.coinex):
             messageHash += ':spot'
         else:
             messageHash += ':swap'
-        subscribe: dict = {
+        subscribe = {
             'method': 'balance.subscribe',
             'params': {'ccy_list': currencies},
             'id': self.request_id(),
@@ -285,7 +286,7 @@ class coinex(ccxt.async_support.coinex):
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: Any):
         #
         # spot
         #
@@ -359,7 +360,7 @@ class coinex(ccxt.async_support.coinex):
             messageHash = 'balances:' + account
             client.resolve(self.balance[account], messageHash)
 
-    def parse_ws_balance(self, balance, accountType=None):
+    def parse_ws_balance(self, balance: Any, accountType: Str = None):
         #
         # spot
         #
@@ -391,9 +392,11 @@ class coinex(ccxt.async_support.coinex):
         if accountType is not None:
             if self.safe_value(self.balance, accountType) is None:
                 self.balance[accountType] = {}
-            self.balance[accountType][code] = account
+            if (accountType is not None) and (code is not None):
+                self.balance[accountType][code] = account
         else:
-            self.balance[code] = account
+            if code is not None:
+                self.balance[code] = account
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -408,7 +411,8 @@ class coinex(ccxt.async_support.coinex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -427,7 +431,7 @@ class coinex(ccxt.async_support.coinex):
                 messageHash += ':spot'
             else:
                 messageHash += ':swap'
-        message: dict = {
+        message = {
             'method': 'user_deals.subscribe',
             'params': {'market_list': subscribedSymbols},
             'id': self.request_id(),
@@ -438,7 +442,7 @@ class coinex(ccxt.async_support.coinex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client: Client, message):
+    def handle_my_trades(self, client: Client, message: Any):
         #
         #     {
         #         "method": "user_deals.update",
@@ -477,7 +481,7 @@ class coinex(ccxt.async_support.coinex):
         client.resolve(self.trades[symbol], messageWithType)
         client.resolve(self.trades[symbol], messageHash)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         # spot
         #
@@ -537,7 +541,7 @@ class coinex(ccxt.async_support.coinex):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade: Any, market: Market = None):
         #
         # spot watchTrades
         #
@@ -580,7 +584,7 @@ class coinex(ccxt.async_support.coinex):
         defaultType = 'spot' if isSpot else 'swap'
         marketId = self.safe_string(trade, 'market')
         market = self.safe_market(marketId, market, None, defaultType)
-        fee: dict = {}
+        fee = {}
         feeCost = self.omit_zero(self.safe_string(trade, 'fee'))
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_ccy', market['quote'])
@@ -615,7 +619,8 @@ class coinex(ccxt.async_support.coinex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         tickers = await self.watch_tickers([symbol], params)
         return tickers[market['symbol']]
@@ -631,7 +636,8 @@ class coinex(ccxt.async_support.coinex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         marketIds = self.market_ids(symbols)
         market = None
         messageHashes = []
@@ -648,7 +654,7 @@ class coinex(ccxt.async_support.coinex):
         type, params = self.handle_market_type_and_params('watchTickers', market, params)
         url = self.urls['api']['ws'][type]
         subscriptionHashes = ['all@ticker']
-        subscribe: dict = {
+        subscribe = {
             'method': 'state.subscribe',
             'params': {'market_list': marketIds},
             'id': self.request_id(),
@@ -658,7 +664,7 @@ class coinex(ccxt.async_support.coinex):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -687,7 +693,8 @@ class coinex(ccxt.async_support.coinex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         subscribedSymbols = []
         messageHashes = []
         market = None
@@ -706,7 +713,7 @@ class coinex(ccxt.async_support.coinex):
         type, params = self.handle_market_type_and_params(callerMethodName, market, params)
         url = self.urls['api']['ws'][type]
         # subscriptionHashes = ['trades']
-        subscribe: dict = {
+        subscribe = {
             'method': 'deals.subscribe',
             'params': {'market_list': subscribedSymbols},
             'id': self.request_id(),
@@ -726,10 +733,11 @@ class coinex(ccxt.async_support.coinex):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
-        watchOrderBookSubscriptions: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        watchOrderBookSubscriptions = {}
         messageHashes = []
         market = None
         type = None
@@ -757,7 +765,7 @@ class coinex(ccxt.async_support.coinex):
             watchOrderBookSubscriptions[symbol] = [market['id'], limit, aggregation, True]
         type, params = self.handle_market_type_and_params(callerMethodName, market, params)
         marketList = list(watchOrderBookSubscriptions.values())
-        subscribe: dict = {
+        subscribe = {
             'method': 'depth.subscribe',
             'params': {'market_list': marketList},
             'id': self.request_id(),
@@ -769,7 +777,7 @@ class coinex(ccxt.async_support.coinex):
             return orderbooks
         return orderbooks.limit()
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -779,20 +787,20 @@ class coinex(ccxt.async_support.coinex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         params['callerMethodName'] = 'watchOrderBook'
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
-    def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta, 0, 1)
+    def handle_delta(self, bookside: Any, delta: Any):
+        bidAsk = self.parse_order_book_bid_ask(delta, 0, 1)
         bookside.storeArray(bidAsk)
 
-    def handle_deltas(self, bookside, deltas):
+    def handle_deltas(self, bookside: Any, deltas: Any):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         #     {
         #         "method": "depth.update",
@@ -865,7 +873,8 @@ class coinex(ccxt.async_support.coinex):
         :param bool [params.trigger]: if the orders to watch are trigger orders or not
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         trigger = self.safe_bool_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
         messageHash = 'orders'
@@ -891,7 +900,7 @@ class coinex(ccxt.async_support.coinex):
             method = 'stop.subscribe'
         else:
             method = 'order.subscribe'
-        message: dict = {
+        message = {
             'method': method,
             'params': {'market_list': marketList},
             'id': self.request_id(),
@@ -903,7 +912,7 @@ class coinex(ccxt.async_support.coinex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client: Client, message):
+    def handle_orders(self, client: Client, message: Any):
         #
         # spot
         #
@@ -1021,7 +1030,7 @@ class coinex(ccxt.async_support.coinex):
         #     }
         #
         data = self.safe_dict(message, 'data', {})
-        order = self.safe_dict_2(data, 'order', 'stop', {})
+        order = self.extend({'status': self.safe_string(data, 'event')}, self.safe_dict_2(data, 'order', 'stop', {}))
         parsedOrder = self.parse_ws_order(order)
         symbol = parsedOrder['symbol']
         market = self.market(symbol)
@@ -1036,7 +1045,7 @@ class coinex(ccxt.async_support.coinex):
         messageHash += ':' + symbol
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order: Any, market: Market = None):
         #
         # spot
         #
@@ -1164,11 +1173,15 @@ class coinex(ccxt.async_support.coinex):
             'trades': None,
         }, market)
 
-    def parse_ws_order_status(self, status):
-        statuses: dict = {
+    def parse_ws_order_status(self, status: Any):
+        statuses = {
             'active_success': 'open',
             'active_fail': 'canceled',
             'cancel': 'canceled',
+            'put': 'open',
+            'update': 'open',
+            'modify': 'open',
+            'finish': 'closed',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1183,7 +1196,8 @@ class coinex(ccxt.async_support.coinex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         marketIds = self.market_ids(symbols)
         messageHashes = []
         market = None
@@ -1199,7 +1213,7 @@ class coinex(ccxt.async_support.coinex):
         type, params = self.handle_market_type_and_params('watchBidsAsks', market, params)
         url = self.urls['api']['ws'][type]
         subscriptionHashes = ['all@bidsasks']
-        subscribe: dict = {
+        subscribe = {
             'method': 'bbo.subscribe',
             'params': {'market_list': marketIds},
             'id': self.request_id(),
@@ -1209,7 +1223,7 @@ class coinex(ccxt.async_support.coinex):
             return result
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
 
-    def handle_bid_ask(self, client: Client, message):
+    def handle_bid_ask(self, client: Client, message: Any):
         #
         #     {
         #         "method": "bbo.update",
@@ -1231,7 +1245,7 @@ class coinex(ccxt.async_support.coinex):
         messageHash = 'bidsasks:' + symbol
         client.resolve(parsedTicker, messageHash)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker: Any, market: Market = None):
         #
         #     {
         #         "market": "BTCUSDT",
@@ -1257,12 +1271,12 @@ class coinex(ccxt.async_support.coinex):
             'info': ticker,
         }, market)
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         method = self.safe_string(message, 'method')
         error = self.safe_string(message, 'message')
         if error is not None:
             self.handle_errors(1, '', client.url, method, {}, self.json(error), message, {}, {})
-        handlers: dict = {
+        handlers = {
             'state.update': self.handle_ticker,
             'balance.update': self.handle_balance,
             'deals.update': self.handle_trades,
@@ -1278,7 +1292,7 @@ class coinex(ccxt.async_support.coinex):
             return
         self.handle_subscription_status(client, message)
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         #
@@ -1297,7 +1311,7 @@ class coinex(ccxt.async_support.coinex):
             raise ExchangeError(feedback)
         return None
 
-    def handle_authentication_message(self, client: Client, message):
+    def handle_authentication_message(self, client: Client, message: Any):
         #
         # success
         #
@@ -1327,7 +1341,7 @@ class coinex(ccxt.async_support.coinex):
             if messageHash in client.subscriptions:
                 del client.subscriptions[messageHash]
 
-    def handle_subscription_status(self, client: Client, message):
+    def handle_subscription_status(self, client: Client, message: Any):
         id = self.safe_integer(message, 'id')
         subscription = self.safe_value(client.subscriptions, id)
         if subscription is not None:
@@ -1348,12 +1362,12 @@ class coinex(ccxt.async_support.coinex):
         if authenticated is not None:
             return await future
         requestId = self.request_id()
-        subscribe: dict = {
+        subscribe = {
             'id': requestId,
             'future': messageHash,
         }
         hmac = self.hmac(self.encode(timestamp), self.encode(self.secret), hashlib.sha256, 'hex')
-        request: dict = {
+        request = {
             'id': requestId,
             'method': 'server.sign',
             'params': {

@@ -8,6 +8,7 @@
 * [fetchMarkets](#fetchmarkets)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchTickers](#fetchtickers)
+* [fetchTradingFees](#fetchtradingfees)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchTrades](#fetchtrades)
 * [createOrder](#createorder)
@@ -23,6 +24,7 @@
 * [fetchClosedOrders](#fetchclosedorders)
 * [fetchCanceledOrders](#fetchcanceledorders)
 * [fetchMyTrades](#fetchmytrades)
+* [fetchLedger](#fetchledger)
 * [fetchBalance](#fetchbalance)
 * [fetchFundingRates](#fetchfundingrates)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
@@ -50,7 +52,7 @@ Fetches the available trading markets from the exchange, Multi-collateral market
 
 
 ```javascript
-krakenfutures.fetchMarkets ([params])
+krakenfutures.fetchMarkets (params?)
 ```
 
 
@@ -72,7 +74,7 @@ Fetches a list of open orders in a market
 
 
 ```javascript
-krakenfutures.fetchOrderBook (symbol[, limit, params])
+krakenfutures.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -93,7 +95,31 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-krakenfutures.fetchTickers (symbols[, params])
+krakenfutures.fetchTickers (symbols, params?)
+```
+
+
+<a name="fetchTradingFees" id="fetchtradingfees"></a>
+
+### fetchTradingFees{docsify-ignore}
+fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
+
+**Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
+
+**See**
+
+- https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
+- https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+krakenfutures.fetchTradingFees (params?)
 ```
 
 
@@ -118,7 +144,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-krakenfutures.fetchOHLCV (symbol, timeframe[, since, limit, params])
+krakenfutures.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -148,7 +174,7 @@ Fetch a history of filled trades that this account has made
 
 
 ```javascript
-krakenfutures.fetchTrades (symbol[, since, limit, params])
+krakenfutures.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -180,7 +206,7 @@ Create an order on the exchange
 
 
 ```javascript
-krakenfutures.createOrder (symbol, type, side, amount[, price, params])
+krakenfutures.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -201,7 +227,7 @@ create a list of trade orders
 
 
 ```javascript
-krakenfutures.createOrders (orders[, params])
+krakenfutures.createOrders (orders, params?)
 ```
 
 
@@ -227,7 +253,7 @@ Edit an open order on the exchange
 
 
 ```javascript
-krakenfutures.editOrder (id, symbol, type, side, amount[, price, params])
+krakenfutures.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -249,7 +275,7 @@ Cancel an open order on the exchange
 
 
 ```javascript
-krakenfutures.cancelOrder (id, symbol[, params])
+krakenfutures.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -272,7 +298,7 @@ cancel multiple orders
 
 
 ```javascript
-krakenfutures.cancelOrders (ids[, symbol, params])
+krakenfutures.cancelOrders (ids, symbol?, params?)
 ```
 
 
@@ -288,12 +314,12 @@ Cancels all orders on the exchange, including trigger orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>str</code> | Yes | Unified market symbol |
+| symbol | <code>string</code> | No | Unified market symbol |
 | params | <code>dict</code> | No | Exchange specific params |
 
 
 ```javascript
-krakenfutures.cancelAllOrders (symbol[, params])
+krakenfutures.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -314,7 +340,7 @@ dead man's switch, cancel all orders after the given timeout
 
 
 ```javascript
-krakenfutures.cancelAllOrdersAfter (timeout[, params])
+krakenfutures.cancelAllOrdersAfter (timeout, params?)
 ```
 
 
@@ -337,7 +363,7 @@ Gets all open orders, including trigger orders, for an account from the exchange
 
 
 ```javascript
-krakenfutures.fetchOpenOrders (symbol[, since, limit, params])
+krakenfutures.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -360,7 +386,7 @@ Gets all orders for an account from the exchange api
 
 
 ```javascript
-krakenfutures.fetchOrders (symbol[, since, limit, params])
+krakenfutures.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -382,7 +408,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-krakenfutures.fetchOrder (id, symbol[, params])
+krakenfutures.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -394,7 +420,11 @@ Gets all closed orders, including trigger orders, for an account from the exchan
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
 **Returns**: An array of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events  
+**See**
+
+- https://docs.kraken.com/api-reference/account-history/get-order-events
+- https://docs.kraken.com/api-reference/account-history/get-trigger-events
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -406,7 +436,7 @@ Gets all closed orders, including trigger orders, for an account from the exchan
 
 
 ```javascript
-krakenfutures.fetchClosedOrders (symbol[, since, limit, params])
+krakenfutures.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -430,7 +460,7 @@ Gets all canceled orders, including trigger orders, for an account from the exch
 
 
 ```javascript
-krakenfutures.fetchCanceledOrders (symbol[, since, limit, params])
+krakenfutures.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -454,7 +484,31 @@ fetch all trades made by the user
 
 
 ```javascript
-krakenfutures.fetchMyTrades (symbol[, since, limit, params])
+krakenfutures.fetchMyTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchLedger" id="fetchledger"></a>
+
+### fetchLedger{docsify-ignore}
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+
+**Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
+
+**See**: https://docs.kraken.com/api-reference/account-history/get-account-log  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code, default is undefined |
+| since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest ledger entry |
+
+
+```javascript
+krakenfutures.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -476,7 +530,7 @@ Fetch the balance for a sub-account, all sub-account balances are inside 'info' 
 
 
 ```javascript
-krakenfutures.fetchBalance ([params])
+krakenfutures.fetchBalance (params?)
 ```
 
 
@@ -497,7 +551,7 @@ fetch the current funding rates for multiple markets
 
 
 ```javascript
-krakenfutures.fetchFundingRates (symbols[, params])
+krakenfutures.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -520,7 +574,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-krakenfutures.fetchFundingRateHistory (symbol[, since, limit, params])
+krakenfutures.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -541,7 +595,7 @@ Fetches current contract trading positions
 
 
 ```javascript
-krakenfutures.fetchPositions (symbols[, params])
+krakenfutures.fetchPositions (symbols, params?)
 ```
 
 
@@ -562,7 +616,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 
 
 ```javascript
-krakenfutures.fetchLeverageTiers (symbols[, params])
+krakenfutures.fetchLeverageTiers (symbols, params?)
 ```
 
 
@@ -583,7 +637,7 @@ transfer from futures wallet to spot wallet
 
 
 ```javascript
-krakenfutures.transferOut (code, amount[, params])
+krakenfutures.transferOut (code, amount, params?)
 ```
 
 
@@ -611,7 +665,7 @@ transfers currencies between sub-accounts
 
 
 ```javascript
-krakenfutures.transfer (code, amount, fromAccount, toAccount[, params])
+krakenfutures.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -633,7 +687,7 @@ set the level of leverage for a market
 
 
 ```javascript
-krakenfutures.setLeverage (leverage, symbol[, params])
+krakenfutures.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -654,7 +708,7 @@ fetch the set leverage for all contract and margin markets
 
 
 ```javascript
-krakenfutures.fetchLeverages ([symbols, params])
+krakenfutures.fetchLeverages (symbols?, params?)
 ```
 
 
@@ -675,6 +729,6 @@ fetch the set leverage for a market
 
 
 ```javascript
-krakenfutures.fetchLeverage (symbol[, params])
+krakenfutures.fetchLeverage (symbol, params?)
 ```
 

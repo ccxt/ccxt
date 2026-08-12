@@ -7,218 +7,307 @@
 
 package ccxt
 
-func (this *KrakenCore) ZendeskGet360000292886(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("zendeskGet360000292886", args...)
-}
-
-func (this *KrakenCore) ZendeskGet201893608(args ...interface{}) <-chan interface{} {
+// ZendeskGet201893608 returns a channel that yields a JSON object.
+func (this *KrakenCore) ZendeskGet201893608(args ...any) <-chan any {
 	return this.callEndpointAsync("zendeskGet201893608", args...)
 }
 
-func (this *KrakenCore) PublicGetAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetAssets", args...)
+// ZendeskGet360000292886 returns a channel that yields a JSON object.
+func (this *KrakenCore) ZendeskGet360000292886(args ...any) <-chan any {
+	return this.callEndpointAsync("zendeskGet360000292886", args...)
 }
 
-func (this *KrakenCore) PublicGetAssetPairs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetAssetPairs", args...)
-}
-
-func (this *KrakenCore) PublicGetDepth(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetDepth", args...)
-}
-
-func (this *KrakenCore) PublicGetOHLC(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOHLC", args...)
-}
-
-func (this *KrakenCore) PublicGetSpread(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetSpread", args...)
-}
-
-func (this *KrakenCore) PublicGetSystemStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetSystemStatus", args...)
-}
-
-func (this *KrakenCore) PublicGetTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTicker", args...)
-}
-
-func (this *KrakenCore) PublicGetTime(args ...interface{}) <-chan interface{} {
+// PublicGetTime returns a channel that yields a JSON object.
+func (this *KrakenCore) PublicGetTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTime", args...)
 }
 
-func (this *KrakenCore) PublicGetTrades(args ...interface{}) <-chan interface{} {
+// PublicGetSystemStatus returns a channel that yields a JSON object.
+func (this *KrakenCore) PublicGetSystemStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSystemStatus", args...)
+}
+
+// PublicGetAssets returns a channel that yields a JSON object.
+func (this *KrakenCore) PublicGetAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAssets", args...)
+}
+
+// PublicGetAssetPairs returns a channel that yields a JSON object.
+func (this *KrakenCore) PublicGetAssetPairs(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAssetPairs", args...)
+}
+
+// PublicGetTicker returns a channel that yields a JSON object.
+func (this *KrakenCore) PublicGetTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTicker", args...)
+}
+
+// PublicGetOHLC returns a channel that yields a JSON object.
+func (this *KrakenCore) PublicGetOHLC(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOHLC", args...)
+}
+
+// PublicGetDepth returns a channel that yields a JSON object.
+func (this *KrakenCore) PublicGetDepth(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDepth", args...)
+}
+
+// PublicGetGroupedBook returns a channel that yields a JSON object.
+func (this *KrakenCore) PublicGetGroupedBook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetGroupedBook", args...)
+}
+
+// PublicGetTrades returns a channel that yields a JSON object.
+func (this *KrakenCore) PublicGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *KrakenCore) PrivatePostAddOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAddOrder", args...)
+// PublicGetSpread returns a channel that yields a JSON object.
+func (this *KrakenCore) PublicGetSpread(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpread", args...)
 }
 
-func (this *KrakenCore) PrivatePostAddOrderBatch(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAddOrderBatch", args...)
+// PublicGetPreTrade returns a channel that yields a JSON object.
+func (this *KrakenCore) PublicGetPreTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPreTrade", args...)
 }
 
-func (this *KrakenCore) PrivatePostAddExport(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAddExport", args...)
+// PublicGetPostTrade returns a channel that yields a JSON object.
+func (this *KrakenCore) PublicGetPostTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPostTrade", args...)
 }
 
-func (this *KrakenCore) PrivatePostAmendOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAmendOrder", args...)
+// PrivatePostLevel3 returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostLevel3(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLevel3", args...)
 }
 
-func (this *KrakenCore) PrivatePostBalance(args ...interface{}) <-chan interface{} {
+// PrivatePostBalance returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBalance", args...)
 }
 
-func (this *KrakenCore) PrivatePostCancelAll(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostCancelAll", args...)
-}
-
-func (this *KrakenCore) PrivatePostCancelAllOrdersAfter(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostCancelAllOrdersAfter", args...)
-}
-
-func (this *KrakenCore) PrivatePostCancelOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostCancelOrder", args...)
-}
-
-func (this *KrakenCore) PrivatePostCancelOrderBatch(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostCancelOrderBatch", args...)
-}
-
-func (this *KrakenCore) PrivatePostClosedOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostClosedOrders", args...)
-}
-
-func (this *KrakenCore) PrivatePostDepositAddresses(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostDepositAddresses", args...)
-}
-
-func (this *KrakenCore) PrivatePostDepositMethods(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostDepositMethods", args...)
-}
-
-func (this *KrakenCore) PrivatePostDepositStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostDepositStatus", args...)
-}
-
-func (this *KrakenCore) PrivatePostEditOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostEditOrder", args...)
-}
-
-func (this *KrakenCore) PrivatePostExportStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostExportStatus", args...)
-}
-
-func (this *KrakenCore) PrivatePostGetWebSocketsToken(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetWebSocketsToken", args...)
-}
-
-func (this *KrakenCore) PrivatePostLedgers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostLedgers", args...)
-}
-
-func (this *KrakenCore) PrivatePostOpenOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenOrders", args...)
-}
-
-func (this *KrakenCore) PrivatePostOpenPositions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenPositions", args...)
-}
-
-func (this *KrakenCore) PrivatePostQueryLedgers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostQueryLedgers", args...)
-}
-
-func (this *KrakenCore) PrivatePostQueryOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostQueryOrders", args...)
-}
-
-func (this *KrakenCore) PrivatePostQueryTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostQueryTrades", args...)
-}
-
-func (this *KrakenCore) PrivatePostRetrieveExport(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostRetrieveExport", args...)
-}
-
-func (this *KrakenCore) PrivatePostRemoveExport(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostRemoveExport", args...)
-}
-
-func (this *KrakenCore) PrivatePostBalanceEx(args ...interface{}) <-chan interface{} {
+// PrivatePostBalanceEx returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostBalanceEx(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBalanceEx", args...)
 }
 
-func (this *KrakenCore) PrivatePostTradeBalance(args ...interface{}) <-chan interface{} {
+// PrivatePostCreditLines returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostCreditLines(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCreditLines", args...)
+}
+
+// PrivatePostTradeBalance returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostTradeBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeBalance", args...)
 }
 
-func (this *KrakenCore) PrivatePostTradesHistory(args ...interface{}) <-chan interface{} {
+// PrivatePostOpenOrders returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenOrders", args...)
+}
+
+// PrivatePostClosedOrders returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostClosedOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostClosedOrders", args...)
+}
+
+// PrivatePostQueryOrders returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostQueryOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostQueryOrders", args...)
+}
+
+// PrivatePostOrderAmends returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostOrderAmends(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderAmends", args...)
+}
+
+// PrivatePostTradesHistory returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostTradesHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradesHistory", args...)
 }
 
-func (this *KrakenCore) PrivatePostTradeVolume(args ...interface{}) <-chan interface{} {
+// PrivatePostQueryTrades returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostQueryTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostQueryTrades", args...)
+}
+
+// PrivatePostOpenPositions returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostOpenPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenPositions", args...)
+}
+
+// PrivatePostLedgers returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostLedgers(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLedgers", args...)
+}
+
+// PrivatePostQueryLedgers returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostQueryLedgers(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostQueryLedgers", args...)
+}
+
+// PrivatePostTradeVolume returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostTradeVolume(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeVolume", args...)
 }
 
-func (this *KrakenCore) PrivatePostWithdraw(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostWithdraw", args...)
+// PrivatePostAddExport returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostAddExport(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAddExport", args...)
 }
 
-func (this *KrakenCore) PrivatePostWithdrawCancel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostWithdrawCancel", args...)
+// PrivatePostExportStatus returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostExportStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostExportStatus", args...)
 }
 
-func (this *KrakenCore) PrivatePostWithdrawInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostWithdrawInfo", args...)
+// PrivatePostRetrieveExport returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostRetrieveExport(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRetrieveExport", args...)
 }
 
-func (this *KrakenCore) PrivatePostWithdrawMethods(args ...interface{}) <-chan interface{} {
+// PrivatePostRemoveExport returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostRemoveExport(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRemoveExport", args...)
+}
+
+// PrivatePostGetApiKeyInfo returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostGetApiKeyInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGetApiKeyInfo", args...)
+}
+
+// PrivatePostAddOrder returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostAddOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAddOrder", args...)
+}
+
+// PrivatePostAmendOrder returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostAmendOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAmendOrder", args...)
+}
+
+// PrivatePostCancelOrder returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelOrder", args...)
+}
+
+// PrivatePostCancelAll returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostCancelAll(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelAll", args...)
+}
+
+// PrivatePostCancelAllOrdersAfter returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostCancelAllOrdersAfter(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelAllOrdersAfter", args...)
+}
+
+// PrivatePostGetWebSocketsToken returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostGetWebSocketsToken(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGetWebSocketsToken", args...)
+}
+
+// PrivatePostAddOrderBatch returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostAddOrderBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAddOrderBatch", args...)
+}
+
+// PrivatePostCancelOrderBatch returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostCancelOrderBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelOrderBatch", args...)
+}
+
+// PrivatePostEditOrder returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostEditOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostEditOrder", args...)
+}
+
+// PrivatePostDepositMethods returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostDepositMethods(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDepositMethods", args...)
+}
+
+// PrivatePostDepositAddresses returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostDepositAddresses(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDepositAddresses", args...)
+}
+
+// PrivatePostDepositStatus returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostDepositStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDepositStatus", args...)
+}
+
+// PrivatePostWithdrawMethods returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostWithdrawMethods(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawMethods", args...)
 }
 
-func (this *KrakenCore) PrivatePostWithdrawAddresses(args ...interface{}) <-chan interface{} {
+// PrivatePostWithdrawAddresses returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostWithdrawAddresses(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawAddresses", args...)
 }
 
-func (this *KrakenCore) PrivatePostWithdrawStatus(args ...interface{}) <-chan interface{} {
+// PrivatePostWithdrawInfo returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostWithdrawInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdrawInfo", args...)
+}
+
+// PrivatePostWithdraw returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdraw", args...)
+}
+
+// PrivatePostWithdrawStatus returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostWithdrawStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawStatus", args...)
 }
 
-func (this *KrakenCore) PrivatePostWalletTransfer(args ...interface{}) <-chan interface{} {
+// PrivatePostWithdrawCancel returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostWithdrawCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdrawCancel", args...)
+}
+
+// PrivatePostWalletTransfer returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostWalletTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWalletTransfer", args...)
 }
 
-func (this *KrakenCore) PrivatePostCreateSubaccount(args ...interface{}) <-chan interface{} {
+// PrivatePostCreateSubaccount returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostCreateSubaccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCreateSubaccount", args...)
 }
 
-func (this *KrakenCore) PrivatePostAccountTransfer(args ...interface{}) <-chan interface{} {
+// PrivatePostAccountTransfer returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostAccountTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountTransfer", args...)
 }
 
-func (this *KrakenCore) PrivatePostEarnAllocate(args ...interface{}) <-chan interface{} {
+// PrivatePostEarnAllocate returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostEarnAllocate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEarnAllocate", args...)
 }
 
-func (this *KrakenCore) PrivatePostEarnDeallocate(args ...interface{}) <-chan interface{} {
+// PrivatePostEarnDeallocate returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostEarnDeallocate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEarnDeallocate", args...)
 }
 
-func (this *KrakenCore) PrivatePostEarnAllocateStatus(args ...interface{}) <-chan interface{} {
+// PrivatePostEarnAllocateStatus returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostEarnAllocateStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEarnAllocateStatus", args...)
 }
 
-func (this *KrakenCore) PrivatePostEarnDeallocateStatus(args ...interface{}) <-chan interface{} {
+// PrivatePostEarnDeallocateStatus returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostEarnDeallocateStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEarnDeallocateStatus", args...)
 }
 
-func (this *KrakenCore) PrivatePostEarnStrategies(args ...interface{}) <-chan interface{} {
+// PrivatePostEarnStrategies returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostEarnStrategies(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEarnStrategies", args...)
 }
 
-func (this *KrakenCore) PrivatePostEarnAllocations(args ...interface{}) <-chan interface{} {
+// PrivatePostEarnAllocations returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostEarnAllocations(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEarnAllocations", args...)
 }

@@ -1,8 +1,5 @@
-- [Binance Usdm Fetch Continuous Klines Ohlcv](./examples/py/)
+```python
 
-
- ```python
- 
 # -*- coding: utf-8 -*-
 
 import os
@@ -40,5 +37,5 @@ try:
     print(table([[exchange.iso8601(int(o[0]))] + o[1:] for o in ohlcvs]))
 except Exception as e:
     print(type(e).__name__, str(e))
- 
+
 ```

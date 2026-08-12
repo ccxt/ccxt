@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitget.js';
 import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Bool, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, SubType, Currency, CurrencyInterface, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, NullableDict, NullableList, List, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, Fee, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates, DepositWithdrawFees, MarginLoan, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory
  * @augments Exchange
  */
 export default class bitget extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bitget',
             'name': 'Bitget',
@@ -162,7 +162,7 @@ export default class bitget extends Exchange {
             },
             'hostname': 'bitget.com',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/fbaa10cc-a277-441d-a5b7-997dd9a87658',
+                'logo': 'https://github.com/user-attachments/assets/b54bb4c2-416d-4231-8968-85a77748ba45',
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'mix': 'https://api.{hostname}',
@@ -198,685 +198,731 @@ export default class bitget extends Exchange {
                 'public': {
                     'common': {
                         'get': {
-                            'v2/public/annoucements': 1,
-                            'v2/public/time': 1,
+                            'v2/public/annoucements': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/public/time': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'spot': {
                         'get': {
-                            'spot/v1/notice/queryAllNotices': 1, // 20 times/1s (IP) => 20/20 = 1
-                            'spot/v1/public/time': 1,
-                            'spot/v1/public/currencies': 6.6667, // 3 times/1s (IP) => 20/3 = 6.6667
-                            'spot/v1/public/products': 1,
-                            'spot/v1/public/product': 1,
-                            'spot/v1/market/ticker': 1,
-                            'spot/v1/market/tickers': 1,
-                            'spot/v1/market/fills': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'spot/v1/market/fills-history': 2,
-                            'spot/v1/market/candles': 1,
-                            'spot/v1/market/depth': 1,
-                            'spot/v1/market/spot-vip-level': 2,
-                            'spot/v1/market/merge-depth': 1,
-                            'spot/v1/market/history-candles': 1,
-                            'spot/v1/public/loan/coinInfos': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'spot/v1/public/loan/hour-interest': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'v2/spot/public/coins': 6.6667,
-                            'v2/spot/public/symbols': 1,
-                            'v2/spot/market/vip-fee-rate': 2,
-                            'v2/spot/market/tickers': 1,
-                            'v2/spot/market/merge-depth': 1,
-                            'v2/spot/market/orderbook': 1,
-                            'v2/spot/market/candles': 1,
-                            'v2/spot/market/history-candles': 1,
-                            'v2/spot/market/fills': 2,
-                            'v2/spot/market/fills-history': 2,
+                            'spot/v1/notice/queryAllNotices': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (IP) => 20/20 = 1
+                            'spot/v1/public/time': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/public/currencies': { 'cost': 6.6667 } as Endpoint<Dict>, // 3 times/1s (IP) => 20/3 = 6.6667
+                            'spot/v1/public/products': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/public/product': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/market/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/market/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/market/fills': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'spot/v1/market/fills-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/market/candles': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/market/spot-vip-level': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/market/merge-depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/market/history-candles': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/public/loan/coinInfos': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'spot/v1/public/loan/hour-interest': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'v2/spot/public/coins': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v2/spot/public/symbols': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/market/vip-fee-rate': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/market/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/market/merge-depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/market/orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/market/candles': { 'cost': 1 } as Endpoint<Dict | List | string>,
+                            'v2/spot/market/history-candles': { 'cost': 1 } as Endpoint<Dict | List | string>,
+                            'v2/spot/market/fills': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/market/fills-history': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'mix': {
                         'get': {
-                            'mix/v1/market/contracts': 1,
-                            'mix/v1/market/depth': 1,
-                            'mix/v1/market/ticker': 1,
-                            'mix/v1/market/tickers': 1,
-                            'mix/v1/market/contract-vip-level': 2,
-                            'mix/v1/market/fills': 1,
-                            'mix/v1/market/fills-history': 2,
-                            'mix/v1/market/candles': 1,
-                            'mix/v1/market/index': 1,
-                            'mix/v1/market/funding-time': 1,
-                            'mix/v1/market/history-fundRate': 1,
-                            'mix/v1/market/current-fundRate': 1,
-                            'mix/v1/market/open-interest': 1,
-                            'mix/v1/market/mark-price': 1,
-                            'mix/v1/market/symbol-leverage': 1,
-                            'mix/v1/market/queryPositionLever': 1,
-                            'mix/v1/market/open-limit': 1,
-                            'mix/v1/market/history-candles': 1,
-                            'mix/v1/market/history-index-candles': 1,
-                            'mix/v1/market/history-mark-candles': 1,
-                            'mix/v1/market/merge-depth': 1,
-                            'v2/mix/market/vip-fee-rate': 2,
-                            'v2/mix/market/union-interest-rate-history': 4,
-                            'v2/mix/market/exchange-rate': 4,
-                            'v2/mix/market/discount-rate': 4,
-                            'v2/mix/market/merge-depth': 1,
-                            'v2/mix/market/ticker': 1,
-                            'v2/mix/market/tickers': 1,
-                            'v2/mix/market/fills': 1,
-                            'v2/mix/market/fills-history': 2,
-                            'v2/mix/market/candles': 1,
-                            'v2/mix/market/history-candles': 1,
-                            'v2/mix/market/history-index-candles': 1,
-                            'v2/mix/market/history-mark-candles': 1,
-                            'v2/mix/market/open-interest': 1,
-                            'v2/mix/market/funding-time': 1,
-                            'v2/mix/market/symbol-price': 1,
-                            'v2/mix/market/history-fund-rate': 1,
-                            'v2/mix/market/current-fund-rate': 1,
-                            'v2/mix/market/oi-limit': 2,
-                            'v2/mix/market/contracts': 1,
-                            'v2/mix/market/query-position-lever': 2,
-                            'v2/mix/market/account-long-short': 20,
+                            'mix/v1/market/contracts': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/contract-vip-level': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/market/fills': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/fills-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/market/candles': { 'cost': 1 } as Endpoint<List>,
+                            'mix/v1/market/index': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/funding-time': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/history-fundRate': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/current-fundRate': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/open-interest': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/mark-price': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/symbol-leverage': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/queryPositionLever': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/open-limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/history-candles': { 'cost': 1 } as Endpoint<List>,
+                            'mix/v1/market/history-index-candles': { 'cost': 1 } as Endpoint<List>,
+                            'mix/v1/market/history-mark-candles': { 'cost': 1 } as Endpoint<List>,
+                            'mix/v1/market/merge-depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/vip-fee-rate': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/market/union-interest-rate-history': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/market/exchange-rate': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/market/discount-rate': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/market/merge-depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/fills': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/fills-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/market/candles': { 'cost': 1 } as Endpoint<Dict | List | string>,
+                            'v2/mix/market/history-candles': { 'cost': 1 } as Endpoint<Dict | List | string>,
+                            'v2/mix/market/history-index-candles': { 'cost': 1 } as Endpoint<Dict | List | string>,
+                            'v2/mix/market/history-mark-candles': { 'cost': 1 } as Endpoint<Dict | List | string>,
+                            'v2/mix/market/open-interest': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/funding-time': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/symbol-price': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/history-fund-rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/current-fund-rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/oi-limit': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/market/contracts': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/query-position-lever': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/market/account-long-short': { 'cost': 20 } as Endpoint<Dict>,
                         },
                     },
                     'margin': {
                         'get': {
-                            'margin/v1/cross/public/interestRateAndLimit': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'margin/v1/isolated/public/interestRateAndLimit': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'margin/v1/cross/public/tierData': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'margin/v1/isolated/public/tierData': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'margin/v1/public/currencies': 1, // 20 times/1s (IP) => 20/20 = 1
-                            'v2/margin/currencies': 2,
-                            'v2/margin/market/long-short-ratio': 20,
+                            'margin/v1/cross/public/interestRateAndLimit': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/isolated/public/interestRateAndLimit': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/cross/public/tierData': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/isolated/public/tierData': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/public/currencies': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (IP) => 20/20 = 1
+                            'v2/margin/currencies': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/market/long-short-ratio': { 'cost': 20 } as Endpoint<Dict>,
                         },
                     },
                     'earn': {
                         'get': {
-                            'v2/earn/loan/public/coinInfos': 2,
-                            'v2/earn/loan/public/hour-interest': 2,
+                            'v2/earn/loan/public/coinInfos': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/loan/public/hour-interest': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'uta': {
                         'get': {
-                            'v3/market/instruments': 1,
-                            'v3/market/tickers': 1,
-                            'v3/market/orderbook': 1,
-                            'v3/market/fills': 1,
-                            'v3/market/open-interest': 1,
-                            'v3/market/candles': 1,
-                            'v3/market/history-candles': 1,
-                            'v3/market/current-fund-rate': 1,
-                            'v3/market/history-fund-rate': 1,
-                            'v3/market/risk-reserve': 1,
-                            'v3/market/discount-rate': 1,
-                            'v3/market/margin-loans': 1,
-                            'v3/market/position-tier': 1,
-                            'v3/market/oi-limit': 2,
+                            'v3/market/instruments': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/fills': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/proof-of-reserves': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/open-interest': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/candles': { 'cost': 1 } as Endpoint<Dict | List | string>,
+                            'v3/market/history-candles': { 'cost': 1 } as Endpoint<Dict | List | string>,
+                            'v3/market/current-fund-rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/history-fund-rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/risk-reserve': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/discount-rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/margin-loans': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/position-tier': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/oi-limit': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/market/index-components': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'private': {
                     'spot': {
                         'get': {
-                            'spot/v1/wallet/deposit-address': 4,
-                            'spot/v1/wallet/withdrawal-list': 1,
-                            'spot/v1/wallet/deposit-list': 1,
-                            'spot/v1/account/getInfo': 20,
-                            'spot/v1/account/assets': 2,
-                            'spot/v1/account/assets-lite': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/account/transferRecords': 1, // 20 times/1s (UID) => 20/20 = 1
-                            'spot/v1/convert/currencies': 2,
-                            'spot/v1/convert/convert-record': 2,
-                            'spot/v1/loan/ongoing-orders': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/repay-history': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/revise-history': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/borrow-history': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/debts': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/spot/trade/orderInfo': 1,
-                            'v2/spot/trade/unfilled-orders': 1,
-                            'v2/spot/trade/history-orders': 1,
-                            'v2/spot/trade/fills': 2,
-                            'v2/spot/trade/current-plan-order': 1,
-                            'v2/spot/trade/history-plan-order': 1,
-                            'v2/spot/account/info': 20,
-                            'v2/spot/account/assets': 2,
-                            'v2/spot/account/subaccount-assets': 2,
-                            'v2/spot/account/bills': 2,
-                            'v2/spot/account/transferRecords': 1,
-                            'v2/account/funding-assets': 2,
-                            'v2/account/bot-assets': 2,
-                            'v2/account/all-account-balance': 20,
-                            'v2/spot/wallet/deposit-address': 2,
-                            'v2/spot/wallet/deposit-records': 2,
-                            'v2/spot/wallet/withdrawal-records': 2,
+                            'spot/v1/wallet/deposit-address': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/wallet/withdrawal-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/wallet/deposit-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/account/getInfo': { 'cost': 20 } as Endpoint<Dict>,
+                            'spot/v1/account/assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/account/assets-lite': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/account/transferRecords': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'spot/v1/convert/currencies': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/convert/convert-record': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/loan/ongoing-orders': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/repay-history': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/revise-history': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/borrow-history': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/debts': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'v2/spot/trade/orderInfo': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/trade/unfilled-orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/trade/history-orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/trade/fills': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/trade/current-plan-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/trade/history-plan-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/account/info': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/spot/account/assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/account/subaccount-assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/account/bills': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/account/transferRecords': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/account/funding-assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/account/bot-assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/account/all-account-balance': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/spot/wallet/deposit-address': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/wallet/deposit-records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/wallet/withdrawal-records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/account/upgrade-status': { 'cost': 20 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'spot/v1/wallet/transfer': 4,
-                            'spot/v1/wallet/transfer-v2': 4,
-                            'spot/v1/wallet/subTransfer': 10,
-                            'spot/v1/wallet/withdrawal': 4,
-                            'spot/v1/wallet/withdrawal-v2': 4,
-                            'spot/v1/wallet/withdrawal-inner': 4,
-                            'spot/v1/wallet/withdrawal-inner-v2': 4,
-                            'spot/v1/account/sub-account-spot-assets': 200,
-                            'spot/v1/account/bills': 2,
-                            'spot/v1/trade/orders': 2,
-                            'spot/v1/trade/batch-orders': 4,
-                            'spot/v1/trade/cancel-order': 2,
-                            'spot/v1/trade/cancel-order-v2': 2,
-                            'spot/v1/trade/cancel-symbol-order': 2,
-                            'spot/v1/trade/cancel-batch-orders': 4,
-                            'spot/v1/trade/cancel-batch-orders-v2': 4,
-                            'spot/v1/trade/orderInfo': 1,
-                            'spot/v1/trade/open-orders': 1,
-                            'spot/v1/trade/history': 1,
-                            'spot/v1/trade/fills': 1,
-                            'spot/v1/plan/placePlan': 1,
-                            'spot/v1/plan/modifyPlan': 1,
-                            'spot/v1/plan/cancelPlan': 1,
-                            'spot/v1/plan/currentPlan': 1,
-                            'spot/v1/plan/historyPlan': 1,
-                            'spot/v1/plan/batchCancelPlan': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/convert/quoted-price': 4,
-                            'spot/v1/convert/trade': 4,
-                            'spot/v1/loan/borrow': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/repay': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/revise-pledge': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/orderCurrentList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/orderHistoryList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/closeTrackingOrder': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/updateTpsl': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/followerEndOrder': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/spotInfoList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/config/getTraderSettings': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/config/getFollowerSettings': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/user/myTraders': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/config/setFollowerConfig': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/user/myFollowers': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/config/setProductCode': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/user/removeTrader': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/getRemovableFollower': 2,
-                            'spot/v1/trace/user/removeFollower': 2,
-                            'spot/v1/trace/profit/totalProfitInfo': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/profit/totalProfitList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/profit/profitHisList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/profit/profitHisDetailList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/profit/waitProfitDetailList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/user/getTraderInfo': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/spot/trade/place-order': 2,
-                            'v2/spot/trade/cancel-order': 2,
-                            'v2/spot/trade/batch-orders': 20,
-                            'v2/spot/trade/batch-cancel-order': 2,
-                            'v2/spot/trade/cancel-symbol-order': 4,
-                            'v2/spot/trade/place-plan-order': 1,
-                            'v2/spot/trade/modify-plan-order': 1,
-                            'v2/spot/trade/cancel-plan-order': 1,
-                            'v2/spot/trade/cancel-replace-order': 2,
-                            'v2/spot/trade/batch-cancel-plan-order': 2,
-                            'v2/spot/wallet/transfer': 2,
-                            'v2/spot/wallet/subaccount-transfer': 2,
-                            'v2/spot/wallet/withdrawal': 2,
-                            'v2/spot/wallet/cancel-withdrawal': 2,
-                            'v2/spot/wallet/modify-deposit-account': 2,
+                            'spot/v1/wallet/transfer': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/wallet/transfer-v2': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/wallet/subTransfer': { 'cost': 10 } as Endpoint<Dict>,
+                            'spot/v1/wallet/withdrawal': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/wallet/withdrawal-v2': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/wallet/withdrawal-inner': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/wallet/withdrawal-inner-v2': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/account/sub-account-spot-assets': { 'cost': 200 } as Endpoint<Dict>,
+                            'spot/v1/account/bills': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/trade/orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/trade/batch-orders': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/trade/cancel-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/trade/cancel-order-v2': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/trade/cancel-symbol-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/trade/cancel-batch-orders': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/trade/cancel-batch-orders-v2': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/trade/orderInfo': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/trade/open-orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/trade/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/trade/fills': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/plan/placePlan': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/plan/modifyPlan': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/plan/cancelPlan': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/plan/currentPlan': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/plan/historyPlan': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/plan/batchCancelPlan': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/convert/quoted-price': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/convert/trade': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/loan/borrow': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/repay': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/revise-pledge': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/orderCurrentList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/orderHistoryList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/closeTrackingOrder': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/updateTpsl': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/followerEndOrder': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/spotInfoList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/getTraderSettings': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/getFollowerSettings': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/myTraders': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/setFollowerConfig': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/myFollowers': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/setProductCode': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/removeTrader': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/getRemovableFollower': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/trace/user/removeFollower': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/trace/profit/totalProfitInfo': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/totalProfitList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/profitHisList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/profitHisDetailList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/waitProfitDetailList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/getTraderInfo': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'v2/spot/trade/place-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/trade/cancel-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/trade/batch-orders': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/spot/trade/batch-cancel-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/trade/cancel-symbol-order': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/spot/trade/place-plan-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/trade/modify-plan-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/trade/cancel-plan-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/trade/cancel-replace-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/trade/batch-cancel-plan-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/wallet/transfer': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/wallet/subaccount-transfer': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/wallet/withdrawal': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/wallet/cancel-withdrawal': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/wallet/modify-deposit-account': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/account/upgrade': { 'cost': 20 } as Endpoint<Dict>,
                         },
                     },
                     'mix': {
                         'get': {
-                            'mix/v1/account/account': 2,
-                            'mix/v1/account/accounts': 2,
-                            'mix/v1/position/singlePosition': 2,
-                            'mix/v1/position/singlePosition-v2': 2,
-                            'mix/v1/position/allPosition': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/position/allPosition-v2': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/position/history-position': 1,
-                            'mix/v1/account/accountBill': 2,
-                            'mix/v1/account/accountBusinessBill': 4,
-                            'mix/v1/order/current': 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/order/marginCoinCurrent': 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/order/history': 2,
-                            'mix/v1/order/historyProductType': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/order/detail': 2,
-                            'mix/v1/order/fills': 2,
-                            'mix/v1/order/allFills': 2,
-                            'mix/v1/plan/currentPlan': 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/plan/historyPlan': 2,
-                            'mix/v1/trace/currentTrack': 2,
-                            'mix/v1/trace/followerOrder': 2,
-                            'mix/v1/trace/followerHistoryOrders': 2,
-                            'mix/v1/trace/historyTrack': 2,
-                            'mix/v1/trace/summary': 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/trace/profitSettleTokenIdGroup': 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/trace/profitDateGroupList': 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/trade/profitDateList': 2,
-                            'mix/v1/trace/waitProfitDateList': 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/trace/traderSymbols': 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/trace/traderList': 2,
-                            'mix/v1/trace/traderDetail': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/queryTraceConfig': 2,
-                            'v2/mix/account/account': 2,
-                            'v2/mix/account/accounts': 2,
-                            'v2/mix/account/sub-account-assets': 200,
-                            'v2/mix/account/interest-history': 4,
-                            'v2/mix/account/max-open': 1,
-                            'v2/mix/account/liq-price': 1,
-                            'v2/mix/account/open-count': 2,
-                            'v2/mix/account/bill': 2,
-                            'v2/mix/account/transfer-limits': 20,
-                            'v2/mix/account/union-config': 20,
-                            'v2/mix/account/switch-union-usdt': 20,
-                            'v2/mix/account/isolated-symbols': 2,
-                            'v2/mix/market/query-position-lever': 2,
-                            'v2/mix/position/single-position': 2,
-                            'v2/mix/position/all-position': 4,
-                            'v2/mix/position/adlRank': 4,
-                            'v2/mix/position/history-position': 1,
-                            'v2/mix/order/detail': 2,
-                            'v2/mix/order/fills': 2,
-                            'v2/mix/order/fill-history': 2,
-                            'v2/mix/order/orders-pending': 2,
-                            'v2/mix/order/orders-history': 2,
-                            'v2/mix/order/plan-sub-order': 2,
-                            'v2/mix/order/orders-plan-pending': 2,
-                            'v2/mix/order/orders-plan-history': 2,
-                            'v2/mix/market/position-long-short': 20,
+                            'mix/v1/account/account': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/account/accounts': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/position/singlePosition': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/position/singlePosition-v2': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/position/allPosition': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/position/allPosition-v2': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/position/history-position': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/account/accountBill': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/account/accountBusinessBill': { 'cost': 4 } as Endpoint<Dict>,
+                            'mix/v1/order/current': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/order/marginCoinCurrent': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/order/history': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/order/historyProductType': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/order/detail': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/order/fills': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/order/allFills': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/plan/currentPlan': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/plan/historyPlan': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/currentTrack': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/followerOrder': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/followerHistoryOrders': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/historyTrack': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/summary': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/profitSettleTokenIdGroup': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/profitDateGroupList': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trade/profitDateList': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/waitProfitDateList': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/traderSymbols': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/traderList': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/traderDetail': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/queryTraceConfig': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/account/account': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/account/accounts': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/account/sub-account-assets': { 'cost': 200 } as Endpoint<Dict>,
+                            'v2/mix/account/interest-history': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/account/max-open': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/account/liq-price': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/account/open-count': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/account/bill': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/account/transfer-limits': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/mix/account/union-config': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/mix/account/switch-union-usdt': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/mix/account/isolated-symbols': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/market/query-position-lever': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/position/single-position': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/position/all-position': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/position/adlRank': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/position/history-position': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/order/detail': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/fills': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/fill-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/orders-pending': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/orders-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/plan-sub-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/orders-plan-pending': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/orders-plan-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/market/position-long-short': { 'cost': 20 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'mix/v1/account/sub-account-contract-assets': 200, // 0.1 times/1s (UID) => 20/0.1 = 200
-                            'mix/v1/account/open-count': 1,
-                            'mix/v1/account/setLeverage': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/account/setMargin': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/account/setMarginMode': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/account/setPositionMode': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/order/placeOrder': 2,
-                            'mix/v1/order/batch-orders': 2,
-                            'mix/v1/order/cancel-order': 2,
-                            'mix/v1/order/cancel-batch-orders': 2,
-                            'mix/v1/order/modifyOrder': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/order/cancel-symbol-orders': 2,
-                            'mix/v1/order/cancel-all-orders': 2,
-                            'mix/v1/order/close-all-positions': 20,
-                            'mix/v1/plan/placePlan': 2,
-                            'mix/v1/plan/modifyPlan': 2,
-                            'mix/v1/plan/modifyPlanPreset': 2,
-                            'mix/v1/plan/placeTPSL': 2,
-                            'mix/v1/plan/placeTrailStop': 2,
-                            'mix/v1/plan/placePositionsTPSL': 2,
-                            'mix/v1/plan/modifyTPSLPlan': 2,
-                            'mix/v1/plan/cancelPlan': 2,
-                            'mix/v1/plan/cancelSymbolPlan': 2,
-                            'mix/v1/plan/cancelAllPlan': 2,
-                            'mix/v1/trace/closeTrackOrder': 2,
-                            'mix/v1/trace/modifyTPSL': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/closeTrackOrderBySymbol': 2,
-                            'mix/v1/trace/setUpCopySymbols': 2,
-                            'mix/v1/trace/followerSetBatchTraceConfig': 2,
-                            'mix/v1/trace/followerCloseByTrackingNo': 2,
-                            'mix/v1/trace/followerCloseByAll': 2,
-                            'mix/v1/trace/followerSetTpsl': 2,
-                            'mix/v1/trace/cancelCopyTrader': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/trace/traderUpdateConfig': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/myTraderList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/myFollowerList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/removeFollower': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/public/getFollowerConfig': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/report/order/historyList': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'mix/v1/trace/report/order/currentList': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'mix/v1/trace/queryTraderTpslRatioConfig': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/traderUpdateTpslRatioConfig': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/mix/account/set-auto-margin': 4,
-                            'v2/mix/account/set-leverage': 4,
-                            'v2/mix/account/set-all-leverage': 4,
-                            'v2/mix/account/set-margin': 4,
-                            'v2/mix/account/set-asset-mode': 10,
-                            'v2/mix/account/set-margin-mode': 4,
-                            'v2/mix/account/union-convert': 20,
-                            'v2/mix/account/set-position-mode': 4,
-                            'v2/mix/order/place-order': 2,
-                            'v2/mix/order/click-backhand': 20,
-                            'v2/mix/order/batch-place-order': 20,
-                            'v2/mix/order/modify-order': 2,
-                            'v2/mix/order/cancel-order': 2,
-                            'v2/mix/order/batch-cancel-orders': 2,
-                            'v2/mix/order/close-positions': 20,
-                            'v2/mix/order/cancel-all-orders': 20,
-                            'v2/mix/order/place-tpsl-order': 2,
-                            'v2/mix/order/place-pos-tpsl': 2,
-                            'v2/mix/order/place-plan-order': 2,
-                            'v2/mix/order/modify-tpsl-order': 2,
-                            'v2/mix/order/modify-plan-order': 2,
-                            'v2/mix/order/cancel-plan-order': 2,
+                            'mix/v1/account/sub-account-contract-assets': { 'cost': 200 } as Endpoint<Dict>, // 0.1 times/1s (UID) => 20/0.1 = 200
+                            'mix/v1/account/open-count': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/account/setLeverage': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/account/setMargin': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/account/setMarginMode': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/account/setPositionMode': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/order/placeOrder': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/order/batch-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/order/cancel-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/order/cancel-batch-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/order/modifyOrder': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/order/cancel-symbol-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/order/cancel-all-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/order/close-all-positions': { 'cost': 20 } as Endpoint<Dict>,
+                            'mix/v1/plan/placePlan': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/plan/modifyPlan': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/plan/modifyPlanPreset': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/plan/placeTPSL': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/plan/placeTrailStop': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/plan/placePositionsTPSL': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/plan/modifyTPSLPlan': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/plan/cancelPlan': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/plan/cancelSymbolPlan': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/plan/cancelAllPlan': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/closeTrackOrder': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/modifyTPSL': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/closeTrackOrderBySymbol': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/setUpCopySymbols': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/followerSetBatchTraceConfig': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/followerCloseByTrackingNo': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/followerCloseByAll': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/followerSetTpsl': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/cancelCopyTrader': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/trace/traderUpdateConfig': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/myTraderList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/myFollowerList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/removeFollower': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/public/getFollowerConfig': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/report/order/historyList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'mix/v1/trace/report/order/currentList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'mix/v1/trace/queryTraderTpslRatioConfig': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/traderUpdateTpslRatioConfig': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'v2/mix/account/set-auto-margin': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/account/set-leverage': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/account/set-all-leverage': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/account/set-margin': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/account/set-asset-mode': { 'cost': 10 } as Endpoint<Dict>,
+                            'v2/mix/account/set-margin-mode': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/account/union-convert': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/mix/account/set-position-mode': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/order/place-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/click-backhand': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/mix/order/batch-place-order': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/mix/order/modify-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/cancel-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/batch-cancel-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/close-positions': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/mix/order/cancel-all-orders': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/mix/order/place-tpsl-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/place-pos-tpsl': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/place-plan-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/modify-tpsl-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/modify-plan-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/cancel-plan-order': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'user': {
                         'get': {
-                            'user/v1/fee/query': 2,
-                            'user/v1/sub/virtual-list': 2,
-                            'user/v1/sub/virtual-api-list': 2,
-                            'user/v1/tax/spot-record': 1,
-                            'user/v1/tax/future-record': 1,
-                            'user/v1/tax/margin-record': 1,
-                            'user/v1/tax/p2p-record': 1,
-                            'v2/user/virtual-subaccount-list': 2,
-                            'v2/user/virtual-subaccount-apikey-list': 2,
+                            'user/v1/fee/query': { 'cost': 2 } as Endpoint<Dict>,
+                            'user/v1/sub/virtual-list': { 'cost': 2 } as Endpoint<Dict>,
+                            'user/v1/sub/virtual-api-list': { 'cost': 2 } as Endpoint<Dict>,
+                            'user/v1/tax/spot-record': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/v1/tax/future-record': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/v1/tax/margin-record': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/v1/tax/p2p-record': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/user/virtual-subaccount-list': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/user/virtual-subaccount-apikey-list': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'user/v1/sub/virtual-create': 4,
-                            'user/v1/sub/virtual-modify': 4,
-                            'user/v1/sub/virtual-api-batch-create': 20, // 1 times/1s (UID) => 20/1 = 20
-                            'user/v1/sub/virtual-api-create': 4,
-                            'user/v1/sub/virtual-api-modify': 4,
-                            'v2/user/create-virtual-subaccount': 4,
-                            'v2/user/modify-virtual-subaccount': 4,
-                            'v2/user/batch-create-subaccount-and-apikey': 20,
-                            'v2/user/create-virtual-subaccount-apikey': 4,
-                            'v2/user/modify-virtual-subaccount-apikey': 4,
+                            'user/v1/sub/virtual-create': { 'cost': 4 } as Endpoint<Dict>,
+                            'user/v1/sub/virtual-modify': { 'cost': 4 } as Endpoint<Dict>,
+                            'user/v1/sub/virtual-api-batch-create': { 'cost': 20 } as Endpoint<Dict>, // 1 times/1s (UID) => 20/1 = 20
+                            'user/v1/sub/virtual-api-create': { 'cost': 4 } as Endpoint<Dict>,
+                            'user/v1/sub/virtual-api-modify': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/user/create-virtual-subaccount': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/user/modify-virtual-subaccount': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/user/batch-create-subaccount-and-apikey': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/user/create-virtual-subaccount-apikey': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/user/modify-virtual-subaccount-apikey': { 'cost': 4 } as Endpoint<Dict>,
                         },
                     },
                     'p2p': {
                         'get': {
-                            'p2p/v1/merchant/merchantList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'p2p/v1/merchant/merchantInfo': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'p2p/v1/merchant/advList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'p2p/v1/merchant/orderList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/p2p/merchantList': 2,
-                            'v2/p2p/merchantInfo': 2,
-                            'v2/p2p/orderList': 2,
-                            'v2/p2p/advList': 2,
+                            'p2p/v1/merchant/merchantList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'p2p/v1/merchant/merchantInfo': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'p2p/v1/merchant/advList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'p2p/v1/merchant/orderList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'v2/p2p/merchantList': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/p2p/merchantInfo': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/p2p/orderList': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/p2p/advList': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'broker': {
                         'get': {
-                            'broker/v1/account/info': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/sub-list': 20, // 1 times/1s (UID) => 20/1 = 20
-                            'broker/v1/account/sub-email': 20, // 1 times/1s (UID) => 20/1 = 20
-                            'broker/v1/account/sub-spot-assets': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/sub-future-assets': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/subaccount-transfer': 1, // unknown
-                            'broker/v1/account/subaccount-deposit': 1, // unknown
-                            'broker/v1/account/subaccount-withdrawal': 1, // unknown
-                            'broker/v1/account/sub-api-list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/broker/account/info': 2,
-                            'v2/broker/account/subaccount-list': 20,
-                            'v2/broker/account/subaccount-email': 2,
-                            'v2/broker/account/subaccount-spot-assets': 2,
-                            'v2/broker/account/subaccount-future-assets': 2,
-                            'v2/broker/manage/subaccount-apikey-list': 2,
+                            'broker/v1/account/info': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-list': { 'cost': 20 } as Endpoint<Dict>, // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-email': { 'cost': 20 } as Endpoint<Dict>, // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-spot-assets': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-future-assets': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/subaccount-transfer': { 'cost': 1 } as Endpoint<Dict>, // unknown
+                            'broker/v1/account/subaccount-deposit': { 'cost': 1 } as Endpoint<Dict>, // unknown
+                            'broker/v1/account/subaccount-withdrawal': { 'cost': 1 } as Endpoint<Dict>, // unknown
+                            'broker/v1/account/sub-api-list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'v2/broker/account/info': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/account/subaccount-list': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/broker/account/subaccount-email': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/account/subaccount-spot-assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/account/subaccount-future-assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/manage/subaccount-apikey-list': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'broker/v1/account/sub-create': 20, // 1 times/1s (UID) => 20/1 = 20
-                            'broker/v1/account/sub-modify': 20, // 1 times/1s (UID) => 20/1 = 20
-                            'broker/v1/account/sub-modify-email': 20, // 1 times/1s (UID) => 20/1 = 20
-                            'broker/v1/account/sub-address': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/sub-withdrawal': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/sub-auto-transfer': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'broker/v1/account/sub-api-create': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/sub-api-modify': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/broker/account/modify-subaccount-email': 2,
-                            'v2/broker/account/create-subaccount': 20,
-                            'v2/broker/account/modify-subaccount': 20,
-                            'v2/broker/account/subaccount-address': 2,
-                            'v2/broker/account/subaccount-withdrawal': 2,
-                            'v2/broker/account/set-subaccount-autotransfer': 2,
-                            'v2/broker/manage/create-subaccount-apikey': 2,
-                            'v2/broker/manage/modify-subaccount-apikey': 2,
+                            'broker/v1/account/sub-create': { 'cost': 20 } as Endpoint<Dict>, // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-modify': { 'cost': 20 } as Endpoint<Dict>, // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-modify-email': { 'cost': 20 } as Endpoint<Dict>, // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-address': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-withdrawal': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-auto-transfer': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'broker/v1/account/sub-api-create': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-api-modify': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'v2/broker/account/modify-subaccount-email': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/account/create-subaccount': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/broker/account/modify-subaccount': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/broker/account/subaccount-address': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/account/subaccount-withdrawal': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/account/set-subaccount-autotransfer': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/manage/create-subaccount-apikey': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/manage/modify-subaccount-apikey': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'margin': {
                         'get': {
-                            'margin/v1/cross/account/riskRate': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/maxTransferOutAmount': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/maxTransferOutAmount': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/order/openOrders': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/order/history': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/order/fills': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/loan/list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/repay/list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/interest/list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/liquidation/list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/fin/list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/openOrders': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/history': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/fills': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/loan/list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/repay/list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/interest/list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/liquidation/list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/fin/list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/assets': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'margin/v1/isolated/account/assets': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'v2/margin/crossed/borrow-history': 2,
-                            'v2/margin/crossed/repay-history': 2,
-                            'v2/margin/crossed/interest-history': 2,
-                            'v2/margin/crossed/liquidation-history': 2,
-                            'v2/margin/crossed/financial-records': 2,
-                            'v2/margin/crossed/account/assets': 2,
-                            'v2/margin/crossed/account/risk-rate': 2,
-                            'v2/margin/crossed/account/max-borrowable-amount': 2,
-                            'v2/margin/crossed/account/max-transfer-out-amount': 2,
-                            'v2/margin/crossed/interest-rate-and-limit': 2,
-                            'v2/margin/crossed/tier-data': 2,
-                            'v2/margin/crossed/open-orders': 2,
-                            'v2/margin/crossed/history-orders': 2,
-                            'v2/margin/crossed/fills': 2,
-                            'v2/margin/isolated/borrow-history': 2,
-                            'v2/margin/isolated/repay-history': 2,
-                            'v2/margin/isolated/interest-history': 2,
-                            'v2/margin/isolated/liquidation-history': 2,
-                            'v2/margin/isolated/financial-records': 2,
-                            'v2/margin/isolated/account/assets': 2,
-                            'v2/margin/isolated/account/risk-rate': 2,
-                            'v2/margin/isolated/account/max-borrowable-amount': 2,
-                            'v2/margin/isolated/account/max-transfer-out-amount': 2,
-                            'v2/margin/isolated/interest-rate-and-limit': 2,
-                            'v2/margin/isolated/tier-data': 2,
-                            'v2/margin/isolated/open-orders': 2,
-                            'v2/margin/isolated/history-orders': 2,
-                            'v2/margin/isolated/fills': 2,
+                            'margin/v1/cross/account/riskRate': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/maxTransferOutAmount': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/maxTransferOutAmount': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/openOrders': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/history': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/fills': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/loan/list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/repay/list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/interest/list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/liquidation/list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/fin/list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/openOrders': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/history': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/fills': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/loan/list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/repay/list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/interest/list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/liquidation/list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/fin/list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/assets': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/isolated/account/assets': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'v2/margin/crossed/borrow-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/repay-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/interest-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/liquidation-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/financial-records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/account/assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/account/risk-rate': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/account/max-borrowable-amount': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/account/max-transfer-out-amount': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/interest-rate-and-limit': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/tier-data': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/open-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/history-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/fills': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/borrow-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/repay-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/interest-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/liquidation-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/financial-records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/account/assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/account/risk-rate': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/account/max-borrowable-amount': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/account/max-transfer-out-amount': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/interest-rate-and-limit': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/tier-data': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/open-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/history-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/fills': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'margin/v1/cross/account/borrow': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/borrow': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/repay': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/repay': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/riskRate': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/maxBorrowableAmount': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/maxBorrowableAmount': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/flashRepay': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/queryFlashRepayStatus': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/flashRepay': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/queryFlashRepayStatus': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/order/placeOrder': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'margin/v1/isolated/order/batchPlaceOrder': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'margin/v1/isolated/order/cancelOrder': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/order/batchCancelOrder': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/placeOrder': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/batchPlaceOrder': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/cancelOrder': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/batchCancelOrder': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/margin/crossed/account/borrow': 2,
-                            'v2/margin/crossed/account/repay': 2,
-                            'v2/margin/crossed/account/flash-repay': 2,
-                            'v2/margin/crossed/account/query-flash-repay-status': 2,
-                            'v2/margin/crossed/place-order': 2,
-                            'v2/margin/crossed/batch-place-order': 2,
-                            'v2/margin/crossed/cancel-order': 2,
-                            'v2/margin/crossed/batch-cancel-order': 2,
-                            'v2/margin/isolated/account/borrow': 2,
-                            'v2/margin/isolated/account/repay': 2,
-                            'v2/margin/isolated/account/flash-repay': 2,
-                            'v2/margin/isolated/account/query-flash-repay-status': 2,
-                            'v2/margin/isolated/place-order': 2,
-                            'v2/margin/isolated/batch-place-order': 2,
-                            'v2/margin/isolated/cancel-order': 2,
-                            'v2/margin/isolated/batch-cancel-order': 2,
+                            'margin/v1/cross/account/borrow': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/borrow': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/repay': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/repay': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/riskRate': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/maxBorrowableAmount': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/maxBorrowableAmount': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/flashRepay': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/queryFlashRepayStatus': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/flashRepay': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/queryFlashRepayStatus': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/placeOrder': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'margin/v1/isolated/order/batchPlaceOrder': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'margin/v1/isolated/order/cancelOrder': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/batchCancelOrder': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/placeOrder': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/batchPlaceOrder': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/cancelOrder': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/batchCancelOrder': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'v2/margin/crossed/account/borrow': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/account/repay': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/account/flash-repay': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/account/query-flash-repay-status': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/place-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/batch-place-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/cancel-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/batch-cancel-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/account/borrow': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/account/repay': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/account/flash-repay': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/account/query-flash-repay-status': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/place-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/batch-place-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/cancel-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/batch-cancel-order': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'copy': {
                         'get': {
-                            'v2/copy/mix-trader/order-current-track': 2,
-                            'v2/copy/mix-trader/order-history-track': 2,
-                            'v2/copy/mix-trader/order-total-detail': 2,
-                            'v2/copy/mix-trader/profit-history-summarys': 1,
-                            'v2/copy/mix-trader/profit-history-details': 1,
-                            'v2/copy/mix-trader/profit-details': 1,
-                            'v2/copy/mix-trader/profits-group-coin-date': 1,
-                            'v2/copy/mix-trader/config-query-symbols': 1,
-                            'v2/copy/mix-trader/config-query-followers': 2,
-                            'v2/copy/mix-follower/query-current-orders': 2,
-                            'v2/copy/mix-follower/query-history-orders': 1,
-                            'v2/copy/mix-follower/query-settings': 2,
-                            'v2/copy/mix-follower/query-traders': 2,
-                            'v2/copy/mix-follower/query-quantity-limit': 2,
-                            'v2/copy/mix-broker/query-traders': 2,
-                            'v2/copy/mix-broker/query-history-traces': 2,
-                            'v2/copy/mix-broker/query-current-traces': 2,
-                            'v2/copy/spot-trader/profit-summarys': 2,
-                            'v2/copy/spot-trader/profit-history-details': 2,
-                            'v2/copy/spot-trader/profit-details': 2,
-                            'v2/copy/spot-trader/order-total-detail': 2,
-                            'v2/copy/spot-trader/order-history-track': 2,
-                            'v2/copy/spot-trader/order-current-track': 2,
-                            'v2/copy/spot-trader/config-query-settings': 2,
-                            'v2/copy/spot-trader/config-query-followers': 2,
-                            'v2/copy/spot-follower/query-traders': 2,
-                            'v2/copy/spot-follower/query-trader-symbols': 2,
-                            'v2/copy/spot-follower/query-settings': 2,
-                            'v2/copy/spot-follower/query-history-orders': 2,
-                            'v2/copy/spot-follower/query-current-orders': 2,
+                            'v2/copy/mix-trader/order-current-track': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/order-history-track': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/order-total-detail': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/profit-history-summarys': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/profit-history-details': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/profit-details': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/profits-group-coin-date': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/config-query-symbols': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/config-query-followers': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-follower/query-current-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-follower/query-history-orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/copy/mix-follower/query-settings': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-follower/query-traders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-follower/query-quantity-limit': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-broker/query-traders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-broker/query-history-traces': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-broker/query-current-traces': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/profit-summarys': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/profit-history-details': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/profit-details': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/order-total-detail': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/order-history-track': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/order-current-track': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/config-query-settings': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/config-query-followers': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-follower/query-traders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-follower/query-trader-symbols': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-follower/query-settings': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-follower/query-history-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-follower/query-current-orders': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'v2/copy/mix-trader/order-modify-tpsl': 2,
-                            'v2/copy/mix-trader/order-close-positions': 2,
-                            'v2/copy/mix-trader/config-setting-symbols': 2,
-                            'v2/copy/mix-trader/config-setting-base': 2,
-                            'v2/copy/mix-trader/config-remove-follower': 2,
-                            'v2/copy/mix-follower/setting-tpsl': 1,
-                            'v2/copy/mix-follower/settings': 2,
-                            'v2/copy/mix-follower/close-positions': 2,
-                            'v2/copy/mix-follower/cancel-trader': 4,
-                            'v2/copy/spot-trader/order-modify-tpsl': 2,
-                            'v2/copy/spot-trader/order-close-tracking': 2,
-                            'v2/copy/spot-trader/config-setting-symbols': 2,
-                            'v2/copy/spot-trader/config-remove-follower': 2,
-                            'v2/copy/spot-follower/stop-order': 2,
-                            'v2/copy/spot-follower/settings': 2,
-                            'v2/copy/spot-follower/setting-tpsl': 2,
-                            'v2/copy/spot-follower/order-close-tracking': 2,
-                            'v2/copy/spot-follower/cancel-trader': 2,
+                            'v2/copy/mix-trader/order-modify-tpsl': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/order-close-positions': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/config-setting-symbols': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/config-setting-base': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/config-remove-follower': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-follower/setting-tpsl': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/copy/mix-follower/settings': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-follower/close-positions': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-follower/cancel-trader': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/order-modify-tpsl': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/order-close-tracking': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/config-setting-symbols': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/config-remove-follower': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-follower/stop-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-follower/settings': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-follower/setting-tpsl': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-follower/order-close-tracking': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-follower/cancel-trader': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'tax': {
                         'get': {
-                            'v2/tax/spot-record': 20,
-                            'v2/tax/future-record': 20,
-                            'v2/tax/margin-record': 20,
-                            'v2/tax/p2p-record': 20,
+                            'v2/tax/spot-record': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/tax/future-record': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/tax/margin-record': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/tax/p2p-record': { 'cost': 20 } as Endpoint<Dict>,
                         },
                     },
                     'convert': {
                         'get': {
-                            'v2/convert/currencies': 2,
-                            'v2/convert/quoted-price': 2,
-                            'v2/convert/convert-record': 2,
-                            'v2/convert/bgb-convert-coin-list': 2,
-                            'v2/convert/bgb-convert-records': 2,
+                            'v2/convert/currencies': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/convert/quoted-price': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/convert/convert-record': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/convert/bgb-convert-coin-list': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/convert/bgb-convert-records': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'v2/convert/trade': 2,
-                            'v2/convert/bgb-convert': 2,
+                            'v2/convert/trade': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/convert/bgb-convert': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'earn': {
                         'get': {
-                            'v2/earn/savings/product': 2,
-                            'v2/earn/savings/account': 2,
-                            'v2/earn/savings/assets': 2,
-                            'v2/earn/savings/records': 2,
-                            'v2/earn/savings/subscribe-info': 2,
-                            'v2/earn/savings/subscribe-result': 2,
-                            'v2/earn/savings/redeem-result': 2,
-                            'v2/earn/sharkfin/product': 2,
-                            'v2/earn/sharkfin/account': 2,
-                            'v2/earn/sharkfin/assets': 2,
-                            'v2/earn/sharkfin/records': 2,
-                            'v2/earn/sharkfin/subscribe-info': 2,
-                            'v2/earn/sharkfin/subscribe-result': 4,
-                            'v2/earn/loan/ongoing-orders': 2,
-                            'v2/earn/loan/repay-history': 2,
-                            'v2/earn/loan/revise-history': 2,
-                            'v2/earn/loan/borrow-history': 2,
-                            'v2/earn/loan/debts': 2,
-                            'v2/earn/loan/reduces': 2,
-                            'v2/earn/account/assets': 2,
+                            'v2/earn/savings/product': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/savings/account': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/savings/assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/savings/records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/savings/subscribe-info': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/savings/subscribe-result': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/savings/redeem-result': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/sharkfin/product': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/sharkfin/account': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/sharkfin/assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/sharkfin/records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/sharkfin/subscribe-info': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/sharkfin/subscribe-result': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/earn/loan/ongoing-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/loan/repay-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/loan/revise-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/loan/borrow-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/loan/debts': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/loan/reduces': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/account/assets': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'v2/earn/savings/subscribe': 2,
-                            'v2/earn/savings/redeem': 2,
-                            'v2/earn/sharkfin/subscribe': 2,
-                            'v2/earn/loan/borrow': 2,
-                            'v2/earn/loan/repay': 2,
-                            'v2/earn/loan/revise-pledge': 2,
+                            'v2/earn/savings/subscribe': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/savings/redeem': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/sharkfin/subscribe': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/loan/borrow': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/loan/repay': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/loan/revise-pledge': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'common': {
                         'get': {
-                            'v2/common/trade-rate': 2,
+                            'v2/common/trade-rate': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'uta': {
                         'get': {
-                            'v3/account/assets': 1,
-                            'v3/account/settings': 1,
-                            'v3/account/deposit-records': 2,
-                            'v3/account/financial-records': 1,
-                            'v3/account/repayable-coins': 2,
-                            'v3/account/payment-coins': 2,
-                            'v3/account/convert-records': 1,
-                            'v3/account/transferable-coins': 2,
-                            'v3/account/sub-transfer-record': 4,
-                            'v3/ins-loan/transfered': 6.6667,
-                            'v3/ins-loan/symbols': 6.6667,
-                            'v3/ins-loan/risk-unit': 6.6667,
-                            'v3/ins-loan/repaid-history': 6.6667,
-                            'v3/ins-loan/product-infos': 6.6667,
-                            'v3/ins-loan/loan-order': 6.6667,
-                            'v3/ins-loan/ltv-convert': 6.6667,
-                            'v3/ins-loan/ensure-coins-convert': 6.6667,
-                            'v3/position/current-position': 1,
-                            'v3/position/history-position': 1,
-                            'v3/trade/order-info': 1,
-                            'v3/trade/unfilled-orders': 1,
-                            'v3/trade/unfilled-strategy-orders': 1,
-                            'v3/trade/history-orders': 1,
-                            'v3/trade/history-strategy-orders': 1,
-                            'v3/trade/fills': 1,
-                            'v3/user/sub-list': 2,
-                            'v3/user/sub-api-list': 2,
+                            'v3/account/assets': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/account/funding-assets': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/account/settings': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/account/financial-records': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/account/repayable-coins': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/payment-coins': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/convert-records': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/account/deduct-info': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/account/fee-rate': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/account/switch-status': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/account/max-transferable': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/account/open-interest-limit': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/account/sub-unified-assets': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/account/transferable-coins': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/sub-transfer-record': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/account/deposit-address': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/sub-deposit-address': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/deposit-records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/sub-deposit-records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/withdrawal-records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/broker/sub-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/broker/all-sub-deposit-withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/broker/commission': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/broker/query-sub-apikey': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/ins-loan/transfered': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/ins-loan/symbols': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/ins-loan/risk-unit': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/ins-loan/repaid-history': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/ins-loan/product-infos': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/ins-loan/loan-order': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/ins-loan/ltv-convert': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/ins-loan/ensure-coins-convert': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/loan/coins': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/loan/interest': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/loan/borrow-ongoing': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/loan/borrow-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/loan/repay-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/loan/pledge-rate-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/loan/debts': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/loan/reduces': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/position/current-position': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/position/history-position': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/position/adlRank': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/tax/records': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/order-info': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/trade/unfilled-orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/trade/unfilled-strategy-orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/trade/history-orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/trade/history-strategy-orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/trade/fills': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/user/sub-list': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/user/sub-api-list': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'v3/account/set-leverage': 2,
-                            'v3/account/set-hold-mode': 2,
-                            'v3/account/repay': 4,
-                            'v3/account/transfer': 4,
-                            'v3/account/sub-transfer': 4,
-                            'v3/account/max-open-available': 4,
-                            'v3/ins-loan/bind-uid': 6.6667,
-                            'v3/trade/place-order': 2,
-                            'v3/trade/place-strategy-order': 2,
-                            'v3/trade/modify-order': 2,
-                            'v3/trade/modify-strategy-order': 2,
-                            'v3/trade/cancel-order': 2,
-                            'v3/trade/cancel-strategy-order': 2,
-                            'v3/trade/place-batch': 4,
-                            'v3/trade/batch-modify-order': 2,
-                            'v3/trade/cancel-batch': 4,
-                            'v3/trade/cancel-symbol-order': 4,
-                            'v3/trade/close-positions': 4,
-                            'v3/user/create-sub': 2,
-                            'v3/user/freeze-sub': 2,
-                            'v3/user/create-sub-api': 2,
-                            'v3/user/update-sub-api': 2,
-                            'v3/user/delete-sub-api': 2,
+                            'v3/account/set-leverage': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/set-hold-mode': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/repay': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/account/switch-deduct': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/account/deposit-account': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/account/switch': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/account/adjust-account-mode': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/account/transfer': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/account/sub-transfer': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/account/sub-master-transfer': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/account/max-open-available': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/account/withdrawal': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/broker/create-sub': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/broker/modify-sub': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/broker/sub-withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/broker/sub-deposit-address': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/broker/create-sub-apikey': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/broker/modify-sub-apikey': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/broker/delete-sub-apikey': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/ins-loan/bind-uid': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/loan/borrow': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/loan/repay': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/loan/revise-pledge': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/place-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/place-strategy-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/modify-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/modify-strategy-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/cancel-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/cancel-strategy-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/place-batch': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/trade/batch-modify-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/cancel-batch': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/trade/cancel-symbol-order': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/trade/close-positions': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/trade/countdown-cancel-all': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/user/create-sub': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/user/freeze-sub': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/user/create-sub-api': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/user/update-sub-api': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/user/delete-sub-api': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -1347,6 +1393,7 @@ export default class bitget extends Exchange {
                     '43115': OnMaintenance, // {"code":"43115","msg":"The current trading pair is opening soon, please refer to the official announcement for the opening time","requestTime":1688907202434,"data":null}
                     '45110': InvalidOrder, // {"code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null}
                     '40774': InvalidOrder, // {"code":"40774","msg":"The order type for unilateral position must also be the unilateral position type.","requestTime":1758709764409,"data":null}
+                    '40917': InvalidOrder, // {"code":"40917","msg":"Stop price for long positions please < mark price {0}","requestTime":1776355933687,"data":null}
                     '45122': InvalidOrder, // {"code":"45122","msg":"Short position stop loss price please > mark price 106.86","requestTime":1758709970499,"data":null}
                     // spot
                     'invalid sign': AuthenticationError,
@@ -1411,7 +1458,9 @@ export default class bitget extends Exchange {
                     '20003': ExchangeError, // operation failed, {"status":"error","ts":1595730308979,"err_code":"bad-request","err_msg":"20003"}
                     '01001': ExchangeError, // order failed, {"status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试"}
                     '40024': RestrictedLocation, // {"code":"40024","msg":"The currency is a regional currency and does not meet the purchase conditions.","requestTime":1765282460733,"data":null}
+                    '41117': InvalidOrder, // {"code":"41117","msg":"K/USDT selling price cannot be lower than 0.00085","requestTime":1773990851247,"data":null}
                     '43111': PermissionDenied, // {"code":"43111","msg":"参数错误 address not in address book","requestTime":1665394201164,"data":null}
+                    '45113': InvalidOrder, // {"code":"45113","msg":"Maximum order value limit triggered","requestTime":1774884278712,"data":null}
                 },
                 'broad': {
                     'invalid size, valid range': ExchangeError,
@@ -1427,66 +1476,69 @@ export default class bitget extends Exchange {
                 'TONCOIN': 'TON',
             },
             'options': {
-                'uta': false,
-                'timeDifference': 0, // the difference between system clock and Binance clock
+                'uta': undefined,
+                'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
-                'timeframes': {
-                    'spot': {
-                        '1m': '1min',
-                        '5m': '5min',
-                        '3m': '3min',
-                        '15m': '15min',
-                        '30m': '30min',
-                        '1h': '1h',
-                        '4h': '4h',
-                        '6h': '6Hutc',
-                        '12h': '12Hutc',
-                        '1d': '1Dutc',
-                        '3d': '3Dutc',
-                        '1w': '1Wutc',
-                        '1M': '1Mutc',
-                    },
-                    'swap': {
-                        '1m': '1m',
-                        '3m': '3m',
-                        '5m': '5m',
-                        '15m': '15m',
-                        '30m': '30m',
-                        '1h': '1H',
-                        '2h': '2H',
-                        '4h': '4H',
-                        '6h': '6Hutc',
-                        '12h': '12Hutc',
-                        '1d': '1Dutc',
-                        '3d': '3Dutc',
-                        '1w': '1Wutc',
-                        '1M': '1Mutc',
-                    },
-                    'uta': {
-                        '1m': '1m',
-                        '3m': '3m',
-                        '5m': '5m',
-                        '15m': '15m',
-                        '30m': '30m',
-                        '1h': '1H',
-                        '2h': '2H',
-                        '4h': '4H',
-                        '6h': '6H',
-                        '12h': '12H',
-                        '1d': '1D',
-                    },
-                },
                 'fetchMarkets': {
                     'types': [ 'spot', 'swap' ], // there is future markets but they use the same endpoints as swap
                 },
                 'defaultType': 'spot', // 'spot', 'swap', 'future'
                 'defaultSubType': 'linear', // 'linear', 'inverse'
-                'createMarketBuyOrderRequiresPrice': true,
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': true,
+                    'timeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                },
                 'broker': 'p4sve',
                 'withdraw': {
                     'fillResponseFromRequest': true,
                 },
                 'fetchOHLCV': {
+                    'timeframes': {
+                        'spot': {
+                            '1m': '1min',
+                            '5m': '5min',
+                            '3m': '3min',
+                            '15m': '15min',
+                            '30m': '30min',
+                            '1h': '1h',
+                            '4h': '4h',
+                            '6h': '6Hutc',
+                            '12h': '12Hutc',
+                            '1d': '1Dutc',
+                            '3d': '3Dutc',
+                            '1w': '1Wutc',
+                            '1M': '1Mutc',
+                        },
+                        'swap': {
+                            '1m': '1m',
+                            '3m': '3m',
+                            '5m': '5m',
+                            '15m': '15m',
+                            '30m': '30m',
+                            '1h': '1H',
+                            '2h': '2H',
+                            '4h': '4H',
+                            '6h': '6Hutc',
+                            '12h': '12Hutc',
+                            '1d': '1Dutc',
+                            '3d': '3Dutc',
+                            '1w': '1Wutc',
+                            '1M': '1Mutc',
+                        },
+                        'uta': {
+                            '1m': '1m',
+                            '3m': '3m',
+                            '5m': '5m',
+                            '15m': '15m',
+                            '30m': '30m',
+                            '1h': '1H',
+                            '2h': '2H',
+                            '4h': '4H',
+                            '6h': '6H',
+                            '12h': '12H',
+                            '1d': '1D',
+                        },
+                    },
                     // ### Timeframe settings ###
                     // after testing, the below values are real ones, because the values provided by API DOCS are wrong
                     // so, start timestamp should be within these thresholds to be able to call "recent" candles endpoint
@@ -1540,6 +1592,7 @@ export default class bitget extends Exchange {
                     'method': 'publicMixGetV2MixMarketCurrentFundRate', // or publicMixGetV2MixMarketFundingTime
                 },
                 'accountsByType': {
+                    'funding': 'spot',
                     'spot': 'spot',
                     'cross': 'crossed_margin',
                     'isolated': 'isolated_margin',
@@ -1547,6 +1600,8 @@ export default class bitget extends Exchange {
                     'usdc_swap': 'usdc_futures',
                     'future': 'coin_futures',
                     'p2p': 'p2p',
+                    'uta': 'uta',
+                    'unified': 'uta',
                 },
                 'accountsById': {
                     'spot': 'spot',
@@ -1556,6 +1611,7 @@ export default class bitget extends Exchange {
                     'usdc_futures': 'usdc_swap',
                     'coin_futures': 'future',
                     'p2p': 'p2p',
+                    'uta': 'uta',
                 },
                 'sandboxMode': false,
                 'networks': {
@@ -1568,8 +1624,8 @@ export default class bitget extends Exchange {
                     'ATOM': 'ATOM',
                     'ACA': 'AcalaToken',
                     'APT': 'Aptos',
-                    'ARBONE': 'ArbitrumOne',
-                    'ARBNOVA': 'ArbitrumNova',
+                    'ARBITRUM': 'ArbitrumOne',
+                    'ARBITRUM_NOVA': 'ArbitrumNova',
                     'AVAXC': 'C-Chain',
                     'AVAXX': 'X-Chain',
                     'AR': 'Arweave',
@@ -1650,7 +1706,7 @@ export default class bitget extends Exchange {
                     // 'CADUCEUS': 'CMP',
                     // 'CONFLUX': 'CFX', // CFXeSpace is different
                     // 'CERE': 'CERE',
-                    // 'CANTO': 'CANTO',
+                    'CANTO': 'CANTO-EVM', // live-verified raw chain id, see https://github.com/ccxt/ccxt/issues/23989
                     'ZKSYNC': 'zkSyncEra',
                     'STARKNET': 'Starknet',
                     'VIC': 'VICTION',
@@ -1660,9 +1716,10 @@ export default class bitget extends Exchange {
                 'fetchPositions': {
                     'method': 'privateMixGetV2MixPositionAllPosition', // or privateMixGetV2MixPositionHistoryPosition
                 },
-                'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                // fiat currencies on deposit page
-                'fiatCurrencies': [ 'EUR', 'VND', 'PLN', 'CZK', 'HUF', 'DKK', 'AUD', 'CAD', 'NOK', 'SEK', 'CHF', 'MXN', 'COP', 'ARS', 'GBP', 'BRL', 'UAH', 'ZAR' ],
+                'fetchCurrencies': {
+                    // fiat currencies on deposit page
+                    'fiatCurrencies': [ 'EUR', 'VND', 'PLN', 'CZK', 'HUF', 'DKK', 'AUD', 'CAD', 'NOK', 'SEK', 'CHF', 'MXN', 'COP', 'ARS', 'GBP', 'BRL', 'UAH', 'ZAR' ],
+                },
             },
             'rollingWindowSize': 1000.0,
             'features': {
@@ -1811,7 +1868,7 @@ export default class bitget extends Exchange {
      * @description enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
      * @param enabled
      */
-    setSandboxMode (enabled: boolean) {
+    override setSandboxMode (enabled: boolean) {
         this.options['sandboxMode'] = enabled;
     }
 
@@ -1821,14 +1878,14 @@ export default class bitget extends Exchange {
      * @description enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
      * @param enabled
      */
-    enableDemoTrading (enabled: boolean) {
+    override enableDemoTrading (enabled: boolean) {
         this.setSandboxMode (enabled);
     }
 
-    handleProductTypeAndParams (market = undefined, params = {}) {
-        let subType = undefined;
+    handleProductTypeAndParams (market: Market = undefined, params = {}): [Str, Dict] {
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('handleProductTypeAndParams', undefined, params);
-        let defaultProductType = undefined;
+        let defaultProductType: Str = undefined;
         if ((subType !== undefined) && (market === undefined)) {
             // set default only if subType is defined and market is not defined, since there is also USDC productTypes which are also linear
             // const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
@@ -1842,7 +1899,7 @@ export default class bitget extends Exchange {
         if ((productType === undefined) && (market !== undefined)) {
             const settle = market['settle'];
             if (market['spot']) {
-                let marginMode = undefined;
+                let marginMode: Str = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('handleProductTypeAndParams', params);
                 if (marginMode !== undefined) {
                     productType = 'MARGIN';
@@ -1870,6 +1927,27 @@ export default class bitget extends Exchange {
         return [ productType, params ];
     }
 
+    async handleUTAAndParams (params: any, methodName: Str, defaultValue: boolean = false) {
+        let uta: Bool = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, methodName, 'uta');
+        if (uta !== undefined) {
+            return [ uta, params ];
+        }
+        if (this.checkRequiredCredentials (false)) {
+            // use the api to determine if the account is uta or not
+            let accountIsUTa = false;
+            try {
+                await this.privateUtaGetV3AccountSettings (params);
+                accountIsUTa = true;
+            } catch (e) {
+                accountIsUTa = false;
+            }
+            this.options['uta'] = accountIsUTa;
+            return [ accountIsUTa, params ];
+        }
+        return [ defaultValue, params ];
+    }
+
     /**
      * @method
      * @name bitget#fetchTime
@@ -1878,7 +1956,7 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicCommonGetV2PublicTime (params);
         //
         //     {
@@ -1906,21 +1984,20 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params = {}): Promise<Market[]> {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'uta', false);
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchMarkets', false);
         if (uta) {
             return await this.fetchUtaMarkets (params);
-        } else {
-            return await this.fetchDefaultMarkets (params);
         }
+        return await this.fetchDefaultMarkets (params);
     }
 
-    async fetchDefaultMarkets (params): Promise<Market[]> {
-        let types = undefined;
+    async fetchDefaultMarkets (params: any): Promise<Market[]> {
+        let types: NullableList = undefined;
         const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
         const defaultMarkets = [ 'spot', 'swap' ];
         if (fetchMarketsOptions !== undefined) {
@@ -1929,7 +2006,7 @@ export default class bitget extends Exchange {
             // for backward-compatibility
             types = this.safeList (this.options, 'fetchMarkets', defaultMarkets);
         }
-        const promises = [];
+        const promises: List = [];
         let fetchMargins = false;
         for (let i = 0; i < types.length; i++) {
             const type = types[i];
@@ -1949,7 +2026,7 @@ export default class bitget extends Exchange {
             }
         }
         const results = await Promise.all (promises);
-        let markets = [];
+        let markets: List = [];
         this.options['crossMarginPairsData'] = [];
         this.options['isolatedMarginPairsData'] = [];
         for (let i = 0; i < results.length; i++) {
@@ -1958,9 +2035,27 @@ export default class bitget extends Exchange {
             const firstData = this.safeDict (data, 0, {});
             const isBorrowable = this.safeBool (firstData, 'isBorrowable');
             if (fetchMargins && isBorrowable !== undefined) {
-                const keysList = Object.keys (this.indexBy (data, 'symbol'));
-                this.options['crossMarginPairsData'] = keysList;
-                this.options['isolatedMarginPairsData'] = keysList;
+                // cross and isolated availability are per-symbol - a coin can be listed by
+                // v2/margin/currencies yet have cross disabled (isCrossBorrowable false,
+                // maxCrossedLeverage "0"), e.g. KAITOUSDT, which makes fetchCrossBorrowRate
+                // fail with bitget error 50001 "coin does not support cross"
+                const crossKeys = [];
+                const isolatedKeys = [];
+                for (let j = 0; j < data.length; j++) {
+                    const entry = this.safeDict (data, j, {});
+                    const entrySymbol = this.safeString (entry, 'symbol');
+                    const entryBorrowable = this.safeBool (entry, 'isBorrowable', true);
+                    if (entryBorrowable && this.safeBool (entry, 'isCrossBorrowable', true)) {
+                        crossKeys.push (entrySymbol);
+                    }
+                    const isolatedBase = this.safeBool (entry, 'isIsolatedBaseBorrowable', true);
+                    const isolatedQuote = this.safeBool2 (entry, 'isIsolatedQuotedBorrowable', 'isIsolatedQuoteBorrowable', true);
+                    if (entryBorrowable && (isolatedBase || isolatedQuote)) {
+                        isolatedKeys.push (entrySymbol);
+                    }
+                }
+                this.options['crossMarginPairsData'] = crossKeys;
+                this.options['isolatedMarginPairsData'] = isolatedKeys;
             } else {
                 markets = this.arrayConcat (markets, data);
             }
@@ -2022,7 +2117,7 @@ export default class bitget extends Exchange {
         //         "maintainTime": ""
         //     }
         //
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const marketId = this.safeString (market, 'symbol');
@@ -2031,7 +2126,7 @@ export default class bitget extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const base = this.safeCurrencyCode (baseId);
             const supportMarginCoins = this.safeValue (market, 'supportMarginCoins', []);
-            let settleId = undefined;
+            let settleId: Str = undefined;
             if (this.inArray (baseId, supportMarginCoins)) {
                 settleId = baseId;
             } else if (this.inArray (quoteId, supportMarginCoins)) {
@@ -2041,19 +2136,19 @@ export default class bitget extends Exchange {
             }
             const settle = this.safeCurrencyCode (settleId);
             let symbol = base + '/' + quote;
-            let type = undefined;
+            let type: Str = undefined;
             let swap = false;
             let spot = false;
             let future = false;
             let contract = false;
-            let pricePrecision = undefined;
-            let amountPrecision = undefined;
-            let linear = undefined;
-            let inverse = undefined;
-            let expiry = undefined;
-            let expiryDatetime = undefined;
+            let pricePrecision: Num = undefined;
+            let amountPrecision: Num = undefined;
+            let linear: Bool = undefined;
+            let inverse: Bool = undefined;
+            let expiry: Int = undefined;
+            let expiryDatetime: Str = undefined;
             const symbolType = this.safeString (market, 'symbolType');
-            let marginModes = undefined;
+            let marginModes: NullableDict = undefined;
             let isMarginTradingAllowed = false;
             if (symbolType === undefined) {
                 type = 'spot';
@@ -2075,9 +2170,9 @@ export default class bitget extends Exchange {
                 } else if (symbolType === 'delivery') {
                     expiry = this.safeInteger (market, 'deliveryTime');
                     expiryDatetime = this.iso8601 (expiry);
-                    const expiryParts = expiryDatetime.split ('-');
-                    const yearPart = this.safeString (expiryParts, 0);
-                    const dayPart = this.safeString (expiryParts, 2);
+                    const expiryParts = (expiryDatetime as string).split ('-');
+                    const yearPart = this.safeString (expiryParts, 0, '');
+                    const dayPart = this.safeString (expiryParts, 2, '');
                     const year = yearPart.slice (2, 4);
                     const month = this.safeString (expiryParts, 1);
                     const day = dayPart.slice (0, 2);
@@ -2093,13 +2188,13 @@ export default class bitget extends Exchange {
                 const amountDecimals = this.safeInteger (market, 'volumePlace');
                 const priceStep = this.safeString (market, 'priceEndStep');
                 const amountStep = this.safeString (market, 'sizeMultiplier');
-                const precise = new Precise (priceStep);
-                precise.decimals = Math.max (precise.decimals, priceDecimals);
+                const precise = new Precise (priceStep as string);
+                precise.decimals = Math.max (precise.decimals, priceDecimals as number);
                 precise.reduce ();
                 const priceString = precise.toString ();
                 pricePrecision = this.parseNumber (priceString);
-                const preciseAmount = new Precise (amountStep);
-                preciseAmount.decimals = Math.max (preciseAmount.decimals, amountDecimals);
+                const preciseAmount = new Precise (amountStep as string);
+                preciseAmount.decimals = Math.max (preciseAmount.decimals, amountDecimals as number);
                 preciseAmount.reduce ();
                 const amountString = preciseAmount.toString ();
                 amountPrecision = this.parseNumber (amountString);
@@ -2109,11 +2204,11 @@ export default class bitget extends Exchange {
                 };
             }
             const status = this.safeString2 (market, 'status', 'symbolStatus');
-            let active = undefined;
+            let active: Bool = undefined;
             if (status !== undefined) {
                 active = ((status === 'online') || (status === 'normal'));
             }
-            let minCost = undefined;
+            let minCost: Num = undefined;
             if (quote === 'USDT') {
                 minCost = this.safeNumber (market, 'minTradeUSDT');
             }
@@ -2174,9 +2269,9 @@ export default class bitget extends Exchange {
         return result;
     }
 
-    async fetchUtaMarkets (params): Promise<Market[]> {
+    async fetchUtaMarkets (params: any): Promise<Market[]> {
         const subTypes = [ 'SPOT', 'USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES' ];
-        const promises = [];
+        const promises: List = [];
         for (let i = 0; i < subTypes.length; i++) {
             const req = this.extend (params, {
                 'category': subTypes[i],
@@ -2184,7 +2279,7 @@ export default class bitget extends Exchange {
             promises.push (this.publicUtaGetV3MarketInstruments (req));
         }
         const results = await Promise.all (promises);
-        let markets = [];
+        let markets: List = [];
         for (let i = 0; i < results.length; i++) {
             const res = this.safeDict (results, i);
             const data = this.safeList (res, 'data', []);
@@ -2279,7 +2374,7 @@ export default class bitget extends Exchange {
         //         "maintainTime": ""
         //     }
         //
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const category = this.safeString (market, 'category');
@@ -2288,8 +2383,8 @@ export default class bitget extends Exchange {
             const baseId = this.safeString (market, 'baseCoin');
             const quote = this.safeCurrencyCode (quoteId);
             const base = this.safeCurrencyCode (baseId);
-            let settleId = undefined;
-            let settle = undefined;
+            let settleId: Str = undefined;
+            let settle: Str = undefined;
             if (category === 'USDT-FUTURES') {
                 settleId = 'USDT';
             } else if (category === 'USDC-FUTURES') {
@@ -2301,19 +2396,19 @@ export default class bitget extends Exchange {
                 settle = this.safeCurrencyCode (settleId);
             }
             let symbol = base + '/' + quote;
-            let type = undefined;
+            let type: Str = undefined;
             let swap = false;
             let spot = false;
             let future = false;
             let contract = false;
-            let pricePrecision = undefined;
-            let amountPrecision = undefined;
-            let linear = undefined;
-            let inverse = undefined;
-            let expiry = undefined;
-            let expiryDatetime = undefined;
+            let pricePrecision: Num = undefined;
+            let amountPrecision: Num = undefined;
+            let linear: Bool = undefined;
+            let inverse: Bool = undefined;
+            let expiry: Int = undefined;
+            let expiryDatetime: Str = undefined;
             const symbolType = this.safeString (market, 'type');
-            let marginModes = undefined;
+            let marginModes: NullableDict = undefined;
             let isMarginTradingAllowed = false;
             const isUtaMargin = (category === 'MARGIN');
             if (isUtaMargin || (category === 'SPOT')) {
@@ -2339,9 +2434,9 @@ export default class bitget extends Exchange {
                 } else if (symbolType === 'delivery') {
                     expiry = this.safeInteger (market, 'deliveryTime');
                     expiryDatetime = this.iso8601 (expiry);
-                    const expiryParts = expiryDatetime.split ('-');
-                    const yearPart = this.safeString (expiryParts, 0);
-                    const dayPart = this.safeString (expiryParts, 2);
+                    const expiryParts = (expiryDatetime as string).split ('-');
+                    const yearPart = this.safeString (expiryParts, 0, '');
+                    const dayPart = this.safeString (expiryParts, 2, '');
                     const year = yearPart.slice (2, 4);
                     const month = this.safeString (expiryParts, 1);
                     const day = dayPart.slice (0, 2);
@@ -2361,7 +2456,7 @@ export default class bitget extends Exchange {
             pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision')));
             amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityPrecision')));
             const status = this.safeString (market, 'status');
-            let active = undefined;
+            let active: Bool = undefined;
             if (status !== undefined) {
                 active = ((status === 'online') || (status === 'normal'));
             }
@@ -2430,7 +2525,7 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params = {}): Promise<Currencies> {
         const response = await this.publicSpotGetV2SpotPublicCoins (params);
         //
         //    {
@@ -2465,84 +2560,87 @@ export default class bitget extends Exchange {
         //            },
         //            ...
         //
-        const result: Dict = {};
         const data = this.safeValue (response, 'data', []);
-        const fiatCurrencies = this.safeList (this.options, 'fiatCurrencies', []);
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const id = this.safeString (entry, 'coin'); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
-            const code = this.safeCurrencyCode (id);
-            const chains = this.safeValue (entry, 'chains', []);
-            const networks: Dict = {};
-            let withdraw = undefined;
-            let deposit = undefined;
-            const chainsLength = chains.length;
-            if (chainsLength === 0) {
-                withdraw = false;
-                deposit = false;
+        return this.parseCurrencies (data);
+    }
+
+    override parseCurrency (rawCurrency: Dict): CurrencyInterface {
+        const fiatCurrencies = this.handleOption ('fetchCurrencies', 'fiatCurrencies', []);
+        const entry = rawCurrency;
+        const id = this.safeString (entry, 'coin'); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
+        const code = this.safeCurrencyCode (id);
+        const chains = this.safeList (entry, 'chains', []);
+        const networks: Dict = {};
+        let withdraw: Bool = undefined;
+        let deposit: Bool = undefined;
+        const chainsLength = chains.length;
+        if (chainsLength === 0) {
+            withdraw = false;
+            deposit = false;
+        }
+        for (let j = 0; j < chainsLength; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString (chain, 'chain');
+            let network = this.networkIdToCode (networkId, code);
+            if (network === undefined) {
+                throw new ArgumentsRequired (this.id + ' requires a network argument');
             }
-            for (let j = 0; j < chainsLength; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString (chain, 'chain');
-                let network = this.networkIdToCode (networkId, code);
-                network = network.toUpperCase ();
-                const withdrawable = (this.safeString (chain, 'withdrawable') === 'true');
-                const rechargeable = (this.safeString (chain, 'rechargeable') === 'true');
-                withdraw = (withdraw === undefined) ? withdrawable : (withdraw || withdrawable);
-                deposit = (deposit === undefined) ? rechargeable : (deposit || rechargeable);
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber (chain, 'minWithdrawAmount'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.safeNumber (chain, 'minDepositAmount'),
-                            'max': undefined,
-                        },
-                    },
-                    'active': undefined,
-                    'withdraw': withdrawable,
-                    'deposit': rechargeable,
-                    'fee': this.safeNumber (chain, 'withdrawFee'),
-                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'withdrawMinScale'))),
-                };
-            }
-            const active = withdraw && deposit;
-            const isFiat = this.inArray (code, fiatCurrencies);
-            result[code] = this.safeCurrencyStructure ({
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': networks,
-                'type': isFiat ? 'fiat' : 'crypto',
-                'name': undefined,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': undefined,
-                'precision': undefined,
+            network = network.toUpperCase ();
+            const withdrawable = (this.safeString (chain, 'withdrawable') === 'true');
+            const rechargeable = (this.safeString (chain, 'rechargeable') === 'true');
+            withdraw = (withdraw === undefined) ? withdrawable : (withdraw || withdrawable);
+            deposit = (deposit === undefined) ? rechargeable : (deposit || rechargeable);
+            networks[network] = {
+                'info': chain,
+                'id': networkId,
+                'network': network,
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.safeNumber (chain, 'minWithdrawAmount'),
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': undefined,
+                        'min': this.safeNumber (chain, 'minDepositAmount'),
                         'max': undefined,
                     },
                 },
-                'created': undefined,
-            });
+                'active': undefined,
+                'withdraw': withdrawable,
+                'deposit': rechargeable,
+                'fee': this.safeNumber (chain, 'withdrawFee'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'withdrawMinScale'))),
+            };
         }
-        return result;
+        const active = withdraw && deposit;
+        const isFiat = this.inArray (code, fiatCurrencies);
+        return this.safeCurrencyStructure ({
+            'info': entry,
+            'id': id,
+            'code': code,
+            'networks': networks,
+            'type': isFiat ? 'fiat' : 'crypto',
+            'name': undefined,
+            'active': active,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': undefined,
+            'precision': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+        });
     }
 
     /**
@@ -2561,17 +2659,19 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
-    async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
-        await this.loadMarkets ();
+    override async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {};
         let response = undefined;
-        let marginMode = undefined;
-        let productType = undefined;
-        let uta = undefined;
+        let marginMode: Str = undefined;
+        let productType: Str = undefined;
+        let uta: Bool = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMarketLeverageTiers', params, 'isolated');
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchMarketLeverageTiers', 'uta', false);
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchMarketLeverageTiers', false);
         if (uta) {
             if (productType === 'SPOT') {
                 if (marginMode !== undefined) {
@@ -2678,7 +2778,7 @@ export default class bitget extends Exchange {
         return this.parseMarketLeverageTiers (result, market);
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         //
         // swap and future
         //
@@ -2725,7 +2825,7 @@ export default class bitget extends Exchange {
         //         "mmr": "0.004"
         //     }
         //
-        const tiers = [];
+        const tiers: List = [];
         let minNotional = 0;
         for (let i = 0; i < info.length; i++) {
             const item = info[i];
@@ -2735,7 +2835,7 @@ export default class bitget extends Exchange {
             }
             const maxNotional = this.safeNumberN (item, [ 'endUnit', 'maxBorrowableAmount', 'baseMaxBorrowableAmount', 'maxTierValue' ]);
             const marginCurrency = this.safeString2 (item, 'coin', 'baseCoin');
-            const currencyId = (marginCurrency !== undefined) ? marginCurrency : market['base'];
+            const currencyId = (marginCurrency !== undefined) ? marginCurrency : this.safeString (market, 'base');
             const marketId = this.safeString (item, 'symbol');
             tiers.push ({
                 'tier': this.safeInteger2 (item, 'level', 'tier'),
@@ -2747,7 +2847,7 @@ export default class bitget extends Exchange {
                 'maxLeverage': this.safeNumber (item, 'leverage'),
                 'info': item,
             });
-            minNotional = maxNotional;
+            minNotional = maxNotional as number;
         }
         return tiers as LeverageTier[];
     }
@@ -2766,8 +2866,10 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
         if (paginate) {
@@ -2780,7 +2882,7 @@ export default class bitget extends Exchange {
             'startTime': since,
             'endTime': this.milliseconds (),
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -2830,16 +2932,18 @@ export default class bitget extends Exchange {
      * @param {string} [params.chain] the blockchain network the withdrawal is taking place on
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         this.checkAddress (address);
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() requires a "network" parameter');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
-        const networkId = this.networkCodeToId (networkCode);
+        const networkId = this.networkCodeToId (networkCode, code);
         const request: Dict = {
             'coin': currency['id'],
             'address': address,
@@ -2892,14 +2996,16 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchWithdrawals', undefined, since, limit, params, 'idLessThan', 'idLessThan', undefined, 100) as Transaction[];
         }
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2948,7 +3054,7 @@ export default class bitget extends Exchange {
         return this.parseTransactions (rawTransactions, currency, since, limit);
     }
 
-    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -2994,11 +3100,11 @@ export default class bitget extends Exchange {
         const status = this.safeString (transaction, 'status');
         const tag = this.safeString (transaction, 'tag');
         const feeCostString = this.safeString (transaction, 'fee');
-        let feeCostAbsString = undefined;
+        let feeCostAbsString: Str = undefined;
         if (feeCostString !== undefined) {
             feeCostAbsString = Precise.stringAbs (feeCostString);
         }
-        let fee = undefined;
+        let fee: Fee = undefined;
         let amountString = this.safeString (transaction, 'size');
         if (feeCostAbsString !== undefined) {
             fee = { 'currency': code, 'cost': this.parseNumber (feeCostAbsString) };
@@ -3010,7 +3116,7 @@ export default class bitget extends Exchange {
             'txid': this.safeString (transaction, 'tradeId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': this.networkIdToCode (networkId),
+            'network': this.networkIdToCode (networkId, code),
             'addressFrom': this.safeString (transaction, 'fromAddress'),
             'address': this.safeString (transaction, 'toAddress'),
             'addressTo': this.safeString (transaction, 'toAddress'),
@@ -3036,7 +3142,7 @@ export default class bitget extends Exchange {
             'pending_review_fail': 'failed',
             'reject': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     /**
@@ -3048,9 +3154,11 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        await this.loadMarkets ();
-        let networkCode = undefined;
+    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const currency = this.currency (code);
         const request: Dict = {
@@ -3078,7 +3186,7 @@ export default class bitget extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "coin": "BTC",
@@ -3091,7 +3199,7 @@ export default class bitget extends Exchange {
         const currencyId = this.safeString (depositAddress, 'coin');
         const networkId = this.safeString (depositAddress, 'chain');
         const parsedCurrency = this.safeCurrencyCode (currencyId, currency);
-        let network = undefined;
+        let network: Str = undefined;
         if (networkId !== undefined) {
             network = this.networkIdToCode (networkId, parsedCurrency);
         }
@@ -3115,10 +3223,12 @@ export default class bitget extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -3126,11 +3236,11 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let productType = undefined;
+        let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         let response = undefined;
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'uta', false);
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOrderBook', false);
         if (uta) {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketOrderbook (this.extend (request, params));
@@ -3172,7 +3282,7 @@ export default class bitget extends Exchange {
         return this.parseOrderBook (data, market['symbol'], timestamp, bidsKey, asksKey);
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //   {
         //       "symbol": "BTCUSDT",
@@ -3330,17 +3440,19 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };
-        let productType = undefined;
+        let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         let response = undefined;
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchTicker', 'uta', false);
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTicker', false);
         if (uta) {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketTickers (this.extend (request, params));
@@ -3486,8 +3598,10 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+    override async fetchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -3496,7 +3610,7 @@ export default class bitget extends Exchange {
         if (market['spot']) {
             throw new NotSupported (this.id + ' fetchMarkPrice() is not supported for spot markets');
         } else {
-            let productType = undefined;
+            let productType: Str = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
             response = await this.publicMixGetV2MixMarketSymbolPrice (this.extend (request, params));
@@ -3519,30 +3633,34 @@ export default class bitget extends Exchange {
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
-        let market = undefined;
+    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         if (symbols !== undefined) {
             const symbol = this.safeValue (symbols, 0);
             market = this.market (symbol);
         }
         let response = undefined;
         const request: Dict = {};
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         // Calls like `.fetchTickers (undefined, {subType:'inverse'})` should be supported for this exchange, so
         // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
         // with higher priority and only default to spot, if `subType` is not set in params
         const passedSubType = this.safeString (params, 'subType');
-        let productType = undefined;
+        let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         // only if passedSubType && productType is undefined, then use spot
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'uta', false);
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTickers', false);
         if (uta) {
-            const symbolsLength = symbols.length;
-            if ((symbols !== undefined) && (symbolsLength === 1)) {
-                request['symbol'] = market['id'];
+            if (symbols !== undefined) {
+                const symbolsLength = symbols.length;
+                if (symbolsLength === 1) {
+                    request['symbol'] = this.safeString (market, 'id');
+                }
             }
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketTickers (this.extend (request, params));
@@ -3672,7 +3790,7 @@ export default class bitget extends Exchange {
         return this.parseTickers (data, symbols);
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // spot, swap and future: fetchTrades
         //
@@ -3790,7 +3908,7 @@ export default class bitget extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeIntegerN (trade, [ 'cTime', 'ts', 'createdTime' ]);
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         const feeDetail = this.safeValue (trade, 'feeDetail');
         const posMode = this.safeString (trade, 'posMode');
         const category = this.safeString (trade, 'category');
@@ -3844,8 +3962,10 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.paginate] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
@@ -3855,8 +3975,8 @@ export default class bitget extends Exchange {
         let request: Dict = {
             'symbol': market['id'],
         };
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'uta', false);
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTrades', false);
         if (limit !== undefined) {
             if (uta) {
                 request['limit'] = Math.min (limit, 100);
@@ -3868,11 +3988,11 @@ export default class bitget extends Exchange {
         }
         const options = this.safeValue (this.options, 'fetchTrades', {});
         let response = undefined;
-        let productType = undefined;
+        let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         if (uta) {
             if (productType === 'SPOT') {
-                let marginMode = undefined;
+                let marginMode: Str = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTrades', params);
                 if (marginMode !== undefined) {
                     productType = 'MARGIN';
@@ -3978,13 +4098,15 @@ export default class bitget extends Exchange {
      * @param {string} [params.marginMode] 'isolated' or 'cross', for finding the fee rate of spot margin trading pairs
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
-        await this.loadMarkets ();
+    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTradingFee', params);
         if (market['spot']) {
             if (marginMode !== undefined) {
@@ -4023,11 +4145,13 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.margin] set to true for spot margin
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    async fetchTradingFees (params = {}): Promise<TradingFees> {
-        await this.loadMarkets ();
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let response = undefined;
-        let marginMode = undefined;
-        let marketType = undefined;
+        let marginMode: Str = undefined;
+        let marketType: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTradingFees', params);
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
         if (marketType === 'spot') {
@@ -4039,7 +4163,7 @@ export default class bitget extends Exchange {
                 response = await this.publicSpotGetV2SpotPublicSymbols (params);
             }
         } else if ((marketType === 'swap') || (marketType === 'future')) {
-            let productType = undefined;
+            let productType: Str = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (undefined, params);
             params['productType'] = productType;
             response = await this.publicMixGetV2MixMarketContracts (params);
@@ -4130,7 +4254,7 @@ export default class bitget extends Exchange {
         return result;
     }
 
-    parseTradingFee (data, market: Market = undefined) {
+    parseTradingFee (data: any, market: Market = undefined) {
         const marketId = this.safeString (data, 'symbol');
         return {
             'info': data,
@@ -4142,7 +4266,7 @@ export default class bitget extends Exchange {
         };
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         "1645911960000",
@@ -4190,8 +4314,10 @@ export default class bitget extends Exchange {
      * @param {string} [params.price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const defaultLimit = 100; // default 100, max 1000
         const maxLimitForRecentEndpoint = 1000;
         const maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
@@ -4207,16 +4333,17 @@ export default class bitget extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let marketType = undefined;
-        let timeframes = undefined;
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'uta', false);
+        let marketType: Str = undefined;
+        let timeframes: NullableDict = undefined;
+        const timeframesOption = this.handleOption ('fetchOHLCV', 'timeframes');
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOHLCV', false);
         if (uta) {
-            timeframes = this.options['timeframes']['uta'];
+            timeframes = timeframesOption['uta'];
             request['interval'] = this.safeString (timeframes, timeframe, timeframe);
         } else {
             marketType = market['spot'] ? 'spot' : 'swap';
-            timeframes = this.options['timeframes'][marketType];
+            timeframes = timeframesOption[marketType];
             request['granularity'] = this.safeString (timeframes, timeframe, timeframe);
         }
         const msInDay = 86400000;
@@ -4236,24 +4363,24 @@ export default class bitget extends Exchange {
         const maxLimitForThisTimeframe = this.safeInteger (maxLimitPerTimeframe, timeframe, limit);
         const recentEndpointDaysMap = this.safeDict (this.options['fetchOHLCV'], 'maxRecentDaysPerTimeframe', {});
         const recentEndpointAvailableDays = this.safeInteger (recentEndpointDaysMap, timeframe);
-        const recentEndpointBoundaryTs = now - (recentEndpointAvailableDays - 1) * msInDay;
+        const recentEndpointBoundaryTs = now - ((recentEndpointAvailableDays as number) - 1) * msInDay;
         if (limitDefined) {
-            limit = Math.min (limit, maxLimitForRecentEndpoint);
-            limit = Math.min (limit, maxLimitForThisTimeframe);
+            limit = Math.min (limit as number, maxLimitForRecentEndpoint);
+            limit = Math.min (limit, maxLimitForThisTimeframe as number);
         } else {
             limit = defaultLimit;
         }
         let limitMultipliedDuration = limit * duration;
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
-        let calculatedStartTime = undefined;
-        let calculatedEndTime = undefined;
+        let calculatedStartTime: Int = undefined;
+        let calculatedEndTime: Int = undefined;
         if (sinceDefined) {
             calculatedStartTime = since;
             request['startTime'] = since;
             if (!untilDefined) {
                 calculatedEndTime = this.sum (calculatedStartTime, limitMultipliedDuration);
-                if (calculatedEndTime > now) {
+                if ((calculatedEndTime as number) > now) {
                     calculatedEndTime = now;
                 }
                 request['endTime'] = calculatedEndTime;
@@ -4277,13 +4404,13 @@ export default class bitget extends Exchange {
             // only for "historical-candles" - ensure we use correct max limit
             limit = Math.min (limit, maxLimitForHistoryEndpoint);
             limitMultipliedDuration = limit * duration;
-            calculatedStartTime = calculatedEndTime - limitMultipliedDuration;
+            calculatedStartTime = (calculatedEndTime as number) - limitMultipliedDuration;
             request['startTime'] = calculatedStartTime;
             // for contract, maximum 90 days allowed between start-end times
             if (!market['spot']) {
                 const maxDistanceDaysForContracts = 90;
                 // only correct if request is larger
-                if (calculatedEndTime - calculatedStartTime > maxDistanceDaysForContracts * msInDay) {
+                if ((calculatedEndTime as number) - calculatedStartTime > maxDistanceDaysForContracts * msInDay) {
                     calculatedEndTime = this.sum (calculatedStartTime, maxDistanceDaysForContracts * msInDay);
                     request['endTime'] = calculatedEndTime;
                 }
@@ -4293,8 +4420,8 @@ export default class bitget extends Exchange {
         request['limit'] = limit;
         // make request
         let response = undefined;
-        let productType = undefined;
-        let priceType = undefined;
+        let productType: Str = undefined;
+        let priceType: Str = undefined;
         [ priceType, params ] = this.handleParamString (params, 'price');
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         if (uta) {
@@ -4349,8 +4476,13 @@ export default class bitget extends Exchange {
             return []; // happens when a new token is listed
         }
         //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
-        const data = this.safeList (response, 'data', response);
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
+        let candles: List = [];
+        if (Array.isArray (response)) {
+            candles = response;
+        } else {
+            candles = this.safeList (response, 'data', []);
+        }
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     /**
@@ -4364,28 +4496,38 @@ export default class bitget extends Exchange {
      * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
      * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
      * @see https://www.bitget.com/api-doc/uta/account/Get-Account
+     * @see https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {string} [params.type] 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot')
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+    override async fetchBalance (params = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
-        let marketType = undefined;
-        let marginMode = undefined;
+        let marketType: Str = undefined;
+        let marginMode: Str = undefined;
         let response = undefined;
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'uta', false);
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchBalance', false);
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         if (uta) {
-            response = await this.privateUtaGetV3AccountAssets (this.extend (request, params));
-            const results = this.safeDict (response, 'data', {});
-            const assets = this.safeList (results, 'assets', []);
+            let assets = undefined;
+            if (marketType === 'funding') {
+                response = await this.privateUtaGetV3AccountFundingAssets (this.extend (request, params));
+                assets = this.safeList (response, 'data', []);
+            } else {
+                response = await this.privateUtaGetV3AccountAssets (this.extend (request, params));
+                const results = this.safeDict (response, 'data', {});
+                assets = this.safeList (results, 'assets', []);
+            }
             return this.parseUtaBalance (assets);
         } else if ((marketType === 'swap') || (marketType === 'future')) {
-            let productType = undefined;
+            let productType: Str = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (undefined, params);
             request['productType'] = productType;
             response = await this.privateMixGetV2MixAccountAccounts (this.extend (request, params));
@@ -4517,12 +4659,30 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
+        // funding uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750396239013,
+        //         "data": [
+        //             {
+        //                 "coin": "BGB",
+        //                 "available": "0.01",
+        //                 "frozen": "0",
+        //                 "balance": "0.01"
+        //             }
+        //         ]
+        //     }
+        //
         const data = this.safeValue (response, 'data', []);
         return this.parseBalance (data);
     }
 
-    parseUtaBalance (balance): Balances {
+    parseUtaBalance (balance: any): Balances {
         const result: Dict = { 'info': balance };
+        //
+        // uta
         //
         //     {
         //         "coin": "USDT",
@@ -4534,21 +4694,32 @@ export default class bitget extends Exchange {
         //         "locked": "0"
         //     }
         //
+        // funding uta
+        //
+        //     {
+        //         "coin": "BGB",
+        //         "available": "0.01",
+        //         "frozen": "0",
+        //         "balance": "0.01"
+        //     }
+        //
         for (let i = 0; i < balance.length; i++) {
             const entry = balance[i];
             const account = this.account ();
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
             account['debt'] = this.safeString (entry, 'debt');
-            account['used'] = this.safeString (entry, 'locked');
+            account['used'] = this.safeString2 (entry, 'locked', 'frozen');
             account['free'] = this.safeString (entry, 'available');
             account['total'] = this.safeString (entry, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
 
-    parseBalance (balance): Balances {
+    override parseBalance (balance: any): Balances {
         const result: Dict = { 'info': balance };
         //
         // spot
@@ -4622,7 +4793,9 @@ export default class bitget extends Exchange {
                     account['used'] = Precise.stringAdd (frozen, locked);
                 }
             }
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -4646,10 +4819,10 @@ export default class bitget extends Exchange {
             'fail_execute': 'rejected',
             'executed': 'closed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder, editOrder, closePosition
         //
@@ -4882,7 +5055,7 @@ export default class bitget extends Exchange {
         const timestamp = this.safeIntegerN (order, [ 'cTime', 'ctime', 'createdTime' ]);
         const updateTimestamp = this.safeInteger2 (order, 'uTime', 'updatedTime');
         const rawStatus = this.safeStringN (order, [ 'status', 'state', 'orderStatus', 'planStatus' ]);
-        let fee = undefined;
+        let fee: Fee = undefined;
         const feeCostString = this.safeString (order, 'fee');
         if (feeCostString !== undefined) {
             // swap
@@ -4904,11 +5077,11 @@ export default class bitget extends Exchange {
             if (feeDetail !== undefined) {
                 const parsedFeeDetail = JSON.parse (feeDetail);
                 const feeValues = Object.values (parsedFeeDetail);
-                let feeObject = undefined;
+                let feeObject: NullableDict = undefined;
                 for (let i = 0; i < feeValues.length; i++) {
                     const feeValue = feeValues[i];
                     if (this.safeValue (feeValue, 'feeCoinCode') !== undefined) {
-                        feeObject = feeValue;
+                        feeObject = feeValue as Dict;
                         break;
                     }
                 }
@@ -4918,19 +5091,19 @@ export default class bitget extends Exchange {
                 };
             }
         }
-        let postOnly = undefined;
+        let postOnly: Bool = undefined;
         let timeInForce = this.safeStringUpper2 (order, 'force', 'timeInForce');
         if (timeInForce === 'POST_ONLY') {
             postOnly = true;
             timeInForce = 'PO';
         }
-        let reduceOnly = undefined;
+        let reduceOnly: Bool = undefined;
         const reduceOnlyRaw = this.safeString (order, 'reduceOnly');
         if (reduceOnlyRaw !== undefined) {
             reduceOnly = (reduceOnlyRaw === 'NO') ? false : true;
         }
-        let price = undefined;
-        let average = undefined;
+        let price: Str = undefined;
+        let average: Str = undefined;
         const basePrice = this.safeString (order, 'basePrice');
         if (basePrice !== undefined) {
             // for spot fetchOpenOrders, the price is priceAvg and the filled price is basePrice
@@ -4940,8 +5113,8 @@ export default class bitget extends Exchange {
             price = this.safeStringN (order, [ 'price', 'executePrice', 'slLimitPrice', 'tpLimitPrice' ]);
             average = this.safeString (order, 'priceAvg');
         }
-        let size = undefined;
-        let filled = undefined;
+        let size: Str = undefined;
+        let filled: Str = undefined;
         const baseSize = this.safeString (order, 'baseSize');
         if (baseSize !== undefined) {
             // for spot margin fetchOpenOrders, the order size is baseSize and the filled amount is size
@@ -5005,8 +5178,10 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
-        await this.loadMarkets ();
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -5034,7 +5209,7 @@ export default class bitget extends Exchange {
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much you want to trade in units of the base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used as the execution price for contract stop-loss / take-profit orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.cost] *spot only* how much you want to trade in units of the quote currency, for market buy orders only
      * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
@@ -5062,8 +5237,10 @@ export default class bitget extends Exchange {
      * @param {string} [params.posSide] *uta only* hedged two-way position side, long or short
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const marginParams = this.handleMarginModeAndParams ('createOrder', params);
         const marginMode = marginParams[0];
@@ -5077,8 +5254,8 @@ export default class bitget extends Exchange {
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         let response = undefined;
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'createOrder', 'uta', false);
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'createOrder', false);
         if (uta) {
             const request = this.createUtaOrderRequest (symbol, type, side, amount, price, params);
             if (isStopLossOrTakeProfitTrigger) {
@@ -5123,12 +5300,18 @@ export default class bitget extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    createUtaOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createUtaOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
-        let productType = undefined;
+        let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         if (productType === 'SPOT') {
-            let marginMode = undefined;
+            let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
             if (marginMode !== undefined) {
                 productType = 'MARGIN';
@@ -5206,10 +5389,13 @@ export default class bitget extends Exchange {
             }
             request['orderType'] = type;
             const exchangeSpecificTifParam = this.safeString (params, 'timeInForce');
-            let postOnly = undefined;
+            let postOnly: Bool = undefined;
             [ postOnly, params ] = this.handlePostOnly (isMarketOrder, exchangeSpecificTifParam === 'post_only', params);
-            const defaultTimeInForce = this.safeStringUpper (this.options, 'defaultTimeInForce');
-            const timeInForce = this.safeStringUpper (params, 'timeInForce', defaultTimeInForce);
+            let timeInForce: Str = undefined;
+            [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce');
+            if (timeInForce !== undefined) {
+                timeInForce = timeInForce.toUpperCase ();
+            }
             if (postOnly) {
                 request['timeInForce'] = 'post_only';
             } else if (timeInForce === 'GTC') {
@@ -5221,7 +5407,7 @@ export default class bitget extends Exchange {
             }
         }
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
-        let hedged = undefined;
+        let hedged: Bool = undefined;
         [ hedged, params ] = this.handleParamBool (params, 'hedged', false);
         if (reduceOnly) {
             if (hedged || isStopLossOrTakeProfitTrigger) {
@@ -5240,20 +5426,26 @@ export default class bitget extends Exchange {
         return this.extend (request, params);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
-        let marketType = undefined;
-        let marginMode = undefined;
+        let marketType: Str = undefined;
+        let marginMode: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         const request: Dict = {
             'symbol': market['id'],
             'orderType': type,
         };
-        let hedged = undefined;
+        let hedged: Bool = undefined;
         [ hedged, params ] = this.handleParamBool (params, 'hedged', false);
         // backward compatibility for `oneWayMode`
-        let oneWayMode = undefined;
+        let oneWayMode: Bool = undefined;
         [ oneWayMode, params ] = this.handleParamBool (params, 'oneWayMode');
         if (oneWayMode !== undefined) {
             hedged = !oneWayMode;
@@ -5274,6 +5466,13 @@ export default class bitget extends Exchange {
         const trailingTriggerPrice = this.safeString (params, 'trailingTriggerPrice', this.numberToString (price));
         const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callbackRatio');
         const isTrailingPercentOrder = trailingPercent !== undefined;
+        // const multipleTriggers = (isTriggerOrder && (isStopLossTriggerOrder || isTakeProfitTriggerOrder || isTrailingPercentOrder))
+        //     || (isStopLossTriggerOrder && (isTakeProfitTriggerOrder || isTrailingPercentOrder))
+        //     || (isTakeProfitTriggerOrder && isTrailingPercentOrder);
+        // if (multipleTriggers) {
+        //     throw new ExchangeError (this.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
+        // }
+        //
         if (this.sum (isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isTrailingPercentOrder) > 1) {
             throw new ExchangeError (this.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         }
@@ -5284,10 +5483,13 @@ export default class bitget extends Exchange {
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
         const exchangeSpecificTifParam = this.safeString2 (params, 'force', 'timeInForce');
-        let postOnly = undefined;
+        let postOnly: Bool = undefined;
         [ postOnly, params ] = this.handlePostOnly (isMarketOrder, exchangeSpecificTifParam === 'post_only', params);
-        const defaultTimeInForce = this.safeStringUpper (this.options, 'defaultTimeInForce');
-        const timeInForce = this.safeStringUpper (params, 'timeInForce', defaultTimeInForce);
+        let timeInForce: Str = undefined;
+        [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce');
+        if (timeInForce !== undefined) {
+            timeInForce = timeInForce.toUpperCase ();
+        }
         if (postOnly) {
             request['force'] = 'post_only';
         } else if (timeInForce === 'GTC') {
@@ -5301,7 +5503,7 @@ export default class bitget extends Exchange {
         if ((marketType === 'swap') || (marketType === 'future')) {
             request['marginCoin'] = market['settleId'];
             request['size'] = this.amountToPrecision (symbol, amount);
-            let productType = undefined;
+            let productType: Str = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
             if (clientOrderId !== undefined) {
@@ -5343,8 +5545,11 @@ export default class bitget extends Exchange {
                     request['stopSurplusTriggerType'] = tpType;
                 }
             } else if (isStopLossOrTakeProfitTrigger) {
-                if (!isMarketOrder) {
-                    throw new ExchangeError (this.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders');
+                if (price !== undefined) {
+                    request['executePrice'] = this.priceToPrecision (symbol, price);
+                    if ('price' in request) {
+                        delete request['price'];
+                    }
                 }
                 if (hedged) {
                     request['holdSide'] = (side === 'sell') ? 'long' : 'short';
@@ -5361,11 +5566,27 @@ export default class bitget extends Exchange {
             } else {
                 if (hasStopLoss) {
                     const slTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice');
+                    if (slTriggerPrice === undefined) {
+                        throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter');
+                    }
                     request['presetStopLossPrice'] = this.priceToPrecision (symbol, slTriggerPrice);
+                    const slLimitPrice = this.safeValue (stopLoss, 'price');
+                    if (slLimitPrice !== undefined) {
+                        // without the execute price the exchange fills the attached stop loss
+                        // at the market price, see https://github.com/ccxt/ccxt/issues/23459
+                        request['presetStopLossExecutePrice'] = this.priceToPrecision (symbol, slLimitPrice);
+                    }
                 }
                 if (hasTakeProfit) {
                     const tpTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice');
+                    if (tpTriggerPrice === undefined) {
+                        throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter');
+                    }
                     request['presetStopSurplusPrice'] = this.priceToPrecision (symbol, tpTriggerPrice);
+                    const tpLimitPrice = this.safeValue (takeProfit, 'price');
+                    if (tpLimitPrice !== undefined) {
+                        request['presetStopSurplusExecutePrice'] = this.priceToPrecision (symbol, tpLimitPrice);
+                    }
                 }
             }
             if (!isStopLossOrTakeProfitTrigger) {
@@ -5395,8 +5616,8 @@ export default class bitget extends Exchange {
                 throw new InvalidOrder (this.id + ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets');
             }
             request['side'] = side;
-            let quantity = undefined;
-            let planType = undefined;
+            let quantity: Str = undefined;
+            let planType: Str = undefined;
             let createMarketBuyOrderRequiresPrice = true;
             [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             if (isMarketOrder && (side === 'buy')) {
@@ -5407,7 +5628,7 @@ export default class bitget extends Exchange {
                     quantity = this.costToPrecision (symbol, cost);
                 } else if (createMarketBuyOrderRequiresPrice) {
                     if (price === undefined) {
-                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
+                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice in options["createOrder"] or params to false and pass the cost to spend in the amount argument');
                     } else {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);
@@ -5451,10 +5672,12 @@ export default class bitget extends Exchange {
     }
 
     async createUtaOrders (orders: OrderRequest[], params = {}) {
-        await this.loadMarkets ();
-        const ordersRequests = [];
-        let symbol = undefined;
-        let marginMode = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const ordersRequests: List = [];
+        let symbol: Str = undefined;
+        let marginMode: Str = undefined;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
@@ -5517,16 +5740,18 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrders (orders: OrderRequest[], params = {}) {
-        await this.loadMarkets ();
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'createOrders', 'uta', false);
+    override async createOrders (orders: OrderRequest[], params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'createOrders', false);
         if (uta) {
             return await this.createUtaOrders (orders, params);
         }
-        const ordersRequests = [];
-        let symbol = undefined;
-        let marginMode = undefined;
+        const ordersRequests: List = [];
+        let symbol: Str = undefined;
+        let marginMode: Str = undefined;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
@@ -5569,7 +5794,7 @@ export default class bitget extends Exchange {
             const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
             request['marginMode'] = marginModeRequest;
             request['marginCoin'] = market['settleId'];
-            let productType = undefined;
+            let productType: Str = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
             response = await this.privateMixPostV2MixOrderBatchPlaceOrder (request);
@@ -5645,8 +5870,10 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             // 'orderId': id,
@@ -5672,15 +5899,21 @@ export default class bitget extends Exchange {
         const trailingTriggerPrice = this.safeString (params, 'trailingTriggerPrice', this.numberToString (price));
         const trailingPercent = this.safeString2 (params, 'trailingPercent', 'newCallbackRatio');
         const isTrailingPercentOrder = trailingPercent !== undefined;
+        // const multipleTriggers = (isTriggerOrder && (isStopLossOrder || isTakeProfitOrder || isTrailingPercentOrder))
+        //     || (isStopLossOrder && (isTakeProfitOrder || isTrailingPercentOrder))
+        //     || (isTakeProfitOrder && isTrailingPercentOrder);
+        // if (multipleTriggers) {
+        //     throw new ExchangeError (this.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
+        // }
         if (this.sum (isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder) > 1) {
             throw new ExchangeError (this.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         }
         params = this.omit (params, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent' ]);
         let response = undefined;
-        let productType = undefined;
-        let uta = undefined;
+        let productType: Str = undefined;
+        let uta: Bool = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        [ uta, params ] = this.handleOptionAndParams (params, 'editOrder', 'uta', false);
+        [ uta, params ] = await this.handleUTAAndParams (params, 'editOrder', false);
         if (uta) {
             if (amount !== undefined) {
                 request['qty'] = this.amountToPrecision (symbol, amount);
@@ -5734,7 +5967,11 @@ export default class bitget extends Exchange {
             request['orderType'] = type;
             if (triggerPrice !== undefined) {
                 request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
-                request['executePrice'] = this.priceToPrecision (symbol, price);
+                // market plan orders carry no execute price, follow up to
+                // https://github.com/ccxt/ccxt/issues/25427
+                if (price !== undefined) {
+                    request['executePrice'] = this.priceToPrecision (symbol, price);
+                }
             } else {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
@@ -5852,14 +6089,16 @@ export default class bitget extends Exchange {
      * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let marginMode = undefined;
-        let response = undefined;
+        let marginMode: Str = undefined;
+        let response: Dict = {};
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
         const request: Dict = {};
         const trailing = this.safeValue (params, 'trailing');
@@ -5868,14 +6107,14 @@ export default class bitget extends Exchange {
         if (!(market['spot'] && trigger)) {
             request['symbol'] = market['id'];
         }
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'uta', false);
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'cancelOrder', false);
         const isPlanOrder = trigger || trailing;
         const isContract = market['swap'] || market['future'];
         const isContractTriggerEndpoint = isContract && isPlanOrder && !uta;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientOid');
         if (isContractTriggerEndpoint) {
-            const orderIdList = [];
+            const orderIdList: List = [];
             const orderId: Dict = {};
             if (clientOrderId !== undefined) {
                 params = this.omit (params, 'clientOrderId');
@@ -5900,7 +6139,7 @@ export default class bitget extends Exchange {
                 response = await this.privateUtaPostV3TradeCancelOrder (this.extend (request, params));
             }
         } else if ((market['swap']) || (market['future'])) {
-            let productType = undefined;
+            let productType: Str = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
             if (trailing) {
@@ -5980,10 +6219,10 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        let order = undefined;
+        let order: Dict = {};
         if (isContractTriggerEndpoint) {
             const orderInfo = this.safeValue (data, 'successList', []);
-            order = orderInfo[0];
+            order = this.safeDict (orderInfo, 0, {});
         } else {
             if (uta && trigger) {
                 order = response;
@@ -5994,15 +6233,17 @@ export default class bitget extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelUtaOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelUtaOrders (ids: any, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let productType = undefined;
+        let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        const requestList = [];
+        const requestList: List = [];
         for (let i = 0; i < ids.length; i++) {
             const individualId = ids[i];
             const order: Dict = {
@@ -6048,22 +6289,24 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'uta', false);
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'cancelOrders', false);
         if (uta) {
             return await this.cancelUtaOrders (ids, symbol, params);
         }
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrders', params);
         const trigger = this.safeValue2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        const orderIdList = [];
+        const orderIdList: List = [];
         for (let i = 0; i < ids.length; i++) {
             const individualId = ids[i];
             const orderId: Dict = {
@@ -6091,7 +6334,7 @@ export default class bitget extends Exchange {
                 response = await this.privateSpotPostV2SpotTradeBatchCancelOrder (this.extend (request, params));
             }
         } else {
-            let productType = undefined;
+            let productType: Str = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
             if (trigger) {
@@ -6137,15 +6380,17 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
-        let productType = undefined;
+        let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
@@ -6153,8 +6398,8 @@ export default class bitget extends Exchange {
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'uta', false);
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'cancelAllOrders', false);
         if (uta) {
             if (productType === 'SPOT') {
                 if (marginMode !== undefined) {
@@ -6222,7 +6467,7 @@ export default class bitget extends Exchange {
             //     {
             //         "code": "00000",
             //         "msg": "success",
-            //         "requestTime": "1680008815965",
+            //         "requestTime": "1680008815966",
             //         "data": {
             //             "successList": [
             //                 {
@@ -6237,13 +6482,13 @@ export default class bitget extends Exchange {
         const data = this.safeDict (response, 'data');
         const resultList = this.safeListN (data, [ 'resultList', 'successList', 'list' ]);
         const failureList = this.safeList2 (data, 'failure', 'failureList');
-        let responseList = undefined;
+        let responseList: NullableList = undefined;
         if ((resultList !== undefined) && (failureList !== undefined)) {
             responseList = this.arrayConcat (resultList, failureList);
         } else {
             responseList = resultList;
         }
-        return this.parseOrders (responseList);
+        return this.parseOrders (responseList as object[]);
     }
 
     /**
@@ -6260,11 +6505,13 @@ export default class bitget extends Exchange {
      * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             // 'orderId': id,
@@ -6277,15 +6524,15 @@ export default class bitget extends Exchange {
             request['orderId'] = id;
         }
         let response = undefined;
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'uta', false);
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOrder', false);
         if (uta) {
             response = await this.privateUtaGetV3TradeOrderInfo (this.extend (request, params));
         } else if (market['spot']) {
             response = await this.privateSpotGetV2SpotTradeOrderInfo (this.extend (request, params));
         } else if (market['swap'] || market['future']) {
             request['symbol'] = market['id'];
-            let productType = undefined;
+            let productType: Str = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
             response = await this.privateMixGetV2MixOrderDetail (this.extend (request, params));
@@ -6447,15 +6694,17 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        let market = undefined;
-        let type = undefined;
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
+        let type: Str = undefined;
         let request: Dict = {};
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'uta', false);
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOpenOrders', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -6469,8 +6718,8 @@ export default class bitget extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
         if (paginate) {
-            let cursorReceived = undefined;
-            let cursorSent = undefined;
+            let cursorReceived: Str = undefined;
+            let cursorSent: Str = undefined;
             if (uta) {
                 cursorReceived = 'cursor';
                 cursorSent = 'cursor';
@@ -6504,7 +6753,7 @@ export default class bitget extends Exchange {
                 request['clientOid'] = clientOrderId;
             }
         }
-        let productType = undefined;
+        let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         params = this.omit (params, [ 'type', 'stop', 'trigger', 'trailing' ]);
         if (uta) {
@@ -6805,7 +7054,7 @@ export default class bitget extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         if (uta) {
-            let result = undefined;
+            let result: NullableList = undefined;
             if (trigger) {
                 result = this.safeList (response, 'data', []);
             } else {
@@ -6847,8 +7096,10 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const orders = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
         return this.filterBy (orders, 'status', 'closed') as Order[];
     }
@@ -6876,8 +7127,10 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const orders = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
         return this.filterBy (orders, 'status', 'canceled') as Order[];
     }
@@ -6907,27 +7160,29 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'uta', false);
+    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchCanceledAndClosedOrders', false);
         if (uta) {
             return await this.fetchUtaCanceledAndClosedOrders (symbol, since, limit, params);
         }
-        await this.loadMarkets ();
-        let market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         let request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchCanceledAndClosedOrders', market, params);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchCanceledAndClosedOrders', params);
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate');
         if (paginate) {
-            let cursorReceived = undefined;
+            let cursorReceived: Str = undefined;
             if (marketType === 'spot') {
                 if (marginMode !== undefined) {
                     cursorReceived = 'minId';
@@ -6971,7 +7226,7 @@ export default class bitget extends Exchange {
                 if (symbol === undefined) {
                     throw new ArgumentsRequired (this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
                 }
-                const endTime = this.safeIntegerN (params, [ 'endTime', 'until' ]);
+                const endTime = this.safeInteger2 (params, 'endTime', 'until');
                 params = this.omit (params, [ 'until' ]);
                 if (since === undefined) {
                     since = now - 7776000000;
@@ -6985,7 +7240,7 @@ export default class bitget extends Exchange {
                 response = await this.privateSpotGetV2SpotTradeHistoryOrders (this.extend (request, params));
             }
         } else {
-            let productType = undefined;
+            let productType: Str = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
             const planTypeDefined = this.safeString (params, 'planType') !== undefined;
@@ -7195,15 +7450,17 @@ export default class bitget extends Exchange {
     }
 
     async fetchUtaCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let productType = undefined;
+        let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         if (productType === 'SPOT') {
-            let marginMode = undefined;
+            let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchCanceledAndClosedOrders', params);
             if (marginMode !== undefined) {
                 productType = 'MARGIN';
@@ -7336,26 +7593,28 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
-        await this.loadMarkets ();
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const symbol = this.safeString (params, 'symbol');
         params = this.omit (params, 'symbol');
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLedger', market, params);
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
         if (paginate) {
-            let cursorReceived = undefined;
+            let cursorReceived: Str = undefined;
             if (marketType !== 'spot') {
                 cursorReceived = 'endId';
             }
             return await this.fetchPaginatedCallCursor ('fetchLedger', symbol, since, limit, params, cursorReceived, 'idLessThan') as LedgerEntry[];
         }
-        let currency = undefined;
+        let currency: Currency = undefined;
         let request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
@@ -7373,9 +7632,9 @@ export default class bitget extends Exchange {
             response = await this.privateSpotGetV2SpotAccountBills (this.extend (request, params));
         } else {
             if (symbol !== undefined) {
-                request['symbol'] = market['id'];
+                request['symbol'] = this.safeString (market, 'id');
             }
-            let productType = undefined;
+            let productType: Str = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
             response = await this.privateMixGetV2MixAccountBill (this.extend (request, params));
@@ -7432,7 +7691,7 @@ export default class bitget extends Exchange {
         return this.parseLedger (data, currency, since, limit);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+    override parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         // spot
         //
@@ -7466,7 +7725,7 @@ export default class bitget extends Exchange {
         const timestamp = this.safeInteger (item, 'cTime');
         const after = this.safeNumber (item, 'balance');
         const fee = this.safeNumber2 (item, 'fees', 'fee');
-        const amountRaw = this.safeString2 (item, 'size', 'amount');
+        const amountRaw = this.safeString2 (item, 'size', 'amount', '');
         const amount = this.parseNumber (Precise.stringAbs (amountRaw));
         let direction = 'in';
         if (amountRaw.indexOf ('-') >= 0) {
@@ -7494,7 +7753,7 @@ export default class bitget extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerType (type) {
+    parseLedgerType (type: any) {
         const types: Dict = {
             'trans_to_cross': 'transfer',
             'trans_from_cross': 'transfer',
@@ -7537,7 +7796,7 @@ export default class bitget extends Exchange {
             'buy': 'trade',
             'sell': 'trade',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**
@@ -7558,13 +7817,15 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'uta', false);
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchMyTrades', false);
         if (!uta && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         let request: Dict = {};
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
@@ -7575,12 +7836,12 @@ export default class bitget extends Exchange {
             request['limit'] = limit;
         }
         let paginate = false;
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
         if (paginate) {
-            let cursorReceived = undefined;
-            let cursorSent = undefined;
+            let cursorReceived: Str = undefined;
+            let cursorSent: Str = undefined;
             if (uta) {
                 cursorReceived = 'cursor';
                 cursorSent = 'cursor';
@@ -7614,7 +7875,7 @@ export default class bitget extends Exchange {
                     response = await this.privateSpotGetV2SpotTradeFills (this.extend (request, params));
                 }
             } else {
-                let productType = undefined;
+                let productType: Str = undefined;
                 [ productType, params ] = this.handleProductTypeAndParams (market, params);
                 request['productType'] = productType;
                 response = await this.privateMixGetV2MixOrderFills (this.extend (request, params));
@@ -7776,18 +8037,20 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPosition (symbol: string, params = {}) {
-        await this.loadMarkets ();
+    override async fetchPosition (symbol: string, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let productType = undefined;
+        let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
         };
         let response = undefined;
-        let uta = undefined;
-        let result = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchPosition', 'uta', false);
+        let uta: Bool = undefined;
+        let result: NullableList = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchPosition', false);
         if (uta) {
             request['category'] = productType;
             response = await this.privateUtaGetV3PositionCurrentPosition (this.extend (request, params));
@@ -7888,21 +8151,23 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchPositions', undefined, undefined, undefined, params, 'endId', 'idLessThan') as Position[];
         }
-        let method = undefined;
+        let method: Str = undefined;
         const useHistoryEndpoint = this.safeBool (params, 'useHistoryEndpoint', false);
         if (useHistoryEndpoint) {
             method = 'privateMixGetV2MixPositionHistoryPosition';
         } else {
             [ method, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'privateMixGetV2MixPositionAllPosition');
         }
-        let market = undefined;
+        let market: Market = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
             // symbols can be undefined or []
@@ -7910,20 +8175,20 @@ export default class bitget extends Exchange {
                 market = this.market (first);
             }
         }
-        let productType = undefined;
+        let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {};
         let response = undefined;
         let isHistory = false;
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'uta', false);
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchPositions', false);
         if (uta) {
             request['category'] = productType;
             response = await this.privateUtaGetV3PositionCurrentPosition (this.extend (request, params));
         } else if (method === 'privateMixGetV2MixPositionAllPosition') {
             let marginCoin = this.safeString (params, 'marginCoin', 'USDT');
             if (market !== undefined) {
-                marginCoin = market['settleId'];
+                marginCoin = market['settleId'] as string;
             } else if (productType === 'USDT-FUTURES') {
                 marginCoin = 'USDT';
             } else if (productType === 'USDC-FUTURES') {
@@ -8049,14 +8314,14 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        let position = [];
+        let position: List = [];
         if (uta || isHistory) {
             const data = this.safeDict (response, 'data', {});
             position = this.safeList (data, 'list', []);
         } else {
             position = this.safeList (response, 'data', []);
         }
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < position.length; i++) {
             result.push (this.parsePosition (position[i], market));
         }
@@ -8064,7 +8329,7 @@ export default class bitget extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined) {
         //
         // fetchPosition
         //
@@ -8199,8 +8464,8 @@ export default class bitget extends Exchange {
         const symbol = market['symbol'];
         const timestamp = this.safeIntegerN (position, [ 'cTime', 'ctime', 'createdTime' ]);
         let marginMode = this.safeString (position, 'marginMode');
-        let collateral = undefined;
-        let initialMargin = undefined;
+        let collateral: Str = undefined;
+        let initialMargin: Str = undefined;
         const unrealizedPnl = this.safeString2 (position, 'unrealizedPL', 'unrealisedPnl');
         const rawCollateral = this.safeString2 (position, 'marginSize', 'positionBalance');
         if (marginMode === 'isolated') {
@@ -8210,7 +8475,7 @@ export default class bitget extends Exchange {
             initialMargin = rawCollateral;
         }
         const holdMode = this.safeString2 (position, 'posMode', 'holdMode');
-        let hedged = undefined;
+        let hedged: Bool = undefined;
         if (holdMode === 'hedge_mode') {
             hedged = true;
         } else if (holdMode === 'one_way_mode') {
@@ -8229,7 +8494,7 @@ export default class bitget extends Exchange {
         }
         let contracts = this.parseNumber (Precise.stringDiv (baseAmount, contractSize));
         if (contracts === undefined) {
-            contracts = this.safeNumber (position, 'closeTotalPos');
+            contracts = this.safeNumber (position, 'closeTotalPos') as number;
         }
         const markPrice = this.safeString (position, 'markPrice');
         const notional = Precise.stringMul (baseAmount, markPrice);
@@ -8302,21 +8567,23 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };
-        let productType = undefined;
-        let uta = undefined;
+        let productType: Str = undefined;
+        let uta: Bool = undefined;
         let response = undefined;
-        let result = undefined;
+        let result: NullableList = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'uta', false);
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchFundingRateHistory', false);
         if (uta) {
             if (limit !== undefined) {
                 request['limit'] = limit;
@@ -8368,7 +8635,7 @@ export default class bitget extends Exchange {
             //
             result = this.safeList (response, 'data', []);
         }
-        const rates = [];
+        const rates: List = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const marketId = this.safeString (entry, 'symbol');
@@ -8399,20 +8666,22 @@ export default class bitget extends Exchange {
      * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
-        await this.loadMarkets ();
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
         }
-        let productType = undefined;
+        let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
         };
-        let uta = undefined;
+        let uta: Bool = undefined;
         let response = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchFundingRate', 'uta', false);
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchFundingRate', false);
         if (uta) {
             response = await this.publicUtaGetV3MarketCurrentFundRate (this.extend (request, params));
             //
@@ -8434,7 +8703,7 @@ export default class bitget extends Exchange {
             //
         } else {
             request['productType'] = productType;
-            let method = undefined;
+            let method: Str = undefined;
             [ method, params ] = this.handleOptionAndParams (params, 'fetchFundingRate', 'method', 'publicMixGetV2MixMarketCurrentFundRate');
             if (method === 'publicMixGetV2MixMarketCurrentFundRate') {
                 response = await this.publicMixGetV2MixMarketCurrentFundRate (this.extend (request, params));
@@ -8489,15 +8758,17 @@ export default class bitget extends Exchange {
      * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
      * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
-        await this.loadMarkets ();
-        let market = undefined;
+    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         if (symbols !== undefined) {
             const symbol = this.safeValue (symbols, 0);
             market = this.market (symbol);
         }
         const request: Dict = {};
-        let productType = undefined;
+        let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         let method = 'publicMixGetV2MixMarketTickers';
         [ method, params ] = this.handleOptionAndParams (params, 'fetchFundingRates', 'method', method);
@@ -8572,13 +8843,15 @@ export default class bitget extends Exchange {
      * @param {string} [params.productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingIntervals (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
-        await this.loadMarkets ();
+    override async fetchFundingIntervals (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         params = this.extend ({ 'method': 'publicMixGetV2MixMarketCurrentFundRate' }, params);
         return await this.fetchFundingRates (symbols, params);
     }
 
-    parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         // fetchFundingRate: publicMixGetV2MixMarketCurrentFundRate, publicUtaGetV3MarketCurrentFundRate
         //
@@ -8642,7 +8915,7 @@ export default class bitget extends Exchange {
         const timestamp = this.safeInteger (contract, 'ts');
         const markPrice = this.safeNumber (contract, 'markPrice');
         const indexPrice = this.safeNumber (contract, 'indexPrice');
-        let intervalString = undefined;
+        let intervalString: Str = undefined;
         if (interval !== undefined) {
             intervalString = interval + 'h';
         }
@@ -8681,28 +8954,30 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingHistory[]> {
-        await this.loadMarkets ();
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingHistory[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
         }
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchFundingHistory', false);
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
+            if (uta) {
+                return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, params, 'cursor', 'cursor') as FundingHistory[];
+            }
             return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, params, 'endId', 'idLessThan') as FundingHistory[];
         }
         const market = this.market (symbol);
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingHistory() supports swap contracts only');
         }
-        let productType = undefined;
+        let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        let request: Dict = {
-            'symbol': market['id'],
-            'marginCoin': market['settleId'],
-            'businessType': 'contract_settle_fee',
-            'productType': productType,
-        };
+        let request: Dict = {};
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
             request['startTime'] = since;
@@ -8710,35 +8985,72 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateMixGetV2MixAccountBill (this.extend (request, params));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700795977890,
-        //         "data": {
-        //             "bills": [
-        //                 {
-        //                     "billId": "1111499428100472833",
-        //                     "symbol": "BTCUSDT",
-        //                     "amount": "-0.004992",
-        //                     "fee": "0",
-        //                     "feeByCoupon": "",
-        //                     "businessType": "contract_settle_fee",
-        //                     "coin": "USDT",
-        //                     "cTime": "1700728034996"
-        //                 },
-        //             ],
-        //             "endId": "1098396773329305606"
-        //         }
-        //     }
-        //
+        let response = undefined;
+        if (uta) {
+            request['coin'] = market['settleId'];
+            request['category'] = productType;
+            response = await this.privateUtaGetV3AccountFinancialRecords (this.extend (request, params));
+            //
+            // {
+            //     "code": "00000",
+            //     "msg": "success",
+            //     "requestTime": 1750135478641,
+            //     "data": {
+            //         "list": [
+            //             {
+            //                 "category": "Margin",
+            //                 "id": "13111111111111111",
+            //                 "symbol": "BTCUSDT",
+            //                 "coin": "BTC",
+            //                 "type": "ORDER_DEALT_IN",
+            //                 "amount": "0.00531168",
+            //                 "fee": "-0.00000531",
+            //                 "balance": "55.10017801",
+            //                 "ts": "1745853486185"
+            //             }
+            //         ],
+            //         "cursor": "122222222222222222"
+            //     }
+            // }
+            //
+        } else {
+            request['symbol'] = market['id'];
+            request['marginCoin'] = market['settleId'];
+            request['businessType'] = 'contract_settle_fee';
+            request['productType'] = productType;
+            response = await this.privateMixGetV2MixAccountBill (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1700795977890,
+            //         "data": {
+            //             "bills": [
+            //                 {
+            //                     "billId": "1111499428100472833",
+            //                     "symbol": "BTCUSDT",
+            //                     "amount": "-0.004992",
+            //                     "fee": "0",
+            //                     "feeByCoupon": "",
+            //                     "businessType": "contract_settle_fee",
+            //                     "coin": "USDT",
+            //                     "cTime": "1700728034996"
+            //                 },
+            //             ],
+            //             "endId": "1098396773329305606"
+            //         }
+            //     }
+            //
+        }
         const data = this.safeValue (response, 'data', {});
-        const result = this.safeValue (data, 'bills', []);
-        return this.parseFundingHistories (result, market, since, limit);
+        let bills = this.safeList2 (data, 'bills', 'list', []);
+        if (uta) {
+            bills = this.filterByArray (bills, 'type', [ 'CONTRACT_MAIN_SETTLE_FEE_USER_IN', 'CONTRACT_MAIN_SETTLE_FEE_USER_OUT' ], false);
+        }
+        return this.parseFundingHistories (bills, market, since, limit);
     }
 
-    parseFundingHistory (contract, market: Market = undefined) {
+    parseFundingHistory (contract: any, market: Market = undefined) {
         //
         //     {
         //         "billId": "1111499428100472833",
@@ -8751,9 +9063,21 @@ export default class bitget extends Exchange {
         //         "cTime": "1700728034996"
         //     }
         //
+        //     {
+        //         "category": "Margin",
+        //         "id": "13111111111111111",
+        //         "symbol": "BTCUSDT",
+        //         "coin": "BTC",
+        //         "type": "ORDER_DEALT_IN",
+        //         "amount": "0.00531168",
+        //         "fee": "-0.00000531",
+        //         "balance": "55.10017801",
+        //         "ts": "1745853486185"
+        //     }
+        //
         const marketId = this.safeString (contract, 'symbol');
         const currencyId = this.safeString (contract, 'coin');
-        const timestamp = this.safeInteger (contract, 'cTime');
+        const timestamp = this.safeInteger2 (contract, 'cTime', 'ts');
         return {
             'info': contract,
             'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
@@ -8761,33 +9085,36 @@ export default class bitget extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'code': this.safeCurrencyCode (currencyId),
             'amount': this.safeNumber (contract, 'amount'),
-            'id': this.safeString (contract, 'billId'),
+            'id': this.safeString2 (contract, 'billId', 'id'),
         };
     }
 
-    parseFundingHistories (contracts, market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
-        const result = [];
+    parseFundingHistories (contracts: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
+        const result: List = [];
         for (let i = 0; i < contracts.length; i++) {
             const contract = contracts[i];
-            const business = this.safeString (contract, 'businessType');
-            if (business !== 'contract_settle_fee') {
-                continue;
-            }
+            // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
+            // const business = this.safeString (contract, 'businessType');
+            // if (business !== 'contract_settle_fee') {
+            //     continue;
+            // }
             result.push (this.parseFundingHistory (contract, market));
         }
         const sorted = this.sortBy (result, 'timestamp');
-        let symbol = undefined;
+        let symbol: Str = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
-        await this.loadMarkets ();
+    async modifyMarginHelper (symbol: string, amount: any, type: any, params = {}): Promise<MarginModification> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const holdSide = this.safeString (params, 'holdSide');
         const market = this.market (symbol);
-        let productType = undefined;
+        let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
@@ -8812,7 +9139,7 @@ export default class bitget extends Exchange {
         });
     }
 
-    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
+    override parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         // addMargin/reduceMargin
         //
@@ -8827,12 +9154,12 @@ export default class bitget extends Exchange {
         const status = (errorCode === '00000') ? 'ok' : 'failed';
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'type': undefined,
             'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
-            'code': market['settle'],
+            'code': this.safeString (market, 'settle'),
             'status': status,
             'timestamp': undefined,
             'datetime': undefined,
@@ -8849,7 +9176,7 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         if (amount > 0) {
             throw new BadRequest (this.id + ' reduceMargin() amount parameter must be a negative value');
         }
@@ -8870,7 +9197,7 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         const holdSide = this.safeString (params, 'holdSide');
         if (holdSide === undefined) {
             throw new ArgumentsRequired (this.id + ' addMargin() requires a holdSide parameter, either long or short');
@@ -8887,10 +9214,12 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
-        await this.loadMarkets ();
+    override async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let productType = undefined;
+        let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
@@ -8930,13 +9259,13 @@ export default class bitget extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const isCrossMarginMode = this.safeString (leverage, 'marginMode') === 'crossed';
         const longLevKey = isCrossMarginMode ? 'crossedMarginLeverage' : 'isolatedLongLever';
         const shortLevKey = isCrossMarginMode ? 'crossedMarginLeverage' : 'isolatedShortLever';
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'marginMode': isCrossMarginMode ? 'cross' : 'isolated',
             'longLeverage': this.safeInteger (leverage, longLevKey),
             'shortLeverage': this.safeInteger (leverage, shortLevKey),
@@ -8957,25 +9286,27 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.posSide] required for uta isolated margin, long or short
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let productType = undefined;
+        let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
             'leverage': this.numberToString (leverage),
         };
-        let uta = undefined;
-        let response = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'setLeverage', 'uta', false);
+        let uta: Bool = undefined;
+        let response: Dict = {};
+        [ uta, params ] = await this.handleUTAAndParams (params, 'setLeverage', false);
         if (uta) {
             if (productType === 'SPOT') {
-                let marginMode = undefined;
-                [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTrades', params);
+                let marginMode: Str = undefined;
+                [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
                 if (marginMode !== undefined) {
                     productType = 'MARGIN';
                 }
@@ -9024,7 +9355,7 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    override async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -9035,9 +9366,11 @@ export default class bitget extends Exchange {
         if ((marginMode !== 'isolated') && (marginMode !== 'crossed')) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be either isolated or crossed (cross)');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let productType = undefined;
+        let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
@@ -9070,25 +9403,27 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/contract/account/Change-Hold-Mode
      * @see https://www.bitget.com/api-doc/uta/account/Change-Position-Mode
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by bitget setPositionMode ()
+     * @param {string} symbol not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] required if not uta and symbol is undefined: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} response from the exchange
      */
-    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const posMode = hedged ? 'hedge_mode' : 'one_way_mode';
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let productType = undefined;
-        let uta = undefined;
-        let response = undefined;
+        let productType: Str = undefined;
+        let uta: Bool = undefined;
+        let response: Dict = {};
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        [ uta, params ] = this.handleOptionAndParams (params, 'setPositionMode', 'uta', false);
+        [ uta, params ] = await this.handleUTAAndParams (params, 'setPositionMode', false);
         if (uta) {
             request['holdMode'] = posMode;
             response = await this.privateUtaPostV3AccountSetHoldMode (this.extend (request, params));
@@ -9129,20 +9464,22 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    async fetchOpenInterest (symbol: string, params = {}) {
-        await this.loadMarkets ();
+    override async fetchOpenInterest (symbol: string, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (!market['contract']) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
-        let productType = undefined;
+        let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
         };
-        let uta = undefined;
+        let uta: Bool = undefined;
         let response = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOpenInterest', 'uta', false);
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOpenInterest', false);
         if (uta) {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketOpenInterest (this.extend (request, params));
@@ -9186,7 +9523,7 @@ export default class bitget extends Exchange {
         return this.parseOpenInterest (data, market);
     }
 
-    parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         // default
         //
@@ -9237,12 +9574,14 @@ export default class bitget extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a code argument');
         }
-        await this.loadMarkets ();
-        let type = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
         const fromAccount = this.safeString (params, 'fromAccount', type);
         params = this.omit (params, 'fromAccount');
@@ -9291,17 +9630,23 @@ export default class bitget extends Exchange {
      * @name bitget#transfer
      * @description transfer currency internally between wallets on the same account
      * @see https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
+     * @see https://www.bitget.com/api-doc/uta/account/transfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true to transfer via the unified trading account v3 endpoint
      * @param {string} [params.symbol] unified CCXT market symbol, required when transferring to or from an account type that is a leveraged position-by-position account
      * @param {string} [params.clientOid] custom id
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        await this.loadMarkets ();
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let uta = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'transfer', false);
         const currency = this.currency (code);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const fromType = this.safeString (accountsByType, fromAccount);
@@ -9314,12 +9659,17 @@ export default class bitget extends Exchange {
         };
         const symbol = this.safeString (params, 'symbol');
         params = this.omit (params, 'symbol');
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateSpotPostV2SpotWalletTransfer (this.extend (request, params));
+        let response = undefined;
+        if (uta) {
+            response = await this.privateUtaPostV3AccountTransfer (this.extend (request, params));
+        } else {
+            response = await this.privateSpotPostV2SpotWalletTransfer (this.extend (request, params));
+        }
         //
         //     {
         //         "code": "00000",
@@ -9336,7 +9686,7 @@ export default class bitget extends Exchange {
         return this.parseTransfer (data, currency);
     }
 
-    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+    override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // transfer
         //
@@ -9386,10 +9736,10 @@ export default class bitget extends Exchange {
         const statuses: Dict = {
             'successful': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
-    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         //     {
         //         "chains": [
@@ -9431,10 +9781,12 @@ export default class bitget extends Exchange {
             const networkId = this.safeString (chain, 'chain');
             const currencyCode = this.safeString (currency, 'code');
             const networkCode = this.networkIdToCode (networkId, currencyCode);
-            result['networks'][networkCode] = {
-                'deposit': { 'fee': undefined, 'percentage': undefined },
-                'withdraw': { 'fee': this.safeNumber (chain, 'withdrawFee'), 'percentage': false },
-            };
+            if (networkCode !== undefined) {
+                result['networks'][networkCode] = {
+                    'deposit': { 'fee': undefined, 'percentage': undefined },
+                    'withdraw': { 'fee': this.safeNumber (chain, 'withdrawFee'), 'percentage': false },
+                };
+            }
             if (chainsLength === 1) {
                 result['withdraw']['fee'] = this.safeNumber (chain, 'withdrawFee');
                 result['withdraw']['percentage'] = false;
@@ -9452,8 +9804,10 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<DepositWithdrawFees> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.publicSpotGetV2SpotPublicCoins (params);
         //
         //     {
@@ -9498,8 +9852,10 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    async borrowCrossMargin (code: string, amount: number, params = {}) {
-        await this.loadMarkets ();
+    override async borrowCrossMargin (code: string, amount: number, params = {}): Promise<MarginLoan> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'coin': currency['id'],
@@ -9533,8 +9889,10 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
-        await this.loadMarkets ();
+    override async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}): Promise<MarginLoan> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const market = this.market (symbol);
         const request: Dict = {
@@ -9571,8 +9929,10 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
-        await this.loadMarkets ();
+    override async repayIsolatedMargin (symbol: string, code: string, amount: number, params = {}): Promise<MarginLoan> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const market = this.market (symbol);
         const request: Dict = {
@@ -9609,8 +9969,10 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    async repayCrossMargin (code: string, amount, params = {}) {
-        await this.loadMarkets ();
+    override async repayCrossMargin (code: string, amount: number, params = {}): Promise<MarginLoan> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'coin': currency['id'],
@@ -9634,7 +9996,7 @@ export default class bitget extends Exchange {
         return this.parseMarginLoan (data, currency);
     }
 
-    parseMarginLoan (info, currency: Currency = undefined, market: Market = undefined) {
+    parseMarginLoan (info: any, currency: Currency = undefined, market: Market = undefined): MarginLoan {
         //
         // isolated: borrowMargin
         //
@@ -9674,7 +10036,7 @@ export default class bitget extends Exchange {
         //
         const currencyId = this.safeString (info, 'coin');
         const marketId = this.safeString (info, 'symbol');
-        let symbol = undefined;
+        let symbol: Str = undefined;
         if (marketId !== undefined) {
             symbol = this.safeSymbol (marketId, market, undefined, 'spot');
         }
@@ -9704,18 +10066,20 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    async fetchMyLiquidations (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
-        await this.loadMarkets ();
+    override async fetchMyLiquidations (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyLiquidations', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchMyLiquidations', symbol, since, limit, params, 'minId', 'idLessThan') as Liquidation[];
         }
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyLiquidations', market, params);
         if (type !== 'spot') {
             throw new NotSupported (this.id + ' fetchMyLiquidations() supports spot margin markets only');
@@ -9731,13 +10095,13 @@ export default class bitget extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyLiquidations', params, 'cross');
         if (marginMode === 'isolated') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchMyLiquidations() requires a symbol argument');
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
             response = await this.privateMarginGetV2MarginIsolatedLiquidationHistory (this.extend (request, params));
         } else if (marginMode === 'cross') {
             response = await this.privateMarginGetV2MarginCrossedLiquidationHistory (this.extend (request, params));
@@ -9799,7 +10163,7 @@ export default class bitget extends Exchange {
         return this.parseLiquidations (liquidations, market, since, limit);
     }
 
-    parseLiquidation (liquidation, market: Market = undefined) {
+    override parseLiquidation (liquidation: any, market: Market = undefined) {
         //
         // isolated
         //
@@ -9857,8 +10221,10 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
      */
-    async fetchIsolatedBorrowRate (symbol: string, params = {}): Promise<IsolatedBorrowRate> {
-        await this.loadMarkets ();
+    override async fetchIsolatedBorrowRate (symbol: string, params = {}): Promise<IsolatedBorrowRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -9912,7 +10278,7 @@ export default class bitget extends Exchange {
         return this.parseIsolatedBorrowRate (first, market);
     }
 
-    parseIsolatedBorrowRate (info: Dict, market: Market = undefined): IsolatedBorrowRate {
+    override parseIsolatedBorrowRate (info: Dict, market: Market = undefined): IsolatedBorrowRate {
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -9976,16 +10342,18 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
      */
-    async fetchCrossBorrowRate (code: string, params = {}): Promise<CrossBorrowRate> {
-        await this.loadMarkets ();
+    override async fetchCrossBorrowRate (code: string, params = {}): Promise<CrossBorrowRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'coin': currency['id'],
         };
-        let uta = undefined;
+        let uta: Bool = undefined;
         let response = undefined;
-        let result = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchCrossBorrowRate', 'uta', false);
+        let result: Dict = {};
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchCrossBorrowRate', false);
         if (uta) {
             response = await this.publicUtaGetV3MarketMarginLoans (this.extend (request, params));
             //
@@ -10037,7 +10405,7 @@ export default class bitget extends Exchange {
         return this.parseBorrowRate (result, currency);
     }
 
-    parseBorrowRate (info, currency: Currency = undefined) {
+    override parseBorrowRate (info: any, currency: Currency = undefined) {
         //
         // default
         //
@@ -10093,19 +10461,21 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
-    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
-        await this.loadMarkets ();
+    override async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchBorrowInterest', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchBorrowInterest', symbol, since, limit, params, 'minId', 'idLessThan') as BorrowInterest[];
         }
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
         const request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -10119,13 +10489,13 @@ export default class bitget extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBorrowInterest', params, 'cross');
         if (marginMode === 'isolated') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchBorrowInterest() requires a symbol argument');
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
             response = await this.privateMarginGetV2MarginIsolatedInterestHistory (this.extend (request, params));
         } else if (marginMode === 'cross') {
             response = await this.privateMarginGetV2MarginCrossedInterestHistory (this.extend (request, params));
@@ -10186,7 +10556,7 @@ export default class bitget extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
+    override parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
         //
         // isolated
         //
@@ -10244,17 +10614,19 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+    override async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };
-        let productType = undefined;
-        let uta = undefined;
+        let productType: Str = undefined;
+        let uta: Bool = undefined;
         let response = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        [ uta, params ] = this.handleOptionAndParams (params, 'closePosition', 'uta', false);
+        [ uta, params ] = await this.handleUTAAndParams (params, 'closePosition', false);
         if (uta) {
             if (side !== undefined) {
                 request['posSide'] = side;
@@ -10316,14 +10688,16 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async closeAllPositions (params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+    override async closeAllPositions (params = {}): Promise<Position[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
-        let productType = undefined;
-        let uta = undefined;
+        let productType: Str = undefined;
+        let uta: Bool = undefined;
         let response = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (undefined, params);
-        [ uta, params ] = this.handleOptionAndParams (params, 'closeAllPositions', 'uta', false);
+        [ uta, params ] = await this.handleUTAAndParams (params, 'closeAllPositions', false);
         if (uta) {
             request['category'] = productType;
             response = await this.privateUtaPostV3TradeClosePositions (this.extend (request, params));
@@ -10377,10 +10751,12 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
-        await this.loadMarkets ();
+    override async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let productType = undefined;
+        let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
@@ -10420,12 +10796,12 @@ export default class bitget extends Exchange {
         return this.parseMarginMode (data, market);
     }
 
-    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+    override parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
         let marginType = this.safeString (marginMode, 'marginMode');
         marginType = (marginType === 'crossed') ? 'cross' : marginType;
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'marginMode': marginType,
         } as MarginMode;
     }
@@ -10439,18 +10815,20 @@ export default class bitget extends Exchange {
      * @param {string[]} [symbols] unified contract symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
      * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
      * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+    override async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let request: Dict = {};
-        let market = undefined;
-        let productType = undefined;
-        let uta = undefined;
+        let market: Market = undefined;
+        let productType: Str = undefined;
+        let uta: Bool = undefined;
         let response = undefined;
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
@@ -10467,7 +10845,7 @@ export default class bitget extends Exchange {
         }
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchPositionsHistory', 'uta', false);
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchPositionsHistory', false);
         if (uta) {
             request['category'] = productType;
             response = await this.privateUtaGetV3PositionHistoryPosition (this.extend (request, params));
@@ -10552,8 +10930,10 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
-        await this.loadMarkets ();
+    override async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'fromCoin': fromCode,
             'toCoin': toCode,
@@ -10598,8 +10978,10 @@ export default class bitget extends Exchange {
      * @param {string} params.toAmount the amount you want to trade in units of the toCurrency, obtained from fetchConvertQuote()
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
-        await this.loadMarkets ();
+    override async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const price = this.safeString2 (params, 'price', 'cnvtPrice');
         if (price === undefined) {
             throw new ArgumentsRequired (this.id + ' createConvertTrade() requires a price parameter');
@@ -10648,8 +11030,10 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Conversion[]> {
-        await this.loadMarkets ();
+    override async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Conversion[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         const msInDay = 86400000;
         const now = this.milliseconds ();
@@ -10696,7 +11080,7 @@ export default class bitget extends Exchange {
         return this.parseConversions (dataList, code, 'fromCoin', 'toCoin', since, limit);
     }
 
-    parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+    override parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         //
         // fetchConvertQuote
         //
@@ -10759,8 +11143,10 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchConvertCurrencies (params = {}): Promise<Currencies> {
-        await this.loadMarkets ();
+    override async fetchConvertCurrencies (params = {}): Promise<Currencies> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privateConvertGetV2ConvertCurrencies (params);
         //
         //     {
@@ -10783,34 +11169,36 @@ export default class bitget extends Exchange {
             const entry = data[i];
             const id = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (id);
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': undefined,
-                'type': undefined,
-                'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': this.safeNumber (entry, 'available'),
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber (entry, 'minAmount'),
-                        'max': this.safeNumber (entry, 'maxAmount'),
+            if (code !== undefined) {
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': undefined,
+                    'type': undefined,
+                    'name': undefined,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': this.safeNumber (entry, 'available'),
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'amount': {
+                            'min': this.safeNumber (entry, 'minAmount'),
+                            'max': this.safeNumber (entry, 'maxAmount'),
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-            };
+                    'created': undefined,
+                };
+            }
         }
         return result;
     }
@@ -10826,17 +11214,19 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
-        await this.loadMarkets ();
+    override async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let productType = undefined;
+        let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
         };
         let response = undefined;
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchFundingInterval', 'uta', false);
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchFundingInterval', false);
         if (uta) {
             response = await this.publicUtaGetV3MarketCurrentFundRate (this.extend (request, params));
             //
@@ -10892,8 +11282,10 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
      */
-    async fetchLongShortRatioHistory (symbol: Str = undefined, timeframe: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
-        await this.loadMarkets ();
+    override async fetchLongShortRatioHistory (symbol: Str = undefined, timeframe: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -10939,7 +11331,7 @@ export default class bitget extends Exchange {
         return this.parseLongShortRatioHistory (data, market);
     }
 
-    parseLongShortRatio (info: Dict, market: Market = undefined): LongShortRatio {
+    override parseLongShortRatio (info: Dict, market: Market = undefined): LongShortRatio {
         const marketId = this.safeString (info, 'symbol');
         const timestamp = this.safeIntegerOmitZero (info, 'ts');
         return {
@@ -10952,7 +11344,7 @@ export default class bitget extends Exchange {
         } as LongShortRatio;
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (!response) {
             return undefined; // fallback to default error handler
         }
@@ -11000,11 +11392,11 @@ export default class bitget extends Exchange {
         return undefined;
     }
 
-    nonce () {
+    override nonce () {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    override sign (path: any, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const pathPart = '/api';
@@ -11028,13 +11420,18 @@ export default class bitget extends Exchange {
                 auth += body;
             } else {
                 if (Object.keys (params).length) {
-                    let queryInner = '?' + this.urlencode (this.keysort (params));
+                    const sortedParams = this.keysort (params);
+                    let queryInner = '?' + this.urlencode (sortedParams, true);
                     // check #21169 pr
                     if (queryInner.indexOf ('%24') > -1) {
                         queryInner = queryInner.replace ('%24', '$');
                     }
                     url += queryInner;
-                    auth += queryInner;
+                    // bitget signs the raw (non-percent-encoded) query string, so the
+                    // signature must use the decoded values (e.g. non-ascii market ids).
+                    // sort explicitly (true) so the signed order matches the url order in Go,
+                    // where map iteration is not ordered (keysort's order is otherwise lost)
+                    auth += '?' + this.rawencode (sortedParams, true);
                 }
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');

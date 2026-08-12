@@ -11,7 +11,7 @@ async function testWatchBalance(exchange, skippedProperties, code) {
     let now = exchange.milliseconds();
     const ends = now + 15000;
     while (now < ends) {
-        let response = undefined;
+        let response = {};
         let success = true;
         try {
             response = await exchange.watchBalance();

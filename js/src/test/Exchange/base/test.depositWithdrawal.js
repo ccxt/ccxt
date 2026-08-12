@@ -7,7 +7,7 @@
 import testSharedMethods from './test.sharedMethods.js';
 function testDepositWithdrawal(exchange, skippedProperties, method, entry, requestedCode, now) {
     const format = {
-        'info': {},
+        'info': {}, // or []
         'id': '1234',
         'txid': '0x1345FEG45EAEF7',
         'timestamp': 1502962946216,

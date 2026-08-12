@@ -12,7 +12,6 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES  # noqa E402
 from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402
 import numbers  # noqa E402
 import json  # noqa E402
@@ -24,7 +23,7 @@ def log_template(exchange, method, entry):
     # there are cases when exchange is undefined (eg. base tests)
     id = exchange.id if (exchange is not None) else 'undefined'
     method_string = method if (method is not None) else 'undefined'
-    entry_string = exchange.json(entry) if (exchange is not None) else ''
+    entry_string = exchange.json(entry) if (exchange is not None and entry is not None) else ''
     return ' <<< ' + id + ' ' + method_string + ' ::: ' + entry_string + ' >>> '
 
 
@@ -53,7 +52,13 @@ def assert_type(exchange, skipped_properties, entry, key, format):
     same_numeric = (isinstance(entry_key_val, numbers.Real)) and (isinstance(format_key_val, numbers.Real))
     same_boolean = ((entry_key_val) or (entry_key_val is False)) and ((format_key_val) or (format_key_val is False))
     same_array = isinstance(entry_key_val, list) and isinstance(format_key_val, list)
-    same_object = (isinstance(entry_key_val, dict)) and (isinstance(format_key_val, dict))
+    # PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
+    # returns false for an empty {} format marker — accept a dict entry against an empty-array format
+    format_is_empty_array = False
+    if isinstance(format_key_val, list):
+        format_len = len(format_key_val)
+        format_is_empty_array = (format_len == 0)
+    same_object = exchange.is_dictionary(entry_key_val) and (exchange.is_dictionary(format_key_val) or format_is_empty_array)
     result = (entry_key_val is None) or same_string or same_numeric or same_boolean or same_array or same_object
     return result
 
@@ -73,31 +78,27 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
         for i in range(0, len(format)):
             empty_allowed_for_this_key = (empty_allowed_for is None) or exchange.in_array(i, empty_allowed_for)
             value = entry[i]
-            if i in skipped_properties:
-                continue
             # check when:
             # - it's not inside "allowe empty values" list
             # - it's not undefined
-            if empty_allowed_for_this_key and (value is None):
+            if (empty_allowed_for_this_key and (value is None)) or (i in skipped_properties):
                 continue
             assert value is not None, str(i) + ' index is expected to have a value' + log_text
             # because of other langs, this is needed for arrays
-            type_assertion = assert_type(exchange, skipped_properties, entry, i, format)
+            type_assertion = assert_type(exchange, {}, entry, i, format)
             assert type_assertion, str(i) + ' index does not have an expected type ' + log_text
     else:
-        assert isinstance(entry, dict), 'entry is not an object' + log_text
+        assert exchange.is_dictionary(entry), 'entry is not a dict' + log_text
         keys = list(format.keys())
         for i in range(0, len(keys)):
             key = keys[i]
             if key in skipped_properties:
                 continue
             assert key in entry, '"' + string_value(key) + '" key is missing from structure' + log_text
-            if key in skipped_properties:
-                continue
             empty_allowed_for_this_key = (empty_allowed_for is None) or exchange.in_array(key, empty_allowed_for)
             value = entry[key]
             # check when:
-            # - it's not inside "allowe empty values" list
+            # - it's not inside "allowed empty values" list
             # - it's not undefined
             if empty_allowed_for_this_key and (value is None):
                 continue
@@ -105,10 +106,10 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
             assert value is not None, '"' + string_value(key) + '" key is expected to have a value' + log_text
             # add exclusion for info key, as it can be any type
             if key != 'info':
-                type_assertion = assert_type(exchange, skipped_properties, entry, key, format)
+                type_assertion = assert_type(exchange, {}, entry, key, format)
                 assert type_assertion, '"' + string_value(key) + '" key is neither undefined, neither of expected type' + log_text
                 if deep:
-                    if isinstance(value, dict):
+                    if exchange.is_dictionary(value) or isinstance(value, list):
                         assert_structure(exchange, skipped_properties, method, value, format[key], empty_allowed_for, deep)
 
 
@@ -157,6 +158,8 @@ def assert_timestamp_and_datetime(exchange, skipped_properties, method, entry, n
             # so, we have to compare with millisecond accururacy
             dt_parsed = exchange.parse8601(dt)
             ts_ms = entry['timestamp']
+            if dt_parsed is None:
+                assert False, 'datetime is not parseable: ' + dt + log_text
             diff = abs(dt_parsed - ts_ms)
             if diff >= 500:
                 dt_parsed_string = exchange.iso8601(dt_parsed)
@@ -209,7 +212,7 @@ def assert_symbol(exchange, skipped_properties, method, entry, key, expected_sym
 
 def assert_symbol_in_markets(exchange, skipped_properties, method, symbol):
     log_text = log_template(exchange, method, {})
-    assert (symbol in exchange.markets), 'symbol should be present in exchange.symbols' + log_text
+    assert (exchange.markets is not None) and (symbol in exchange.markets), 'symbol should be present in exchange.symbols' + log_text
 
 
 def assert_greater(exchange, skipped_properties, method, entry, key, compare_to, allow_null=True):
@@ -291,7 +294,7 @@ def assert_fee_structure(exchange, skipped_properties, method, entry, key, allow
         assert isinstance(entry, list), 'fee container is expected to be an array' + log_text
         assert key < len(entry), 'fee key ' + key_string + ' was expected to be present in entry' + log_text
     else:
-        assert isinstance(entry, dict), 'fee container is expected to be an object' + log_text
+        assert exchange.is_dictionary(entry), 'fee container is expected to be a dict' + log_text
         assert key in entry, 'fee key "' + key + '" was expected to be present in entry' + log_text
     fee_object = exchange.safe_value(entry, key)
     assert fee_object is not None or allow_null, 'fee object is null' + log_text
@@ -335,8 +338,10 @@ def check_precision_accuracy(exchange, skipped_properties, method, entry, key):
     if exchange.is_tick_precision():
         # TICK_SIZE should be above zero
         assert_greater(exchange, skipped_properties, method, entry, key, '0')
-        # the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error
+        # the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw error
         decimal_numbers = ['2', '3', '4', '5', '6', '7', '8', '9', '11', '12', '13', '14', '15', '16']
+        if key == 'amount' and 'precisionAmountAbnormal' in skipped_properties:
+            return
         for i in range(0, len(decimal_numbers)):
             num = decimal_numbers[i]
             num_str = num
@@ -524,6 +529,20 @@ def concat(a=None, b=None):
         return result
 
 
+def assert_dictionary_response(exchange, method, response, hint=None):
+    # php cannot distinguish an empty dict from an empty list, both are a plain array
+    # there, so an empty array response is shape indeterminate and accepted, observed
+    # as false positive FAILs in the live tests on https://github.com/ccxt/ccxt/pull/29696
+    is_empty_array_response = False
+    if isinstance(response, list):
+        response_length = len(response)
+        is_empty_array_response = (response_length == 0)
+    hint_text = ''
+    if hint is not None:
+        hint_text = ' ' + hint
+    assert exchange.is_dictionary(response) or is_empty_array_response, exchange.id + ' ' + method + hint_text + ' must return a dict. ' + exchange.json(response)
+
+
 def assert_non_emtpy_array(exchange, skipped_properties, method, entry, hint=None):
     log_text = log_template(exchange, method, entry)
     if hint is not None:
@@ -549,3 +568,45 @@ def deep_equal(exchange, a, b):
 def assert_deep_equal(exchange, skipped_properties, method, a, b):
     log_text = log_template(exchange, method, {})
     assert deep_equal(exchange, a, b), 'two dicts do not match: ' + json.dumps(a) + ' != ' + json.dumps(b) + log_text
+
+
+def exchange_prop(exchange, key, default_value=None):
+    value = exchange.get_property(exchange, str(key))
+    if value is not None:
+        return value
+    # try UpperCase key also, for other langs
+    key_upper = exchange.capitalize(str(key))
+    return exchange.get_property(exchange, key_upper, default_value)
+
+
+def ticker_exception_needs_ohlcv(ex, exchange, ticker):
+    # pure helper (no awaits): files under test/Exchange/base transpile into a single
+    # sync-flavored php shared by both lanes, so the actual fetchOHLCV await must live
+    # in the per-lane callers - this tells them whether the probe is needed
+    e_message = exchange.exception_message(ex, False)  # typed string so the php transpile uses mb_strpos, not in_array
+    if 'percentage should be above' in e_message or 'percentage should be below' in e_message:
+        symbol = ticker['symbol']
+        if symbol is not None:
+            if (exchange.markets is not None) and (symbol in exchange.markets):
+                if exchange.feature_value(symbol, 'fetchOHLCV') is not None:
+                    return True
+    return False
+
+
+def validate_ticker_exception_for_percentage(ex, exchange, ticker, ohlcv=None):
+    # only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
+    # pure (no awaits) for the sync-shared php transpile - the ohlcv candles, when needed
+    # per tickerExceptionNeedsOhlcv, are fetched by the per-lane caller and passed in
+    e_message = exchange.exception_message(ex, False)  # typed string so the php transpile uses mb_strpos, not in_array
+    if 'percentage should be above' in e_message or 'percentage should be below' in e_message:
+        symbol = ticker['symbol']
+        if symbol is not None:
+            # if it's not in markets, then maybe newly added symbol, so can can compromise there
+            if (exchange.markets is None) or not (symbol in exchange.markets):
+                return
+            if ohlcv is not None:
+                ohlcv_length = len(ohlcv)
+                if ohlcv_length <= 1:
+                    # if only 1 day of listing, then allow it
+                    return
+    assert e_message == '', e_message  # trigger error

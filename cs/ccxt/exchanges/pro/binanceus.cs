@@ -58,7 +58,6 @@ public partial class binanceus : binance
                 { "watchPositions", false },
             } },
             { "options", new Dictionary<string, object>() {
-                { "fetchCurrencies", false },
                 { "quoteOrderQty", false },
                 { "defaultType", "spot" },
                 { "fetchMarkets", new Dictionary<string, object>() {
