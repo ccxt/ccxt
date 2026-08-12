@@ -933,7 +933,15 @@ impl Exchange {
         }
         Value::Null
     }
-    pub async fn delay(&mut self, _ms: Value, _args: &[Value]) -> Value {
+    pub async fn delay(&mut self, _ms: Value, args: &[Value]) -> Value {
+        // `delay(ms, method, ...args)` schedules a coroutine after a warm-up
+        // delay (bitvavo's snapshot fetch, htx's resync retry). We can't truly
+        // sleep-then-run without &mut self, so queue it like `spawn` — the drive
+        // loop runs it after the current handle_message. The delay is elided.
+        if let Some(Value::Str(name)) = args.get(0) {
+            let call_args: Vec<Value> = args.get(1..).map(|s| s.to_vec()).unwrap_or_default();
+            enqueue_spawn(name, call_args);
+        }
         Value::Null
     }
     pub fn order_book(&self, _args: &[Value]) -> Value {

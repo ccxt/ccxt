@@ -1116,14 +1116,20 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             // Run any coroutines the handler scheduled via `spawn` (e.g.
             // binance's REST order-book snapshot fetch). We can't truly
             // background them (they need `&mut self`), so run them inline here.
-            for (method, args) in crate::exchange_stubs::drain_spawn_queue() {
-                if std::env::var("CCXT_WS_DEBUG").is_ok() {
-                    eprintln!("[wsdrain] {}", method);
-                }
-                if method == "load_order_book" {
-                    self.ws_load_order_book(args).await;
-                } else {
-                    let _ = self.dispatch_to_derived(&method, args).await;
+            // Drain repeatedly: a spawned coroutine may itself schedule another
+            // (e.g. handle_order_book → delay(watch_order_book_snapshot)).
+            loop {
+                let batch = crate::exchange_stubs::drain_spawn_queue();
+                if batch.is_empty() { break; }
+                for (method, args) in batch {
+                    if std::env::var("CCXT_WS_DEBUG").is_ok() {
+                        eprintln!("[wsdrain] {}", method);
+                    }
+                    if method == "load_order_book" {
+                        self.ws_load_order_book(args).await;
+                    } else {
+                        let _ = self.dispatch_to_derived(&method, args).await;
+                    }
                 }
             }
         }
