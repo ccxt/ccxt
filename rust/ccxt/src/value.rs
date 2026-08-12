@@ -644,6 +644,17 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
             if k == "cache" {
                 if let Some(id) = book_id_of(m) { return book_cache_handle(id); }
             }
+            // A client handle (`Map{url, subscriptions, futures}`) serves its
+            // subscriptions/futures live from the WS registry, so a read after a
+            // write (upbit sets subs then reads them back to build its subscribe
+            // frame) is coherent rather than a stale embedded snapshot.
+            if (k == "subscriptions" || k == "futures")
+                && m.contains_key("subscriptions") && m.contains_key("futures")
+            {
+                if let Some(Value::Str(url)) = m.get("url") {
+                    return crate::pro::ws_client::client_field_live(url, k);
+                }
+            }
             // Snapshot value wins WHEN PRESENT AND NON-NULL. Tests that
             // mutate `exchange.options` (e.g. kucoin broker-id test) need
             // the snapshot view to take precedence; but `to_value`

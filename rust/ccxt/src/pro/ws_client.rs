@@ -34,6 +34,14 @@ pub struct ClientState {
     pub url: String,
     /// Frames queued for the writer task → socket.
     outgoing: mpsc::UnboundedSender<Message>,
+    /// Receiver half held until the socket connects (a slot is pre-registered
+    /// before connecting so `client.subscriptions` writes persist — upbit builds
+    /// its subscribe frame from subscriptions set before the socket is up). The
+    /// writer task takes this on connect.
+    pending_rx: Mutex<Option<mpsc::UnboundedReceiver<Message>>>,
+    /// Serializes the (async) connect so concurrent `ensure_client`s for a
+    /// pre-registered slot don't open two sockets.
+    connect_gate: tokio::sync::Mutex<()>,
     /// Parsed inbound messages awaiting dispatch to `handle_message`.
     incoming: Mutex<VecDeque<Value>>,
     /// Woken on: new inbound message, a resolve/reject, or close.
@@ -257,28 +265,24 @@ pub fn value_subs_remove(url: &str, key: &str) {
 /// Ensure a live connection to `url`, connecting (and spawning the reader /
 /// writer / keep-alive tasks) if needed. Idempotent per URL.
 pub async fn ensure_client(url: &str) -> Result<Arc<ClientState>, String> {
-    if let Some(c) = get_client(url) {
-        return Ok(c);
+    let state = ensure_slot(url);
+    if *state.connected.lock().unwrap() {
+        return Ok(state);
+    }
+    // Serialize connect; re-check under the gate (another task may have just
+    // connected this slot). Lock via a cloned Arc so `state` stays movable.
+    let gate_holder = state.clone();
+    let _gate = gate_holder.connect_gate.lock().await;
+    if *state.connected.lock().unwrap() {
+        return Ok(state);
     }
     let (ws, _resp) = tokio_tungstenite::connect_async(url)
         .await
         .map_err(|e| format!("[NetworkError] ws connect {url}: {e}"))?;
     let (mut write, mut read) = ws.split();
-    let (tx, mut rx) = mpsc::unbounded_channel::<Message>();
-
-    let state = Arc::new(ClientState {
-        url: url.to_string(),
-        outgoing: tx,
-        incoming: Mutex::new(VecDeque::new()),
-        notify: Notify::new(),
-        resolved: Mutex::new(HashMap::new()),
-        rejections: Mutex::new(HashMap::new()),
-        subscriptions: Mutex::new(HashMap::new()),
-        futures: Mutex::new(HashSet::new()),
-        connected: Mutex::new(true),
-        closed: Mutex::new(false),
-        last_pong_ms: Mutex::new(now_ms()),
-    });
+    let mut rx = state.pending_rx.lock().unwrap().take()
+        .ok_or_else(|| format!("[NetworkError] ws {url} slot has no writer channel"))?;
+    *state.last_pong_ms.lock().unwrap() = now_ms();
 
     // Writer task: drain the outgoing queue to the socket.
     tokio::spawn(async move {
@@ -326,8 +330,48 @@ pub async fn ensure_client(url: &str) -> Result<Arc<ClientState>, String> {
         }
     });
 
-    REGISTRY.lock().unwrap().insert(url.to_string(), state.clone());
+    *state.connected.lock().unwrap() = true;
     Ok(state)
+}
+
+/// Live read of a client handle's `subscriptions` / `futures` field, straight
+/// from the registry so a read after a write (upbit builds its subscribe frame
+/// from subscriptions it just set) is coherent, not a stale embedded snapshot.
+pub fn client_field_live(url: &str, field: &str) -> Value {
+    match get_client(url) {
+        Some(c) if field == "futures" => c.futures_value(),
+        Some(c) => c.subscriptions_value(),
+        None => Value::Map(indexmap::IndexMap::new()),
+    }
+}
+
+/// Get-or-create the registry slot for `url` WITHOUT connecting the socket, so
+/// `client.subscriptions` written before `watch()` connects still persist.
+fn ensure_slot(url: &str) -> Arc<ClientState> {
+    let mut reg = REGISTRY.lock().unwrap();
+    if let Some(c) = reg.get(url) {
+        if !c.is_closed() {
+            return c.clone();
+        }
+    }
+    let (tx, rx) = mpsc::unbounded_channel::<Message>();
+    let state = Arc::new(ClientState {
+        url: url.to_string(),
+        outgoing: tx,
+        pending_rx: Mutex::new(Some(rx)),
+        connect_gate: tokio::sync::Mutex::new(()),
+        incoming: Mutex::new(VecDeque::new()),
+        notify: Notify::new(),
+        resolved: Mutex::new(HashMap::new()),
+        rejections: Mutex::new(HashMap::new()),
+        subscriptions: Mutex::new(HashMap::new()),
+        futures: Mutex::new(HashSet::new()),
+        connected: Mutex::new(false),
+        closed: Mutex::new(false),
+        last_pong_ms: Mutex::new(now_ms()),
+    });
+    reg.insert(url.to_string(), state.clone());
+    state
 }
 
 /// Remove (and thereby drop / disconnect) the client for `url`.
@@ -346,15 +390,13 @@ pub fn drop_client(url: &str) {
 /// live snapshots of `subscriptions` / `futures` (the fields venues read via
 /// `get_value(&client, "subscriptions")`).
 pub fn client_value(url: &str) -> Value {
+    // Pre-register the slot so subscriptions written on this handle (before the
+    // socket connects) persist and read back — upbit-style subscribe building.
+    let c = ensure_slot(url);
     let mut m = indexmap::IndexMap::new();
     m.insert("url".to_string(), Value::Str(url.to_string()));
-    if let Some(c) = get_client(url) {
-        m.insert("subscriptions".to_string(), c.subscriptions_value());
-        m.insert("futures".to_string(), c.futures_value());
-    } else {
-        m.insert("subscriptions".to_string(), Value::Map(indexmap::IndexMap::new()));
-        m.insert("futures".to_string(), Value::Map(indexmap::IndexMap::new()));
-    }
+    m.insert("subscriptions".to_string(), c.subscriptions_value());
+    m.insert("futures".to_string(), c.futures_value());
     Value::Map(m)
 }
 
