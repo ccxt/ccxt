@@ -116,7 +116,7 @@ function injectMissingUndefined (fn, args) {
         const paramsObj = args[args.length - 1];
         args.pop ();
         const newArgsArray = args;
-        const isPartialFunction = fn.toString ().indexOf ('(params = {}, context = {})');
+        const isPartialFunction = fn.toString ().startsWith ('(params = {}, context = {})');
         for (let j = 0; j < missingParams; j++) {
             newArgsArray.push (undefined);
         }
