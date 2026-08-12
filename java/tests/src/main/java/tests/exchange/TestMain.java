@@ -67,7 +67,7 @@ public class TestMain extends BaseTest
             } catch(Exception e)
             {
                 dump("[TEST_FAILURE]"); // tell run-tests.js this is failure
-                throw new RuntimeException(e);
+                throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
             return true;
         });
@@ -1510,7 +1510,7 @@ public class TestMain extends BaseTest
                 {
                     (close(exchange)).join();
                 }
-                throw new RuntimeException(e);
+                throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
             return true;  // required in c#
         });
@@ -1829,7 +1829,7 @@ public class TestMain extends BaseTest
                 Object errorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.varToString(newOutput), "(calculated)"), " != "), this.varToString(storedOutput)), "(stored)");
                 dump(Helpers.add("[TEST_FAILURE_DETAIL]", errorMessage));
             }
-            throw new RuntimeException(e);
+            throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
         }
         return res;
     }
@@ -1963,7 +1963,7 @@ public class TestMain extends BaseTest
             {
                 if (!Helpers.isTrue((Helpers.isInstance(e, InvalidProxySettings.class))))
                 {
-                    throw new RuntimeException(e);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
                 output = exchange.last_request_body;
                 requestUrl = exchange.last_request_url;
@@ -2064,7 +2064,7 @@ public class TestMain extends BaseTest
                 }
             } catch(Exception e)
             {
-                throw new RuntimeException(e);
+                throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
             return true;  // c# methods used with promiseAll need to return something
         });
