@@ -141,6 +141,16 @@ jobs:
         for exchange in $cleaned_rest_files; do
           npm run response-js -- $exchange
         done
+    - name: Ws Static tests
+      if: env.important_modified == 'true'
+      run: npm run ws-tests-js
+    - name: Ws Static tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run ws-tests-js -- $exchange
+        done
     - name: Request Prediction tests
       if: env.prediction_modified == 'true'
       run: npm run request-ts-prediction
