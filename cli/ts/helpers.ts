@@ -144,7 +144,7 @@ function createRequestTemplate (cliOptions, exchange, methodName, args, result) 
       + ')'
     );
     log.green ('-------------------------------------------');
-    log (JSON.stringify (final, null, 2));
+    log (jsonStringify (final, 2));
     log.green ('-------------------------------------------');
     if (cliOptions.name) {
         final.description = cliOptions.name;
@@ -679,6 +679,99 @@ function handleStaticTests (cliOptions, exchange, methodName, args, result) {
     }
 }
 
+//-----------------------------------------------------------------------------
+
+const wsRecording = {
+    'active': false,
+    'frames': [] as any[],
+    'results': [] as any[],
+    'httpResponse': undefined as any,
+};
+
+/**
+ * start recording every raw ws frame the exchange receives; the recording is
+ * saved as a static/ws fixture entry when the user presses ctrl+c
+ *
+ * @param exchange
+ * @param methodName
+ * @param args
+ * @param cliOptions
+ */
+function startWsRecording (exchange, methodName: string, args: any[], cliOptions) {
+    if (wsRecording.active) {
+        return;
+    }
+    wsRecording.active = true;
+    const origHandleMessage = exchange.handleMessage.bind (exchange);
+    exchange.handleMessage = (client, message) => {
+        // roundtrip so the saved frame is a plain json value with nulls kept
+        wsRecording.frames.push ({ 'url': client.url, 'message': JSON.parse (jsonStringify (message)) });
+        return origHandleMessage (client, message);
+    };
+    process.once ('SIGINT', () => {
+        saveWsRecording (exchange, methodName, args, cliOptions);
+        process.exit (0);
+    });
+    log.green ('recording ws frames for ' + methodName + ' — press ctrl+c to stop and save the static ws test');
+}
+
+/**
+ * collect one watch resolution (and any rest snapshot the method fetched)
+ *
+ * @param exchange
+ * @param result
+ */
+function recordWsResult (exchange, result) {
+    wsRecording.results.push (JSON.parse (jsonStringify (result)));
+    if (exchange.last_http_response) {
+        // e.g. the orderbook snapshot fetched by watchOrderBook
+        wsRecording.httpResponse = exchange.parseJson (exchange.last_http_response);
+    }
+}
+
+/**
+ * assemble the recorded frames and resolutions into a static/ws fixture entry
+ *
+ * @param exchange
+ * @param methodName
+ * @param args
+ * @param cliOptions
+ */
+function saveWsRecording (exchange, methodName: string, args: any[], cliOptions) {
+    if (wsRecording.frames.length === 0) {
+        log.red ('no ws frames were recorded, nothing to save');
+        return;
+    }
+    // the watch method may fan out over several clients — keep the url that
+    // received the most frames (the stream under test)
+    const counts = {};
+    for (const frame of wsRecording.frames) {
+        counts[frame.url] = (counts[frame.url] || 0) + 1;
+    }
+    const mainUrl = Object.keys (counts).sort ((a, b) => counts[b] - counts[a])[0];
+    const entry: any = {
+        'description': cliOptions.name || 'Fill this with a description of the method call',
+        'input': args,
+        'url': mainUrl,
+        'messages': wsRecording.frames.filter ((f) => f.url === mainUrl).map ((f) => f.message),
+    };
+    if (wsRecording.httpResponse !== undefined) {
+        entry['httpResponse'] = wsRecording.httpResponse;
+    }
+    // one expected result per watch resolution; trim to a single
+    // 'parsedResponse' manually for live structures like orderbooks where
+    // only the final state is deterministic
+    entry['parsedResponses'] = wsRecording.results;
+    log ('Report: (paste inside static/ws/' + exchange.id + '.json -> ' + methodName + ')');
+    log.green ('-------------------------------------------');
+    log (jsonStringify (entry, 2));
+    log.green ('-------------------------------------------');
+    if (cliOptions.name) {
+        log.green ('auto-saving static ws result');
+        add_static_result ('ws', exchange.id, methodName, entry, undefined, false);
+    }
+}
+
 /**
  *
  * @param value
@@ -879,6 +972,8 @@ export {
     injectMissingUndefined,
     handleDebug,
     handleStaticTests,
+    startWsRecording,
+    recordWsResult,
     askForArgv,
     printMethodUsage,
     parseValue,

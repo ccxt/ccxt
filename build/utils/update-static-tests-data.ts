@@ -103,8 +103,8 @@ function add_static_result (requestOrResponse, exchangeId, method, entry, spaces
         process.exit(1);
     }
 
-    if (requestOrResponse !== 'request' && requestOrResponse !== 'response') {
-        throw new Error ('should be either "request" or "response"');
+    if (requestOrResponse !== 'request' && requestOrResponse !== 'response' && requestOrResponse !== 'ws') {
+        throw new Error ('should be either "request", "response" or "ws"');
     }
     const subFolder = isPrediction ? 'prediction/' : '';
     const filePath = rootDir + `/ts/src/test/static/${requestOrResponse}/${subFolder}${exchangeId}.json`;

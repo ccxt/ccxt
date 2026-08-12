@@ -3,7 +3,7 @@ import ansi from 'ansicolor';
 import { Command, Option } from 'commander';
 import ololog from 'ololog';
 import clipboard from 'clipboardy';
-import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage, printExchangeMethods, cacheEvents } from './helpers.js';
+import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, startWsRecording, recordWsResult, askForArgv, printMethodUsage, printExchangeMethods, cacheEvents } from './helpers.js';
 import { changeConfigPath, checkCache, getCachePathForHelp, saveCommand } from './cache.js';
 import { plotOHLCVChart } from './charts/ohlcv.js';
 import { plotOrderBook } from './charts/orderbook.js';
@@ -512,6 +512,12 @@ async function executeCCXTCommand (exchange, params:any, methodName: string, cli
     let start = exchange.milliseconds ();
     let end = exchange.milliseconds ();
     const args = parseMethodArgs (exchange, params, methodName, cliOptions);
+    // --static with a watch method: record every incoming ws frame and each
+    // watch resolution until ctrl+c, then save them as a static/ws test entry
+    const isWsRecording = isWsMethod && (cliOptions.static || cliOptions.response);
+    if (isWsRecording) {
+        startWsRecording (exchange, methodName, args, cliOptions);
+    }
 
     if (!cliOptions.raw || cliOptions.details) {
         const methodArgsPrint = JSON.stringify (args);
@@ -519,6 +525,9 @@ async function executeCCXTCommand (exchange, params:any, methodName: string, cli
     }
 
     const result = await exchange[methodName] (...args);
+    if (isWsRecording) {
+        recordWsResult (exchange, result);
+    }
     if (cliOptions.clipboard) {
         clipboard.writeSync (JSON.stringify (result, undefined, 2));
     }
@@ -553,7 +562,9 @@ async function executeCCXTCommand (exchange, params:any, methodName: string, cli
     }
     start = end;
 
-    handleStaticTests (cliOptions, exchange, methodName, args, result);
+    if (!isWsRecording) {
+        handleStaticTests (cliOptions, exchange, methodName, args, result);
+    }
 
     handleDebug (cliOptions);
 }
