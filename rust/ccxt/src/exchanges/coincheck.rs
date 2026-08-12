@@ -122,6 +122,22 @@ impl CoincheckCore {
         // the constructor config (test runners pass them in via
         // Exchange::new(Some(config-with-markets)) — same as CCXT TS).
         // Don't reset them here.
+        // Apply hardcoded describe().markets. Venues like coincheck ship a
+        // static markets block and never fetchMarkets — CCXT sets this.markets
+        // from describe() at construction, and its base fetchMarkets just
+        // returns Object.values(this.markets). Mirror that here so loadMarkets
+        // resolves without a network fetch. Guarded on a non-empty describe()
+        // markets and an as-yet-unloaded self.markets, so fetch-based venues
+        // (empty describe markets) and config-injected markets are untouched.
+        {
+            let __described_markets = crate::get_value(&described, &crate::Value::Str("markets".to_string()));
+            if matches!(&__described_markets, crate::Value::Dict(mm) if !mm.is_empty())
+                && matches!(self.markets, crate::Value::Null)
+            {
+                let __markets_list = crate::runtime::object_values(&__described_markets);
+                <Self as crate::exchange_generated::ExchangeBase>::set_markets(self, __markets_list, &[crate::Value::Null]);
+            }
+        }
         self.build_implicit_api();
     }
 
@@ -681,8 +697,8 @@ impl CoincheckCore {
         let mut codes: Value = object_keys(&self.currencies);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_511: bool = true;
-            while { if !__for_first_511 { i = add(&i, &Value::Int(1)); } __for_first_511 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_211: bool = true;
+            while { if !__for_first_211 { i = add(&i, &Value::Int(1)); } __for_first_211 = false; is_less_than(&i, &get_array_length(&codes)) } {
             let mut code: Value = get_value(&codes, &i);
             let mut code: Value = get_value(&codes, &i);
             let mut currency: Value = self.currency(code.clone());
@@ -736,8 +752,8 @@ impl CoincheckCore {
         let mut updated: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_512: bool = true;
-            while { if !__for_first_512 { i = add(&i, &Value::Int(1)); } __for_first_512 = false; is_less_than(&i, &get_array_length(&exchangeStatuses)) } {
+            let mut __for_first_212: bool = true;
+            while { if !__for_first_212 { i = add(&i, &Value::Int(1)); } __for_first_212 = false; is_less_than(&i, &get_array_length(&exchangeStatuses)) } {
             let mut exchangeStatus: Value = get_value(&exchangeStatuses, &i);
             let mut exchangeStatus: Value = get_value(&exchangeStatuses, &i);
             let mut rawStatus: Value = self.safe_string_k(exchangeStatus.clone(), "status", &[]);
@@ -817,8 +833,8 @@ impl CoincheckCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_513: bool = true;
-            while { if !__for_first_513 { i = add(&i, &Value::Int(1)); } __for_first_513 = false; is_less_than(&i, &get_array_length(&parsedOrders)) } {
+            let mut __for_first_213: bool = true;
+            while { if !__for_first_213 { i = add(&i, &Value::Int(1)); } __for_first_213 = false; is_less_than(&i, &get_array_length(&parsedOrders)) } {
             append_to_array(&mut result, self.extend(get_value(&parsedOrders, &i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("status".to_string(), Value::Str("open".to_string()));
@@ -1243,8 +1259,8 @@ impl CoincheckCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_514: bool = true;
-            while { if !__for_first_514 { i = add(&i, &Value::Int(1)); } __for_first_514 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_214: bool = true;
+            while { if !__for_first_214 { i = add(&i, &Value::Int(1)); } __for_first_214 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());

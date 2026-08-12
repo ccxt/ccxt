@@ -6125,6 +6125,22 @@ impl ${coreName} {
         // the constructor config (test runners pass them in via
         // Exchange::new(Some(config-with-markets)) — same as CCXT TS).
         // Don't reset them here.
+        // Apply hardcoded describe().markets. Venues like coincheck ship a
+        // static markets block and never fetchMarkets — CCXT sets this.markets
+        // from describe() at construction, and its base fetchMarkets just
+        // returns Object.values(this.markets). Mirror that here so loadMarkets
+        // resolves without a network fetch. Guarded on a non-empty describe()
+        // markets and an as-yet-unloaded self.markets, so fetch-based venues
+        // (empty describe markets) and config-injected markets are untouched.
+        {
+            let __described_markets = crate::get_value(&described, &crate::Value::Str("markets".to_string()));
+            if matches!(&__described_markets, crate::Value::Dict(mm) if !mm.is_empty())
+                && matches!(self.exchange.markets, crate::Value::Null)
+            {
+                let __markets_list = crate::runtime::object_values(&__described_markets);
+                <Self as crate::exchange_generated::ExchangeBase>::set_markets(self, __markets_list, &[crate::Value::Null]);
+            }
+        }
         self.exchange.build_implicit_api();
     }
 
