@@ -4919,8 +4919,8 @@ class RustTranspilerBuilder {
      * (i.e. inside `impl` blocks). Skips synthetic helpers like `new`
      * and `bind`/`dispatch_virtual` we generate ourselves.
      */
-    collectExchangeMethodSignatures(content: string, allowNoPub = false): Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean }> {
-        const out: Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean }> = [];
+    collectExchangeMethodSignatures(content: string, allowNoPub = false): Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean }> {
+        const out: Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean }> = [];
         // Match `[pub] [async] fn NAME(&self|&mut self, ARG_LIST) [-> Ret] {`.
         // `allowNoPub` (used only for the `ExchangeBase` trait body → its
         // `call_dynamic_base`) makes `pub` optional because trait methods are
@@ -4939,10 +4939,16 @@ class RustTranspilerBuilder {
             if (['new', 'bind', 'dispatch_virtual', 'super_describe', 'super_set_sandbox_mode'].includes(name)) {
                 continue;
             }
-            // Only dispatch methods that return `Value` (or `crate::Value`).
-            // Methods returning `()` mutate self and aren't sensible to
-            // call through a `match` arm that expects a Value.
-            if (!/->\s*(crate::)?Value\b/.test(retType)) continue;
+            // Methods returning `Value` dispatch directly. Async methods that
+            // DON'T return Value (void handlers like `handle_order_book`, which
+            // WS venues schedule via spawn/delay and then run through
+            // dispatch_to_derived → call_dynamic) must still be dispatchable —
+            // emit them with the return value discarded (see `isVoid` in the
+            // emitters). Sync non-Value methods stay out (they route through the
+            // sync dispatch_ws_handler, which already void-wraps them).
+            const isValue = /->\s*(crate::)?Value\b/.test(retType);
+            if (!isValue && !isAsync) continue;
+            const isVoid = !isValue;
             // Skip if there's no `self` receiver.
             if (!/\bself\b/.test(argList)) continue;
             const params = argList.split(',').slice(1).map(s => s.trim()).filter(p => p.length > 0);
@@ -4957,7 +4963,7 @@ class RustTranspilerBuilder {
             // `&mut self`; for `&self` methods (parse_ticker/parse_market/sign/
             // handle_errors, …) it can forward directly and soundly.
             const isMut = /^\s*&mut\s+self\b/.test(argList);
-            out.push({ name, isAsync, paramKinds, isMut });
+            out.push({ name, isAsync, paramKinds, isMut, isVoid });
         }
         return out;
     }
@@ -5037,7 +5043,7 @@ class RustTranspilerBuilder {
         } catch (_) { /* base not generated yet */ }
         const collide = new Set([...exBase, ...Object.keys(this.traitMethodSignatures())]);
         const arms: string[] = [];
-        for (const { name, paramKinds, isAsync } of sigs) {
+        for (const { name, paramKinds, isAsync, isVoid } of sigs) {
             if (['describe', 'new', 'bind', 'init', 'call_dynamic', 'call_dynamic_base', 'call_dynamic_prediction_base', 'pred', 'pred_mut'].includes(name)) continue;
             const callArgs: string[] = [];
             for (let i = 0; i < paramKinds.length; i++) {
@@ -5051,7 +5057,8 @@ class RustTranspilerBuilder {
             // ExchangeBase method of the same name (cancel_order, create_order),
             // so always qualify to PredictionBase to avoid ambiguity (review #1).
             const recv = `<Self as crate::prediction_exchange_generated::PredictionBase>::${name}(self${callArgs.length ? ', ' : ''}${callArgs.join(', ')})`;
-            arms.push(`            "${name}" => ${recv}${isAsync ? '.await' : ''},`);
+            const expr = `${recv}${isAsync ? '.await' : ''}`;
+            arms.push(`            "${name}" => ${isVoid ? `{ ${expr}; crate::Value::Null }` : expr},`);
         }
         arms.sort();
         return `    /// Prediction-base fall-through for a prediction Core's \`call_dynamic\`.
@@ -5085,7 +5092,7 @@ ${arms.join('\n')}
         // here, so qualify them to the `ExchangeBase` trampoline (review #1).
         const collide = new Set(Object.keys(this.traitMethodSignatures()));
         const arms: string[] = [];
-        for (const { name, paramKinds, isAsync } of sigs) {
+        for (const { name, paramKinds, isAsync, isVoid } of sigs) {
             if (['describe', 'new', 'bind', 'init', 'call_dynamic', 'call_dynamic_base'].includes(name)) continue;
             const callArgs: string[] = [];
             for (let i = 0; i < paramKinds.length; i++) {
@@ -5098,7 +5105,8 @@ ${arms.join('\n')}
             const recv = collide.has(name)
                 ? `<Self as crate::exchange_generated::ExchangeBase>::${name}(self${callArgs.length ? ', ' : ''}${callArgs.join(', ')})`
                 : `self.${name}(${callArgs.join(', ')})`;
-            arms.push(`            "${name}" => ${recv}${isAsync ? '.await' : ''},`);
+            const expr = `${recv}${isAsync ? '.await' : ''}`;
+            arms.push(`            "${name}" => ${isVoid ? `{ ${expr}; crate::Value::Null }` : expr},`);
         }
         arms.sort();
         return `    /// Base-method fall-through for a core's \`call_dynamic\`.
@@ -5136,7 +5144,7 @@ ${arms.join('\n')}
     emitCallDynamic(sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[] }>, isBase: boolean = false, parentCore: string | null = null): string {
         if (sigs.length === 0) return '';
         const arms: string[] = [];
-        for (const { name, isAsync, paramKinds } of sigs) {
+        for (const { name, isAsync, paramKinds, isVoid } of sigs) {
             // Skip names that already clash with the synthesized helpers.
             if (['describe', 'new', 'bind', 'init', 'call_dynamic'].includes(name)) continue;
             const callArgs: string[] = [];
@@ -5152,7 +5160,7 @@ ${arms.join('\n')}
                 }
             }
             const callExpr = `self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}`;
-            arms.push(`            "${name}" => ${callExpr},`);
+            arms.push(`            "${name}" => ${isVoid ? `{ ${callExpr}; crate::Value::Null }` : callExpr},`);
         }
         // Sort arms for stable diffs.
         arms.sort();
@@ -5180,7 +5188,7 @@ ${isBase
     /// now a static trait method (review #1).
     emitCoreDispatchImpl(coreName: string, sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[] }>, parentCore: string | null, isPrediction = false, hasHandleMessage = false): string {
         const arms: string[] = [];
-        for (const { name, isAsync, paramKinds } of sigs) {
+        for (const { name, isAsync, paramKinds, isVoid } of sigs) {
             if (['describe', 'new', 'bind', 'init', 'call_dynamic', 'call_dynamic_base', 'call_dynamic_prediction_base', 'pred', 'pred_mut'].includes(name)) continue;
             const callArgs: string[] = [];
             for (let i = 0; i < paramKinds.length; i++) {
@@ -5190,7 +5198,7 @@ ${isBase
                     callArgs.push(`&args.get(${i}..).unwrap_or(&[]).to_vec()[..]`);
                 }
             }
-            arms.push(`                "${name}" => self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''},`);
+            arms.push(`                "${name}" => ${isVoid ? `{ self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}; crate::Value::Null }` : `self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}`},`);
         }
         // `handle_message(&mut self, client, message)` returns `()`, so it's
         // filtered out of `sigs` (dispatch arms must yield a Value). The base
@@ -5297,7 +5305,7 @@ ${arms.join('\n')}
      * inherent method. Methods this exchange doesn't override fall back
      * to the trait's default impl (returns Value::Null).
      */
-    emitDerivedExchangeImpl(coreName: string, inherent: Set<string>, sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean }>, parentCore: string | null = null): string {
+    emitDerivedExchangeImpl(coreName: string, inherent: Set<string>, sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean }>, parentCore: string | null = null): string {
         const traitSigs = this.traitMethodSignatures();
         const inherentSigs = new Map(sigs.map(s => [s.name, s]));
         const out: string[] = [`impl crate::exchange::DerivedExchange for ${coreName} {`];
