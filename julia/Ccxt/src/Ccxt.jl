@@ -9,6 +9,16 @@ include("functions.jl")
 using .functions
 using .functions: objectAssign, objectKeys, objectValues, objectEntries, ccxt_then, ccxtruthy, concat, getOwnPropertyNames, ccxt_unCamelCaseProperties, ccxt_Object, ccxt_Object_prototype, getPrototypeOf, ccxt_getOwnPropertyNames, ccxt_toNumber, ccxt_in, ccxt_lt, ccxt_gt, ccxt_le, ccxt_ge, ccxt_isArray, ccxt_parseInt, ccxt_find, ccxt_splice, ccxt_indexOf, setTimeout, clearTimeout, AbortController, abort
 export functions
+# The transpiler emits `get(container, key, default)` for every `container[key]`
+# access. `functions` defines `ccxt_get` (handles Dict / Nothing / Module /
+# Vector — the last one because OHLCV rows are plain `Vector{Float64}` indexed
+# by an integer key wrapped in `Symbol`). `ccxt_get` is deliberately NOT
+# exported from `functions` (exporting it would clash with `Base.get`), so the
+# bare `using .functions` above does not bring it in. Bind it here as the
+# module-local `get` so generated call sites resolve to `ccxt_get` rather than
+# `Base.get` (which has no `Vector` method and raises a MethodError on
+# `get(::Vector{Float64}, ::Symbol, ::Nothing)` — e.g. inside `filterByLimit`).
+const get = functions.ccxt_get
 # JS `a + b` is overloaded: string concatenation when either operand is a
 # string, numeric addition otherwise. The transpiler emits `+` for both, so the
 # generated exchange/base code relies on that overload (e.g. `url += string("/",
