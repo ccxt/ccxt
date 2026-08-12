@@ -22,6 +22,14 @@ const functions = Ccxt.functions
 using Ccxt.functions
 using Ccxt: CcxtExchange
 
+# `Ccxt.functions` keeps `get` as a Ccxt-scoped helper (it is NOT a global
+# `Base.get` override on builtin types — see `functions.ccxt_get`). The
+# transpiled tests call `get(ccxt, Symbol("Exchange"), nothing)` to resolve a
+# class by name, which requires `get` to bind to the Ccxt helper here in Main.
+# Bind it explicitly so the test scope resolves `get` to the Ccxt implementation
+# without re-pirating `Base` for the rest of the session.
+const get = Ccxt.functions.get
+
 # Base-module utility/helper methods (defined in `Ccxt.BaseMethods` and used by
 # the transpiled test helpers as free functions, e.g. `jsonStringifyWithNull`,
 # `getProperty`, `currency`, `safeCurrency`, `fetchTicker`, ...) are not all

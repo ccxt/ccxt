@@ -1,13 +1,6 @@
 module Ccxt
 __precompile__(false)
 
-# TS string concatenation `a + b` is transpiled to Julia `+`; Julia uses `*`.
-# Fall back to Base.:+ for all other types (numbers, etc.).
-+(a::AbstractString, b::AbstractString) = a * b
-+(a, b) = Base.:(+)(a, b)
-+(a, b, c) = Base.:(+)(a, b, c)
-+(a, b, c, d...) = Base.:(+)(a, b, c, d...)
-
 include("TypeAliases.jl")
 include("CCXTBase.jl")
 include("Precise.jl")
@@ -16,6 +9,16 @@ include("functions.jl")
 using .functions
 using .functions: objectAssign, objectKeys, objectValues, objectEntries, ccxt_then, ccxtruthy, concat, getOwnPropertyNames, ccxt_unCamelCaseProperties, ccxt_Object, ccxt_Object_prototype, getPrototypeOf, ccxt_getOwnPropertyNames, ccxt_toNumber, ccxt_in, ccxt_lt, ccxt_gt, ccxt_le, ccxt_ge, ccxt_isArray, ccxt_parseInt, ccxt_find, ccxt_splice, ccxt_indexOf
 export functions
+# JS `a + b` is overloaded: string concatenation when either operand is a
+# string, numeric addition otherwise. The transpiler emits `+` for both, so the
+# generated exchange/base code relies on that overload (e.g. `url += string("/",
+# path)`). Julia's `Base.+` does not concatenate strings, so we bind a Ccxt-
+# scoped `+` alias that routes to `ccxt_plus` (JS semantics). This shadows
+# `Base.+` only within `Ccxt` and the files it `include`s — it does NOT add a
+# global `Base.:+` method, so loading Ccxt does not pirate `+` for the rest of
+# the session the way the old `+(::AbstractString, ::AbstractString)` pirate
+# did.
+const + = functions.ccxt_plus
 include("wsbase.jl")
 # `PreciseArith` exports short arithmetic names (`min`, `max`, `abs`, `div`,
 # `add`, `sub`, `gt`, …) that collide with `Base`. A blanket
@@ -45,8 +48,11 @@ include("exchanges.jl")
 
 # JS allows property access on `undefined`/`null` to yield `undefined`
 # (e.g. `this.options.newUpdates` when `options` is still null). In Julia
-# `nothing` has no fields, so we return `nothing` for any property access.
-Base.getproperty(::Nothing, ::Symbol) = nothing
+# `nothing` has no fields, so the JS-sentinel accessor `Ccxt.functions.ccxt_get`
+# (and the module-local `get` alias that routes every generated `get(...)`
+# call to it) returns `nothing` for any lookup on `nothing`. This is provided as
+# a Ccxt-scoped helper rather than a global `Base.getproperty(::Nothing)`
+# override, so loading Ccxt does not pirate `Base` for the `Nothing` type.
 
 export Exchange, Alpaca, Apex, Aster, Backpack, Bequant, Bigone, Binance, Binancecoinm, Binanceus, Binanceusdm, Bingx, Bit2c, Bitbank, Bitbns, Bitfinex, Bitflyer, Bitget, Bithumb, Bitmart, Bitmex, Bitopro, Bitrue, Bitso, Bitstamp, Bitteam, Bittrade, Bitvavo, Blockchaincom, Blofin, Btcbox, Btcmarkets, Btcturk, Bullish, Bybit, Bybiteu, Bydfi, Cex, Coinbase, Coinbaseexchange, Coinbaseinternational, Coincheck, Coinex, Coinmate, Coinone, Coinsph, Coinspot, Cryptocom, Cryptomus, Deepcoin, Delta, Deribit, Derive, Digifinex, Dydx, Exmo, Extended, Fmfwio, Foxbit, Gate, Gateeu, Gemini, Grvt, Hashkey, Hibachi, Hitbtc, Hollaex, Htx, Hyperliquid, Independentreserve, Indodax, Kraken, Krakenfutures, Kucoin, Kucoineu, Kucoinfutures, Latoken, Lbank, Lighter, Luno, Mercado, Mexc, Modetrade, Mudrex, Myokx, Nado, Ndax, Okx, Okxus, Onetrading, P2b, Pacifica, Paradex, Paymium, Phemex, Poloniex, Tokocrypto, Toobit, Upbit, Weex, Whitebit, Woo, Woofipro, Xt, Zaif, Zebpay
 end

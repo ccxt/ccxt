@@ -1491,7 +1491,7 @@ function injectEndpointFields(content: string, fields: string): string {
     return lines.join('\n');
 }
 
-async function main() {
+export async function main() {
   const args = process.argv.slice(2);
   const command = args[0];
 

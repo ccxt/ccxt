@@ -5,15 +5,88 @@ using Dates
 using JSON3
 
 
-# Dict property access: JS `obj.prop` works on all objects, including Dict.
-# Julia Dicts use `dict[:key]` or `get(dict, :key, nothing)`. We override
-# `getproperty` so `dict.prop` falls back to `get(dict, Symbol("prop"), nothing)`,
+# ===========================================================================
+# Ccxt-scoped accessors (NO global `Base` piracy on builtin types)
+# ---------------------------------------------------------------------------
+# The transpiled CCXT code relies on JavaScript object-access semantics:
+#   * `get(x, Symbol(key), default)` must work for `Dict` (look up a Symbol
+#     key), `Nothing` (return the default), `Module` (`getfield`/`nothing`),
+#     and `AbstractVector` (0-based `Symbol` key → element, else default).
+#   * `x.prop` on a `Dict`/`Nothing` whose key/field is absent must yield
+#     `nothing` (JS `undefined`), not a `MethodError`.
+#
+# Loading `Ccxt` used to install these as global `Base.get` / `Base.getproperty`
+# overrides on `Dict`, `Nothing`, `Module`, `AbstractVector` and `Symbol` — i.e.
+# type piracy that silently changes the behaviour of those methods for every
+# other package in the session. They are now plain `Ccxt.functions` helpers.
+#
+# To keep the (already-generated, ~725k-LOC) exchange tree unchanged, the
+# helper names deliberately mirror `Base`: `ccxt_get` plays the role of `get`
+# and `ccxt_getproperty` the role of `getproperty`. The module then binds
+# *local* aliases `get` / `getproperty` to them, so every generated `get(...)`
+# / `dict.prop` call site inside this module (and re-exported into `Ccxt` via
+# `using .functions`) still resolves to the Ccxt implementation — without
+# touching `Base` outside this module.
+# ===========================================================================
+
+# JS `ccxt.Exchange` / `ccxt["Binance"]` namespace lookups. The transpiled
+# test code calls `get(ccxt, Symbol("Exchange"), nothing)` to resolve a class
+# by name from the module. Map it to `getfield`.
+function ccxt_get(m::Module, k::Symbol, default)
+    return isdefined(m, k) ? getfield(m, k) : default
+end
+
+# JS `undefined.prop` is a TypeError, but `undefined?.prop` and — far more
+# commonly in the transpiled output — a chained lookup whose intermediate step
+# is absent both evaluate to `undefined`. The generator emits nested lookups
+# such as `get(get(features, Symbol(marketType), nothing), Symbol(subType),
+# nothing)` from TS that is only reached when the outer value exists, so the
+# inner `get` can legitimately see `nothing`. Mirror the JS `undefined`.
+function ccxt_get(::Nothing, key, default)
+    return default
+end
+
+# JS `value[key]` on an array. The transpiler cannot always tell an array from
+# an object at the call site, so it emits the object form
+# `get(x, Symbol(key), default)` even when `x` turns out to be a Vector. In JS
+# that access is legal: a numeric-looking key indexes the array (0-based) and
+# anything else is `undefined`. Mirror both behaviours here instead of letting
+# Julia raise `MethodError: no method matching get(::Vector, ::Symbol, ...)`.
+#
+# Restricted to the concrete `Vector` type (not `AbstractVector`): the
+# WebSocket cache structs (`WsArray` family) are also `AbstractVector`s, but
+# they need the richer `Base.get(a::WsArray, ...)` lookup (hashmap access,
+# numeric-key rows) defined in `wsbase.jl`. The generic `ccxt_get` fallback
+# below routes them to `Base.get`, so they must not be captured here.
+function ccxt_get(v::Vector, k::Symbol, default)
+    i = tryparse(Int, String(k))
+    (i === nothing || i < 0 || i >= length(v)) && return default
+    return v[i + 1]
+end
+
+
+# Generic fallback: `Base.get` already handles `AbstractDict`, `CcxtExchange`,
+# `Exchange`, `Number`, `AbstractString` (via the overloads in `CCXTBase.jl` /
+# `BaseMethods.jl`), so defer to it. The overloads above extend `Base.get` to
+# the builtin types it does not cover (`Nothing` / `Module` / `AbstractVector`).
+function ccxt_get(o, k, default)
+    return Base.get(o, k, default)
+end
+
+# Property access on a `Dict`: `dict.prop` → `get(dict, Symbol("prop"), nothing)`,
 # matching JS semantics where `undefined` is returned for missing keys.
-function Base.getproperty(d::Dict, key::Symbol)
+# (Generated code rarely uses `dict.prop` — it prefers `get(dict, ...)` — but
+# the helper keeps the semantics available without a global `Base` override.)
+function ccxt_getproperty(d::Dict, key::Symbol)
     if hasfield(typeof(d), key)
         return getfield(d, key)
     end
-    return get(d, key, nothing)
+    return ccxt_get(d, key, nothing)
+end
+
+# Property access on `nothing`: JS `undefined.prop` → `undefined`.
+function ccxt_getproperty(::Nothing, key::Symbol)
+    return nothing
 end
 
 # --- hand-written Julia helpers (no direct TS equivalent / Object.* mappings) ---
@@ -55,31 +128,8 @@ end
 # 'constructor(x) == ccxt_Object' identifies plain Dicts, and
 # 'get(ccxt_Object, :prototype, nothing)' yields nothing (Object.prototype).
 const ccxt_Object = :__js_Object__
-Base.get(s::Symbol, k::Symbol, default) = (s === :__js_Object__) ? nothing : default
+ccxt_get(s::Symbol, k::Symbol, default) = (s === :__js_Object__) ? nothing : default
 const ccxt_Object_prototype = nothing
-# JS `ccxt.Exchange` / `ccxt["Binance"]` namespace lookups. The transpiled
-# test code calls `get(ccxt, Symbol("Exchange"), nothing)` to resolve a class
-# by name from the module. Map it to `getfield`.
-Base.get(m::Module, k::Symbol, default) = isdefined(m, k) ? getfield(m, k) : default
-# JS `value[key]` on an array. The transpiler cannot always tell an array from
-# an object at the call site, so it emits the object form
-# `get(x, Symbol(key), default)` even when `x` turns out to be a Vector. In JS
-# that access is legal: a numeric-looking key indexes the array (0-based) and
-# anything else is `undefined`. Mirror both behaviours here instead of letting
-# Julia raise `MethodError: no method matching get(::Vector, ::Symbol, ...)`.
-function Base.get(v::AbstractVector, k::Symbol, default)
-    i = tryparse(Int, String(k))
-    (i === nothing || i < 0 || i >= length(v)) && return default
-    return v[i + 1]
-end
-# JS `undefined.prop` is a TypeError, but `undefined?.prop` and — far more
-# commonly in the transpiled output — a chained lookup whose intermediate step
-# is absent both evaluate to `undefined`. The generator emits nested lookups
-# such as `get(get(features, Symbol(marketType), nothing), Symbol(subType),
-# nothing)` from TS that is only reached when the outer value exists, so the
-# inner `get` can legitimately see `nothing`. Julia has no `get` for `Nothing`,
-# which turns that into a `MethodError` instead of the JS `undefined`.
-Base.get(::Nothing, key, default) = default
 # JS Array/string concat: concat(a, b, ...) -> vcat for arrays, string join for strings.
 function concat(args...)
     if length(args) == 0
@@ -97,6 +147,25 @@ function concat(args...)
         end
     end
     return result
+end
+# JS `+` emulation. In JavaScript `+` is overloaded: when either operand is a
+# string the result is string concatenation; otherwise it is numeric addition.
+# The transpiler emits `a + b` for both, so the generated CCXT code relies on
+# that overload. Julia's `Base.+` does NOT concatenate strings, so without this
+# shim `url += string("/", path)` raises MethodError. We bind a Ccxt-scoped `+`
+# alias (see `Ccxt.jl`) that routes here — this is a Ccxt-local helper, NOT a
+# global `Base.:+` override, so loading Ccxt does not pirate `+` for the rest
+# of the session (the way the old `+(::AbstractString, ::AbstractString)`
+# pirate did).
+function ccxt_plus(a, b)
+    if (a isa AbstractString) || (b isa AbstractString)
+        return string(a, b)
+    end
+    # NB: `Base.:+(a, b)` — the `:+` (regular addition), NOT `Base.+(a, b)`
+    # which is the *broadcasted* `.+` operator and returns a lazy `Broadcasted`
+    # that corrupts downstream indexing (e.g. `i + 1` used as an array index
+    # in `unCamelCaseProperties`).
+    return Base.:(+)(a, b)
 end
 # JS Promise continuation: p.then(onResolve, onReject).
 # p may be a Task (from @async) or an already-resolved value.
@@ -2524,8 +2593,9 @@ end
 function leakyBucketLoop(self::Throttler, )
     lastTimestamp = now();
     while functions.ccxtruthy(self.running)
-        resolver = get(self.queue, 1, nothing).resolver
-        cost = get(self.queue, 1, nothing).cost;
+        head = get(self.queue, 1, nothing)
+        resolver = get(head, Symbol("resolver"), nothing)
+        cost = get(head, Symbol("cost"), nothing);
         if functions.ccxtruthy(functions.ccxt_ge(get(self.config, Symbol("tokens"), nothing), 0))
             self.config[Symbol("tokens")] -= cost;
             resolver();
@@ -2548,8 +2618,9 @@ function leakyBucketLoop(self::Throttler, )
 end
 function rollingWindowLoop(self::Throttler, )
     while functions.ccxtruthy(self.running)
-        resolver = get(self.queue, 1, nothing).resolver
-        cost = get(self.queue, 1, nothing).cost;
+        head = get(self.queue, 1, nothing)
+        resolver = get(head, Symbol("resolver"), nothing)
+        cost = get(head, Symbol("cost"), nothing);
         nowTime = now();
         cutOffTime = nowTime - get(self.config, Symbol("windowSize"), nothing);
         totalCost = 0;
@@ -3296,5 +3367,17 @@ function ccxt_unCamelCaseProperties(obj)
     end
     return obj
 end
+
+# Module-local `get` alias. This shadows `Base.get` ONLY within `Ccxt.functions`
+# (and anywhere `using .functions` brings it in — i.e. the `Ccxt` module and
+# the generated exchange files), so every generated `get(...)` call site stays
+# unchanged even though `ccxt_get` is the real implementation. It does NOT
+# mutate `Base.get`, so an unrelated `using Ccxt` does not change how `get`
+# behaves on `Dict`/`Nothing`/`Module`/`AbstractVector` for the rest of the
+# session. `CcxtExchange`/`Exchange`/`Number`/`AbstractString` arguments still
+# reach the existing `Base.get` overloads via `ccxt_get`'s generic fallback.
+# It is deliberately NOT exported: exporting it would make `using Ccxt.functions`
+# (in the test preamble) ambiguous with `Base.get` and break the shared `get`.
+const get = ccxt_get
 
 end # module functions
