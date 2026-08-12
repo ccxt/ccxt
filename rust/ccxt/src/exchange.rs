@@ -1066,6 +1066,9 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             Ok(c) => c,
             Err(e) => panic!("{}", e),
         };
+        if std::env::var("CCXT_WS_DEBUG").is_ok() {
+            eprintln!("[wswait] {:?}", hashes);
+        }
         client.note_futures(&hashes);
         // Subscribe once per hash. Send the message if any subscribe hash was
         // newly added, or if none were provided (mirrors TS's

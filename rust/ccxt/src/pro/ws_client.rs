@@ -120,6 +120,9 @@ impl ClientState {
 
     /// Store a resolved value for `hash` (TS `client.resolve`).
     pub fn resolve(&self, hash: &str, value: Value) {
+        if std::env::var("CCXT_WS_DEBUG").is_ok() {
+            eprintln!("[wsresolve] {}", hash);
+        }
         self.resolved.lock().unwrap().insert(hash.to_string(), value);
         self.notify.notify_waiters();
     }

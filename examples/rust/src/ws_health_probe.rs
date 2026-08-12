@@ -35,8 +35,12 @@ fn classify(ob: &Value, sym: &str) -> String {
     let asks = get_value(ob, &Value::Str("asks".to_string()));
     let bid = get_value(&get_value(&bids, &Value::Int(0)), &Value::Int(0)).as_f64().unwrap_or(0.0);
     let ask = get_value(&get_value(&asks, &Value::Int(0)), &Value::Int(0)).as_f64().unwrap_or(0.0);
+    // A resolved book with at least one populated side means the WS runtime
+    // works for this venue (some markets are thin / one-sided).
     if bid > 0.0 && ask > 0.0 {
         format!("OK        [{sym}] {bid}/{ask}")
+    } else if bid > 0.0 || ask > 0.0 {
+        format!("OK1SIDE   [{sym}] {bid}/{ask}")
     } else {
         format!("EMPTY     [{sym}]")
     }
@@ -49,13 +53,22 @@ async fn watch_probe<T: ExchangeBase + Send + 'static>(mut ex: Box<T>) -> String
         Ok(Err(e)) => return format!("LOADMKTS_PANIC: {}", panic_msg(e)),
         Ok(Ok(m)) => m,
     };
-    let sym = CANDIDATES.iter().find(|c| {
+    let candidate = CANDIDATES.iter().find(|c| {
         !matches!(get_value(&markets, &Value::Str(c.to_string())), Value::Null)
+    }).map(|s| s.to_string());
+    // Fallback: any spot BTC market this venue lists (handles JP/KR/perp-only).
+    let sym = candidate.or_else(|| match &markets {
+        Value::Dict(d) => d.keys()
+            .filter(|k| k.starts_with("BTC/"))
+            .min_by_key(|k| k.len())
+            .cloned(),
+        _ => None,
     });
     let sym = match sym {
-        Some(s) => *s,
+        Some(s) => s,
         None => return "NO_BTC_SYMBOL".to_string(),
     };
+    let sym: &str = &sym;
     // Loop like real usage: many venues resolve an empty book first and fill via
     // subsequent deltas. Keep watching (within a total budget) until the book is
     // populated, so a first-resolve-empty isn't misreported as broken.
@@ -69,6 +82,7 @@ async fn watch_probe<T: ExchangeBase + Send + 'static>(mut ex: Box<T>) -> String
                     let c = classify(&ob, sym);
                     if c.starts_with("OK") { return c; }
                     last = c;
+                    let _ = &last;
                 }
             }
         }
