@@ -1505,6 +1505,26 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         } else {
             <Self as crate::exchange_generated::ExchangeBase>::set_markets(self, fetched, &[currencies_arg]);
         }
+        // Index markets_by_id by the secondary id (`id2`, e.g. apex's
+        // crossSymbolName) too, so a WS handler that resolves a market from the
+        // id2-based stream id (`safeMarket(data['s'])`) reaches the unified
+        // symbol instead of a synthetic one.
+        let markets_snapshot = self.markets.clone();
+        if let Value::Dict(markets) = &markets_snapshot {
+            if let Value::Dict(by_id_arc) = &self.markets_by_id {
+                let mut by_id = (**by_id_arc).clone();
+                for market in markets.values() {
+                    let id  = crate::get_value(market, &Value::Str("id".to_string()));
+                    let id2 = crate::get_value(market, &Value::Str("id2".to_string()));
+                    if let (Value::Str(id2s), Value::Str(ids)) = (&id2, &id) {
+                        if id2s != ids && !id2s.is_empty() && !by_id.contains_key(id2s) {
+                            by_id.insert(id2s.clone(), Value::List(vec![market.clone()]));
+                        }
+                    }
+                }
+                self.markets_by_id = Value::Map(by_id);
+            }
+        }
         self.markets.clone()
     } }
 
