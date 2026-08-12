@@ -242,7 +242,24 @@
                 "description": "fetch tickers for spot",
                 "method": "fetchTickers",
                 "url": "https://api.btse.com/spot/api/v3.3/market_summary",
-                "input": [],
+                "input": [
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch tickers for swap",
+                "method": "fetchTickers",
+                "url": "https://api.btse.com/futures/api/v2.3/market_summary",
+                "input": [
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
                 "output": null
             }
         ],

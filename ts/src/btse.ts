@@ -1086,6 +1086,16 @@ export default class btse extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true);
         const market = this.getMarketFromSymbols (symbols);
+        const requestedType = this.safeString (params, 'type');
+        if ((market === undefined) && (requestedType === undefined)) {
+            // nothing pins the market type: an unbounded call must cover the whole exchange,
+            // so both summaries are fetched concurrently and merged, mirroring fetchMarkets
+            const spotPromise = this.publicGetSpotApiV33MarketSummary (params);
+            const contractPromise = this.publicGetFuturesApiV23MarketSummary (params);
+            const [ spotResponse, contractResponse ] = await Promise.all ([ spotPromise, contractPromise ]);
+            const merged = this.arrayConcat (spotResponse, contractResponse);
+            return this.parseTickers (merged, symbols);
+        }
         let type = 'spot';
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params, type);
         let response = undefined;
