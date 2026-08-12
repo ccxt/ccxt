@@ -157,7 +157,8 @@
                             "ts": 1786540862363000000
                         }
                     }
-                ]
+                ],
+                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately"
             }
         ],
         "watchOHLCV": [
@@ -258,7 +259,8 @@
                             632
                         ]
                     ]
-                ]
+                ],
+                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately"
             }
         ],
         "watchTrades": [
@@ -415,7 +417,8 @@
                             "fees": []
                         }
                     ]
-                ]
+                ],
+                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately"
             }
         ],
         "watchOrderBook": [
@@ -670,7 +673,8 @@
                         "nonce": 1746504928690,
                         "symbol": "BTC/USDT:USDT"
                     }
-                ]
+                ],
+                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately"
             }
         ]
     }

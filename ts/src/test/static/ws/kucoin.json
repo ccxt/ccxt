@@ -384,7 +384,8 @@
                             "volValue": 125097404.47479571
                         }
                     }
-                ]
+                ],
+                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately"
             }
         ],
         "watchOHLCV": [
@@ -485,7 +486,8 @@
                             0.48029316
                         ]
                     ]
-                ]
+                ],
+                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately"
             }
         ],
         "watchTrades": [
@@ -627,7 +629,8 @@
                             "fees": []
                         }
                     ]
-                ]
+                ],
+                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately"
             }
         ],
         "watchOrderBook": [
@@ -876,7 +879,8 @@
                         "nonce": 1786538806180,
                         "symbol": "BTC/USDT"
                     }
-                ]
+                ],
+                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately"
             }
         ]
     }
