@@ -7,6 +7,23 @@ diff=$(echo "$diff" | sed -e "s/^run\-tests\-simul\.sh//")
 diff=$(echo "$diff" | sed -e "s/^\w+.yml//") # tmp remove actions files
 diff_without_statics=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//")
 
+# ts/ccxt.ts sits in the critical set because structural changes to the entry file affect every
+# runtime. But when a PR integrates a new exchange for the first time, ts/ccxt.ts changes in
+# exactly one way: it gains the two integration lines for the newcomer — an import and a map
+# entry. An integration-only diff cannot affect any already-integrated exchange (the build job
+# compiles the file regardless), yet the ccxt.ts critical arm was forcing a FULL live-test run
+# over all ~111 exchanges for every first-time integration. An integration-only content diff is
+# therefore stripped from the critical check so live tests stay scoped to the exchange(s)
+# actually touched; any other changed line in ccxt.ts keeps the file critical and the full run
+# intact.
+if echo "$diff" | grep -qx 'ts/ccxt.ts'; then
+    ccxt_ts_content_diff=$(git diff -U0 HEAD^1 HEAD -- ts/ccxt.ts | grep -E '^[+-]' | grep -vE '^(\+\+\+|---)')
+    integration_line="^[+-](import [A-Za-z0-9_]+ from +'\./src/[A-Za-z0-9_]+\.js'|[[:space:]]+'[A-Za-z0-9_-]+':[[:space:]]+[A-Za-z0-9_]+,)$"
+    if [[ -n "$ccxt_ts_content_diff" ]] && ! echo "$ccxt_ts_content_diff" | grep -qvE "$integration_line"; then
+        diff_without_statics=$(echo "$diff_without_statics" | sed -e "s/^ts\/ccxt\.ts$//")
+    fi
+fi
+
 # critical_pattern assembled one language per line, joined below
 critical_php='Client(Trait)?\.php|Exchange\.php|composer\.json'
 critical_python='__init__.py'
