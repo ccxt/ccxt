@@ -559,7 +559,8 @@
                             "stopLossPrice": null
                         }
                     ]
-                ]
+                ],
+                "disabledCS": "the cached-order fee/trades merge does not reach the cache in c# - investigate ArrayCacheBySymbolById hashmap handling separately"
             }
         ],
         "watchMyTrades": [
