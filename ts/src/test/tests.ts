@@ -1817,6 +1817,30 @@ class testMainClass {
                 // ohlcvs) and request-id counters survive between watch calls
                 // and would leak state across entries otherwise
                 const exchange = this.initOfflineExchange (exchangeName, true);
+                const isDisabled = exchange.safeBool (result, 'disabled', false);
+                if (isDisabled) {
+                    continue;
+                }
+                const disabledString = exchange.safeString (result, 'disabled', '');
+                if (disabledString !== '') {
+                    continue;
+                }
+                const isDisabledCSharp = exchange.safeString (result, 'disabledCS');
+                if ((isDisabledCSharp !== undefined) && (this.lang === 'C#')) {
+                    continue;
+                }
+                const isDisabledGo = exchange.safeString (result, 'disabledGO');
+                if ((isDisabledGo !== undefined) && (this.lang === 'GO')) {
+                    continue;
+                }
+                const isDisabledJava = exchange.safeString (result, 'disabledJava');
+                if ((isDisabledJava !== undefined) && (this.lang === 'java')) {
+                    continue;
+                }
+                const isDisabledPhp = exchange.safeString (result, 'disabledPHP');
+                if ((isDisabledPhp !== undefined) && (this.lang === 'PHP')) {
+                    continue;
+                }
                 exchange.extendExchangeOptions (globalOptions);
                 const testExchangeOptions = exchange.safeValue (result, 'options', {});
                 exchange.extendExchangeOptions (testExchangeOptions);
