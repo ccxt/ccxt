@@ -2521,5 +2521,12 @@
                 "side": "not provided"
             }
         }
+    },
+    "btse": {
+        "skipMethods": {
+            "ticker": {
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/31550755306/job/93972856257?pr=27862"
+            }
+        }
     }
 }
