@@ -3025,9 +3025,15 @@ export default class krakenfutures extends Exchange {
 
     override parsePositions (response: any, symbols: Strings = undefined, params = {}) {
         const result: Position[] = [];
-        // a degraded response can omit openPositions entirely - default to an
-        // empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
-        const positions = this.safeList (response, 'openPositions', []);
+        // a degraded response missing openPositions must fail loudly - a flat
+        // account and "could not read positions" are not interchangeable for
+        // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
+        // (the crash guarded against in #19896 is still avoided, since we no
+        // longer call .length on a non-list value)
+        const positions = this.safeList (response, 'openPositions');
+        if (positions === undefined) {
+            throw new ExchangeError (this.id + ' fetchPositions() returned a response without an "openPositions" list');
+        }
         for (let i = 0; i < positions.length; i++) {
             const position = this.parsePosition (positions[i]);
             result.push (position);
