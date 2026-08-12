@@ -36,9 +36,10 @@ const prop2 = (o: any, k1: NullableIndexType, k2: NullableIndexType) => {
     }
     return undefined;
 };
+
 const getValueFromKeysInArray = <T>(
-    object: Record<PropertyKey, T> | null | undefined,
-    keys: NullableIndexType[],
+    object: Dictionary<any>,
+    keys: any[],
 ): T | undefined => {
     if (object === null || typeof object !== 'object') return undefined;
 
