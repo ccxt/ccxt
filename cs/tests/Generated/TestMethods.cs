@@ -1926,9 +1926,28 @@ public partial class testMainClass
         return true;  // c# methods used with promiseAll need to return something
     }
 
+    public async virtual Task<object> watchAndAssertSequence(BaseExchange exchange, object method, object input, object skipKeys, object expectedResults)
+    {
+        try
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(expectedResults)); postFixIncrement(ref i))
+            {
+                object result = await callExchangeMethodDynamically(exchange, method, input);
+                // ws structures can be live typed objects (e.g. orderbooks) in some
+                // runtimes — roundtrip through json so the deep-compare sees plain
+                // dicts in every language
+                object unifiedResult = jsonParse(jsonStringify(result));
+                this.assertStaticResponseOutput(exchange, skipKeys, unifiedResult, getValue(expectedResults, i));
+            }
+        } catch(Exception e)
+        {
+            throw e;
+        }
+        return true;  // c# methods used with promiseAll need to return something
+    }
+
     public async virtual Task<object> testWsStatically(BaseExchange exchange, object method, object skipKeys, object data)
     {
-        object expectedResult = exchange.safeValue(data, "parsedResponse");
         object url = exchange.safeString(data, "url");
         setupWsMockTransport(exchange, url);
         object httpResponse = exchange.safeValue(data, "httpResponse");
@@ -1944,10 +1963,24 @@ public partial class testMainClass
         try
         {
             object messages = exchange.safeList(data, "messages", new List<object>() {});
-            object promises = new List<object> {callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(getValue(data, "input"))), this.injectWsMessages(exchange, url, messages)};
-            object results = await promiseAll(promises);
-            object unifiedResult = getValue(results, 0);
-            this.assertStaticResponseOutput(exchange, skipKeys, unifiedResult, expectedResult);
+            object input = this.sanitizeDataInput(getValue(data, "input"));
+            object expectedResults = exchange.safeList(data, "parsedResponses");
+            if (isTrue(!isEqual(expectedResults, null)))
+            {
+                // 'parsedResponses' asserts one result per successive watch
+                // resolution (e.g. an order going from open to closed)
+                object promises = new List<object> {this.watchAndAssertSequence(exchange, method, input, skipKeys, expectedResults), this.injectWsMessages(exchange, url, messages)};
+                await promiseAll(promises);
+            } else
+            {
+                // 'parsedResponse' asserts the final state after every frame
+                // was replayed — live structures like orderbooks keep updating
+                // after the first resolution, so serialize only at the end
+                object promises = new List<object> {callExchangeMethodDynamically(exchange, method, input), this.injectWsMessages(exchange, url, messages)};
+                object results = await promiseAll(promises);
+                object unifiedResult = jsonParse(jsonStringify(getValue(results, 0)));
+                this.assertStaticResponseOutput(exchange, skipKeys, unifiedResult, getValue(data, "parsedResponse"));
+            }
         } catch(Exception e)
         {
             this.staticWsTestsFailed = true;
@@ -1979,6 +2012,36 @@ public partial class testMainClass
                 // ohlcvs) and request-id counters survive between watch calls
                 // and would leak state across entries otherwise
                 BaseExchange exchange = this.initOfflineExchange(exchangeName, true);
+                object isDisabled = exchange.safeBool(result, "disabled", false);
+                if (isTrue(isDisabled))
+                {
+                    continue;
+                }
+                object disabledString = exchange.safeString(result, "disabled", "");
+                if (isTrue(!isEqual(disabledString, "")))
+                {
+                    continue;
+                }
+                object isDisabledCSharp = exchange.safeString(result, "disabledCS");
+                if (isTrue(isTrue((!isEqual(isDisabledCSharp, null))) && isTrue((isEqual(this.lang, "C#")))))
+                {
+                    continue;
+                }
+                object isDisabledGo = exchange.safeString(result, "disabledGO");
+                if (isTrue(isTrue((!isEqual(isDisabledGo, null))) && isTrue((isEqual(this.lang, "GO")))))
+                {
+                    continue;
+                }
+                object isDisabledJava = exchange.safeString(result, "disabledJava");
+                if (isTrue(isTrue((!isEqual(isDisabledJava, null))) && isTrue((isEqual(this.lang, "java")))))
+                {
+                    continue;
+                }
+                object isDisabledPhp = exchange.safeString(result, "disabledPHP");
+                if (isTrue(isTrue((!isEqual(isDisabledPhp, null))) && isTrue((isEqual(this.lang, "PHP")))))
+                {
+                    continue;
+                }
                 exchange.extendExchangeOptions(globalOptions);
                 object testExchangeOptions = exchange.safeValue(result, "options", new Dictionary<string, object>() {});
                 exchange.extendExchangeOptions(testExchangeOptions);

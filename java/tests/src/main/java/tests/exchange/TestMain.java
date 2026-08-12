@@ -2036,12 +2036,36 @@ public class TestMain extends BaseTest
 
     }
 
+    public java.util.concurrent.CompletableFuture<Object> watchAndAssertSequence(BaseExchange exchange, Object method, Object input, Object skipKeys, Object expectedResults)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            try
+            {
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(expectedResults)); i++)
+                {
+                    Object result = (callExchangeMethodDynamically(exchange, method, input)).join();
+                    // ws structures can be live typed objects (e.g. orderbooks) in some
+                    // runtimes — roundtrip through json so the deep-compare sees plain
+                    // dicts in every language
+                    Object unifiedResult = jsonParse(jsonStringify(result));
+                    this.AssertStaticResponseOutput(exchange, skipKeys, unifiedResult, Helpers.GetValue(expectedResults, i));
+                }
+            } catch(Exception e)
+            {
+                throw new RuntimeException(e);
+            }
+            return true;  // c# methods used with promiseAll need to return something
+        });
+
+    }
+
     public java.util.concurrent.CompletableFuture<Object> testWsStatically(BaseExchange exchange, Object method, Object skipKeys, Object data)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object expectedResult = exchange.safeValue(data, "parsedResponse");
             Object url = exchange.safeString(data, "url");
             setupWsMockTransport(exchange, url);
             Object httpResponse = exchange.safeValue(data, "httpResponse");
@@ -2057,10 +2081,24 @@ public class TestMain extends BaseTest
             try
             {
                 Object messages = exchange.safeList(data, "messages", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(Helpers.GetValue(data, "input"))), this.injectWsMessages(exchange, url, messages)));
-                Object results = (Helpers.promiseAll(promises)).join();
-                Object unifiedResult = Helpers.GetValue(results, 0);
-                this.AssertStaticResponseOutput(exchange, skipKeys, unifiedResult, expectedResult);
+                Object input = this.sanitizeDataInput(Helpers.GetValue(data, "input"));
+                Object expectedResults = exchange.safeList(data, "parsedResponses");
+                if (Helpers.isTrue(!Helpers.isEqual(expectedResults, null)))
+                {
+                    // 'parsedResponses' Asserts one result per successive watch
+                    // resolution (e.g. an order going from open to closed)
+                    Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.watchAndAssertSequence(exchange, method, input, skipKeys, expectedResults), this.injectWsMessages(exchange, url, messages)));
+                    (Helpers.promiseAll(promises)).join();
+                } else
+                {
+                    // 'parsedResponse' Asserts the final state after every frame
+                    // was replayed — live structures like orderbooks keep updating
+                    // after the first resolution, so serialize only at the end
+                    Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(callExchangeMethodDynamically(exchange, method, input), this.injectWsMessages(exchange, url, messages)));
+                    Object results = (Helpers.promiseAll(promises)).join();
+                    Object unifiedResult = jsonParse(jsonStringify(Helpers.GetValue(results, 0)));
+                    this.AssertStaticResponseOutput(exchange, skipKeys, unifiedResult, Helpers.GetValue(data, "parsedResponse"));
+                }
             } catch(Exception e)
             {
                 this.staticWsTestsFailed = true;
@@ -2098,6 +2136,36 @@ public class TestMain extends BaseTest
                     // ohlcvs) and request-id counters survive between watch calls
                     // and would leak state across entries otherwise
                     BaseExchange exchange = this.initOfflineExchange(exchangeName, true);
+                    Object isDisabled = exchange.safeBool(result, "disabled", false);
+                    if (Helpers.isTrue(isDisabled))
+                    {
+                        continue;
+                    }
+                    Object disabledString = exchange.safeString(result, "disabled", "");
+                    if (Helpers.isTrue(!Helpers.isEqual(disabledString, "")))
+                    {
+                        continue;
+                    }
+                    Object isDisabledCSharp = exchange.safeString(result, "disabledCS");
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isDisabledCSharp, null))) && Helpers.isTrue((Helpers.isEqual(this.lang, "C#")))))
+                    {
+                        continue;
+                    }
+                    Object isDisabledGo = exchange.safeString(result, "disabledGO");
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isDisabledGo, null))) && Helpers.isTrue((Helpers.isEqual(this.lang, "GO")))))
+                    {
+                        continue;
+                    }
+                    Object isDisabledJava = exchange.safeString(result, "disabledJava");
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isDisabledJava, null))) && Helpers.isTrue((Helpers.isEqual(this.lang, "java")))))
+                    {
+                        continue;
+                    }
+                    Object isDisabledPhp = exchange.safeString(result, "disabledPHP");
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isDisabledPhp, null))) && Helpers.isTrue((Helpers.isEqual(this.lang, "PHP")))))
+                    {
+                        continue;
+                    }
                     exchange.extendExchangeOptions(globalOptions);
                     Object testExchangeOptions = exchange.safeValue(result, "options", new java.util.HashMap<String, Object>() {{}});
                     exchange.extendExchangeOptions(testExchangeOptions);

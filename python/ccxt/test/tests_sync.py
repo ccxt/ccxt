@@ -1332,8 +1332,20 @@ class testMainClass:
         reject_pending_ws_futures(exchange, url)
         return True   # c# methods used with promiseAll need to return something
 
+    def watch_and_assert_sequence(self, exchange, method, input, skip_keys, expected_results):
+        try:
+            for i in range(0, len(expected_results)):
+                result = call_exchange_method_dynamically(exchange, method, input)
+                # ws structures can be live typed objects (e.g. orderbooks) in some
+                # runtimes — roundtrip through json so the deep-compare sees plain
+                # dicts in every language
+                unified_result = json_parse(json_stringify(result))
+                self.assert_static_response_output(exchange, skip_keys, unified_result, expected_results[i])
+        except Exception as e:
+            raise e
+        return True   # c# methods used with promiseAll need to return something
+
     def test_ws_statically(self, exchange, method, skip_keys, data):
-        expected_result = exchange.safe_value(data, 'parsedResponse')
         url = exchange.safe_string(data, 'url')
         setup_ws_mock_transport(exchange, url)
         http_response = exchange.safe_value(data, 'httpResponse')
@@ -1344,10 +1356,21 @@ class testMainClass:
             dump('[INFO] STATIC WS TEST:', method, ':', data['description'])
         try:
             messages = exchange.safe_list(data, 'messages', [])
-            promises = [call_exchange_method_dynamically(exchange, method, self.sanitize_data_input(data['input'])), self.inject_ws_messages(exchange, url, messages)]
-            results = (promises)
-            unified_result = results[0]
-            self.assert_static_response_output(exchange, skip_keys, unified_result, expected_result)
+            input = self.sanitize_data_input(data['input'])
+            expected_results = exchange.safe_list(data, 'parsedResponses')
+            if expected_results is not None:
+                # 'parsedResponses' asserts one result per successive watch
+                # resolution (e.g. an order going from open to closed)
+                promises = [self.watch_and_assert_sequence(exchange, method, input, skip_keys, expected_results), self.inject_ws_messages(exchange, url, messages)]
+                (promises)
+            else:
+                # 'parsedResponse' asserts the final state after every frame
+                # was replayed — live structures like orderbooks keep updating
+                # after the first resolution, so serialize only at the end
+                promises = [call_exchange_method_dynamically(exchange, method, input), self.inject_ws_messages(exchange, url, messages)]
+                results = (promises)
+                unified_result = json_parse(json_stringify(results[0]))
+                self.assert_static_response_output(exchange, skip_keys, unified_result, data['parsedResponse'])
         except Exception as e:
             self.static_ws_tests_failed = True
             error_message = '[' + self.lang + '][STATIC_WS]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + exception_message(e)
@@ -1371,6 +1394,24 @@ class testMainClass:
                 # ohlcvs) and request-id counters survive between watch calls
                 # and would leak state across entries otherwise
                 exchange = self.init_offline_exchange(exchange_name, True)
+                is_disabled = exchange.safe_bool(result, 'disabled', False)
+                if is_disabled:
+                    continue
+                disabled_string = exchange.safe_string(result, 'disabled', '')
+                if disabled_string != '':
+                    continue
+                is_disabled_c_sharp = exchange.safe_string(result, 'disabledCS')
+                if (is_disabled_c_sharp is not None) and (self.lang == 'C#'):
+                    continue
+                is_disabled_go = exchange.safe_string(result, 'disabledGO')
+                if (is_disabled_go is not None) and (self.lang == 'GO'):
+                    continue
+                is_disabled_java = exchange.safe_string(result, 'disabledJava')
+                if (is_disabled_java is not None) and (self.lang == 'java'):
+                    continue
+                is_disabled_php = exchange.safe_string(result, 'disabledPHP')
+                if (is_disabled_php is not None) and (self.lang == 'PHP'):
+                    continue
                 exchange.extend_exchange_options(global_options)
                 test_exchange_options = exchange.safe_value(result, 'options', {})
                 exchange.extend_exchange_options(test_exchange_options)

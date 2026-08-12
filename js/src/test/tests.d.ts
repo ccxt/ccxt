@@ -72,6 +72,7 @@ declare class testMainClass {
     testRequestStatically(exchange: any, method: string, data: Dict, type: Str, skipKeys: string[]): Promise<boolean>;
     testResponseStatically(exchange: any, method: string, skipKeys: string[], data: Dict): Promise<boolean>;
     injectWsMessages(exchange: any, url: string, messages: List): Promise<boolean>;
+    watchAndAssertSequence(exchange: any, method: string, input: any, skipKeys: string[], expectedResults: List): Promise<boolean>;
     testWsStatically(exchange: any, method: string, skipKeys: string[], data: Dict): Promise<boolean>;
     testExchangeWsStatically(exchangeName: string, exchangeData: Dict, testName?: Str): Promise<boolean>;
     initOfflineExchange(exchangeName: string, isWs?: boolean): Exchange;

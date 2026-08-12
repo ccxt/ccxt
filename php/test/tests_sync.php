@@ -1608,8 +1608,23 @@ class testMainClass {
         return true;  // c# methods used with promiseAll need to return something
     }
 
+    public function watch_and_assert_sequence($exchange, $method, $input, $skip_keys, $expected_results) {
+        try {
+            for ($i = 0; $i < count($expected_results); $i++) {
+                $result = call_exchange_method_dynamically($exchange, $method, $input);
+                // ws structures can be live typed objects (e.g. orderbooks) in some
+                // runtimes — roundtrip through json so the deep-compare sees plain
+                // dicts in every language
+                $unified_result = json_parse(json_stringify($result));
+                $this->assert_static_response_output($exchange, $skip_keys, $unified_result, $expected_results[$i]);
+            }
+        } catch(\Throwable $e) {
+            throw $e;
+        }
+        return true;  // c# methods used with promiseAll need to return something
+    }
+
     public function test_ws_statically($exchange, $method, $skip_keys, $data) {
-        $expected_result = $exchange->safe_value($data, 'parsedResponse');
         $url = $exchange->safe_string($data, 'url');
         setup_ws_mock_transport($exchange, $url);
         $http_response = $exchange->safe_value($data, 'httpResponse');
@@ -1622,10 +1637,22 @@ class testMainClass {
         }
         try {
             $messages = $exchange->safe_list($data, 'messages', []);
-            $promises = [call_exchange_method_dynamically($exchange, $method, $this->sanitize_data_input($data['input'])), $this->inject_ws_messages($exchange, $url, $messages)];
-            $results = ($promises);
-            $unified_result = $results[0];
-            $this->assert_static_response_output($exchange, $skip_keys, $unified_result, $expected_result);
+            $input = $this->sanitize_data_input($data['input']);
+            $expected_results = $exchange->safe_list($data, 'parsedResponses');
+            if ($expected_results !== null) {
+                // 'parsedResponses' asserts one result per successive watch
+                // resolution (e.g. an order going from open to closed)
+                $promises = [$this->watch_and_assert_sequence($exchange, $method, $input, $skip_keys, $expected_results), $this->inject_ws_messages($exchange, $url, $messages)];
+                ($promises);
+            } else {
+                // 'parsedResponse' asserts the final state after every frame
+                // was replayed — live structures like orderbooks keep updating
+                // after the first resolution, so serialize only at the end
+                $promises = [call_exchange_method_dynamically($exchange, $method, $input), $this->inject_ws_messages($exchange, $url, $messages)];
+                $results = ($promises);
+                $unified_result = json_parse(json_stringify($results[0]));
+                $this->assert_static_response_output($exchange, $skip_keys, $unified_result, $data['parsedResponse']);
+            }
         } catch(\Throwable $e) {
             $this->static_ws_tests_failed = true;
             $error_message = '[' . $this->lang . '][STATIC_WS]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . exception_message($e);
@@ -1652,6 +1679,30 @@ class testMainClass {
                 // ohlcvs) and request-id counters survive between watch calls
                 // and would leak state across entries otherwise
                 $exchange = $this->init_offline_exchange($exchange_name, true);
+                $is_disabled = $exchange->safe_bool($result, 'disabled', false);
+                if ($is_disabled) {
+                    continue;
+                }
+                $disabled_string = $exchange->safe_string($result, 'disabled', '');
+                if ($disabled_string !== '') {
+                    continue;
+                }
+                $is_disabled_c_sharp = $exchange->safe_string($result, 'disabledCS');
+                if (($is_disabled_c_sharp !== null) && ($this->lang === 'C#')) {
+                    continue;
+                }
+                $is_disabled_go = $exchange->safe_string($result, 'disabledGO');
+                if (($is_disabled_go !== null) && ($this->lang === 'GO')) {
+                    continue;
+                }
+                $is_disabled_java = $exchange->safe_string($result, 'disabledJava');
+                if (($is_disabled_java !== null) && ($this->lang === 'java')) {
+                    continue;
+                }
+                $is_disabled_php = $exchange->safe_string($result, 'disabledPHP');
+                if (($is_disabled_php !== null) && ($this->lang === 'PHP')) {
+                    continue;
+                }
                 $exchange->extend_exchange_options($global_options);
                 $test_exchange_options = $exchange->safe_value($result, 'options', array());
                 $exchange->extend_exchange_options($test_exchange_options);
