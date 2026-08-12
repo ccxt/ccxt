@@ -50,7 +50,7 @@ interface Exchange {
     privateGetFuturesApiV23UserMargin (params?: {}): Promise<Dict | List>;
     privateGetOtcApiV1GetMarket (params?: {}): Promise<Dict | List>;
     privateGetSpotApiV32UserWallet (params?: {}): Promise<Dict | List>;
-    privateGetSpotApiV32UserWalletHistory (params?: {}): Promise<Dict | List>;
+    privateGetSpotApiV32UserWalletHistory (params?: {}): Promise<List>;
     privateGetSpotApiV33UserWalletAddress (params?: {}): Promise<Dict | List>;
     privateGetSpotApiV32AvailableCurrencies (params?: {}): Promise<Dict | List>;
     privateGetSpotApiV32SubaccountWalletHistory (params?: {}): Promise<Dict | List>;

@@ -5,7 +5,7 @@ import Exchange from './abstract/btse.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound } from './base/errors.js';
 import { sha384 } from '@noble/hashes/sha2.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Bool, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, List, MarginMode, Market, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface } from './base/types.js';
+import type { Bool, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, List, MarginMode, Market, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, Transaction, Currency, LedgerEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -93,8 +93,8 @@ export default class btse extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
-                'fetchDeposits': false,
-                'fetchDepositsWithdrawals': false,
+                'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
@@ -111,7 +111,7 @@ export default class btse extends Exchange {
                 'fetchL2OrderBook': false,
                 'fetchL3OrderBook': false,
                 'fetchLastPrices': false,
-                'fetchLedger': false,
+                'fetchLedger': true,
                 'fetchLedgerEntry': false,
                 'fetchLeverage': true,
                 'fetchLeverages': false,
@@ -170,7 +170,7 @@ export default class btse extends Exchange {
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawAddresses': false,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
                 'repayCrossMargin': false,
@@ -249,7 +249,7 @@ export default class btse extends Exchange {
                         'futures/api/v2.3/user/margin': 5,
                         'otc/api/v1/getMarket': 1,
                         'spot/api/v3.2/user/wallet': 15,
-                        'spot/api/v3.2/user/wallet_history': 15,
+                        'spot/api/v3.2/user/wallet_history': { 'cost': 15 } as Endpoint<List>, // done
                         'spot/api/v3.3/user/wallet/address': 15,
                         'spot/api/v3.2/availableCurrencies': 15,
                         'spot/api/v3.2/subaccount/wallet/history': 15,
@@ -2608,6 +2608,305 @@ export default class btse extends Exchange {
             };
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name btse#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://btsecom.github.io/docs/wallet/en/#query-wallet-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch transactions for
+     * @param {int} [limit] the maximum number of transaction structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const response = await this.privateGetSpotApiV32UserWalletHistory (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "username": "user",
+        //             "orderId": "2026081200000367",
+        //             "wallet": "SPOT@",
+        //             "currency": "USDT",
+        //             "type": "Deposit",
+        //             "amount": 100,
+        //             "fees": 0,
+        //             "description": "",
+        //             "timestamp": 1786510157962,
+        //             "status": "PROCESSING",
+        //             "txId": "",
+        //             "toAddress": "0x0000000000000000000000000000000000000000",
+        //             "currencyNetwork": "",
+        //             "sourceCurrency": "USDT",
+        //             "sourceAmount": 0,
+        //             "targetCurrency": "",
+        //             "targetAmount": 0,
+        //             "rate": 0
+        //         }
+        //     ]
+        //
+        // the endpoint returns the whole wallet ledger and ignores any type filter
+        // (verified live), so the non-transaction rows are filtered out here
+        const rows = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const type = this.safeString (entry, 'type');
+            if ((type === 'Deposit') || (type === 'Withdraw')) {
+                rows.push (entry);
+            }
+        }
+        return this.parseTransactions (rows, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name btse#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://btsecom.github.io/docs/wallet/en/#query-wallet-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of transaction structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        // emulated over the mixed wallet ledger because the endpoint ignores any
+        // type filter (verified live) - note that since and limit apply to the
+        // underlying ledger rows, so a page can contain fewer deposits than the
+        // requested limit and paginating by the last returned timestamp can skip
+        // deposits that share a page with other ledger record types
+        const transactions = await this.fetchDepositsWithdrawals (code, since, limit, params);
+        return this.filterBy (transactions, 'type', 'deposit') as Transaction[];
+    }
+
+    /**
+     * @method
+     * @name btse#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://btsecom.github.io/docs/wallet/en/#query-wallet-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of transaction structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        // emulated over the mixed wallet ledger because the endpoint ignores any
+        // type filter (verified live) - note that since and limit apply to the
+        // underlying ledger rows, so a page can contain fewer withdrawals than the
+        // requested limit and paginating by the last returned timestamp can skip
+        // withdrawals that share a page with other ledger record types
+        const transactions = await this.fetchDepositsWithdrawals (code, since, limit, params);
+        return this.filterBy (transactions, 'type', 'withdrawal') as Transaction[];
+    }
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        //     {
+        //         "username": "user",
+        //         "orderId": "2026081200000367",
+        //         "wallet": "SPOT@",
+        //         "currency": "USDT",
+        //         "type": "Deposit",
+        //         "amount": 100,
+        //         "fees": 0,
+        //         "description": "",
+        //         "timestamp": 1786510157962,
+        //         "status": "PROCESSING",
+        //         "txId": "",
+        //         "toAddress": "0x0000000000000000000000000000000000000000",
+        //         "currencyNetwork": "",
+        //         "sourceCurrency": "USDT",
+        //         "sourceAmount": 0,
+        //         "targetCurrency": "",
+        //         "targetAmount": 0,
+        //         "rate": 0
+        //     }
+        //
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.safeInteger (transaction, 'timestamp');
+        const networkId = this.safeString (transaction, 'currencyNetwork');
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'orderId'),
+            'txid': this.safeString (transaction, 'txId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': this.networkIdToCode (networkId, code),
+            'address': this.safeString (transaction, 'toAddress'),
+            'addressTo': this.safeString (transaction, 'toAddress'),
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': this.parseTransactionType (this.safeString (transaction, 'type')),
+            'amount': this.safeNumber (transaction, 'amount'),
+            'currency': code,
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'updated': undefined,
+            'internal': undefined,
+            'comment': this.safeString (transaction, 'description'),
+            'fee': {
+                'currency': code,
+                'cost': this.safeNumber (transaction, 'fees'),
+            },
+        } as Transaction;
+    }
+
+    parseTransactionType (type: Str): Str {
+        const types: Dict = {
+            'Deposit': 'deposit',
+            'Withdraw': 'withdrawal',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseTransactionStatus (status: Str): Str {
+        // the full enum from the wallet documentation, PROCESSING is also live-verified
+        const statuses: Dict = {
+            'PROCESSING': 'pending',
+            'PENDING': 'pending',
+            'COMPLETED': 'ok',
+            'CANCELLED': 'canceled',
+            'EXPIRED': 'canceled',
+            'FAILURE': 'failed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name btse#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://btsecom.github.io/docs/wallet/en/#query-wallet-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch ledger entries for
+     * @param {int} [limit] the maximum number of ledger entry structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/#/?id=ledger}
+     */
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const response = await this.privateGetSpotApiV32UserWalletHistory (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "username": "user",
+        //             "orderId": "2026081200000367",
+        //             "wallet": "SPOT@",
+        //             "currency": "USDT",
+        //             "type": "Deposit",
+        //             "amount": 100,
+        //             "fees": 0,
+        //             "description": "",
+        //             "timestamp": 1786510157962,
+        //             "status": "PROCESSING",
+        //             "txId": "",
+        //             "toAddress": "0x0000000000000000000000000000000000000000",
+        //             "currencyNetwork": "",
+        //             "sourceCurrency": "USDT",
+        //             "sourceAmount": 0,
+        //             "targetCurrency": "",
+        //             "targetAmount": 0,
+        //             "rate": 0
+        //         }
+        //     ]
+        //
+        return this.parseLedger (response, currency, since, limit);
+    }
+
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+        const currencyId = this.safeString (item, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.safeInteger (item, 'timestamp');
+        const type = this.safeString (item, 'type');
+        return {
+            'info': item,
+            'id': this.safeString (item, 'orderId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'direction': this.parseLedgerEntryDirection (type),
+            'account': this.safeString (item, 'wallet'),
+            'referenceId': this.safeString (item, 'txId'),
+            'referenceAccount': undefined,
+            'type': this.parseLedgerEntryType (type),
+            'currency': code,
+            'amount': this.safeNumber (item, 'amount'),
+            'before': undefined,
+            'after': undefined,
+            'status': this.parseTransactionStatus (this.safeString (item, 'status')),
+            'fee': {
+                'currency': code,
+                'cost': this.safeNumber (item, 'fees'),
+            },
+        } as LedgerEntry;
+    }
+
+    parseLedgerEntryType (type: Str): Str {
+        const types: Dict = {
+            'Deposit': 'transaction',
+            'Withdraw': 'transaction',
+            'Convert fiat': 'trade',
+            'Transfer_Out': 'transfer',
+            'Transfer_In': 'transfer',
+            'ReferralEarning': 'referral',
+            'Sub Account Transfer In': 'transfer',
+            'Sub Account Transfer Out': 'transfer',
+            'express buy': 'trade',
+            'spot trading fee rebate': 'rebate',
+            'futures trading fee rebate': 'rebate',
+            'general trading fee rebate': 'rebate',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntryDirection (type: Str): Str {
+        const directions: Dict = {
+            'Deposit': 'in',
+            'Withdraw': 'out',
+            'Transfer_Out': 'out',
+            'Transfer_In': 'in',
+            'ReferralEarning': 'in',
+            'Sub Account Transfer In': 'in',
+            'Sub Account Transfer Out': 'out',
+            'spot trading fee rebate': 'in',
+            'futures trading fee rebate': 'in',
+            'general trading fee rebate': 'in',
+            'trial fund': 'in',
+            'token voucher in': 'in',
+            'token voucher out': 'out',
+            'Strategy Income': 'in',
+            'Strategy Pay': 'out',
+        };
+        return this.safeString (directions, type);
     }
 
     /**

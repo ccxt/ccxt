@@ -1141,7 +1141,7 @@
                             "symbol": "ETH-PERP"
                         },
                         "symbol": "ETH/USDT:USDT",
-                        "fundingRate": 0.00001528,
+                        "fundingRate": 1.528e-05,
                         "timestamp": 1770451200000,
                         "datetime": "2026-02-07T08:00:00.000Z"
                     }
@@ -1365,6 +1365,151 @@
                     ]
                 ]
             }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "spot wallet history with a single pending usdt deposit",
+                "method": "fetchDepositsWithdrawals",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "username": "user",
+                        "orderId": "2026081200000367",
+                        "wallet": "SPOT@",
+                        "currency": "USDT",
+                        "type": "Deposit",
+                        "amount": 100,
+                        "fees": 0,
+                        "description": "",
+                        "timestamp": 1786510157962,
+                        "status": "PROCESSING",
+                        "txId": "",
+                        "toAddress": "0x0000000000000000000000000000000000000000",
+                        "currencyNetwork": "",
+                        "sourceCurrency": "USDT",
+                        "sourceAmount": 0,
+                        "targetCurrency": "",
+                        "targetAmount": 0,
+                        "rate": 0
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "username": "user",
+                            "orderId": "2026081200000367",
+                            "wallet": "SPOT@",
+                            "currency": "USDT",
+                            "type": "Deposit",
+                            "amount": 100,
+                            "fees": 0,
+                            "description": "",
+                            "timestamp": 1786510157962,
+                            "status": "PROCESSING",
+                            "txId": "",
+                            "toAddress": "0x0000000000000000000000000000000000000000",
+                            "currencyNetwork": "",
+                            "sourceCurrency": "USDT",
+                            "sourceAmount": 0,
+                            "targetCurrency": "",
+                            "targetAmount": 0,
+                            "rate": 0
+                        },
+                        "id": "2026081200000367",
+                        "txid": "",
+                        "timestamp": 1786510157962,
+                        "datetime": "2026-08-12T04:49:17.962Z",
+                        "network": null,
+                        "address": "0x0000000000000000000000000000000000000000",
+                        "addressTo": "0x0000000000000000000000000000000000000000",
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "deposit",
+                        "amount": 100,
+                        "currency": "USDT",
+                        "status": "pending",
+                        "updated": null,
+                        "internal": null,
+                        "comment": "",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "spot wallet ledger with a single pending usdt deposit entry",
+                "method": "fetchLedger",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "username": "user",
+                        "orderId": "2026081200000367",
+                        "wallet": "SPOT@",
+                        "currency": "USDT",
+                        "type": "Deposit",
+                        "amount": 100,
+                        "fees": 0,
+                        "description": "",
+                        "timestamp": 1786510157962,
+                        "status": "PROCESSING",
+                        "txId": "",
+                        "toAddress": "0x0000000000000000000000000000000000000000",
+                        "currencyNetwork": "",
+                        "sourceCurrency": "USDT",
+                        "sourceAmount": 0,
+                        "targetCurrency": "",
+                        "targetAmount": 0,
+                        "rate": 0
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "username": "user",
+                            "orderId": "2026081200000367",
+                            "wallet": "SPOT@",
+                            "currency": "USDT",
+                            "type": "Deposit",
+                            "amount": 100,
+                            "fees": 0,
+                            "description": "",
+                            "timestamp": 1786510157962,
+                            "status": "PROCESSING",
+                            "txId": "",
+                            "toAddress": "0x0000000000000000000000000000000000000000",
+                            "currencyNetwork": "",
+                            "sourceCurrency": "USDT",
+                            "sourceAmount": 0,
+                            "targetCurrency": "",
+                            "targetAmount": 0,
+                            "rate": 0
+                        },
+                        "id": "2026081200000367",
+                        "timestamp": 1786510157962,
+                        "datetime": "2026-08-12T04:49:17.962Z",
+                        "direction": "in",
+                        "account": "SPOT@",
+                        "referenceId": "",
+                        "referenceAccount": null,
+                        "type": "transaction",
+                        "currency": "USDT",
+                        "amount": 100,
+                        "before": null,
+                        "after": null,
+                        "status": "pending",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0
+                        }
+                    }
+                ]
+            }
         ]
-  }
+    }
 }
