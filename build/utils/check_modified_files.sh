@@ -31,14 +31,26 @@ if echo "$diff" | grep -qx 'ts/ccxt.ts'; then
     integration_map="^[+-][[:space:]]+'([A-Za-z0-9_-]+)':[[:space:]]+[A-Za-z0-9_]+,\$"
     integration_export="^[+-][[:space:]]+([A-Za-z0-9_]+),\$"
     if [[ -n "$ccxt_ts_content_diff" ]]; then
-        wired_ids=" $(echo "$ccxt_ts_content_diff" | sed -nE "s/^[+-]import ([A-Za-z0-9_]+) from +'\.\/src\/[A-Za-z0-9_]+\.js'\$/\1/p; s/^[+-][[:space:]]+'([A-Za-z0-9_-]+)':[[:space:]]+[A-Za-z0-9_]+,\$/\1/p" | sort -u | tr '\n' ' ') "
+        # the gate set is harvested from IMPORT lines only: map entries and export-list lines both
+        # count solely for ids that gain or lose an import in the same diff. Gating maps on the
+        # map lines themselves would let a map-only rewire of an EXISTING exchange (e.g. flipping
+        # 'binance': ... with no import change) sail through as integration-only — and a blanket
+        # "at least one import anywhere" gate would let such a rewire smuggle in alongside an
+        # unrelated genuine integration, so the check is per-id
+        import_ids=" $(echo "$ccxt_ts_content_diff" | sed -nE "s/^[+-]import ([A-Za-z0-9_]+)Pro from +'\.\/src\/pro\/[A-Za-z0-9_]+\.js'\$/\1/p; s/^[+-]import ([A-Za-z0-9_]+) from +'\.\/src\/[A-Za-z0-9_]+\.js'\$/\1/p" | sort -u | tr '\n' ' ') "
         integration_only="true"
         while IFS= read -r line; do
-            if [[ "$line" =~ $integration_pro_import || "$line" =~ $integration_import || "$line" =~ $integration_map ]]; then
+            if [[ "$line" =~ $integration_pro_import || "$line" =~ $integration_import ]]; then
                 continue
+            elif [[ "$line" =~ $integration_map ]]; then
+                map_id="${BASH_REMATCH[1]}"
+                if [[ "$import_ids" != *" ${map_id} "* ]]; then
+                    integration_only="false"
+                    break
+                fi
             elif [[ "$line" =~ $integration_export ]]; then
                 bare_id="${BASH_REMATCH[1]}"
-                if [[ "$wired_ids" != *" ${bare_id} "* ]]; then
+                if [[ "$import_ids" != *" ${bare_id} "* ]]; then
                     integration_only="false"
                     break
                 fi
