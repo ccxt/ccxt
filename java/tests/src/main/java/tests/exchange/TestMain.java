@@ -2061,6 +2061,29 @@ public class TestMain extends BaseTest
 
     }
 
+    public void AssertWsSentMessages(BaseExchange exchange, Object url, Object data)
+    {
+        // the ws analog of the static request tests: Assert the frames the
+        // watch method sent over the mocked transport (subscribe requests etc)
+        Object expectedSent = exchange.safeList(data, "sentMessages");
+        if (Helpers.isTrue(Helpers.isEqual(expectedSent, null)))
+        {
+            return;
+        }
+        // ids/signatures/timestamps inside outgoing frames can be volatile —
+        // exclude them per entry without touching the response skipKeys
+        Object sentSkipKeys = exchange.safeList(data, "sentSkipKeys", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object sentMessages = getWsSentMessages(exchange, url);
+        Object sentLength = Helpers.getArrayLength(sentMessages);
+        Object expectedLength = Helpers.getArrayLength(expectedSent);
+        Assert(Helpers.isEqual(sentLength, expectedLength), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("sent ws messages count mismatch: sent ", String.valueOf(sentLength)), ", expected "), String.valueOf(expectedLength)), " "), jsonStringify(sentMessages)));
+        for (var i = 0; Helpers.isLessThan(i, expectedLength); i++)
+        {
+            Object unifiedSent = jsonParse(jsonStringify(Helpers.GetValue(sentMessages, i)));
+            this.AssertStaticResponseOutput(exchange, sentSkipKeys, unifiedSent, Helpers.GetValue(expectedSent, i));
+        }
+    }
+
     public java.util.concurrent.CompletableFuture<Object> testWsStatically(BaseExchange exchange, Object method, Object skipKeys, Object data)
     {
 
@@ -2089,6 +2112,7 @@ public class TestMain extends BaseTest
                     // resolution (e.g. an order going from open to closed)
                     Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.watchAndAssertSequence(exchange, method, input, skipKeys, expectedResults), this.injectWsMessages(exchange, url, messages)));
                     (Helpers.promiseAll(promises)).join();
+                    this.AssertWsSentMessages(exchange, url, data);
                 } else
                 {
                     // 'parsedResponse' Asserts the final state after every frame
@@ -2098,6 +2122,7 @@ public class TestMain extends BaseTest
                     Object results = (Helpers.promiseAll(promises)).join();
                     Object unifiedResult = jsonParse(jsonStringify(Helpers.GetValue(results, 0)));
                     this.AssertStaticResponseOutput(exchange, skipKeys, unifiedResult, Helpers.GetValue(data, "parsedResponse"));
+                    this.AssertWsSentMessages(exchange, url, data);
                 }
             } catch(Exception e)
             {

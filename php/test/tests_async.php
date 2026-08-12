@@ -1664,6 +1664,26 @@ class testMainClass {
         }) ();
     }
 
+    public function assert_ws_sent_messages($exchange, $url, $data) {
+        // the ws analog of the static request tests: assert the frames the
+        // watch method sent over the mocked transport (subscribe requests etc)
+        $expected_sent = $exchange->safe_list($data, 'sentMessages');
+        if ($expected_sent === null) {
+            return;
+        }
+        // ids/signatures/timestamps inside outgoing frames can be volatile —
+        // exclude them per entry without touching the response skipKeys
+        $sent_skip_keys = $exchange->safe_list($data, 'sentSkipKeys', []);
+        $sent_messages = get_ws_sent_messages($exchange, $url);
+        $sent_length = count($sent_messages);
+        $expected_length = count($expected_sent);
+        assert($sent_length === $expected_length, 'sent ws messages count mismatch: sent ' . ((string) $sent_length) . ', expected ' . ((string) $expected_length) . ' ' . json_stringify($sent_messages));
+        for ($i = 0; $i < $expected_length; $i++) {
+            $unified_sent = json_parse(json_stringify($sent_messages[$i]));
+            $this->assert_static_response_output($exchange, $sent_skip_keys, $unified_sent, $expected_sent[$i]);
+        }
+    }
+
     public function test_ws_statically($exchange, $method, $skip_keys, $data) {
         return Async\async(function () use ($exchange, $method, $skip_keys, $data) {
             $url = $exchange->safe_string($data, 'url');
@@ -1685,6 +1705,7 @@ class testMainClass {
                     // resolution (e.g. an order going from open to closed)
                     $promises = [$this->watch_and_assert_sequence($exchange, $method, $input, $skip_keys, $expected_results), $this->inject_ws_messages($exchange, $url, $messages)];
                     \React\Async\await(\React\Promise\all($promises));
+                    $this->assert_ws_sent_messages($exchange, $url, $data);
                 } else {
                     // 'parsedResponse' asserts the final state after every frame
                     // was replayed — live structures like orderbooks keep updating
@@ -1693,6 +1714,7 @@ class testMainClass {
                     $results = \React\Async\await(\React\Promise\all($promises));
                     $unified_result = json_parse(json_stringify($results[0]));
                     $this->assert_static_response_output($exchange, $skip_keys, $unified_result, $data['parsedResponse']);
+                    $this->assert_ws_sent_messages($exchange, $url, $data);
                 }
             } catch(\Throwable $e) {
                 $this->static_ws_tests_failed = true;

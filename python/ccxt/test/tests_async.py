@@ -3,7 +3,7 @@
 import asyncio
 
 
-from tests_helpers import AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, get_cli_arg_value, get_root_dir, is_sync, dump, json_parse, json_stringify, convert_ascii, io_file_exists, io_file_read, io_dir_read, call_method, call_method_sync, call_exchange_method_dynamically, call_exchange_method_dynamically_sync, get_root_exception, exception_message, exit_script, get_exchange_prop, set_exchange_prop, init_exchange, get_test_files_sync, get_test_files, set_fetch_response, setup_ws_mock_transport, inject_ws_message, reject_pending_ws_futures, is_null_value, close, get_env_vars, get_lang, get_ext, is_windows, is_linux, is_amd64  # noqa: F401
+from tests_helpers import AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, get_cli_arg_value, get_root_dir, is_sync, dump, json_parse, json_stringify, convert_ascii, io_file_exists, io_file_read, io_dir_read, call_method, call_method_sync, call_exchange_method_dynamically, call_exchange_method_dynamically_sync, get_root_exception, exception_message, exit_script, get_exchange_prop, set_exchange_prop, init_exchange, get_test_files_sync, get_test_files, set_fetch_response, setup_ws_mock_transport, inject_ws_message, reject_pending_ws_futures, get_ws_sent_messages, is_null_value, close, get_env_vars, get_lang, get_ext, is_windows, is_linux, is_amd64  # noqa: F401
 
 class testMainClass:
     id_tests = False
@@ -1348,6 +1348,23 @@ class testMainClass:
             raise e
         return True   # c# methods used with promiseAll need to return something
 
+    def assert_ws_sent_messages(self, exchange, url, data):
+        # the ws analog of the static request tests: assert the frames the
+        # watch method sent over the mocked transport (subscribe requests etc)
+        expected_sent = exchange.safe_list(data, 'sentMessages')
+        if expected_sent is None:
+            return
+        # ids/signatures/timestamps inside outgoing frames can be volatile —
+        # exclude them per entry without touching the response skipKeys
+        sent_skip_keys = exchange.safe_list(data, 'sentSkipKeys', [])
+        sent_messages = get_ws_sent_messages(exchange, url)
+        sent_length = len(sent_messages)
+        expected_length = len(expected_sent)
+        assert sent_length == expected_length, 'sent ws messages count mismatch: sent ' + str(sent_length) + ', expected ' + str(expected_length) + ' ' + json_stringify(sent_messages)
+        for i in range(0, expected_length):
+            unified_sent = json_parse(json_stringify(sent_messages[i]))
+            self.assert_static_response_output(exchange, sent_skip_keys, unified_sent, expected_sent[i])
+
     async def test_ws_statically(self, exchange, method, skip_keys, data):
         url = exchange.safe_string(data, 'url')
         setup_ws_mock_transport(exchange, url)
@@ -1366,6 +1383,7 @@ class testMainClass:
                 # resolution (e.g. an order going from open to closed)
                 promises = [self.watch_and_assert_sequence(exchange, method, input, skip_keys, expected_results), self.inject_ws_messages(exchange, url, messages)]
                 await asyncio.gather(*promises)
+                self.assert_ws_sent_messages(exchange, url, data)
             else:
                 # 'parsedResponse' asserts the final state after every frame
                 # was replayed — live structures like orderbooks keep updating
@@ -1374,6 +1392,7 @@ class testMainClass:
                 results = await asyncio.gather(*promises)
                 unified_result = json_parse(json_stringify(results[0]))
                 self.assert_static_response_output(exchange, skip_keys, unified_result, data['parsedResponse'])
+                self.assert_ws_sent_messages(exchange, url, data)
         except Exception as e:
             self.static_ws_tests_failed = True
             error_message = '[' + self.lang + '][STATIC_WS]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + exception_message(e)

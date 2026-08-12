@@ -1946,6 +1946,29 @@ public partial class testMainClass
         return true;  // c# methods used with promiseAll need to return something
     }
 
+    public virtual void assertWsSentMessages(BaseExchange exchange, object url, object data)
+    {
+        // the ws analog of the static request tests: assert the frames the
+        // watch method sent over the mocked transport (subscribe requests etc)
+        object expectedSent = exchange.safeList(data, "sentMessages");
+        if (isTrue(isEqual(expectedSent, null)))
+        {
+            return;
+        }
+        // ids/signatures/timestamps inside outgoing frames can be volatile —
+        // exclude them per entry without touching the response skipKeys
+        object sentSkipKeys = exchange.safeList(data, "sentSkipKeys", new List<object>() {});
+        object sentMessages = getWsSentMessages(exchange, url);
+        object sentLength = getArrayLength(sentMessages);
+        object expectedLength = getArrayLength(expectedSent);
+        assert(isEqual(sentLength, expectedLength), add(add(add(add(add("sent ws messages count mismatch: sent ", ((object)sentLength).ToString()), ", expected "), ((object)expectedLength).ToString()), " "), jsonStringify(sentMessages)));
+        for (object i = 0; isLessThan(i, expectedLength); postFixIncrement(ref i))
+        {
+            object unifiedSent = jsonParse(jsonStringify(getValue(sentMessages, i)));
+            this.assertStaticResponseOutput(exchange, sentSkipKeys, unifiedSent, getValue(expectedSent, i));
+        }
+    }
+
     public async virtual Task<object> testWsStatically(BaseExchange exchange, object method, object skipKeys, object data)
     {
         object url = exchange.safeString(data, "url");
@@ -1971,6 +1994,7 @@ public partial class testMainClass
                 // resolution (e.g. an order going from open to closed)
                 object promises = new List<object> {this.watchAndAssertSequence(exchange, method, input, skipKeys, expectedResults), this.injectWsMessages(exchange, url, messages)};
                 await promiseAll(promises);
+                this.assertWsSentMessages(exchange, url, data);
             } else
             {
                 // 'parsedResponse' asserts the final state after every frame
@@ -1980,6 +2004,7 @@ public partial class testMainClass
                 object results = await promiseAll(promises);
                 object unifiedResult = jsonParse(jsonStringify(getValue(results, 0)));
                 this.assertStaticResponseOutput(exchange, skipKeys, unifiedResult, getValue(data, "parsedResponse"));
+                this.assertWsSentMessages(exchange, url, data);
             }
         } catch(Exception e)
         {

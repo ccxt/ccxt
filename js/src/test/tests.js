@@ -12,7 +12,7 @@ AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, O
 // shared
 getCliArgValue, 
 //
-getRootDir, isSync, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, getRootException, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFilesSync, getTestFiles, setFetchResponse, setupWsMockTransport, injectWsMessage, rejectPendingWsFutures, isNullValue, close, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, } from './tests.helpers.js';
+getRootDir, isSync, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, getRootException, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFilesSync, getTestFiles, setFetchResponse, setupWsMockTransport, injectWsMessage, rejectPendingWsFutures, getWsSentMessages, isNullValue, close, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, } from './tests.helpers.js';
 class testMainClass {
     constructor() {
         this.idTests = false;
@@ -1719,6 +1719,25 @@ class testMainClass {
         }
         return true; // c# methods used with promiseAll need to return something
     }
+    assertWsSentMessages(exchange, url, data) {
+        // the ws analog of the static request tests: assert the frames the
+        // watch method sent over the mocked transport (subscribe requests etc)
+        const expectedSent = exchange.safeList(data, 'sentMessages');
+        if (expectedSent === undefined) {
+            return;
+        }
+        // ids/signatures/timestamps inside outgoing frames can be volatile —
+        // exclude them per entry without touching the response skipKeys
+        const sentSkipKeys = exchange.safeList(data, 'sentSkipKeys', []);
+        const sentMessages = getWsSentMessages(exchange, url);
+        const sentLength = sentMessages.length;
+        const expectedLength = expectedSent.length;
+        assert(sentLength === expectedLength, 'sent ws messages count mismatch: sent ' + sentLength.toString() + ', expected ' + expectedLength.toString() + ' ' + jsonStringify(sentMessages));
+        for (let i = 0; i < expectedLength; i++) {
+            const unifiedSent = jsonParse(jsonStringify(sentMessages[i]));
+            this.assertStaticResponseOutput(exchange, sentSkipKeys, unifiedSent, expectedSent[i]);
+        }
+    }
     async testWsStatically(exchange, method, skipKeys, data) {
         const url = exchange.safeString(data, 'url');
         setupWsMockTransport(exchange, url);
@@ -1742,6 +1761,7 @@ class testMainClass {
                     this.injectWsMessages(exchange, url, messages),
                 ];
                 await Promise.all(promises);
+                this.assertWsSentMessages(exchange, url, data);
             }
             else {
                 // 'parsedResponse' asserts the final state after every frame
@@ -1754,6 +1774,7 @@ class testMainClass {
                 const results = await Promise.all(promises);
                 const unifiedResult = jsonParse(jsonStringify(results[0]));
                 this.assertStaticResponseOutput(exchange, skipKeys, unifiedResult, data['parsedResponse']);
+                this.assertWsSentMessages(exchange, url, data);
             }
         }
         catch (e) {

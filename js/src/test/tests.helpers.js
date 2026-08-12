@@ -178,9 +178,12 @@ function setupWsMockTransport(exchange, url) {
     client.startedConnecting = true;
     client.isConnected = true;
     client.connectionEstablished = exchange.milliseconds();
+    client.mockSentMessages = [];
     client.connection = {
         'readyState': 1, // WebSocket.OPEN, keeps isOpen () happy
         'send': (message, options = undefined, callback = undefined) => {
+            // record the outgoing frame so the test can assert it
+            client.mockSentMessages.push(JSON.parse(message));
             if (callback !== undefined) {
                 callback();
             }
@@ -189,6 +192,11 @@ function setupWsMockTransport(exchange, url) {
     };
     client.connected.resolve(url);
     return exchange;
+}
+function getWsSentMessages(exchange, url) {
+    // the frames the exchange sent over the mocked transport, already parsed
+    const client = exchange.client(url);
+    return client.mockSentMessages;
 }
 function injectWsMessage(exchange, url, message) {
     // feed one already-json-parsed frame into the exchange's ws message
@@ -242,5 +250,5 @@ AuthenticationError, NotSupported, ExchangeError, InvalidProxySettings, Exchange
 // shared
 getCliArgValue, 
 //
-dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, setupWsMockTransport, injectWsMessage, rejectPendingWsFutures, isNullValue, close, getRootDir, argvExchange, argvSymbol, argvMethod, isSync, LANG, ENV_VARS, NEW_LINE, EXT, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, };
+dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, setupWsMockTransport, injectWsMessage, rejectPendingWsFutures, getWsSentMessages, isNullValue, close, getRootDir, argvExchange, argvSymbol, argvMethod, isSync, LANG, ENV_VARS, NEW_LINE, EXT, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, };
 export default {};
