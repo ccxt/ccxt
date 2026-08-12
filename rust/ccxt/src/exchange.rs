@@ -1118,9 +1118,63 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                 if std::env::var("CCXT_WS_DEBUG").is_ok() {
                     eprintln!("[wsdrain] {}", method);
                 }
-                let _ = self.dispatch_to_derived(&method, args).await;
+                if method == "load_order_book" {
+                    self.ws_load_order_book(args).await;
+                } else {
+                    let _ = self.dispatch_to_derived(&method, args).await;
+                }
             }
         }
+    } }
+
+    /// Base `loadOrderBook`: fetch the REST depth snapshot, splice the buffered
+    /// WS cache onto it, and resolve the watcher. Venues spawn this after
+    /// buffering enough deltas (bitstamp, …). Runs in the drive loop so it can
+    /// reach the venue's `get_cache_index` / `handle_deltas` overrides.
+    fn ws_load_order_book(
+        &mut self,
+        args: Vec<Value>,
+    ) -> impl ::std::future::Future<Output = ()> + Send { async move {
+        let client = args.get(0).cloned().unwrap_or(Value::Null);
+        let message_hash = args.get(1).cloned().unwrap_or(Value::Null);
+        let symbol = args.get(2).cloned().unwrap_or(Value::Null);
+        let limit = args.get(3).cloned().unwrap_or(Value::Null);
+        let params = args.get(4).cloned().unwrap_or(Value::Map(indexmap::IndexMap::new()));
+        let err = |id: &Value| Value::Str(format!(
+            "[ExchangeError] {} loadOrderBook() failed to synchronize",
+            match id { Value::Str(s) => s.as_str(), _ => "" }));
+        if !crate::runtime::in_op(&self.orderbooks, &symbol) {
+            crate::pro::ws_client::value_reject(&client, &[err(&self.id), message_hash]);
+            return;
+        }
+        let max_retries: i64 = 3;
+        let mut tries = 0;
+        while tries < max_retries {
+            let mut stored = crate::get_value(&self.orderbooks, &symbol);
+            let cache = crate::get_value(&stored, &Value::Str("cache".to_string()));
+            let snapshot = self
+                .dispatch_to_derived("fetch_rest_order_book_safe",
+                    vec![symbol.clone(), limit.clone(), params.clone()])
+                .await
+                .unwrap_or(Value::Null);
+            let index = self
+                .dispatch_to_derived("get_cache_index", vec![snapshot.clone(), cache.clone()])
+                .await;
+            let idx = match index { Some(Value::Int(n)) => n, _ => -1 };
+            if idx >= 0 {
+                stored.reset(snapshot);
+                let clen = match crate::runtime::get_array_length(&cache) { Value::Int(n) => n, _ => 0 };
+                let deltas: Vec<Value> = (idx..clen)
+                    .map(|i| crate::get_value(&cache, &Value::Int(i)))
+                    .collect();
+                self.dispatch_to_derived("handle_deltas", vec![stored.clone(), Value::List(deltas)]).await;
+                crate::set_value(&mut stored, &Value::Str("cache".to_string()), Value::List(Vec::new()));
+                crate::pro::ws_client::value_resolve(&client, &[stored.clone(), message_hash.clone()]);
+                return;
+            }
+            tries += 1;
+        }
+        crate::pro::ws_client::value_reject(&client, &[err(&self.id), message_hash]);
     } }
 
     fn watch(
