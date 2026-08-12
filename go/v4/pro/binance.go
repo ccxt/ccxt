@@ -6619,6 +6619,13 @@ func (this *BinanceCore) HandleMyTrade(client any, message any) {
 					var orderTrades any = this.SafeList(order, "trades", []any{})
 					ccxt.AppendToArray(&orderTrades, trade)
 					ccxt.AddElementToObject(order, "trades", orderTrades)
+					// write the updated order back into the cache: php
+					// arrays are value types, so the fee/trades mutations
+					// above only touched a local copy there — the cache
+					// hashmap rows are wired by reference, so this
+					// assignment reaches the cached row (and is a no-op
+					// in the reference-semantics runtimes)
+					ccxt.AddElementToObject(orders, orderId, order)
 				}
 			}
 		}

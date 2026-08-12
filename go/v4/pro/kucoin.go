@@ -2022,7 +2022,7 @@ func (this *KucoinCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...an
 		methodparamsVariable := this.HandleOptionAndParams2(params, "watchOrderBook", optionName, "method", method)
 		method = ccxt.GetValue(methodparamsVariable, 0)
 		params = ccxt.GetValue(methodparamsVariable, 1)
-		if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetIndexOf(method, "Depth"), ccxt.OpNeg(1))) {
+		if ccxt.IsTrue(ccxt.IsLessThan(ccxt.GetIndexOf(method, "Depth"), 0)) {
 			if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(limit, 5))) || ccxt.IsTrue((ccxt.IsEqual(limit, 50)))) {
 				if !ccxt.IsTrue(isFuturesMethod) {
 					method = "/spotMarket/level2"
@@ -2099,7 +2099,7 @@ func (this *KucoinCore) UnWatchOrderBookForSymbols(symbols any, optionalArgs ...
 		methodparamsVariable := this.HandleOptionAndParams2(params, "watchOrderBook", optionName, "method", method)
 		method = ccxt.GetValue(methodparamsVariable, 0)
 		params = ccxt.GetValue(methodparamsVariable, 1)
-		if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetIndexOf(method, "Depth"), ccxt.OpNeg(1))) {
+		if ccxt.IsTrue(ccxt.IsLessThan(ccxt.GetIndexOf(method, "Depth"), 0)) {
 			if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(limit, 5))) || ccxt.IsTrue((ccxt.IsEqual(limit, 50)))) {
 				if !ccxt.IsTrue(isFuturesMethod) {
 					method = "/spotMarket/level2"
