@@ -18,12 +18,23 @@ try {
 } catch (e) {
     // noop
 }
-// when the cli runs inside the ccxt repository, always load the typescript
-// sources so that a new integration works with the cli immediately, without
-// any js or cjs build steps (built artifacts can be stale or missing);
-// fall back to an installed ccxt package only when the sources are absent
+// when the cli itself runs as typescript (under tsx) inside the ccxt
+// repository, always load the typescript sources so that a new integration
+// works with the cli immediately, without any js or cjs build steps (built
+// artifacts can be stale or missing); when the cli runs as compiled js
+// (the built ccxt-cli package under plain node, in-repo or installed from
+// npm) importing raw typescript would crash, so fall back to import ('ccxt')
 const cliDirectory = path.dirname (fileURLToPath (import.meta.url));
-export const isLocalCcxt = fs.existsSync (path.join (cliDirectory, '..', '..', 'ts', 'ccxt.ts'));
+const isTsRuntime = import.meta.url.endsWith ('.ts');
+const detectLocalCcxt = () => {
+    try {
+        return isTsRuntime && fs.existsSync (path.join (cliDirectory, '..', '..', 'ts', 'ccxt.ts'));
+    } catch (e) {
+        // detection must never take the cli down - degrade to the package import
+        return false;
+    }
+};
+export const isLocalCcxt = detectLocalCcxt ();
 let ccxt;
 try {
     if (isLocalCcxt) {
