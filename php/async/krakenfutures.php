@@ -3124,9 +3124,15 @@ class krakenfutures extends Exchange {
 
     public function parse_positions(mixed $response, ?array $symbols = null, $params = array()) {
         $result = array();
-        // a degraded $response can omit openPositions entirely - default to an
-        // empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
-        $positions = $this->safe_list($response, 'openPositions', array());
+        // a degraded $response missing openPositions must fail loudly - a flat
+        // account and "could not read $positions" are not interchangeable for
+        // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
+        // (the crash guarded against in #19896 is still avoided, since we no
+        // longer call .length on a non-list value)
+        $positions = $this->safe_list($response, 'openPositions');
+        if ($positions === null) {
+            throw new ExchangeError($this->id . ' fetchPositions() returned a $response without an "openPositions" list');
+        }
         for ($i = 0; $i < count($positions); $i++) {
             $position = $this->parse_position($positions[$i]);
             $result[] = $position;
