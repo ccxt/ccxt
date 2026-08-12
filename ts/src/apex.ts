@@ -998,7 +998,7 @@ export default class apex extends Exchange {
         const timestamp = this.safeIntegerN (trade, [ 't', 'T', 'createdAt' ]);
         const priceString = this.safeString2 (trade, 'p', 'price');
         const amountString = this.safeString2 (trade, 'v', 'size');
-        const side = this.safeStringLower2 (trade, 'S', 'side');
+        const side = this.safeStringStartsWith2 (trade, 'S', 'Sell', 'sell', 'B', 'buy');
         const type = this.safeString (trade, 'type');
         const fee = this.safeString (trade, 'fee');
         return this.safeTrade ({
@@ -1210,7 +1210,7 @@ export default class apex extends Exchange {
         const amount = this.safeString (order, 'size');
         const orderType = this.safeString (order, 'type');
         const status = this.safeString (order, 'status');
-        const side = this.safeStringLower (order, 'side');
+        const side = this.safeStringStartsWith (order, 'side', 'S', 'sell', 'B', 'buy');
         // const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
         const remaining = this.omitZero (this.safeString (order, 'remainingSize'));
         const lastUpdateTimestamp = this.safeInteger (order, 'updatedTime');
@@ -1969,7 +1969,7 @@ export default class apex extends Exchange {
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const side = this.safeStringLower (position, 'side');
+        const side = this.safeStringStartsWith (position, 'side', 'S', 'short', 'L', 'long');
         const quantity = this.safeString (position, 'size');
         const timestamp = this.safeInteger (position, 'updatedTime');
         let leverage = 20;
