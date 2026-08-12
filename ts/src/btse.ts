@@ -5,6 +5,7 @@ import Exchange from './abstract/btse.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound } from './base/errors.js';
 import { sha384 } from '@noble/hashes/sha2.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { Precise } from './base/Precise.js';
 import type { Bool, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, List, MarginMode, Market, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, Transaction, Currency, LedgerEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -1223,6 +1224,14 @@ export default class btse extends Exchange {
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         const last = this.safeString (ticker, 'last');
+        let baseVolume = this.safeString (ticker, 'size');
+        // btse saturates the size field at the maximum representable value
+        // (2^63 / 1e8 = 92233720368.54775807) for markets whose transacted
+        // base volume exceeds the range, observed live on the PEPE markets -
+        // the saturated value is not a volume, so it is treated as unavailable
+        if ((baseVolume !== undefined) && Precise.stringGe (baseVolume, '92233720368.5477')) {
+            baseVolume = undefined;
+        }
         return this.safeTicker ({
             'symbol': this.safeSymbol (marketId, market),
             'timestamp': undefined,
@@ -1241,7 +1250,7 @@ export default class btse extends Exchange {
             'change': undefined,
             'percentage': this.safeString (ticker, 'percentageChange'),
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'size'),
+            'baseVolume': baseVolume,
             'quoteVolume': this.safeString (ticker, 'volume'),
             'markPrice': undefined,
             'indexPrice': undefined,
