@@ -5,6 +5,7 @@ import path from 'path';
 import asTable from 'as-table';
 import { Agent } from 'https';
 import readline from 'readline';
+import { fileURLToPath } from 'url';
 import { getCacheDirectory, getExchangeSettings, loadConfigFile } from './cache.js';
 
 ansi.nice;
@@ -17,22 +18,48 @@ try {
 } catch (e) {
     // noop
 }
+// when the cli itself runs as typescript (under tsx) inside the ccxt
+// repository, always load the typescript sources so that a new integration
+// works with the cli immediately, without any js or cjs build steps (built
+// artifacts can be stale or missing); when the cli runs as compiled js
+// (the built ccxt-cli package under plain node, in-repo or installed from
+// npm) importing raw typescript would crash, so fall back to import ('ccxt')
+const cliDirectory = path.dirname (fileURLToPath (import.meta.url));
+const isTsRuntime = import.meta.url.endsWith ('.ts');
+const detectLocalCcxt = () => {
+    try {
+        return isTsRuntime && fs.existsSync (path.join (cliDirectory, '..', '..', 'ts', 'ccxt.ts'));
+    } catch (e) {
+        // detection must never take the cli down - degrade to the package import
+        return false;
+    }
+};
+export const isLocalCcxt = detectLocalCcxt ();
 let ccxt;
 try {
-    // @ts-ignore
-    ccxt = await import ('ccxt');
-} catch (e) {
-    try {
+    if (isLocalCcxt) {
         // @ts-ignore
         // we import like this to trick tsc and avoid the crawling on the
         // local ccxt project
         ccxt = await (Function ('return import("../../ts/ccxt")') ());
-    } catch (ee) {
-        log.error (ee);
-        log.error ('Neither a local installation nor a global CCXT installation was detected, make `npm i` first, Also make sure your local ccxt version does not contain any syntax errors.');
-        process.exit (1);
+    } else {
+        // @ts-ignore
+        ccxt = await import ('ccxt');
     }
+    // unwrap the default export in case the import resolved through a
+    // cjs interop shape that does not expose named keys on the namespace
+    ccxt = ccxt.default ?? ccxt;
+} catch (e) {
+    log.error (e);
+    log.error ('Neither a local installation nor a global CCXT installation was detected, make `npm i` first, Also make sure your local ccxt version does not contain any syntax errors.');
+    process.exit (1);
 }
+export { ccxt };
+
+// the namespace's named `exchanges` export is a dictionary of exchange
+// classes while the default export carries an array of exchange ids -
+// normalize to an id array once so that consumers never depend on the shape
+export const exchangeIds: string[] = Array.isArray (ccxt.exchanges) ? ccxt.exchanges : Object.keys (ccxt.exchanges);
 
 const fsPromises = fs.promises;
 
@@ -196,7 +223,7 @@ function createResponseTemplate (cliOptions, exchange, methodName, args, result)
  *
  */
 function printSupportedExchanges () {
-    log ('Supported exchanges:', (ccxt.exchanges.join (', ') as any).green);
+    log ('Supported exchanges:', (exchangeIds.join (', ') as any).green);
 }
 
 //-----------------------------------------------------------------------------

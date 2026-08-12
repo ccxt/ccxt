@@ -3,7 +3,7 @@ import ansi from 'ansicolor';
 import { Command, Option } from 'commander';
 import ololog from 'ololog';
 import clipboard from 'clipboardy';
-import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage, printExchangeMethods, cacheEvents } from './helpers.js';
+import { ccxt, isLocalCcxt, exchangeIds, parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage, printExchangeMethods, cacheEvents } from './helpers.js';
 import { changeConfigPath, checkCache, getCachePathForHelp, saveCommand } from './cache.js';
 import { plotOHLCVChart } from './charts/ohlcv.js';
 import { plotOrderBook } from './charts/orderbook.js';
@@ -11,24 +11,9 @@ import { plotTicker } from './charts/ticker.js';
 
 ansi.nice;
 const log = ololog.configure ({ 'locate': false }).unlimited;
-let ccxt;
-let local = false;
-try {
-    // @ts-ignore
-    ccxt = await import ('ccxt');
-} catch (e) {
-    try {
-        // @ts-ignore
-        // we import like this to trick tsc and avoid the crawling on the
-        // local ccxt project, if any
-        ccxt = await (Function ('return import("../../ts/ccxt")') ());
-        local = true;
-    } catch (ee) {
-        log.error (ee);
-        log.error ('Neither a local installation nor a global CCXT installation was detected, make `npm i` first, Also make sure your local ccxt version does not contain any syntax errors.');
-        process.exit (1);
-    }
-}
+// the shared loader in helpers prefers the local typescript sources so
+// that new integrations work with the cli without any build steps
+const local = isLocalCcxt;
 
 const { ExchangeError, NetworkError } = ccxt;
 
@@ -80,7 +65,7 @@ interface CLIOptions {
 }
 
 const predictionExchanges = ((ccxt as any).prediction !== undefined) ? ((ccxt as any).prediction.exchanges as string[]) : [];
-const exchanges = (Object.keys (ccxt.exchanges) as string[]).concat (predictionExchanges.filter ((id) => !(id in ccxt.exchanges)));
+const exchanges = exchangeIds.concat (predictionExchanges.filter ((id) => !exchangeIds.includes (id)));
 const commandToShow = local ? 'node ./cli' : 'ccxt';
 const program = new Command ();
 
