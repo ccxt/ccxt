@@ -1086,7 +1086,11 @@ class testMainClass {
         }
         return true;
     }
-    async runPrivateTests(exchange, symbol) {
+    async runPrivateTests(exchange, symbols) {
+        // mirrors runPublicTests: the caller always passes the selected symbols as an array
+        // (even a CLI-provided symbol arrives as a one-element array), and private tests run
+        // on the primary symbol per market type
+        const symbol = symbols[0];
         if (!exchange.checkRequiredCredentials(false)) {
             dump('[INFO] Skipping private tests', 'Keys not found');
             return true;

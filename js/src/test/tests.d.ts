@@ -48,7 +48,7 @@ declare class testMainClass {
     assertPredictionEvent(exchange: any, event: any): boolean;
     testPredictionCreateCancelOrder(exchange: any, outcome: any): Promise<boolean>;
     cancelPredictionOrder(exchange: any, orderId: any, outcome: any): Promise<boolean>;
-    runPrivateTests(exchange: any, symbol: any): Promise<boolean>;
+    runPrivateTests(exchange: any, symbols: any): Promise<boolean>;
     testProxies(exchange: any): Promise<boolean>;
     checkConstructor(exchange: Exchange): void;
     testReturnResponseHeaders(exchange: Exchange): Promise<boolean>;
