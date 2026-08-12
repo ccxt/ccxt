@@ -18,9 +18,38 @@ diff_without_statics=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//")
 # intact.
 if echo "$diff" | grep -qx 'ts/ccxt.ts'; then
     ccxt_ts_content_diff=$(git diff -U0 HEAD^1 HEAD -- ts/ccxt.ts | grep -E '^[+-]' | grep -vE '^(\+\+\+|---)')
-    integration_line="^[+-](import [A-Za-z0-9_]+ from +'\./src/[A-Za-z0-9_]+\.js'|[[:space:]]+'[A-Za-z0-9_-]+':[[:space:]]+[A-Za-z0-9_]+,)$"
-    if [[ -n "$ccxt_ts_content_diff" ]] && ! echo "$ccxt_ts_content_diff" | grep -qvE "$integration_line"; then
-        diff_without_statics=$(echo "$diff_without_statics" | sed -e "s/^ts\/ccxt\.ts$//")
+    # a complete wire-up touches up to four line shapes per exchange id:
+    #   import <id> from './src/<id>.js'           (rest import)
+    #   import <id>Pro from './src/pro/<id>.js'    (pro import)
+    #   '<id>': <id>,  /  '<id>': <id>Pro,         (rest / pro map entries)
+    #   <id>,                                      (bare export-list line)
+    # the bare export-list shape is shared with structural exports (version, errors, functions, ...),
+    # so a bare line only counts as integration glue when its identifier is wired by an import or
+    # map line WITHIN THE SAME DIFF — a lone export-list change stays critical (fail-closed)
+    integration_import="^[+-]import ([A-Za-z0-9_]+) from +'\./src/[A-Za-z0-9_]+\.js'\$"
+    integration_pro_import="^[+-]import ([A-Za-z0-9_]+)Pro from +'\./src/pro/[A-Za-z0-9_]+\.js'\$"
+    integration_map="^[+-][[:space:]]+'([A-Za-z0-9_-]+)':[[:space:]]+[A-Za-z0-9_]+,\$"
+    integration_export="^[+-][[:space:]]+([A-Za-z0-9_]+),\$"
+    if [[ -n "$ccxt_ts_content_diff" ]]; then
+        wired_ids=" $(echo "$ccxt_ts_content_diff" | sed -nE "s/^[+-]import ([A-Za-z0-9_]+) from +'\.\/src\/[A-Za-z0-9_]+\.js'\$/\1/p; s/^[+-][[:space:]]+'([A-Za-z0-9_-]+)':[[:space:]]+[A-Za-z0-9_]+,\$/\1/p" | sort -u | tr '\n' ' ') "
+        integration_only="true"
+        while IFS= read -r line; do
+            if [[ "$line" =~ $integration_pro_import || "$line" =~ $integration_import || "$line" =~ $integration_map ]]; then
+                continue
+            elif [[ "$line" =~ $integration_export ]]; then
+                bare_id="${BASH_REMATCH[1]}"
+                if [[ "$wired_ids" != *" ${bare_id} "* ]]; then
+                    integration_only="false"
+                    break
+                fi
+            else
+                integration_only="false"
+                break
+            fi
+        done <<< "$ccxt_ts_content_diff"
+        if [[ "$integration_only" == "true" ]]; then
+            diff_without_statics=$(echo "$diff_without_statics" | sed -e "s/^ts\/ccxt\.ts$//")
+        fi
     fi
 fi
 
