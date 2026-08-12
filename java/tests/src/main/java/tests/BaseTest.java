@@ -468,6 +468,14 @@ public class BaseTest {
         return client.mockSentMessages;
     }
 
+    public static boolean wsClientHasPendingFutures(Object exchange2, Object url) {
+        // whether the watch flow is currently awaiting a message - the frame
+        // injector polls this instead of relying on a fixed head-start sleep
+        var exchange = (BaseExchange) exchange2;
+        var client = exchange.client(url);
+        return !((java.util.Map<?, ?>) client.futures).isEmpty();
+    }
+
     public static void rejectPendingWsFutures(Object exchange2, Object url) {
         // reject any futures the injected frames did not resolve, so a broken
         // fixture fails the test instead of hanging it; resolved futures are

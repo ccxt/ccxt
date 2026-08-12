@@ -3,7 +3,7 @@
 import asyncio
 
 
-from tests_helpers import AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, get_cli_arg_value, get_root_dir, is_sync, dump, json_parse, json_stringify, convert_ascii, io_file_exists, io_file_read, io_dir_read, call_method, call_method_sync, call_exchange_method_dynamically, call_exchange_method_dynamically_sync, get_root_exception, exception_message, exit_script, get_exchange_prop, set_exchange_prop, init_exchange, get_test_files_sync, get_test_files, set_fetch_response, setup_ws_mock_transport, inject_ws_message, reject_pending_ws_futures, get_ws_sent_messages, is_null_value, close, get_env_vars, get_lang, get_ext, is_windows, is_linux, is_amd64  # noqa: F401
+from tests_helpers import AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, get_cli_arg_value, get_root_dir, is_sync, dump, json_parse, json_stringify, convert_ascii, io_file_exists, io_file_read, io_dir_read, call_method, call_method_sync, call_exchange_method_dynamically, call_exchange_method_dynamically_sync, get_root_exception, exception_message, exit_script, get_exchange_prop, set_exchange_prop, init_exchange, get_test_files_sync, get_test_files, set_fetch_response, setup_ws_mock_transport, inject_ws_message, reject_pending_ws_futures, ws_client_has_pending_futures, get_ws_sent_messages, is_null_value, close, get_env_vars, get_lang, get_ext, is_windows, is_linux, is_amd64  # noqa: F401
 
 class testMainClass:
     id_tests = False
@@ -1326,12 +1326,16 @@ class testMainClass:
         return True
 
     async def inject_ws_messages(self, exchange, url, messages):
-        # wait for the watch method to register its subscription future
-        # before replaying the frames, then yield between frames so the
-        # handlers run in arrival order in every runtime
-        await exchange.sleep(50)
+        # before every frame, wait until the watch flow is actually awaiting
+        # something — a fixed head-start sleep is not enough on slow ci
+        # runners and the frame's resolution would be dropped
         for i in range(0, len(messages)):
+            waited = 0
+            while not ws_client_has_pending_futures(exchange, url) and (waited < 5000):
+                await exchange.sleep(50)
+                waited = waited + 50
             inject_ws_message(exchange, url, messages[i])
+            # yield between frames so the handlers run in arrival order
             await exchange.sleep(20)
         await exchange.sleep(50)
         # reject anything still pending so a wrong fixture fails fast

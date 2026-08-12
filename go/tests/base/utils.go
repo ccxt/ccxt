@@ -106,6 +106,15 @@ func GetWsSentMessages(exchange ccxt.ICoreExchange, url any) []any {
 	return client.MockSentMessages
 }
 
+func WsClientHasPendingFutures(exchange ccxt.ICoreExchange, url any) bool {
+	// whether the watch flow is currently awaiting a message - the frame
+	// injector polls this instead of relying on a fixed head-start sleep
+	client := exchange.(wsClientProvider).Client(url)
+	client.FuturesMu.Lock()
+	defer client.FuturesMu.Unlock()
+	return len(client.Futures) > 0
+}
+
 func RejectPendingWsFutures(exchange ccxt.ICoreExchange, url any) {
 	// reject any futures the injected frames did not resolve, so a broken
 	// fixture fails the test instead of hanging it; resolved futures are

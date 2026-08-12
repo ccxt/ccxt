@@ -40,6 +40,7 @@ import {
     setupWsMockTransport,
     injectWsMessage,
     rejectPendingWsFutures,
+    wsClientHasPendingFutures,
     getWsSentMessages,
     isNullValue,
     close,
@@ -1731,12 +1732,17 @@ class testMainClass {
     }
 
     async injectWsMessages (exchange: any, url: string, messages: List) {
-        // wait for the watch method to register its subscription future
-        // before replaying the frames, then yield between frames so the
-        // handlers run in arrival order in every runtime
-        await exchange.sleep (50);
+        // before every frame, wait until the watch flow is actually awaiting
+        // something — a fixed head-start sleep is not enough on slow ci
+        // runners and the frame's resolution would be dropped
         for (let i = 0; i < messages.length; i++) {
+            let waited = 0;
+            while (!wsClientHasPendingFutures (exchange, url) && (waited < 5000)) {
+                await exchange.sleep (50);
+                waited = waited + 50;
+            }
             injectWsMessage (exchange, url, messages[i]);
+            // yield between frames so the handlers run in arrival order
             await exchange.sleep (20);
         }
         await exchange.sleep (50);
