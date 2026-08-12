@@ -198,7 +198,7 @@ export default class btse extends Exchange {
                 },
                 'www': 'https://www.btse.com',
                 'doc': 'https://support.btse.com/en/support/solutions/articles/43000044751-btse-api',
-                'referral': '', // todo check
+                'referral': 'https://www.btse.com/referral/o2tjIXx5',
                 'fees': 'https://support.btse.com/en/support/solutions/articles/43000064283',
             },
             'api': {
