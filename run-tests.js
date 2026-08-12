@@ -366,6 +366,9 @@ const testExchange = async (exchange) => {
     if (debugKeys['--info']) {
         args.push ('--info')
     }
+    // CI can pass a prebuilt tests binary (see go-app.yml) so live tests don't pay the
+    // full single-package recompile of go/v4 that `go run` triggers on a fresh runner
+    const goExec = process.env.GO_TESTS_BINARY ? [ process.env.GO_TESTS_BINARY ] : [ 'go', 'run', '-C', 'go', './tests/main.go' ];
     let allTests = [
         { key: '--js',           language: 'JavaScript',   exec: ['node',      'js/src/test/tests.init.js',                     ...args] },
         { key: '--python-async', language: 'Python Async', exec: ['python3',   'python/ccxt/test/tests_init.py',          ...args] },
@@ -374,7 +377,7 @@ const testExchange = async (exchange) => {
         { key: '--ts',           language: 'TypeScript',   exec: ['node',  '--import', 'tsx', 'ts/src/test/tests.init.ts',      ...args] },
         { key: '--python',       language: 'Python',       exec: ['python3',   'python/ccxt/test/tests_init.py',  '--sync',  ...args] },
         { key: '--php',          language: 'PHP',          exec: ['php', '-f', 'php/test/tests_init.php', '--', '--sync',  ...args] },
-        { key: '--go',           language: 'GO',           exec: [ 'go', 'run', '-C', 'go', './tests/main.go',          ...args] },
+        { key: '--go',           language: 'GO',           exec: [ ...goExec,          ...args] },
         { key: '--java',         language: 'Java',         exec: [ './java/gradlew', '-p', 'java', 'tests:run', getJavaArgs(args)] },
     ];
 
