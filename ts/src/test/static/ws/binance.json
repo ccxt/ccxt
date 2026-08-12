@@ -3,6 +3,210 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "watchOrderBook": [
+            {
+                "description": "spot orderbook from rest snapshot and two depth deltas",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://stream.binance.com:9443/ws/0",
+                "httpResponse": {
+                    "lastUpdateId": 100,
+                    "bids": [
+                        [
+                            "64000.00",
+                            "1.50000000"
+                        ],
+                        [
+                            "63999.00",
+                            "2.00000000"
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            "64001.00",
+                            "1.00000000"
+                        ],
+                        [
+                            "64002.00",
+                            "3.00000000"
+                        ]
+                    ]
+                },
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    },
+                    {
+                        "e": "depthUpdate",
+                        "E": 1754500001000,
+                        "s": "BTCUSDT",
+                        "U": 101,
+                        "u": 105,
+                        "b": [
+                            [
+                                "64000.00",
+                                "1.20000000"
+                            ]
+                        ],
+                        "a": [
+                            [
+                                "64001.00",
+                                "0.00000000"
+                            ],
+                            [
+                                "64003.00",
+                                "0.70000000"
+                            ]
+                        ]
+                    },
+                    {
+                        "e": "depthUpdate",
+                        "E": 1754500002000,
+                        "s": "BTCUSDT",
+                        "U": 106,
+                        "u": 110,
+                        "b": [
+                            [
+                                "63998.00",
+                                "5.00000000"
+                            ]
+                        ],
+                        "a": [
+                            [
+                                "64002.00",
+                                "2.50000000"
+                            ]
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "bids": [
+                        [
+                            64000,
+                            1.2
+                        ],
+                        [
+                            63999,
+                            2
+                        ],
+                        [
+                            63998,
+                            5
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            64002,
+                            2.5
+                        ],
+                        [
+                            64003,
+                            0.7
+                        ]
+                    ],
+                    "timestamp": 1754500002000,
+                    "datetime": "2025-08-06T17:06:42.000Z",
+                    "nonce": 110,
+                    "symbol": "BTC/USDT"
+                }
+            },
+            {
+                "description": "linear swap orderbook with pu continuity chain",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://fstream.binance.com/public/ws/0",
+                "httpResponse": {
+                    "lastUpdateId": 100,
+                    "E": 1754500000500,
+                    "T": 1754500000490,
+                    "bids": [
+                        [
+                            "64000.00",
+                            "1.50000000"
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            "64001.00",
+                            "1.00000000"
+                        ]
+                    ]
+                },
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    },
+                    {
+                        "e": "depthUpdate",
+                        "E": 1754500001000,
+                        "T": 1754500000990,
+                        "s": "BTCUSDT",
+                        "U": 95,
+                        "u": 105,
+                        "pu": 90,
+                        "b": [
+                            [
+                                "64000.00",
+                                "1.20000000"
+                            ]
+                        ],
+                        "a": [
+                            [
+                                "64003.00",
+                                "0.70000000"
+                            ]
+                        ]
+                    },
+                    {
+                        "e": "depthUpdate",
+                        "E": 1754500002000,
+                        "T": 1754500001990,
+                        "s": "BTCUSDT",
+                        "U": 106,
+                        "u": 110,
+                        "pu": 105,
+                        "b": [
+                            [
+                                "63998.00",
+                                "5.00000000"
+                            ]
+                        ],
+                        "a": [
+                            [
+                                "64001.00",
+                                "0.00000000"
+                            ]
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "bids": [
+                        [
+                            64000,
+                            1.2
+                        ],
+                        [
+                            63998,
+                            5
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            64003,
+                            0.7
+                        ]
+                    ],
+                    "timestamp": 1754500002000,
+                    "datetime": "2025-08-06T17:06:42.000Z",
+                    "nonce": 110,
+                    "symbol": "BTC/USDT:USDT"
+                }
+            }
+        ],
         "watchTrades": [
             {
                 "description": "spot public trade message",
@@ -53,6 +257,527 @@
                         },
                         "fees": []
                     }
+                ]
+            }
+        ],
+        "watchOrders": [
+            {
+                "description": "spot market order lifecycle from open to closed after fill",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws-api.binance.com:443/ws-api/v3",
+                "messages": [
+                    {
+                        "id": "1",
+                        "status": 200,
+                        "result": {
+                            "subscriptionId": 0
+                        },
+                        "rateLimits": [
+                            {
+                                "rateLimitType": "REQUEST_WEIGHT",
+                                "interval": "MINUTE",
+                                "intervalNum": 1,
+                                "limit": 6000,
+                                "count": 26
+                            }
+                        ]
+                    },
+                    {
+                        "subscriptionId": 0,
+                        "event": {
+                            "e": "executionReport",
+                            "E": 1786522906946,
+                            "s": "BTCUSDT",
+                            "c": "x-TKT5PX2F5329a0a4bfe64396a1b79c",
+                            "S": "BUY",
+                            "o": "MARKET",
+                            "f": "GTC",
+                            "q": "0.00020000",
+                            "p": "0.00000000",
+                            "P": "0.00000000",
+                            "F": "0.00000000",
+                            "g": -1,
+                            "C": "",
+                            "x": "NEW",
+                            "X": "NEW",
+                            "r": "NONE",
+                            "i": 55945750590,
+                            "l": "0.00000000",
+                            "z": "0.00000000",
+                            "L": "0.00000000",
+                            "n": "0",
+                            "N": null,
+                            "T": 1786522906946,
+                            "t": -1,
+                            "I": 112617340246,
+                            "w": true,
+                            "m": false,
+                            "M": false,
+                            "O": 1786522906946,
+                            "Z": "0.00000000",
+                            "Y": "0.00000000",
+                            "Q": "0.00000000",
+                            "W": 1786522906946,
+                            "V": "EXPIRE_MAKER"
+                        }
+                    },
+                    {
+                        "subscriptionId": 0,
+                        "event": {
+                            "e": "executionReport",
+                            "E": 1786522906946,
+                            "s": "BTCUSDT",
+                            "c": "x-TKT5PX2F5329a0a4bfe64396a1b79c",
+                            "S": "BUY",
+                            "o": "MARKET",
+                            "f": "GTC",
+                            "q": "0.00020000",
+                            "p": "0.00000000",
+                            "P": "0.00000000",
+                            "F": "0.00000000",
+                            "g": -1,
+                            "C": "",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "r": "NONE",
+                            "i": 55945750590,
+                            "l": "0.00020000",
+                            "z": "0.00020000",
+                            "L": "63817.61000000",
+                            "n": "0.00001563",
+                            "N": "BNB",
+                            "T": 1786522906946,
+                            "t": 276374166,
+                            "I": 112617340247,
+                            "w": false,
+                            "m": false,
+                            "M": true,
+                            "O": 1786522906946,
+                            "Z": "12.76352200",
+                            "Y": "12.76352200",
+                            "Q": "0.00000000",
+                            "W": 1786522906946,
+                            "V": "EXPIRE_MAKER"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "e": "executionReport",
+                                "E": 1786522906946,
+                                "s": "BTCUSDT",
+                                "c": "x-TKT5PX2F5329a0a4bfe64396a1b79c",
+                                "S": "BUY",
+                                "o": "MARKET",
+                                "f": "GTC",
+                                "q": "0.00020000",
+                                "p": "0.00000000",
+                                "P": "0.00000000",
+                                "F": "0.00000000",
+                                "g": -1,
+                                "C": "",
+                                "x": "NEW",
+                                "X": "NEW",
+                                "r": "NONE",
+                                "i": 55945750590,
+                                "l": "0.00000000",
+                                "z": "0.00000000",
+                                "L": "0.00000000",
+                                "n": "0",
+                                "N": null,
+                                "T": 1786522906946,
+                                "t": -1,
+                                "I": 112617340246,
+                                "w": true,
+                                "m": false,
+                                "M": false,
+                                "O": 1786522906946,
+                                "Z": "0.00000000",
+                                "Y": "0.00000000",
+                                "Q": "0.00000000",
+                                "W": 1786522906946,
+                                "V": "EXPIRE_MAKER"
+                            },
+                            "symbol": "BTC/USDT",
+                            "id": "55945750590",
+                            "clientOrderId": "x-TKT5PX2F5329a0a4bfe64396a1b79c",
+                            "timestamp": 1786522906946,
+                            "datetime": "2026-08-12T08:21:46.946Z",
+                            "lastUpdateTimestamp": 1786522906946,
+                            "type": "market",
+                            "timeInForce": "GTC",
+                            "postOnly": false,
+                            "side": "buy",
+                            "stopPrice": 0,
+                            "triggerPrice": 0,
+                            "amount": 0.0002,
+                            "cost": 0,
+                            "filled": 0,
+                            "remaining": 0.0002,
+                            "status": "open",
+                            "trades": [],
+                            "fees": []
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "e": "executionReport",
+                                "E": 1786522906946,
+                                "s": "BTCUSDT",
+                                "c": "x-TKT5PX2F5329a0a4bfe64396a1b79c",
+                                "S": "BUY",
+                                "o": "MARKET",
+                                "f": "GTC",
+                                "q": "0.00020000",
+                                "p": "0.00000000",
+                                "P": "0.00000000",
+                                "F": "0.00000000",
+                                "g": -1,
+                                "C": "",
+                                "x": "TRADE",
+                                "X": "FILLED",
+                                "r": "NONE",
+                                "i": 55945750590,
+                                "l": "0.00020000",
+                                "z": "0.00020000",
+                                "L": "63817.61000000",
+                                "n": "0.00001563",
+                                "N": "BNB",
+                                "T": 1786522906946,
+                                "t": 276374166,
+                                "I": 112617340247,
+                                "w": false,
+                                "m": false,
+                                "M": true,
+                                "O": 1786522906946,
+                                "Z": "12.76352200",
+                                "Y": "12.76352200",
+                                "Q": "0.00000000",
+                                "W": 1786522906946,
+                                "V": "EXPIRE_MAKER"
+                            },
+                            "symbol": "BTC/USDT",
+                            "id": "55945750590",
+                            "clientOrderId": "x-TKT5PX2F5329a0a4bfe64396a1b79c",
+                            "timestamp": 1786522906946,
+                            "datetime": "2026-08-12T08:21:46.946Z",
+                            "lastTradeTimestamp": 1786522906946,
+                            "lastUpdateTimestamp": 1786522906946,
+                            "type": "market",
+                            "timeInForce": "GTC",
+                            "postOnly": false,
+                            "side": "buy",
+                            "price": 63817.61,
+                            "stopPrice": 0,
+                            "triggerPrice": 0,
+                            "amount": 0.0002,
+                            "cost": 12.763522,
+                            "average": 63817.61,
+                            "filled": 0.0002,
+                            "remaining": 0,
+                            "status": "closed",
+                            "fee": {
+                                "currency": "BNB",
+                                "cost": 1.563e-05
+                            },
+                            "trades": [
+                                {
+                                    "info": {
+                                        "e": "executionReport",
+                                        "E": 1786522906946,
+                                        "s": "BTCUSDT",
+                                        "c": "x-TKT5PX2F5329a0a4bfe64396a1b79c",
+                                        "S": "BUY",
+                                        "o": "MARKET",
+                                        "f": "GTC",
+                                        "q": "0.00020000",
+                                        "p": "0.00000000",
+                                        "P": "0.00000000",
+                                        "F": "0.00000000",
+                                        "g": -1,
+                                        "C": "",
+                                        "x": "TRADE",
+                                        "X": "FILLED",
+                                        "r": "NONE",
+                                        "i": 55945750590,
+                                        "l": "0.00020000",
+                                        "z": "0.00020000",
+                                        "L": "63817.61000000",
+                                        "n": "0.00001563",
+                                        "N": "BNB",
+                                        "T": 1786522906946,
+                                        "t": 276374166,
+                                        "I": 112617340247,
+                                        "w": false,
+                                        "m": false,
+                                        "M": true,
+                                        "O": 1786522906946,
+                                        "Z": "12.76352200",
+                                        "Y": "12.76352200",
+                                        "Q": "0.00000000",
+                                        "W": 1786522906946,
+                                        "V": "EXPIRE_MAKER"
+                                    },
+                                    "timestamp": 1786522906946,
+                                    "datetime": "2026-08-12T08:21:46.946Z",
+                                    "symbol": "BTC/USDT",
+                                    "id": "276374166",
+                                    "order": "55945750590",
+                                    "type": "market",
+                                    "takerOrMaker": "taker",
+                                    "side": "buy",
+                                    "price": 63817.61,
+                                    "amount": 0.0002,
+                                    "cost": 12.763522,
+                                    "fee": {
+                                        "currency": "BNB",
+                                        "cost": 1.563e-05
+                                    },
+                                    "fees": [
+                                        {
+                                            "currency": "BNB",
+                                            "cost": 1.563e-05
+                                        }
+                                    ]
+                                }
+                            ],
+                            "fees": []
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchMyTrades": [
+            {
+                "description": "my trades from a filled market buy then a filled market sell",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws-api.binance.com:443/ws-api/v3",
+                "messages": [
+                    {
+                        "id": "1",
+                        "status": 200,
+                        "result": {
+                            "subscriptionId": 0
+                        },
+                        "rateLimits": [
+                            {
+                                "rateLimitType": "REQUEST_WEIGHT",
+                                "interval": "MINUTE",
+                                "intervalNum": 1,
+                                "limit": 6000,
+                                "count": 26
+                            }
+                        ]
+                    },
+                    {
+                        "subscriptionId": 0,
+                        "event": {
+                            "e": "executionReport",
+                            "E": 1786522906946,
+                            "s": "BTCUSDT",
+                            "c": "x-TKT5PX2F5329a0a4bfe64396a1b79c",
+                            "S": "BUY",
+                            "o": "MARKET",
+                            "f": "GTC",
+                            "q": "0.00020000",
+                            "p": "0.00000000",
+                            "P": "0.00000000",
+                            "F": "0.00000000",
+                            "g": -1,
+                            "C": "",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "r": "NONE",
+                            "i": 55945750590,
+                            "l": "0.00020000",
+                            "z": "0.00020000",
+                            "L": "63817.61000000",
+                            "n": "0.00001563",
+                            "N": "BNB",
+                            "T": 1786522906946,
+                            "t": 276374166,
+                            "I": 112617340247,
+                            "w": false,
+                            "m": false,
+                            "M": true,
+                            "O": 1786522906946,
+                            "Z": "12.76352200",
+                            "Y": "12.76352200",
+                            "Q": "0.00000000",
+                            "W": 1786522906946,
+                            "V": "EXPIRE_MAKER"
+                        }
+                    },
+                    {
+                        "subscriptionId": 0,
+                        "event": {
+                            "e": "executionReport",
+                            "E": 1786522909151,
+                            "s": "BTCUSDT",
+                            "c": "x-TKT5PX2F93e7fc7f4160459d8bfe21",
+                            "S": "SELL",
+                            "o": "MARKET",
+                            "f": "GTC",
+                            "q": "0.00020000",
+                            "p": "0.00000000",
+                            "P": "0.00000000",
+                            "F": "0.00000000",
+                            "g": -1,
+                            "C": "",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "r": "NONE",
+                            "i": 55945759594,
+                            "l": "0.00020000",
+                            "z": "0.00020000",
+                            "L": "63817.60000000",
+                            "n": "0.00001563",
+                            "N": "BNB",
+                            "T": 1786522909151,
+                            "t": 276374173,
+                            "I": 112617358285,
+                            "w": false,
+                            "m": false,
+                            "M": true,
+                            "O": 1786522909151,
+                            "Z": "12.76352000",
+                            "Y": "12.76352000",
+                            "Q": "0.00000000",
+                            "W": 1786522909151,
+                            "V": "EXPIRE_MAKER"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "e": "executionReport",
+                                "E": 1786522906946,
+                                "s": "BTCUSDT",
+                                "c": "x-TKT5PX2F5329a0a4bfe64396a1b79c",
+                                "S": "BUY",
+                                "o": "MARKET",
+                                "f": "GTC",
+                                "q": "0.00020000",
+                                "p": "0.00000000",
+                                "P": "0.00000000",
+                                "F": "0.00000000",
+                                "g": -1,
+                                "C": "",
+                                "x": "TRADE",
+                                "X": "FILLED",
+                                "r": "NONE",
+                                "i": 55945750590,
+                                "l": "0.00020000",
+                                "z": "0.00020000",
+                                "L": "63817.61000000",
+                                "n": "0.00001563",
+                                "N": "BNB",
+                                "T": 1786522906946,
+                                "t": 276374166,
+                                "I": 112617340247,
+                                "w": false,
+                                "m": false,
+                                "M": true,
+                                "O": 1786522906946,
+                                "Z": "12.76352200",
+                                "Y": "12.76352200",
+                                "Q": "0.00000000",
+                                "W": 1786522906946,
+                                "V": "EXPIRE_MAKER"
+                            },
+                            "timestamp": 1786522906946,
+                            "datetime": "2026-08-12T08:21:46.946Z",
+                            "symbol": "BTC/USDT",
+                            "id": "276374166",
+                            "order": "55945750590",
+                            "type": "market",
+                            "takerOrMaker": "taker",
+                            "side": "buy",
+                            "price": 63817.61,
+                            "amount": 0.0002,
+                            "cost": 12.763522,
+                            "fee": {
+                                "currency": "BNB",
+                                "cost": 1.563e-05
+                            },
+                            "fees": [
+                                {
+                                    "currency": "BNB",
+                                    "cost": 1.563e-05
+                                }
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "e": "executionReport",
+                                "E": 1786522909151,
+                                "s": "BTCUSDT",
+                                "c": "x-TKT5PX2F93e7fc7f4160459d8bfe21",
+                                "S": "SELL",
+                                "o": "MARKET",
+                                "f": "GTC",
+                                "q": "0.00020000",
+                                "p": "0.00000000",
+                                "P": "0.00000000",
+                                "F": "0.00000000",
+                                "g": -1,
+                                "C": "",
+                                "x": "TRADE",
+                                "X": "FILLED",
+                                "r": "NONE",
+                                "i": 55945759594,
+                                "l": "0.00020000",
+                                "z": "0.00020000",
+                                "L": "63817.60000000",
+                                "n": "0.00001563",
+                                "N": "BNB",
+                                "T": 1786522909151,
+                                "t": 276374173,
+                                "I": 112617358285,
+                                "w": false,
+                                "m": false,
+                                "M": true,
+                                "O": 1786522909151,
+                                "Z": "12.76352000",
+                                "Y": "12.76352000",
+                                "Q": "0.00000000",
+                                "W": 1786522909151,
+                                "V": "EXPIRE_MAKER"
+                            },
+                            "timestamp": 1786522909151,
+                            "datetime": "2026-08-12T08:21:49.151Z",
+                            "symbol": "BTC/USDT",
+                            "id": "276374173",
+                            "order": "55945759594",
+                            "type": "market",
+                            "takerOrMaker": "taker",
+                            "side": "sell",
+                            "price": 63817.6,
+                            "amount": 0.0002,
+                            "cost": 12.76352,
+                            "fee": {
+                                "currency": "BNB",
+                                "cost": 1.563e-05
+                            },
+                            "fees": [
+                                {
+                                    "currency": "BNB",
+                                    "cost": 1.563e-05
+                                }
+                            ]
+                        }
+                    ]
                 ]
             }
         ]

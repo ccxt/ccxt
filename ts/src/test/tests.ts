@@ -1741,8 +1741,22 @@ class testMainClass {
         return true; // c# methods used with promiseAll need to return something
     }
 
+    async watchAndAssertSequence (exchange: any, method: string, input: any, skipKeys: string[], expectedResults: List) {
+        // await the watch method once per expected result: each injected frame
+        // resolves the pending future, so successive awaits observe the
+        // successive states (e.g. an order going from open to closed)
+        for (let i = 0; i < expectedResults.length; i++) {
+            const result = await callExchangeMethodDynamically (exchange, method, input);
+            // ws structures can be live typed objects (e.g. orderbooks) in some
+            // runtimes — roundtrip through json so the deep-compare sees plain
+            // dicts in every language
+            const unifiedResult = jsonParse (jsonStringify (result));
+            this.assertStaticResponseOutput (exchange, skipKeys, unifiedResult, expectedResults[i]);
+        }
+        return true; // c# methods used with promiseAll need to return something
+    }
+
     async testWsStatically (exchange: any, method: string, skipKeys: string[], data: Dict) {
-        const expectedResult = exchange.safeValue (data, 'parsedResponse');
         const url = exchange.safeString (data, 'url');
         setupWsMockTransport (exchange, url);
         const httpResponse = exchange.safeValue (data, 'httpResponse');
@@ -1755,13 +1769,28 @@ class testMainClass {
         }
         try {
             const messages = exchange.safeList (data, 'messages', []);
-            const promises = [
-                callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input'])),
-                this.injectWsMessages (exchange, url, messages),
-            ];
-            const results = await Promise.all (promises);
-            const unifiedResult = results[0];
-            this.assertStaticResponseOutput (exchange, skipKeys, unifiedResult, expectedResult);
+            const input = this.sanitizeDataInput (data['input']);
+            const expectedResults = exchange.safeList (data, 'parsedResponses');
+            if (expectedResults !== undefined) {
+                // 'parsedResponses' asserts one result per successive watch
+                // resolution (e.g. an order going from open to closed)
+                const promises = [
+                    this.watchAndAssertSequence (exchange, method, input, skipKeys, expectedResults),
+                    this.injectWsMessages (exchange, url, messages),
+                ];
+                await Promise.all (promises);
+            } else {
+                // 'parsedResponse' asserts the final state after every frame
+                // was replayed — live structures like orderbooks keep updating
+                // after the first resolution, so serialize only at the end
+                const promises = [
+                    callExchangeMethodDynamically (exchange, method, input),
+                    this.injectWsMessages (exchange, url, messages),
+                ];
+                const results = await Promise.all (promises);
+                const unifiedResult = jsonParse (jsonStringify (results[0]));
+                this.assertStaticResponseOutput (exchange, skipKeys, unifiedResult, data['parsedResponse']);
+            }
         } catch (e) {
             this.staticWsTestsFailed = true;
             const errorMessage = '[' + this.lang + '][STATIC_WS]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + exceptionMessage (e);
