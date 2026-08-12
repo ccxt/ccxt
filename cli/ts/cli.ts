@@ -3,7 +3,7 @@ import ansi from 'ansicolor';
 import { Command, Option } from 'commander';
 import ololog from 'ololog';
 import clipboard from 'clipboardy';
-import { ccxt, isLocalCcxt, parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage, printExchangeMethods, cacheEvents } from './helpers.js';
+import { ccxt, isLocalCcxt, exchangeIds, parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage, printExchangeMethods, cacheEvents } from './helpers.js';
 import { changeConfigPath, checkCache, getCachePathForHelp, saveCommand } from './cache.js';
 import { plotOHLCVChart } from './charts/ohlcv.js';
 import { plotOrderBook } from './charts/orderbook.js';
@@ -65,7 +65,7 @@ interface CLIOptions {
 }
 
 const predictionExchanges = ((ccxt as any).prediction !== undefined) ? ((ccxt as any).prediction.exchanges as string[]) : [];
-const exchanges = (Object.keys (ccxt.exchanges) as string[]).concat (predictionExchanges.filter ((id) => !(id in ccxt.exchanges)));
+const exchanges = exchangeIds.concat (predictionExchanges.filter ((id) => !exchangeIds.includes (id)));
 const commandToShow = local ? 'node ./cli' : 'ccxt';
 const program = new Command ();
 

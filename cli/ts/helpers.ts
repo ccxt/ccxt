@@ -56,6 +56,11 @@ try {
 }
 export { ccxt };
 
+// the namespace's named `exchanges` export is a dictionary of exchange
+// classes while the default export carries an array of exchange ids -
+// normalize to an id array once so that consumers never depend on the shape
+export const exchangeIds: string[] = Array.isArray (ccxt.exchanges) ? ccxt.exchanges : Object.keys (ccxt.exchanges);
+
 const fsPromises = fs.promises;
 
 const httpsAgent = new Agent ({
@@ -218,7 +223,7 @@ function createResponseTemplate (cliOptions, exchange, methodName, args, result)
  *
  */
 function printSupportedExchanges () {
-    log ('Supported exchanges:', (ccxt.exchanges.join (', ') as any).green);
+    log ('Supported exchanges:', (exchangeIds.join (', ') as any).green);
 }
 
 //-----------------------------------------------------------------------------
