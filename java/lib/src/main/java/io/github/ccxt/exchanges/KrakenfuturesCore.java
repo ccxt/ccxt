@@ -3563,9 +3563,16 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        // a degraded response can omit openPositions entirely - default to an
-        // empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
-        Object positions = this.safeList(response, "openPositions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        // a degraded response missing openPositions must fail loudly - a flat
+        // account and "could not read positions" are not interchangeable for
+        // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
+        // (the crash guarded against in #19896 is still avoided, since we no
+        // longer call .length on a non-list value)
+        Object positions = this.safeList(response, "openPositions");
+        if (Helpers.isTrue(Helpers.isEqual(positions, null)))
+        {
+            throw new ExchangeError((String)Helpers.add(this.id, " fetchPositions() returned a response without an \"openPositions\" list")) ;
+        }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
         {
             Object position = this.parsePosition(Helpers.GetValue(positions, i));
