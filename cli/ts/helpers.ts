@@ -597,6 +597,15 @@ async function loadSettingsAndCreateExchange (
         if (exchange === undefined) {
             process.exit ();
         }
+        if (!cliOptions.keys) {
+            // --no-keys promises that no apiKeys are set even if detected, but
+            // the settings loaded from keys.json / keys.local.json used to
+            // reach the constructor regardless - strip every credential so the
+            // exchange behaves as truly unauthenticated
+            for (const credential of Object.keys (exchange.requiredCredentials)) {
+                exchange[credential] = undefined;
+            }
+        }
         if (cliOptions.spot) {
             exchange.options['defaultType'] = 'spot';
         } else if (cliOptions.swap) {
