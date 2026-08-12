@@ -1226,9 +1226,9 @@ export default class btse extends Exchange {
         const last = this.safeString (ticker, 'last');
         let baseVolume = this.safeString (ticker, 'size');
         // btse saturates the size field at the maximum representable value
-        // (2^63 / 1e8 = 92233720368.54775807) for markets whose transacted
+        // of 2^63 / 1e8 = 92233720368.54775807 for markets whose transacted
         // base volume exceeds the range, observed live on the PEPE markets -
-        // the saturated value is not a volume, so it is treated as unavailable
+        // the saturated value is not a volume, so it is treated like an unavailable value
         if ((baseVolume !== undefined) && Precise.stringGe (baseVolume, '92233720368.5477')) {
             baseVolume = undefined;
         }
@@ -2674,8 +2674,8 @@ export default class btse extends Exchange {
         //         }
         //     ]
         //
-        // the endpoint returns the whole wallet ledger and ignores any type filter
-        // (verified live), so the non-transaction rows are filtered out here
+        // the endpoint returns the whole wallet ledger and ignores any type filter,
+        // verified live, so the non-transaction rows are filtered out here
         const rows = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
