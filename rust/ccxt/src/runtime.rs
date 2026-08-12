@@ -605,7 +605,22 @@ pub async fn promise_all(v: &Value) -> Value {
 /// `get_arg(args, index, default)` — used by transpiled methods that accept
 /// `params = []` variadic optional arguments.
 pub fn get_arg(args: &[Value], idx: usize, default: Value) -> Value {
-    args.get(idx).cloned().unwrap_or(default)
+    // JS default parameters trigger on `undefined`, so `f(a, b)` and
+    // `f(a, b, undefined, undefined)` both apply the declared defaults. The port
+    // collapses `undefined`/`null` into `Value::Null`, and virtual-dispatch
+    // wrappers forward *every* optional slot as an explicit `Null` (see
+    // exchange_generated `parse_order_book` → `DerivedExchange::parse_order_book`
+    // with six `get_arg(..., Null)` args). A plain `unwrap_or` would then hand an
+    // override an explicit `Null` and clobber its own default (ndax
+    // `parseOrderBook`'s priceKey=6/bidsKey='bids'), producing an empty book. So
+    // when the slot is `Null` *and* a non-`Null` default is declared, honour the
+    // default — matching JS. A `Null` default is unchanged (explicit `Null`
+    // stays `Null`).
+    match args.get(idx) {
+        None => default,
+        Some(Value::Null) if !matches!(default, Value::Null) => default,
+        Some(v) => v.clone(),
+    }
 }
 
 pub fn append_to_array(arr: &mut Value, v: Value) {

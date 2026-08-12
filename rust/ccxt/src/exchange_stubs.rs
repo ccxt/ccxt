@@ -944,14 +944,14 @@ impl Exchange {
         }
         Value::Null
     }
-    pub fn order_book(&self, _args: &[Value]) -> Value {
-        crate::pro::OrderBook::new(Value::Null, Value::Null)
+    pub fn order_book(&self, args: &[Value]) -> Value {
+        crate::pro::OrderBook::new(crate::runtime::get_arg(args, 0, Value::Null), crate::runtime::get_arg(args, 1, Value::Null))
     }
-    pub fn indexed_order_book(&self, _args: &[Value]) -> Value {
-        crate::pro::IndexedOrderBook::new(Value::Null, Value::Null)
+    pub fn indexed_order_book(&self, args: &[Value]) -> Value {
+        crate::pro::IndexedOrderBook::new(crate::runtime::get_arg(args, 0, Value::Null), crate::runtime::get_arg(args, 1, Value::Null))
     }
-    pub fn counted_order_book(&self, _args: &[Value]) -> Value {
-        crate::pro::CountedOrderBook::new(Value::Null, Value::Null)
+    pub fn counted_order_book(&self, args: &[Value]) -> Value {
+        crate::pro::CountedOrderBook::new(crate::runtime::get_arg(args, 0, Value::Null), crate::runtime::get_arg(args, 1, Value::Null))
     }
     pub fn safe_order_tracker(&self, _args: &[Value]) -> Value {
         Value::Null
