@@ -44,6 +44,7 @@ export default class lighter extends lighterRest {
                 'unWatchOrders': true,
                 'createOrderWs': true,
                 'cancelOrderWs': true,
+                'cancelAllOrdersWs': true,
             },
             'urls': {
                 'api': {
@@ -1235,6 +1236,38 @@ export default class lighter extends lighterRest {
         };
         const rawMessage = await this.watch (url, messageHash, message, messageHash, subscription);
         return this.parseOrder (rawMessage, market);
+    }
+
+    /**
+     * @method
+     * @name lighter#cancelAllOrdersWs
+     * @description cancel all open orders in a market
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
+        const url = this.urls['api']['ws'];
+        const requestId = this.requestId (url);
+        const messageHash = 'jsonapi/sendtx:' + requestId;
+        const [ txType, txInfo ] = await this.signAndCancelAllOrders ('cancelAllOrdersWs', symbol, params);
+        const parsedTx = this.parseJson (txInfo);
+        const message: Dict = {
+            'type': 'jsonapi/sendtx',
+            'data': {
+                'id': requestId,
+                'tx_type': txType,
+                'tx_info': parsedTx,
+            },
+        };
+        const subscription: Dict = {
+            'id': requestId,
+        };
+        const rawMessage = await this.watch (url, messageHash, message, messageHash, subscription);
+        return this.parseOrders ([ rawMessage ]);
     }
 
     handleWsSendtxApi (client: Client, message: any) {

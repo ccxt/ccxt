@@ -3188,24 +3188,14 @@ export default class lighter extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    /**
-     * @method
-     * @name lighter#cancelAllOrders
-     * @description cancel all open orders
-     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.accountIndex] account index
-     * @param {string} [params.apiKeyIndex] api key index
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    async signAndCancelAllOrders (method: string, symbol: Str = undefined, params: Dict = {}): Promise<any[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let apiKeyIndex: Int = undefined;
-        [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'cancelAllOrders', 'apiKeyIndex', 'api_key_index');
+        [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, method, 'apiKeyIndex', 'api_key_index');
         let accountIndex: Int = undefined;
-        [ accountIndex, params ] = await this.handleAccountIndex (params, 'cancelAllOrders', 'accountIndex', 'account_index');
+        [ accountIndex, params ] = await this.handleAccountIndex (params, method, 'accountIndex', 'account_index');
         const strAccountIndex = this.numberToString (accountIndex) as string;
         const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
         const signer = await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
@@ -3218,6 +3208,21 @@ export default class lighter extends Exchange {
             'account_index': accountIndex,
         };
         const [ txType, txInfo ] = this.lighterSignCancelAllOrders (signer, this.extend (signRaw, params));
+        return [ txType, txInfo ];
+    }
+
+    /**
+     * @method
+     * @name lighter#cancelAllOrders
+     * @description cancel all open orders
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        const [ txType, txInfo ] = await this.signAndCancelAllOrders ('cancelAllOrdersWs', symbol, params);
         const request: Dict = {
             'tx_type': txType,
             'tx_info': txInfo,
