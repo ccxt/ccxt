@@ -461,6 +461,13 @@ public class BaseTest {
         client.handleMessageCallback.accept(client, message);
     }
 
+    public static Object getWsSentMessages(Object exchange2, Object url) {
+        // the frames the exchange sent over the mocked transport, already parsed
+        var exchange = (BaseExchange) exchange2;
+        var client = exchange.client(url);
+        return client.mockSentMessages;
+    }
+
     public static void rejectPendingWsFutures(Object exchange2, Object url) {
         // reject any futures the injected frames did not resolve, so a broken
         // fixture fails the test instead of hanging it; resolved futures are

@@ -684,6 +684,7 @@ function handleStaticTests (cliOptions, exchange, methodName, args, result) {
 const wsRecording = {
     'active': false,
     'frames': [] as any[],
+    'sent': [] as any[],
     'results': [] as any[],
     'httpResponse': undefined as any,
 };
@@ -707,6 +708,23 @@ function startWsRecording (exchange, methodName: string, args: any[], cliOptions
         // roundtrip so the saved frame is a plain json value with nulls kept
         wsRecording.frames.push ({ 'url': client.url, 'message': JSON.parse (jsonStringify (message)) });
         return origHandleMessage (client, message);
+    };
+    // wrap every client's send so the outgoing frames (subscribe requests
+    // etc) are captured too — saved as the entry's 'sentMessages'
+    const origClientFn = exchange.client.bind (exchange);
+    const wrappedClients = new Set ();
+    exchange.client = (url) => {
+        const client = origClientFn (url);
+        if (!wrappedClients.has (client)) {
+            wrappedClients.add (client);
+            const origSend = client.send.bind (client);
+            client.send = (message) => {
+                const parsed = (typeof message === 'string') ? JSON.parse (message) : JSON.parse (jsonStringify (message));
+                wsRecording.sent.push ({ 'url': client.url, 'message': parsed });
+                return origSend (message);
+            };
+        }
+        return client;
     };
     process.once ('SIGINT', () => {
         saveWsRecording (exchange, methodName, args, cliOptions);
@@ -757,6 +775,12 @@ function saveWsRecording (exchange, methodName: string, args: any[], cliOptions)
     };
     if (wsRecording.httpResponse !== undefined) {
         entry['httpResponse'] = wsRecording.httpResponse;
+    }
+    const sentForUrl = wsRecording.sent.filter ((f) => f.url === mainUrl).map ((f) => f.message);
+    if (sentForUrl.length > 0) {
+        // review before committing: ids/signatures/timestamps inside outgoing
+        // frames are volatile — list those keys in 'sentSkipKeys'
+        entry['sentMessages'] = sentForUrl;
     }
     // one expected result per watch resolution; trim to a single
     // 'parsedResponse' manually for live structures like orderbooks where

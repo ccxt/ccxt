@@ -206,9 +206,12 @@ function setupWsMockTransport (exchange: any, url: string) {
     client.startedConnecting = true;
     client.isConnected = true;
     client.connectionEstablished = exchange.milliseconds ();
+    client.mockSentMessages = [];
     client.connection = {
         'readyState': 1, // WebSocket.OPEN, keeps isOpen () happy
         'send': (message: any, options: any = undefined, callback: any = undefined) => {
+            // record the outgoing frame so the test can assert it
+            client.mockSentMessages.push (JSON.parse (message));
             if (callback !== undefined) {
                 callback ();
             }
@@ -217,6 +220,12 @@ function setupWsMockTransport (exchange: any, url: string) {
     };
     client.connected.resolve (url);
     return exchange;
+}
+
+function getWsSentMessages (exchange: any, url: string) {
+    // the frames the exchange sent over the mocked transport, already parsed
+    const client = exchange.client (url);
+    return client.mockSentMessages;
 }
 
 function injectWsMessage (exchange: any, url: string, message: any) {
@@ -314,6 +323,7 @@ export {
     setupWsMockTransport,
     injectWsMessage,
     rejectPendingWsFutures,
+    getWsSentMessages,
     isNullValue,
     close,
     getRootDir,

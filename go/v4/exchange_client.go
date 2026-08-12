@@ -78,7 +78,8 @@ type Client struct {
 	ConnectionTimeout     any            // e.g. *time.Timer or context.CancelFunc
 	Verbose               bool           // default false
 	DecompressBinary      bool
-	IsMock                bool           // static ws tests: transport is stubbed, sends are dropped
+	IsMock                bool           // static ws tests: transport is stubbed, sends are recorded
+	MockSentMessages      []any          // frames recorded in mock mode
 	ConnectionTimer       any                           // e.g. *time.Timer or custom timer
 	LastPong              any                           // time or timestamp type recommended
 	MaxPingPongMisses     any                           // int or counter type
@@ -490,7 +491,11 @@ func (this *Client) Send(message any) <-chan any {
 		this.ConnectionMu.Lock()
 		// ? if (isNode)
 		if this.IsMock {
-			// static ws tests: transport is stubbed
+			// static ws tests: record the outgoing frame so the test can assert it
+			var parsed any
+			if err := json.Unmarshal([]byte(msgStr), &parsed); err == nil {
+				this.MockSentMessages = append(this.MockSentMessages, parsed)
+			}
 			future.Resolve(true)
 			ch <- true
 		} else if this.Connection == nil {

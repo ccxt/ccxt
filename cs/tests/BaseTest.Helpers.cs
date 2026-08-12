@@ -361,6 +361,14 @@ public partial class testMainClass : BaseTest
         client.handleMessage(client, message);
     }
 
+    public object getWsSentMessages(object exchange2, object url)
+    {
+        // the frames the exchange sent over the mocked transport, already parsed
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        return client.mockSentMessages;
+    }
+
     public void rejectPendingWsFutures(object exchange2, object url)
     {
         // reject any futures the injected frames did not resolve, so a broken

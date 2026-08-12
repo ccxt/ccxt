@@ -54,7 +54,9 @@ public partial class BaseExchange
 
         public bool decompressBinary = true;
 
-        public bool isMock = false; // static ws tests: transport is stubbed, sends are dropped
+        public bool isMock = false; // static ws tests: transport is stubbed, sends are recorded
+
+        public List<object> mockSentMessages = new List<object>(); // frames recorded in mock mode
 
         public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool decompressBinary = true)
         {
@@ -313,11 +315,13 @@ public partial class BaseExchange
 
         public async Task send(object message)
         {
+            var jsonMessage = (message is string) ? ((string)message) : Exchange.Json(message);
             if (this.isMock)
             {
-                return; // static ws tests: transport is stubbed
+                // static ws tests: record the outgoing frame so the test can assert it
+                this.mockSentMessages.Add(JsonHelper.Deserialize(jsonMessage));
+                return;
             }
-            var jsonMessage = (message is string) ? ((string)message) : Exchange.Json(message);
             if (this.verbose)
             {
                 Console.WriteLine($"Sending message: {jsonMessage}");

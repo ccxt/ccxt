@@ -110,7 +110,16 @@
                     "datetime": "2025-08-06T17:06:42.000Z",
                     "nonce": 110,
                     "symbol": "BTC/USDT"
-                }
+                },
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "btcusdt@depth@100ms"
+                        ],
+                        "id": 1
+                    }
+                ]
             },
             {
                 "description": "linear swap orderbook with pu continuity chain",
@@ -204,7 +213,16 @@
                     "datetime": "2025-08-06T17:06:42.000Z",
                     "nonce": 110,
                     "symbol": "BTC/USDT:USDT"
-                }
+                },
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "btcusdt@depth@100ms"
+                        ],
+                        "id": 1
+                    }
+                ]
             }
         ],
         "watchTrades": [
@@ -256,6 +274,15 @@
                             "currency": null
                         },
                         "fees": []
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "btcusdt@trade"
+                        ],
+                        "id": 1
                     }
                 ]
             }
@@ -560,7 +587,24 @@
                         }
                     ]
                 ],
-                "disabledCS": "the cached-order fee/trades merge does not reach the cache in c# - investigate ArrayCacheBySymbolById hashmap handling separately"
+                "disabledCS": "the cached-order fee/trades merge does not reach the cache in c# - investigate ArrayCacheBySymbolById hashmap handling separately",
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "userDataStream.subscribe.signature",
+                        "params": {
+                            "apiKey": "key",
+                            "recvWindow": 10000,
+                            "timestamp": 1786534420770,
+                            "signature": "93caaafd14b60b1025ee09a57a706233d83effbf45125ce26d090b53060edab0"
+                        }
+                    }
+                ],
+                "sentSkipKeys": [
+                    "timestamp",
+                    "signature"
+                ],
+                "disabledJava": "the cached-order fee/trades merge does not reach the cache in java - same family as disabledCS, investigate separately"
             }
         ],
         "watchMyTrades": [
@@ -790,7 +834,23 @@
                         }
                     ]
                 ],
-                "disabledGO": "go newUpdates tail returns the full cache instead of only the new trades - parity bug, fix separately"
+                "disabledGO": "go newUpdates tail returns the full cache instead of only the new trades - parity bug, fix separately",
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "userDataStream.subscribe.signature",
+                        "params": {
+                            "apiKey": "key",
+                            "recvWindow": 10000,
+                            "timestamp": 1786534420770,
+                            "signature": "93caaafd14b60b1025ee09a57a706233d83effbf45125ce26d090b53060edab0"
+                        }
+                    }
+                ],
+                "sentSkipKeys": [
+                    "timestamp",
+                    "signature"
+                ]
             }
         ]
     }

@@ -100,6 +100,12 @@ func InjectWsMessage(exchange ccxt.ICoreExchange, url any, message any) {
 	client.OnMessageCallback(client, message)
 }
 
+func GetWsSentMessages(exchange ccxt.ICoreExchange, url any) []any {
+	// the frames the exchange sent over the mocked transport, already parsed
+	client := exchange.(wsClientProvider).Client(url)
+	return client.MockSentMessages
+}
+
 func RejectPendingWsFutures(exchange ccxt.ICoreExchange, url any) {
 	// reject any futures the injected frames did not resolve, so a broken
 	// fixture fails the test instead of hanging it; resolved futures are

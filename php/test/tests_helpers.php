@@ -408,7 +408,10 @@ function set_fetch_response($exchange, $data) {
 class FakeWsConnection {
     // transport stub used by the static ws tests: everything above the socket
     // (subscriptions, futures, caches, message routing) runs unmodified
+    public $sent_messages = array();
     public function send($message) {
+        // record the outgoing frame so the test can assert it
+        $this->sent_messages[] = json_decode($message, true);
         return null;
     }
     public function close($code = 1000, $reason = '') {
@@ -437,6 +440,12 @@ function inject_ws_message($exchange, $url, $message) {
     // handler - the same entry point the real transport invokes
     $client = $exchange->client($url);
     $exchange->handle_message($client, $message);
+}
+
+function get_ws_sent_messages($exchange, $url) {
+    // the frames the exchange sent over the mocked transport, already parsed
+    $client = $exchange->client($url);
+    return $client->connection->sent_messages;
 }
 
 function reject_pending_ws_futures($exchange, $url) {

@@ -286,7 +286,12 @@ class FakeWsConnection:
     # (subscriptions, futures, caches, message routing) runs unmodified
     closed = False
 
+    def __init__(self):
+        self.sent_messages = []
+
     async def send_str(self, message):
+        # record the outgoing frame so the test can assert it
+        self.sent_messages.append(json.loads(message))
         return None
 
     async def close(self, code=1000):
@@ -310,6 +315,12 @@ def inject_ws_message(exchange, url, message):
     # handler - the same entry point the real transport invokes
     client = exchange.client(url)
     exchange.handle_message(client, message)
+
+
+def get_ws_sent_messages(exchange, url):
+    # the frames the exchange sent over the mocked transport, already parsed
+    client = exchange.client(url)
+    return client.connection.sent_messages
 
 
 def reject_pending_ws_futures(exchange, url):

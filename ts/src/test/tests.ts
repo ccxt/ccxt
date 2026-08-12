@@ -40,6 +40,7 @@ import {
     setupWsMockTransport,
     injectWsMessage,
     rejectPendingWsFutures,
+    getWsSentMessages,
     isNullValue,
     close,
     getEnvVars,
@@ -1762,6 +1763,26 @@ class testMainClass {
         return true; // c# methods used with promiseAll need to return something
     }
 
+    assertWsSentMessages (exchange: any, url: string, data: Dict) {
+        // the ws analog of the static request tests: assert the frames the
+        // watch method sent over the mocked transport (subscribe requests etc)
+        const expectedSent = exchange.safeList (data, 'sentMessages');
+        if (expectedSent === undefined) {
+            return;
+        }
+        // ids/signatures/timestamps inside outgoing frames can be volatile —
+        // exclude them per entry without touching the response skipKeys
+        const sentSkipKeys = exchange.safeList (data, 'sentSkipKeys', []);
+        const sentMessages = getWsSentMessages (exchange, url);
+        const sentLength = sentMessages.length;
+        const expectedLength = expectedSent.length;
+        assert (sentLength === expectedLength, 'sent ws messages count mismatch: sent ' + sentLength.toString () + ', expected ' + expectedLength.toString () + ' ' + jsonStringify (sentMessages));
+        for (let i = 0; i < expectedLength; i++) {
+            const unifiedSent = jsonParse (jsonStringify (sentMessages[i]));
+            this.assertStaticResponseOutput (exchange, sentSkipKeys, unifiedSent, expectedSent[i]);
+        }
+    }
+
     async testWsStatically (exchange: any, method: string, skipKeys: string[], data: Dict) {
         const url = exchange.safeString (data, 'url');
         setupWsMockTransport (exchange, url);
@@ -1785,6 +1806,7 @@ class testMainClass {
                     this.injectWsMessages (exchange, url, messages),
                 ];
                 await Promise.all (promises);
+                this.assertWsSentMessages (exchange, url, data);
             } else {
                 // 'parsedResponse' asserts the final state after every frame
                 // was replayed — live structures like orderbooks keep updating
@@ -1796,6 +1818,7 @@ class testMainClass {
                 const results = await Promise.all (promises);
                 const unifiedResult = jsonParse (jsonStringify (results[0]));
                 this.assertStaticResponseOutput (exchange, skipKeys, unifiedResult, data['parsedResponse']);
+                this.assertWsSentMessages (exchange, url, data);
             }
         } catch (e) {
             this.staticWsTestsFailed = true;

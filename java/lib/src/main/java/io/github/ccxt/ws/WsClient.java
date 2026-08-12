@@ -91,7 +91,8 @@ public class WsClient {
     public volatile CompletableFuture<Boolean> connected;
     public volatile long lastPong = 0;
     public boolean error = false;
-    public boolean isMock = false; // static ws tests: transport is stubbed, sends are dropped
+    public boolean isMock = false; // static ws tests: transport is stubbed, sends are recorded
+    public final java.util.List<Object> mockSentMessages = java.util.Collections.synchronizedList(new java.util.ArrayList<>()); // frames recorded in mock mode
     /**
      * Optional typed reason for a deliberate close. Set by Exchange.close()
      * to an ExchangeClosedByUser before invoking this.close(); the close path
@@ -570,7 +571,18 @@ public class WsClient {
      */
     public CompletableFuture<Void> send(Object message) {
         if (this.isMock) {
-            // static ws tests: transport is stubbed
+            // static ws tests: record the outgoing frame so the test can assert it
+            try {
+                String mockJson;
+                if (message instanceof String s) {
+                    mockJson = s;
+                } else {
+                    mockJson = JSON_MAPPER.writeValueAsString(message);
+                }
+                this.mockSentMessages.add(JSON_MAPPER.readValue(mockJson, Object.class));
+            } catch (Exception e) {
+                // ignore malformed frames, the assertion will surface the gap
+            }
             return CompletableFuture.completedFuture(null);
         }
         String json;
