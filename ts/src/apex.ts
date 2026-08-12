@@ -998,7 +998,7 @@ export default class apex extends Exchange {
         const timestamp = this.safeIntegerN (trade, [ 't', 'T', 'createdAt' ]);
         const priceString = this.safeString2 (trade, 'p', 'price');
         const amountString = this.safeString2 (trade, 'v', 'size');
-        const side = this.safeStringStartsWith2 (trade, 'S', 'Sell', 'sell', 'B', 'buy');
+        const side = this.safeStringStartsWith2 (trade, 'S', 'side', 'S', 'sell', 'B', 'buy');
         const type = this.safeString (trade, 'type');
         const fee = this.safeString (trade, 'fee');
         return this.safeTrade ({
