@@ -611,17 +611,27 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
     // `_entries[i]`. Handle this before the regular dict lookup so the
     // transpiled `get_value(&cache, &Value::Int(0))` calls reach the
     // right backing buffer.
-    if let (Value::Dict(m), Value::Int(i)) = (obj, key) {
-        if let Some(id) = book_cache_id_of(m) {
-            return book_cache_at(id, *i as usize);
-        }
-        if m.contains_key("__cacheKind") {
-            if let Some(Value::Arr(data)) = m.get("_data") {
-                return data.get(*i as usize).cloned().unwrap_or(Value::Null);
+    // The index may arrive as an Int (`get_value(&side, &Value::Int(0))`) or as
+    // a numeric string — the `safe_*` helpers stringify their key, so
+    // `safe_value(cache, 0)` reaches here as `Str("0")`. Accept both.
+    if let Value::Dict(m) = obj {
+        let idx = match key {
+            Value::Int(i) if *i >= 0 => Some(*i as usize),
+            Value::Str(s) => s.parse::<usize>().ok(),
+            _ => None,
+        };
+        if let Some(i) = idx {
+            if let Some(id) = book_cache_id_of(m) {
+                return book_cache_at(id, i);
             }
-        }
-        if m.contains_key("__sideKind") {
-            return side_entry_at(m, *i as usize);
+            if m.contains_key("__cacheKind") {
+                if let Some(Value::Arr(data)) = m.get("_data") {
+                    return data.get(i).cloned().unwrap_or(Value::Null);
+                }
+            }
+            if m.contains_key("__sideKind") {
+                return side_entry_at(m, i);
+            }
         }
     }
     match (obj, key) {
