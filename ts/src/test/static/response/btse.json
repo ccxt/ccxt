@@ -2125,6 +2125,591 @@
                     }
                 }
             }
+        ],
+        "fetchTime": [
+            {
+                "description": "btse fetchTime - live-captured 2026-08-12",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                    "iso": "2026-08-12T19:41:52.010Z",
+                    "epoch": 1786563712
+                },
+                "parsedResponse": 1786563712000
+            }
+        ],
+        "fetchLeverageTiers": [
+            {
+                "description": "btse fetchLeverageTiers BTC linear swap - live-captured 2026-08-12, full 10-tier risk-limit ladder",
+                "method": "fetchLeverageTiers",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 1,
+                    "msg": "Success",
+                    "time": 1786563763486,
+                    "data": [
+                        {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 1,
+                            "riskLimitValue": 3000000,
+                            "initialMarginRate": 0.01,
+                            "maintenanceMarginRate": 0.005,
+                            "maxLeverage": 100
+                        },
+                        {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 2,
+                            "riskLimitValue": 6000000,
+                            "initialMarginRate": 0.01333333,
+                            "maintenanceMarginRate": 0.00733333,
+                            "maxLeverage": 75
+                        },
+                        {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 3,
+                            "riskLimitValue": 12000000,
+                            "initialMarginRate": 0.02,
+                            "maintenanceMarginRate": 0.012,
+                            "maxLeverage": 50
+                        },
+                        {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 4,
+                            "riskLimitValue": 90000000,
+                            "initialMarginRate": 0.05,
+                            "maintenanceMarginRate": 0.033,
+                            "maxLeverage": 20
+                        },
+                        {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 5,
+                            "riskLimitValue": 120000000,
+                            "initialMarginRate": 0.1,
+                            "maintenanceMarginRate": 0.068,
+                            "maxLeverage": 10
+                        },
+                        {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 6,
+                            "riskLimitValue": 300000000,
+                            "initialMarginRate": 0.2,
+                            "maintenanceMarginRate": 0.138,
+                            "maxLeverage": 5
+                        },
+                        {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 7,
+                            "riskLimitValue": 500000000,
+                            "initialMarginRate": 0.25,
+                            "maintenanceMarginRate": 0.173,
+                            "maxLeverage": 4
+                        },
+                        {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 8,
+                            "riskLimitValue": 700000000,
+                            "initialMarginRate": 0.33333333,
+                            "maintenanceMarginRate": 0.23133333,
+                            "maxLeverage": 3
+                        },
+                        {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 9,
+                            "riskLimitValue": 900000000,
+                            "initialMarginRate": 0.5,
+                            "maintenanceMarginRate": 0.348,
+                            "maxLeverage": 2
+                        },
+                        {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 10,
+                            "riskLimitValue": 1100000000,
+                            "initialMarginRate": 1,
+                            "maintenanceMarginRate": 0.698,
+                            "maxLeverage": 1
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": [
+                        {
+                            "tier": 1,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 0,
+                            "maxNotional": 3000000,
+                            "maintenanceMarginRate": 0.005,
+                            "maxLeverage": 100,
+                            "info": {
+                                "symbol": "BTC-PERP",
+                                "riskLevel": 1,
+                                "riskLimitValue": 3000000,
+                                "initialMarginRate": 0.01,
+                                "maintenanceMarginRate": 0.005,
+                                "maxLeverage": 100
+                            }
+                        },
+                        {
+                            "tier": 2,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 3000000,
+                            "maxNotional": 6000000,
+                            "maintenanceMarginRate": 0.00733333,
+                            "maxLeverage": 75,
+                            "info": {
+                                "symbol": "BTC-PERP",
+                                "riskLevel": 2,
+                                "riskLimitValue": 6000000,
+                                "initialMarginRate": 0.01333333,
+                                "maintenanceMarginRate": 0.00733333,
+                                "maxLeverage": 75
+                            }
+                        },
+                        {
+                            "tier": 3,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 6000000,
+                            "maxNotional": 12000000,
+                            "maintenanceMarginRate": 0.012,
+                            "maxLeverage": 50,
+                            "info": {
+                                "symbol": "BTC-PERP",
+                                "riskLevel": 3,
+                                "riskLimitValue": 12000000,
+                                "initialMarginRate": 0.02,
+                                "maintenanceMarginRate": 0.012,
+                                "maxLeverage": 50
+                            }
+                        },
+                        {
+                            "tier": 4,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 12000000,
+                            "maxNotional": 90000000,
+                            "maintenanceMarginRate": 0.033,
+                            "maxLeverage": 20,
+                            "info": {
+                                "symbol": "BTC-PERP",
+                                "riskLevel": 4,
+                                "riskLimitValue": 90000000,
+                                "initialMarginRate": 0.05,
+                                "maintenanceMarginRate": 0.033,
+                                "maxLeverage": 20
+                            }
+                        },
+                        {
+                            "tier": 5,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 90000000,
+                            "maxNotional": 120000000,
+                            "maintenanceMarginRate": 0.068,
+                            "maxLeverage": 10,
+                            "info": {
+                                "symbol": "BTC-PERP",
+                                "riskLevel": 5,
+                                "riskLimitValue": 120000000,
+                                "initialMarginRate": 0.1,
+                                "maintenanceMarginRate": 0.068,
+                                "maxLeverage": 10
+                            }
+                        },
+                        {
+                            "tier": 6,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 120000000,
+                            "maxNotional": 300000000,
+                            "maintenanceMarginRate": 0.138,
+                            "maxLeverage": 5,
+                            "info": {
+                                "symbol": "BTC-PERP",
+                                "riskLevel": 6,
+                                "riskLimitValue": 300000000,
+                                "initialMarginRate": 0.2,
+                                "maintenanceMarginRate": 0.138,
+                                "maxLeverage": 5
+                            }
+                        },
+                        {
+                            "tier": 7,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 300000000,
+                            "maxNotional": 500000000,
+                            "maintenanceMarginRate": 0.173,
+                            "maxLeverage": 4,
+                            "info": {
+                                "symbol": "BTC-PERP",
+                                "riskLevel": 7,
+                                "riskLimitValue": 500000000,
+                                "initialMarginRate": 0.25,
+                                "maintenanceMarginRate": 0.173,
+                                "maxLeverage": 4
+                            }
+                        },
+                        {
+                            "tier": 8,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 500000000,
+                            "maxNotional": 700000000,
+                            "maintenanceMarginRate": 0.23133333,
+                            "maxLeverage": 3,
+                            "info": {
+                                "symbol": "BTC-PERP",
+                                "riskLevel": 8,
+                                "riskLimitValue": 700000000,
+                                "initialMarginRate": 0.33333333,
+                                "maintenanceMarginRate": 0.23133333,
+                                "maxLeverage": 3
+                            }
+                        },
+                        {
+                            "tier": 9,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 700000000,
+                            "maxNotional": 900000000,
+                            "maintenanceMarginRate": 0.348,
+                            "maxLeverage": 2,
+                            "info": {
+                                "symbol": "BTC-PERP",
+                                "riskLevel": 9,
+                                "riskLimitValue": 900000000,
+                                "initialMarginRate": 0.5,
+                                "maintenanceMarginRate": 0.348,
+                                "maxLeverage": 2
+                            }
+                        },
+                        {
+                            "tier": 10,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 900000000,
+                            "maxNotional": 1100000000,
+                            "maintenanceMarginRate": 0.698,
+                            "maxLeverage": 1,
+                            "info": {
+                                "symbol": "BTC-PERP",
+                                "riskLevel": 10,
+                                "riskLimitValue": 1100000000,
+                                "initialMarginRate": 1,
+                                "maintenanceMarginRate": 0.698,
+                                "maxLeverage": 1
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "btse fetchMarketLeverageTiers BTC linear swap - live-captured 2026-08-12, full 10-tier risk-limit ladder, report-block verbatim",
+                "method": "fetchMarketLeverageTiers",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 1,
+                    "msg": "Success",
+                    "time": 1786563839582,
+                    "data": [
+                        {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 1,
+                            "riskLimitValue": 3000000,
+                            "initialMarginRate": 0.01,
+                            "maintenanceMarginRate": 0.005,
+                            "maxLeverage": 100
+                        },
+                        {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 2,
+                            "riskLimitValue": 6000000,
+                            "initialMarginRate": 0.01333333,
+                            "maintenanceMarginRate": 0.00733333,
+                            "maxLeverage": 75
+                        },
+                        {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 3,
+                            "riskLimitValue": 12000000,
+                            "initialMarginRate": 0.02,
+                            "maintenanceMarginRate": 0.012,
+                            "maxLeverage": 50
+                        },
+                        {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 4,
+                            "riskLimitValue": 90000000,
+                            "initialMarginRate": 0.05,
+                            "maintenanceMarginRate": 0.033,
+                            "maxLeverage": 20
+                        },
+                        {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 5,
+                            "riskLimitValue": 120000000,
+                            "initialMarginRate": 0.1,
+                            "maintenanceMarginRate": 0.068,
+                            "maxLeverage": 10
+                        },
+                        {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 6,
+                            "riskLimitValue": 300000000,
+                            "initialMarginRate": 0.2,
+                            "maintenanceMarginRate": 0.138,
+                            "maxLeverage": 5
+                        },
+                        {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 7,
+                            "riskLimitValue": 500000000,
+                            "initialMarginRate": 0.25,
+                            "maintenanceMarginRate": 0.173,
+                            "maxLeverage": 4
+                        },
+                        {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 8,
+                            "riskLimitValue": 700000000,
+                            "initialMarginRate": 0.33333333,
+                            "maintenanceMarginRate": 0.23133333,
+                            "maxLeverage": 3
+                        },
+                        {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 9,
+                            "riskLimitValue": 900000000,
+                            "initialMarginRate": 0.5,
+                            "maintenanceMarginRate": 0.348,
+                            "maxLeverage": 2
+                        },
+                        {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 10,
+                            "riskLimitValue": 1100000000,
+                            "initialMarginRate": 1,
+                            "maintenanceMarginRate": 0.698,
+                            "maxLeverage": 1
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": [
+                    {
+                        "tier": 1,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 0,
+                        "maxNotional": 3000000,
+                        "maintenanceMarginRate": 0.005,
+                        "maxLeverage": 100,
+                        "info": {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 1,
+                            "riskLimitValue": 3000000,
+                            "initialMarginRate": 0.01,
+                            "maintenanceMarginRate": 0.005,
+                            "maxLeverage": 100
+                        }
+                    },
+                    {
+                        "tier": 2,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 3000000,
+                        "maxNotional": 6000000,
+                        "maintenanceMarginRate": 0.00733333,
+                        "maxLeverage": 75,
+                        "info": {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 2,
+                            "riskLimitValue": 6000000,
+                            "initialMarginRate": 0.01333333,
+                            "maintenanceMarginRate": 0.00733333,
+                            "maxLeverage": 75
+                        }
+                    },
+                    {
+                        "tier": 3,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 6000000,
+                        "maxNotional": 12000000,
+                        "maintenanceMarginRate": 0.012,
+                        "maxLeverage": 50,
+                        "info": {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 3,
+                            "riskLimitValue": 12000000,
+                            "initialMarginRate": 0.02,
+                            "maintenanceMarginRate": 0.012,
+                            "maxLeverage": 50
+                        }
+                    },
+                    {
+                        "tier": 4,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 12000000,
+                        "maxNotional": 90000000,
+                        "maintenanceMarginRate": 0.033,
+                        "maxLeverage": 20,
+                        "info": {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 4,
+                            "riskLimitValue": 90000000,
+                            "initialMarginRate": 0.05,
+                            "maintenanceMarginRate": 0.033,
+                            "maxLeverage": 20
+                        }
+                    },
+                    {
+                        "tier": 5,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 90000000,
+                        "maxNotional": 120000000,
+                        "maintenanceMarginRate": 0.068,
+                        "maxLeverage": 10,
+                        "info": {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 5,
+                            "riskLimitValue": 120000000,
+                            "initialMarginRate": 0.1,
+                            "maintenanceMarginRate": 0.068,
+                            "maxLeverage": 10
+                        }
+                    },
+                    {
+                        "tier": 6,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 120000000,
+                        "maxNotional": 300000000,
+                        "maintenanceMarginRate": 0.138,
+                        "maxLeverage": 5,
+                        "info": {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 6,
+                            "riskLimitValue": 300000000,
+                            "initialMarginRate": 0.2,
+                            "maintenanceMarginRate": 0.138,
+                            "maxLeverage": 5
+                        }
+                    },
+                    {
+                        "tier": 7,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 300000000,
+                        "maxNotional": 500000000,
+                        "maintenanceMarginRate": 0.173,
+                        "maxLeverage": 4,
+                        "info": {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 7,
+                            "riskLimitValue": 500000000,
+                            "initialMarginRate": 0.25,
+                            "maintenanceMarginRate": 0.173,
+                            "maxLeverage": 4
+                        }
+                    },
+                    {
+                        "tier": 8,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 500000000,
+                        "maxNotional": 700000000,
+                        "maintenanceMarginRate": 0.23133333,
+                        "maxLeverage": 3,
+                        "info": {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 8,
+                            "riskLimitValue": 700000000,
+                            "initialMarginRate": 0.33333333,
+                            "maintenanceMarginRate": 0.23133333,
+                            "maxLeverage": 3
+                        }
+                    },
+                    {
+                        "tier": 9,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 700000000,
+                        "maxNotional": 900000000,
+                        "maintenanceMarginRate": 0.348,
+                        "maxLeverage": 2,
+                        "info": {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 9,
+                            "riskLimitValue": 900000000,
+                            "initialMarginRate": 0.5,
+                            "maintenanceMarginRate": 0.348,
+                            "maxLeverage": 2
+                        }
+                    },
+                    {
+                        "tier": 10,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 900000000,
+                        "maxNotional": 1100000000,
+                        "maintenanceMarginRate": 0.698,
+                        "maxLeverage": 1,
+                        "info": {
+                            "symbol": "BTC-PERP",
+                            "riskLevel": 10,
+                            "riskLimitValue": 1100000000,
+                            "initialMarginRate": 1,
+                            "maintenanceMarginRate": 0.698,
+                            "maxLeverage": 1
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "btse fetchLeverage RAVE linear swap - live-captured 2026-08-12, cross 25x account state, report-block verbatim",
+                "method": "fetchLeverage",
+                "input": [
+                    "RAVE/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "RAVE-PERP",
+                        "leverage": 25,
+                        "marginMode": "CROSS",
+                        "positionDirection": null
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "symbol": "RAVE-PERP",
+                            "leverage": 25,
+                            "marginMode": "CROSS",
+                            "positionDirection": null
+                        }
+                    ],
+                    "symbol": "RAVE/USDT:USDT",
+                    "marginMode": "cross",
+                    "longLeverage": 25,
+                    "shortLeverage": 25
+                }
+            }
         ]
     }
 }
