@@ -1369,7 +1369,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         if is_true(&(is_equal(&event, &Value::Null))) && is_true(&(is_equal(&get_value(&orderbook, &Value::Str("nonce".to_string())), &Value::Null))) {
-            append_to_array(&mut get_value(&orderbook, &Value::Str("cache".to_string())), message.clone());
+            crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".to_string()), message.clone());
         }  else {
             self.handle_order_book_message(client.clone(), message.clone());
             client.resolve(&[orderbook.clone(), messageHash.clone()]);
@@ -2406,7 +2406,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             append_to_array(&mut newPositions, position.clone());
             { let __be_tmp = self.safe_value(positionsByMarginMode.clone(), marginMode.clone(), &[Value::List(vec![])]); add_element_to_object(&mut positionsByMarginMode, &marginMode, __be_tmp); };
-            append_to_array(&mut get_value(&positionsByMarginMode, &marginMode), position.clone());
+            crate::runtime::append_to_object_array(&mut positionsByMarginMode, &marginMode, position.clone());
             cache.append(position.clone());
         }
         }

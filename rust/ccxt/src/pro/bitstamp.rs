@@ -462,7 +462,7 @@ impl BitstampCore {
                     m
                 })]);
             }
-            append_to_array(&mut get_value(&storedOrderBook, &Value::Str("cache".to_string())), delta.clone());
+            crate::runtime::append_to_object_array(&mut storedOrderBook, &Value::Str("cache".to_string()), delta.clone());
             return;
         }  else if is_greater_than_or_equal(&nonce, &deltaNonce) {
             return;

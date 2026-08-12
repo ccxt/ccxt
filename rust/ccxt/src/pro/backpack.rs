@@ -1527,7 +1527,7 @@ impl BackpackCore {
                     m
                 })]);
             }
-            append_to_array(&mut get_value(&storedOrderBook, &Value::Str("cache".to_string())), data.clone());
+            crate::runtime::append_to_object_array(&mut storedOrderBook, &Value::Str("cache".to_string()), data.clone());
             return;
         }  else if is_true(&(!is_equal(&deltaNonce, &Value::Null))) && is_true(&(is_greater_than(&nonce, &deltaNonce))) {
             return;

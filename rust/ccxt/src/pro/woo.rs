@@ -668,7 +668,7 @@ impl WooCore {
             let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
             let mut timestamp: Value = self.safe_integer_k(orderbook.clone(), "timestamp", &[]);
             if is_equal(&timestamp, &Value::Null) {
-                append_to_array(&mut get_value(&orderbook, &Value::Str("cache".to_string())), message.clone());
+                crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".to_string()), message.clone());
             }  else {
                 let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                     let mut ts: Value = self.safe_integer_k(message.clone(), "ts", &[]);

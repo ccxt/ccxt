@@ -612,6 +612,28 @@ pub fn append_to_array(arr: &mut Value, v: Value) {
     }
 }
 
+/// `obj[key].push(v)` — append to an array *field* of a dict in place. The
+/// transpiled `dict['bids'].push(x)` otherwise lowers to
+/// `append_to_array(&mut get_value(&dict, &key), x)`, whose `get_value` yields a
+/// COW clone, so the push is lost (paradex's order-book inserts). Mutate the
+/// field through the dict instead.
+pub fn append_to_object_array(obj: &mut Value, key: &Value, v: Value) {
+    // Registry-backed fields (a book's "cache") expose a live handle whose
+    // append already reflects — route through it.
+    let field = crate::get_value(obj, key);
+    if crate::value::try_book_cache_push(&field, &v) {
+        return;
+    }
+    // Plain array field: mutate through the dict (get_value would COW-clone).
+    if let (Value::Dict(m), Value::Str(k)) = (obj, key) {
+        let entry = Arc::make_mut(m).entry(k.clone())
+            .or_insert_with(|| Value::Array(Vec::new()));
+        if let Value::Arr(a) = entry {
+            Arc::make_mut(a).push(v);
+        }
+    }
+}
+
 pub fn concat_arrays(a: &Value, b: &Value) -> Value {
     match (a, b) {
         (Value::Arr(x), Value::Arr(y)) => {

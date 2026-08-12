@@ -1159,7 +1159,7 @@ impl CoinbaseexchangeCore {
                         if is_equal(&get_value(&previousOrder, &Value::Str("trades".to_string())), &Value::Null) {
                             add_element_to_object(&mut previousOrder, &Value::Str("trades".to_string()), Value::List(vec![]));
                         }
-                        append_to_array(&mut get_value(&previousOrder, &Value::Str("trades".to_string())), trade.clone());
+                        crate::runtime::append_to_object_array(&mut previousOrder, &Value::Str("trades".to_string()), trade.clone());
                         add_element_to_object(&mut previousOrder, &Value::Str("lastTradeTimestamp".to_string()), get_value(&trade, &Value::Str("timestamp".to_string())));
                         let mut totalCost: Value = Value::Str("0".to_string());
                         let mut totalAmount: Value = Value::Str("0".to_string());

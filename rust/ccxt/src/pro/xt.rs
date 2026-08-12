@@ -1761,7 +1761,7 @@ impl XtCore {
                 if is_equal(&cacheLength, &snapshotDelay) {
                     self.spawn(&[Value::Str("load_order_book".to_string()).clone(), client.clone(), messageHash.clone(), symbol.clone()]);
                 }
-                append_to_array(&mut get_value(&orderbook, &Value::Str("cache".to_string())), data.clone());
+                crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".to_string()), data.clone());
                 return;
             }
             if !is_equal(&obAsks, &Value::Null) {

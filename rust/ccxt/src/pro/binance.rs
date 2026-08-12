@@ -1675,7 +1675,7 @@ impl BinanceCore {
         let mut nonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
         if is_equal(&nonce, &Value::Null) {
             // 2. Buffer the events you receive from the stream.
-            append_to_array(&mut get_value(&orderbook, &Value::Str("cache".to_string())), message.clone());
+            crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".to_string()), message.clone());
         }  else {
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 let mut U: Value = self.safe_integer_k(message.clone(), "U", &[]);
@@ -6423,7 +6423,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                             }
                             }
                             if is_true(&insertNewFeeCurrency) {
-                                append_to_array(&mut get_value(&order, &Value::Str("fees".to_string())), tradeFee.clone());
+                                crate::runtime::append_to_object_array(&mut order, &Value::Str("fees".to_string()), tradeFee.clone());
                             }
                         }  else if !is_equal(&fee, &Value::Null) {
                             if is_equal(&get_value(&fee, &Value::Str("currency".to_string())), &get_value(&tradeFee, &Value::Str("currency".to_string()))) {

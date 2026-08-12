@@ -400,6 +400,58 @@ class RustTranspilerBuilder {
         return out.join('\n');
     }
 
+    // Rewrites `append_to_array(&mut get_value(&X, KEY), VALUE)` — the lowering
+    // of `dict['field'].push(v)` — into `append_to_object_array(&mut X, KEY,
+    // VALUE)`, which mutates the field through the dict rather than a discarded
+    // COW clone (paradex's order-book `inserts` build bids/asks this way).
+    // `append_to_object_array` routes a book's "cache" field to the shared cache
+    // store, so the existing cache-append sites keep working.
+    rewriteInlineFieldAppends(content: string): string {
+        const marker = 'append_to_array(&mut get_value(&';
+        const matchParen = (s: string, openIdx: number): number => {
+            let depth = 0;
+            for (let i = openIdx; i < s.length; i++) {
+                if (s[i] === '(') depth++;
+                else if (s[i] === ')') { depth--; if (depth === 0) return i; }
+            }
+            return -1;
+        };
+        const topComma = (s: string): number => {
+            let depth = 0;
+            for (let i = 0; i < s.length; i++) {
+                const c = s[i];
+                if (c === '(' || c === '[' || c === '{') depth++;
+                else if (c === ')' || c === ']' || c === '}') depth--;
+                else if (c === ',' && depth === 0) return i;
+            }
+            return -1;
+        };
+        let out = '';
+        let idx = 0;
+        while (true) {
+            const p = content.indexOf(marker, idx);
+            if (p < 0) { out += content.slice(idx); break; }
+            out += content.slice(idx, p);
+            const appOpen = p + 'append_to_array'.length; // index of the outer '('
+            const appEnd = matchParen(content, appOpen);
+            if (appEnd < 0) { out += marker; idx = p + marker.length; continue; }
+            const inner = content.slice(appOpen + 1, appEnd); // '&mut get_value(&X, KEY), VALUE'
+            const gvHead = '&mut get_value';
+            const gvEndRel = matchParen(inner, gvHead.length); // matches get_value's '('
+            const comma = gvEndRel < 0 ? -1 : topComma(inner.slice(gvHead.length + 1, gvEndRel));
+            if (!inner.startsWith(gvHead + '(') || gvEndRel < 0 || comma < 0) {
+                out += content.slice(p, appEnd + 1); idx = appEnd + 1; continue;
+            }
+            const gvArgs = inner.slice(gvHead.length + 1, gvEndRel); // '&X, KEY'
+            const objArg = gvArgs.slice(0, comma).trim().replace(/^&/, '');
+            const keyArg = gvArgs.slice(comma + 1).trim();
+            const valueArg = inner.slice(gvEndRel + 1).replace(/^,\s*/, '');
+            out += `crate::runtime::append_to_object_array(&mut ${objArg}, ${keyArg}, ${valueArg})`;
+            idx = appEnd + 1;
+        }
+        return out;
+    }
+
     // Walks Rust source from a `{` to its matching `}` while skipping
     // line and block comments and string literals — an unbalanced `{`
     // inside a JSON example in a docstring would otherwise trick the
@@ -5561,6 +5613,7 @@ ${arms.join('\n')}
         content = this.rewriteSelfFieldMutCloneCast(content);
         content = this.rewriteCallMethodToDirect(content);
         content = this.writeBackIndexedMutations(content);
+        content = this.rewriteInlineFieldAppends(content);
         // Propagate async-ness through the call graph: keep iterating
         // mark-async-if-body-awaits + append-await-to-callers until fixed.
         {
@@ -6533,6 +6586,7 @@ impl std::ops::DerefMut for ${coreName} {
         // (the per-exchange pipeline already does this; the base needs it too for
         // convertOHLCVToTradingView etc. — review P0-C).
         basePart = this.writeBackIndexedMutations(basePart);
+        basePart = this.rewriteInlineFieldAppends(basePart);
 
         // The prediction tier has many methods that mutate instance state
         // (set_events/set_outcomes/load_outcomes/index_market_outcomes/…). The

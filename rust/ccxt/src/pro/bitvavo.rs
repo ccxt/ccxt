@@ -1447,7 +1447,7 @@ impl BitvavoCore {
                 // fetch the snapshot in a separate async call after a warmup delay
                 self.delay(delay.clone(), &[Value::Str("watch_order_book_snapshot".to_string()).clone(), client.clone(), message.clone(), subscription.clone()]).await;
             }
-            append_to_array(&mut get_value(&orderbook, &Value::Str("cache".to_string())), message.clone());
+            crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".to_string()), message.clone());
         }  else {
             self.handle_order_book_message(client.clone(), message.clone(), orderbook.clone());
             client.resolve(&[orderbook.clone(), messageHash.clone()]);

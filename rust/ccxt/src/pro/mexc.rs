@@ -1413,7 +1413,7 @@ impl MexcCore {
                     m
                 })]);
             }
-            append_to_array(&mut get_value(&storedOrderBook, &Value::Str("cache".to_string())), data.clone());
+            crate::runtime::append_to_object_array(&mut storedOrderBook, &Value::Str("cache".to_string()), data.clone());
             return;
         }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {

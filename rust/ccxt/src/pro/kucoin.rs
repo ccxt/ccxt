@@ -2469,7 +2469,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         m
                     })]);
                 }
-                append_to_array(&mut get_value(&orderbook, &Value::Str("cache".to_string())), data.clone());
+                crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".to_string()), data.clone());
                 return;
             }  else if is_greater_than_or_equal(&nonce, &deltaEnd) {
                 return;
@@ -2536,7 +2536,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if is_equal(&cacheLength, &snapshotDelay) {
                     self.spawn(&[Value::Str("load_order_book".to_string()).clone(), client.clone(), messageHash.clone(), symbol.clone(), limit.clone(), utaParams.clone()]);
                 }
-                append_to_array(&mut get_value(&orderbook, &Value::Str("cache".to_string())), data.clone());
+                crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".to_string()), data.clone());
                 return;
             }  else if is_greater_than_or_equal(&nonce, &deltaEnd) {
                 return;

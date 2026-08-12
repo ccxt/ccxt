@@ -624,9 +624,9 @@ impl ParadexCore {
             let mut price: Value = self.safe_string_k(insert.clone(), "price", &[]);
             let mut size: Value = self.safe_string_k(insert.clone(), "size", &[]);
             if is_equal(&side, &Value::Str("BUY".to_string())) {
-                append_to_array(&mut get_value(&orderbookData, &Value::Str("bids".to_string())), Value::List(vec![price.clone(), size.clone()]));
+                crate::runtime::append_to_object_array(&mut orderbookData, &Value::Str("bids".to_string()), Value::List(vec![price.clone(), size.clone()]));
             }  else {
-                append_to_array(&mut get_value(&orderbookData, &Value::Str("asks".to_string())), Value::List(vec![price.clone(), size.clone()]));
+                crate::runtime::append_to_object_array(&mut orderbookData, &Value::Str("asks".to_string()), Value::List(vec![price.clone(), size.clone()]));
             }
         }
         }

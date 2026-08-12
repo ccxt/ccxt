@@ -1235,7 +1235,7 @@ impl DeepcoinCore {
                 self.handle_order_book_snapshot(client.clone(), message.clone());
             }  else {
                 // cache the updates until the snapshot is received
-                append_to_array(&mut get_value(&orderbook, &Value::Str("cache".to_string())), message.clone());
+                crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".to_string()), message.clone());
             }
         }  else {
             self.handle_order_book_message(client.clone(), message.clone(), orderbook.clone());
@@ -1279,10 +1279,10 @@ impl DeepcoinCore {
             let mut volume: Value = self.safe_number_k(entryData.clone(), "V", &[]);
             if is_equal(&side, &Value::Str("0".to_string())) {
                 // bid
-                append_to_array(&mut get_value(&orderedEntries, &Value::Str("bids".to_string())), Value::List(vec![price.clone(), volume.clone()]));
+                crate::runtime::append_to_object_array(&mut orderedEntries, &Value::Str("bids".to_string()), Value::List(vec![price.clone(), volume.clone()]));
             }  else if is_equal(&side, &Value::Str("1".to_string())) {
                 // ask
-                append_to_array(&mut get_value(&orderedEntries, &Value::Str("asks".to_string())), Value::List(vec![price.clone(), volume.clone()]));
+                crate::runtime::append_to_object_array(&mut orderedEntries, &Value::Str("asks".to_string()), Value::List(vec![price.clone(), volume.clone()]));
             }
         }
         }

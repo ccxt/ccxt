@@ -928,7 +928,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         if is_equal(&get_value(&orderbook, &Value::Str("nonce".to_string())), &Value::Null) {
-            append_to_array(&mut get_value(&orderbook, &Value::Str("cache".to_string())), message.clone());
+            crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".to_string()), message.clone());
         }  else {
             self.handle_order_book_message(client.clone(), message.clone(), orderbook.clone());
             client.resolve(&[orderbook.clone(), messageHash.clone()]);
