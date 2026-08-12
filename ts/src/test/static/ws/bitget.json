@@ -154,7 +154,8 @@
                         ]
                     ]
                 ],
-                "disabledGO": "go newUpdates tail returns the full cache instead of only the new updates - same family as the other disabledGO entries"
+                "disabledGO": "go newUpdates tail returns the full cache instead of only the new updates - same family as the other disabledGO entries",
+                "disabledJava": "java newUpdates tail returns the full cache instead of only the new updates - same family as the disabledGO entries"
             },
             {
                 "description": "spot ohlcv 1m",
@@ -285,7 +286,8 @@
                         ]
                     ]
                 ],
-                "disabledGO": "go newUpdates tail returns the full cache instead of only the new updates - same family as the other disabledGO entries"
+                "disabledGO": "go newUpdates tail returns the full cache instead of only the new updates - same family as the other disabledGO entries",
+                "disabledJava": "java newUpdates tail returns the full cache instead of only the new updates - same family as the disabledGO entries"
             }
         ],
         "watchTrades": [
@@ -473,7 +475,8 @@
                         }
                     ]
                 ],
-                "disabledGO": "go newUpdates tail returns the full cache instead of only the new updates - same family as the other disabledGO entries"
+                "disabledGO": "go newUpdates tail returns the full cache instead of only the new updates - same family as the other disabledGO entries",
+                "disabledJava": "java newUpdates tail returns the full cache instead of only the new updates - same family as the disabledGO entries"
             },
             {
                 "description": "spot trades",
@@ -659,7 +662,8 @@
                         }
                     ]
                 ],
-                "disabledGO": "go newUpdates tail returns the full cache instead of only the new updates - same family as the other disabledGO entries"
+                "disabledGO": "go newUpdates tail returns the full cache instead of only the new updates - same family as the other disabledGO entries",
+                "disabledJava": "java newUpdates tail returns the full cache instead of only the new updates - same family as the disabledGO entries"
             }
         ],
         "watchTicker": [
