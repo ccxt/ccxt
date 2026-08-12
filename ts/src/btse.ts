@@ -461,36 +461,23 @@ export default class btse extends Exchange {
             'exceptions': {
                 'exact': {
                     // 200 {"symbol":"ETH-PERP","timestamp":1770892916507,"status":135,"type":93,"message":"{\"msgKey\":\"trade.error.invalid.position_id\",\"params\":[\"ETH-PERP-USDT\"] ,\"default_msg\":\"User is in ISOLATE_HEDGE in market: ETH-PERP-USDT, but positionId is empty in the request.\"}"}
-                    // bad request {"status":429,"errorCode":-1,"message":"Order not found","extraData":["ETHPFC-USD","0","117"]}
-                    // {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
-                    // {"status":400,"errorCode":134,"message":"failure","extraData":"Remaining positions."}
-                    // {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
-                    // {"status":400,"errorCode":33001003,"message":"You can not SELL ETH lower than 1825.24 USDT","extraData":["SELL","ETH","lower","1825.24","USDT"]}
                     // {"code":400,"msg":"BADREQUEST: startTime can not before than 1569888000000 (2019-10-01T00:00)","time":1770828108074,"data":null,"success":false}
+                    // {"code":400,"msg":"BADREQUEST: resolution too small for the requested time range. Records returned exceeds 300","success":false,"time":1770452248292,"data":[]}
                     // when position mode is wrong {"status":429,"errorCode":-1,"message":"Order not found","extraData":["117","0"]}
                     // {"status":400,"errorCode":-2,"message":"Invalid request parameters","extraData":null}
-                    // {"code":33001001,"msg":"BADREQUEST: The distance between Trigger Price and Limit Price cannot exceed 5.0 %","time":1770815167145,"data":["5.0 %"],"success":false}
-                    // {"code":51523,"msg":"BADREQUEST: Insufficient wallet balance","time":1770814875493,"data":null,"success":false}
-                    // {"code":10002,"msg":"UNAUTHORIZED: Authentication Failed","time":1770477230034,"data":null,"success":false}
-                    // {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
-                    // 400 Bad Request {"code":-11,"msg":"System error","success":false,"time":1770451790797,"data":[]}
-                    // {"code":400,"msg":"BADREQUEST: resolution too small for the requested time range. Records returned exceeds 300","success":false,"time":1770452248292,"data":[]}
                     // {"status":400,"errorCode":-2,"message":"Can't support count more than 500","extraData":null}
-                    // {"status":400,"errorCode":33199101,"message":"Available balance is insufficient to meet this order.","extraData":["0.013553333"]}
-                    // {"status":400,"errorCode":4051,"message":"[RAVE-PERP] The order size cannot surpass 50000.0 contracts. Please adjust your order size and try again.","extraData":null}
-                    // {"code":4003,"msg":"BADREQUEST: The order amount cannot surpass 100.0 BTC. Please adjust your order size and try again.","time":1786509292895,"data":null,"success":false}
-                    '-1': OrderNotFound,
-                    '-2': BadRequest,
-                    '-7': AuthenticationError,
-                    '-11': ExchangeNotAvailable,
-                    '134': BadRequest,
-                    '4003': InvalidOrder,
-                    '4051': InvalidOrder,
-                    '10002': AuthenticationError,
-                    '51523': InsufficientFunds,
-                    '33001001': InvalidOrder,
-                    '33001003': InvalidOrder,
-                    '33199101': InsufficientFunds,
+                    '-1': OrderNotFound, // bad request {"status":429,"errorCode":-1,"message":"Order not found","extraData":["ETHPFC-USD","0","117"]}
+                    '-2': BadRequest, // {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
+                    '-7': AuthenticationError, // {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
+                    '-11': ExchangeNotAvailable, // 400 Bad Request {"code":-11,"msg":"System error","success":false,"time":1770451790797,"data":[]}
+                    '134': BadRequest, // {"status":400,"errorCode":134,"message":"failure","extraData":"Remaining positions."}
+                    '4003': InvalidOrder, // {"code":4003,"msg":"BADREQUEST: The order amount cannot surpass 100.0 BTC. Please adjust your order size and try again.","time":1786509292895,"data":null,"success":false}
+                    '4051': InvalidOrder, // {"status":400,"errorCode":4051,"message":"[RAVE-PERP] The order size cannot surpass 50000.0 contracts. Please adjust your order size and try again.","extraData":null}
+                    '10002': AuthenticationError, // {"code":10002,"msg":"UNAUTHORIZED: Authentication Failed","time":1770477230034,"data":null,"success":false}
+                    '51523': InsufficientFunds, // {"code":51523,"msg":"BADREQUEST: Insufficient wallet balance","time":1770814875493,"data":null,"success":false}
+                    '33001001': InvalidOrder, // {"code":33001001,"msg":"BADREQUEST: The distance between Trigger Price and Limit Price cannot exceed 5.0 %","time":1770815167145,"data":["5.0 %"],"success":false}
+                    '33001003': InvalidOrder, // {"status":400,"errorCode":33001003,"message":"You can not SELL ETH lower than 1825.24 USDT","extraData":["SELL","ETH","lower","1825.24","USDT"]}
+                    '33199101': InsufficientFunds, // {"status":400,"errorCode":33199101,"message":"Available balance is insufficient to meet this order.","extraData":["0.013553333"]}
                 },
                 'broad': {
                     'Insufficient wallet balance': InsufficientFunds,
