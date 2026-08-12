@@ -229,9 +229,36 @@ impl ClientState {
         let mut m = indexmap::IndexMap::new();
         m.insert("__ws_subs_url".to_string(), Value::Str(self.url.clone()));
         for (h, sub) in subs.iter() {
-            m.insert(h.clone(), sub.clone());
+            // Tag each subscription DICT with a back-reference so a field write
+            // on it (`subscription['receivedSnapshot'] = true`) persists to this
+            // live client — venues mutate a subscription retrieved from
+            // client.subscriptions and rely on JS object identity.
+            let tagged = match sub {
+                Value::Dict(d) => {
+                    let mut inner = (**d).clone();
+                    inner.insert("__ws_sub_ref".to_string(),
+                        Value::Str(format!("{}\u{1}{}", self.url, h)));
+                    Value::Dict(std::sync::Arc::new(inner))
+                }
+                other => other.clone(),
+            };
+            m.insert(h.clone(), tagged);
         }
         Value::Map(m)
+    }
+
+    /// Set a field on a stored subscription dict (`client.subscriptions[hash]
+    /// [key] = val`). Creates the entry if missing.
+    pub fn set_subscription_field(&self, hash: &str, key: &str, val: Value) {
+        let mut subs = self.subscriptions.lock().unwrap();
+        match subs.get_mut(hash) {
+            Some(Value::Dict(d)) => { std::sync::Arc::make_mut(d).insert(key.to_string(), val); }
+            _ => {
+                let mut inner = indexmap::IndexMap::new();
+                inner.insert(key.to_string(), val);
+                subs.insert(hash.to_string(), Value::Dict(std::sync::Arc::new(inner)));
+            }
+        }
     }
 
     /// Snapshot of `futures` as a `Value::Map { hash: true }`.
@@ -260,6 +287,14 @@ pub fn value_subs_insert(url: &str, key: &str, val: Value) {
 /// `delete client.subscriptions[key]` on a tagged snapshot.
 pub fn value_subs_remove(url: &str, key: &str) {
     if let Some(c) = get_client(url) { c.subscriptions.lock().unwrap().remove(key); }
+}
+
+/// `client.subscriptions[hash][key] = val` written on a tagged subscription
+/// dict (carrying `__ws_sub_ref` = "url\u{1}hash").
+pub fn value_sub_field_write(subref: &str, key: &str, val: Value) {
+    if let Some((url, hash)) = subref.split_once('\u{1}') {
+        if let Some(c) = get_client(url) { c.set_subscription_field(hash, key, val); }
+    }
 }
 
 /// Ensure a live connection to `url`, connecting (and spawning the reader /

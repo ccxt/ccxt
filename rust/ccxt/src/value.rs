@@ -707,6 +707,7 @@ pub fn set_value(obj: &mut Value, key: &Value, val: Value) {
             // code that reads back what it just wrote (upbit builds its subscribe
             // frame from `object_keys(client.subscriptions)`) sees the new entry.
             try_ws_subs_write(m, k, &val);
+            try_ws_sub_field_write(m, k, &val);
             Arc::make_mut(m).insert(k.clone(), val);
         }
         (Value::Arr(a), Value::Int(i)) => {
@@ -1226,6 +1227,17 @@ pub(crate) fn try_ws_subs_write(m: &HashMap<String, Value>, key: &str, val: &Val
     if key == "__ws_subs_url" { return false; }
     if let Some(Value::Str(url)) = m.get("__ws_subs_url") {
         crate::pro::ws_client::value_subs_insert(url, key, val.clone());
+        return true;
+    }
+    false
+}
+
+/// If `m` is a tagged subscription dict (`__ws_sub_ref`), persist a field write
+/// `subscription[key] = val` to the live WS client and return true.
+pub(crate) fn try_ws_sub_field_write(m: &HashMap<String, Value>, key: &str, val: &Value) -> bool {
+    if key == "__ws_sub_ref" { return false; }
+    if let Some(Value::Str(subref)) = m.get("__ws_sub_ref") {
+        crate::pro::ws_client::value_sub_field_write(subref, key, val.clone());
         return true;
     }
     false

@@ -400,6 +400,7 @@ pub fn add_element_to_object(obj: &mut Value, key: &Value, val: Value) {
             // Persist to the live client AND update the local snapshot (see
             // set_value) so a read-back of client.subscriptions is coherent.
             crate::value::try_ws_subs_write(m, k, &val);
+            crate::value::try_ws_sub_field_write(m, k, &val);
             Arc::make_mut(m).insert(k.clone(), val);
         }
         (Value::Dict(m), other) => { Arc::make_mut(m).insert(stringify_simple(other), val); }
@@ -452,12 +453,14 @@ pub fn in_op(obj: &Value, key: &Value) -> bool {
 /// (see `try_ws_subs_write`). It must never surface to transpiled code that
 /// enumerates `client.subscriptions` (upbit builds its subscribe frame from
 /// those keys), so filter it out of key/value enumeration.
-const WS_SUBS_TAG: &str = "__ws_subs_url";
+fn is_ws_internal_tag(k: &str) -> bool {
+    k == "__ws_subs_url" || k == "__ws_sub_ref"
+}
 
 pub fn object_keys(v: &Value) -> Value {
     match v {
         Value::Dict(m) => Value::Array(
-            m.keys().filter(|k| k.as_str() != WS_SUBS_TAG)
+            m.keys().filter(|k| !is_ws_internal_tag(k))
                 .map(|k| Value::Str(k.clone())).collect()),
         _ => Value::Array(vec![]),
     }
@@ -466,7 +469,7 @@ pub fn object_keys(v: &Value) -> Value {
 pub fn object_values(v: &Value) -> Value {
     match v {
         Value::Dict(m) => Value::Array(
-            m.iter().filter(|(k, _)| k.as_str() != WS_SUBS_TAG)
+            m.iter().filter(|(k, _)| !is_ws_internal_tag(k))
                 .map(|(_, val)| val.clone()).collect()),
         _ => Value::Array(vec![]),
     }
