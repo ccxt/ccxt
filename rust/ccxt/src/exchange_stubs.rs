@@ -58,7 +58,7 @@ fn random_hex(n: usize) -> String {
 
 /// Wraps a byte slice into the port's binary representation —
 /// a `Value::Array` of `Value::Int` byte values.
-fn bytes_to_value(bytes: &[u8]) -> Value {
+pub(crate) fn bytes_to_value(bytes: &[u8]) -> Value {
     Value::Array(bytes.iter().map(|b| Value::Int(*b as i64)).collect())
 }
 
@@ -988,10 +988,19 @@ impl Exchange {
         let signed = args.get(1).cloned().unwrap_or(Value::Bool(false));
         crate::runtime::crc32(payload, signed)
     }
-    /// `decode_proto_msg(message)` — exchange-specific protobuf
-    /// decoder (mexc). Stub returns the input unchanged.
-    pub fn decode_proto_msg(&self, _args: &[Value]) -> Value {
-        Value::Null
+    /// `decode_proto_msg(message)` — exchange-specific protobuf decoder
+    /// (mexc). `message` is the binary frame carried as a byte array; decode
+    /// it into mexc's `PushDataV3ApiWrapper` shape (matching protobufjs
+    /// `.toJSON()`) so the ported handlers consume it unchanged.
+    pub fn decode_proto_msg(&self, args: &[Value]) -> Value {
+        match args.get(0) {
+            Some(v) if is_byte_array(v) => {
+                let bytes = crate::exchange::value_to_bytes(v);
+                crate::runtime::decode_mexc_push_data(&bytes)
+            }
+            Some(v) => v.clone(),
+            None => Value::Null,
+        }
     }
     /// `loadOrderBook` — WS helper used by some bookkeeping methods.
     /// Stubbed identically to the unwatch flow.

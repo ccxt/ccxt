@@ -959,6 +959,153 @@ pub fn crc32(s: Value, signed: Value) -> Value {
     }
 }
 
+/// Minimal protobuf wire-format reader over a byte slice, sufficient to
+/// decode mexc's `PushDataV3ApiWrapper` order-book frames.
+struct PbReader<'a> {
+    buf: &'a [u8],
+    pos: usize,
+}
+
+impl<'a> PbReader<'a> {
+    fn new(buf: &'a [u8]) -> Self {
+        Self { buf, pos: 0 }
+    }
+    fn eof(&self) -> bool {
+        self.pos >= self.buf.len()
+    }
+    /// Read a base-128 varint (LEB128, little-endian groups).
+    fn read_varint(&mut self) -> u64 {
+        let mut result: u64 = 0;
+        let mut shift = 0u32;
+        while self.pos < self.buf.len() && shift < 64 {
+            let b = self.buf[self.pos];
+            self.pos += 1;
+            result |= ((b & 0x7f) as u64) << shift;
+            if b & 0x80 == 0 {
+                break;
+            }
+            shift += 7;
+        }
+        result
+    }
+    /// Read a tag → (field number, wire type).
+    fn read_tag(&mut self) -> (u64, u8) {
+        let t = self.read_varint();
+        (t >> 3, (t & 7) as u8)
+    }
+    /// Read a length-delimited chunk (wire type 2).
+    fn read_bytes(&mut self) -> &'a [u8] {
+        let len = self.read_varint() as usize;
+        let end = self.pos.saturating_add(len).min(self.buf.len());
+        let s = &self.buf[self.pos..end];
+        self.pos = end;
+        s
+    }
+    /// Skip an unrecognised field by wire type.
+    fn skip(&mut self, wire: u8) {
+        match wire {
+            0 => {
+                self.read_varint();
+            }
+            1 => self.pos = self.pos.saturating_add(8).min(self.buf.len()),
+            2 => {
+                let len = self.read_varint() as usize;
+                self.pos = self.pos.saturating_add(len).min(self.buf.len());
+            }
+            5 => self.pos = self.pos.saturating_add(4).min(self.buf.len()),
+            _ => self.pos = self.buf.len(),
+        }
+    }
+}
+
+fn pb_string(b: &[u8]) -> Value {
+    Value::Str(String::from_utf8_lossy(b).into_owned())
+}
+
+/// Decode a `Public*DepthV3ApiItem` — a `{ price, quantity }` pair.
+fn pb_decode_depth_item(b: &[u8]) -> Value {
+    let mut r = PbReader::new(b);
+    let mut m: HashMap<String, Value> = HashMap::new();
+    while !r.eof() {
+        match r.read_tag() {
+            (1, 2) => {
+                m.insert("price".to_string(), pb_string(r.read_bytes()));
+            }
+            (2, 2) => {
+                m.insert("quantity".to_string(), pb_string(r.read_bytes()));
+            }
+            (_, wire) => r.skip(wire),
+        }
+    }
+    Value::Map(m)
+}
+
+/// Decode a depth body (`PublicAggreDepthsV3Api` / `PublicIncreaseDepthsV3Api`
+/// / `PublicLimitDepthsV3Api` — all share `asks`=1, `bids`=2, `eventType`=3).
+fn pb_decode_depths(b: &[u8]) -> Value {
+    let mut r = PbReader::new(b);
+    let mut asks: Vec<Value> = Vec::new();
+    let mut bids: Vec<Value> = Vec::new();
+    let mut m: HashMap<String, Value> = HashMap::new();
+    while !r.eof() {
+        match r.read_tag() {
+            (1, 2) => asks.push(pb_decode_depth_item(r.read_bytes())),
+            (2, 2) => bids.push(pb_decode_depth_item(r.read_bytes())),
+            (3, 2) => {
+                m.insert("eventType".to_string(), pb_string(r.read_bytes()));
+            }
+            (4, 2) => {
+                m.insert("fromVersion".to_string(), pb_string(r.read_bytes()));
+            }
+            (5, 2) => {
+                m.insert("toVersion".to_string(), pb_string(r.read_bytes()));
+            }
+            (_, wire) => r.skip(wire),
+        }
+    }
+    m.insert("asks".to_string(), Value::List(asks));
+    m.insert("bids".to_string(), Value::List(bids));
+    Value::Map(m)
+}
+
+/// Decode mexc's `PushDataV3ApiWrapper` protobuf frame into the same shape
+/// protobufjs' `.toJSON()` produces, so the ported handlers read it unchanged.
+/// Currently wires the order-book (depth) bodies; other bodies are skipped.
+pub fn decode_mexc_push_data(bytes: &[u8]) -> Value {
+    let mut r = PbReader::new(bytes);
+    let mut m: HashMap<String, Value> = HashMap::new();
+    while !r.eof() {
+        match r.read_tag() {
+            (1, 2) => {
+                m.insert("channel".to_string(), pb_string(r.read_bytes()));
+            }
+            (3, 2) => {
+                m.insert("symbol".to_string(), pb_string(r.read_bytes()));
+            }
+            (4, 2) => {
+                m.insert("symbolId".to_string(), pb_string(r.read_bytes()));
+            }
+            (5, 0) => {
+                m.insert("createTime".to_string(), Value::Int(r.read_varint() as i64));
+            }
+            (6, 0) => {
+                m.insert("sendTime".to_string(), Value::Int(r.read_varint() as i64));
+            }
+            (302, 2) => {
+                m.insert("publicIncreaseDepths".to_string(), pb_decode_depths(r.read_bytes()));
+            }
+            (303, 2) => {
+                m.insert("publicLimitDepths".to_string(), pb_decode_depths(r.read_bytes()));
+            }
+            (313, 2) => {
+                m.insert("publicAggreDepths".to_string(), pb_decode_depths(r.read_bytes()));
+            }
+            (_, wire) => r.skip(wire),
+        }
+    }
+    Value::Map(m)
+}
+
 /// `rsa(message, key, hash)` — RSA PKCS#1 v1.5 signature (SHA-256),
 /// returned base64-encoded. `key` is a PKCS#1 PEM private key.
 pub fn rsa(message: Value, key: Value, _hash: Value) -> Value {

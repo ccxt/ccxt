@@ -101,7 +101,14 @@ fn parse_binary(b: &[u8]) -> Value {
             return parse_text(&s);
         }
     }
-    parse_text(&String::from_utf8_lossy(b))
+    // Uncompressed and valid UTF-8 → parse as text/JSON (covers venues that
+    // send plain-JSON frames over the binary opcode).
+    if let Ok(s) = std::str::from_utf8(b) {
+        return parse_text(s);
+    }
+    // Genuine binary payload (e.g. mexc protobuf): carry the raw bytes through
+    // as the port's byte-array form so `isBinaryMessage`/`decodeProtoMsg` see them.
+    crate::exchange_stubs::bytes_to_value(b)
 }
 
 impl ClientState {
