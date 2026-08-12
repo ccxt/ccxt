@@ -1,8 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Precise from '../base/Precise.js';
-import type { Balances, Dict, FeeString, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market, OrderType, OrderSide, Num, NullableDict } from '../base/types.js';
-import { ArgumentsRequired } from '../base/errors.js';
+import type { Balances, Dict, FeeString, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market, OrderType, OrderSide, Num } from '../base/types.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
@@ -1160,7 +1159,7 @@ export default class lighter extends lighterRest {
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
         this.options['requestId'][url] = newValue;
-        return this.numberToString (newValue);
+        return this.numberToString (newValue) as string;
     }
 
     /**
