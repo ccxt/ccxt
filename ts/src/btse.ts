@@ -1049,6 +1049,20 @@ export default class btse extends Exchange {
                 result[symbol] = this.sortBy (tiers, 'tier');
             }
         }
+        // the exchange only provides the cap of each risk tier, so the floor
+        // is derived from the previous tier: 0 for the first tier, and the
+        // previous tier's maxNotional for every subsequent tier
+        const symbolKeys = Object.keys (result);
+        for (let i = 0; i < symbolKeys.length; i++) {
+            const tiersList = result[symbolKeys[i]];
+            for (let j = 0; j < tiersList.length; j++) {
+                if (j === 0) {
+                    tiersList[j]['minNotional'] = 0;
+                } else {
+                    tiersList[j]['minNotional'] = tiersList[j - 1]['maxNotional'];
+                }
+            }
+        }
         return result as LeverageTiers;
     }
 
