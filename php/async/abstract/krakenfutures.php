@@ -50,7 +50,7 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
         return $this->request('feeschedules/volumes', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_openpositions($params = array()) {
         return $this->request('openpositions', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -284,7 +284,7 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
         return $this->request('feeschedules/volumes', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetOpenpositions($params = array()) {
         return $this->request('openpositions', 'private', 'GET', $params, null, null, array("cost" => 1));
