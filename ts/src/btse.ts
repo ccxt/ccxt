@@ -1712,7 +1712,7 @@ export default class btse extends Exchange {
             'symbol': market['symbol'],
             'id': this.safeString2 (trade, 'tradeId', 'serialId'),
             'order': this.safeString (trade, 'orderId'),
-            'type': undefined,
+            'type': this.parseOrderType (this.safeString (trade, 'orderType')),
             'side': this.safeStringLower (trade, 'side'),
             'takerOrMaker': undefined,
             'price': this.safeString2 (trade, 'filledPrice', 'price'),
