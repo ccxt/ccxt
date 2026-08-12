@@ -1219,8 +1219,12 @@ public partial class testMainClass
         return true;
     }
 
-    public async virtual Task<object> runPrivateTests(BaseExchange exchange, object symbol)
+    public async virtual Task<object> runPrivateTests(BaseExchange exchange, object symbols)
     {
+        // mirrors runPublicTests: the caller always passes the selected symbols as an array
+        // (even a CLI-provided symbol arrives as a one-element array), and private tests run
+        // on the primary symbol per market type
+        object symbol = getValue(symbols, 0);
         if (!isTrue(exchange.checkRequiredCredentials(false)))
         {
             dump("[INFO] Skipping private tests", "Keys not found");
