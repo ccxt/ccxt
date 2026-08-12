@@ -78,25 +78,32 @@ async fn watch_probe<T: ExchangeBase + Send + 'static>(mut ex: Box<T>) -> String
     let sym: &str = &sym;
     // Loop like real usage: many venues resolve an empty book first and fill via
     // subsequent deltas. Keep watching (within a total budget) until the book is
-    // populated, so a first-resolve-empty isn't misreported as broken.
-    let overall = tokio::time::timeout(Duration::from_secs(22), async {
-        let mut last = String::from("EMPTY     [never resolved]");
-        loop {
-            let fut = ExchangeBase::call_dynamic(&mut *ex, "watch_order_book", vec![Value::Str(sym.to_string())]);
-            match AssertUnwindSafe(fut).catch_unwind().await {
-                Err(e) => return format!("PANIC     [{sym}]: {}", panic_msg(e)),
-                Ok(ob) => {
-                    let c = classify(&ob, sym);
-                    if c.starts_with("OK") { return c; }
-                    last = c;
-                    let _ = &last;
-                }
+    // two-sided. We track the best partial result so a genuinely one-sided venue
+    // (e.g. derive's thin testnet market) surfaces as OK1SIDE at the deadline
+    // rather than a bare TIMEOUT, while a never-resolving venue stays TIMEOUT.
+    let deadline = tokio::time::Instant::now() + Duration::from_secs(22);
+    let mut last = String::from("EMPTY     [never resolved]");
+    let mut resolved_once = false;
+    loop {
+        let now = tokio::time::Instant::now();
+        if now >= deadline {
+            return if resolved_once { last } else { format!("TIMEOUT   [{sym}]") };
+        }
+        let fut = ExchangeBase::call_dynamic(&mut *ex, "watch_order_book", vec![Value::Str(sym.to_string())]);
+        match tokio::time::timeout(deadline - now, AssertUnwindSafe(fut).catch_unwind()).await {
+            Err(_) => return if resolved_once { last } else { format!("TIMEOUT   [{sym}]") },
+            Ok(Err(e)) => return format!("PANIC     [{sym}]: {}", panic_msg(e)),
+            Ok(Ok(ob)) => {
+                resolved_once = true;
+                let c = classify(&ob, sym);
+                // Only a two-sided book ("OK        ") is a definitive success.
+                // Incremental venues (e.g. bithumb) resolve a one-sided book first
+                // and fill the other side via later deltas, so keep looping on
+                // OK1SIDE and only fall back to it at the deadline.
+                if c.starts_with("OK ") { return c; }
+                last = c;
             }
         }
-    }).await;
-    match overall {
-        Err(_) => format!("TIMEOUT   [{sym}]"),
-        Ok(s) => s,
     }
 }
 

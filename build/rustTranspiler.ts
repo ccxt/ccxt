@@ -452,6 +452,68 @@ class RustTranspilerBuilder {
         return out;
     }
 
+    // JS builds a subscribe request by aliasing a local array into a dict
+    // literal and then mutating the array: `const args = []; const req = {
+    // 'params': args }; ... args.push(x); ... this.watch(url, hash, req)`.
+    // In JS `req.params` and `args` are the same reference, so the pushes are
+    // visible; in Rust `m.insert("params", args.clone())` snapshots an *empty*
+    // clone, so the request ships `params: []` (e.g. aster times out). When a
+    // dict-literal field aliases a bare local that is subsequently mutated
+    // (push/set) before the dict is consumed (`req.clone()`), re-materialise
+    // the field with a write-back right before that consumption. Venues that
+    // populate the array *before* the literal (binance) mutate nothing after
+    // the binding, so they match nothing here — no behaviour change.
+    writeBackAliasedArrayMutations(content: string): string {
+        const lines = content.split('\n');
+        const bindStartRe = /^(\s*)let mut ([a-zA-Z_]\w*): Value = Value::Map\(\{\s*$/;
+        const insertRe = /^\s*m\.insert\("([^"]+)"\.to_string\(\), ([a-zA-Z_]\w*)\.clone\(\)\);\s*$/;
+        const litEndRe = /^\s*\}\);\s*$/;
+        const fnRe = /^\s{4}(pub\s+)?(async\s+)?fn /;
+        const inserts = new Map<number, string[]>(); // line index → lines to emit before it
+        let i = 0;
+        while (i < lines.length) {
+            const bm = lines[i].match(bindStartRe);
+            if (!bm) { i++; continue; }
+            const [, indent, req] = bm;
+            const aliases: { key: string; varName: string }[] = [];
+            let j = i + 1;
+            while (j < lines.length && !litEndRe.test(lines[j])) {
+                const im = lines[j].match(insertRe);
+                if (im) aliases.push({ key: im[1], varName: im[2] });
+                j++;
+            }
+            if (j >= lines.length || aliases.length === 0) { i++; continue; }
+            const litEnd = j;
+            const mutated = new Set<string>();
+            let consumeIdx = -1;
+            for (let k = litEnd + 1; k < lines.length; k++) {
+                if (fnRe.test(lines[k])) break; // left the method
+                for (const a of aliases) {
+                    const mre = new RegExp(`\\b(append_to_array|add_element_to_object|set_value|crate::set_value)\\(&mut ${a.varName}[,)]`);
+                    if (mre.test(lines[k])) mutated.add(a.varName);
+                }
+                if (lines[k].includes(`${req}.clone()`)) { consumeIdx = k; break; }
+            }
+            if (consumeIdx >= 0) {
+                const writeBacks = aliases
+                    .filter((a) => mutated.has(a.varName))
+                    .map((a) => `${indent}crate::set_value(&mut ${req}, &crate::Value::Str("${a.key}".to_string()), ${a.varName}.clone());`);
+                if (writeBacks.length) {
+                    inserts.set(consumeIdx, (inserts.get(consumeIdx) || []).concat(writeBacks));
+                }
+            }
+            i = litEnd + 1;
+        }
+        if (inserts.size === 0) return content;
+        const out: string[] = [];
+        for (let k = 0; k < lines.length; k++) {
+            const pre = inserts.get(k);
+            if (pre) out.push(...pre);
+            out.push(lines[k]);
+        }
+        return out.join('\n');
+    }
+
     // Walks Rust source from a `{` to its matching `}` while skipping
     // line and block comments and string literals — an unbalanced `{`
     // inside a JSON example in a docstring would otherwise trick the
@@ -5614,6 +5676,7 @@ ${arms.join('\n')}
         content = this.rewriteCallMethodToDirect(content);
         content = this.writeBackIndexedMutations(content);
         content = this.rewriteInlineFieldAppends(content);
+        content = this.writeBackAliasedArrayMutations(content);
         // Propagate async-ness through the call graph: keep iterating
         // mark-async-if-body-awaits + append-await-to-callers until fixed.
         {
@@ -6587,6 +6650,7 @@ impl std::ops::DerefMut for ${coreName} {
         // convertOHLCVToTradingView etc. — review P0-C).
         basePart = this.writeBackIndexedMutations(basePart);
         basePart = this.rewriteInlineFieldAppends(basePart);
+        basePart = this.writeBackAliasedArrayMutations(basePart);
 
         // The prediction tier has many methods that mutate instance state
         // (set_events/set_outcomes/load_outcomes/index_market_outcomes/…). The

@@ -612,6 +612,7 @@ impl AsterCore {
             append_to_array(&mut messageHashes, add(&Value::Str("ticker:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))));
         }
         }
+        crate::set_value(&mut request, &crate::Value::Str("params".to_string()), subscriptionArgs.clone());
         let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
         let mut newTicker: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_0, messageHashes.clone()]).await;
         if is_true(&self.newUpdates) {
@@ -681,6 +682,7 @@ impl AsterCore {
             append_to_array(&mut messageHashes, add(&Value::Str("unsubscribe:ticker:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))));
         }
         }
+        crate::set_value(&mut request, &crate::Value::Str("params".to_string()), subscriptionArgs.clone());
         let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_1, messageHashes.clone()]).await;
 
@@ -791,6 +793,7 @@ impl AsterCore {
             append_to_array(&mut messageHashes, add(&Value::Str("ticker:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))));
         }
         }
+        crate::set_value(&mut request, &crate::Value::Str("params".to_string()), subscriptionArgs.clone());
         let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
         let mut newTicker: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_2, messageHashes.clone()]).await;
         if is_true(&self.newUpdates) {
@@ -861,6 +864,7 @@ impl AsterCore {
             append_to_array(&mut messageHashes, add(&Value::Str("unsubscribe:ticker:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))));
         }
         }
+        crate::set_value(&mut request, &crate::Value::Str("params".to_string()), subscriptionArgs.clone());
         let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_3, messageHashes.clone()]).await;
 
@@ -1008,6 +1012,7 @@ impl AsterCore {
             append_to_array(&mut messageHashes, add(&Value::Str("bidask:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))));
         }
         }
+        crate::set_value(&mut request, &crate::Value::Str("params".to_string()), subscriptionArgs.clone());
         let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
         let mut newTicker: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_4, messageHashes.clone()]).await;
         if is_true(&self.newUpdates) {
@@ -1074,6 +1079,7 @@ impl AsterCore {
             append_to_array(&mut messageHashes, add(&Value::Str("unsubscribe:bidask:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))));
         }
         }
+        crate::set_value(&mut request, &crate::Value::Str("params".to_string()), subscriptionArgs.clone());
         let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_5, messageHashes.clone()]).await;
 
@@ -1230,6 +1236,7 @@ impl AsterCore {
             append_to_array(&mut messageHashes, add(&Value::Str("trade::".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))));
         }
         }
+        crate::set_value(&mut request, &crate::Value::Str("params".to_string()), subscriptionArgs.clone());
         let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
         let mut trades: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_6, messageHashes.clone()]).await;
         if is_true(&self.newUpdates) {
@@ -1290,6 +1297,7 @@ impl AsterCore {
             append_to_array(&mut messageHashes, add(&Value::Str("unsubscribe:trade:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))));
         }
         }
+        crate::set_value(&mut request, &crate::Value::Str("params".to_string()), subscriptionArgs.clone());
         let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_7, messageHashes.clone()]).await;
 
@@ -1589,6 +1597,7 @@ impl AsterCore {
             append_to_array(&mut messageHashes, add(&Value::Str("orderbook:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))));
         }
         }
+        crate::set_value(&mut request, &crate::Value::Str("params".to_string()), subscriptionArgs.clone());
         let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
         let mut orderbook: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_8, messageHashes.clone()]).await;
         return orderbook.limit();
@@ -1652,6 +1661,7 @@ impl AsterCore {
             append_to_array(&mut messageHashes, add(&Value::Str("unsubscribe:orderbook:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))));
         }
         }
+        crate::set_value(&mut request, &crate::Value::Str("params".to_string()), subscriptionArgs.clone());
         let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_9, messageHashes.clone()]).await;
 
@@ -1814,6 +1824,7 @@ impl AsterCore {
             append_to_array(&mut messageHashes, add(&add(&add(&Value::Str("ohlcv:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))), &Value::Str(":".to_string())), &unfiedTimeframe));
         }
         }
+        crate::set_value(&mut request, &crate::Value::Str("params".to_string()), subscriptionArgs.clone());
         let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
         let mut symboltimeframestoredVariable = self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_10, messageHashes.clone()]).await;
         let mut symbol: Value = get_value(&symboltimeframestoredVariable, &Value::Int(0));
@@ -1884,6 +1895,7 @@ impl AsterCore {
             append_to_array(&mut messageHashes, add(&add(&add(&Value::Str("unsubscribe:ohlcv:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))), &Value::Str(":".to_string())), &unfiedTimeframe));
         }
         }
+        crate::set_value(&mut request, &crate::Value::Str("params".to_string()), subscriptionArgs.clone());
         let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_11, messageHashes.clone()]).await;
 
