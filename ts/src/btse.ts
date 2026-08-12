@@ -3364,7 +3364,7 @@ export default class btse extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
-            'leverage': leverage,
+            'leverage': leverage, // a value of 0 requests the maximum cross leverage per the documentation
         };
         const response = await this.privatePostFuturesApiV23Leverage (this.extend (request, params));
         return response;
