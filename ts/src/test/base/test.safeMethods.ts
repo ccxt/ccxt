@@ -159,6 +159,7 @@ function testSafeString () {
     assert (exchange.safeStringStartsWith (inputDict, 'str', 'he', 'X', 'she', 'Y') === 'X');
     assert (exchange.safeStringStartsWith (inputDict, 'str', 'she', 'X', 'he', 'Y') === 'Y');
     assert (exchange.safeStringStartsWith (inputDict, 'str', 'A', 'X', 'B', 'Y') === undefined);
+    assert (exchange.safeStringStartsWith (inputDict, 'xyz', 'A', 'X', 'B', 'Y') === undefined);
 }
 
 function testSafeValue () {
