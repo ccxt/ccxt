@@ -78,6 +78,7 @@ type Client struct {
 	ConnectionTimeout     any            // e.g. *time.Timer or context.CancelFunc
 	Verbose               bool           // default false
 	DecompressBinary      bool
+	IsMock                bool           // static ws tests: transport is stubbed, sends are dropped
 	ConnectionTimer       any                           // e.g. *time.Timer or custom timer
 	LastPong              any                           // time or timestamp type recommended
 	MaxPingPongMisses     any                           // int or counter type
@@ -488,7 +489,11 @@ func (this *Client) Send(message any) <-chan any {
 	go func() {
 		this.ConnectionMu.Lock()
 		// ? if (isNode)
-		if this.Connection == nil {
+		if this.IsMock {
+			// static ws tests: transport is stubbed
+			future.Resolve(true)
+			ch <- true
+		} else if this.Connection == nil {
 			err := NetworkError("not connected to " + this.Url)
 			future.Reject(err)
 			// the caller receives on ch (see Exchange.watch); without sending here

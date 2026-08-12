@@ -91,6 +91,7 @@ public class WsClient {
     public volatile CompletableFuture<Boolean> connected;
     public volatile long lastPong = 0;
     public boolean error = false;
+    public boolean isMock = false; // static ws tests: transport is stubbed, sends are dropped
     /**
      * Optional typed reason for a deliberate close. Set by Exchange.close()
      * to an ExchangeClosedByUser before invoking this.close(); the close path
@@ -568,6 +569,10 @@ public class WsClient {
      * Callers should handle the returned future to detect send failures.
      */
     public CompletableFuture<Void> send(Object message) {
+        if (this.isMock) {
+            // static ws tests: transport is stubbed
+            return CompletableFuture.completedFuture(null);
+        }
         String json;
         if (message instanceof String s) {
             json = s;

@@ -54,6 +54,8 @@ public partial class BaseExchange
 
         public bool decompressBinary = true;
 
+        public bool isMock = false; // static ws tests: transport is stubbed, sends are dropped
+
         public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool decompressBinary = true)
         {
             this.url = url;
@@ -311,6 +313,10 @@ public partial class BaseExchange
 
         public async Task send(object message)
         {
+            if (this.isMock)
+            {
+                return; // static ws tests: transport is stubbed
+            }
             var jsonMessage = (message is string) ? ((string)message) : Exchange.Json(message);
             if (this.verbose)
             {

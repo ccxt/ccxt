@@ -1,0 +1,60 @@
+{
+    "exchange": "binance",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchTrades": [
+            {
+                "description": "spot public trade message",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://stream.binance.com:9443/ws/0",
+                "messages": [
+                    {
+                        "e": "trade",
+                        "E": 1754500000123,
+                        "s": "BTCUSDT",
+                        "t": 4567891234,
+                        "p": "64000.10",
+                        "q": "0.00500000",
+                        "T": 1754500000120,
+                        "m": true,
+                        "M": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "e": "trade",
+                            "E": 1754500000123,
+                            "s": "BTCUSDT",
+                            "t": 4567891234,
+                            "p": "64000.10",
+                            "q": "0.00500000",
+                            "T": 1754500000120,
+                            "m": true,
+                            "M": true
+                        },
+                        "timestamp": 1754500000120,
+                        "datetime": "2025-08-06T17:06:40.120Z",
+                        "symbol": "BTC/USDT",
+                        "id": "4567891234",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 64000.1,
+                        "amount": 0.005,
+                        "cost": 320.0005,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}
