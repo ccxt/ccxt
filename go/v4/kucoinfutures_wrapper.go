@@ -393,7 +393,7 @@ func (this *Kucoinfutures) FetchOrderBooks(options ...FetchOrderBooksOptions) (O
 func (this *Kucoinfutures) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Kucoinfutures) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Kucoinfutures) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Kucoinfutures) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -435,7 +435,7 @@ func (this *Kucoinfutures) FetchTicker(symbol string, options ...FetchTickerOpti
 func (this *Kucoinfutures) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Kucoinfutures) FetchTime(params ...any) (int64, error) {
+func (this *Kucoinfutures) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Kucoinfutures) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {

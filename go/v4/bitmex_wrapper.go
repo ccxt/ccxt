@@ -1469,7 +1469,7 @@ func (this *Bitmex) FetchOrderWithClientOrderId(clientOrderId string, options ..
 func (this *Bitmex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
-func (this *Bitmex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Bitmex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Bitmex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -1502,7 +1502,7 @@ func (this *Bitmex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiu
 func (this *Bitmex) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Bitmex) FetchTime(params ...any) (int64, error) {
+func (this *Bitmex) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Bitmex) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

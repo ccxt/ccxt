@@ -34,12 +34,12 @@ func NewXtFromCore(core *XtCore) *Xt {
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the xt server
  */
-func (this *Xt) FetchTime(params ...any) (int64, error) {
+func (this *Xt) FetchTime(params ...any) (*int64, error) {
 	res := <-this.Core.FetchTime(params...)
-	if IsError(res) {
-		return -1, CreateReturnError(res)
+	if IsErrorRes(res) {
+		return nil, CreateReturnErrorRes(res)
 	}
-	return (res).(int64), nil
+	return res.Val, nil
 }
 
 /**
@@ -1796,7 +1796,7 @@ func (this *Xt) FetchOrderWithClientOrderId(clientOrderId string, options ...Fet
 func (this *Xt) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
-func (this *Xt) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Xt) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Xt) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {

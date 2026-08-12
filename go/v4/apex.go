@@ -361,11 +361,11 @@ func (this *ApexCore) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *ApexCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
+func (this *ApexCore) FetchTime(optionalArgs ...any) <-chan Res[*int64] {
+	ch := make(chan Res[*int64])
 	go func() any {
 		defer close(ch)
-		defer ReturnPanicError(ch)
+		defer ReturnPanicErrorRes(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
@@ -379,7 +379,7 @@ func (this *ApexCore) FetchTime(optionalArgs ...any) <-chan any {
 		//    "time": 1738837534454
 		//     }
 		// }
-		ch <- this.SafeInteger(data, "time")
+		ch <- Res[*int64]{Val: Int64PtrFromAny(this.SafeInteger(data, "time"))}
 		return nil
 
 	}()

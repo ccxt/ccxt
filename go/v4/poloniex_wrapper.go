@@ -114,12 +114,12 @@ func (this *Poloniex) FetchSwapMarkets(params ...any) ([]MarketInterface, error)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Poloniex) FetchTime(params ...any) (int64, error) {
+func (this *Poloniex) FetchTime(params ...any) (*int64, error) {
 	res := <-this.Core.FetchTime(params...)
-	if IsError(res) {
-		return -1, CreateReturnError(res)
+	if IsErrorRes(res) {
+		return nil, CreateReturnErrorRes(res)
 	}
-	return (res).(int64), nil
+	return res.Val, nil
 }
 
 /**
@@ -565,7 +565,7 @@ func (this *Poloniex) FetchOrder(id string, options ...FetchOrderOptions) (Order
 	}
 	return NewOrder(res), nil
 }
-func (this *Poloniex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Poloniex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 
 	opts := FetchOrderStatusOptionsStruct{}
 
@@ -584,9 +584,12 @@ func (this *Poloniex) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 	}
 	res := <-this.Core.FetchOrderStatus(id, symbol, params)
 	if IsError(res) {
-		return "", CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(string), nil
+	if typed, ok := res.(string); ok {
+		return &typed, nil
+	}
+	return nil, nil
 }
 
 /**

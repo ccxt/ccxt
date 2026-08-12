@@ -334,7 +334,7 @@ func (this *Okxus) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBook
 func (this *Okxus) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Okxus) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Okxus) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Okxus) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -376,7 +376,7 @@ func (this *Okxus) FetchTicker(symbol string, options ...FetchTickerOptions) (Ti
 func (this *Okxus) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Okxus) FetchTime(params ...any) (int64, error) {
+func (this *Okxus) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Okxus) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {

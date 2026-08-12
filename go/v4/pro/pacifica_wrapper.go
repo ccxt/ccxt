@@ -1004,7 +1004,7 @@ func (this *Pacifica) FetchOrderBooks(options ...ccxt.FetchOrderBooksOptions) (c
 func (this *Pacifica) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Pacifica) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (string, error) {
+func (this *Pacifica) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Pacifica) FetchOrderTrades(id string, options ...ccxt.FetchOrderTradesOptions) ([]ccxt.Trade, error) {
@@ -1046,7 +1046,7 @@ func (this *Pacifica) FetchTicker(symbol string, options ...ccxt.FetchTickerOpti
 func (this *Pacifica) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Pacifica) FetchTime(params ...any) (int64, error) {
+func (this *Pacifica) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Pacifica) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.Trade, error) {

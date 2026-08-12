@@ -1148,7 +1148,7 @@ func (this *Hollaex) FetchOptionChain(code string, options ...FetchOptionChainOp
 func (this *Hollaex) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
 	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
 }
-func (this *Hollaex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Hollaex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Hollaex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -1184,7 +1184,7 @@ func (this *Hollaex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremi
 func (this *Hollaex) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Hollaex) FetchTime(params ...any) (int64, error) {
+func (this *Hollaex) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Hollaex) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

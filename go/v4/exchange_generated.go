@@ -1239,11 +1239,11 @@ func (this *BaseExchange) UnWatchOrderBook(symbol any, optionalArgs ...any) <-ch
 	}()
 	return ch
 }
-func (this *BaseExchange) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
+func (this *BaseExchange) FetchTime(optionalArgs ...any) <-chan Res[*int64] {
+	ch := make(chan Res[*int64])
 	go func() any {
 		defer close(ch)
-		defer ReturnPanicError(ch)
+		defer ReturnPanicErrorRes(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		panic(NotSupported(Add(this.Id, " fetchTime() is not supported yet")))
@@ -6370,8 +6370,9 @@ func (this *BaseExchange) LoadTimeDifference(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		serverTime := <-this.DerivedExchange.FetchTime(params)
-		PanicOnError(serverTime)
+		serverTimeRes := <-this.DerivedExchange.FetchTime(params)
+		PanicOnErrorRes(serverTimeRes)
+		var serverTime any = AnyFromPtr(serverTimeRes.Val)
 		var after any = this.Milliseconds()
 		if IsTrue(IsEqual(serverTime, nil)) {
 			panic(ExchangeError(Add(this.Id, " loadTimeDifference() missing serverTime")))

@@ -661,11 +661,11 @@ func (this *CoinbaseCore) Describe() any {
  * @param {string} [params.method] 'v2PublicGetTime' or 'v3PublicGetBrokerageTime' default is 'v2PublicGetTime'
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *CoinbaseCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
+func (this *CoinbaseCore) FetchTime(optionalArgs ...any) <-chan Res[*int64] {
+	ch := make(chan Res[*int64])
 	go func() any {
 		defer close(ch)
-		defer ReturnPanicError(ch)
+		defer ReturnPanicErrorRes(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		var defaultMethod any = this.SafeString(this.Options, "fetchTime", "v2PublicGetTime")
@@ -691,7 +691,7 @@ func (this *CoinbaseCore) FetchTime(optionalArgs ...any) <-chan any {
 			PanicOnError(response)
 		}
 
-		ch <- this.SafeTimestamp2(response, "epoch", "epochSeconds")
+		ch <- Res[*int64]{Val: Int64PtrFromAny(this.SafeTimestamp2(response, "epoch", "epochSeconds"))}
 		return nil
 
 	}()

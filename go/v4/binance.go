@@ -4561,11 +4561,11 @@ func (this *BinanceCore) EnableDemoTrading(enable any) {
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *BinanceCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
+func (this *BinanceCore) FetchTime(optionalArgs ...any) <-chan Res[*int64] {
+	ch := make(chan Res[*int64])
 	go func() any {
 		defer close(ch)
-		defer ReturnPanicError(ch)
+		defer ReturnPanicErrorRes(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		var defaultType any = this.SafeString2(this.Options, "fetchTime", "defaultType", "spot")
@@ -4590,7 +4590,7 @@ func (this *BinanceCore) FetchTime(optionalArgs ...any) <-chan any {
 			PanicOnError(response)
 		}
 
-		ch <- this.SafeInteger(response, "serverTime")
+		ch <- Res[*int64]{Val: Int64PtrFromAny(this.SafeInteger(response, "serverTime"))}
 		return nil
 
 	}()

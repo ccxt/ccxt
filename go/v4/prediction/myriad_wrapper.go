@@ -1753,7 +1753,7 @@ func (this *Myriad) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchP
 func (this *Myriad) FetchStatus(params ...any) (ccxt.Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Myriad) FetchTime(params ...any) (int64, error) {
+func (this *Myriad) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Myriad) FetchTradingFees(params ...any) (ccxt.TradingFees, error) {

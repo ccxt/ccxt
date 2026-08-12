@@ -1016,7 +1016,7 @@ func (this *Gemini) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBoo
 func (this *Gemini) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Gemini) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Gemini) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Gemini) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -1052,7 +1052,7 @@ func (this *Gemini) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiu
 func (this *Gemini) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Gemini) FetchTime(params ...any) (int64, error) {
+func (this *Gemini) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Gemini) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

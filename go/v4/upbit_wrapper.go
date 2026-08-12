@@ -1266,7 +1266,7 @@ func (this *Upbit) FetchOrderWithClientOrderId(clientOrderId string, options ...
 func (this *Upbit) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Upbit) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Upbit) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Upbit) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -1302,7 +1302,7 @@ func (this *Upbit) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremium
 func (this *Upbit) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Upbit) FetchTime(params ...any) (int64, error) {
+func (this *Upbit) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Upbit) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {

@@ -602,11 +602,11 @@ func (this *CexCore) ParseMarket(market any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *CexCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
+func (this *CexCore) FetchTime(optionalArgs ...any) <-chan Res[*int64] {
+	ch := make(chan Res[*int64])
 	go func() any {
 		defer close(ch)
-		defer ReturnPanicError(ch)
+		defer ReturnPanicErrorRes(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
@@ -624,7 +624,7 @@ func (this *CexCore) FetchTime(optionalArgs ...any) <-chan any {
 		var data any = this.SafeDict(response, "data")
 		var timestamp any = this.SafeInteger(data, "timestamp")
 
-		ch <- timestamp
+		ch <- Res[*int64]{Val: Int64PtrFromAny(timestamp)}
 		return nil
 
 	}()

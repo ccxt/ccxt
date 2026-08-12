@@ -1332,7 +1332,7 @@ func (this *Krakenfutures) FetchOrderWithClientOrderId(clientOrderId string, opt
 func (this *Krakenfutures) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
-func (this *Krakenfutures) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Krakenfutures) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Krakenfutures) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -1368,7 +1368,7 @@ func (this *Krakenfutures) FetchStatus(params ...any) (Status, error) {
 func (this *Krakenfutures) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 	return this.exchangeTyped.FetchTicker(symbol, options...)
 }
-func (this *Krakenfutures) FetchTime(params ...any) (int64, error) {
+func (this *Krakenfutures) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Krakenfutures) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

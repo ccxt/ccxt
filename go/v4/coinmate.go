@@ -440,11 +440,11 @@ func (this *CoinmateCore) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *CoinmateCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
+func (this *CoinmateCore) FetchTime(optionalArgs ...any) <-chan Res[*int64] {
+	ch := make(chan Res[*int64])
 	go func() any {
 		defer close(ch)
-		defer ReturnPanicError(ch)
+		defer ReturnPanicErrorRes(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
@@ -456,7 +456,7 @@ func (this *CoinmateCore) FetchTime(optionalArgs ...any) <-chan any {
 		//         "serverTime": 1765250628745
 		//     }
 		//
-		ch <- this.SafeInteger(response, "serverTime")
+		ch <- Res[*int64]{Val: Int64PtrFromAny(this.SafeInteger(response, "serverTime"))}
 		return nil
 
 	}()

@@ -2409,11 +2409,11 @@ func (this *HtxCore) FetchStatus(optionalArgs ...any) <-chan any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *HtxCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
+func (this *HtxCore) FetchTime(optionalArgs ...any) <-chan Res[*int64] {
+	ch := make(chan Res[*int64])
 	go func() any {
 		defer close(ch)
-		defer ReturnPanicError(ch)
+		defer ReturnPanicErrorRes(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		var options any = this.SafeValue(this.Options, "fetchTime", map[string]any{})
@@ -2440,7 +2440,7 @@ func (this *HtxCore) FetchTime(optionalArgs ...any) <-chan any {
 		//
 		//     {"status":"ok","ts":1637504164707}
 		//
-		ch <- this.SafeInteger2(response, "data", "ts")
+		ch <- Res[*int64]{Val: Int64PtrFromAny(this.SafeInteger2(response, "data", "ts"))}
 		return nil
 
 	}()

@@ -542,11 +542,11 @@ func (this *AlpacaCore) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *AlpacaCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
+func (this *AlpacaCore) FetchTime(optionalArgs ...any) <-chan Res[*int64] {
+	ch := make(chan Res[*int64])
 	go func() any {
 		defer close(ch)
-		defer ReturnPanicError(ch)
+		defer ReturnPanicErrorRes(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
@@ -579,7 +579,7 @@ func (this *AlpacaCore) FetchTime(optionalArgs ...any) <-chan any {
 		var jetlag any = Slice(timestamp, jetlagStrStart, jetlagStrEnd)
 		var iso any = Subtract(this.ParseToInt(this.Parse8601(localTime)), Multiply(Multiply(this.ParseToNumeric(jetlag), 3600), 1000))
 
-		ch <- iso
+		ch <- Res[*int64]{Val: Int64PtrFromAny(iso)}
 		return nil
 
 	}()

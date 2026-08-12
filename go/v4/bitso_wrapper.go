@@ -1057,7 +1057,7 @@ func (this *Bitso) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBook
 func (this *Bitso) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Bitso) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Bitso) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Bitso) FetchPaymentMethods(params ...any) (map[string]any, error) {
@@ -1093,7 +1093,7 @@ func (this *Bitso) FetchStatus(params ...any) (Status, error) {
 func (this *Bitso) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Bitso) FetchTime(params ...any) (int64, error) {
+func (this *Bitso) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Bitso) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

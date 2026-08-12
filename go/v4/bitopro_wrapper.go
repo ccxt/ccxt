@@ -1077,7 +1077,7 @@ func (this *Bitopro) FetchOrderWithClientOrderId(clientOrderId string, options .
 func (this *Bitopro) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
-func (this *Bitopro) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Bitopro) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Bitopro) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -1113,7 +1113,7 @@ func (this *Bitopro) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremi
 func (this *Bitopro) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Bitopro) FetchTime(params ...any) (int64, error) {
+func (this *Bitopro) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Bitopro) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

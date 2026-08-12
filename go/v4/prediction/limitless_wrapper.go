@@ -1077,7 +1077,7 @@ func (this *Limitless) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.Fet
 func (this *Limitless) FetchStatus(params ...any) (ccxt.Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Limitless) FetchTime(params ...any) (int64, error) {
+func (this *Limitless) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Limitless) FetchTradingFee(outcome string, options ...ccxt.FetchTradingFeeOptions) (ccxt.PredictionTradingFee, error) {

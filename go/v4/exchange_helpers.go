@@ -1895,6 +1895,33 @@ func GetArg(v []any, index int, def any) any {
 		return def
 	}
 
+	// maybe-undefined scalars travel as pointers (*string/*int64/*float64/*bool):
+	// a nil pointer is undefined, so it falls back to the default like an absent
+	// argument, and a present pointer is unwrapped to the value the core expects.
+	// A typed nil is not `== nil` once boxed in `any`, so it must be matched here.
+	switch p := val.(type) {
+	case *string:
+		if p == nil {
+			return def
+		}
+		return *p
+	case *int64:
+		if p == nil {
+			return def
+		}
+		return *p
+	case *float64:
+		if p == nil {
+			return def
+		}
+		return *p
+	case *bool:
+		if p == nil {
+			return def
+		}
+		return *p
+	}
+
 	if res, ok := val.([]any); ok { // this is not working well with safeList(x, 'key', []) but works for fetchTrade(s, options any...)
 		// if len(res) == 0 {
 		// 	return def

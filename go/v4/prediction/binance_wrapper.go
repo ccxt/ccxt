@@ -1062,7 +1062,7 @@ func (this *Binance) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.Fetch
 func (this *Binance) FetchStatus(params ...any) (ccxt.Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Binance) FetchTime(params ...any) (int64, error) {
+func (this *Binance) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Binance) FetchTrades(outcome string, options ...ccxt.FetchTradesOptions) ([]ccxt.PredictionTrade, error) {

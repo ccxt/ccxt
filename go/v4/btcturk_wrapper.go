@@ -727,7 +727,7 @@ func (this *Btcturk) FetchOrderWithClientOrderId(clientOrderId string, options .
 func (this *Btcturk) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
-func (this *Btcturk) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Btcturk) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Btcturk) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -763,7 +763,7 @@ func (this *Btcturk) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremi
 func (this *Btcturk) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Btcturk) FetchTime(params ...any) (int64, error) {
+func (this *Btcturk) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Btcturk) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

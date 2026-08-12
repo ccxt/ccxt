@@ -1641,7 +1641,7 @@ func (this *Phemex) FetchOrderWithClientOrderId(clientOrderId string, options ..
 func (this *Phemex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
-func (this *Phemex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Phemex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Phemex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -1671,7 +1671,7 @@ func (this *Phemex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiu
 func (this *Phemex) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Phemex) FetchTime(params ...any) (int64, error) {
+func (this *Phemex) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Phemex) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

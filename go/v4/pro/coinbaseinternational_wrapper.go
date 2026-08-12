@@ -635,7 +635,7 @@ func (this *Coinbaseinternational) FetchOrderBooks(options ...ccxt.FetchOrderBoo
 func (this *Coinbaseinternational) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Coinbaseinternational) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (string, error) {
+func (this *Coinbaseinternational) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Coinbaseinternational) FetchOrderTrades(id string, options ...ccxt.FetchOrderTradesOptions) ([]ccxt.Trade, error) {
@@ -677,7 +677,7 @@ func (this *Coinbaseinternational) FetchTicker(symbol string, options ...ccxt.Fe
 func (this *Coinbaseinternational) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Coinbaseinternational) FetchTime(params ...any) (int64, error) {
+func (this *Coinbaseinternational) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Coinbaseinternational) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.Trade, error) {

@@ -2847,11 +2847,11 @@ func (this *HibachiCore) FetchMySettlementHistory(optionalArgs ...any) <-chan an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *HibachiCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
+func (this *HibachiCore) FetchTime(optionalArgs ...any) <-chan Res[*int64] {
+	ch := make(chan Res[*int64])
 	go func() any {
 		defer close(ch)
-		defer ReturnPanicError(ch)
+		defer ReturnPanicErrorRes(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
@@ -2861,7 +2861,7 @@ func (this *HibachiCore) FetchTime(optionalArgs ...any) <-chan any {
 		//
 		//     { "timestampMs":1754077574040 }
 		//
-		ch <- this.SafeInteger(response, "timestampMs")
+		ch <- Res[*int64]{Val: Int64PtrFromAny(this.SafeInteger(response, "timestampMs"))}
 		return nil
 
 	}()

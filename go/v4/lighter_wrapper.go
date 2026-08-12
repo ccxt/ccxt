@@ -44,7 +44,7 @@ func (this *Lighter) CreateSubAccount(name string, options ...CreateSubAccountOp
 	}
 	return res.(map[string]any), nil
 }
-func (this *Lighter) FetchNonce(accountIndex any, apiKeyIndex any, options ...FetchNonceOptions) (int64, error) {
+func (this *Lighter) FetchNonce(accountIndex any, apiKeyIndex any, options ...FetchNonceOptions) (*int64, error) {
 
 	opts := FetchNonceOptionsStruct{}
 
@@ -58,9 +58,12 @@ func (this *Lighter) FetchNonce(accountIndex any, apiKeyIndex any, options ...Fe
 	}
 	res := <-this.Core.FetchNonce(accountIndex, apiKeyIndex, params)
 	if IsError(res) {
-		return -1, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return (res).(int64), nil
+	if typed, ok := res.(int64); ok {
+		return &typed, nil
+	}
+	return nil, nil
 }
 
 /**
@@ -175,12 +178,12 @@ func (this *Lighter) FetchStatus(params ...any) (Status, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Lighter) FetchTime(params ...any) (int64, error) {
+func (this *Lighter) FetchTime(params ...any) (*int64, error) {
 	res := <-this.Core.FetchTime(params...)
-	if IsError(res) {
-		return -1, CreateReturnError(res)
+	if IsErrorRes(res) {
+		return nil, CreateReturnErrorRes(res)
 	}
-	return (res).(int64), nil
+	return res.Val, nil
 }
 
 /**
@@ -1292,7 +1295,7 @@ func (this *Lighter) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBo
 func (this *Lighter) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Lighter) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Lighter) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Lighter) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {

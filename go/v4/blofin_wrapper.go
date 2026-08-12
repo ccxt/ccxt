@@ -1444,7 +1444,7 @@ func (this *Blofin) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBoo
 func (this *Blofin) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Blofin) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Blofin) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Blofin) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -1468,7 +1468,7 @@ func (this *Blofin) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiu
 func (this *Blofin) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Blofin) FetchTime(params ...any) (int64, error) {
+func (this *Blofin) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Blofin) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

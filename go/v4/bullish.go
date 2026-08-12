@@ -561,11 +561,11 @@ func (this *BullishCore) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *BullishCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
+func (this *BullishCore) FetchTime(optionalArgs ...any) <-chan Res[*int64] {
+	ch := make(chan Res[*int64])
 	go func() any {
 		defer close(ch)
-		defer ReturnPanicError(ch)
+		defer ReturnPanicErrorRes(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
@@ -578,7 +578,7 @@ func (this *BullishCore) FetchTime(optionalArgs ...any) <-chan any {
 		//         "timestamp": 1746475550999
 		//     }
 		//
-		ch <- this.SafeInteger(response, "timestamp")
+		ch <- Res[*int64]{Val: Int64PtrFromAny(this.SafeInteger(response, "timestamp"))}
 		return nil
 
 	}()

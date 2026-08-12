@@ -37,12 +37,12 @@ func NewBinanceFromCore(core *BinanceCore) *Binance {
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Binance) FetchTime(params ...any) (int64, error) {
+func (this *Binance) FetchTime(params ...any) (*int64, error) {
 	res := <-this.Core.FetchTime(params...)
-	if IsError(res) {
-		return -1, CreateReturnError(res)
+	if IsErrorRes(res) {
+		return nil, CreateReturnErrorRes(res)
 	}
-	return (res).(int64), nil
+	return res.Val, nil
 }
 
 /**
@@ -3644,7 +3644,7 @@ func (this *Binance) FetchOrderWithClientOrderId(clientOrderId string, options .
 func (this *Binance) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
-func (this *Binance) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Binance) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Binance) FetchPaymentMethods(params ...any) (map[string]any, error) {

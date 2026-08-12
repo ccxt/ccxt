@@ -528,7 +528,7 @@ func (this *Bitstamp) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Orde
 	}
 	return NewOrderArray(res), nil
 }
-func (this *Bitstamp) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Bitstamp) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 
 	opts := FetchOrderStatusOptionsStruct{}
 
@@ -547,9 +547,12 @@ func (this *Bitstamp) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 	}
 	res := <-this.Core.FetchOrderStatus(id, symbol, params)
 	if IsError(res) {
-		return "", CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(string), nil
+	if typed, ok := res.(string); ok {
+		return &typed, nil
+	}
+	return nil, nil
 }
 
 /**
@@ -1273,7 +1276,7 @@ func (this *Bitstamp) FetchPremiumIndexOHLCV(symbol string, options ...FetchPrem
 func (this *Bitstamp) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Bitstamp) FetchTime(params ...any) (int64, error) {
+func (this *Bitstamp) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Bitstamp) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {

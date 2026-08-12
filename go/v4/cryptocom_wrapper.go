@@ -1418,7 +1418,7 @@ func (this *Cryptocom) FetchOrderWithClientOrderId(clientOrderId string, options
 func (this *Cryptocom) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
-func (this *Cryptocom) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Cryptocom) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Cryptocom) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -1448,7 +1448,7 @@ func (this *Cryptocom) FetchPremiumIndexOHLCV(symbol string, options ...FetchPre
 func (this *Cryptocom) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Cryptocom) FetchTime(params ...any) (int64, error) {
+func (this *Cryptocom) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Cryptocom) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {

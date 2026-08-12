@@ -1044,7 +1044,7 @@ func (this *Luno) FetchOrderWithClientOrderId(clientOrderId string, options ...F
 func (this *Luno) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
-func (this *Luno) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Luno) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Luno) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -1080,7 +1080,7 @@ func (this *Luno) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumI
 func (this *Luno) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Luno) FetchTime(params ...any) (int64, error) {
+func (this *Luno) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Luno) FetchTradingFees(params ...any) (TradingFees, error) {

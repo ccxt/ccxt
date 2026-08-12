@@ -653,11 +653,11 @@ func (this *DeriveCore) SetSandboxMode(enable any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *DeriveCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
+func (this *DeriveCore) FetchTime(optionalArgs ...any) <-chan Res[*int64] {
+	ch := make(chan Res[*int64])
 	go func() any {
 		defer close(ch)
-		defer ReturnPanicError(ch)
+		defer ReturnPanicErrorRes(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
@@ -670,7 +670,7 @@ func (this *DeriveCore) FetchTime(optionalArgs ...any) <-chan any {
 		//     "id": "f1c03d21-f886-4c5a-9a9d-33dd06f180f0"
 		// }
 		//
-		ch <- this.SafeInteger(response, "result")
+		ch <- Res[*int64]{Val: Int64PtrFromAny(this.SafeInteger(response, "result"))}
 		return nil
 
 	}()

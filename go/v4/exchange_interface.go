@@ -201,7 +201,7 @@ type ICoreExchange interface {
 	Market(symbol any) any
 	Nonce() any
 	Unique(obj any) []any
-	FetchTime(optionalArgs ...any) <-chan any
+	FetchTime(optionalArgs ...any) <-chan Res[*int64]
 	FetchCurrencies(optionalArgs ...any) <-chan any
 	FetchMarkets(optionalArgs ...any) <-chan any
 	FetchBalance(optionalArgs ...any) <-chan any
@@ -411,7 +411,7 @@ type IDerivedExchange interface {
 	FetchDepositWithdrawFees(optionalArgs ...any) <-chan any
 	FetchOrders(optionalArgs ...any) <-chan any
 	CreateExpiredOptionMarket(symbol any) any
-	FetchTime(optionalArgs ...any) <-chan any
+	FetchTime(optionalArgs ...any) <-chan Res[*int64]
 	FetchEvents(optionalArgs ...any) <-chan any
 	FetchOutcome(outcomeSymbol any) <-chan any
 	FetchOutcomes(outcomeSymbols any) <-chan any

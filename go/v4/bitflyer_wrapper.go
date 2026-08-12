@@ -932,7 +932,7 @@ func (this *Bitflyer) FetchOrderWithClientOrderId(clientOrderId string, options 
 func (this *Bitflyer) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
-func (this *Bitflyer) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Bitflyer) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Bitflyer) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -968,7 +968,7 @@ func (this *Bitflyer) FetchStatus(params ...any) (Status, error) {
 func (this *Bitflyer) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Bitflyer) FetchTime(params ...any) (int64, error) {
+func (this *Bitflyer) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Bitflyer) FetchTradingFees(params ...any) (TradingFees, error) {

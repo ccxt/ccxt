@@ -334,7 +334,7 @@ func (this *Bybiteu) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBo
 func (this *Bybiteu) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Bybiteu) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Bybiteu) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Bybiteu) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -376,7 +376,7 @@ func (this *Bybiteu) FetchTicker(symbol string, options ...FetchTickerOptions) (
 func (this *Bybiteu) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Bybiteu) FetchTime(params ...any) (int64, error) {
+func (this *Bybiteu) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Bybiteu) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {

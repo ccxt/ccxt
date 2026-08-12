@@ -1129,7 +1129,7 @@ func (this *Ndax) FetchOrderWithClientOrderId(clientOrderId string, options ...F
 func (this *Ndax) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
-func (this *Ndax) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Ndax) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Ndax) FetchPaymentMethods(params ...any) (map[string]any, error) {
@@ -1159,7 +1159,7 @@ func (this *Ndax) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Po
 func (this *Ndax) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Ndax) FetchTime(params ...any) (int64, error) {
+func (this *Ndax) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Ndax) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

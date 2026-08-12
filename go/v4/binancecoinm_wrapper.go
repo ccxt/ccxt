@@ -371,7 +371,7 @@ func (this *Binancecoinm) FetchOrderBooks(options ...FetchOrderBooksOptions) (Or
 func (this *Binancecoinm) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Binancecoinm) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Binancecoinm) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Binancecoinm) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -413,7 +413,7 @@ func (this *Binancecoinm) FetchTicker(symbol string, options ...FetchTickerOptio
 func (this *Binancecoinm) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Binancecoinm) FetchTime(params ...any) (int64, error) {
+func (this *Binancecoinm) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Binancecoinm) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {

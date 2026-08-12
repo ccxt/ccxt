@@ -1127,7 +1127,7 @@ func (this *Hyperliquid) FetchOrderBooks(options ...ccxt.FetchOrderBooksOptions)
 func (this *Hyperliquid) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Hyperliquid) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (string, error) {
+func (this *Hyperliquid) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Hyperliquid) FetchOrderTrades(id string, options ...ccxt.FetchOrderTradesOptions) ([]ccxt.Trade, error) {
@@ -1169,7 +1169,7 @@ func (this *Hyperliquid) FetchTicker(symbol string, options ...ccxt.FetchTickerO
 func (this *Hyperliquid) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Hyperliquid) FetchTime(params ...any) (int64, error) {
+func (this *Hyperliquid) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Hyperliquid) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.Trade, error) {

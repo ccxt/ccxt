@@ -1941,11 +1941,11 @@ func (this *NadoCore) FetchPositions(optionalArgs ...any) <-chan any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *NadoCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
+func (this *NadoCore) FetchTime(optionalArgs ...any) <-chan Res[*int64] {
+	ch := make(chan Res[*int64])
 	go func() any {
 		defer close(ch)
-		defer ReturnPanicError(ch)
+		defer ReturnPanicErrorRes(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		var request any = map[string]any{
@@ -1963,7 +1963,7 @@ func (this *NadoCore) FetchTime(optionalArgs ...any) <-chan any {
 		//         "server_time": "1780000000123"
 		//     }
 		//
-		ch <- this.SafeInteger(response, "server_time")
+		ch <- Res[*int64]{Val: Int64PtrFromAny(this.SafeInteger(response, "server_time"))}
 		return nil
 
 	}()

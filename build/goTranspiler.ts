@@ -301,6 +301,33 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     // 'fetchMarketsWs': true,
 }
 
+// TS aliases that are `T | undefined` (ts/src/base/types.ts). Method return types
+// annotated with these become Go pointers so nil can carry "undefined".
+const NULLABLE_SCALAR_GO_TYPES: dict = {
+    'Str': '*string',
+    'Int': '*int64',
+    'Num': '*float64',
+    'Bool': '*bool',
+};
+
+// Core methods whose channel carries a typed maybe-undefined scalar (`Res[*T]`)
+// instead of a bare `any`. On the legacy protocol the error is smuggled into the
+// value channel as a "panic:" string, which makes any element type other than
+// `any` impossible; `Res[T]` moves the error into its own field so the value side
+// can keep its pointer type end to end. Adding a name here typifies its cores,
+// its interface entries, its wrappers and its intra-core consumers.
+const TYPED_CHAN_CORE_METHODS: dict = {
+    'fetchTime': '*int64',
+};
+
+// Boxed-any -> pointer converters that go with the types above.
+const PTR_FROM_ANY_HELPERS: dict = {
+    '*string': 'StringPtrFromAny',
+    '*int64': 'Int64PtrFromAny',
+    '*float64': 'Float64PtrFromAny',
+    '*bool': 'BoolPtrFromAny',
+};
+
 const INTERFACE_METHODS = [
     'cancelOrders',
     'cancelOrdersWithClientOrderIds',
@@ -946,7 +973,7 @@ class NewTranspiler {
         }
 
         if (name === 'fetchTime'){
-            return ` <- chan int64`; // custom handling for now
+            return `<- chan *int64`; // custom handling for now
         }
 
         const isPromise = type.startsWith('Promise<') && type.endsWith('>');
@@ -1020,6 +1047,13 @@ class NewTranspiler {
         }
         if (this.isDictionary(wrappedType)) {
             return addTaskIfNeeded('map[string]any');
+        }
+        // `Str`/`Int`/`Num`/`Bool` (ts/src/base/types.ts) are `T | undefined`. On the return
+        // path emit them as Go pointers, so the wrapper can hand back nil for undefined
+        // instead of an ambiguous -1 / "" sentinel. Case matters: the lowercase `int` alias
+        // is `number` (non-nullable) and keeps its value type. Lists keep value elements.
+        if (isReturn && !isList && NULLABLE_SCALAR_GO_TYPES[wrappedType] !== undefined) {
+            return addTaskIfNeeded(NULLABLE_SCALAR_GO_TYPES[wrappedType]);
         }
         if (this.isStringType(wrappedType)) {
             return addTaskIfNeeded('string');
@@ -1214,6 +1248,91 @@ class NewTranspiler {
         return type.replace('<- chan ', '');
     }
 
+    // Retype a generated core method from the legacy `<-chan any` union carrier to
+    // `<-chan Res[*T]`. The legacy protocol pushes the error into the value channel
+    // as a "panic:" string, so a typed element is only possible once the error moves
+    // into its own field. Runs on the PRE-gofmt text, where the emitter writes
+    // `func  (this *X)` (two spaces) and `<- chan any` (spaced arrow).
+    retypeCoreChannels(content: string, qualifier = '') {
+        const q = qualifier;
+        for (const methodName of Object.keys(TYPED_CHAN_CORE_METHODS)) {
+            const ptrType = TYPED_CHAN_CORE_METHODS[methodName];
+            const capName = capitalize(methodName);
+            // scalar pointee types are builtins, so only the ccxt symbols take the qualifier
+            const resType = `${q}Res[${ptrType}]`;
+            const toPtr = `${q}${PTR_FROM_ANY_HELPERS[ptrType]}`;
+            const signature = new RegExp (`(func\\s+\\(this \\*\\w+\\)\\s+${capName}\\([^)]*\\)\\s*)<-\\s*chan\\s+any(\\s*\\{)`, 'g');
+            let match: RegExpExecArray | null;
+            // Rewrite one body at a time, scoped to the matched function, so a `ch <-`
+            // belonging to the NEXT method can never be captured.
+            while ((match = signature.exec (content)) !== null) {
+                const bodyStart = match.index + match[0].length;
+                const bodyEnd = this.findGoBodyEnd (content, bodyStart - 1);
+                if (bodyEnd < 0) {
+                    continue;
+                }
+                const body = content.slice (bodyStart, bodyEnd)
+                    .replace (/make\(chan any\)/g, `make(chan ${resType})`)
+                    .replace (/(defer\s+)(?:ccxt\.)?ReturnPanicError\(ch\)/g, `$1${toPtr.replace (PTR_FROM_ANY_HELPERS[ptrType], 'ReturnPanicErrorRes')}(ch)`)
+                    // `ch <- EXPR` (to end of line) -> wrapped in the Res envelope. The
+                    // value is still an `any` at runtime, so the pointer conversion is a
+                    // checked cast: a wrong/absent dynamic type yields nil == undefined.
+                    .replace (/ch <- (?!(?:ccxt\.)?Res\[)(.+)$/gm, `ch <- ${resType}{Val: ${toPtr}($1)}`);
+                const head = `${match[1]}<-chan ${resType}${match[2]}`;
+                content = content.slice (0, match.index) + head + body + content.slice (bodyEnd);
+                signature.lastIndex = match.index + head.length;
+            }
+        }
+        return content;
+    }
+
+    // A typed core channel yields Res[*T]. If any consumer still reads it as a bare
+    // value, the Go build stays GREEN (everything downstream takes `any`) while every
+    // nil/equality guard silently misreads the struct. Fail the transpile instead.
+    assertNoUntypedConsumers (content: string, where: string) {
+        for (const methodName of Object.keys (TYPED_CHAN_CORE_METHODS)) {
+            const capName = capitalize (methodName);
+            const stale = new RegExp (`(\\w+)\\s*:=\\s*<-this\\.\\w+\\.${capName}\\([^)]*\\)\\s*\\n\\s*PanicOnError\\(\\1\\)`, 'g');
+            const hit = stale.exec (content);
+            if (hit) {
+                throw new Error (`[typed-chan] ${where}: ${capName} is a typed core (Res[...]) but its result "${hit[1]}" is still consumed on the legacy protocol. Add an unwrap rewrite (PanicOnErrorRes + AnyFromPtr) — this would compile green and corrupt at runtime.`);
+            }
+        }
+    }
+
+    // Index of the closing brace of the Go block that opens at/after `from`.
+    findGoBodyEnd (content: string, from: number) {
+        const open = content.indexOf ('{', from);
+        if (open < 0) {
+            return -1;
+        }
+        let depth = 0;
+        for (let i = open; i < content.length; i++) {
+            const c = content[i];
+            if (c === '"' || c === '`' || c === '\'') {
+                // skip string/rune literals so braces inside them don't move the depth
+                const quote = c;
+                i++;
+                while (i < content.length && content[i] !== quote) {
+                    if (quote !== '`' && content[i] === '\\') {
+                        i++;
+                    }
+                    i++;
+                }
+                continue;
+            }
+            if (c === '{') {
+                depth++;
+            } else if (c === '}') {
+                depth--;
+                if (depth === 0) {
+                    return i + 1;
+                }
+            }
+        }
+        return -1;
+    }
+
     unwrapListIfNeeded(type: string): string {
         return type.replace('[]', '');
     }
@@ -1223,11 +1342,6 @@ class NewTranspiler {
     }
 
     createReturnStatement(methodName: string,  unwrappedType:string ) {
-
-        // custom handling for now
-        if (methodName === 'fetchTime'){
-            return `(res).(int64)`;
-        }
 
         if (unwrappedType === 'float64') {
             return `(res).(float64)`;
@@ -1479,6 +1593,16 @@ class NewTranspiler {
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
         const returnType = this.jsTypeToGo(methodName, methodWrapper.returnType, true);
         let unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
+        // An override without an explicit return annotation gets its type inferred from the
+        // body (e.g. poloniex#fetchOrderStatus returns 'open'/'closed', inferred as `string`),
+        // which drops the base's `Str` nullability. The derived signature must keep matching
+        // IExchange, so re-adopt the base pointer type.
+        if (!isExchange && !unwrappedType.startsWith('*')) {
+            const baseReturnType = WRAPPER_METHODS['Exchange']?.[methodName]?.returnType;
+            if (baseReturnType !== undefined && baseReturnType === `*${unwrappedType}`) {
+                unwrappedType = baseReturnType;
+            }
+        }
         const stringArgs = this.convertParamsToGo(methodName, methodWrapper.parameters);
         this.createOptionsStruct(methodName, methodWrapper.parameters, isWs);
         // const stringArgs = args.filter(arg => arg !== undefined).join(', ');
@@ -1502,7 +1626,9 @@ class NewTranspiler {
         }
 
         let emptyObject = `${unwrappedType}{}`;
-        if (unwrappedType.startsWith('[]')) {
+        if (unwrappedType.startsWith('*')) {
+            emptyObject = 'nil' // maybe-undefined scalar: nil is unambiguous
+        } else if (unwrappedType.startsWith('[]')) {
             emptyObject = 'nil'
         } else if (unwrappedType.includes('int64')) {
             emptyObject = '-1'
@@ -1521,7 +1647,31 @@ class NewTranspiler {
         }
 
         const accessor = isExchange ? 'this.Exchange.' : 'this.Core.';
-        const body = [
+        // maybe-undefined scalar: the core hands back a boxed value or nil, so the
+        // undefined case is handled here in the generated body — a failed assertion
+        // (nil, or the wrong dynamic type) leaves the pointer nil.
+        const returnLines = unwrappedType.startsWith('*')
+            ? [
+                `${two}if typed, ok := res.(${unwrappedType.slice(1)}); ok {`,
+                `${three}return &typed, nil`,
+                `${two}}`,
+                `${two}return nil, nil`,
+            ]
+            : [ `${two}return ${this.createReturnStatement(methodName, unwrappedType)}, nil` ];
+        // a typed core channel (TYPED_CHAN_CORE_METHODS) already carries the pointer and
+        // keeps its error in a dedicated field, so the wrapper neither sniffs a "panic:"
+        // string nor re-asserts the dynamic type. CreateReturnErrorRes reproduces the
+        // error value CreateReturnError builds, so the ccxt error class is preserved.
+        const body = TYPED_CHAN_CORE_METHODS[methodName] !== undefined
+            ? [
+                `${defaultParams}`,
+                `${two}res := <- ${accessor}${methodNameCapitalized}(${params})`,
+                `${two}if IsErrorRes(res) {`,
+                `${three}return nil, CreateReturnErrorRes(res)`,
+                `${two}}`,
+                `${two}return res.Val, nil`,
+            ]
+            : [
             // `${two}ch:= make(chan ${unwrappedType})`,
             // `${two}go func() {`,
             // `${three}defer close(ch)`,
@@ -1531,7 +1681,7 @@ class NewTranspiler {
             `${two}if IsError(res) {`,
             `${three}return ${emptyObject}, CreateReturnError(res)`,
             `${two}}`,
-            `${two}return ${this.createReturnStatement(methodName, unwrappedType)}, nil`,
+            ...returnLines,
             // `${two}}()`,
             // `${two}return ch`,
         ];
@@ -1546,6 +1696,7 @@ class NewTranspiler {
             wrapper: methodWrapper,
             interface: interfaceMethod,
             params: stringArgs,
+            returnType: unwrappedType,
         };
         // wrapperMethods[exchangeName].push([interfaceMethod, stringArgs, methodWrapper]);
         const funcContext = isExchange ? 'ExchangeTyped' : capitalize(exchangeName);
@@ -2065,6 +2216,23 @@ ${constStatements.join('\n')}
             // type-assert to the per-method interface (I<Method>), which the regular venue satisfies.
             [/this\.DerivedExchange\.(EditOrder|FetchOrder|FetchTickers|CancelOrderWs|CreateOrderWs|FetchOrdersWs|FetchTickersWs|FetchPositionsHistory)\(/g, 'this.DerivedExchange.(I$1).$1('],
         ]);
+
+        // typed maybe-undefined scalar cores on BaseExchange/Exchange (TYPED_CHAN_CORE_METHODS)
+        baseClass = this.retypeCoreChannels (baseClass);
+        // ...and their intra-core consumers. A typed channel hands back Res[*T], so the
+        // value must be re-boxed as an UNTYPED nil-or-value `any` before it reaches the
+        // any-typed helpers: `var x any = res.Val` keeps a typed nil, for which
+        // IsEqual(x, nil) is false and the `=== undefined` guard silently never fires.
+        // AnyFromPtr collapses a nil pointer back to untyped nil. This rewrite has NO
+        // compile-time signal — omitting it builds green and corrupts at runtime.
+        baseClass = this.regexAll (baseClass, [
+            [/(\w+)\s*:=\s*<-this\.DerivedExchange\.FetchTime\((\w*)\)\n(\s*)PanicOnError\(\1\)/g,
+                '$1Res := <-this.DerivedExchange.FetchTime($2)\n$3PanicOnErrorRes($1Res)\n$3var $1 any = AnyFromPtr($1Res.Val)'],
+        ]);
+        // Missing one of these rewrites does NOT break the build — the Res struct simply
+        // flows on as an `any` and every guard downstream silently misreads it. Fail the
+        // transpile instead of shipping that.
+        this.assertNoUntypedConsumers (baseClass, 'exchange_generated.go');
 
         const jsDelimiter = '// ' + delimiter;
         const parts = baseClass.split (jsDelimiter);
@@ -2758,22 +2926,22 @@ ${caseStatements.join('\n')}
                 const lines = content.split("\n");
 
                 for (const line of lines) {
-                    // Only match lines that start with type or func
-                    if (!(
-                        /^\s*func\s+/.test(line) ||
-                        /^\s*type\s+\w+\s+(?:struct\s*\{|interface\s*\{|func\s*\()/.test(line)
-                    )) continue;
-
                     const trimmed = line.trim();
-
-                    // Exclude lines that are just "type" or "func"
-                    if (/^(type|func)$/.test(trimmed)) continue;
-
-                    const parts = trimmed.split(/\s+/);
-                    if (parts.length < 2) continue;
-
-                    let name = parts[1].split("(")[0]; // keep only before `(`
-                    if (name.trim() !== "") results.add(name);
+                    // type Name struct|interface|func(...)
+                    const typeMatch = trimmed.match(/^type\s+([A-Za-z_]\w*)\b/);
+                    if (typeMatch) {
+                        results.add(typeMatch[1]);
+                        continue;
+                    }
+                    // Package-level funcs only: `func Name` / `func Name[T any](...)`.
+                    // Do NOT match methods with receivers (`func (this *T) Name`) — those
+                    // names are not package-qualified symbols, and prefixing them breaks
+                    // local helpers that share a name (e.g. tests' Equals vs Precise.Equals).
+                    // \w* stops before `[`, so generics never contribute `Ptr[T`.
+                    const funcMatch = trimmed.match(/^func\s+([A-Za-z_]\w*)\b/);
+                    if (funcMatch) {
+                        results.add(funcMatch[1]);
+                    }
                 }
             }
         }
@@ -2789,7 +2957,14 @@ ${caseStatements.join('\n')}
      * @returns The content with the package prefix added.
      */
     addPackagePrefix(content: string, methodsAndTypes: Set<string>, packageName: string = 'ccxt') {
-        const pattern = Array.from(methodsAndTypes).join("|");
+        // Escape regex metacharacters so a scraped name can never blow up RegExp
+        // construction (e.g. a leftover `Foo[T` would open a character class).
+        const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const names = Array.from(methodsAndTypes).filter((n) => /^[A-Za-z_]\w*$/.test(n));
+        if (names.length === 0) {
+            return content;
+        }
+        const pattern = names.map(escapeRegExp).join("|");
         // any of the method or type names that are not preceded by a `.`, but `...` is allowed e.g. MarketInterface, or ...MarketInterface but not .MarketInterface
         const regex = new RegExp(`(?<![A-Za-z0-9_\\)\\}]\\.)\\b(${pattern})\\b`, "g");
         const variadicRegex = new RegExp(`(?<=\\.\\.\\.)(${pattern})\\b`, "g");
@@ -2854,6 +3029,13 @@ ${caseStatements.join('\n')}
             const coerceRegex = new RegExp ('(func\\s+\\(this\\s+\\*\\w+\\)\\s+' + capName + '\\([^)]*\\))\\s+any(\\s+\\{)', 'g');
             content = content.replace (coerceRegex, '$1 <-chan any$2');
         }
+
+        // typed maybe-undefined scalar cores (see TYPED_CHAN_CORE_METHODS). Runs before
+        // addPackagePrefix, which skips `func` declaration lines and so would never
+        // qualify the return type. `this.isPrediction` is the reliable signal here — the
+        // local `ws` argument is not 'prediction' on the per-exchange path.
+        content = this.retypeCoreChannels (content, (isWs || isPrediction || this.isPrediction) ? 'ccxt.' : '');
+        this.assertNoUntypedConsumers (content, `${exchangeName}.go`);
 
         if (!isWs) {
             content = this.regexAll(content, [

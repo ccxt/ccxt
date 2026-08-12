@@ -1201,7 +1201,7 @@ func (this *Grvt) FetchOrderWithClientOrderId(clientOrderId string, options ...F
 func (this *Grvt) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
-func (this *Grvt) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Grvt) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Grvt) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -1237,7 +1237,7 @@ func (this *Grvt) FetchStatus(params ...any) (Status, error) {
 func (this *Grvt) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Grvt) FetchTime(params ...any) (int64, error) {
+func (this *Grvt) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Grvt) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {

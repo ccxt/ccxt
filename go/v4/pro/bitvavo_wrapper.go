@@ -1452,7 +1452,7 @@ func (this *Bitvavo) FetchOrderBooks(options ...ccxt.FetchOrderBooksOptions) (cc
 func (this *Bitvavo) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Bitvavo) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (string, error) {
+func (this *Bitvavo) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Bitvavo) FetchOrderTrades(id string, options ...ccxt.FetchOrderTradesOptions) ([]ccxt.Trade, error) {
@@ -1494,7 +1494,7 @@ func (this *Bitvavo) FetchTicker(symbol string, options ...ccxt.FetchTickerOptio
 func (this *Bitvavo) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Bitvavo) FetchTime(params ...any) (int64, error) {
+func (this *Bitvavo) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Bitvavo) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.Trade, error) {

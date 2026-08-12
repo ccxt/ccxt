@@ -527,7 +527,7 @@ func (this *Blockchaincom) FetchOrderBooks(options ...ccxt.FetchOrderBooksOption
 func (this *Blockchaincom) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
-func (this *Blockchaincom) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (string, error) {
+func (this *Blockchaincom) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (*string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
 func (this *Blockchaincom) FetchOrderTrades(id string, options ...ccxt.FetchOrderTradesOptions) ([]ccxt.Trade, error) {
@@ -569,7 +569,7 @@ func (this *Blockchaincom) FetchTicker(symbol string, options ...ccxt.FetchTicke
 func (this *Blockchaincom) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Blockchaincom) FetchTime(params ...any) (int64, error) {
+func (this *Blockchaincom) FetchTime(params ...any) (*int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Blockchaincom) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.Trade, error) {
