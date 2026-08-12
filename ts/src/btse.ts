@@ -477,11 +477,15 @@ export default class btse extends Exchange {
                     // {"code":400,"msg":"BADREQUEST: resolution too small for the requested time range. Records returned exceeds 300","success":false,"time":1770452248292,"data":[]}
                     // {"status":400,"errorCode":-2,"message":"Can't support count more than 500","extraData":null}
                     // {"status":400,"errorCode":33199101,"message":"Available balance is insufficient to meet this order.","extraData":["0.013553333"]}
+                    // {"status":400,"errorCode":4051,"message":"[RAVE-PERP] The order size cannot surpass 50000.0 contracts. Please adjust your order size and try again.","extraData":null}
+                    // {"code":4003,"msg":"BADREQUEST: The order amount cannot surpass 100.0 BTC. Please adjust your order size and try again.","time":1786509292895,"data":null,"success":false}
                     '-1': OrderNotFound,
                     '-2': BadRequest,
                     '-7': AuthenticationError,
                     '-11': ExchangeNotAvailable,
                     '134': BadRequest,
+                    '4003': InvalidOrder,
+                    '4051': InvalidOrder,
                     '10002': AuthenticationError,
                     '51523': InsufficientFunds,
                     '33001001': InvalidOrder,
