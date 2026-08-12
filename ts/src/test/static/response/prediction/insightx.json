@@ -1,6 +1,7 @@
 {
     "exchange": "insightx",
     "asyncOnly": true,
+    "token": "test-jwt-token",
     "skipKeys": [],
     "outputType": "json",
     "options": {
@@ -243,6 +244,446 @@
                         }
                     }
                 }
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition parses the documented frontend position fields",
+                "method": "fetchPosition",
+                "input": [
+                    "80372897:2"
+                ],
+                "httpResponse": {
+                    "errno": 0,
+                    "errmsg": "no error",
+                    "data": {
+                        "volume": 12.5,
+                        "avg_price": 0.4,
+                        "realized_pnl": 1.25
+                    }
+                },
+                "parsedResponse": {
+                    "id": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "contracts": 12.5,
+                    "contractSize": 1,
+                    "side": "long",
+                    "notional": null,
+                    "unrealizedPnl": null,
+                    "realizedPnl": 1.25,
+                    "collateral": null,
+                    "entryPrice": 0.4,
+                    "markPrice": null,
+                    "lastPrice": null,
+                    "percentage": null,
+                    "resolved": null,
+                    "won": null,
+                    "settleFraction": null,
+                    "payout": null,
+                    "outcome": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259:NO",
+                    "outcomeId": "80372897:2",
+                    "label": "No",
+                    "market": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259",
+                    "event": "INSIGHTX_EVENT_9151820",
+                    "info": {
+                        "volume": 12.5,
+                        "avg_price": 0.4,
+                        "realized_pnl": 1.25
+                    }
+                }
+            },
+            {
+                "description": "fetchPosition returns no position when data is null",
+                "method": "fetchPosition",
+                "input": [
+                    "80372897:2"
+                ],
+                "httpResponse": {
+                    "errno": 0,
+                    "errmsg": "no error",
+                    "data": null
+                },
+                "parsedResponse": null
+            },
+            {
+                "description": "fetchPosition returns no position when volume is zero",
+                "method": "fetchPosition",
+                "input": [
+                    "80372897:2"
+                ],
+                "httpResponse": {
+                    "errno": 0,
+                    "errmsg": "no error",
+                    "data": {
+                        "volume": 0,
+                        "avg_price": 0,
+                        "realized_pnl": 0
+                    }
+                },
+                "parsedResponse": null
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders parses InsightX lifecycle statuses and outcome identities",
+                "method": "fetchOrders",
+                "input": [],
+                "httpResponse": {
+                    "errno": 0,
+                    "errmsg": "no error",
+                    "data": {
+                        "list": [
+                            {
+                                "id": 1001,
+                                "market_id": 80372897,
+                                "outcome_idx": 2,
+                                "side": "buy",
+                                "order_type": "limit",
+                                "price": 0.4,
+                                "amount": 10,
+                                "filled_amount": 2,
+                                "status": "pending",
+                                "created_at": 1786500000,
+                                "updated_at": 1786500060
+                            },
+                            {
+                                "id": 1002,
+                                "market_id": 80372897,
+                                "outcome_idx": 2,
+                                "side": "sell",
+                                "order_type": "limit",
+                                "price": 0.6,
+                                "amount": 5,
+                                "filled_amount": 1.5,
+                                "status": "partial",
+                                "created_at": 1786500100
+                            },
+                            {
+                                "id": 1003,
+                                "market_id": 80372897,
+                                "outcome_idx": 1,
+                                "side": "buy",
+                                "order_type": "limit",
+                                "price": 0.25,
+                                "amount": 4,
+                                "filled_amount": 4,
+                                "status": "filled",
+                                "created_at": 1786500200,
+                                "filled_at": 1786500220
+                            }
+                        ],
+                        "count": 3
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1001",
+                        "clientOrderId": null,
+                        "timestamp": 1786500000000,
+                        "datetime": "2026-08-12T02:00:00.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1786500060000,
+                        "status": "open",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "side": "buy",
+                        "price": 0.4,
+                        "average": null,
+                        "amount": 10,
+                        "filled": 2,
+                        "remaining": 8,
+                        "cost": 0.8,
+                        "fee": null,
+                        "reduceOnly": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "outcome": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259:NO",
+                        "outcomeId": "80372897:2",
+                        "label": "No",
+                        "market": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259",
+                        "event": "INSIGHTX_EVENT_9151820",
+                        "info": {
+                            "id": 1001,
+                            "market_id": 80372897,
+                            "outcome_idx": 2,
+                            "side": "buy",
+                            "order_type": "limit",
+                            "price": 0.4,
+                            "amount": 10,
+                            "filled_amount": 2,
+                            "status": "pending",
+                            "created_at": 1786500000,
+                            "updated_at": 1786500060
+                        }
+                    },
+                    {
+                        "id": "1002",
+                        "clientOrderId": null,
+                        "timestamp": 1786500100000,
+                        "datetime": "2026-08-12T02:01:40.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "status": "open",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "side": "sell",
+                        "price": 0.6,
+                        "average": null,
+                        "amount": 5,
+                        "filled": 1.5,
+                        "remaining": 3.5,
+                        "cost": 0.9,
+                        "fee": null,
+                        "reduceOnly": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "outcome": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259:NO",
+                        "outcomeId": "80372897:2",
+                        "label": "No",
+                        "market": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259",
+                        "event": "INSIGHTX_EVENT_9151820",
+                        "info": {
+                            "id": 1002,
+                            "market_id": 80372897,
+                            "outcome_idx": 2,
+                            "side": "sell",
+                            "order_type": "limit",
+                            "price": 0.6,
+                            "amount": 5,
+                            "filled_amount": 1.5,
+                            "status": "partial",
+                            "created_at": 1786500100
+                        }
+                    },
+                    {
+                        "id": "1003",
+                        "clientOrderId": null,
+                        "timestamp": 1786500200000,
+                        "datetime": "2026-08-12T02:03:20.000Z",
+                        "lastTradeTimestamp": 1786500220000,
+                        "lastUpdateTimestamp": null,
+                        "status": "closed",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "side": "buy",
+                        "price": 0.25,
+                        "average": null,
+                        "amount": 4,
+                        "filled": 4,
+                        "remaining": 0,
+                        "cost": 1,
+                        "fee": null,
+                        "reduceOnly": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "outcome": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259:YES",
+                        "outcomeId": "80372897:1",
+                        "label": "Yes",
+                        "market": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259",
+                        "event": "INSIGHTX_EVENT_9151820",
+                        "info": {
+                            "id": 1003,
+                            "market_id": 80372897,
+                            "outcome_idx": 1,
+                            "side": "buy",
+                            "order_type": "limit",
+                            "price": 0.25,
+                            "amount": 4,
+                            "filled_amount": 4,
+                            "status": "filled",
+                            "created_at": 1786500200,
+                            "filled_at": 1786500220
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders returns only unified open orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "80372897:2"
+                ],
+                "httpResponse": {
+                    "errno": 0,
+                    "errmsg": "no error",
+                    "data": {
+                        "list": [
+                            {
+                                "id": 1001,
+                                "market_id": 80372897,
+                                "outcome_idx": 2,
+                                "side": "buy",
+                                "price": 0.4,
+                                "amount": 10,
+                                "filled_amount": 2,
+                                "status": "pending",
+                                "created_at": 1786500000
+                            },
+                            {
+                                "id": 1003,
+                                "market_id": 80372897,
+                                "outcome_idx": 2,
+                                "side": "buy",
+                                "price": 0.25,
+                                "amount": 4,
+                                "filled_amount": 4,
+                                "status": "filled",
+                                "created_at": 1786500200
+                            }
+                        ],
+                        "count": 2
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1001",
+                        "clientOrderId": null,
+                        "timestamp": 1786500000000,
+                        "datetime": "2026-08-12T02:00:00.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "status": "open",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "side": "buy",
+                        "price": 0.4,
+                        "average": null,
+                        "amount": 10,
+                        "filled": 2,
+                        "remaining": 8,
+                        "cost": 0.8,
+                        "fee": null,
+                        "reduceOnly": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "outcome": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259:NO",
+                        "outcomeId": "80372897:2",
+                        "label": "No",
+                        "market": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259",
+                        "event": "INSIGHTX_EVENT_9151820",
+                        "info": {
+                            "id": 1001,
+                            "market_id": 80372897,
+                            "outcome_idx": 2,
+                            "side": "buy",
+                            "price": 0.4,
+                            "amount": 10,
+                            "filled_amount": 2,
+                            "status": "pending",
+                            "created_at": 1786500000
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetchClosedOrders returns filled, cancelled, and expired orders",
+                "method": "fetchClosedOrders",
+                "input": [],
+                "httpResponse": {
+                    "errno": 0,
+                    "errmsg": "no error",
+                    "data": {
+                        "list": [
+                            {
+                                "id": 1001,
+                                "market_id": 80372897,
+                                "outcome_idx": 2,
+                                "status": "pending",
+                                "created_at": 1786500000
+                            },
+                            {
+                                "id": 1004,
+                                "market_id": 80372897,
+                                "outcome_idx": 2,
+                                "status": "cancelled",
+                                "created_at": 1786500300
+                            },
+                            {
+                                "id": 1005,
+                                "market_id": 80372897,
+                                "outcome_idx": 1,
+                                "status": "expired",
+                                "created_at": 1786500400
+                            }
+                        ],
+                        "count": 3
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1004",
+                        "clientOrderId": null,
+                        "timestamp": 1786500300000,
+                        "datetime": "2026-08-12T02:05:00.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "status": "canceled",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "side": null,
+                        "price": null,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "cost": null,
+                        "fee": null,
+                        "reduceOnly": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "outcome": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259:NO",
+                        "outcomeId": "80372897:2",
+                        "label": "No",
+                        "market": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259",
+                        "event": "INSIGHTX_EVENT_9151820",
+                        "info": {
+                            "id": 1004,
+                            "market_id": 80372897,
+                            "outcome_idx": 2,
+                            "status": "cancelled",
+                            "created_at": 1786500300
+                        }
+                    },
+                    {
+                        "id": "1005",
+                        "clientOrderId": null,
+                        "timestamp": 1786500400000,
+                        "datetime": "2026-08-12T02:06:40.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "status": "expired",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "side": null,
+                        "price": null,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "cost": null,
+                        "fee": null,
+                        "reduceOnly": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "outcome": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259:YES",
+                        "outcomeId": "80372897:1",
+                        "label": "Yes",
+                        "market": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259",
+                        "event": "INSIGHTX_EVENT_9151820",
+                        "info": {
+                            "id": 1005,
+                            "market_id": 80372897,
+                            "outcome_idx": 1,
+                            "status": "expired",
+                            "created_at": 1786500400
+                        }
+                    }
+                ]
             }
         ],
         "fetchEvents": [

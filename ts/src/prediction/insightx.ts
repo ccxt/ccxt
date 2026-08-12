@@ -1,7 +1,7 @@
 import Exchange from '../abstract/prediction/insightx.js';
 import { AuthenticationError, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
-import type { Bool, Dict, Int, Market, Num, PredictionEvent, PredictionTicker, PredictionTickers, Str, Strings, fetchEventsParams, int } from '../base/types.js';
+import type { Bool, Dict, Int, Market, Num, PredictionEvent, PredictionOrder, PredictionPosition, PredictionTicker, PredictionTickers, Str, Strings, fetchEventsParams, int } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -26,10 +26,14 @@ export default class insightx extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'fetchClosedOrders': true,
                 'fetchEvent': false,
                 'fetchEvents': true,
                 'fetchMarkets': true,
+                'fetchOpenOrders': true,
+                'fetchOrders': true,
                 'fetchOutcome': true,
+                'fetchPosition': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'prediction': true,
@@ -69,11 +73,12 @@ export default class insightx extends Exchange {
                 'apiKey': false,
                 'secret': false,
                 'walletAddress': false,
-                'privateKey': true,
-                'token': false,
+                'privateKey': false,
+                'token': true,
             },
             'exceptions': {
                 'exact': {
+                    '1006': AuthenticationError, // Authorization Error
                     '40001': AuthenticationError, // Invalid Signature
                     '40002': AuthenticationError, // JWT Expired
                     '40003': AuthenticationError, // Invalid JWT
@@ -589,6 +594,302 @@ export default class insightx extends Exchange {
             }
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name insightx#fetchPosition
+     * @description fetches the authenticated user's position for one insightx outcome
+     * @see https://insightx-2.gitbook.io/whitepaper/insightx-whitepaper/10.-developer-resources-and-api-integration#get-position
+     * @param {string} outcome unified outcome handle or raw outcome id in marketId:outcomeIndex format
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    override async fetchPosition (outcome: string, params = {}): Promise<PredictionPosition> {
+        const outcomeObj = await this.loadOutcome (outcome);
+        const marketId = this.safeString (outcomeObj, 'marketId');
+        const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
+        const outcomeIndex = this.safeInteger (outcomeInfo, 'outcome_idx');
+        if ((marketId === undefined) || (outcomeIndex === undefined)) {
+            throw new BadSymbol (this.id + ' fetchPosition() could not resolve the market id and outcome index for ' + outcome);
+        }
+        const request: Dict = {
+            'market_id': marketId,
+            'outcome_idx': outcomeIndex,
+        };
+        const rest = this.omit (params, [ 'market_id', 'outcome_idx' ]);
+        const response = await this.insightxPrivateGetPredictV2Position (this.extend (request, rest));
+        const positionData = this.safeDict (response, 'data');
+        const contracts = this.safeNumber (positionData, 'volume');
+        if ((positionData === undefined) || (contracts === undefined) || (contracts <= 0)) {
+            const positions: PredictionPosition[] = [];
+            return this.safeDict (positions, 0) as PredictionPosition;
+        }
+        return this.parsePredictionPosition (positionData, outcomeObj);
+    }
+
+    /**
+     * @method
+     * @name insightx#fetchOrders
+     * @description fetches the authenticated user's orders, optionally filtered by one insightx outcome
+     * @see https://insightx-2.gitbook.io/whitepaper/insightx-whitepaper/10.-developer-resources-and-api-integration#get-orders
+     * @param {string} [outcome] unified outcome handle or raw outcome id in marketId:outcomeIndex format
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {int} [params.page] page number to start fetching from, defaults to 1
+     * @param {int} [params.size] number of raw orders to request per page, defaults to limit when limit is defined
+     * @param {string} [params.status] raw order status filter, 'pending', 'partially_filled', 'filled', 'cancelled' or 'expired'
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        let outcomeObj: any = undefined;
+        const request: Dict = {};
+        if (outcome !== undefined) {
+            outcomeObj = await this.loadOutcome (outcome);
+            const marketId = this.safeString (outcomeObj, 'marketId');
+            if (marketId === undefined) {
+                throw new BadSymbol (this.id + ' fetchOrders() could not resolve the parent market for ' + outcome);
+            }
+            request['market_id'] = marketId;
+        }
+        let page = this.safeInteger (params, 'page', 1);
+        let pageSize = this.safeInteger (params, 'size');
+        if ((limit !== undefined) && ((pageSize === undefined) || (pageSize < limit))) {
+            pageSize = limit;
+        }
+        if (pageSize !== undefined) {
+            request['size'] = pageSize;
+        }
+        const rest = this.omit (params, [ 'market_id', 'outcome_idx', 'page', 'size' ]);
+        let result: PredictionOrder[] = [];
+        while (true) {
+            request['page'] = page;
+            const response = await this.insightxPrivateGetPredictV2Orders (this.extend (request, rest));
+            const data = this.safeDict (response, 'data', {});
+            const orders = this.safeList (data, 'list', []);
+            const parsed = this.parsePredictionOrders (orders, outcomeObj, since);
+            result = this.arrayConcat (result, parsed);
+            const indexed = this.indexBy (result, 'id');
+            result = this.toArray (indexed) as PredictionOrder[];
+            const resultLength = result.length;
+            if ((limit !== undefined) && (resultLength >= limit)) {
+                break;
+            }
+            const ordersLength = orders.length;
+            if (ordersLength === 0) {
+                break;
+            }
+            const effectivePageSize = (pageSize === undefined) ? ordersLength : pageSize;
+            const totalOrders = this.safeInteger (data, 'count');
+            if (totalOrders !== undefined) {
+                const totalPages = Math.ceil (totalOrders / effectivePageSize);
+                if (page >= totalPages) {
+                    break;
+                }
+            } else if (ordersLength < effectivePageSize) {
+                break;
+            }
+            if (limit === undefined) {
+                break;
+            }
+            page = this.sum (page, 1);
+        }
+        result = this.sortBy (result, 'timestamp');
+        return this.filterBySinceLimit (result, since, limit, 'timestamp') as PredictionOrder[];
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name insightx#fetchOrdersByStatuses
+     * @description fetches and merges insightx orders for several mutually exclusive native statuses
+     * @param {string} [outcome] unified outcome handle or raw outcome id in marketId:outcomeIndex format
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {string[]} statuses native insightx order statuses to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async fetchOrdersByStatuses (outcome: Str, since: Int, limit: Int, statuses: string[], params = {}): Promise<PredictionOrder[]> {
+        const rest = this.omit (params, [ 'status' ]);
+        let result: PredictionOrder[] = [];
+        for (let i = 0; i < statuses.length; i++) {
+            const statusParams = this.extend ({ 'status': statuses[i] }, rest);
+            const orders = await this.fetchOrders (outcome, since, limit, statusParams);
+            result = this.arrayConcat (result, orders);
+        }
+        const indexed = this.indexBy (result, 'id');
+        result = this.toArray (indexed) as PredictionOrder[];
+        result = this.sortBy (result, 'timestamp');
+        return result;
+    }
+
+    /**
+     * @method
+     * @name insightx#fetchOpenOrders
+     * @description fetches the authenticated user's pending and partially filled orders
+     * @see https://insightx-2.gitbook.io/whitepaper/insightx-whitepaper/10.-developer-resources-and-api-integration#get-orders
+     * @param {string} [outcome] unified outcome handle or raw outcome id in marketId:outcomeIndex format
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of open orders to return after status filtering
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {int} [params.page] page number to fetch, defaults to 1
+     * @param {int} [params.size] number of orders to request before status filtering
+     * @param {string} [params.status] not used by insightx.fetchOpenOrders
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        const orders = await this.fetchOrdersByStatuses (outcome, since, limit, [ 'pending', 'partially_filled' ], params);
+        const result: PredictionOrder[] = [];
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            if (this.safeString (order, 'status') === 'open') {
+                result.push (order);
+            }
+        }
+        return this.filterBySinceLimit (result, since, limit, 'timestamp') as PredictionOrder[];
+    }
+
+    /**
+     * @method
+     * @name insightx#fetchClosedOrders
+     * @description fetches the authenticated user's filled, cancelled, and expired orders
+     * @see https://insightx-2.gitbook.io/whitepaper/insightx-whitepaper/10.-developer-resources-and-api-integration#get-orders
+     * @param {string} [outcome] unified outcome handle or raw outcome id in marketId:outcomeIndex format
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of closed orders to return after status filtering
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {int} [params.page] page number to fetch, defaults to 1
+     * @param {int} [params.size] number of orders to request before status filtering
+     * @param {string} [params.status] not used by insightx.fetchClosedOrders
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    override async fetchClosedOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        const orders = await this.fetchOrdersByStatuses (outcome, since, limit, [ 'filled', 'cancelled', 'expired' ], params);
+        const result: PredictionOrder[] = [];
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const status = this.safeString (order, 'status');
+            if ((status === 'closed') || (status === 'canceled') || (status === 'expired')) {
+                result.push (order);
+            }
+        }
+        return this.filterBySinceLimit (result, since, limit, 'timestamp') as PredictionOrder[];
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name insightx#parseOrderStatus
+     * @description maps an insightx order status to the unified prediction order status vocabulary
+     * @param {string} status raw insightx order status
+     * @returns {string} the unified order status
+     */
+    parseOrderStatus (status: Str): Str {
+        const statuses: Dict = {
+            'pending': 'open',
+            'partial': 'open',
+            'partially_filled': 'open',
+            'filled': 'closed',
+            'cancelled': 'canceled',
+            'canceled': 'canceled',
+            'expired': 'expired',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name insightx#parsePredictionOrder
+     * @description parses an insightx order into a unified prediction order
+     * @param {object} order raw insightx order object
+     * @param {object} [market] the requested outcome object used when raw identity is unavailable
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    override parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder {
+        const marketId = this.safeString (order, 'market_id');
+        const outcomeIndex = this.safeString (order, 'outcome_idx');
+        let rawOutcomeId: Str = undefined;
+        if ((marketId !== undefined) && (outcomeIndex !== undefined)) {
+            rawOutcomeId = marketId + ':' + outcomeIndex;
+        }
+        const outcomeObj = this.safeOutcome (rawOutcomeId, market);
+        const timestamp = this.safeTimestamp (order, 'created_at');
+        const lastUpdateTimestamp = this.safeTimestamp (order, 'updated_at');
+        const lastTradeTimestamp = this.safeTimestamp (order, 'filled_at');
+        const rawSide = this.safeStringLower (order, 'side');
+        let side: Str = undefined;
+        if ((rawSide === 'buy') || (rawSide === 'sell')) {
+            side = rawSide;
+        }
+        return this.safePredictionOrder ({
+            'id': this.safeString (order, 'id'),
+            'clientOrderId': this.safeString (order, 'client_order_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
+            'status': this.parseOrderStatus (this.safeStringLower (order, 'status')),
+            'type': this.safeStringLower2 (order, 'order_type', 'type', 'limit'),
+            'timeInForce': undefined,
+            'side': side,
+            'price': this.safeNumber (order, 'price'),
+            'average': undefined,
+            'amount': this.safeNumber (order, 'amount'),
+            'filled': this.safeNumber (order, 'filled_amount'),
+            'remaining': undefined,
+            'cost': undefined,
+            'fee': undefined,
+            'reduceOnly': undefined,
+            'postOnly': undefined,
+            'trades': [],
+            'outcome': this.safeString (outcomeObj, 'outcome'),
+            'outcomeId': this.safeString (outcomeObj, 'outcomeId', rawOutcomeId),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString (outcomeObj, 'market'),
+            'event': this.safeString (outcomeObj, 'event'),
+            'info': order,
+        }, outcomeObj);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name insightx#parsePredictionPosition
+     * @description parses an insightx outcome position into a unified prediction position
+     * @param {object} positionData raw insightx position object
+     * @param {object} [market] the outcome object the position belongs to
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    override parsePredictionPosition (positionData: Dict, market: Market = undefined): PredictionPosition {
+        return this.safePredictionPosition ({
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'contracts': this.safeNumber (positionData, 'volume'),
+            'contractSize': 1,
+            'side': 'long',
+            'notional': undefined,
+            'unrealizedPnl': undefined,
+            'realizedPnl': this.safeNumber (positionData, 'realized_pnl'),
+            'collateral': undefined,
+            'entryPrice': this.safeNumber (positionData, 'avg_price'),
+            'markPrice': undefined,
+            'lastPrice': undefined,
+            'percentage': undefined,
+            'outcome': this.safeString (market, 'outcome'),
+            'outcomeId': this.safeString (market, 'outcomeId'),
+            'label': this.safeString (market, 'label'),
+            'market': this.safeString (market, 'market'),
+            'event': this.safeString (market, 'event'),
+            'resolved': undefined,
+            'won': undefined,
+            'settleFraction': undefined,
+            'payout': undefined,
+            'info': positionData,
+        });
     }
 
     /**
