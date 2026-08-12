@@ -849,7 +849,11 @@ class testMainClass:
             dump('[WARN] prediction order cancel failed', exchange.id, order_id, exception_message(e))
         return True
 
-    async def run_private_tests(self, exchange, symbol):
+    async def run_private_tests(self, exchange, symbols):
+        # mirrors runPublicTests: the caller always passes the selected symbols as an array
+        # (even a CLI-provided symbol arrives as a one-element array), and private tests run
+        # on the primary symbol per market type
+        symbol = symbols[0]
         if not exchange.check_required_credentials(False):
             dump('[INFO] Skipping private tests', 'Keys not found')
             return True
