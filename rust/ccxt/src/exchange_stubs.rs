@@ -983,8 +983,10 @@ impl Exchange {
     /// CRC-32 checksum — used by a few WS order-book reconcilers
     /// (bitget, bitfinex, independentreserve). Stub returns 0; will be
     /// replaced with the real algorithm when those order books need it.
-    pub fn crc32(&self, _args: &[Value]) -> Value {
-        Value::Int(0)
+    pub fn crc32(&self, args: &[Value]) -> Value {
+        let payload = args.get(0).cloned().unwrap_or(Value::Str(String::new()));
+        let signed = args.get(1).cloned().unwrap_or(Value::Bool(false));
+        crate::runtime::crc32(payload, signed)
     }
     /// `decode_proto_msg(message)` — exchange-specific protobuf
     /// decoder (mexc). Stub returns the input unchanged.
