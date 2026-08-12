@@ -1745,13 +1745,19 @@ class testMainClass {
         // await the watch method once per expected result: each injected frame
         // resolves the pending future, so successive awaits observe the
         // successive states (e.g. an order going from open to closed)
-        for (let i = 0; i < expectedResults.length; i++) {
-            const result = await callExchangeMethodDynamically (exchange, method, input);
-            // ws structures can be live typed objects (e.g. orderbooks) in some
-            // runtimes — roundtrip through json so the deep-compare sees plain
-            // dicts in every language
-            const unifiedResult = jsonParse (jsonStringify (result));
-            this.assertStaticResponseOutput (exchange, skipKeys, unifiedResult, expectedResults[i]);
+        try {
+            for (let i = 0; i < expectedResults.length; i++) {
+                const result = await callExchangeMethodDynamically (exchange, method, input);
+                // ws structures can be live typed objects (e.g. orderbooks) in some
+                // runtimes — roundtrip through json so the deep-compare sees plain
+                // dicts in every language
+                const unifiedResult = jsonParse (jsonStringify (result));
+                this.assertStaticResponseOutput (exchange, skipKeys, unifiedResult, expectedResults[i]);
+            }
+        } catch (e) {
+            // rethrow for the caller to report — the explicit try/catch also
+            // keeps the java transpilation compilable (checked exceptions)
+            throw e;
         }
         return true; // c# methods used with promiseAll need to return something
     }
