@@ -467,6 +467,11 @@ func (this *XtCore) PrivateLinearGetFutureUserV1PositionList(args ...any) <-chan
 	return this.callEndpointAsync("privateLinearGetFutureUserV1PositionList", args...)
 }
 
+// PrivateLinearGetFutureUserV1UserStepRate returns a channel that yields a JSON object.
+func (this *XtCore) PrivateLinearGetFutureUserV1UserStepRate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateLinearGetFutureUserV1UserStepRate", args...)
+}
+
 // PrivateLinearGetFutureUserV1UserCollectionList returns a channel that yields a JSON object.
 func (this *XtCore) PrivateLinearGetFutureUserV1UserCollectionList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateLinearGetFutureUserV1UserCollectionList", args...)
@@ -665,6 +670,11 @@ func (this *XtCore) PrivateInverseGetFutureUserV1PositionBreakList(args ...any) 
 // PrivateInverseGetFutureUserV1PositionList returns a channel that yields a JSON object.
 func (this *XtCore) PrivateInverseGetFutureUserV1PositionList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateInverseGetFutureUserV1PositionList", args...)
+}
+
+// PrivateInverseGetFutureUserV1UserStepRate returns a channel that yields a JSON object.
+func (this *XtCore) PrivateInverseGetFutureUserV1UserStepRate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateInverseGetFutureUserV1UserStepRate", args...)
 }
 
 // PrivateInverseGetFutureUserV1UserCollectionList returns a channel that yields a JSON object.

@@ -40,6 +40,8 @@
 * [fetchFundingInterval](#fetchfundinginterval)
 * [fetchFundingRate](#fetchfundingrate)
 * [fetchOpenInterest](#fetchopeninterest)
+* [fetchTradingFee](#fetchtradingfee)
+* [fetchTradingFees](#fetchtradingfees)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
@@ -924,6 +926,48 @@ retrieves the open interest of a contract trading pair
 
 ```javascript
 xt.fetchOpenInterest (symbol, params?)
+```
+
+
+<a name="fetchTradingFee" id="fetchtradingfee"></a>
+
+### fetchTradingFee{docsify-ignore}
+fetch the trading fees for a contract market, the same account-level rate applies to all contract markets of the same subtype
+
+**Kind**: instance method of [<code>xt</code>](#xt)  
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
+
+**See**: https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+xt.fetchTradingFee (symbol, params?)
+```
+
+
+<a name="fetchTradingFees" id="fetchtradingfees"></a>
+
+### fetchTradingFees{docsify-ignore}
+fetch the trading fees for multiple markets, the same account-level rate applies to all contract markets of the requested subtype
+
+**Kind**: instance method of [<code>xt</code>](#xt)  
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbol
+
+**See**: https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | 'linear' (default) or 'inverse' |
+
+
+```javascript
+xt.fetchTradingFees (params?)
 ```
 
 

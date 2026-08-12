@@ -1128,6 +1128,7 @@ public class CoinexCore extends CoinexApi
                     put( "3008", RequestTimeout.class );
                     put( "3109", InsufficientFunds.class );
                     put( "3127", InvalidOrder.class );
+                    put( "3157", BadSymbol.class );
                     put( "3600", OrderNotFound.class );
                     put( "3606", InvalidOrder.class );
                     put( "3610", ExchangeError.class );

@@ -1299,6 +1299,11 @@ class tokocrypto(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         response = self.binanceGetTicker24hr(params)
+        if not isinstance(response, list):
+            # a user-supplied symbol param makes the endpoint answer a single
+            # ticker object, the unified fetchTickers contract returns a
+            # symbol-keyed dict either way
+            return self.parse_tickers([response], symbols)
         return self.parse_tickers(response, symbols)
 
     def get_market_id_by_type(self, market: Any):

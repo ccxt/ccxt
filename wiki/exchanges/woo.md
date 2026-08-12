@@ -436,15 +436,15 @@ cancel all open orders in a market
 
 **See**
 
-- https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
+- https://developer.woox.io/api-reference/endpoint/trading/cancel_orders_by_symbol
 - https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified market symbol |
+| symbol | <code>string</code> | No | unified market symbol, cancels orders in all markets when omitted |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.trigger | <code>boolean</code> | No | whether the order is a trigger/algo order |
+| params.trigger | <code>boolean</code> | No | set to true to cancel only trigger/algo orders |
 
 
 ```javascript

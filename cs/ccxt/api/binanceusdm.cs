@@ -3652,10 +3652,10 @@ public partial class binanceusdm : binance
     }
 
     /// <summary>Calls the fapiPublicGetTickerPrice endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> fapiPublicGetTickerPrice (object parameters = null)
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
+    public async Task<object> fapiPublicGetTickerPrice (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("fapiPublicGetTickerPrice",parameters);
+        return await this.callAsync<object> ("fapiPublicGetTickerPrice",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetTickerBookTicker endpoint.</summary>
@@ -4254,10 +4254,10 @@ public partial class binanceusdm : binance
     }
 
     /// <summary>Calls the fapiPublicV2GetTickerPrice endpoint.</summary>
-    /// <returns>a JSON array</returns>
-    public async Task<List<object>> fapiPublicV2GetTickerPrice (object parameters = null)
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
+    public async Task<object> fapiPublicV2GetTickerPrice (object parameters = null)
     {
-        return await this.callAsync<List<object>> ("fapiPublicV2GetTickerPrice",parameters);
+        return await this.callAsync<object> ("fapiPublicV2GetTickerPrice",parameters);
     }
 
     /// <summary>Calls the fapiPrivateV2GetAccount endpoint.</summary>
@@ -4709,10 +4709,10 @@ public partial class binanceusdm : binance
     }
 
     /// <summary>Calls the publicGetTickerPrice endpoint.</summary>
-    /// <returns>a JSON array</returns>
-    public async Task<List<object>> publicGetTickerPrice (object parameters = null)
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
+    public async Task<object> publicGetTickerPrice (object parameters = null)
     {
-        return await this.callAsync<List<object>> ("publicGetTickerPrice",parameters);
+        return await this.callAsync<object> ("publicGetTickerPrice",parameters);
     }
 
     /// <summary>Calls the publicGetTickerBookTicker endpoint.</summary>

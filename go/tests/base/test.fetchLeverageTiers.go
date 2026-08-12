@@ -12,7 +12,7 @@ func TestFetchLeverageTiers(exchange ccxt.ICoreExchange, skippedProperties any, 
 		defer ReturnPanicError(ch)
 		var method any = "fetchLeverageTiers"
 
-		tiers := (<-exchange.FetchLeverageTiers([]any{"symbol"}))
+		tiers := (<-exchange.FetchLeverageTiers([]any{symbol}))
 		PanicOnError(tiers)
 		// const format = {
 		//     'RAY/USDT': [

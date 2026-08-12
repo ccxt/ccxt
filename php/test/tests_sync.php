@@ -1034,7 +1034,11 @@ class testMainClass {
         return true;
     }
 
-    public function run_private_tests($exchange, $symbol) {
+    public function run_private_tests($exchange, $symbols) {
+        // mirrors runPublicTests: the caller always passes the selected symbols as an array
+        // (even a CLI-provided symbol arrives as a one-element array), and private tests run
+        // on the primary symbol per market type
+        $symbol = $symbols[0];
         if (!$exchange->check_required_credentials(false)) {
             dump('[INFO] Skipping private tests', 'Keys not found');
             return true;

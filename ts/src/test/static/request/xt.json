@@ -305,6 +305,42 @@
                 ]
             }
         ],
+        "fetchTradingFee": [
+            {
+                "description": "swap trading fee from the account step rate",
+                "method": "fetchTradingFee",
+                "url": "https://fapi.xt.com/future/user/v1/user/step-rate",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap trading fee routes to dapi",
+                "method": "fetchTradingFee",
+                "url": "https://dapi.xt.com/future/user/v1/user/step-rate",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "linear trading fees by default",
+                "method": "fetchTradingFees",
+                "url": "https://fapi.xt.com/future/user/v1/user/step-rate",
+                "input": []
+            },
+            {
+                "description": "inverse trading fees route to dapi",
+                "method": "fetchTradingFees",
+                "url": "https://dapi.xt.com/future/user/v1/user/step-rate",
+                "input": [
+                    {
+                        "subType": "inverse"
+                    }
+                ]
+            }
+        ],
         "fetchPositionsHistory": [
             {
                 "description": "linear swap positions history with symbol, since and limit",

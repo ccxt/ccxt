@@ -359,6 +359,16 @@ export default class okx extends Exchange {
                         'asset/convert/currencies': { 'cost': 5 / 3 } as Endpoint<Dict>,
                         'asset/convert/currency-pair': { 'cost': 5 / 3 } as Endpoint<Dict>,
                         'asset/convert/history': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        // fiat
+                        'fiat/deposit-payment-methods': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'fiat/withdrawal-payment-methods': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'fiat/deposit-order-history': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'fiat/deposit': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'fiat/withdrawal-order-history': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'fiat/withdrawal': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'fiat/buy-sell/currencies': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'fiat/buy-sell/currency-pair': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'fiat/buy-sell/history': { 'cost': 5 / 3 } as Endpoint<Dict>,
                         // account
                         'account/instruments': { 'cost': 1 } as Endpoint<Dict>,
                         'account/balance': { 'cost': 2 } as Endpoint<Dict>,
@@ -540,6 +550,11 @@ export default class okx extends Exchange {
                         'asset/monthly-statement': { 'cost': 1296000 } as Endpoint<Dict>, // 20 req/month, 10/20*30*24*60*60 = 1296000
                         'asset/convert/estimate-quote': { 'cost': 50 } as Endpoint<Dict>,
                         'asset/convert/trade': { 'cost': 1 } as Endpoint<Dict>,
+                        // fiat
+                        'fiat/create-withdrawal': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'fiat/cancel-withdrawal': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'fiat/buy-sell/quote': { 'cost': 50 } as Endpoint<Dict>,
+                        'fiat/buy-sell/trade': { 'cost': 50 } as Endpoint<Dict>,
                         // account
                         'account/bills-history-archive': { 'cost': 72000 } as Endpoint<Dict>, // 12 req/day
                         'account/set-position-mode': { 'cost': 4 } as Endpoint<Dict>,

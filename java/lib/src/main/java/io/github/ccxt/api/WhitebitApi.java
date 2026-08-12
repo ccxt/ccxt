@@ -705,9 +705,9 @@ public class WhitebitApi extends Exchange
      * Calls the v4PrivatePostTradeAccountExecutedHistory endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostTradeAccountExecutedHistory (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  v4PrivatePostTradeAccountExecutedHistory (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostTradeAccountExecutedHistory", optionalArgs);
     }

@@ -63,7 +63,7 @@ interface Exchange {
     v4PrivatePostMainAccountFee(params?: {}): Promise<List>;
     v4PrivatePostMainAccountSmartInterestPaymentHistory(params?: {}): Promise<Dict>;
     v4PrivatePostTradeAccountBalance(params?: {}): Promise<Dict>;
-    v4PrivatePostTradeAccountExecutedHistory(params?: {}): Promise<Dict>;
+    v4PrivatePostTradeAccountExecutedHistory(params?: {}): Promise<Dict | List>;
     v4PrivatePostTradeAccountOrderHistory(params?: {}): Promise<Dict>;
     v4PrivatePostTradeAccountOrder(params?: {}): Promise<Dict>;
     v4PrivatePostOrderCollateralLimit(params?: {}): Promise<Dict>;

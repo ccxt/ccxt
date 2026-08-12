@@ -629,6 +629,33 @@ public partial class okx : Exchange
                         { "asset/convert/history", new Dictionary<string, object>() {
                             { "cost", divide(5, 3) },
                         } },
+                        { "fiat/deposit-payment-methods", new Dictionary<string, object>() {
+                            { "cost", divide(10, 3) },
+                        } },
+                        { "fiat/withdrawal-payment-methods", new Dictionary<string, object>() {
+                            { "cost", divide(10, 3) },
+                        } },
+                        { "fiat/deposit-order-history", new Dictionary<string, object>() {
+                            { "cost", divide(10, 3) },
+                        } },
+                        { "fiat/deposit", new Dictionary<string, object>() {
+                            { "cost", divide(10, 3) },
+                        } },
+                        { "fiat/withdrawal-order-history", new Dictionary<string, object>() {
+                            { "cost", divide(10, 3) },
+                        } },
+                        { "fiat/withdrawal", new Dictionary<string, object>() {
+                            { "cost", divide(10, 3) },
+                        } },
+                        { "fiat/buy-sell/currencies", new Dictionary<string, object>() {
+                            { "cost", divide(5, 3) },
+                        } },
+                        { "fiat/buy-sell/currency-pair", new Dictionary<string, object>() {
+                            { "cost", divide(5, 3) },
+                        } },
+                        { "fiat/buy-sell/history", new Dictionary<string, object>() {
+                            { "cost", divide(5, 3) },
+                        } },
                         { "account/instruments", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -1131,6 +1158,18 @@ public partial class okx : Exchange
                         } },
                         { "asset/convert/trade", new Dictionary<string, object>() {
                             { "cost", 1 },
+                        } },
+                        { "fiat/create-withdrawal", new Dictionary<string, object>() {
+                            { "cost", divide(10, 3) },
+                        } },
+                        { "fiat/cancel-withdrawal", new Dictionary<string, object>() {
+                            { "cost", divide(10, 3) },
+                        } },
+                        { "fiat/buy-sell/quote", new Dictionary<string, object>() {
+                            { "cost", 50 },
+                        } },
+                        { "fiat/buy-sell/trade", new Dictionary<string, object>() {
+                            { "cost", 50 },
                         } },
                         { "account/bills-history-archive", new Dictionary<string, object>() {
                             { "cost", 72000 },

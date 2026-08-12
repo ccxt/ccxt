@@ -3128,7 +3128,7 @@ abstract class binance extends \ccxt\Exchange {
         return $this->request('ticker/24hr', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     /**
-     * @return array<string, mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function fapipublic_get_ticker_price($params = array()) {
         return $this->request('ticker/price', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 2));
@@ -3644,7 +3644,7 @@ abstract class binance extends \ccxt\Exchange {
         return $this->request('algoOpenOrders', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function fapipublicv2_get_ticker_price($params = array()) {
         return $this->request('ticker/price', 'fapiPublicV2', 'GET', $params, null, null, array("cost" => 0));
@@ -4034,7 +4034,7 @@ abstract class binance extends \ccxt\Exchange {
         return $this->request('ticker/tradingDay', 'public', 'GET', $params, null, null, array("cost" => 0.8));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function public_get_ticker_price($params = array()) {
         return $this->request('ticker/price', 'public', 'GET', $params, null, null, array("cost" => 0.4, "noSymbol" => 0.8));
@@ -7976,7 +7976,7 @@ abstract class binance extends \ccxt\Exchange {
         return $this->request('ticker/24hr', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     /**
-     * @return array<string, mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function fapiPublicGetTickerPrice($params = array()) {
         return $this->request('ticker/price', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 2));
@@ -8492,7 +8492,7 @@ abstract class binance extends \ccxt\Exchange {
         return $this->request('algoOpenOrders', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function fapiPublicV2GetTickerPrice($params = array()) {
         return $this->request('ticker/price', 'fapiPublicV2', 'GET', $params, null, null, array("cost" => 0));
@@ -8882,7 +8882,7 @@ abstract class binance extends \ccxt\Exchange {
         return $this->request('ticker/tradingDay', 'public', 'GET', $params, null, null, array("cost" => 0.8));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function publicGetTickerPrice($params = array()) {
         return $this->request('ticker/price', 'public', 'GET', $params, null, null, array("cost" => 0.4, "noSymbol" => 0.8));

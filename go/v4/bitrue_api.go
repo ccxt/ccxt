@@ -252,12 +252,12 @@ func (this *BitrueCore) DapiV1PublicGetDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiV1PublicGetDepth", args...)
 }
 
-// DapiV1PublicGetTicker returns a channel that yields a JSON array.
+// DapiV1PublicGetTicker returns a channel that yields a JSON object or a JSON array.
 func (this *BitrueCore) DapiV1PublicGetTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiV1PublicGetTicker", args...)
 }
 
-// DapiV1PublicGetKlines returns a channel that yields a JSON object.
+// DapiV1PublicGetKlines returns a channel that yields a JSON array.
 func (this *BitrueCore) DapiV1PublicGetKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiV1PublicGetKlines", args...)
 }

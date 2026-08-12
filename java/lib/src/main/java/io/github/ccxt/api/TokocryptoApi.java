@@ -100,9 +100,9 @@ public class TokocryptoApi extends Exchange
      * Calls the binanceGetTicker24hr endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  binanceGetTicker24hr (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  binanceGetTicker24hr (Object... optionalArgs)
     {
         return this.callAsync ("binanceGetTicker24hr", optionalArgs);
     }

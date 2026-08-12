@@ -380,7 +380,7 @@ abstract class whitebit extends \ccxt\Exchange {
         return $this->request('trade-account/balance', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function v4_private_post_trade_account_executed_history($params = array()) {
         return $this->request('trade-account/executed-history', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -1046,7 +1046,7 @@ abstract class whitebit extends \ccxt\Exchange {
         return $this->request('trade-account/balance', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function v4PrivatePostTradeAccountExecutedHistory($params = array()) {
         return $this->request('trade-account/executed-history', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));

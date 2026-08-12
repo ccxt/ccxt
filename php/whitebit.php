@@ -229,6 +229,7 @@ class whitebit extends Exchange {
                             'main-account/fee' => array( 'cost' => 1 ),
                             'main-account/smart/interest-payment-history' => array( 'cost' => 1 ),
                             'trade-account/balance' => array( 'cost' => 1 ),
+                            // answers with a list when a market is set and a dict of lists otherwise — no shape assertion
                             'trade-account/executed-history' => array( 'cost' => 1 ),
                             'trade-account/order/history' => array( 'cost' => 1 ),
                             'trade-account/order' => array( 'cost' => 1 ),

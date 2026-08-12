@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official xt API documentation:** [doc.xt.com](https://doc.xt.com/) · [github.com](https://github.com/xtpub/api-doc)
 
-> 160 implicit endpoints across 2 access groups.
+> 162 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -158,6 +158,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateLinearGetFutureUserV1PositionAdl` | GET | `future/user/v1/position/adl` | 1 |
 | `privateLinearGetFutureUserV1PositionBreakList` | GET | `future/user/v1/position/break-list` | 1 |
 | `privateLinearGetFutureUserV1PositionList` | GET | `future/user/v1/position/list` | 1 |
+| `privateLinearGetFutureUserV1UserStepRate` | GET | `future/user/v1/user/step-rate` | 1 |
 | `privateLinearGetFutureUserV1UserCollectionList` | GET | `future/user/v1/user/collection/list` | 1 |
 | `privateLinearGetFutureUserV1UserListenKey` | GET | `future/user/v1/user/listen-key` | 1 |
 | `privateLinearPostFutureTradeV1EntrustCancelAllPlan` | POST | `future/trade/v1/entrust/cancel-all-plan` | 1 |
@@ -198,6 +199,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateInverseGetFutureUserV1PositionAdl` | GET | `future/user/v1/position/adl` | 1 |
 | `privateInverseGetFutureUserV1PositionBreakList` | GET | `future/user/v1/position/break-list` | 1 |
 | `privateInverseGetFutureUserV1PositionList` | GET | `future/user/v1/position/list` | 1 |
+| `privateInverseGetFutureUserV1UserStepRate` | GET | `future/user/v1/user/step-rate` | 1 |
 | `privateInverseGetFutureUserV1UserCollectionList` | GET | `future/user/v1/user/collection/list` | 1 |
 | `privateInverseGetFutureUserV1UserListenKey` | GET | `future/user/v1/user/listen-key` | 1 |
 | `privateInversePostFutureTradeV1EntrustCancelAllPlan` | POST | `future/trade/v1/entrust/cancel-all-plan` | 1 |

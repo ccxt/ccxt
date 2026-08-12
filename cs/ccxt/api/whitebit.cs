@@ -446,10 +446,10 @@ public partial class whitebit : Exchange
     }
 
     /// <summary>Calls the v4PrivatePostTradeAccountExecutedHistory endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> v4PrivatePostTradeAccountExecutedHistory (object parameters = null)
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
+    public async Task<object> v4PrivatePostTradeAccountExecutedHistory (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostTradeAccountExecutedHistory",parameters);
+        return await this.callAsync<object> ("v4PrivatePostTradeAccountExecutedHistory",parameters);
     }
 
     /// <summary>Calls the v4PrivatePostTradeAccountOrderHistory endpoint.</summary>

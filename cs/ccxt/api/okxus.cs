@@ -1033,6 +1033,69 @@ public partial class okxus : okx
         return await this.callAsync<Dictionary<string, object>> ("privateGetAssetConvertHistory",parameters);
     }
 
+    /// <summary>Calls the privateGetFiatDepositPaymentMethods endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFiatDepositPaymentMethods (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFiatDepositPaymentMethods",parameters);
+    }
+
+    /// <summary>Calls the privateGetFiatWithdrawalPaymentMethods endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFiatWithdrawalPaymentMethods (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFiatWithdrawalPaymentMethods",parameters);
+    }
+
+    /// <summary>Calls the privateGetFiatDepositOrderHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFiatDepositOrderHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFiatDepositOrderHistory",parameters);
+    }
+
+    /// <summary>Calls the privateGetFiatDeposit endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFiatDeposit (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFiatDeposit",parameters);
+    }
+
+    /// <summary>Calls the privateGetFiatWithdrawalOrderHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFiatWithdrawalOrderHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFiatWithdrawalOrderHistory",parameters);
+    }
+
+    /// <summary>Calls the privateGetFiatWithdrawal endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFiatWithdrawal (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFiatWithdrawal",parameters);
+    }
+
+    /// <summary>Calls the privateGetFiatBuySellCurrencies endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFiatBuySellCurrencies (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFiatBuySellCurrencies",parameters);
+    }
+
+    /// <summary>Calls the privateGetFiatBuySellCurrencyPair endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFiatBuySellCurrencyPair (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFiatBuySellCurrencyPair",parameters);
+    }
+
+    /// <summary>Calls the privateGetFiatBuySellHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFiatBuySellHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFiatBuySellHistory",parameters);
+    }
+
     /// <summary>Calls the privateGetAccountInstruments endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetAccountInstruments (object parameters = null)
@@ -2200,6 +2263,34 @@ public partial class okxus : okx
     public async Task<Dictionary<string, object>> privatePostAssetConvertTrade (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostAssetConvertTrade",parameters);
+    }
+
+    /// <summary>Calls the privatePostFiatCreateWithdrawal endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFiatCreateWithdrawal (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFiatCreateWithdrawal",parameters);
+    }
+
+    /// <summary>Calls the privatePostFiatCancelWithdrawal endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFiatCancelWithdrawal (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFiatCancelWithdrawal",parameters);
+    }
+
+    /// <summary>Calls the privatePostFiatBuySellQuote endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFiatBuySellQuote (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFiatBuySellQuote",parameters);
+    }
+
+    /// <summary>Calls the privatePostFiatBuySellTrade endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFiatBuySellTrade (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFiatBuySellTrade",parameters);
     }
 
     /// <summary>Calls the privatePostAccountBillsHistoryArchive endpoint.</summary>

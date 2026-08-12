@@ -1297,11 +1297,15 @@ public class TestMain extends BaseTest
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> runPrivateTests(BaseExchange exchange, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> runPrivateTests(BaseExchange exchange, Object symbols)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
+            // mirrors runPublicTests: the caller always passes the selected symbols as an array
+            // (even a CLI-provided symbol arrives as a one-element array), and private tests run
+            // on the primary symbol per market type
+            Object symbol = Helpers.GetValue(symbols, 0);
             if (!Helpers.isTrue(exchange.checkRequiredCredentials(false)))
             {
                 dump("[INFO] Skipping private tests", "Keys not found");

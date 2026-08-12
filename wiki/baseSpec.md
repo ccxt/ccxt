@@ -3551,6 +3551,7 @@ fetch the history of changes, actions done by the user or operations that altere
 * [htx](/exchanges/htx.md#fetchledger)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchledger)
 * [kraken](/exchanges/kraken.md#fetchledger)
+* [krakenfutures](/exchanges/krakenfutures.md#fetchledger)
 * [kucoin](/exchanges/kucoin.md#fetchledger)
 * [luno](/exchanges/luno.md#fetchledger)
 * [modetrade](/exchanges/modetrade.md#fetchledger)
@@ -4487,6 +4488,7 @@ retrieves the open interest of a contract trading pair
 * [paradex](/exchanges/paradex.md#fetchopeninterest)
 * [phemex](/exchanges/phemex.md#fetchopeninterest)
 * [weex](/exchanges/weex.md#fetchopeninterest)
+* [woofipro](/exchanges/woofipro.md#fetchopeninterest)
 * [xt](/exchanges/xt.md#fetchopeninterest)
 
 ---
@@ -4545,6 +4547,7 @@ Retrieves the open interest for a list of symbols
 * [nado](/exchanges/nado.md#fetchopeninterests)
 * [okx](/exchanges/okx.md#fetchopeninterests)
 * [pacifica](/exchanges/pacifica.md#fetchopeninterests)
+* [woofipro](/exchanges/woofipro.md#fetchopeninterests)
 
 ---
 
@@ -6306,6 +6309,7 @@ fetch the trading fees for a market
 * [upbit](/exchanges/upbit.md#fetchtradingfee)
 * [weex](/exchanges/weex.md#fetchtradingfee)
 * [woo](/exchanges/woo.md#fetchtradingfee)
+* [xt](/exchanges/xt.md#fetchtradingfee)
 * [zebpay](/exchanges/zebpay.md#fetchtradingfee)
 
 ---
@@ -6355,6 +6359,7 @@ fetch the trading fees for multiple markets
 * [hitbtc](/exchanges/hitbtc.md#fetchtradingfees)
 * [hollaex](/exchanges/hollaex.md#fetchtradingfees)
 * [independentreserve](/exchanges/independentreserve.md#fetchtradingfees)
+* [krakenfutures](/exchanges/krakenfutures.md#fetchtradingfees)
 * [lbank](/exchanges/lbank.md#fetchtradingfees)
 * [modetrade](/exchanges/modetrade.md#fetchtradingfees)
 * [onetrading](/exchanges/onetrading.md#fetchtradingfees)
@@ -6365,6 +6370,7 @@ fetch the trading fees for multiple markets
 * [whitebit](/exchanges/whitebit.md#fetchtradingfees)
 * [woo](/exchanges/woo.md#fetchtradingfees)
 * [woofipro](/exchanges/woofipro.md#fetchtradingfees)
+* [xt](/exchanges/xt.md#fetchtradingfees)
 * [zebpay](/exchanges/zebpay.md#fetchtradingfees)
 
 ---
