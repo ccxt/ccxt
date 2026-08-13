@@ -311,10 +311,10 @@ export default class btse extends Exchange {
                         'spot/api/v3.2/user/wallet/convert': 15,
                         'spot/api/v3.3/user/wallet/transfer': 15,
                         'spot/api/v4/trade/orders': { 'cost': 1 } as Endpoint<List>, // done
-                        'spot/api/v4/trade/orders/cancel_all_after': 1, // not used
+                        'spot/api/v4/trade/orders/cancel_all_after': { 'cost': 1 } as Endpoint<Dict>, // done
                         'spot/api/v4/trade/orders/algo': { 'cost': 1 } as Endpoint<List>, // done
                         'futures/api/v3/trade/orders': { 'cost': 1 } as Endpoint<Dict>, // done
-                        'futures/api/v3/trade/orders/cancel_all_after': 1, // not used
+                        'futures/api/v3/trade/orders/cancel_all_after': { 'cost': 1 } as Endpoint<Dict>, // done
                         'futures/api/v3/trade/orders/algo': { 'cost': 1 } as Endpoint<Dict>, // done
                         'futures/api/v3/trade/settle_in': 5, // not used
                         'futures/api/v3/trade/risk_limit': 5, // not used
@@ -339,7 +339,7 @@ export default class btse extends Exchange {
                         'futures/api/v2.3/order': 1, // done
                         'spot/api/v3.3/user/wallet/address': 15,
                         'spot/api/v4/trade/orders': { 'cost': 1 } as Endpoint<List>, // done
-                        'spot/api/v4/trade/orders/all': 1, // not used
+                        'spot/api/v4/trade/orders/all': { 'cost': 1 } as Endpoint<List>, // done
                         'futures/api/v3/trade/orders': { 'cost': 1 } as Endpoint<List>, // done
                         'futures/api/v3/trade/positions': { 'cost': 1 } as Endpoint<Dict>, // done
                         'public-api/wallet/v1/user/crypto/address': 15, // not used
@@ -2549,25 +2549,35 @@ export default class btse extends Exchange {
      * @method
      * @name btse#cancelAllOrders
      * @description cancel all open orders in a market
-     * @see https://btsecom.github.io/docs/spotV3_3/en/#cancel-order
+     * @see https://docs.btse.com/spot/rest/cancel-all-orders
      * @see https://btsecom.github.io/docs/futuresV2_3/en/#cancel-order
-     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in, on spot markets omit it to cancel every open order across all pairs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot', 'swap' or 'future', default is 'spot', used when the symbol is omitted
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params, marketType);
+        const request: Dict = {};
         let response = undefined;
-        if (market['spot']) {
-            response = await this.privateDeleteSpotApiV33Order (this.extend (request, params));
+        if (marketType === 'spot') {
+            // the literal ALL value cancels every open order across all pairs
+            request['symbol'] = (market !== undefined) ? market['id'] : 'ALL';
+            response = await this.privateDeleteSpotApiV4TradeOrdersAll (this.extend (request, params));
         } else {
+            if (market === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for contract markets');
+            }
+            // the unified futures api has no cancel all endpoint, the legacy
+            // endpoint cancels every order for the symbol when no order id is
+            // sent, and it identifies contracts by the short symbol form
+            request['symbol'] = this.futuresRequestId (market);
             response = await this.privateDeleteFuturesApiV23Order (this.extend (request, params));
         }
         return this.parseOrders (response, market);
@@ -2577,25 +2587,26 @@ export default class btse extends Exchange {
      * @method
      * @name btse#cancelAllOrdersAfter
      * @description dead man's switch, cancel all orders after the given timeout
-     * @see https://btsecom.github.io/docs/spotV3_3/en/#dead-man-39-s-switch-cancel-all-after
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#dead-man-39-s-switch-cancel-all-after
+     * @see https://docs.btse.com/spot/rest/cancel-all-after
+     * @see https://docs.btse.com/futures/rest/cancel-all-after
      * @param {number} timeout time in milliseconds, 0 represents cancel the timer
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'spot', 'swap' or 'future' (default is 'spot')
+     * @param {string} [params.type] 'spot', 'swap' or 'future', default is 'spot'
      * @returns {object} the api result
      */
     override async cancelAllOrdersAfter (timeout: Int, params = {}) {
         await this.loadMarkets ();
-        const request: Dict = {
-            'timeout': timeout,
-        };
+        const request: Dict = {};
         let response = undefined;
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrdersAfter', undefined, params, marketType);
         if (marketType === 'spot') {
-            response = await this.privatePostSpotApiV33OrderCancelAllAfter (this.extend (request, params));
+            request['timeout'] = timeout;
+            response = await this.privatePostSpotApiV4TradeOrdersCancelAllAfter (this.extend (request, params));
         } else {
-            response = await this.privatePostFuturesApiV23OrderCancelAllAfter (this.extend (request, params));
+            // the futures param is named timeoutMs and is required, zero disarms
+            request['timeoutMs'] = timeout;
+            response = await this.privatePostFuturesApiV3TradeOrdersCancelAllAfter (this.extend (request, params));
         }
         return response;
     }

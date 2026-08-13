@@ -109,10 +109,10 @@ interface Exchange {
     privatePostSpotApiV32UserWalletConvert (params?: {}): Promise<Dict | List>;
     privatePostSpotApiV33UserWalletTransfer (params?: {}): Promise<Dict | List>;
     privatePostSpotApiV4TradeOrders (params?: {}): Promise<List>;
-    privatePostSpotApiV4TradeOrdersCancelAllAfter (params?: {}): Promise<Dict | List>;
+    privatePostSpotApiV4TradeOrdersCancelAllAfter (params?: {}): Promise<Dict>;
     privatePostSpotApiV4TradeOrdersAlgo (params?: {}): Promise<List>;
     privatePostFuturesApiV3TradeOrders (params?: {}): Promise<Dict>;
-    privatePostFuturesApiV3TradeOrdersCancelAllAfter (params?: {}): Promise<Dict | List>;
+    privatePostFuturesApiV3TradeOrdersCancelAllAfter (params?: {}): Promise<Dict>;
     privatePostFuturesApiV3TradeOrdersAlgo (params?: {}): Promise<Dict>;
     privatePostFuturesApiV3TradeSettleIn (params?: {}): Promise<Dict | List>;
     privatePostFuturesApiV3TradeRiskLimit (params?: {}): Promise<Dict | List>;
@@ -133,7 +133,7 @@ interface Exchange {
     privateDeleteFuturesApiV23Order (params?: {}): Promise<Dict | List>;
     privateDeleteSpotApiV33UserWalletAddress (params?: {}): Promise<Dict | List>;
     privateDeleteSpotApiV4TradeOrders (params?: {}): Promise<List>;
-    privateDeleteSpotApiV4TradeOrdersAll (params?: {}): Promise<Dict | List>;
+    privateDeleteSpotApiV4TradeOrdersAll (params?: {}): Promise<List>;
     privateDeleteFuturesApiV3TradeOrders (params?: {}): Promise<List>;
     privateDeleteFuturesApiV3TradePositions (params?: {}): Promise<Dict>;
     privateDeletePublicApiWalletV1UserCryptoAddress (params?: {}): Promise<Dict | List>;
