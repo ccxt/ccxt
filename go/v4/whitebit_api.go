@@ -277,7 +277,7 @@ func (this *WhitebitCore) V4PrivatePostMainAccountWithdrawPay(args ...any) <-cha
 	return this.callEndpointAsync("v4PrivatePostMainAccountWithdrawPay", args...)
 }
 
-// V4PrivatePostMainAccountTransfer returns a channel that yields a JSON object.
+// V4PrivatePostMainAccountTransfer returns a channel that yields a JSON array.
 func (this *WhitebitCore) V4PrivatePostMainAccountTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("v4PrivatePostMainAccountTransfer", args...)
 }
@@ -477,7 +477,7 @@ func (this *WhitebitCore) V4PrivatePostSubAccountEdit(args ...any) <-chan any {
 	return this.callEndpointAsync("v4PrivatePostSubAccountEdit", args...)
 }
 
-// V4PrivatePostSubAccountList returns a channel that yields a JSON array.
+// V4PrivatePostSubAccountList returns a channel that yields a JSON object.
 func (this *WhitebitCore) V4PrivatePostSubAccountList(args ...any) <-chan any {
 	return this.callEndpointAsync("v4PrivatePostSubAccountList", args...)
 }

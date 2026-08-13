@@ -784,10 +784,12 @@ func (this *Xt) CancelOrder(id string, options ...CancelOrderOptions) (Order, er
  * @see https://doc.xt.com/docs/futures/Order/cancel-all-orders
  * @see https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders
  * @see https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit
+ * @see https://doc.xt.com/docs/futures/Entrust/CancelAllTrack
  * @param {string} [symbol] unified market symbol of the market to cancel orders in
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+ * @param {bool} [params.trailing] if the orders are trailing orders or not
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
 func (this *Xt) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
