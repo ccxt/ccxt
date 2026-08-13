@@ -1871,6 +1871,81 @@
                 ]
             }
         ],
+        "fetchDeposits": [
+            {
+                "description": "btse fetchDeposits - live-captured 2026-08-13, native single type historyTypes DEPOSIT filter on the unified wallet v1 walletHistory endpoint, enveloped single row response, report-block verbatim",
+                "method": "fetchDeposits",
+                "input": [
+                    "USDT"
+                ],
+                "httpResponse": {
+                    "code": 1,
+                    "msg": "Success",
+                    "time": 1786625047285,
+                    "data": [
+                        {
+                            "transactionTime": 1786510157962,
+                            "type": "DEPOSIT",
+                            "walletName": "SPOT@",
+                            "asset": "USDT",
+                            "netAmount": "100",
+                            "amount": "100",
+                            "transactionRef": "2026081200000367",
+                            "status": "COMPLETED",
+                            "description": null,
+                            "fees": "0",
+                            "cryptoNetwork": "ERC20",
+                            "toAddress": "0x36bd7cbc486658c9777672fe742971bda65d5e6f",
+                            "confirmTimes": "(15/15)",
+                            "txId": "0xb4d88986d013f799d78e6232792c44b45dff1213a015171ddcf4adfcd283b3fd"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "transactionTime": 1786510157962,
+                            "type": "DEPOSIT",
+                            "walletName": "SPOT@",
+                            "asset": "USDT",
+                            "netAmount": "100",
+                            "amount": "100",
+                            "transactionRef": "2026081200000367",
+                            "status": "COMPLETED",
+                            "description": null,
+                            "fees": "0",
+                            "cryptoNetwork": "ERC20",
+                            "toAddress": "0x36bd7cbc486658c9777672fe742971bda65d5e6f",
+                            "confirmTimes": "(15/15)",
+                            "txId": "0xb4d88986d013f799d78e6232792c44b45dff1213a015171ddcf4adfcd283b3fd"
+                        },
+                        "id": "2026081200000367",
+                        "txid": "0xb4d88986d013f799d78e6232792c44b45dff1213a015171ddcf4adfcd283b3fd",
+                        "timestamp": 1786510157962,
+                        "datetime": "2026-08-12T04:49:17.962Z",
+                        "network": "ERC20",
+                        "address": "0x36bd7cbc486658c9777672fe742971bda65d5e6f",
+                        "addressTo": "0x36bd7cbc486658c9777672fe742971bda65d5e6f",
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "deposit",
+                        "amount": 100,
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": null,
+                        "internal": null,
+                        "comment": null,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchLedger": [
             {
                 "description": "mixed spot wallet ledger with a settled deposit and an outbound internal transfer",
@@ -1991,6 +2066,177 @@
                         "type": "transfer",
                         "currency": "USDT",
                         "amount": 50,
+                        "before": null,
+                        "after": null,
+                        "status": "ok",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0
+                        }
+                    }
+                ]
+            }
+        ,
+            {
+                "description": "btse fetchLedger - live-captured 2026-08-13 on the unified wallet v1 walletHistory endpoint without a history type filter, enveloped mixed ledger with a DEPOSIT and a signed negative TRANSFER_OUT and a literal UNKNOWN row that passes through the maps unmapped, report-block verbatim",
+                "method": "fetchLedger",
+                "input": [
+                    "USDT"
+                ],
+                "httpResponse": {
+                    "code": 1,
+                    "msg": "Success",
+                    "time": 1786624965613,
+                    "data": [
+                        {
+                            "transactionTime": 1786579500072,
+                            "type": "UNKNOWN",
+                            "walletName": "SPOT@",
+                            "asset": "USDT",
+                            "netAmount": "0.0000345125",
+                            "amount": "0.0000345125",
+                            "transactionRef": "20260813000031",
+                            "status": "COMPLETED",
+                            "description": null,
+                            "fees": "0",
+                            "cryptoNetwork": null,
+                            "toAddress": null,
+                            "confirmTimes": null,
+                            "txId": null
+                        },
+                        {
+                            "transactionTime": 1786515075461,
+                            "type": "TRANSFER_OUT",
+                            "walletName": "SPOT@",
+                            "asset": "USDT",
+                            "netAmount": "-50",
+                            "amount": "-50",
+                            "transactionRef": "8c86816c-0a88-4472-9d18-e07a97adea4c",
+                            "status": "COMPLETED",
+                            "description": "SPOT@->CROSS@",
+                            "fees": "0",
+                            "cryptoNetwork": null,
+                            "toAddress": null,
+                            "confirmTimes": null,
+                            "txId": null
+                        },
+                        {
+                            "transactionTime": 1786510157962,
+                            "type": "DEPOSIT",
+                            "walletName": "SPOT@",
+                            "asset": "USDT",
+                            "netAmount": "100",
+                            "amount": "100",
+                            "transactionRef": "2026081200000367",
+                            "status": "COMPLETED",
+                            "description": null,
+                            "fees": "0",
+                            "cryptoNetwork": "ERC20",
+                            "toAddress": "0x36bd7cbc486658c9777672fe742971bda65d5e6f",
+                            "confirmTimes": "(15/15)",
+                            "txId": "0xb4d88986d013f799d78e6232792c44b45dff1213a015171ddcf4adfcd283b3fd"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "transactionTime": 1786510157962,
+                            "type": "DEPOSIT",
+                            "walletName": "SPOT@",
+                            "asset": "USDT",
+                            "netAmount": "100",
+                            "amount": "100",
+                            "transactionRef": "2026081200000367",
+                            "status": "COMPLETED",
+                            "description": null,
+                            "fees": "0",
+                            "cryptoNetwork": "ERC20",
+                            "toAddress": "0x36bd7cbc486658c9777672fe742971bda65d5e6f",
+                            "confirmTimes": "(15/15)",
+                            "txId": "0xb4d88986d013f799d78e6232792c44b45dff1213a015171ddcf4adfcd283b3fd"
+                        },
+                        "id": "2026081200000367",
+                        "timestamp": 1786510157962,
+                        "datetime": "2026-08-12T04:49:17.962Z",
+                        "direction": "in",
+                        "account": "SPOT@",
+                        "referenceId": "0xb4d88986d013f799d78e6232792c44b45dff1213a015171ddcf4adfcd283b3fd",
+                        "referenceAccount": null,
+                        "type": "transaction",
+                        "currency": "USDT",
+                        "amount": 100,
+                        "before": null,
+                        "after": null,
+                        "status": "ok",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0
+                        }
+                    },
+                    {
+                        "info": {
+                            "transactionTime": 1786515075461,
+                            "type": "TRANSFER_OUT",
+                            "walletName": "SPOT@",
+                            "asset": "USDT",
+                            "netAmount": "-50",
+                            "amount": "-50",
+                            "transactionRef": "8c86816c-0a88-4472-9d18-e07a97adea4c",
+                            "status": "COMPLETED",
+                            "description": "SPOT@->CROSS@",
+                            "fees": "0",
+                            "cryptoNetwork": null,
+                            "toAddress": null,
+                            "confirmTimes": null,
+                            "txId": null
+                        },
+                        "id": "8c86816c-0a88-4472-9d18-e07a97adea4c",
+                        "timestamp": 1786515075461,
+                        "datetime": "2026-08-12T06:11:15.461Z",
+                        "direction": "out",
+                        "account": "SPOT@",
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "transfer",
+                        "currency": "USDT",
+                        "amount": -50,
+                        "before": null,
+                        "after": null,
+                        "status": "ok",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0
+                        }
+                    },
+                    {
+                        "info": {
+                            "transactionTime": 1786579500072,
+                            "type": "UNKNOWN",
+                            "walletName": "SPOT@",
+                            "asset": "USDT",
+                            "netAmount": "0.0000345125",
+                            "amount": "0.0000345125",
+                            "transactionRef": "20260813000031",
+                            "status": "COMPLETED",
+                            "description": null,
+                            "fees": "0",
+                            "cryptoNetwork": null,
+                            "toAddress": null,
+                            "confirmTimes": null,
+                            "txId": null
+                        },
+                        "id": "20260813000031",
+                        "timestamp": 1786579500072,
+                        "datetime": "2026-08-13T00:05:00.072Z",
+                        "direction": null,
+                        "account": "SPOT@",
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "UNKNOWN",
+                        "currency": "USDT",
+                        "amount": 3.45125e-05,
                         "before": null,
                         "after": null,
                         "status": "ok",
