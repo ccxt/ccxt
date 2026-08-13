@@ -2042,7 +2042,7 @@
                 "httpResponse": {
                     "records": [
                         {
-                            "address": "TDepositAddressExample1111111111111",
+                            "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
                             "uniqueId": null,
                             "transactionId": "11111111-2222-3333-4444-555555555555",
                             "createdAt": 1786182572,
@@ -2073,8 +2073,8 @@
                         "timestamp": 1786182572000,
                         "datetime": "2026-08-08T09:49:32.000Z",
                         "network": "TRC20",
-                        "addressFrom": "TDepositAddressExample1111111111111",
-                        "address": "TDepositAddressExample1111111111111",
+                        "addressFrom": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                        "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
                         "addressTo": null,
                         "amount": 20.723117,
                         "type": "deposit",
@@ -2091,7 +2091,7 @@
                             "currency": "USDT"
                         },
                         "info": {
-                            "address": "TDepositAddressExample1111111111111",
+                            "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
                             "uniqueId": null,
                             "transactionId": "11111111-2222-3333-4444-555555555555",
                             "createdAt": 1786182572,
@@ -2125,7 +2125,7 @@
                 "httpResponse": {
                     "records": [
                         {
-                            "address": "TDepositAddressExample1111111111111",
+                            "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
                             "uniqueId": "5593377049",
                             "transactionId": "11111111-2222-3333-4444-555555555555",
                             "createdAt": 1786182572,
@@ -2155,8 +2155,8 @@
                     "timestamp": 1786182572000,
                     "datetime": "2026-08-08T09:49:32.000Z",
                     "network": "TRC20",
-                    "addressFrom": "TDepositAddressExample1111111111111",
-                    "address": "TDepositAddressExample1111111111111",
+                    "addressFrom": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                    "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
                     "addressTo": null,
                     "amount": 20.723117,
                     "type": "deposit",
@@ -2173,7 +2173,7 @@
                         "currency": "USDT"
                     },
                     "info": {
-                        "address": "TDepositAddressExample1111111111111",
+                        "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
                         "uniqueId": "5593377049",
                         "transactionId": "11111111-2222-3333-4444-555555555555",
                         "createdAt": 1786182572,
@@ -2207,7 +2207,7 @@
                 "httpResponse": {
                     "records": [
                         {
-                            "address": "TDepositAddressExample1111111111111",
+                            "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
                             "uniqueId": null,
                             "transactionId": "11111111-2222-3333-4444-555555555555",
                             "createdAt": 1786182572,
@@ -2238,8 +2238,8 @@
                         "timestamp": 1786182572000,
                         "datetime": "2026-08-08T09:49:32.000Z",
                         "network": "TRC20",
-                        "addressFrom": "TDepositAddressExample1111111111111",
-                        "address": "TDepositAddressExample1111111111111",
+                        "addressFrom": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                        "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
                         "addressTo": null,
                         "amount": 20.723117,
                         "type": "deposit",
@@ -2256,7 +2256,7 @@
                             "currency": "USDT"
                         },
                         "info": {
-                            "address": "TDepositAddressExample1111111111111",
+                            "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
                             "uniqueId": null,
                             "transactionId": "11111111-2222-3333-4444-555555555555",
                             "createdAt": 1786182572,
@@ -2291,7 +2291,7 @@
                 "httpResponse": {
                     "records": [
                         {
-                            "address": "TDepositAddressExample1111111111111",
+                            "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
                             "uniqueId": null,
                             "transactionId": "11111111-2222-3333-4444-555555555555",
                             "createdAt": 1786182572,
@@ -2322,8 +2322,8 @@
                         "timestamp": 1786182572000,
                         "datetime": "2026-08-08T09:49:32.000Z",
                         "network": "TRC20",
-                        "addressFrom": "TDepositAddressExample1111111111111",
-                        "address": "TDepositAddressExample1111111111111",
+                        "addressFrom": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                        "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
                         "addressTo": null,
                         "amount": 20.723117,
                         "type": "deposit",
@@ -2340,7 +2340,7 @@
                             "currency": "USDT"
                         },
                         "info": {
-                            "address": "TDepositAddressExample1111111111111",
+                            "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
                             "uniqueId": null,
                             "transactionId": "11111111-2222-3333-4444-555555555555",
                             "createdAt": 1786182572,
@@ -2391,7 +2391,7 @@
                 "httpResponse": {
                     "records": [
                         {
-                            "address": "TWithdrawAddressExample111111111111",
+                            "address": "TQMbNLpgvJ4hPtR3HXi5zccc2mL2n9PURD",
                             "uniqueId": "7788990011",
                             "transactionId": "22222222-3333-4444-5555-666666666666",
                             "createdAt": 1786200000,
@@ -2423,8 +2423,8 @@
                         "datetime": "2026-08-08T14:40:00.000Z",
                         "network": "TRC20",
                         "addressFrom": null,
-                        "address": "TWithdrawAddressExample111111111111",
-                        "addressTo": "TWithdrawAddressExample111111111111",
+                        "address": "TQMbNLpgvJ4hPtR3HXi5zccc2mL2n9PURD",
+                        "addressTo": "TQMbNLpgvJ4hPtR3HXi5zccc2mL2n9PURD",
                         "amount": 10,
                         "type": "withdrawal",
                         "currency": "USDT",
@@ -2440,7 +2440,7 @@
                             "currency": "USDT"
                         },
                         "info": {
-                            "address": "TWithdrawAddressExample111111111111",
+                            "address": "TQMbNLpgvJ4hPtR3HXi5zccc2mL2n9PURD",
                             "uniqueId": "7788990011",
                             "transactionId": "22222222-3333-4444-5555-666666666666",
                             "createdAt": 1786200000,
@@ -2609,6 +2609,92 @@
                         }
                     }
                 ]
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetchDepositAddress: TRC20 USDT address (masked)",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "httpResponse": {
+                    "account": {
+                        "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT"
+                    },
+                    "required": {
+                        "maxAmount": "0",
+                        "minAmount": "5",
+                        "fixedFee": "0",
+                        "flexFee": {
+                            "percent": "0",
+                            "minFee": "0",
+                            "maxFee": "0"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "account": {
+                            "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT"
+                        },
+                        "required": {
+                            "maxAmount": "0",
+                            "minAmount": "5",
+                            "fixedFee": "0",
+                            "flexFee": {
+                                "percent": "0",
+                                "minFee": "0",
+                                "maxFee": "0"
+                            }
+                        }
+                    },
+                    "currency": "USDT",
+                    "network": null,
+                    "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                    "tag": null
+                }
+            }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "createDepositAddress: documented shape (endpoint needs support-enabled permission)",
+                "method": "createDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "httpResponse": {
+                    "account": {
+                        "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                        "memo": null
+                    },
+                    "required": {
+                        "maxAmount": "0",
+                        "minAmount": "5",
+                        "fixedFee": "0",
+                        "flexFee": {
+                            "percent": "0",
+                            "minFee": "0",
+                            "maxFee": "0"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                        "memo": null
+                    },
+                    "currency": "USDT",
+                    "network": null,
+                    "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                    "tag": null
+                }
             }
         ]
     }
