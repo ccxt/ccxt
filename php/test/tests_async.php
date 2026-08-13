@@ -1632,12 +1632,16 @@ class testMainClass {
         }) ();
     }
 
-    public function inject_ws_messages($exchange, $url, $messages) {
+    public function inject_ws_messages($exchange, $url, $messages, $sequential = false) {
         // before every frame, wait until the watch flow is actually awaiting
         // something — a fixed head-start sleep is not enough on slow ci
         // runners and the frame's resolution would be dropped
-        // yield between frames so the handlers run in arrival order
-        return Async\async(function () use ($exchange, $url, $messages) {
+        // threaded runtimes resolve futures on another thread — wait for
+        // the consumed frame to settle so the pending check above does not
+        // observe a stale future and burn the next frame early; frames
+        // that resolve nothing (e.g. subscribe acks) fall through on the
+        // timeout
+        return Async\async(function () use ($exchange, $url, $messages, $sequential) {
             for ($i = 0; $i < count($messages); $i++) {
                 $waited = 0;
                 while (!ws_client_has_pending_futures($exchange, $url) && ($waited < 5000)) {
@@ -1645,9 +1649,25 @@ class testMainClass {
                     $waited = $waited + 50;
                 }
                 inject_ws_message($exchange, $url, $messages[$i]);
-                \React\Async\await($exchange->sleep(20));
+                $settled = 0;
+                while (ws_client_has_pending_futures($exchange, $url) && ($settled < 500)) {
+                    \React\Async\await($exchange->sleep(20));
+                    $settled = $settled + 20;
+                }
             }
             \React\Async\await($exchange->sleep(50));
+            if ($sequential) {
+                // the last watch call of a sequence can register its future after
+                // every frame was already consumed — keep rejecting until the
+                // watch side reports completion so a wrong fixture fails fast
+                // instead of hanging the test run forever
+                $waited_done = 0;
+                while (!is_ws_test_completed($exchange, $url) && ($waited_done < 5000)) {
+                    reject_pending_ws_futures($exchange, $url);
+                    \React\Async\await($exchange->sleep(50));
+                    $waited_done = $waited_done + 50;
+                }
+            }
             // reject anything still pending so a wrong fixture fails fast
             // instead of hanging the test run forever
             reject_pending_ws_futures($exchange, $url);
@@ -1655,11 +1675,14 @@ class testMainClass {
         }) ();
     }
 
-    public function watch_and_assert_sequence($exchange, $method, $input, $skip_keys, $expected_results) {
+    public function watch_and_assert_sequence($exchange, $url, $method, $input, $skip_keys, $expected_results) {
         // ws structures can be live typed objects (e.g. orderbooks) in some
         // runtimes — roundtrip through json so the deep-compare sees plain
         // dicts in every language
-        return Async\async(function () use ($exchange, $method, $input, $skip_keys, $expected_results) {
+        // let the injector's rejection loop exit before the caller reports
+        // — the explicit try/catch also keeps the java transpilation
+        // compilable (checked exceptions)
+        return Async\async(function () use ($exchange, $url, $method, $input, $skip_keys, $expected_results) {
             try {
                 for ($i = 0; $i < count($expected_results); $i++) {
                     $result = \React\Async\await(call_exchange_method_dynamically($exchange, $method, $input));
@@ -1667,8 +1690,10 @@ class testMainClass {
                     $this->assert_static_response_output($exchange, $skip_keys, $unified_result, $expected_results[$i]);
                 }
             } catch(\Throwable $e) {
+                mark_ws_test_completed($exchange, $url);
                 throw $e;
             }
+            mark_ws_test_completed($exchange, $url);
             return true;  // c# methods used with promiseAll need to return something
         }) ();
     }
@@ -1712,7 +1737,7 @@ class testMainClass {
                 if ($expected_results !== null) {
                     // 'parsedResponses' asserts one result per successive watch
                     // resolution (e.g. an order going from open to closed)
-                    $promises = [$this->watch_and_assert_sequence($exchange, $method, $input, $skip_keys, $expected_results), $this->inject_ws_messages($exchange, $url, $messages)];
+                    $promises = [$this->watch_and_assert_sequence($exchange, $url, $method, $input, $skip_keys, $expected_results), $this->inject_ws_messages($exchange, $url, $messages, true)];
                     \React\Async\await(\React\Promise\all($promises));
                     $this->assert_ws_sent_messages($exchange, $url, $data);
                 } else {

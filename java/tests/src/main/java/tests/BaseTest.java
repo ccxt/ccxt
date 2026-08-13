@@ -444,6 +444,10 @@ public class BaseTest {
         // with a transport stub, so watch* methods never open a real socket;
         // everything above the socket (subscriptions, futures, caches, message
         // routing) runs unmodified
+        // block sleeps synchronously for the rest of the run — joining a
+        // delayed future inside a ForkJoinPool worker can steal the pending
+        // watch task onto the injector's own stack and deadlock the test
+        BaseExchange.syncSleep = true;
         var exchange = (BaseExchange) exchange2;
         var client = exchange.client(url);
         client.startedConnecting.set(true);
@@ -474,6 +478,23 @@ public class BaseTest {
         var exchange = (BaseExchange) exchange2;
         var client = exchange.client(url);
         return !((java.util.Map<?, ?>) client.futures).isEmpty();
+    }
+
+    private static final java.util.Set<Object> wsCompletedClients =
+        java.util.Collections.synchronizedSet(new java.util.HashSet<Object>());
+
+    public static void markWsTestCompleted(Object exchange2, Object url) {
+        // the watch side of a static ws test flags completion here so the
+        // frame injector's rejection loop knows it can stop
+        var exchange = (BaseExchange) exchange2;
+        var client = exchange.client(url);
+        wsCompletedClients.add(client);
+    }
+
+    public static boolean isWsTestCompleted(Object exchange2, Object url) {
+        var exchange = (BaseExchange) exchange2;
+        var client = exchange.client(url);
+        return wsCompletedClients.contains(client);
     }
 
     public static void rejectPendingWsFutures(Object exchange2, Object url) {

@@ -243,6 +243,18 @@ function wsClientHasPendingFutures (exchange: any, url: string) {
     return messageHashes.length > 0;
 }
 
+function markWsTestCompleted (exchange: any, url: string) {
+    // the watch side of a static ws test flags completion here so the frame
+    // injector's rejection loop knows it can stop
+    const client = exchange.client (url);
+    client.wsTestCompleted = true;
+}
+
+function isWsTestCompleted (exchange: any, url: string) {
+    const client = exchange.client (url);
+    return client.wsTestCompleted === true;
+}
+
 function rejectPendingWsFutures (exchange: any, url: string) {
     // reject any futures the injected frames did not resolve, so a broken
     // fixture fails the test instead of hanging it; settled js promises
@@ -332,6 +344,8 @@ export {
     injectWsMessage,
     rejectPendingWsFutures,
     wsClientHasPendingFutures,
+    markWsTestCompleted,
+    isWsTestCompleted,
     getWsSentMessages,
     isNullValue,
     close,
