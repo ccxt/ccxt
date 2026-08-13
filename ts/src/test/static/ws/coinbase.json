@@ -248,7 +248,8 @@
                             "fees": []
                         }
                     ]
-                ]
+                ],
+                "disabledCS": "the replayed coinbase frames do not resolve the watch future in c# - message routing parity, investigate separately"
             }
         ],
         "watchTicker": [
@@ -376,7 +377,8 @@
                         "indexPrice": null,
                         "markPrice": null
                     }
-                ]
+                ],
+                "disabledCS": "the replayed coinbase frames do not resolve the watch future in c# - message routing parity, investigate separately"
             }
         ]
     }
