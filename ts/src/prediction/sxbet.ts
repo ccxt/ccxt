@@ -973,6 +973,32 @@ export default class sxbet extends Exchange {
     /**
      * @ignore
      * @method
+     * @name sxbet#sxbetUint256Hex
+     * @description converts a decimal integer string into 32-byte zero-padded hex via string arithmetic - uint256 order fields (percentageOdds ~ 5e19) overflow the native 64-bit integers some language bases use for byte packing
+     * @param {string} value the non-negative decimal integer string
+     * @returns {string} a 64-character lowercase hex string without the 0x prefix
+     */
+    sxbetUint256Hex (value: string): string {
+        const digits = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' ];
+        let hexRaw = '';
+        let remaining: Str = value;
+        // a uint256 has at most 64 hex digits, so the loop is bounded instead of while-based
+        for (let i = 0; i < 64; i++) {
+            const isPositive = Precise.stringGt (remaining, '0');
+            if (!isPositive) {
+                break;
+            }
+            const digitStr = Precise.stringMod (remaining, '16');
+            const digit = this.parseToInt (digitStr);
+            hexRaw = digits[digit] + hexRaw;
+            remaining = Precise.stringDiv (remaining, '16', 0);
+        }
+        return hexRaw.padStart (64, '0');
+    }
+
+    /**
+     * @ignore
+     * @method
      * @name sxbet#hashSxbetOrder
      * @description builds the sx.bet maker order hash: solidity-packed keccak256 of (marketHash, baseToken, totalBetSize, percentageOdds, expiry, salt, maker, executor, isMakerBettingOutcomeOne). Packed manually (bytes32‖address‖uint256 x4‖address‖address‖bool, minimal per-type byte widths) via base primitives ported to every language, rather than the TS-only vendored solidityPackedKeccak256 helper — verified byte-identical against it
      * @returns {string} the 32-byte order hash, as a '0x'-prefixed hex string
@@ -984,10 +1010,10 @@ export default class sxbet extends Exchange {
         const packed = this.binaryConcat (
             this.base16ToBinary (this.remove0xPrefix (marketHash)),
             this.base16ToBinary (this.remove0xPrefix (baseToken)),
-            this.numberToBE (totalBetSize as any, 32),
-            this.numberToBE (percentageOdds as any, 32),
-            this.numberToBE (expiry as any, 32),
-            this.numberToBE (salt as any, 32),
+            this.base16ToBinary (this.sxbetUint256Hex (totalBetSize)),
+            this.base16ToBinary (this.sxbetUint256Hex (percentageOdds)),
+            this.base16ToBinary (this.sxbetUint256Hex (expiry)),
+            this.base16ToBinary (this.sxbetUint256Hex (salt)),
             this.base16ToBinary (this.remove0xPrefix (maker)),
             this.base16ToBinary (this.remove0xPrefix (executor)),
             this.base16ToBinary (boolHex)
@@ -1148,7 +1174,10 @@ export default class sxbet extends Exchange {
     async signSxbetCancel (domainName: string, messageTypes: Dict, messageData: Dict, salt: string): Promise<string> {
         const sxMetadata = await this.loadSxMetadata ();
         const chainId = this.safeInteger (sxMetadata, 'chainId');
-        const domain: Dict = { 'name': domainName, 'version': '1.0', 'chainId': chainId, 'salt': salt };
+        // the bytes32 domain salt goes in as raw bytes - every language's EIP-712 encoder accepts
+        // binary, while a hex string ends up UTF8-encoded (and rejected) by some of them
+        const saltBinary = this.base16ToBinary (this.remove0xPrefix (salt));
+        const domain: Dict = { 'name': domainName, 'version': '1.0', 'chainId': chainId, 'salt': saltBinary };
         const encoded = this.ethEncodeStructuredData (domain, messageTypes, messageData);
         const digest = this.hashEip712Digest (encoded);
         return this.signDigest (digest, this.privateKey);
