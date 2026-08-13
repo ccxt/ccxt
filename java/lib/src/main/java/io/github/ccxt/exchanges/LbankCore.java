@@ -837,8 +837,8 @@ public class LbankCore extends LbankApi
                             put( "max", LbankCore.this.safeNumber(market, "maxOrderVolume") );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
-                            put( "min", LbankCore.this.safeNumber(market, "priceLimitLowerValue") );
-                            put( "max", LbankCore.this.safeNumber(market, "priceLimitUpperValue") );
+                            put( "min", null );
+                            put( "max", null );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
                             put( "min", LbankCore.this.safeNumber(market, "minOrderCost") );

@@ -406,6 +406,15 @@ public class XtCore extends XtApi
                             put( "future/trade/v1/entrust/profit-list", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "future/trade/v1/entrust/track-detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/trade/v1/entrust/track-list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/trade/v1/entrust/track-list-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "future/trade/v1/order/detail", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -539,6 +548,15 @@ public class XtCore extends XtApi
                                 put( "cost", 1 );
                             }} );
                             put( "future/trade/v1/entrust/profit-list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/trade/v1/entrust/track-detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/trade/v1/entrust/track-list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/trade/v1/entrust/track-list-history", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "future/trade/v1/order/detail", new java.util.HashMap<String, Object>() {{
@@ -1075,6 +1093,21 @@ public class XtCore extends XtApi
                     put( "fetchMyTrades", new java.util.HashMap<String, Object>() {{
                         put( "daysBack", null );
                         put( "untilDays", null );
+                    }} );
+                    put( "fetchOrder", new java.util.HashMap<String, Object>() {{
+                        put( "trailing", true );
+                    }} );
+                    put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
+                        put( "trailing", true );
+                    }} );
+                    put( "fetchOrders", new java.util.HashMap<String, Object>() {{
+                        put( "trailing", true );
+                    }} );
+                    put( "fetchClosedOrders", new java.util.HashMap<String, Object>() {{
+                        put( "trailing", true );
+                    }} );
+                    put( "fetchCanceledOrders", new java.util.HashMap<String, Object>() {{
+                        put( "trailing", true );
                     }} );
                 }} );
                 put( "swap", new java.util.HashMap<String, Object>() {{
@@ -3349,11 +3382,13 @@ public class XtCore extends XtApi
      * @see https://doc.xt.com/docs/futures/Order/see-orders-by-id
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersByEntrustId
      * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimitByProfitId
+     * @see https://doc.xt.com/docs/futures/Entrust/GetSingleTrackDetail
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the order is a trailing order or not
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
@@ -3384,12 +3419,24 @@ public class XtCore extends XtApi
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object trigger = this.safeValue(parameters, "stop");
             Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
+            Object trailing = this.safeBool(parameters, "trailing");
+            if (Helpers.isTrue(trailing))
+            {
+                Object isContract = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subType, null))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future")));
+                if (!Helpers.isTrue(isContract))
+                {
+                    throw new NotSupported((String)Helpers.add(this.id, " fetchOrder() trailing orders are only supported on swap and future markets")) ;
+                }
+            }
             if (Helpers.isTrue(trigger))
             {
                 Helpers.addElementToObject(request, "entrustId", id);
             } else if (Helpers.isTrue(stopLossTakeProfit))
             {
                 Helpers.addElementToObject(request, "profitId", id);
+            } else if (Helpers.isTrue(trailing))
+            {
+                Helpers.addElementToObject(request, "trackId", id);
             } else
             {
                 Helpers.addElementToObject(request, "orderId", id);
@@ -3413,6 +3460,16 @@ public class XtCore extends XtApi
                 } else
                 {
                     response = (this.privateLinearGetFutureTradeV1EntrustProfitDetail(this.extend(request, parameters))).join();
+                }
+            } else if (Helpers.isTrue(trailing))
+            {
+                parameters = this.omit(parameters, "trailing");
+                if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
+                {
+                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInverseGetFutureTradeV1EntrustTrackDetail", new Object[] { this.extend(request, parameters) })).join();
+                } else
+                {
+                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearGetFutureTradeV1EntrustTrackDetail", new Object[] { this.extend(request, parameters) })).join();
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
@@ -3554,11 +3611,13 @@ public class XtCore extends XtApi
      * @see https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
      * @see https://doc.xt.com/docs/futures/Order/see-order-history
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersHistory
+     * @see https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
@@ -3599,6 +3658,15 @@ public class XtCore extends XtApi
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object trigger = this.safeValue2(parameters, "trigger", "stop");
+            Object trailing = this.safeBool(parameters, "trailing");
+            if (Helpers.isTrue(trailing))
+            {
+                Object isContract = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subType, null))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future")));
+                if (!Helpers.isTrue(isContract))
+                {
+                    throw new NotSupported((String)Helpers.add(this.id, " fetchOrders() trailing orders are only supported on swap and future markets")) ;
+                }
+            }
             if (Helpers.isTrue(trigger))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
@@ -3608,6 +3676,16 @@ public class XtCore extends XtApi
                 } else
                 {
                     response = (this.privateLinearGetFutureTradeV1EntrustPlanListHistory(this.extend(request, parameters))).join();
+                }
+            } else if (Helpers.isTrue(trailing))
+            {
+                parameters = this.omit(parameters, "trailing");
+                if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
+                {
+                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInverseGetFutureTradeV1EntrustTrackListHistory", new Object[] { this.extend(request, parameters) })).join();
+                } else
+                {
+                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearGetFutureTradeV1EntrustTrackListHistory", new Object[] { this.extend(request, parameters) })).join();
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
@@ -3781,7 +3859,19 @@ public class XtCore extends XtApi
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-            if (Helpers.isTrue(Helpers.isEqual(status, "open")))
+            Object trailing = this.safeBool(parameters, "trailing");
+            if (Helpers.isTrue(trailing))
+            {
+                Object isContract = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subType, null))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future")));
+                if (!Helpers.isTrue(isContract))
+                {
+                    throw new NotSupported((String)Helpers.add(this.id, " fetchOrdersByStatus() trailing orders are only supported on swap and future markets")) ;
+                }
+                // the track endpoints do not accept a state filter, and a server-side
+                // size would truncate the mixed-state page before the local status
+                // filter runs, so the limit is only applied locally after filtering
+                request = this.omit(request, new java.util.ArrayList<Object>(java.util.Arrays.asList("state", "size")));
+            } else if (Helpers.isTrue(Helpers.isEqual(status, "open")))
             {
                 if (Helpers.isTrue(Helpers.isTrue(trigger) || Helpers.isTrue(stopLossTakeProfit)))
                 {
@@ -3818,7 +3908,7 @@ public class XtCore extends XtApi
                 {
                     Helpers.addElementToObject(request, "startTime", since);
                 }
-                if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limit, null))) && !Helpers.isTrue(trailing)))
                 {
                     Helpers.addElementToObject(request, "size", limit);
                 }
@@ -3842,6 +3932,28 @@ public class XtCore extends XtApi
                 } else
                 {
                     response = (this.privateLinearGetFutureTradeV1EntrustProfitList(this.extend(request, parameters))).join();
+                }
+            } else if (Helpers.isTrue(trailing))
+            {
+                parameters = this.omit(parameters, "trailing");
+                if (Helpers.isTrue(Helpers.isEqual(status, "open")))
+                {
+                    if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
+                    {
+                        response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInverseGetFutureTradeV1EntrustTrackList", new Object[] { this.extend(request, parameters) })).join();
+                    } else
+                    {
+                        response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearGetFutureTradeV1EntrustTrackList", new Object[] { this.extend(request, parameters) })).join();
+                    }
+                } else
+                {
+                    if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
+                    {
+                        response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInverseGetFutureTradeV1EntrustTrackListHistory", new Object[] { this.extend(request, parameters) })).join();
+                    } else
+                    {
+                        response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearGetFutureTradeV1EntrustTrackListHistory", new Object[] { this.extend(request, parameters) })).join();
+                    }
                 }
             } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subType, null))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future")))))
             {
@@ -4064,6 +4176,15 @@ public class XtCore extends XtApi
             {
                 orders = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             }
+            if (Helpers.isTrue(trailing))
+            {
+                // the track endpoints do not support a server-side state filter
+                // and return entries in every state, so filter by status first,
+                // otherwise since/limit could cut off matching rows
+                Object parsedOrders = this.parseOrders(orders, market);
+                Object filteredOrders = this.filterBy(parsedOrders, "status", status);
+                return this.filterBySinceLimit(filteredOrders, since, limit);
+            }
             return this.parseOrders(orders, market, since, limit);
         });
 
@@ -4077,12 +4198,14 @@ public class XtCore extends XtApi
      * @see https://doc.xt.com/docs/futures/Order/see-orders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/getTrackList
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
@@ -4107,12 +4230,14 @@ public class XtCore extends XtApi
      * @see https://doc.xt.com/docs/futures/Order/see-orders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
@@ -4137,12 +4262,14 @@ public class XtCore extends XtApi
      * @see https://doc.xt.com/docs/futures/Order/see-orders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchCanceledOrders(Object... optionalArgs)
@@ -4611,7 +4738,7 @@ public class XtCore extends XtApi
         final Object finalSide = side;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", XtCore.this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderId", "result", "cancelId", "entrustId", "profitId"))) );
+            put( "id", XtCore.this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderId", "result", "cancelId", "entrustId", "profitId", "trackId"))) );
             put( "clientOrderId", XtCore.this.safeString2(order, "clientOrderId", "clientModifyId") );
             put( "timestamp", timestamp );
             put( "datetime", XtCore.this.iso8601(timestamp) );
@@ -4650,11 +4777,13 @@ public class XtCore extends XtApi
             put( "REJECTED", "rejected" );
             put( "EXPIRED", "expired" );
             put( "UNFINISHED", "open" );
+            put( "NOT_ACTIVATION", "open" );
             put( "NOT_TRIGGERED", "open" );
             put( "TRIGGERING", "open" );
             put( "TRIGGERED", "closed" );
             put( "USER_REVOCATION", "canceled" );
             put( "PLATFORM_REVOCATION", "rejected" );
+            put( "DELEGATION_FAILED", "rejected" );
             put( "HISTORY", "expired" );
         }};
         return this.safeString(statuses, status, status);

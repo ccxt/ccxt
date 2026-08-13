@@ -3797,21 +3797,9 @@ public class WooCore extends WooApi
             put( "amount", WooCore.this.safeNumber(transfer, "amount") );
             put( "fromAccount", WooCore.this.safeString(fromAccount, "applicationId") );
             put( "toAccount", WooCore.this.safeString(toAccount, "applicationId") );
-            put( "status", WooCore.this.parseTransferStatus(WooCore.this.safeString(transfer, "status", finalStatus)) );
+            put( "status", WooCore.this.parseTransactionStatus(WooCore.this.safeString(transfer, "status", finalStatus)) );
             put( "info", transfer );
         }};
-    }
-
-    public Object parseTransferStatus(Object status)
-    {
-        Object statuses = new java.util.HashMap<String, Object>() {{
-            put( "NEW", "pending" );
-            put( "CONFIRMING", "pending" );
-            put( "PROCESSING", "pending" );
-            put( "COMPLETED", "ok" );
-            put( "CANCELED", "canceled" );
-        }};
-        return this.safeString(statuses, ((String)status), status);
     }
 
     /**
