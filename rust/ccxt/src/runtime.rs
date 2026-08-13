@@ -652,6 +652,30 @@ pub fn append_to_object_array(obj: &mut Value, key: &Value, v: Value) {
     }
 }
 
+/// Recursively deep-extend `base` with `over` (CCXT `deepExtend` semantics):
+/// nested dicts are merged key-by-key rather than wholesale-replaced, and
+/// `over`'s leaves win on conflict. Used by generated init() to merge a pro
+/// Core's describe().options over the parent REST Core's — e.g. mexc's
+/// options.timeframes is a flat `{1m: Min1}` in the pro block but a nested
+/// `{spot, swap}` in REST; a shallow merge dropped one, breaking watchOHLCV's
+/// interval lookup. Deep-merge yields the union both forms rely on.
+pub fn deep_merge_dict(base: &Value, over: &Value) -> Value {
+    match (base, over) {
+        (Value::Dict(b), Value::Dict(o)) => {
+            let mut out = (**b).clone();
+            for (k, v) in o.iter() {
+                let merged = match out.get(k) {
+                    Some(existing) => deep_merge_dict(existing, v),
+                    None => v.clone(),
+                };
+                out.insert(k.clone(), merged);
+            }
+            Value::Map(out)
+        }
+        _ => over.clone(),
+    }
+}
+
 pub fn concat_arrays(a: &Value, b: &Value) -> Value {
     match (a, b) {
         (Value::Arr(x), Value::Arr(y)) => {

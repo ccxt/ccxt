@@ -6188,12 +6188,16 @@ impl ${coreName} {
         // after_construct left an EMPTY networksById), which would
         // otherwise clobber the manual mappings like binance BSC to BEP20.
         let __described_networks_by_id = crate::get_value(&__described_options, &crate::Value::Str("networksById".to_string()));
-        if let (crate::Value::Dict(existing), crate::Value::Dict(defaults)) =
+        if let (crate::Value::Dict(_), crate::Value::Dict(_)) =
             (&self.exchange.options.clone(), &__described_options)
         {
-            let mut merged = (**defaults).clone();
-            for (k, v) in existing.iter() { merged.insert(k.clone(), v.clone()); }
-            self.exchange.options = crate::Value::Map(merged);
+            // Deep-extend (CCXT deepExtend): describe() defaults as the base,
+            // existing (config + parent REST describe) winning on leaf conflicts,
+            // nested dicts merged rather than replaced — so e.g. a pro Core's
+            // flat options.timeframes unions with the parent REST's nested one
+            // instead of one clobbering the other.
+            self.exchange.options = crate::runtime::deep_merge_dict(
+                &__described_options, &self.exchange.options.clone());
         } else if !matches!(self.exchange.options, crate::Value::Dict(_)) {
             self.exchange.options = __described_options;
         }

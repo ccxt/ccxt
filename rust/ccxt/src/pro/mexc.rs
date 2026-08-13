@@ -60,12 +60,16 @@ impl MexcCore {
         // after_construct left an EMPTY networksById), which would
         // otherwise clobber the manual mappings like binance BSC to BEP20.
         let __described_networks_by_id = crate::get_value(&__described_options, &crate::Value::Str("networksById".to_string()));
-        if let (crate::Value::Dict(existing), crate::Value::Dict(defaults)) =
+        if let (crate::Value::Dict(_), crate::Value::Dict(_)) =
             (&self.options.clone(), &__described_options)
         {
-            let mut merged = (**defaults).clone();
-            for (k, v) in existing.iter() { merged.insert(k.clone(), v.clone()); }
-            self.options = crate::Value::Map(merged);
+            // Deep-extend (CCXT deepExtend): describe() defaults as the base,
+            // existing (config + parent REST describe) winning on leaf conflicts,
+            // nested dicts merged rather than replaced — so e.g. a pro Core's
+            // flat options.timeframes unions with the parent REST's nested one
+            // instead of one clobbering the other.
+            self.options = crate::runtime::deep_merge_dict(
+                &__described_options, &self.options.clone());
         } else if !matches!(self.options, crate::Value::Dict(_)) {
             self.options = __described_options;
         }
@@ -123,6 +127,22 @@ impl MexcCore {
         // the constructor config (test runners pass them in via
         // Exchange::new(Some(config-with-markets)) — same as CCXT TS).
         // Don't reset them here.
+        // Apply hardcoded describe().markets. Venues like coincheck ship a
+        // static markets block and never fetchMarkets — CCXT sets this.markets
+        // from describe() at construction, and its base fetchMarkets just
+        // returns Object.values(this.markets). Mirror that here so loadMarkets
+        // resolves without a network fetch. Guarded on a non-empty describe()
+        // markets and an as-yet-unloaded self.markets, so fetch-based venues
+        // (empty describe markets) and config-injected markets are untouched.
+        {
+            let __described_markets = crate::get_value(&described, &crate::Value::Str("markets".to_string()));
+            if matches!(&__described_markets, crate::Value::Dict(mm) if !mm.is_empty())
+                && matches!(self.markets, crate::Value::Null)
+            {
+                let __markets_list = crate::runtime::object_values(&__described_markets);
+                <Self as crate::exchange_generated::ExchangeBase>::set_markets(self, __markets_list, &[crate::Value::Null]);
+            }
+        }
         self.build_implicit_api();
     }
 
@@ -726,8 +746,8 @@ impl MexcCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_488: bool = true;
-            while { if !__for_first_488 { i = add(&i, &Value::Int(1)); } __for_first_488 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i = add(&i, &Value::Int(1)); } __for_first_0 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut ticker: Value = Value::Null;
@@ -846,8 +866,8 @@ impl MexcCore {
         let mut topics: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_489: bool = true;
-            while { if !__for_first_489 { i = add(&i, &Value::Int(1)); } __for_first_489 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i = add(&i, &Value::Int(1)); } __for_first_1 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             if is_true(&isSpot) {
                 let mut market: Value = self.market(get_value(&symbols, &i));
                 append_to_array(&mut topics, add(&Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".to_string()), &get_value(&market, &Value::Str("id".to_string()))));
@@ -1307,8 +1327,8 @@ impl MexcCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_490: bool = true;
-            while { if !__for_first_490 { i = add(&i, &Value::Int(1)); } __for_first_490 = false; is_less_than(&i, &get_array_length(&cache)) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i = add(&i, &Value::Int(1)); } __for_first_2 = false; is_less_than(&i, &get_array_length(&cache)) } {
             let mut delta: Value = get_value(&cache, &i);
             let mut delta: Value = get_value(&cache, &i);
             let mut deltaNonce: Value = self.safe_integer_n(delta.clone(), Value::List(vec![Value::Str("r".to_string()), Value::Str("version".to_string()), Value::Str("fromVersion".to_string())]), &[]);
@@ -1437,8 +1457,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_bookside_delta(&self, mut bookside: Value, mut bidasks: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_491: bool = true;
-            while { if !__for_first_491 { i = add(&i, &Value::Int(1)); } __for_first_491 = false; is_less_than(&i, &get_array_length(&bidasks)) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i = add(&i, &Value::Int(1)); } __for_first_3 = false; is_less_than(&i, &get_array_length(&bidasks)) } {
             let mut bidask: Value = get_value(&bidasks, &i);
             let mut bidask: Value = get_value(&bidasks, &i);
             if is_true(&Value::Bool(is_array(&bidask))) {
@@ -1582,8 +1602,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_492: bool = true;
-            while { if !__for_first_492 { j = add(&j, &Value::Int(1)); } __for_first_492 = false; is_less_than(&j, &get_array_length(&trades)) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { j = add(&j, &Value::Int(1)); } __for_first_4 = false; is_less_than(&j, &get_array_length(&trades)) } {
             let mut parsedTrade: Value = Value::Null;
             if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
                 parsedTrade = self.parse_ws_trade(get_value(&trades, &j), &[market.clone()]);
@@ -2425,8 +2445,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut topics: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_493: bool = true;
-            while { if !__for_first_493 { i = add(&i, &Value::Int(1)); } __for_first_493 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i = add(&i, &Value::Int(1)); } __for_first_5 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             if is_true(&isSpot) {
                 let mut market: Value = self.market(get_value(&symbols, &i));
                 append_to_array(&mut topics, add(&Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".to_string()), &get_value(&market, &Value::Str("id".to_string()))));
@@ -2592,8 +2612,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_unsubscriptions(&mut self, mut client: Value, mut messageHashes: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_495: bool = true;
-            while { if !__for_first_495 { i = add(&i, &Value::Int(1)); } __for_first_495 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i = add(&i, &Value::Int(1)); } __for_first_7 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut subMessageHash: Value = replace_str(&messageHash, &Value::Str("unsubscribe:".to_string()), &Value::Str("".to_string()));
@@ -2605,8 +2625,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut symbols: Value = object_keys(&self.tickers);
                     {
                                                 let mut j: Value = Value::Int(0);
-                        let mut __for_first_494: bool = true;
-                        while { if !__for_first_494 { j = add(&j, &Value::Int(1)); } __for_first_494 = false; is_less_than(&j, &get_array_length(&symbols)) } {
+                        let mut __for_first_6: bool = true;
+                        while { if !__for_first_6 { j = add(&j, &Value::Int(1)); } __for_first_6 = false; is_less_than(&j, &get_array_length(&symbols)) } {
                         remove(&mut self.tickers, &get_value(&symbols, &j));
                     }
                     }
