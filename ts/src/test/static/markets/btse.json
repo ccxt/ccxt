@@ -28,72 +28,32 @@
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
-        "precision": {
-            "amount": 0.0001,
-            "price": 0.01
-        },
+        "precision": { "amount": 0.0001, "price": 0.01 },
         "limits": {
-            "leverage": {
-                "min": null,
-                "max": null
-            },
-            "amount": {
-                "min": 0.0001,
-                "max": 2000
-            },
-            "price": {
-                "min": 0.01,
-                "max": null
-            },
-            "cost": {
-                "min": null,
-                "max": null
-            }
+          "leverage": { "min": null, "max": null },
+          "amount": { "min": 0.0001, "max": 2000 },
+          "price": { "min": 0.01, "max": null },
+          "cost": { "min": null, "max": null }
         },
-        "marginModes": {
-            "cross": null,
-            "isolated": null
-        },
+        "marginModes": { "cross": null, "isolated": null },
         "created": null,
         "info": {
-            "symbol": "ETH-USDT",
-            "last": "2021.1099999999997",
-            "lowestAsk": "2020.93",
-            "highestBid": "2020.75",
-            "percentageChange": "5.23467208",
-            "volume": "90133002.985309",
-            "high24Hr": "2119.19",
-            "low24Hr": "1871.76",
-            "base": "ETH",
-            "quote": "USDT",
-            "active": true,
-            "size": "44630.01669999",
-            "minValidPrice": "0.01",
-            "minPriceIncrement": "0.01",
-            "minOrderSize": "0.0001",
-            "maxOrderSize": "2000",
-            "minSizeIncrement": "0.0001",
-            "openInterest": "0",
-            "openInterestUSD": "0",
-            "contractStart": "0",
-            "contractEnd": "0",
-            "timeBasedContract": false,
-            "openTime": "0",
-            "closeTime": "0",
-            "startMatching": "0",
-            "inactiveTime": "0",
-            "fundingRate": "0",
-            "contractSize": "0",
-            "maxPosition": "0",
-            "minRiskLimit": "0",
-            "maxRiskLimit": "0",
-            "availableSettlement": null,
-            "futures": false,
-            "isMarketOpenToOtc": true,
-            "isMarketOpenToSpot": true
-        },
-        "tierBased": true,
-        "percentage": true
+          "symbol": "ETH-USDT",
+          "type": "Spot",
+          "category": "CRYPTO",
+          "tradeCurrency": "ETH",
+          "baseCurrency": "ETH",
+          "quoteCurrency": "USDT",
+          "displayName": "Ethereum",
+          "active": true,
+          "minOrderPrice": "0.01",
+          "minPriceIncrement": "0.01",
+          "pricePrecision": 2,
+          "minOrderSize": "0.0001",
+          "maxOrderSize": "2000",
+          "minSizeIncrement": "0.0001",
+          "sizePrecision": 4
+        }
     },
     "DOGE/USDT": {
         "id": "DOGE-USDT",
@@ -124,72 +84,32 @@
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
-        "precision": {
-            "amount": 0.1,
-            "price": 1e-05
-        },
+        "precision": { "amount": 0.1, "price": 0.00001 },
         "limits": {
-            "leverage": {
-                "min": null,
-                "max": null
-            },
-            "amount": {
-                "min": 0.1,
-                "max": 5000000
-            },
-            "price": {
-                "min": 1e-05,
-                "max": null
-            },
-            "cost": {
-                "min": null,
-                "max": null
-            }
+          "leverage": { "min": null, "max": null },
+          "amount": { "min": 0.1, "max": 5000000 },
+          "price": { "min": 0.00001, "max": null },
+          "cost": { "min": null, "max": null }
         },
-        "marginModes": {
-            "cross": null,
-            "isolated": null
-        },
+        "marginModes": { "cross": null, "isolated": null },
         "created": null,
         "info": {
-            "symbol": "DOGE-USDT",
-            "last": "0.09612970910061917",
-            "lowestAsk": "0.09589",
-            "highestBid": "0.09586",
-            "percentageChange": "3.82299287",
-            "volume": "206032.265844",
-            "high24Hr": "0.10208",
-            "low24Hr": "0.09073",
-            "base": "DOGE",
-            "quote": "USDT",
-            "active": true,
-            "size": "2131790.2",
-            "minValidPrice": "0.00001",
-            "minPriceIncrement": "0.00001",
-            "minOrderSize": "0.1",
-            "maxOrderSize": "5000000",
-            "minSizeIncrement": "0.1",
-            "openInterest": "0",
-            "openInterestUSD": "0",
-            "contractStart": "0",
-            "contractEnd": "0",
-            "timeBasedContract": false,
-            "openTime": "0",
-            "closeTime": "0",
-            "startMatching": "0",
-            "inactiveTime": "0",
-            "fundingRate": "0",
-            "contractSize": "0",
-            "maxPosition": "0",
-            "minRiskLimit": "0",
-            "maxRiskLimit": "0",
-            "availableSettlement": null,
-            "futures": false,
-            "isMarketOpenToOtc": true,
-            "isMarketOpenToSpot": true
-        },
-        "tierBased": true,
-        "percentage": true
+          "symbol": "DOGE-USDT",
+          "type": "Spot",
+          "category": "CRYPTO",
+          "tradeCurrency": "DOGE",
+          "baseCurrency": "DOGE",
+          "quoteCurrency": "USDT",
+          "displayName": "Dogecoin",
+          "active": true,
+          "minOrderPrice": "0.00001",
+          "minPriceIncrement": "0.00001",
+          "pricePrecision": 5,
+          "minOrderSize": "0.1",
+          "maxOrderSize": "5000000",
+          "minSizeIncrement": "0.1",
+          "sizePrecision": 1
+        }
     },
     "ETH/USDT:USDT": {
         "id": "ETH-PERP",
@@ -212,7 +132,7 @@
         "contract": true,
         "linear": true,
         "inverse": false,
-        "subType": "linear",
+        "subType": null,
         "taker": 0.00055,
         "maker": 0.0002,
         "contractSize": 0.0001,
@@ -220,93 +140,47 @@
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
-        "precision": {
-            "amount": 0.0001,
-            "price": 0.01
-        },
+        "precision": { "amount": 1, "price": 0.01 },
         "limits": {
-            "leverage": {
-                "min": null,
-                "max": null
-            },
-            "amount": {
-                "min": 1,
-                "max": 10000000
-            },
-            "price": {
-                "min": 0.01,
-                "max": null
-            },
-            "cost": {
-                "min": null,
-                "max": null
-            }
+          "leverage": { "min": null, "max": null },
+          "amount": { "min": 1, "max": 20000000 },
+          "price": { "min": 0.01, "max": null },
+          "cost": { "min": null, "max": null }
         },
-        "marginModes": {
-            "cross": null,
-            "isolated": null
-        },
+        "marginModes": { "cross": null, "isolated": null },
         "created": null,
         "info": {
-            "symbol": "ETH-PERP",
-            "last": "2020.51",
-            "lowestAsk": "2020.52",
-            "highestBid": "2020.49",
-            "openInterest": "21743148",
-            "openInterestUSD": "4393626.51",
-            "percentageChange": "5.3176",
-            "volume": "1971320564.5253038",
-            "high24Hr": "2117.35",
-            "low24Hr": "1870.95",
-            "base": "ETH",
-            "quote": "USDT",
-            "contractStart": "0",
-            "contractEnd": "0",
-            "active": true,
-            "timeBasedContract": false,
-            "openTime": "0",
-            "closeTime": "0",
-            "startMatching": "0",
-            "inactiveTime": "0",
-            "fundingRate": "0.0000524",
-            "contractSize": "0.0001",
-            "maxPosition": "800000000",
-            "minValidPrice": "0.01",
-            "minPriceIncrement": "0.01",
-            "minOrderSize": "1",
-            "maxOrderSize": "10000000",
-            "minRiskLimit": "1500000",
-            "maxRiskLimit": "800000000",
-            "minSizeIncrement": "1",
-            "availableSettlement": [
-                "USD",
-                "USDT",
-                "USDC",
-                "BTC",
-                "ETH",
-                "AED",
-                "AUD",
-                "CAD",
-                "CHF",
-                "EUR",
-                "GBP",
-                "HKD",
-                "INR",
-                "JPY",
-                "MYR",
-                "NZD",
-                "SGD",
-                "SOL",
-                "XRP"
-            ]
-        },
-        "tierBased": true,
-        "percentage": true
+          "symbol": "ETH-PERP-USDT",
+          "type": "FuturesPerpetual",
+          "category": "CRYPTO",
+          "tradeCurrency": "ETH-PERP",
+          "baseCurrency": "ETH",
+          "quoteCurrency": "USDT",
+          "displayName": "Ethereum",
+          "active": true,
+          "minOrderPrice": "0.01",
+          "minPriceIncrement": "0.01",
+          "pricePrecision": 2,
+          "minOrderSize": "1",
+          "maxOrderSize": "20000000",
+          "minSizeIncrement": "1",
+          "sizePrecision": 0,
+          "contractSize": "0.0001",
+          "availableSettlement": [
+            "USD", "USDT", "USDC",
+            "BTC", "ETH",  "AED",
+            "AUD", "CAD",  "CHF",
+            "EUR", "GBP",  "HKD",
+            "INR", "JPY",  "MYR",
+            "NZD", "SGD",  "SOL",
+            "XRP"
+          ]
+        }
     },
-    "ETH/USDT:USDT-260327": {
-        "id": "ETH-260327",
+    "ETH/USDT:USDT-260925": {
+        "id": "ETH-260925",
         "lowercaseId": null,
-        "symbol": "ETH/USDT:USDT-260327",
+        "symbol": "ETH/USDT:USDT-260925",
         "base": "ETH",
         "quote": "USDT",
         "settle": "USDT",
@@ -324,96 +198,54 @@
         "contract": true,
         "linear": true,
         "inverse": false,
-        "subType": "linear",
+        "subType": null,
         "taker": 0.00055,
         "maker": 0.0002,
         "contractSize": 0.0001,
-        "expiry": 1774598430000,
-        "expiryDatetime": "2026-03-27T08:00:30.000Z",
+        "expiry": 1790323230000,
+        "expiryDatetime": "2026-09-25T08:00:30.000Z",
         "strike": null,
         "optionType": null,
-        "precision": {
-            "amount": 0.0001,
-            "price": 0.01
-        },
+        "precision": { "amount": 1, "price": 0.01 },
         "limits": {
-            "leverage": {
-                "min": null,
-                "max": null
-            },
-            "amount": {
-                "min": 1,
-                "max": 100000
-            },
-            "price": {
-                "min": 0.01,
-                "max": null
-            },
-            "cost": {
-                "min": null,
-                "max": null
-            }
+          "leverage": { "min": null, "max": null },
+          "amount": { "min": 1, "max": 100000 },
+          "price": { "min": 0.01, "max": null },
+          "cost": { "min": null, "max": null }
         },
-        "marginModes": {
-            "cross": null,
-            "isolated": null
-        },
+        "marginModes": { "cross": null, "isolated": null },
         "created": null,
         "info": {
-            "symbol": "ETH-260327",
-            "last": "2026.17",
-            "lowestAsk": "2027.44",
-            "highestBid": "2025.69",
-            "openInterest": "145013",
-            "openInterestUSD": "29396.55",
-            "percentageChange": "5.131",
-            "volume": "3470.657858",
-            "high24Hr": "2124.13",
-            "low24Hr": "1879.62",
-            "base": "ETH",
-            "quote": "USDT",
-            "contractStart": "0",
-            "contractEnd": "1774598430",
-            "active": true,
-            "timeBasedContract": true,
-            "openTime": "1758873600000",
-            "closeTime": "1774598430000",
-            "startMatching": "1758873615000",
-            "inactiveTime": "1774598400000",
-            "fundingRate": "0",
-            "contractSize": "0.0001",
-            "maxPosition": "40000000",
-            "minValidPrice": "0.01",
-            "minPriceIncrement": "0.01",
-            "minOrderSize": "1",
-            "maxOrderSize": "100000",
-            "minRiskLimit": "30000",
-            "maxRiskLimit": "40000000",
-            "minSizeIncrement": "1",
-            "availableSettlement": [
-                "USD",
-                "USDT",
-                "USDC",
-                "BTC",
-                "ETH",
-                "SOL",
-                "XRP",
-                "AED",
-                "AUD",
-                "CAD",
-                "CHF",
-                "EUR",
-                "GBP",
-                "HKD",
-                "INR",
-                "JPY",
-                "MYR",
-                "NZD",
-                "SGD"
-            ]
-        },
-        "tierBased": true,
-        "percentage": true
+          "symbol": "ETH-260925-USDT",
+          "type": "FuturesTimeBased",
+          "category": "CRYPTO",
+          "tradeCurrency": "ETH-260925",
+          "baseCurrency": "ETH",
+          "quoteCurrency": "USDT",
+          "displayName": "Ethereum",
+          "active": true,
+          "minOrderPrice": "0.01",
+          "minPriceIncrement": "0.01",
+          "pricePrecision": 2,
+          "minOrderSize": "1",
+          "maxOrderSize": "100000",
+          "minSizeIncrement": "1",
+          "sizePrecision": 0,
+          "contractSize": "0.0001",
+          "availableSettlement": [
+            "USD", "USDT", "USDC",
+            "BTC", "ETH",  "SOL",
+            "XRP", "AED",  "AUD",
+            "CAD", "CHF",  "EUR",
+            "GBP", "HKD",  "INR",
+            "JPY", "MYR",  "NZD",
+            "SGD"
+          ],
+          "contractStartTime": 1774569600000,
+          "contractEndTime": 1790323230000,
+          "matchingStartTime": 1774569615000,
+          "becomeInactiveTime": 1790323200000
+        }
     },
     "BTC/USDT:USDT": {
         "id": "BTC-PERP",
@@ -436,96 +268,50 @@
         "contract": true,
         "linear": true,
         "inverse": false,
-        "subType": "linear",
+        "subType": null,
         "taker": 0.00055,
         "maker": 0.0002,
-        "contractSize": 1e-05,
+        "contractSize": 0.00001,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
-        "precision": {
-            "amount": 1e-05,
-            "price": 0.1
-        },
+        "precision": { "amount": 1, "price": 0.1 },
         "limits": {
-            "leverage": {
-                "min": null,
-                "max": null
-            },
-            "amount": {
-                "min": 1,
-                "max": 7500000
-            },
-            "price": {
-                "min": 0.1,
-                "max": null
-            },
-            "cost": {
-                "min": null,
-                "max": null
-            }
+          "leverage": { "min": null, "max": null },
+          "amount": { "min": 1, "max": 7500000 },
+          "price": { "min": 0.1, "max": null },
+          "cost": { "min": null, "max": null }
         },
-        "marginModes": {
-            "cross": null,
-            "isolated": null
-        },
+        "marginModes": { "cross": null, "isolated": null },
         "created": null,
         "info": {
-            "symbol": "BTC-PERP",
-            "last": "68847.3",
-            "lowestAsk": "68843",
-            "highestBid": "68842.8",
-            "openInterest": "35122540",
-            "openInterestUSD": "24181684.26",
-            "percentageChange": "2.3311",
-            "volume": "4789357816.405607",
-            "high24Hr": "71701",
-            "low24Hr": "66431.3",
-            "base": "BTC",
-            "quote": "USDT",
-            "contractStart": "0",
-            "contractEnd": "0",
-            "active": true,
-            "timeBasedContract": false,
-            "openTime": "0",
-            "closeTime": "0",
-            "startMatching": "0",
-            "inactiveTime": "0",
-            "fundingRate": "0.0001",
-            "contractSize": "0.00001",
-            "maxPosition": "1100000000",
-            "minValidPrice": "0.1",
-            "minPriceIncrement": "0.1",
-            "minOrderSize": "1",
-            "maxOrderSize": "7500000",
-            "minRiskLimit": "3000000",
-            "maxRiskLimit": "1100000000",
-            "minSizeIncrement": "1",
-            "availableSettlement": [
-                "USD",
-                "USDT",
-                "USDC",
-                "BTC",
-                "ETH",
-                "AED",
-                "AUD",
-                "CAD",
-                "CHF",
-                "EUR",
-                "GBP",
-                "HKD",
-                "INR",
-                "JPY",
-                "MYR",
-                "NZD",
-                "SGD",
-                "SOL",
-                "XRP"
-            ]
-        },
-        "tierBased": true,
-        "percentage": true
+          "symbol": "BTC-PERP-USDT",
+          "type": "FuturesPerpetual",
+          "category": "CRYPTO",
+          "tradeCurrency": "BTC-PERP",
+          "baseCurrency": "BTC",
+          "quoteCurrency": "USDT",
+          "displayName": "Bitcoin",
+          "active": true,
+          "minOrderPrice": "0.1",
+          "minPriceIncrement": "0.1",
+          "pricePrecision": 1,
+          "minOrderSize": "1",
+          "maxOrderSize": "7500000",
+          "minSizeIncrement": "1",
+          "sizePrecision": 0,
+          "contractSize": "0.00001",
+          "availableSettlement": [
+            "USD", "USDT", "USDC",
+            "BTC", "ETH",  "AED",
+            "AUD", "CAD",  "CHF",
+            "EUR", "GBP",  "HKD",
+            "INR", "JPY",  "MYR",
+            "NZD", "SGD",  "SOL",
+            "XRP"
+          ]
+        }
     },
     "RAVE/USDT:USDT": {
         "id": "RAVE-PERP",
@@ -548,7 +334,7 @@
         "contract": true,
         "linear": true,
         "inverse": false,
-        "subType": "linear",
+        "subType": null,
         "taker": 0.00055,
         "maker": 0.0002,
         "contractSize": 1,
@@ -556,88 +342,42 @@
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
-        "precision": {
-            "amount": 1,
-            "price": 0.001
-        },
+        "precision": { "amount": 1, "price": 0.001 },
         "limits": {
-            "leverage": {
-                "min": null,
-                "max": null
-            },
-            "amount": {
-                "min": 1,
-                "max": 50000
-            },
-            "price": {
-                "min": 0.001,
-                "max": null
-            },
-            "cost": {
-                "min": null,
-                "max": null
-            }
+          "leverage": { "min": null, "max": null },
+          "amount": { "min": 1, "max": 50000 },
+          "price": { "min": 0.001, "max": null },
+          "cost": { "min": null, "max": null }
         },
-        "marginModes": {
-            "cross": null,
-            "isolated": null
-        },
+        "marginModes": { "cross": null, "isolated": null },
         "created": null,
         "info": {
-            "symbol": "RAVE-PERP",
-            "last": 0.315,
-            "lowestAsk": 0.318,
-            "highestBid": 0.314,
-            "openInterest": 19318104,
-            "openInterestUSD": 6101911.18,
-            "percentageChange": 0,
-            "volume": 6270.037,
-            "high24Hr": 0.324,
-            "low24Hr": 0.299,
-            "base": "RAVE",
-            "quote": "USDT",
-            "contractStart": 0,
-            "contractEnd": 0,
-            "active": true,
-            "timeBasedContract": false,
-            "openTime": 0,
-            "closeTime": 0,
-            "startMatching": 0,
-            "inactiveTime": 0,
-            "fundingRate": 5e-05,
-            "contractSize": 1,
-            "maxPosition": 6000000,
-            "minValidPrice": 0.001,
-            "minPriceIncrement": 0.001,
-            "minOrderSize": 1,
-            "maxOrderSize": 50000,
-            "minRiskLimit": 2500,
-            "maxRiskLimit": 6000000,
-            "minSizeIncrement": 1,
-            "availableSettlement": [
-                "USD",
-                "USDT",
-                "USDC",
-                "BTC",
-                "ETH",
-                "SOL",
-                "XRP",
-                "AED",
-                "AUD",
-                "CAD",
-                "CHF",
-                "EUR",
-                "GBP",
-                "HKD",
-                "INR",
-                "JPY",
-                "MYR",
-                "NZD",
-                "SGD"
-            ]
-        },
-        "tierBased": true,
-        "percentage": true
+          "symbol": "RAVE-PERP-USDT",
+          "type": "FuturesPerpetual",
+          "category": "CRYPTO",
+          "tradeCurrency": "RAVE-PERP",
+          "baseCurrency": "RAVE",
+          "quoteCurrency": "USDT",
+          "displayName": "RaveDAO",
+          "active": true,
+          "minOrderPrice": "0.001",
+          "minPriceIncrement": "0.001",
+          "pricePrecision": 3,
+          "minOrderSize": "1",
+          "maxOrderSize": "50000",
+          "minSizeIncrement": "1",
+          "sizePrecision": 0,
+          "contractSize": "1",
+          "availableSettlement": [
+            "USD", "USDT", "USDC",
+            "BTC", "ETH",  "SOL",
+            "XRP", "AED",  "AUD",
+            "CAD", "CHF",  "EUR",
+            "GBP", "HKD",  "INR",
+            "JPY", "MYR",  "NZD",
+            "SGD"
+          ]
+        }
     },
     "BTC/USD": {
         "id": "BTC-USD",
@@ -668,69 +408,31 @@
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
-        "precision": {
-            "amount": 0.00001,
-            "price": 0.1
-        },
+        "precision": { "amount": 0.00001, "price": 0.1 },
         "limits": {
-            "leverage": {
-                "min": null,
-                "max": null
-            },
-            "amount": {
-                "min": 0.00001,
-                "max": 100
-            },
-            "price": {
-                "min": 0.1,
-                "max": null
-            },
-            "cost": {
-                "min": null,
-                "max": null
-            }
+          "leverage": { "min": null, "max": null },
+          "amount": { "min": 0.00001, "max": 100 },
+          "price": { "min": 0.1, "max": null },
+          "cost": { "min": null, "max": null }
         },
-        "marginModes": {
-            "cross": null,
-            "isolated": null
-        },
+        "marginModes": { "cross": null, "isolated": null },
         "created": null,
         "info": {
-            "symbol": "BTC-USD",
-            "last": "63418.5",
-            "lowestAsk": "63418.9",
-            "highestBid": "63418.7",
-            "percentageChange": "0.12298569",
-            "volume": "144483102.22817346",
-            "high24Hr": "64423",
-            "low24Hr": "63206.6",
-            "base": "BTC",
-            "quote": "USD",
-            "active": true,
-            "size": "2267.55699",
-            "minValidPrice": "0.1",
-            "minPriceIncrement": "0.1",
-            "minOrderSize": "0.00001",
-            "maxOrderSize": "100",
-            "minSizeIncrement": "0.00001",
-            "openInterest": "0",
-            "openInterestUSD": "0",
-            "contractStart": "0",
-            "contractEnd": "0",
-            "timeBasedContract": false,
-            "openTime": "0",
-            "closeTime": "0",
-            "startMatching": "0",
-            "inactiveTime": "0",
-            "fundingRate": "0",
-            "contractSize": "0",
-            "maxPosition": "0",
-            "minRiskLimit": "0",
-            "maxRiskLimit": "0",
-            "availableSettlement": null,
-            "futures": false,
-            "isMarketOpenToOtc": true,
-            "isMarketOpenToSpot": true
+          "symbol": "BTC-USD",
+          "type": "Spot",
+          "category": "CRYPTO",
+          "tradeCurrency": "BTC",
+          "baseCurrency": "BTC",
+          "quoteCurrency": "USD",
+          "displayName": "Bitcoin",
+          "active": true,
+          "minOrderPrice": "0.1",
+          "minPriceIncrement": "0.1",
+          "pricePrecision": 1,
+          "minOrderSize": "0.00001",
+          "maxOrderSize": "100",
+          "minSizeIncrement": "0.00001",
+          "sizePrecision": 5
         }
     },
     "TRUMPSOL/USD": {
@@ -762,69 +464,31 @@
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
-        "precision": {
-            "amount": 0.01,
-            "price": 0.0001
-        },
+        "precision": { "amount": 0.01, "price": 0.0001 },
         "limits": {
-            "leverage": {
-                "min": null,
-                "max": null
-            },
-            "amount": {
-                "min": 0.01,
-                "max": 20000000
-            },
-            "price": {
-                "min": 0.0001,
-                "max": null
-            },
-            "cost": {
-                "min": null,
-                "max": null
-            }
+          "leverage": { "min": null, "max": null },
+          "amount": { "min": 0.01, "max": 20000000 },
+          "price": { "min": 0.0001, "max": null },
+          "cost": { "min": null, "max": null }
         },
-        "marginModes": {
-            "cross": null,
-            "isolated": null
-        },
+        "marginModes": { "cross": null, "isolated": null },
         "created": null,
         "info": {
-            "symbol": "TRUMPSOL-USD",
-            "last": "1.4401",
-            "lowestAsk": "1.4401",
-            "highestBid": "1.439",
-            "percentageChange": "-2",
-            "volume": "202273.6563811",
-            "high24Hr": "1.4993",
-            "low24Hr": "1.437",
-            "base": "TRUMPSOL",
-            "quote": "USD",
-            "active": true,
-            "size": "137001.38",
-            "minValidPrice": "0.0001",
-            "minPriceIncrement": "0.0001",
-            "minOrderSize": "0.01",
-            "maxOrderSize": "20000000",
-            "minSizeIncrement": "0.01",
-            "openInterest": "0",
-            "openInterestUSD": "0",
-            "contractStart": "0",
-            "contractEnd": "0",
-            "timeBasedContract": false,
-            "openTime": "0",
-            "closeTime": "0",
-            "startMatching": "0",
-            "inactiveTime": "0",
-            "fundingRate": "0",
-            "contractSize": "0",
-            "maxPosition": "0",
-            "minRiskLimit": "0",
-            "maxRiskLimit": "0",
-            "availableSettlement": null,
-            "futures": false,
-            "isMarketOpenToOtc": false,
-            "isMarketOpenToSpot": true
+          "symbol": "TRUMPSOL-USD",
+          "type": "Spot",
+          "category": "CRYPTO",
+          "tradeCurrency": "TRUMPSOL",
+          "baseCurrency": "TRUMPSOL",
+          "quoteCurrency": "USD",
+          "displayName": "Official Trump",
+          "active": true,
+          "minOrderPrice": "0.0001",
+          "minPriceIncrement": "0.0001",
+          "pricePrecision": 4,
+          "minOrderSize": "0.01",
+          "maxOrderSize": "20000000",
+          "minSizeIncrement": "0.01",
+          "sizePrecision": 2
         }
     },
     "SATS/USD": {
@@ -856,69 +520,31 @@
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
-        "precision": {
-            "amount": 1,
-            "price": 1e-8
-        },
+        "precision": { "amount": 1, "price": 1e-8 },
         "limits": {
-            "leverage": {
-                "min": null,
-                "max": null
-            },
-            "amount": {
-                "min": 1,
-                "max": 5000000
-            },
-            "price": {
-                "min": 1e-8,
-                "max": null
-            },
-            "cost": {
-                "min": null,
-                "max": null
-            }
+          "leverage": { "min": null, "max": null },
+          "amount": { "min": 1, "max": 5000000 },
+          "price": { "min": 1e-8, "max": null },
+          "cost": { "min": null, "max": null }
         },
-        "marginModes": {
-            "cross": null,
-            "isolated": null
-        },
+        "marginModes": { "cross": null, "isolated": null },
         "created": null,
         "info": {
-            "symbol": "K_SATS-USD",
-            "last": "0.00001016",
-            "lowestAsk": "0.00001015",
-            "highestBid": "0.00001013",
-            "percentageChange": "-2",
-            "volume": "27674.48781205",
-            "high24Hr": "0.00001047",
-            "low24Hr": "0.00000999",
-            "base": "SATS",
-            "quote": "USD",
-            "active": true,
-            "size": "2708810164",
-            "minValidPrice": "1e-8",
-            "minPriceIncrement": "1e-8",
-            "minOrderSize": "1",
-            "maxOrderSize": "5000000",
-            "minSizeIncrement": "1",
-            "openInterest": "0",
-            "openInterestUSD": "0",
-            "contractStart": "0",
-            "contractEnd": "0",
-            "timeBasedContract": false,
-            "openTime": "0",
-            "closeTime": "0",
-            "startMatching": "0",
-            "inactiveTime": "0",
-            "fundingRate": "0",
-            "contractSize": "0",
-            "maxPosition": "0",
-            "minRiskLimit": "0",
-            "maxRiskLimit": "0",
-            "availableSettlement": null,
-            "futures": false,
-            "isMarketOpenToOtc": false,
-            "isMarketOpenToSpot": true
+          "symbol": "K_SATS-USD",
+          "type": "Spot",
+          "category": "CRYPTO",
+          "tradeCurrency": "K_SATS",
+          "baseCurrency": "SATS",
+          "quoteCurrency": "USD",
+          "displayName": "SATS (Ordinals)",
+          "active": true,
+          "minOrderPrice": "0.00000001",
+          "minPriceIncrement": "0.00000001",
+          "pricePrecision": 8,
+          "minOrderSize": "1",
+          "maxOrderSize": "5000000",
+          "minSizeIncrement": "1",
+          "sizePrecision": 0
         }
     }
 }

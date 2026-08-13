@@ -1293,7 +1293,7 @@
                 "description": "fetch OHLCV for future",
                 "method": "fetchOHLCV",
                 "input": [
-                    "ETH/USDT:USDT-260327",
+                    "ETH/USDT:USDT-260925",
                     "1h",
                     1770454800000
                 ],
