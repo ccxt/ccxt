@@ -1050,7 +1050,8 @@ export default class btse extends Exchange {
         // previous tier's maxNotional for every subsequent tier
         const symbolKeys = Object.keys (result);
         for (let i = 0; i < symbolKeys.length; i++) {
-            const tiersList = result[symbolKeys[i]];
+            const symbolKey = symbolKeys[i];
+            const tiersList = result[symbolKey];
             for (let j = 0; j < tiersList.length; j++) {
                 if (j === 0) {
                     tiersList[j]['minNotional'] = 0;
@@ -1058,6 +1059,8 @@ export default class btse extends Exchange {
                     tiersList[j]['minNotional'] = tiersList[j - 1]['maxNotional'];
                 }
             }
+            // php copies arrays by value, so the mutated list must be written back explicitly
+            result[symbolKey] = tiersList;
         }
         return result as LeverageTiers;
     }
