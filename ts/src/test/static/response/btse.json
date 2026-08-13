@@ -3767,42 +3767,164 @@
         ],
         "fetchBalance": [
             {
-                "description": "btse fetchBalance spot - live-captured 2026-08-13, httpResponse and parsedResponse trimmed to 3 console-verbatim rows of the 418-row wallet: USDT nonzero + USD and BTC zero rows",
+                "description": "btse fetchBalance spot via the unified wallet assets endpoint - live-captured 2026-08-13, httpResponse and parsedResponse trimmed to 3 console-verbatim rows of the 488-row wallet: USDT nonzero + BTC and USD zero rows",
                 "method": "fetchBalance",
                 "input": [],
-                "httpResponse": [
-                    {
-                        "currency": "USD",
-                        "total": 0,
-                        "available": 0
-                    },
-                    {
-                        "currency": "BTC",
-                        "total": 0,
-                        "available": 0
-                    },
-                    {
-                        "currency": "USDT",
-                        "total": 50.00003451,
-                        "available": 50.00003451
-                    }
-                ],
+                "httpResponse": {
+                    "code": 1,
+                    "msg": "Success",
+                    "time": 1786609881153,
+                    "data": [
+                        {
+                            "asset": "USD",
+                            "type": "FIAT",
+                            "totalAmount": "0",
+                            "availableAmount": "0",
+                            "availableActions": [
+                                "CONVERT",
+                                "TRANSFER",
+                                "SEND_TO"
+                            ],
+                            "cryptoNetwork": {
+                                "depositNetworks": [],
+                                "withdrawalNetworks": []
+                            }
+                        },
+                        {
+                            "asset": "BTC",
+                            "type": "CRYPTO",
+                            "totalAmount": "0",
+                            "availableAmount": "0",
+                            "availableActions": [
+                                "CONVERT",
+                                "TRANSFER",
+                                "WITHDRAW",
+                                "DEPOSIT",
+                                "SEND_TO"
+                            ],
+                            "cryptoNetwork": {
+                                "depositNetworks": [
+                                    "BITCOIN",
+                                    "LIQUID"
+                                ],
+                                "withdrawalNetworks": [
+                                    "BITCOIN",
+                                    "LIQUID"
+                                ]
+                            }
+                        },
+                        {
+                            "asset": "USDT",
+                            "type": "STABLE_COIN",
+                            "totalAmount": "50.0000345125",
+                            "availableAmount": "50.00003451",
+                            "availableActions": [
+                                "CONVERT",
+                                "TRANSFER",
+                                "WITHDRAW",
+                                "DEPOSIT",
+                                "SEND_TO"
+                            ],
+                            "cryptoNetwork": {
+                                "depositNetworks": [
+                                    "POLYGON",
+                                    "PLASMA",
+                                    "ERC20",
+                                    "TRC20",
+                                    "LIQUID",
+                                    "BEP20",
+                                    "ARBITRUM",
+                                    "SPL"
+                                ],
+                                "withdrawalNetworks": [
+                                    "POLYGON",
+                                    "PLASMA",
+                                    "ERC20",
+                                    "TRC20",
+                                    "LIQUID",
+                                    "BEP20",
+                                    "ARBITRUM",
+                                    "SPL"
+                                ]
+                            }
+                        }
+                    ],
+                    "success": true
+                },
                 "parsedResponse": {
                     "info": [
                         {
-                            "currency": "USD",
-                            "total": 0,
-                            "available": 0
+                            "asset": "USD",
+                            "type": "FIAT",
+                            "totalAmount": "0",
+                            "availableAmount": "0",
+                            "availableActions": [
+                                "CONVERT",
+                                "TRANSFER",
+                                "SEND_TO"
+                            ],
+                            "cryptoNetwork": {
+                                "depositNetworks": [],
+                                "withdrawalNetworks": []
+                            }
                         },
                         {
-                            "currency": "BTC",
-                            "total": 0,
-                            "available": 0
+                            "asset": "BTC",
+                            "type": "CRYPTO",
+                            "totalAmount": "0",
+                            "availableAmount": "0",
+                            "availableActions": [
+                                "CONVERT",
+                                "TRANSFER",
+                                "WITHDRAW",
+                                "DEPOSIT",
+                                "SEND_TO"
+                            ],
+                            "cryptoNetwork": {
+                                "depositNetworks": [
+                                    "BITCOIN",
+                                    "LIQUID"
+                                ],
+                                "withdrawalNetworks": [
+                                    "BITCOIN",
+                                    "LIQUID"
+                                ]
+                            }
                         },
                         {
-                            "currency": "USDT",
-                            "total": 50.00003451,
-                            "available": 50.00003451
+                            "asset": "USDT",
+                            "type": "STABLE_COIN",
+                            "totalAmount": "50.0000345125",
+                            "availableAmount": "50.00003451",
+                            "availableActions": [
+                                "CONVERT",
+                                "TRANSFER",
+                                "WITHDRAW",
+                                "DEPOSIT",
+                                "SEND_TO"
+                            ],
+                            "cryptoNetwork": {
+                                "depositNetworks": [
+                                    "POLYGON",
+                                    "PLASMA",
+                                    "ERC20",
+                                    "TRC20",
+                                    "LIQUID",
+                                    "BEP20",
+                                    "ARBITRUM",
+                                    "SPL"
+                                ],
+                                "withdrawalNetworks": [
+                                    "POLYGON",
+                                    "PLASMA",
+                                    "ERC20",
+                                    "TRC20",
+                                    "LIQUID",
+                                    "BEP20",
+                                    "ARBITRUM",
+                                    "SPL"
+                                ]
+                            }
                         }
                     ],
                     "USD": {
@@ -3817,8 +3939,8 @@
                     },
                     "USDT": {
                         "free": 50.00003451,
-                        "used": 0,
-                        "total": 50.00003451
+                        "used": 2.5e-09,
+                        "total": 50.0000345125
                     },
                     "free": {
                         "USD": 0,
@@ -3828,12 +3950,12 @@
                     "used": {
                         "USD": 0,
                         "BTC": 0,
-                        "USDT": 0
+                        "USDT": 2.5e-09
                     },
                     "total": {
                         "USD": 0,
                         "BTC": 0,
-                        "USDT": 50.00003451
+                        "USDT": 50.0000345125
                     }
                 }
             },
