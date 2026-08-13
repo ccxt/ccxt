@@ -63,7 +63,7 @@ export default class revolutx extends Exchange {
                 '4w': 40320,
             },
             'urls': {
-                'logo': 'https://exchange.revolut.com/favicon.ico',
+                'logo': 'https://raw.githubusercontent.com/revolut-engineering/revolut-x-api/master/assets/icon.png',
                 'api': {
                     'public': 'https://revx.revolut.com/api',
                     'private': 'https://revx.revolut.com/api',
@@ -133,6 +133,7 @@ export default class revolutx extends Exchange {
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
+                            'GTC': true,
                             'IOC': true,
                             'FOK': false,
                             'PO': false,
@@ -187,7 +188,7 @@ export default class revolutx extends Exchange {
                         'symbolRequired': false,
                     },
                     'fetchOHLCV': {
-                        'limit': undefined,
+                        'limit': 50000,
                     },
                 },
             },
