@@ -869,7 +869,7 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'result');
+        $data = $this->safe_dict($response, 'result');
         return $this->safe_integer($data, 'serverTime');
     }
 
@@ -935,17 +935,17 @@ class xt extends Exchange {
         //
         // note => individual network's full data is available on per-currency endpoint => https://www.xt.com/sapi/v4/balance/public/currency/11
         //
-        $chainsData = $this->safe_value($chainsResponse, 'result', array());
-        $currenciesResult = $this->safe_value($currenciesResponse, 'result', array());
-        $currenciesData = $this->safe_value($currenciesResult, 'currencies', array());
+        $chainsData = $this->safe_list($chainsResponse, 'result', array());
+        $currenciesResult = $this->safe_dict($currenciesResponse, 'result', array());
+        $currenciesData = $this->safe_list($currenciesResult, 'currencies', array());
         $chainsDataIndexed = $this->index_by($chainsData, 'currency');
         $result = array();
         for ($i = 0; $i < count($currenciesData); $i++) {
             $entry = $currenciesData[$i];
             $currencyId = $this->safe_string($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $networkEntry = $this->safe_value($chainsDataIndexed, $currencyId, array());
-            $rawNetworks = $this->safe_value($networkEntry, 'supportChains', array());
+            $networkEntry = $this->safe_dict($chainsDataIndexed, $currencyId, array());
+            $rawNetworks = $this->safe_list($networkEntry, 'supportChains', array());
             $networks = array();
             for ($j = 0; $j < count($rawNetworks); $j++) {
                 $rawNetwork = $rawNetworks[$j];
@@ -1096,8 +1096,8 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'result', array());
-        $symbols = $this->safe_value($data, 'symbols', array());
+        $data = $this->safe_dict($response, 'result', array());
+        $symbols = $this->safe_list($data, 'symbols', array());
         return $this->parse_markets($symbols);
     }
 
@@ -1165,7 +1165,7 @@ class xt extends Exchange {
         //         )
         //     }
         //
-        $swapAndFutureMarkets = $this->array_concat($this->safe_value($markets[0], 'result', array()), $this->safe_value($markets[1], 'result', array()));
+        $swapAndFutureMarkets = $this->array_concat($this->safe_list($markets[0], 'result', array()), $this->safe_list($markets[1], 'result', array()));
         return $this->parse_markets($swapAndFutureMarkets);
     }
 
@@ -1301,7 +1301,7 @@ class xt extends Exchange {
         $quote = $this->safe_currency_code($quoteId);
         $state = $this->safe_string($market, 'state');
         $symbol = $base . '/' . $quote;
-        $filters = $this->safe_value($market, 'filters', array());
+        $filters = $this->safe_list($market, 'filters', array());
         $minAmount = null;
         $maxAmount = null;
         $minCost = null;
@@ -1373,9 +1373,9 @@ class xt extends Exchange {
         }
         $isActive = false;
         if ($contract) {
-            $isActive = $this->safe_value($market, 'isOpenApi', false);
+            $isActive = $this->safe_bool($market, 'isOpenApi', false);
         } else {
-            if (($state === 'ONLINE') && ($this->safe_value($market, 'tradingEnabled')) && ($this->safe_value($market, 'openapiEnabled'))) {
+            if (($state === 'ONLINE') && ($this->safe_bool($market, 'tradingEnabled')) && ($this->safe_bool($market, 'openapiEnabled'))) {
                 $isActive = true;
             }
         }
@@ -1533,7 +1533,7 @@ class xt extends Exchange {
         //         )
         //     }
         //
-        $ohlcvs = $this->safe_value($response, 'result', array());
+        $ohlcvs = $this->safe_list($response, 'result', array());
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
@@ -1660,7 +1660,7 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        $orderBook = $this->safe_value($response, 'result', array());
+        $orderBook = $this->safe_dict($response, 'result', array());
         $timestamp = $this->safe_integer_2($orderBook, 'timestamp', 't');
         if ($market['spot']) {
             $ob = $this->parse_order_book($orderBook, $symbol, $timestamp);
@@ -1831,7 +1831,7 @@ class xt extends Exchange {
         //         )
         //     }
         //
-        $tickers = $this->safe_value($response, 'result', array());
+        $tickers = $this->safe_list($response, 'result', array());
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $this->parse_ticker($tickers[$i], $market);
@@ -2088,7 +2088,7 @@ class xt extends Exchange {
         //         )
         //     }
         //
-        $trades = $this->safe_value($response, 'result', array());
+        $trades = $this->safe_list($response, 'result', array());
         return $this->parse_trades($trades, $market);
     }
 
@@ -2199,8 +2199,8 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'result', array());
-        $trades = $this->safe_value($data, 'items', array());
+        $data = $this->safe_dict($response, 'result', array());
+        $trades = $this->safe_list($data, 'items', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -2449,10 +2449,10 @@ class xt extends Exchange {
         //
         $balances = null;
         if (($subType !== null) || $isContractWallet) {
-            $balances = $this->safe_value($response, 'result', array());
+            $balances = $this->safe_list($response, 'result', array());
         } else {
-            $data = $this->safe_value($response, 'result', array());
-            $balances = $this->safe_value($data, 'assets', array());
+            $data = $this->safe_dict($response, 'result', array());
+            $balances = $this->safe_list($data, 'assets', array());
         }
         return $this->parse_balance($balances);
     }
@@ -2633,7 +2633,7 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        $order = $this->safe_value($response, 'result', array());
+        $order = $this->safe_dict($response, 'result', array());
         return $this->parse_order($order, $market);
     }
 
@@ -2650,7 +2650,7 @@ class xt extends Exchange {
         if ($timeInForce !== null) {
             $request['timeInForce'] = $timeInForce;
         }
-        $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
         if ($side === 'buy') {
             $requestType = ($reduceOnly) ? 'SHORT' : 'LONG';
             $request['positionSide'] = $requestType;
@@ -2779,8 +2779,8 @@ class xt extends Exchange {
         $response = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
         list($subType, $params) = $this->handle_sub_type_and_params('fetchOrder', $market, $params);
-        $trigger = $this->safe_value($params, 'stop');
-        $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
+        $trigger = $this->safe_bool_2($params, 'trigger', 'stop');
+        $stopLossTakeProfit = $this->safe_bool($params, 'stopLossTakeProfit');
         $trailing = $this->safe_bool($params, 'trailing');
         if ($trailing) {
             $isContract = ($subType !== null) || ($type === 'swap') || ($type === 'future');
@@ -2798,7 +2798,7 @@ class xt extends Exchange {
             $request['orderId'] = $id;
         }
         if ($trigger) {
-            $params = $this->omit($params, 'stop');
+            $params = $this->omit($params, array( 'trigger', 'stop' ));
             if ($subType === 'inverse') {
                 $response = $this->privateInverseGetFutureTradeV1EntrustPlanDetail($this->extend($request, $params));
             } else {
@@ -2942,7 +2942,7 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        $order = $this->safe_value($response, 'result', array());
+        $order = $this->safe_dict($response, 'result', array());
         return $this->parse_order($order, $market);
     }
 
@@ -2983,7 +2983,7 @@ class xt extends Exchange {
         $response = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
         list($subType, $params) = $this->handle_sub_type_and_params('fetchOrders', $market, $params);
-        $trigger = $this->safe_value_2($params, 'trigger', 'stop');
+        $trigger = $this->safe_bool_2($params, 'trigger', 'stop');
         $trailing = $this->safe_bool($params, 'trailing');
         if ($trailing) {
             $isContract = ($subType !== null) || ($type === 'swap') || ($type === 'future');
@@ -3126,8 +3126,8 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'result', array());
-        $orders = $this->safe_value($data, 'items', array());
+        $data = $this->safe_dict($response, 'result', array());
+        $orders = $this->safe_list($data, 'items', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -3153,7 +3153,7 @@ class xt extends Exchange {
         list($type, $params) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
         list($subType, $params) = $this->handle_sub_type_and_params('fetchOrdersByStatus', $market, $params);
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
-        $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
+        $stopLossTakeProfit = $this->safe_bool($params, 'stopLossTakeProfit');
         $trailing = $this->safe_bool($params, 'trailing');
         if ($trailing) {
             $isContract = ($subType !== null) || ($type === 'swap') || ($type === 'future');
@@ -3539,8 +3539,8 @@ class xt extends Exchange {
         $response = null;
         list($type, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
         list($subType, $params) = $this->handle_sub_type_and_params('cancelOrder', $market, $params);
-        $trigger = $this->safe_value_2($params, 'trigger', 'stop');
-        $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
+        $trigger = $this->safe_bool_2($params, 'trigger', 'stop');
+        $stopLossTakeProfit = $this->safe_bool($params, 'stopLossTakeProfit');
         $trailing = $this->safe_bool($params, 'trailing');
         if ($trailing) {
             $isContract = ($subType !== null) || ($type === 'swap') || ($type === 'future');
@@ -3607,7 +3607,7 @@ class xt extends Exchange {
         //     }
         //
         $isContractResponse = (($subType !== null) || ($type === 'swap') || ($type === 'future'));
-        $order = $isContractResponse ? $response : $this->safe_value($response, 'result', array());
+        $order = $isContractResponse ? $response : $this->safe_dict($response, 'result', array());
         return $this->parse_order($order, $market);
     }
 
@@ -3642,8 +3642,8 @@ class xt extends Exchange {
         $response = null;
         list($type, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
         list($subType, $params) = $this->handle_sub_type_and_params('cancelAllOrders', $market, $params);
-        $trigger = $this->safe_value_2($params, 'trigger', 'stop');
-        $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
+        $trigger = $this->safe_bool_2($params, 'trigger', 'stop');
+        $stopLossTakeProfit = $this->safe_bool($params, 'stopLossTakeProfit');
         $trailing = $this->safe_bool($params, 'trailing');
         if ($trailing) {
             $isContract = ($subType !== null) || ($type === 'swap') || ($type === 'future');
@@ -4014,8 +4014,8 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'result', array());
-        $ledger = $this->safe_value($data, 'items', array());
+        $data = $this->safe_dict($response, 'result', array());
+        $ledger = $this->safe_list($data, 'items', array());
         return $this->parse_ledger($ledger, $currency, $since, $limit);
     }
 
@@ -4108,7 +4108,7 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         return $this->parse_deposit_address($result, $currency);
     }
 
@@ -4184,8 +4184,8 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'result', array());
-        $deposits = $this->safe_value($data, 'items', array());
+        $data = $this->safe_dict($response, 'result', array());
+        $deposits = $this->safe_list($data, 'items', array());
         return $this->parse_transactions($deposits, $currency, $since, $limit, $params);
     }
 
@@ -4243,8 +4243,8 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'result', array());
-        $withdrawals = $this->safe_value($data, 'items', array());
+        $data = $this->safe_dict($response, 'result', array());
+        $withdrawals = $this->safe_list($data, 'items', array());
         return $this->parse_transactions($withdrawals, $currency, $since, $limit, $params);
     }
 
@@ -4269,7 +4269,7 @@ class xt extends Exchange {
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
-        $networkIdsByCodes = $this->safe_value($this->options, 'networks', array());
+        $networkIdsByCodes = $this->safe_dict($this->options, 'networks', array());
         $networkId = $this->safe_string_2($networkIdsByCodes, $networkCode, $code, $code);
         $request = array(
             'currency' => $currency['id'],
@@ -4291,7 +4291,7 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         return $this->parse_transaction($result, $currency);
     }
 
@@ -4557,7 +4557,7 @@ class xt extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'result', array());
+        $data = $this->safe_list($response, 'result', array());
         $symbols = $this->market_symbols($symbols);
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }
@@ -4644,7 +4644,7 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'result', array());
+        $data = $this->safe_dict($response, 'result', array());
         return $this->parse_market_leverage_tiers($data, $market);
     }
 
@@ -4667,7 +4667,7 @@ class xt extends Exchange {
         //     }
         //
         $tiers = array();
-        $brackets = $this->safe_value($info, 'leverageBrackets', array());
+        $brackets = $this->safe_list($info, 'leverageBrackets', array());
         for ($i = 0; $i < count($brackets); $i++) {
             $tier = $brackets[$i];
             $marketId = $this->safe_string($info, 'symbol');
@@ -4751,8 +4751,8 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
-        $items = $this->safe_value($result, 'items', array());
+        $result = $this->safe_dict($response, 'result', array());
+        $items = $this->safe_list($result, 'items', array());
         $rates = array();
         for ($i = 0; $i < count($items); $i++) {
             $entry = $items[$i];
@@ -4825,7 +4825,7 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         return $this->parse_funding_rate($result, $market);
     }
 
@@ -5087,8 +5087,8 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'result', array());
-        $items = $this->safe_value($data, 'items', array());
+        $data = $this->safe_dict($response, 'result', array());
+        $items = $this->safe_list($data, 'items', array());
         $result = array();
         for ($i = 0; $i < count($items); $i++) {
             $entry = $items[$i];
@@ -5518,7 +5518,7 @@ class xt extends Exchange {
             $this->load_markets();
         }
         $currency = $this->currency($code);
-        $accountsByType = $this->safe_value($this->options, 'accountsById');
+        $accountsByType = $this->safe_dict($this->options, 'accountsById');
         $fromAccountId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toAccountId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         $amountString = $this->currency_to_precision($code, $amount);
@@ -5774,7 +5774,7 @@ class xt extends Exchange {
         $status = $this->safe_string_upper_2($response, 'msgInfo', 'mc');
         if ($status !== null && $status !== 'SUCCESS') {
             $feedback = $this->id . ' ' . $body;
-            $error = $this->safe_value($response, 'error', array());
+            $error = $this->safe_dict($response, 'error', array());
             $spotErrorCode = $this->safe_string($response, 'mc');
             $errorCode = $this->safe_string($error, 'code', $spotErrorCode);
             $spotMessage = $this->safe_string($response, 'msgInfo');
