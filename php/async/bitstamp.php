@@ -2355,9 +2355,23 @@ class bitstamp extends Exchange {
         //        "market" => "BTC/USD"
         //    }
         //
-        $id = $this->safe_string($order, 'id');
-        $clientOrderId = $this->safe_string($order, 'client_order_id');
-        $side = $this->safe_string($order, 'type');
+        // editOrder
+        //
+        //    {
+        //        "order_id" => 1453282316578816,
+        //        "order_type" => "0",
+        //        "market" => "BTC/USD",
+        //        "amount" => "0.02035278",
+        //        "price" => "2100.45",
+        //        "datetime" => "2025-10-17T14:23:01.725000Z",
+        //        "orig_order_id" => 1453282316578816,
+        //        "orig_client_order_id" => "my-original-$order-123",
+        //        "status" => "Open"
+        //    }
+        //
+        $id = $this->safe_string_2($order, 'id', 'order_id');
+        $clientOrderId = $this->safe_string_2($order, 'client_order_id', 'orig_client_order_id');
+        $side = $this->safe_string_2($order, 'type', 'order_type');
         if ($side !== null) {
             $side = ($side === '1') ? 'sell' : 'buy';
         }
