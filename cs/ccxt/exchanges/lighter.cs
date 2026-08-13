@@ -1101,27 +1101,7 @@ public partial class lighter : Exchange
         return this.safeInteger(response, "nonce");
     }
 
-    /**
-     * @method
-     * @name lighter#createOrder
-     * @description create a trade order
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.timeInForce] 'GTT' or 'IOC', default is 'GTT'
-     * @param {int} [params.clientOrderId] client order id, should be unique for each order, default is a random number
-     * @param {string} [params.triggerPrice] trigger price for stop loss or take profit orders, in units of the quote currency
-     * @param {boolean} [params.reduceOnly] whether the order is reduce only, default false
-     * @param {int} [params.nonce] nonce for the account
-     * @param {int} [params.apiKeyIndex] apiKeyIndex
-     * @param {int} [params.accountIndex] accountIndex
-     * @param {int} [params.orderExpiry] orderExpiry
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<object> signAndCreateOrder(object method, object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1129,17 +1109,16 @@ public partial class lighter : Exchange
             await this.loadMarkets();
         }
         object accountIndex = null;
-        var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "createOrder", "accountIndex", "account_index");
+        var accountIndexparametersVariable = await this.handleAccountIndex(parameters, method, "accountIndex", "account_index");
         accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
         parameters = ((IList<object>)accountIndexparametersVariable)[1];
         ((IDictionary<string,object>)parameters)["accountIndex"] = accountIndex;
         object market = this.market(symbol);
         object groupingType = null;
-        var groupingTypeparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "groupingType", 3);
+        var groupingTypeparametersVariable = this.handleOptionAndParams(parameters, method, "groupingType", 3);
         groupingType = ((IList<object>)groupingTypeparametersVariable)[0];
         parameters = ((IList<object>)groupingTypeparametersVariable)[1]; // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         object orderRequests = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-        // for php
         object totalOrderRequests = getArrayLength(orderRequests);
         object apiKeyIndex = null;
         object order = null;
@@ -1182,6 +1161,37 @@ public partial class lighter : Exchange
             txType = ((IList<object>)txTypetxInfoVariable)[0];
             txInfo = ((IList<object>)txTypetxInfoVariable)[1];
         }
+        return new List<object>() {txType, txInfo, order, market};
+    }
+
+    /**
+     * @method
+     * @name lighter#createOrder
+     * @description create a trade order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] 'GTT' or 'IOC', default is 'GTT'
+     * @param {int} [params.clientOrderId] client order id, should be unique for each order, default is a random number
+     * @param {string} [params.triggerPrice] trigger price for stop loss or take profit orders, in units of the quote currency
+     * @param {boolean} [params.reduceOnly] whether the order is reduce only, default false
+     * @param {int} [params.nonce] nonce for the account
+     * @param {int} [params.apiKeyIndex] apiKeyIndex
+     * @param {int} [params.accountIndex] accountIndex
+     * @param {int} [params.orderExpiry] orderExpiry
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        var txTypetxInfoordermarketVariable = await this.signAndCreateOrder("createOrder", symbol, type, side, amount, price, parameters);
+        var txType = ((IList<object>) txTypetxInfoordermarketVariable)[0];
+        var txInfo = ((IList<object>) txTypetxInfoordermarketVariable)[1];
+        var order = ((IList<object>) txTypetxInfoordermarketVariable)[2];
+        var market = ((IList<object>) txTypetxInfoordermarketVariable)[3];
         object request = new Dictionary<string, object>() {
             { "tx_type", txType },
             { "tx_info", txInfo },
@@ -3576,39 +3586,28 @@ public partial class lighter : Exchange
         return await this.publicPostSendTx(request);
     }
 
-    /**
-     * @method
-     * @name lighter#cancelOrder
-     * @description cancels an open order
-     * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.accountIndex] account index
-     * @param {string} [params.apiKeyIndex] api key index
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async virtual Task<object> signAndCancelOrder(object method, object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object apiKeyIndex = null;
-        var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "cancelOrder", "apiKeyIndex", "api_key_index");
-        apiKeyIndex = ((IList<object>)apiKeyIndexparametersVariable)[0];
-        parameters = ((IList<object>)apiKeyIndexparametersVariable)[1];
         if (isTrue(isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " "), method), " requires a symbol argument")) ;
         }
+        object apiKeyIndex = null;
+        var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, method, "apiKeyIndex", "api_key_index");
+        apiKeyIndex = ((IList<object>)apiKeyIndexparametersVariable)[0];
+        parameters = ((IList<object>)apiKeyIndexparametersVariable)[1];
+        object accountIndex = null;
+        var accountIndexparametersVariable = await this.handleAccountIndex(parameters, method, "accountIndex", "account_index");
+        accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
+        parameters = ((IList<object>)accountIndexparametersVariable)[1];
         object market = this.market(symbol);
         object clientOrderId = this.safeString2(parameters, "client_order_index", "clientOrderId");
         parameters = this.omit(parameters, new List<object>() {"client_order_index", "clientOrderId"});
-        object accountIndex = null;
-        var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "cancelOrder", "accountIndex", "account_index");
-        accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
-        parameters = ((IList<object>)accountIndexparametersVariable)[1];
         object strAccountIndex = ((string)this.numberToString(accountIndex));
         object strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
         object signer = await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
@@ -3627,17 +3626,70 @@ public partial class lighter : Exchange
             ((IDictionary<string,object>)signRaw)["order_index"] = this.parseToInt(id);
         } else
         {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder requires order id or client order id")) ;
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " "), method), " requires order id or client order id")) ;
         }
         var txTypetxInfoVariable = this.lighterSignCancelOrder(signer, this.extend(signRaw, parameters));
         var txType = ((IList<object>) txTypetxInfoVariable)[0];
         var txInfo = ((IList<object>) txTypetxInfoVariable)[1];
+        return new List<object>() {txType, txInfo, market};
+    }
+
+    /**
+     * @method
+     * @name lighter#cancelOrder
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        var txTypetxInfomarketVariable = await this.signAndCancelOrder("cancelOrder", id, symbol, parameters);
+        var txType = ((IList<object>) txTypetxInfomarketVariable)[0];
+        var txInfo = ((IList<object>) txTypetxInfomarketVariable)[1];
+        var market = ((IList<object>) txTypetxInfomarketVariable)[2];
         object request = new Dictionary<string, object>() {
             { "tx_type", txType },
             { "tx_info", txInfo },
         };
         object response = await this.publicPostSendTx(request);
         return this.parseOrder(response, market);
+    }
+
+    public async virtual Task<object> signAndCancelAllOrders(object method, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object apiKeyIndex = null;
+        var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, method, "apiKeyIndex", "api_key_index");
+        apiKeyIndex = ((IList<object>)apiKeyIndexparametersVariable)[0];
+        parameters = ((IList<object>)apiKeyIndexparametersVariable)[1];
+        object accountIndex = null;
+        var accountIndexparametersVariable = await this.handleAccountIndex(parameters, method, "accountIndex", "account_index");
+        accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
+        parameters = ((IList<object>)accountIndexparametersVariable)[1];
+        object strAccountIndex = ((string)this.numberToString(accountIndex));
+        object strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
+        object signer = await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
+        object nonce = await this.fetchNonce(accountIndex, apiKeyIndex, parameters);
+        object signRaw = new Dictionary<string, object>() {
+            { "time_in_force", 0 },
+            { "time", 0 },
+            { "nonce", nonce },
+            { "api_key_index", apiKeyIndex },
+            { "account_index", accountIndex },
+        };
+        var txTypetxInfoVariable = this.lighterSignCancelAllOrders(signer, this.extend(signRaw, parameters));
+        var txType = ((IList<object>) txTypetxInfoVariable)[0];
+        var txInfo = ((IList<object>) txTypetxInfoVariable)[1];
+        return new List<object>() {txType, txInfo};
     }
 
     /**
@@ -3653,30 +3705,7 @@ public partial class lighter : Exchange
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
-        {
-            await this.loadMarkets();
-        }
-        object apiKeyIndex = null;
-        var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "cancelAllOrders", "apiKeyIndex", "api_key_index");
-        apiKeyIndex = ((IList<object>)apiKeyIndexparametersVariable)[0];
-        parameters = ((IList<object>)apiKeyIndexparametersVariable)[1];
-        object accountIndex = null;
-        var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "cancelAllOrders", "accountIndex", "account_index");
-        accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
-        parameters = ((IList<object>)accountIndexparametersVariable)[1];
-        object strAccountIndex = ((string)this.numberToString(accountIndex));
-        object strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
-        object signer = await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
-        object nonce = await this.fetchNonce(accountIndex, apiKeyIndex, parameters);
-        object signRaw = new Dictionary<string, object>() {
-            { "time_in_force", 0 },
-            { "time", 0 },
-            { "nonce", nonce },
-            { "api_key_index", apiKeyIndex },
-            { "account_index", accountIndex },
-        };
-        var txTypetxInfoVariable = this.lighterSignCancelAllOrders(signer, this.extend(signRaw, parameters));
+        var txTypetxInfoVariable = await this.signAndCancelAllOrders("cancelAllOrdersWs", symbol, parameters);
         var txType = ((IList<object>) txTypetxInfoVariable)[0];
         var txInfo = ((IList<object>) txTypetxInfoVariable)[1];
         object request = new Dictionary<string, object>() {
