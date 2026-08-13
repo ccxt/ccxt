@@ -173,20 +173,6 @@ public partial class BaseExchange
 
                     var memberValue = new MemberValue();
                     memberValue.TypeName = type;
-                    // domain salt is bytes32 - Nethereum needs the raw bytes, a hex string
-                    // would be UTF8-encoded (and rejected as longer than 32 bytes)
-                    if (type == "bytes32" && value is string)
-                    {
-                        var saltHex = value as string;
-                        if (saltHex.StartsWith("0x"))
-                        {
-                            saltHex = saltHex.Substring(2);
-                        }
-                        value = Enumerable.Range(0, saltHex.Length)
-                                          .Where(x => x % 2 == 0)
-                                          .Select(x => Convert.ToByte(saltHex.Substring(x, 2), 16))
-                                          .ToArray();
-                    }
                     memberValue.Value = value;
                     domainValuesArray.Add(memberValue);
                 }
