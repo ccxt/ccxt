@@ -1767,7 +1767,9 @@ export default class hashkey extends Exchange {
             'symbol': market['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
-            'price': this.safeNumber (entry, 'p') as number,
+            // dormant listings carry a literal zero price meaning never traded,
+            // the zero is omitted so the structure reports no price instead
+            'price': this.safeNumberOmitZero (entry, 'p') as number,
             'side': undefined,
             'info': entry,
         };
