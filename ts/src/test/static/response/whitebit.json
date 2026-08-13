@@ -2362,6 +2362,166 @@
                     }
                 ]
             }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals: empty history (live)",
+                "method": "fetchWithdrawals",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "records": [],
+                    "total": 0,
+                    "limit": 2,
+                    "offset": 0
+                },
+                "parsedResponse": []
+            },
+            {
+                "description": "fetchWithdrawals: completed TRC20 withdrawal (synthetic record in the live response shape)",
+                "method": "fetchWithdrawals",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "records": [
+                        {
+                            "address": "TWithdrawAddressExample111111111111",
+                            "uniqueId": "7788990011",
+                            "transactionId": "22222222-3333-4444-5555-666666666666",
+                            "createdAt": 1786200000,
+                            "currency": "Tether US",
+                            "ticker": "USDT",
+                            "method": 2,
+                            "amount": "10",
+                            "description": null,
+                            "memo": null,
+                            "fee": "1.5",
+                            "status": 3,
+                            "network": "TRC20",
+                            "transactionHash": "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3",
+                            "details": {
+                                "partial": null
+                            },
+                            "centralized": false
+                        }
+                    ],
+                    "total": 1,
+                    "limit": 2,
+                    "offset": 0
+                },
+                "parsedResponse": [
+                    {
+                        "id": "7788990011",
+                        "txid": "22222222-3333-4444-5555-666666666666",
+                        "timestamp": 1786200000000,
+                        "datetime": "2026-08-08T14:40:00.000Z",
+                        "network": "TRC20",
+                        "addressFrom": null,
+                        "address": "TWithdrawAddressExample111111111111",
+                        "addressTo": "TWithdrawAddressExample111111111111",
+                        "amount": 10,
+                        "type": "withdrawal",
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": null,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "cost": 1.5,
+                            "currency": "USDT"
+                        },
+                        "info": {
+                            "address": "TWithdrawAddressExample111111111111",
+                            "uniqueId": "7788990011",
+                            "transactionId": "22222222-3333-4444-5555-666666666666",
+                            "createdAt": 1786200000,
+                            "currency": "Tether US",
+                            "ticker": "USDT",
+                            "method": 2,
+                            "amount": "10",
+                            "description": null,
+                            "memo": null,
+                            "fee": "1.5",
+                            "status": 3,
+                            "network": "TRC20",
+                            "transactionHash": "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3",
+                            "details": {
+                                "partial": null
+                            },
+                            "centralized": false
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory: empty history (live)",
+                "method": "fetchFundingHistory",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "records": [],
+                    "limit": 2,
+                    "offset": 0
+                },
+                "parsedResponse": []
+            },
+            {
+                "description": "fetchFundingHistory: negative funding payment (synthetic record in the documented shape)",
+                "method": "fetchFundingHistory",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "records": [
+                        {
+                            "market": "DOGE_PERP",
+                            "fundingTime": "1786608000000",
+                            "fundingRate": "0.0001",
+                            "fundingAmount": "-0.0056",
+                            "positionAmount": "80",
+                            "settlementPrice": "0.070309",
+                            "rateCalculatedTime": "1786579200000"
+                        }
+                    ],
+                    "limit": 2,
+                    "offset": 0
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "market": "DOGE_PERP",
+                            "fundingTime": "1786608000000",
+                            "fundingRate": "0.0001",
+                            "fundingAmount": "-0.0056",
+                            "positionAmount": "80",
+                            "settlementPrice": "0.070309",
+                            "rateCalculatedTime": "1786579200000"
+                        },
+                        "symbol": "DOGE/USDT:USDT",
+                        "code": null,
+                        "timestamp": 1786608000000,
+                        "datetime": "2026-08-13T08:00:00.000Z",
+                        "id": null,
+                        "amount": -0.0056
+                    }
+                ]
+            }
         ]
     }
 }

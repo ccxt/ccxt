@@ -3620,10 +3620,10 @@ export default class whitebit extends Exchange {
             request['startDate'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = since;
+            request['limit'] = limit;
         }
         [ request, params ] = this.handleUntilOption ('endDate', request, params);
-        const response = await this.v4PrivatePostCollateralAccountFundingHistory (request);
+        const response = await this.v4PrivatePostCollateralAccountFundingHistory (this.extend (request, params));
         //
         //     {
         //         "records": [
