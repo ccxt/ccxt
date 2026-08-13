@@ -599,8 +599,16 @@ export default class sxbet extends Exchange {
             }
         }
         const end = this.safeTimestamp ({ 'gameTime': earliestGameTime }, 'gameTime');
-        const title = teamOneName + ' vs ' + teamTwoName;
-        const eventSlug = this.shortenSlug (teamOneName + ' ' + teamTwoName);
+        // some fixtures carry no team names on their market rows - fall back to the fixture id
+        // so the unified event handle is never empty or built from stringified nulls
+        let title: Str = undefined;
+        let eventSlug: Str = undefined;
+        if ((teamOneName !== undefined) && (teamTwoName !== undefined)) {
+            title = teamOneName + ' vs ' + teamTwoName;
+            eventSlug = this.shortenSlug (teamOneName + ' ' + teamTwoName);
+        } else {
+            eventSlug = this.shortenSlug (fixtureId);
+        }
         return {
             'id': fixtureId,
             'slug': fixtureId,
@@ -1661,7 +1669,17 @@ export default class sxbet extends Exchange {
         const response = await this.sxbetPublicGetTrades (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
         const rawTrades = this.safeList (data, 'trades', []);
-        return this.parsePredictionTrades (rawTrades, outcomeObj, since, limit);
+        // the venue lists BOTH bettors of every fill (a maker row and a taker row) - keep the
+        // taker rows only, so the public tape has one entry per fill like on other venues
+        const takerRows = [];
+        const rawTradesLength = rawTrades.length;
+        for (let i = 0; i < rawTradesLength; i++) {
+            const raw = rawTrades[i];
+            if (!this.safeBool (raw, 'maker', false)) {
+                takerRows.push (raw);
+            }
+        }
+        return this.parsePredictionTrades (takerRows, outcomeObj, since, limit);
     }
 
     /**
@@ -2230,8 +2248,10 @@ export default class sxbet extends Exchange {
         const oneDenom = '100000000000000000000';
         const usdcDecimals = '1000000'; // sx.bet USDC has 6 decimals (confirmed via /metadata makerOrderMinimums)
         const usdcLower = usdcAddress.toLowerCase ();
-        const bids: any[] = [];
-        const asks: any[] = [];
+        // several resting orders can share one price - aggregate amounts per price level so the
+        // book has strictly monotonic levels (keys are the exact price strings)
+        const bidTotals: Dict = {};
+        const askTotals: Dict = {};
         const rawOrdersLength = rawOrders.length;
         for (let i = 0; i < rawOrdersLength; i++) {
             const order = rawOrders[i];
@@ -2255,18 +2275,40 @@ export default class sxbet extends Exchange {
             const percentageOdds = this.safeString (order, 'percentageOdds');
             const makerBettingOne = this.safeBool (order, 'isMakerBettingOutcomeOne');
             if (makerBettingOne === isOutcomeOne) {
-                const price = this.parseNumber (Precise.stringDiv (percentageOdds, oneDenom));
-                const amount = this.parseNumber (Precise.stringDiv (remainingMaker, usdcDecimals, 6));
-                bids.push ([ price, amount ]);
+                const priceStr = Precise.stringDiv (percentageOdds, oneDenom);
+                if (priceStr === undefined) {
+                    continue;
+                }
+                const amountStr = Precise.stringDiv (remainingMaker, usdcDecimals, 6);
+                const existing = this.safeString (bidTotals, priceStr, '0');
+                bidTotals[priceStr] = Precise.stringAdd (existing, amountStr);
             } else {
                 // remainingTakerSpace = remainingMaker * (1e20 / percentageOdds) - remainingMaker,
                 // per sx.bet's documented remaining-taker-space formula
-                const price = this.parseNumber (Precise.stringSub ('1', Precise.stringDiv (percentageOdds, oneDenom)));
+                const priceStr = Precise.stringSub ('1', Precise.stringDiv (percentageOdds, oneDenom));
+                if (priceStr === undefined) {
+                    continue;
+                }
                 const ratio = Precise.stringDiv (oneDenom, percentageOdds, 12);
                 const remainingTaker = Precise.stringSub (Precise.stringMul (remainingMaker, ratio), remainingMaker);
-                const amount = this.parseNumber (Precise.stringDiv (remainingTaker, usdcDecimals, 6));
-                asks.push ([ price, amount ]);
+                const amountStr = Precise.stringDiv (remainingTaker, usdcDecimals, 6);
+                const existing = this.safeString (askTotals, priceStr, '0');
+                askTotals[priceStr] = Precise.stringAdd (existing, amountStr);
             }
+        }
+        const bids: any[] = [];
+        const bidPrices = Object.keys (bidTotals);
+        const bidPricesLength = bidPrices.length;
+        for (let i = 0; i < bidPricesLength; i++) {
+            const priceStr = bidPrices[i];
+            bids.push ([ this.parseNumber (priceStr), this.parseNumber (bidTotals[priceStr]) ]);
+        }
+        const asks: any[] = [];
+        const askPrices = Object.keys (askTotals);
+        const askPricesLength = askPrices.length;
+        for (let i = 0; i < askPricesLength; i++) {
+            const priceStr = askPrices[i];
+            asks.push ([ this.parseNumber (priceStr), this.parseNumber (askTotals[priceStr]) ]);
         }
         return {
             'bids': this.sortBy (bids, 0, true),
@@ -2758,16 +2800,21 @@ export default class sxbet extends Exchange {
                 // trade in a market absent from the loaded outcome cache
                 continue;
             }
-            if (this.trades === undefined) {
-                this.trades = this.createSafeDictionary ();
+            // the feed carries BOTH bettors of every fill - only taker rows land on the public
+            // tape (one entry per fill), while the myTrades branch below keeps both sides
+            const isMakerRow = this.safeBool (row, 'maker', false);
+            if (!isMakerRow) {
+                if (this.trades === undefined) {
+                    this.trades = this.createSafeDictionary ();
+                }
+                if (this.safeValue (this.trades, sym) === undefined) {
+                    const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                    this.trades[sym] = new ArrayCache (tradesLimit);
+                }
+                const stored = this.trades[sym];
+                stored.append (trade);
+                client.resolve (stored, 'trades::' + sym);
             }
-            if (this.safeValue (this.trades, sym) === undefined) {
-                const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                this.trades[sym] = new ArrayCache (tradesLimit);
-            }
-            const stored = this.trades[sym];
-            stored.append (trade);
-            client.resolve (stored, 'trades::' + sym);
             const bettor = this.safeStringLower (row, 'bettor', '');
             if ((walletLower !== '') && (bettor === walletLower)) {
                 if (this.myTrades === undefined) {
