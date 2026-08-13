@@ -267,7 +267,7 @@
             {
                 "description": "fetch ticker for contract",
                 "method": "fetchTicker",
-                "url": "https://api.btse.com/public-api/market/v1/ticker/24hr?symbol=ETH-PERP-USDT",
+                "url": "https://api.btse.com/public-api/market/v1/ticker/24hr?symbol=ETH-PERP",
                 "input": [
                     "ETH/USDT:USDT"
                 ],
@@ -347,7 +347,7 @@
             {
                 "description": "fetch OHLCV for future",
                 "method": "fetchOHLCV",
-                "url": "https://api.btse.com/public-api/market/v1/klines?symbol=ETH-260925-USDT&resolution=60&limit=300&start=1770454800",
+                "url": "https://api.btse.com/public-api/market/v1/klines?symbol=ETH-260925&resolution=60&limit=300&start=1770454800",
                 "input": [
                     "ETH/USDT:USDT-260925",
                     "1h",
@@ -358,7 +358,7 @@
             {
                 "description": "fetch OHLCV for future",
                 "method": "fetchOHLCV",
-                "url": "https://api.btse.com/public-api/market/v1/klines?symbol=ETH-260925-USDT&resolution=60&limit=300",
+                "url": "https://api.btse.com/public-api/market/v1/klines?symbol=ETH-260925&resolution=60&limit=300",
                 "input": [
                     "ETH/USDT:USDT-260925",
                     "1h"
@@ -368,7 +368,7 @@
             {
                 "description": "fetch OHLCV for swap",
                 "method": "fetchOHLCV",
-                "url": "https://api.btse.com/public-api/market/v1/klines?symbol=ETH-PERP-USDT&resolution=60&limit=300&start=1770454800",
+                "url": "https://api.btse.com/public-api/market/v1/klines?symbol=ETH-PERP&resolution=60&limit=300&start=1770454800",
                 "input": [
                     "ETH/USDT:USDT",
                     "1h",

@@ -788,9 +788,8 @@ export default class btse extends Exchange {
         }
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
-        const info = this.safeDict (market, 'info', {});
         const request: Dict = {
-            'symbol': this.safeString (info, 'symbol', market['id']),
+            'symbol': market['id'],
             'resolution': interval,
         };
         if (limit !== undefined) {
@@ -1230,9 +1229,8 @@ export default class btse extends Exchange {
     override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const info = this.safeDict (market, 'info', {});
         const request: Dict = {
-            'symbol': this.safeString (info, 'symbol', market['id']),
+            'symbol': market['id'],
         };
         const response = await this.publicGetPublicApiMarketV1Ticker24hr (this.extend (request, params));
         //
