@@ -5479,10 +5479,10 @@ public partial class xt : Exchange
         object response = null;
         if (isTrue(isEqual(subType, "inverse")))
         {
-            response = await ((Task<object>)callDynamically(this, "privateInverseGetFutureUserV1UserStepRate", new object[] { parameters }));
+            response = await this.privateInverseGetFutureUserV1UserStepRate(parameters);
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "privateLinearGetFutureUserV1UserStepRate", new object[] { parameters }));
+            response = await this.privateLinearGetFutureUserV1UserStepRate(parameters);
         }
         //
         //     {
@@ -5531,10 +5531,10 @@ public partial class xt : Exchange
         object response = null;
         if (isTrue(isInverse))
         {
-            response = await ((Task<object>)callDynamically(this, "privateInverseGetFutureUserV1UserStepRate", new object[] { parameters }));
+            response = await this.privateInverseGetFutureUserV1UserStepRate(parameters);
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "privateLinearGetFutureUserV1UserStepRate", new object[] { parameters }));
+            response = await this.privateLinearGetFutureUserV1UserStepRate(parameters);
         }
         //
         // same response as fetchTradingFee
