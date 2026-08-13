@@ -2052,12 +2052,17 @@ public class TestMain extends BaseTest
             {
                 // a watch call of a sequence can register its future after every
                 // frame was already consumed — keep rejecting until the watch side
-                // reports completion (the rejections themselves force it to finish,
-                // successfully or not, so this loop always terminates)
-                while (!Helpers.isTrue(isWsTestCompleted(exchange, url)))
+                // reports completion (the rejections force it to finish). the time
+                // bound is a backstop for threaded runtimes where this task can be
+                // executed inline on a stack that blocks the watch side (forkjoin
+                // work stealing): give up eventually so the stack unwinds instead
+                // of deadlocking
+                Object waitedDone = 0;
+                while (!Helpers.isTrue(isWsTestCompleted(exchange, url)) && Helpers.isTrue((Helpers.isLessThan(waitedDone, 30000))))
                 {
                     rejectPendingWsFutures(exchange, url);
                     (exchange.sleep(50)).join();
+                    waitedDone = Helpers.add(waitedDone, 50);
                 }
             }
             // reject anything still pending so a wrong fixture fails fast
@@ -2147,7 +2152,12 @@ public class TestMain extends BaseTest
                 {
                     // 'parsedResponses' Asserts one result per successive watch
                     // resolution (e.g. an order going from open to closed)
-                    Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.watchAndAssertSequence(exchange, url, method, input, skipKeys, expectedResults), this.injectWsMessages(exchange, url, messages, true)));
+                    // start the injector before the watch side: it must never sit
+                    // queued while the watch chain blocks on a join — a forkjoin
+                    // worker could execute it inline on the blocked stack and the
+                    // rejection loop would then wait on the very watch side it is
+                    // buried on top of
+                    Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.injectWsMessages(exchange, url, messages, true), this.watchAndAssertSequence(exchange, url, method, input, skipKeys, expectedResults)));
                     (Helpers.promiseAll(promises)).join();
                     this.AssertWsSentMessages(exchange, url, data);
                 } else

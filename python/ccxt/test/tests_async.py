@@ -1348,11 +1348,16 @@ class testMainClass:
         if sequential:
             # a watch call of a sequence can register its future after every
             # frame was already consumed — keep rejecting until the watch side
-            # reports completion (the rejections themselves force it to finish,
-            # successfully or not, so this loop always terminates)
-            while not is_ws_test_completed(exchange, url):
+            # reports completion (the rejections force it to finish). the time
+            # bound is a backstop for threaded runtimes where this task can be
+            # executed inline on a stack that blocks the watch side (forkjoin
+            # work stealing): give up eventually so the stack unwinds instead
+            # of deadlocking
+            waited_done = 0
+            while not is_ws_test_completed(exchange, url) and (waited_done < 30000):
                 reject_pending_ws_futures(exchange, url)
                 await exchange.sleep(50)
+                waited_done = waited_done + 50
         # reject anything still pending so a wrong fixture fails fast
         # instead of hanging the test run forever
         reject_pending_ws_futures(exchange, url)
@@ -1409,7 +1414,12 @@ class testMainClass:
             if expected_results is not None:
                 # 'parsedResponses' asserts one result per successive watch
                 # resolution (e.g. an order going from open to closed)
-                promises = [self.watch_and_assert_sequence(exchange, url, method, input, skip_keys, expected_results), self.inject_ws_messages(exchange, url, messages, True)]
+                # start the injector before the watch side: it must never sit
+                # queued while the watch chain blocks on a join — a forkjoin
+                # worker could execute it inline on the blocked stack and the
+                # rejection loop would then wait on the very watch side it is
+                # buried on top of
+                promises = [self.inject_ws_messages(exchange, url, messages, True), self.watch_and_assert_sequence(exchange, url, method, input, skip_keys, expected_results)]
                 await asyncio.gather(*promises)
                 self.assert_ws_sent_messages(exchange, url, data)
             else:

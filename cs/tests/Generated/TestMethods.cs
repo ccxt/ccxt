@@ -1944,12 +1944,17 @@ public partial class testMainClass
         {
             // a watch call of a sequence can register its future after every
             // frame was already consumed — keep rejecting until the watch side
-            // reports completion (the rejections themselves force it to finish,
-            // successfully or not, so this loop always terminates)
-            while (!isTrue(isWsTestCompleted(exchange, url)))
+            // reports completion (the rejections force it to finish). the time
+            // bound is a backstop for threaded runtimes where this task can be
+            // executed inline on a stack that blocks the watch side (forkjoin
+            // work stealing): give up eventually so the stack unwinds instead
+            // of deadlocking
+            object waitedDone = 0;
+            while (!isTrue(isWsTestCompleted(exchange, url)) && isTrue((isLessThan(waitedDone, 30000))))
             {
                 rejectPendingWsFutures(exchange, url);
                 await exchange.sleep(50);
+                waitedDone = add(waitedDone, 50);
             }
         }
         // reject anything still pending so a wrong fixture fails fast
@@ -2029,7 +2034,12 @@ public partial class testMainClass
             {
                 // 'parsedResponses' asserts one result per successive watch
                 // resolution (e.g. an order going from open to closed)
-                object promises = new List<object> {this.watchAndAssertSequence(exchange, url, method, input, skipKeys, expectedResults), this.injectWsMessages(exchange, url, messages, true)};
+                // start the injector before the watch side: it must never sit
+                // queued while the watch chain blocks on a join — a forkjoin
+                // worker could execute it inline on the blocked stack and the
+                // rejection loop would then wait on the very watch side it is
+                // buried on top of
+                object promises = new List<object> {this.injectWsMessages(exchange, url, messages, true), this.watchAndAssertSequence(exchange, url, method, input, skipKeys, expectedResults)};
                 await promiseAll(promises);
                 this.assertWsSentMessages(exchange, url, data);
             } else
