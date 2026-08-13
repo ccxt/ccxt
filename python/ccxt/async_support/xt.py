@@ -267,6 +267,9 @@ class xt(Exchange, ImplicitAPI):
                             'future/trade/v1/entrust/plan-list-history': {'cost': 1},
                             'future/trade/v1/entrust/profit-detail': {'cost': 1},
                             'future/trade/v1/entrust/profit-list': {'cost': 1},
+                            'future/trade/v1/entrust/track-detail': {'cost': 1},
+                            'future/trade/v1/entrust/track-list': {'cost': 1},
+                            'future/trade/v1/entrust/track-list-history': {'cost': 1},
                             'future/trade/v1/order/detail': {'cost': 1},
                             'future/trade/v1/order/list': {'cost': 1},
                             'future/trade/v1/order/list-history': {'cost': 1},
@@ -316,6 +319,9 @@ class xt(Exchange, ImplicitAPI):
                             'future/trade/v1/entrust/plan-list-history': {'cost': 1},
                             'future/trade/v1/entrust/profit-detail': {'cost': 1},
                             'future/trade/v1/entrust/profit-list': {'cost': 1},
+                            'future/trade/v1/entrust/track-detail': {'cost': 1},
+                            'future/trade/v1/entrust/track-list': {'cost': 1},
+                            'future/trade/v1/entrust/track-list-history': {'cost': 1},
                             'future/trade/v1/order/detail': {'cost': 1},
                             'future/trade/v1/order/list': {'cost': 1},
                             'future/trade/v1/order/list-history': {'cost': 1},
@@ -815,6 +821,21 @@ class xt(Exchange, ImplicitAPI):
                     'fetchMyTrades': {
                         'daysBack': None,
                         'untilDays': None,
+                    },
+                    'fetchOrder': {
+                        'trailing': True,
+                    },
+                    'fetchOpenOrders': {
+                        'trailing': True,
+                    },
+                    'fetchOrders': {
+                        'trailing': True,
+                    },
+                    'fetchClosedOrders': {
+                        'trailing': True,
+                    },
+                    'fetchCanceledOrders': {
+                        'trailing': True,
                     },
                 },
                 'swap': {
@@ -2631,12 +2652,14 @@ class xt(Exchange, ImplicitAPI):
         https://doc.xt.com/docs/futures/Order/see-orders-by-id
         https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersByEntrustId
         https://doc.xt.com/docs/futures/Entrust/SeeStopLimitByProfitId
+        https://doc.xt.com/docs/futures/Entrust/GetSingleTrackDetail
 
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
+        :param bool [params.trailing]: if the order is a trailing order or not
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if self.markets is None:
@@ -2652,10 +2675,17 @@ class xt(Exchange, ImplicitAPI):
         subType, params = self.handle_sub_type_and_params('fetchOrder', market, params)
         trigger = self.safe_value(params, 'stop')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
+        trailing = self.safe_bool(params, 'trailing')
+        if trailing:
+            isContract = (subType is not None) or (type == 'swap') or (type == 'future')
+            if not isContract:
+                raise NotSupported(self.id + ' fetchOrder() trailing orders are only supported on swap and future markets')
         if trigger:
             request['entrustId'] = id
         elif stopLossTakeProfit:
             request['profitId'] = id
+        elif trailing:
+            request['trackId'] = id
         else:
             request['orderId'] = id
         if trigger:
@@ -2670,6 +2700,12 @@ class xt(Exchange, ImplicitAPI):
                 response = await self.privateInverseGetFutureTradeV1EntrustProfitDetail(self.extend(request, params))
             else:
                 response = await self.privateLinearGetFutureTradeV1EntrustProfitDetail(self.extend(request, params))
+        elif trailing:
+            params = self.omit(params, 'trailing')
+            if subType == 'inverse':
+                response = await self.privateInverseGetFutureTradeV1EntrustTrackDetail(self.extend(request, params))
+            else:
+                response = await self.privateLinearGetFutureTradeV1EntrustTrackDetail(self.extend(request, params))
         elif subType == 'inverse':
             response = await self.privateInverseGetFutureTradeV1OrderDetail(self.extend(request, params))
         elif (subType == 'linear') or (type == 'swap') or (type == 'future'):
@@ -2803,12 +2839,14 @@ class xt(Exchange, ImplicitAPI):
         https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
         https://doc.xt.com/docs/futures/Order/see-order-history
         https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersHistory
+        https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
 
         :param str [symbol]: unified market symbol of the market the orders were made in
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict params: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: if the order is a trigger order or not
+        :param bool [params.trailing]: if the orders are trailing orders or not
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if self.markets is None:
@@ -2828,12 +2866,23 @@ class xt(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchOrders', market, params)
         subType, params = self.handle_sub_type_and_params('fetchOrders', market, params)
         trigger = self.safe_value_2(params, 'trigger', 'stop')
+        trailing = self.safe_bool(params, 'trailing')
+        if trailing:
+            isContract = (subType is not None) or (type == 'swap') or (type == 'future')
+            if not isContract:
+                raise NotSupported(self.id + ' fetchOrders() trailing orders are only supported on swap and future markets')
         if trigger:
             params = self.omit(params, ['trigger', 'stop'])
             if subType == 'inverse':
                 response = await self.privateInverseGetFutureTradeV1EntrustPlanListHistory(self.extend(request, params))
             else:
                 response = await self.privateLinearGetFutureTradeV1EntrustPlanListHistory(self.extend(request, params))
+        elif trailing:
+            params = self.omit(params, 'trailing')
+            if subType == 'inverse':
+                response = await self.privateInverseGetFutureTradeV1EntrustTrackListHistory(self.extend(request, params))
+            else:
+                response = await self.privateLinearGetFutureTradeV1EntrustTrackListHistory(self.extend(request, params))
         elif subType == 'inverse':
             response = await self.privateInverseGetFutureTradeV1OrderListHistory(self.extend(request, params))
         elif (subType == 'linear') or (type == 'swap') or (type == 'future'):
@@ -2977,7 +3026,16 @@ class xt(Exchange, ImplicitAPI):
         subType, params = self.handle_sub_type_and_params('fetchOrdersByStatus', market, params)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-        if status == 'open':
+        trailing = self.safe_bool(params, 'trailing')
+        if trailing:
+            isContract = (subType is not None) or (type == 'swap') or (type == 'future')
+            if not isContract:
+                raise NotSupported(self.id + ' fetchOrdersByStatus() trailing orders are only supported on swap and future markets')
+            # the track endpoints do not accept a state filter, and a server-side
+            # size would truncate the mixed-state page before the local status
+            # filter runs, so the limit is only applied locally after filtering
+            request = self.omit(request, ['state', 'size'])
+        elif status == 'open':
             if trigger or stopLossTakeProfit:
                 request['state'] = 'NOT_TRIGGERED'
             elif type == 'swap':
@@ -2997,7 +3055,7 @@ class xt(Exchange, ImplicitAPI):
         if trigger or stopLossTakeProfit or (subType is not None) or (type == 'swap') or (type == 'future'):
             if since is not None:
                 request['startTime'] = since
-            if limit is not None:
+            if (limit is not None) and not trailing:
                 request['size'] = limit
         if trigger:
             params = self.omit(params, ['stop', 'trigger'])
@@ -3011,6 +3069,18 @@ class xt(Exchange, ImplicitAPI):
                 response = await self.privateInverseGetFutureTradeV1EntrustProfitList(self.extend(request, params))
             else:
                 response = await self.privateLinearGetFutureTradeV1EntrustProfitList(self.extend(request, params))
+        elif trailing:
+            params = self.omit(params, 'trailing')
+            if status == 'open':
+                if subType == 'inverse':
+                    response = await self.privateInverseGetFutureTradeV1EntrustTrackList(self.extend(request, params))
+                else:
+                    response = await self.privateLinearGetFutureTradeV1EntrustTrackList(self.extend(request, params))
+            else:
+                if subType == 'inverse':
+                    response = await self.privateInverseGetFutureTradeV1EntrustTrackListHistory(self.extend(request, params))
+                else:
+                    response = await self.privateLinearGetFutureTradeV1EntrustTrackListHistory(self.extend(request, params))
         elif (subType is not None) or (type == 'swap') or (type == 'future'):
             if subType == 'inverse':
                 response = await self.privateInverseGetFutureTradeV1OrderList(self.extend(request, params))
@@ -3214,9 +3284,16 @@ class xt(Exchange, ImplicitAPI):
             orders = self.safe_list(resultDict, 'items', [])
         else:
             orders = self.safe_list(response, 'result', [])
+        if trailing:
+            # the track endpoints do not support a server-side state filter
+            # and return entries in every state, so filter by status first,
+            # otherwise since/limit could cut off matching rows
+            parsedOrders = self.parse_orders(orders, market)
+            filteredOrders = self.filter_by(parsedOrders, 'status', status)
+            return self.filter_by_since_limit(filteredOrders, since, limit)
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -3224,6 +3301,7 @@ class xt(Exchange, ImplicitAPI):
         https://doc.xt.com/docs/futures/Order/see-orders
         https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
         https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+        https://doc.xt.com/docs/futures/Entrust/getTrackList
 
         :param str [symbol]: unified market symbol of the market the orders were made in
         :param int [since]: timestamp in ms of the earliest order
@@ -3231,11 +3309,12 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
+        :param bool [params.trailing]: if the orders are trailing orders or not
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return await self.fetch_orders_by_status('open', symbol, since, limit, params)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -3243,6 +3322,7 @@ class xt(Exchange, ImplicitAPI):
         https://doc.xt.com/docs/futures/Order/see-orders
         https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
         https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+        https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
 
         :param str [symbol]: unified market symbol of the market the orders were made in
         :param int [since]: timestamp in ms of the earliest order
@@ -3250,11 +3330,12 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
+        :param bool [params.trailing]: if the orders are trailing orders or not
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return await self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
-    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
@@ -3262,6 +3343,7 @@ class xt(Exchange, ImplicitAPI):
         https://doc.xt.com/docs/futures/Order/see-orders
         https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
         https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+        https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
 
         :param str [symbol]: unified market symbol of the market the orders were made in
         :param int [since]: timestamp in ms of the earliest order
@@ -3269,6 +3351,7 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
+        :param bool [params.trailing]: if the orders are trailing orders or not
         :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return await self.fetch_orders_by_status('canceled', symbol, since, limit, params)
@@ -3629,7 +3712,7 @@ class xt(Exchange, ImplicitAPI):
                     side = 'buy'
         return self.safe_order({
             'info': order,
-            'id': self.safe_string_n(order, ['orderId', 'result', 'cancelId', 'entrustId', 'profitId']),
+            'id': self.safe_string_n(order, ['orderId', 'result', 'cancelId', 'entrustId', 'profitId', 'trackId']),
             'clientOrderId': self.safe_string_2(order, 'clientOrderId', 'clientModifyId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -3666,11 +3749,13 @@ class xt(Exchange, ImplicitAPI):
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
             'UNFINISHED': 'open',
+            'NOT_ACTIVATION': 'open',
             'NOT_TRIGGERED': 'open',
             'TRIGGERING': 'open',
             'TRIGGERED': 'closed',
             'USER_REVOCATION': 'canceled',
             'PLATFORM_REVOCATION': 'rejected',
+            'DELEGATION_FAILED': 'rejected',
             'HISTORY': 'expired',
         }
         return self.safe_string(statuses, status, status)
