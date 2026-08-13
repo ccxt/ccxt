@@ -225,6 +225,18 @@ export default class btse extends Exchange {
                         'public-api/wallet/v1/crypto/networks ': 15, // not used
                         'public-api/wallet/v1/assets/exchangeRate': 15, // not used
                         'public-api/market/v1/markets': { 'cost': 3 } as Endpoint<Dict>, // done
+                        'public-api/market/v1/exchangeInfo': 3, // not used
+                        'public-api/market/v1/orderbook': 3, // not used
+                        'public-api/market/v1/trades': 3, // not used
+                        'public-api/market/v1/klines': 3, // not used
+                        'public-api/market/v1/ticker/24hr': 3, // not used
+                        'public-api/market/v1/ticker/price': 3, // not used
+                        'public-api/market/v1/ticker/indices': 3, // not used
+                        'public-api/market/v1/ticker/l1': 3, // not used
+                        'public-api/market/v1/recentFundingHistory': 3, // not used
+                        'public-api/market/v1/riskLimits': 3, // not used
+                        'public-api/wallet/v1/crypto/list': 15, // not used
+                        'public-api/otc/v1/markets': 1, // not used
                     },
                 },
                 'private': {
@@ -255,6 +267,22 @@ export default class btse extends Exchange {
                         'spot/api/v3.3/user/wallet/address': 15,
                         'spot/api/v3.2/availableCurrencies': 15,
                         'spot/api/v3.2/subaccount/wallet/history': 15,
+                        'spot/api/v4/trade/orders': 5, // not used
+                        'spot/api/v4/trade/order': 1, // not used
+                        'spot/api/v4/trade/trade_history': 5, // not used
+                        'spot/api/v4/trade/fees': 5, // not used
+                        'futures/api/v3/trade/orders': 5, // not used
+                        'futures/api/v3/trade/risk_limit': 5, // not used
+                        'futures/api/v3/trade/position_mode': 5, // not used
+                        'futures/api/v3/trade/leverage': 5, // not used
+                        'futures/api/v3/trade/trade_history': 5, // not used
+                        'futures/api/v3/trade/positions': 5, // not used
+                        'futures/api/v3/trade/margin_setting': 5, // not used
+                        'public-api/wallet/v1/assets': 15, // not used
+                        'public-api/wallet/v1/user/assets': 15, // not used
+                        'public-api/wallet/v1/user/walletHistory': 15, // not used
+                        'public-api/wallet/v1/user/crypto/address': 15, // not used
+                        'public-api/otc/v1/quotes': 1, // not used
                     },
                     'post': {
                         'spot/api/v3.3/order': 1, // done
@@ -282,15 +310,39 @@ export default class btse extends Exchange {
                         'spot/api/v3.3/user/wallet/withdraw': 15,
                         'spot/api/v3.2/user/wallet/convert': 15,
                         'spot/api/v3.3/user/wallet/transfer': 15,
+                        'spot/api/v4/trade/orders': 1, // not used
+                        'spot/api/v4/trade/orders/cancel_all_after': 1, // not used
+                        'spot/api/v4/trade/orders/algo': 1, // not used
+                        'futures/api/v3/trade/orders': 1, // not used
+                        'futures/api/v3/trade/orders/cancel_all_after': 1, // not used
+                        'futures/api/v3/trade/orders/algo': 1, // not used
+                        'futures/api/v3/trade/settle_in': 5, // not used
+                        'futures/api/v3/trade/risk_limit': 5, // not used
+                        'futures/api/v3/trade/positions/tpsl': 1, // not used
+                        'futures/api/v3/trade/position_mode': 5, // not used
+                        'futures/api/v3/trade/leverage': 5, // not used
+                        'public-api/wallet/v1/user/crypto/address': 15, // not used
+                        'public-api/wallet/v1/user/crypto/withdraw': 15, // not used
+                        'public-api/wallet/v1/user/assets/sendTo': 15, // not used
+                        'public-api/wallet/v1/user/assets/convert': 15, // not used
+                        'public-api/otc/v1/quotes': 1, // not used
+                        'public-api/otc/v1/quotes/accept': 1, // not used
                     },
                     'put': {
                         'spot/api/v3.3/order': 1, // done
                         'futures/api/v2.3/order': 1, // done
+                        'spot/api/v4/trade/orders': 1, // not used
+                        'futures/api/v3/trade/orders': 1, // not used
                     },
                     'delete': {
                         'spot/api/v3.3/order': 1, // done
                         'futures/api/v2.3/order': 1, // done
                         'spot/api/v3.3/user/wallet/address': 15,
+                        'spot/api/v4/trade/orders': 1, // not used
+                        'spot/api/v4/trade/orders/all': 1, // not used
+                        'futures/api/v3/trade/orders': 1, // not used
+                        'futures/api/v3/trade/positions': 1, // not used
+                        'public-api/wallet/v1/user/crypto/address': 15, // not used
                     },
                 },
             },
