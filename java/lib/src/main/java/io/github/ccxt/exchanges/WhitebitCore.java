@@ -3716,37 +3716,38 @@ public class WhitebitCore extends WhitebitApi
                 (this.loadMarkets()).join();
             }
             Object accounts = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            // Fetch sub-accounts
+            Object response = (this.v4PrivatePostSubAccountList(parameters)).join();
             //
-            //     [
-            //         {
-            //             "id": "12345",
-            //             "name": "SubAccount1",
-            //             "status": "active",
-            //             "permissions": ["trade", "withdraw"]
-            //         }
-            //     ]
+            //     {
+            //         "offset": 0,
+            //         "limit": 100,
+            //         "data": [
+            //             {
+            //                 "id": "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
+            //                 "alias": "trading_bot",
+            //                 "userId": "u-12345",
+            //                 "email": "s***@example.com",
+            //                 "status": "active",
+            //                 "color": "#FF5733",
+            //                 "kyc": { "shareKyc": false, "kycStatus": "verified" },
+            //                 "permissions": { "spotEnabled": true, "collateralEnabled": false }
+            //             }
+            //         ]
+            //     }
             //
-            Object subAccounts = (this.v4PrivatePostSubAccountList(parameters)).join();
-            if (Helpers.isTrue(Helpers.isTrue(subAccounts) && Helpers.isTrue(Helpers.isArray(subAccounts))))
+            Object subAccounts = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subAccounts)); i++)
             {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subAccounts)); i++)
-                {
-                    Object subAccount = this.safeValue(subAccounts, i);
-                    Object accountId = this.safeString(subAccount, "id");
-                    Object accountName = this.safeString(subAccount, "name");
-                    if (Helpers.isTrue(accountId))
-                    {
-    final Object finalAccountName = accountName;
-                                            ((java.util.List<Object>)accounts).add(new java.util.HashMap<String, Object>() {{
-                            put( "id", accountId );
-                            put( "type", "subaccount" );
-                            put( "name", Helpers.isTrue(finalAccountName) || Helpers.isTrue(Helpers.add("SubAccount ", accountId)) );
-                            put( "code", null );
-                            put( "info", subAccount );
-                        }});
-                    }
-                }
+                Object subAccount = this.safeDict(subAccounts, i, new java.util.HashMap<String, Object>() {{}});
+                Object accountId = this.safeString(subAccount, "id");
+                Object accountName = this.safeString(subAccount, "alias");
+                ((java.util.List<Object>)accounts).add(new java.util.HashMap<String, Object>() {{
+                    put( "id", accountId );
+                    put( "type", "subaccount" );
+                    put( "name", accountName );
+                    put( "code", null );
+                    put( "info", subAccount );
+                }});
             }
             return accounts;
         });

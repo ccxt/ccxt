@@ -471,6 +471,9 @@ public class XtCore extends XtApi
                             put( "future/trade/v1/entrust/cancel-all-profit-stop", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "future/trade/v1/entrust/cancel-all-track", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "future/trade/v1/entrust/cancel-plan", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -613,6 +616,9 @@ public class XtCore extends XtApi
                                 put( "cost", 1 );
                             }} );
                             put( "future/trade/v1/entrust/cancel-all-profit-stop", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/trade/v1/entrust/cancel-all-track", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "future/trade/v1/entrust/cancel-plan", new java.util.HashMap<String, Object>() {{
@@ -4429,10 +4435,12 @@ public class XtCore extends XtApi
      * @see https://doc.xt.com/docs/futures/Order/cancel-all-orders
      * @see https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/CancelAllTrack
      * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
@@ -4464,6 +4472,15 @@ public class XtCore extends XtApi
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object trigger = this.safeValue2(parameters, "trigger", "stop");
             Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
+            Object trailing = this.safeBool(parameters, "trailing");
+            if (Helpers.isTrue(trailing))
+            {
+                Object isContract = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subType, null))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future")));
+                if (!Helpers.isTrue(isContract))
+                {
+                    throw new NotSupported((String)Helpers.add(this.id, " cancelAllOrders() trailing orders are only supported on swap and future markets")) ;
+                }
+            }
             if (Helpers.isTrue(trigger))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
@@ -4483,6 +4500,16 @@ public class XtCore extends XtApi
                 } else
                 {
                     response = (this.privateLinearPostFutureTradeV1EntrustCancelAllProfitStop(this.extend(request, parameters))).join();
+                }
+            } else if (Helpers.isTrue(trailing))
+            {
+                parameters = this.omit(parameters, "trailing");
+                if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
+                {
+                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInversePostFutureTradeV1EntrustCancelAllTrack", new Object[] { this.extend(request, parameters) })).join();
+                } else
+                {
+                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearPostFutureTradeV1EntrustCancelAllTrack", new Object[] { this.extend(request, parameters) })).join();
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {

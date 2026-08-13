@@ -617,9 +617,9 @@ public class WhitebitApi extends Exchange
      * Calls the v4PrivatePostMainAccountTransfer endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountTransfer (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostMainAccountTransfer (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostMainAccountTransfer", optionalArgs);
     }
@@ -1057,9 +1057,9 @@ public class WhitebitApi extends Exchange
      * Calls the v4PrivatePostSubAccountList endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostSubAccountList (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostSubAccountList (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostSubAccountList", optionalArgs);
     }
