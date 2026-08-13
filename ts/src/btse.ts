@@ -269,13 +269,13 @@ export default class btse extends Exchange {
                         'spot/api/v3.2/subaccount/wallet/history': 15,
                         'spot/api/v4/trade/orders': 5, // not used
                         'spot/api/v4/trade/order': 1, // not used
-                        'spot/api/v4/trade/trade_history': 5, // not used
+                        'spot/api/v4/trade/trade_history': { 'cost': 5 } as Endpoint<Dict>, // done
                         'spot/api/v4/trade/fees': 5, // not used
                         'futures/api/v3/trade/orders': 5, // not used
                         'futures/api/v3/trade/risk_limit': 5, // not used
                         'futures/api/v3/trade/position_mode': 5, // not used
                         'futures/api/v3/trade/leverage': 5, // not used
-                        'futures/api/v3/trade/trade_history': 5, // not used
+                        'futures/api/v3/trade/trade_history': { 'cost': 5 } as Endpoint<Dict>, // done
                         'futures/api/v3/trade/positions': 5, // not used
                         'futures/api/v3/trade/margin_setting': 5, // not used
                         'public-api/wallet/v1/assets': 15, // not used
@@ -1584,8 +1584,8 @@ export default class btse extends Exchange {
      * @method
      * @name btse#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://btsecom.github.io/docs/spotV3_3/en/#query-user-trades-fills
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#query-trades-fills-2
+     * @see https://docs.btse.com/spot/rest/get-trade-history/
+     * @see https://docs.btse.com/futures/rest/get-trade-history/
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1618,72 +1618,84 @@ export default class btse extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params, marketType);
         let response = undefined;
         if (marketType === 'spot') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument for spot markets');
+            }
             //
-            //     [
-            //         {
-            //             "tradeId": "4b4bd301-6f20-4e39-a682-ce4f9b8400a0",
-            //             "orderId": "2fa9678b-9945-47ce-9ffe-256dc7b4dd8c",
-            //             "clOrderID": "test spot market buy",
-            //             "username": "romancuhari",
-            //             "side": "BUY",
-            //             "orderType": 77,
-            //             "triggerType": 0,
-            //             "price": 1952.05859608,
-            //             "size": 0.19520586,
-            //             "filledPrice": 1952.05859608,
-            //             "filledSize": 0.0001,
-            //             "triggerPrice": 0,
-            //             "base": "ETH",
-            //             "quote": "USDT",
-            //             "symbol": "ETH-USDT",
-            //             "feeCurrency": "ETH",
-            //             "feeAmount": 0.0000002,
-            //             "wallet": "SPOT@",
-            //             "realizedPnl": 0,
-            //             "total": 0,
-            //             "serialId": 49071052,
-            //             "timestamp": 1770814978685,
-            //             "avgFilledPrice": 1952.05859608
-            //         }
-            //     ]
+            //     {
+            //         "data": [
+            //             {
+            //                 "serialId": 375599088,
+            //                 "tradeId": "de1a79b8-f408-4e05-b8b7-7ed3c4e86542",
+            //                 "orderId": "6c72d906-cb8f-469c-8ab0-b97bc8dff9c2",
+            //                 "clOrderId": null,
+            //                 "symbol": "BTC-USD",
+            //                 "base": "BTC",
+            //                 "quote": "USD",
+            //                 "orderSide": "BUY",
+            //                 "orderType": 77,
+            //                 "triggerType": 0,
+            //                 "triggerPrice": 0,
+            //                 "price": 64235.97008,
+            //                 "size": 1.9,
+            //                 "filledSize": 0.00002,
+            //                 "feeCurrency": "BTC",
+            //                 "feeAmount": 1e-8,
+            //                 "timestamp": 1784890959551
+            //             }
+            //         ],
+            //         "code": 1,
+            //         "msg": "Success",
+            //         "success": true,
+            //         "time": 1786610160164
+            //     }
             //
-            response = await this.privateGetSpotApiV33UserTradeHistory (this.extend (request, params));
+            response = await this.privateGetSpotApiV4TradeTradeHistory (this.extend (request, params));
         } else {
+            // the futures endpoint does not support a count parameter, the limit is applied client-side
+            request = this.omit (request, 'count');
             //
-            //     [
-            //         {
-            //             "tradeId": "b708489a-19d1-4be2-a6c2-f499f76aa176",
-            //             "orderId": "5c6a26db-8cfb-45c7-b25d-56927bc36795",
-            //             "username": "romancuhari",
-            //             "side": "BUY",
-            //             "orderType": 77,
-            //             "triggerType": null,
-            //             "price": 0,
-            //             "size": 1,
-            //             "filledPrice": 1956.59,
-            //             "filledSize": 1,
-            //             "triggerPrice": 0,
-            //             "base": "ETH",
-            //             "quote": "USDT",
-            //             "symbol": "ETH-PERP",
-            //             "feeCurrency": "USDT",
-            //             "feeAmount": 0.00010761,
-            //             "wallet": "CROSS@",
-            //             "realizedPnl": 0,
-            //             "total": -0.00010761,
-            //             "serialId": 50953296,
-            //             "timestamp": 1770821231984,
-            //             "orderDetailType": null,
-            //             "contractSize": 0.0001,
-            //             "clOrderID": "",
-            //             "positionId": "ETH-PERP-USDT",
-            //             "avgFilledPrice": 1956.59
-            //         }
-            //     ]
+            //     {
+            //         "data": [
+            //             {
+            //                 "tradeId": "1ad38104-6248-4a45-bc56-5fa9bf7f3868",
+            //                 "orderId": "8ad94105-8cce-4e01-86b8-2d0fb403db66",
+            //                 "clOrderId": "",
+            //                 "positionId": "BTC-PERP-USDT",
+            //                 "orderSide": "BUY",
+            //                 "type": 77,
+            //                 "orderDetailType": null,
+            //                 "price": 0,
+            //                 "size": 1,
+            //                 "avgFilledPrice": 60010,
+            //                 "filledSize": 1,
+            //                 "triggerPrice": 0,
+            //                 "contractSize": 0.00001,
+            //                 "base": "BTC",
+            //                 "quote": "USDT",
+            //                 "symbol": "BTC-PERP",
+            //                 "wallet": "BTC-PERP Isolated Wallet",
+            //                 "feeCurrency": "USDT",
+            //                 "feeAmount": 0.00012002,
+            //                 "realizedPnl": 0,
+            //                 "total": -0.00012002,
+            //                 "serialId": 375598162,
+            //                 "timestamp": 1784882344446
+            //             }
+            //         ],
+            //         "code": 1,
+            //         "msg": "Success",
+            //         "success": true,
+            //         "time": 1786610160164
+            //     }
             //
-            response = await this.privateGetFuturesApiV23UserTradeHistory (this.extend (request, params));
+            response = await this.privateGetFuturesApiV3TradeTradeHistory (this.extend (request, params));
         }
-        return this.parseTrades (response, market, since, limit);
+        let rows = this.safeList (response, 'data') as any;
+        if (rows === undefined) {
+            rows = response;
+        }
+        return this.parseTrades (rows, market, since, limit);
     }
 
     /**
@@ -1803,10 +1815,10 @@ export default class btse extends Exchange {
             'symbol': market['symbol'],
             'id': this.safeStringN (trade, [ 'tradeId', 'serialId', 'id' ]),
             'order': this.safeString (trade, 'orderId'),
-            'type': this.parseOrderType (this.safeString (trade, 'orderType')),
-            'side': this.safeStringLower (trade, 'side'),
+            'type': this.parseOrderType (this.safeString2 (trade, 'orderType', 'type')),
+            'side': this.safeStringLower2 (trade, 'side', 'orderSide'),
             'takerOrMaker': undefined,
-            'price': this.safeString2 (trade, 'filledPrice', 'price'),
+            'price': this.safeStringN (trade, [ 'filledPrice', 'avgFilledPrice', 'price' ]),
             'amount': this.safeString2 (trade, 'filledSize', 'size'),
             'cost': undefined,
             'fee': fee,
