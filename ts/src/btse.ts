@@ -226,8 +226,8 @@ export default class btse extends Exchange {
                         'public-api/wallet/v1/assets/exchangeRate': 15, // not used
                         'public-api/market/v1/markets': { 'cost': 3 } as Endpoint<Dict>, // done
                         'public-api/market/v1/exchangeInfo': 3, // not used
-                        'public-api/market/v1/orderbook': 3, // not used
-                        'public-api/market/v1/trades': 3, // not used
+                        'public-api/market/v1/orderbook': { 'cost': 3 } as Endpoint<Dict>, // done
+                        'public-api/market/v1/trades': { 'cost': 3 } as Endpoint<Dict>, // done
                         'public-api/market/v1/klines': { 'cost': 3 } as Endpoint<Dict>, // done
                         'public-api/market/v1/ticker/24hr': { 'cost': 3 } as Endpoint<Dict>, // done
                         'public-api/market/v1/ticker/price': 3, // not used
@@ -867,8 +867,7 @@ export default class btse extends Exchange {
      * @method
      * @name btse#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://btsecom.github.io/docs/spotV3_3/en/#orderbook-2
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#orderbook-2
+     * @see https://docs.btse.com/markets/rest/get-orderbook/
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -881,35 +880,29 @@ export default class btse extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['depth'] = limit;
+            request['depth'] = Math.min (limit, 50); // the endpoint supports a maximum depth of 50
         }
-        let response = undefined;
-        if (market['spot']) {
-            response = await this.publicGetSpotApiV33OrderbookL2 (this.extend (request, params));
-        } else {
-            response = await this.publicGetFuturesApiV23OrderbookL2 (this.extend (request, params));
-        }
+        const response = await this.publicGetPublicApiMarketV1Orderbook (this.extend (request, params));
         //
         //     {
-        //         "symbol": "ETH-USDT",
-        //         "buyQuote": [
-        //             {
-        //                 "price": "2012.79",
-        //                 "size": "3.8940"
-        //             }
-        //         ],
-        //         "sellQuote": [
-        //             {
-        //                 "price": "2012.92",
-        //                 "size": "0.0050"
-        //             }
-        //         ],
-        //         "timestamp": 1770458310213,
-        //         "depth": 1
+        //         "data": {
+        //             "timestamp": 1786605670799,
+        //             "bids": [
+        //                 [ "1896.11", "0.015" ]
+        //             ],
+        //             "asks": [
+        //                 [ "1896.74", "0.945" ]
+        //             ]
+        //         },
+        //         "code": 1,
+        //         "msg": "Success",
+        //         "success": true,
+        //         "time": 1786605670833
         //     }
         //
-        const timestamp = this.safeInteger (response, 'timestamp');
-        return this.parseOrderBook (response, market['symbol'], timestamp, 'buyQuote', 'sellQuote', 'price', 'size');
+        const data = this.safeDict (response, 'data', {});
+        const timestamp = this.safeInteger (data, 'timestamp');
+        return this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks');
     }
 
     /**
@@ -1511,13 +1504,12 @@ export default class btse extends Exchange {
      * @method
      * @name btse#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://btsecom.github.io/docs/spotV3_3/en/#query-trades-fills
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#query-trades-fills
+     * @see https://docs.btse.com/markets/rest/get-trades/
      * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch, applied client-side to the most recent trades window
      * @param {int} [limit] the maximum amount of trades to fetch (max 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch, applied client-side to the most recent trades window
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -1526,36 +1518,45 @@ export default class btse extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
         if (limit !== undefined) {
-            request['count'] = limit;
+            request['limit'] = Math.min (limit, 500); // the endpoint supports a maximum of 500 trades
         }
+        // the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
         let until = undefined;
         [ until, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'until');
-        if (until !== undefined) {
-            request['endTime'] = until;
-        }
-        let response = undefined;
-        if (market['spot']) {
-            response = await this.publicGetSpotApiV33Trades (this.extend (request, params));
-        } else {
-            response = await this.publicGetFuturesApiV23Trades (this.extend (request, params));
-        }
+        const response = await this.publicGetPublicApiMarketV1Trades (this.extend (request, params));
         //
-        //     [
-        //         {
-        //             "price": 2042.7041849,
-        //             "size": 0.01,
-        //             "side": "SELL",
-        //             "symbol": "ETH-USDT",
-        //             "serialId": 128814627,
-        //             "timestamp": 1770473932328
-        //         }
-        //     ]
+        //     {
+        //         "data": [
+        //             {
+        //                 "id": 91151062,
+        //                 "timestamp": 1786605669577,
+        //                 "price": "1896.3291755587",
+        //                 "size": "0.06",
+        //                 "quoteSize": "113.7797505335",
+        //                 "side": "BUY"
+        //             }
+        //         ],
+        //         "code": 1,
+        //         "msg": "Success",
+        //         "success": true,
+        //         "time": 1786605671650
+        //     }
         //
-        return this.parseTrades (response, market, since, limit);
+        const data = this.safeList (response, 'data', []);
+        const trades = this.parseTrades (data, market, since, limit);
+        if (until === undefined) {
+            return trades;
+        }
+        const result = [];
+        for (let i = 0; i < trades.length; i++) {
+            const trade = trades[i];
+            const timestamp = this.safeInteger (trade, 'timestamp');
+            if ((timestamp === undefined) || (timestamp <= until)) {
+                result.push (trade);
+            }
+        }
+        return result;
     }
 
     /**
@@ -1698,12 +1699,12 @@ export default class btse extends Exchange {
         //
         // fetchTrades
         //     {
-        //         "price": 2042.7041849,
-        //         "size": 0.01,
-        //         "side": "SELL",
-        //         "symbol": "ETH-USDT",
-        //         "serialId": 128814627,
-        //         "timestamp": 1770473932328
+        //         "id": 91151062,
+        //         "timestamp": 1786605669577,
+        //         "price": "1896.3291755587",
+        //         "size": "0.06",
+        //         "quoteSize": "113.7797505335",
+        //         "side": "BUY"
         //     }
         //
         // fetchMyTrades spot
@@ -1779,7 +1780,7 @@ export default class btse extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'id': this.safeString2 (trade, 'tradeId', 'serialId'),
+            'id': this.safeStringN (trade, [ 'tradeId', 'serialId', 'id' ]),
             'order': this.safeString (trade, 'orderId'),
             'type': this.parseOrderType (this.safeString (trade, 'orderType')),
             'side': this.safeStringLower (trade, 'side'),

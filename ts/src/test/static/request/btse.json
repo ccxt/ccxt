@@ -181,7 +181,7 @@
             {
                 "description": "fetch trades for swap",
                 "method": "fetchTrades",
-                "url": "https://api.btse.com/futures/api/v2.3/trades?symbol=ETH-PERP",
+                "url": "https://api.btse.com/public-api/market/v1/trades?symbol=ETH-PERP",
                 "input": [
                     "ETH/USDT:USDT"
                 ],
@@ -190,7 +190,7 @@
             {
                 "description": "fetch trades for spot",
                 "method": "fetchTrades",
-                "url": "https://api.btse.com/spot/api/v3.3/trades?symbol=ETH-USDT",
+                "url": "https://api.btse.com/public-api/market/v1/trades?symbol=ETH-USDT",
                 "input": [
                     "ETH/USDT"
                 ],
@@ -310,7 +310,7 @@
             {
                 "description": "fetch orderbook for contract",
                 "method": "fetchOrderBook",
-                "url": "https://api.btse.com/futures/api/v2.3/orderbook/L2?symbol=ETH-PERP&depth=1",
+                "url": "https://api.btse.com/public-api/market/v1/orderbook?symbol=ETH-PERP&depth=1",
                 "input": [
                     "ETH/USDT:USDT",
                     1
@@ -320,7 +320,7 @@
             {
                 "description": "fetch orderbook for spot",
                 "method": "fetchOrderBook",
-                "url": "https://api.btse.com/spot/api/v3.3/orderbook/L2?symbol=ETH-USDT&depth=1",
+                "url": "https://api.btse.com/public-api/market/v1/orderbook?symbol=ETH-USDT&depth=1",
                 "input": [
                     "ETH/USDT",
                     1
