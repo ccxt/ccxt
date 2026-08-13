@@ -276,7 +276,7 @@ export default class btse extends Exchange {
                         'futures/api/v3/trade/position_mode': 5, // not used
                         'futures/api/v3/trade/leverage': 5, // not used
                         'futures/api/v3/trade/trade_history': { 'cost': 5 } as Endpoint<Dict>, // done
-                        'futures/api/v3/trade/positions': 5, // not used
+                        'futures/api/v3/trade/positions': { 'cost': 5 } as Endpoint<Dict>, // done
                         'futures/api/v3/trade/margin_setting': 5, // not used
                         'public-api/wallet/v1/assets': 15, // not used
                         'public-api/wallet/v1/user/assets': { 'cost': 15 } as Endpoint<Dict>, // done
@@ -341,7 +341,7 @@ export default class btse extends Exchange {
                         'spot/api/v4/trade/orders': 1, // not used
                         'spot/api/v4/trade/orders/all': 1, // not used
                         'futures/api/v3/trade/orders': 1, // not used
-                        'futures/api/v3/trade/positions': 1, // not used
+                        'futures/api/v3/trade/positions': { 'cost': 1 } as Endpoint<Dict>, // done
                         'public-api/wallet/v1/user/crypto/address': 15, // not used
                     },
                 },
@@ -3070,7 +3070,7 @@ export default class btse extends Exchange {
      * @method
      * @name btse#fetchPositions
      * @description fetch all open positions
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#query-position
+     * @see https://docs.btse.com/futures/rest/get-positions/
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -3078,15 +3078,22 @@ export default class btse extends Exchange {
     override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.privateGetFuturesApiV23UserPositions (params);
-        return this.parsePositions (response, symbols);
+        const response = await this.privateGetFuturesApiV3TradePositions (params);
+        //
+        // the response is a bare array of position rows
+        //
+        let rows = this.safeList (response, 'data') as any;
+        if (rows === undefined) {
+            rows = response;
+        }
+        return this.parsePositions (rows, symbols);
     }
 
     /**
      * @method
      * @name btse#fetchPositionsForSymbol
      * @description fetch open positions for a single market
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#query-position
+     * @see https://docs.btse.com/futures/rest/get-positions/
      * @description fetch all open positions for specific symbol
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3096,7 +3103,7 @@ export default class btse extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         params = this.extend ({
-            'symbol': market['id'],
+            'symbol': this.futuresRequestId (market),
         }, params);
         return await this.fetchPositions ([ symbol ], params);
     }
@@ -3140,7 +3147,15 @@ export default class btse extends Exchange {
         //         "minimumRequiredMargin": 0
         //     }
         //
-        const marketId = this.safeString (position, 'symbol');
+        // rows echo the short symbol form, while positionId carries the full market
+        // id, optionally suffixed with the isolated wallet discriminator after a pipe
+        let marketId = this.safeString (position, 'positionId');
+        if (marketId !== undefined) {
+            const parts = marketId.split ('|');
+            marketId = this.safeString (parts, 0);
+        } else {
+            marketId = this.safeString (position, 'symbol');
+        }
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (position, 'timestamp');
         const marginType = this.safeString (position, 'marginType');
@@ -3160,7 +3175,7 @@ export default class btse extends Exchange {
             'lastPrice': undefined,
             'takeProfitPrice': this.parseNumber (takeProfitPrice),
             'stopLossPrice': this.parseNumber (stopLossPrice),
-            'notional': this.parseNumber (this.safeString (position, 'orderValue')),
+            'notional': this.parseNumber (this.safeString2 (position, 'notionalValue', 'orderValue')),
             'collateral': undefined,
             'unrealizedPnl': this.parseNumber (this.safeString (position, 'unrealizedProfitLoss')),
             'realizedPnl': undefined,
@@ -3187,6 +3202,8 @@ export default class btse extends Exchange {
         const marginModes = {
             '91': 'cross',
             '92': 'isolated',
+            'CROSS': 'cross',
+            'ISOLATED': 'isolated',
         };
         return this.safeString (marginModes, marginMode, marginMode);
     }
@@ -3359,35 +3376,43 @@ export default class btse extends Exchange {
      * @method
      * @name btse#closePosition
      * @description closes an open position for a market
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#close-position
+     * @see https://docs.btse.com/futures/rest/close-position/
      * @param {string} symbol unified CCXT market symbol
      * @param {string} [side] not used by btse
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionId] the id of the position to close, mandatory
      * @param {string} [params.type] 'limit' or 'market' (default is 'market')
      * @param {float} [params.price] required if params.type is 'limit'
      * @param {bool} [params.postOnly] true if the order should be post only
-     * @param {string} [params.positionId] The position ID that you want to close. Mandatory when positionMode is HEDGE or ISOLATED
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const positionId = this.safeString (params, 'positionId');
+        if (positionId === undefined) {
+            throw new ArgumentsRequired (this.id + ' closePosition() requires a positionId parameter');
+        }
         const request: Dict = {
-            'symbol': market['id'],
+            'symbol': this.futuresRequestId (market),
         };
         let type = 'market';
         [ type, params ] = this.handleOptionAndParams (params, 'closePosition', 'type', type);
         type = type.toUpperCase ();
-        request['type'] = type;
+        request['orderType'] = type;
         if (type === 'LIMIT') {
             const price = this.safeString (params, 'price');
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' closePosition() requires a price parameter for limit orders');
             }
-            request['price'] = this.priceToPrecision (symbol, price);
+            request['orderPrice'] = this.priceToPrecision (symbol, price);
+            params = this.omit (params, 'price');
         }
-        const response = await this.privatePostFuturesApiV23OrderClosePosition (this.extend (request, params));
-        const order = this.safeDict (response, 0, {});
+        const response = await this.privateDeleteFuturesApiV3TradePositions (this.extend (request, params));
+        let order = this.safeDict (response, 0);
+        if (order === undefined) {
+            order = response;
+        }
         return this.parseOrder (order, market);
     }
 

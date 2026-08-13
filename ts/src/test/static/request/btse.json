@@ -7,16 +7,19 @@
             {
                 "description": "close one-way position with market order",
                 "method": "closePosition",
-                "url": "https://api.btse.com/futures/api/v2.3/order/close_position",
+                "url": "https://api.btse.com/futures/api/v3/trade/positions?symbol=ETH-PERP&orderType=MARKET&positionId=ETH-PERP-USDT",
                 "input": [
-                    "ETH/USDT:USDT"
-                ],
-                "output": "{\"symbol\":\"ETH-PERP-USDT\",\"type\":\"MARKET\"}"
+                    "ETH/USDT:USDT",
+                    null,
+                    {
+                        "positionId": "ETH-PERP-USDT"
+                    }
+                ]
             },
             {
                 "description": "close isolated position with limit order",
                 "method": "closePosition",
-                "url": "https://api.btse.com/futures/api/v2.3/order/close_position",
+                "url": "https://api.btse.com/futures/api/v3/trade/positions?symbol=ETH-PERP&orderType=LIMIT&orderPrice=1980&positionId=ETH-PERP-USDT%7C6%231",
                 "input": [
                     "ETH/USDT:USDT",
                     null,
@@ -25,21 +28,19 @@
                         "type": "limit",
                         "price": 1980
                     }
-                ],
-                "output": "{\"symbol\":\"ETH-PERP-USDT\",\"type\":\"LIMIT\",\"price\":1980,\"positionId\":\"ETH-PERP-USDT|6#1\"}"
+                ]
             },
             {
                 "description": "close isolated position",
                 "method": "closePosition",
-                "url": "https://api.btse.com/futures/api/v2.3/order/close_position",
+                "url": "https://api.btse.com/futures/api/v3/trade/positions?symbol=ETH-PERP&orderType=MARKET&positionId=ETH-PERP-USDT%7C4%231",
                 "input": [
                     "ETH/USDT:USDT",
                     null,
                     {
                         "positionId": "ETH-PERP-USDT|4#1"
                     }
-                ],
-                "output": "{\"symbol\":\"ETH-PERP-USDT\",\"type\":\"MARKET\",\"positionId\":\"ETH-PERP-USDT|4#1\"}"
+                ]
             }
         ],
         "setMarginMode": [
@@ -130,7 +131,7 @@
             {
                 "description": "fetch positions for market",
                 "method": "fetchPositionsForSymbol",
-                "url": "https://api.btse.com/futures/api/v2.3/user/positions?symbol=ETH-PERP-USDT",
+                "url": "https://api.btse.com/futures/api/v3/trade/positions?symbol=ETH-PERP",
                 "input": [
                     "ETH/USDT:USDT"
                 ],
@@ -141,7 +142,7 @@
             {
                 "description": "fetch positions",
                 "method": "fetchPositions",
-                "url": "https://api.btse.com/futures/api/v2.3/user/positions",
+                "url": "https://api.btse.com/futures/api/v3/trade/positions",
                 "input": [],
                 "output": null
             }
@@ -388,6 +389,6 @@
                 "output": null
             }
         ]
-  },
+    },
     "outputType": "both"
 }
