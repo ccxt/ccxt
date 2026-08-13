@@ -3246,95 +3246,83 @@
         ],
         "cancelOrder": [
             {
-                "description": "btse cancelOrder RAVE linear swap - live-captured 2026-08-13, cancels the resting GTC limit buy (status 6 -> canceled), report-block verbatim",
+                "description": "btse cancelOrder on a resting linear swap order - live-captured 2026-08-13 on the unified futures v3 orders endpoint with the delete params in the signed json body, one element array response with status 6 cancelled, report-block verbatim",
                 "method": "cancelOrder",
                 "input": [
-                    "478a5d7a-2a36-4cd1-ba65-09fc394db974",
+                    "1fdd5350-32eb-4204-aac7-fc703ed7bd67",
                     "RAVE/USDT:USDT"
                 ],
                 "httpResponse": [
                     {
-                        "status": 6,
+                        "orderId": "1fdd5350-32eb-4204-aac7-fc703ed7bd67",
+                        "clOrderId": "",
                         "symbol": "RAVE-PERP",
-                        "orderType": 76,
-                        "price": 0.01,
-                        "side": "BUY",
-                        "orderID": "478a5d7a-2a36-4cd1-ba65-09fc394db974",
-                        "timestamp": 1786594756964,
-                        "triggerPrice": 0,
-                        "trigger": false,
-                        "deviation": 100,
-                        "stealth": 100,
-                        "message": "",
-                        "avgFilledPrice": 0,
-                        "clOrderID": "",
-                        "originalOrderSize": 1,
-                        "currentOrderSize": 1,
+                        "orderSide": "BUY",
+                        "type": 76,
+                        "orderPrice": 0,
+                        "orderSize": 1,
                         "filledSize": 0,
-                        "totalFilledSize": 0,
-                        "remainingSize": 1,
-                        "postOnly": false,
-                        "orderDetailType": null,
-                        "positionMode": "ONE_WAY",
-                        "positionDirection": null,
-                        "positionId": "RAVE-PERP-USDT",
-                        "time_in_force": "GTC"
+                        "status": 6,
+                        "timestamp": 1786622010223
                     }
                 ],
                 "parsedResponse": {
                     "info": {
-                        "status": 6,
+                        "orderId": "1fdd5350-32eb-4204-aac7-fc703ed7bd67",
+                        "clOrderId": "",
                         "symbol": "RAVE-PERP",
-                        "orderType": 76,
-                        "price": 0.01,
-                        "side": "BUY",
-                        "orderID": "478a5d7a-2a36-4cd1-ba65-09fc394db974",
-                        "timestamp": 1786594756964,
-                        "triggerPrice": 0,
-                        "trigger": false,
-                        "deviation": 100,
-                        "stealth": 100,
-                        "message": "",
-                        "avgFilledPrice": 0,
-                        "clOrderID": "",
-                        "originalOrderSize": 1,
-                        "currentOrderSize": 1,
+                        "orderSide": "BUY",
+                        "type": 76,
+                        "orderPrice": 0,
+                        "orderSize": 1,
                         "filledSize": 0,
-                        "totalFilledSize": 0,
-                        "remainingSize": 1,
-                        "postOnly": false,
-                        "orderDetailType": null,
-                        "positionMode": "ONE_WAY",
-                        "positionDirection": null,
-                        "positionId": "RAVE-PERP-USDT",
-                        "time_in_force": "GTC"
+                        "status": 6,
+                        "timestamp": 1786622010223
                     },
-                    "id": "478a5d7a-2a36-4cd1-ba65-09fc394db974",
+                    "id": "1fdd5350-32eb-4204-aac7-fc703ed7bd67",
                     "clientOrderId": null,
-                    "timestamp": 1786594756964,
-                    "datetime": "2026-08-13T04:19:16.964Z",
+                    "timestamp": 1786622010223,
+                    "datetime": "2026-08-13T11:53:30.223Z",
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": null,
                     "status": "canceled",
                     "symbol": "RAVE/USDT:USDT",
                     "type": "limit",
-                    "timeInForce": "GTC",
-                    "postOnly": false,
+                    "timeInForce": null,
+                    "postOnly": null,
                     "reduceOnly": null,
                     "side": "buy",
-                    "price": 0.01,
+                    "price": null,
                     "triggerPrice": null,
                     "stopLossPrice": null,
                     "takeProfitPrice": null,
                     "amount": 1,
                     "filled": 0,
                     "remaining": 1,
-                    "cost": 0,
+                    "cost": null,
                     "trades": [],
                     "fee": null,
                     "average": null,
                     "fees": [],
                     "stopPrice": null
+                }
+            }
+        ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "btse cancelAllOrdersAfter arm the futures dead man switch - live-captured 2026-08-13 on the unified futures v3 cancel all after endpoint, timeoutMs body param, bare success response, report-block verbatim; disarmed with zero right after the capture",
+                "method": "cancelAllOrdersAfter",
+                "input": [
+                    86400000,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true
+                },
+                "parsedResponse": {
+                    "success": true
                 }
             }
         ],
