@@ -201,16 +201,15 @@ public final class Encode {
     // ----------------------------
 
     public static Object numberToBE(Object n2, Object size2) {
-        // BigInteger instead of long: callers pack uint256 values (e.g. 32-byte order fields)
-        // whose decimal strings overflow long and need more than its 8 bytes
+        long n = Long.parseLong(String.valueOf(n2));
         int size = (size2 == null) ? 0 : Integer.parseInt(String.valueOf(size2));
-        BigInteger n = new BigInteger(String.valueOf(n2));
-        byte[] bytes = new byte[size];
-        for (int i = size - 1; i >= 0; i--) {
-            bytes[i] = n.and(BigInteger.valueOf(0xFF)).byteValue();
-            n = n.shiftRight(8);
+        byte[] bytes = new byte[8];
+        for (int i = 7; i >= 0; i--) {
+            bytes[i] = (byte) (n & 0xFF);
+            n >>= 8;
         }
-        return bytes;
+        if (size <= 0 || size >= 8) return bytes;
+        return Arrays.copyOfRange(bytes, 8 - size, 8);
     }
 
     public static String binaryToHex(byte[] buff) {
