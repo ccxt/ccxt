@@ -2,7 +2,7 @@
 
 import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/revolutx.js';
-import { AuthenticationError, DDoSProtection, InvalidOrder, OrderNotFound, ExchangeError, ArgumentsRequired, PermissionDenied, InsufficientFunds } from './base/errors.js';
+import { BadRequest, InvalidOrder, InvalidNonce, OrderNotFound, ExchangeError, ArgumentsRequired, PermissionDenied, InsufficientFunds, RateLimitExceeded } from './base/errors.js';
 import type { Balances, Currencies, Currency, Dict, Int, int, List, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -192,12 +192,20 @@ export default class revolutx extends Exchange {
                     },
                 },
             },
+            'httpExceptions': {
+                '400': BadRequest,
+                '403': PermissionDenied,
+                '404': OrderNotFound,
+                '409': ExchangeError,
+                '429': RateLimitExceeded,
+            },
             'exceptions': {
                 'exact': {},
                 'broad': {
                     'insufficient': InsufficientFunds,
                     'invalid order': InvalidOrder,
                     'not found': OrderNotFound,
+                    'timestamp is in the future': InvalidNonce,
                 },
             },
         });
@@ -849,7 +857,7 @@ export default class revolutx extends Exchange {
         //         { "currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000" }
         //     ]
         //
-        const data = this.safeList (response, 'data', response);
+        const data = Array.isArray (response) ? response : this.safeList (response, 'data', []);
         const result: Dict = { 'info': response };
         for (let i = 0; i < data.length; i++) {
             const balance = this.safeDict (data, i, {});
@@ -1448,18 +1456,6 @@ export default class revolutx extends Exchange {
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
-        if (code === 429) {
-            throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
-        }
-        if (code === 401) {
-            throw new AuthenticationError (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
-        }
-        if (code === 403) {
-            throw new PermissionDenied (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
-        }
-        if (code === 404) {
-            throw new OrderNotFound (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
-        }
         if (code >= 400) {
             if (response === undefined) {
                 return undefined;
@@ -1472,7 +1468,7 @@ export default class revolutx extends Exchange {
             if (errorMessage !== undefined) {
                 this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
             }
-            throw new ExchangeError (feedback);
+            return undefined;
         }
         return undefined;
     }
