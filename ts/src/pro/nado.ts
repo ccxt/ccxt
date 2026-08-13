@@ -1696,8 +1696,8 @@ export default class nado extends nadoRest {
                     delete client.subscriptions[subscriptionHash];
                 }
             }
-            const subscription = this.safeValue (client.subscriptions, messageHash);
-            if (subscription !== undefined) {
+            const subscriptionMsg = this.safeValue (client.subscriptions, messageHash);
+            if (subscriptionMsg !== undefined) {
                 delete client.subscriptions[messageHash];
             }
             delete this.orderbooks[symbol];
