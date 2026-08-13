@@ -1292,7 +1292,11 @@ export default class sxbet extends Exchange {
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     override async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
-        if ((ids === undefined) || (ids.length === 0)) {
+        if (ids === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a non-empty ids argument');
+        }
+        const idsLength = ids.length;
+        if (idsLength === 0) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a non-empty ids argument');
         }
         return await this.cancelSxbetOrders (ids, params);
