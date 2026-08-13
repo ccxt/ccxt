@@ -201,7 +201,7 @@
             {
                 "description": "fetch funding rates",
                 "method": "fetchFundingRates",
-                "url": "https://api.btse.com/futures/api/v2.3/market_summary?listFullAttributes=true",
+                "url": "https://api.btse.com/public-api/market/v1/ticker/24hr",
                 "input": [],
                 "output": null
             }
@@ -210,7 +210,7 @@
             {
                 "description": "fetch funding rate",
                 "method": "fetchFundingRate",
-                "url": "https://api.btse.com/futures/api/v2.3/market_summary?symbol=ETH-PERP-USDT&listFullAttributes=true",
+                "url": "https://api.btse.com/public-api/market/v1/ticker/24hr?symbol=ETH-PERP-USDT",
                 "input": [
                     "ETH/USDT:USDT"
                 ],
@@ -221,7 +221,7 @@
             {
                 "description": "fetch open interests",
                 "method": "fetchOpenInterests",
-                "url": "https://api.btse.com/futures/api/v2.3/market_summary",
+                "url": "https://api.btse.com/public-api/market/v1/ticker/24hr",
                 "input": [],
                 "output": null
             }
@@ -230,7 +230,7 @@
             {
                 "description": "fetch open interest",
                 "method": "fetchOpenInterest",
-                "url": "https://api.btse.com/futures/api/v2.3/market_summary?symbol=BTC-PERP-USDT",
+                "url": "https://api.btse.com/public-api/market/v1/ticker/24hr?symbol=BTC-PERP-USDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ],
@@ -298,7 +298,7 @@
             {
                 "description": "fetch funding rate history with since",
                 "method": "fetchFundingRateHistory",
-                "url": "https://api.btse.com/futures/api/v2.3/funding_history?symbol=ETH-PERP-USDT&from=1770451200000",
+                "url": "https://api.btse.com/public-api/market/v1/recentFundingHistory?symbol=ETH-PERP-USDT&period=1M",
                 "input": [
                     "ETH/USDT:USDT",
                     1770451200000

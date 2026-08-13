@@ -233,7 +233,7 @@ export default class btse extends Exchange {
                         'public-api/market/v1/ticker/price': 3, // not used
                         'public-api/market/v1/ticker/indices': 3, // not used
                         'public-api/market/v1/ticker/l1': 3, // not used
-                        'public-api/market/v1/recentFundingHistory': 3, // not used
+                        'public-api/market/v1/recentFundingHistory': { 'cost': 3 } as Endpoint<Dict>, // done
                         'public-api/market/v1/riskLimits': 3, // not used
                         'public-api/wallet/v1/crypto/list': 15, // not used
                         'public-api/otc/v1/markets': 1, // not used
@@ -905,73 +905,86 @@ export default class btse extends Exchange {
      * @method
      * @name btse#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#funding-history
+     * @see https://docs.btse.com/markets/rest/get-funding-rate-history/
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of entries to fetch (default and max 100)
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch, used to select the requested period and then applied client-side
+     * @param {int} [limit] the maximum amount of entries to fetch, applied client-side
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+     * @param {string} [params.period] the funding rate history period, one of '7D', '2W' or '1M', selected from since by default
+     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch, applied client-side
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         await this.loadMarkets ();
-        let market = undefined;
-        const request: Dict = {};
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            if (!(market['contract'])) {
-                throw new BadRequest (this.id + ' fetchFundingRateHistory() supports contract markets only');
+        const market = this.market (symbol);
+        if (!(market['contract'])) {
+            throw new BadRequest (this.id + ' fetchFundingRateHistory() supports contract markets only');
+        }
+        let period = undefined;
+        [ period, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'period');
+        if (period === undefined) {
+            period = '7D';
+            if (since !== undefined) {
+                const age = this.milliseconds () - since;
+                const day = 86400000;
+                if (age > 14 * day) {
+                    period = '1M';
+                } else if (age > 7 * day) {
+                    period = '2W';
+                }
             }
-            request['symbol'] = market['id'];
         }
-        if (since !== undefined) {
-            request['from'] = since;
-        }
+        const request: Dict = {
+            'symbol': market['id'],
+            'period': period,
+        };
         let until = undefined;
         [ until, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'until');
-        if (until !== undefined) {
-            request['to'] = until;
-        }
-        if (since === undefined && until === undefined) {
-            if (limit !== undefined) {
-                request['count'] = limit; // mutually exclusive with since/until
-            }
-        }
-        const response = await this.publicGetFuturesApiV23FundingHistory (this.extend (request, params));
+        const response = await this.publicGetPublicApiMarketV1RecentFundingHistory (this.extend (request, params));
         //
         //     {
-        //         "ETH-PERP": [
+        //         "data": [
         //             {
-        //                 "time": 1770451200,
-        //                 "rate": 0.00001528,
-        //                 "symbol": "ETH-PERP"
+        //                 "timestamp": 1786003200911,
+        //                 "rate": "0.0000152"
         //             }
-        //         ]
+        //         ],
+        //         "code": 1,
+        //         "msg": "Success",
+        //         "success": true,
+        //         "time": 1786607775380
         //     }
         //
-        let flattened = [];
-        const keys = Object.keys (response);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const entry = this.safeList (response, key, []);
-            flattened = this.arrayConcat (flattened, entry);
+        const data = this.safeList (response, 'data', []);
+        const rates = this.parseFundingRateHistories (data, market, since, limit);
+        if (until === undefined) {
+            return rates;
         }
-        return this.parseFundingRateHistories (flattened, market, since, limit);
+        const result = [];
+        for (let i = 0; i < rates.length; i++) {
+            const rate = rates[i];
+            const timestamp = this.safeInteger (rate, 'timestamp');
+            if ((timestamp === undefined) || (timestamp <= until)) {
+                result.push (rate);
+            }
+        }
+        return result;
     }
 
     override parseFundingRateHistory (contract: any, market: Market = undefined) {
         //
         //     {
-        //         "time": 1770451200,
-        //         "rate": 0.00001528,
-        //         "symbol": "ETH-PERP"
+        //         "timestamp": 1786003200911,
+        //         "rate": "0.0000152"
         //     }
         //
-        const marketId = this.safeString (contract, 'symbol');
-        const timestamp = this.safeTimestamp (contract, 'time');
+        const timestamp = this.safeInteger (contract, 'timestamp');
         return {
             'info': contract,
-            'symbol': this.safeSymbol (marketId, market),
+            'symbol': this.safeSymbol (undefined, market),
             'fundingRate': this.safeNumber (contract, 'rate'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1311,7 +1324,7 @@ export default class btse extends Exchange {
      * @method
      * @name btse#fetchOpenInterest
      * @description Retrieves the open interest of a derivative trading pair
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-summary
+     * @see https://docs.btse.com/markets/rest/get-24-hr-ticker/
      * @param {string} symbol Unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure}
@@ -1325,8 +1338,12 @@ export default class btse extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetFuturesApiV23MarketSummary (this.extend (request, params));
-        const interest = this.safeDict (response, 0, {});
+        const response = await this.publicGetPublicApiMarketV1Ticker24hr (this.extend (request, params));
+        let interest = this.safeDict (response, 'data');
+        if (interest === undefined) {
+            const rows = this.safeList (response, 'data', []);
+            interest = this.safeDict (rows, 0, {});
+        }
         return this.parseOpenInterest (interest, market);
     }
 
@@ -1334,7 +1351,7 @@ export default class btse extends Exchange {
      * @method
      * @name btse#fetchOpenInterests
      * @description Retrieves the open interest for a list of symbols
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-summary
+     * @see https://docs.btse.com/markets/rest/get-24-hr-ticker/
      * @param {string[]} [symbols] a list of unified CCXT market symbols
      * @param {object} [params] exchange specific parameters
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -1342,19 +1359,32 @@ export default class btse extends Exchange {
     override async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.publicGetFuturesApiV23MarketSummary (params);
-        return this.parseOpenInterests (response, symbols) as OpenInterests;
+        const response = await this.publicGetPublicApiMarketV1Ticker24hr (params);
+        const data = this.safeList (response, 'data', []);
+        const rows = [];
+        for (let i = 0; i < data.length; i++) {
+            const row = data[i];
+            // spot rows do not carry an open interest
+            if (this.safeString (row, 'openInterest') !== undefined) {
+                rows.push (row);
+            }
+        }
+        return this.parseOpenInterests (rows, symbols) as OpenInterests;
     }
 
     override parseOpenInterest (interest: any, market: Market = undefined) {
+        //
+        // ticker/24hr contract rows, see parseFundingRate for the full shape
+        //
         const marketId = this.safeString (interest, 'symbol');
         market = this.safeMarket (marketId, market);
+        const timestamp = this.safeTimestamp (interest, 'closeTime');
         return this.safeOpenInterest ({
             'symbol': market['symbol'],
             'openInterestAmount': this.safeNumber (interest, 'openInterest'),
             'openInterestValue': this.safeNumber (interest, 'openInterestUSD'),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'info': interest,
         }, market);
     }
@@ -1363,7 +1393,7 @@ export default class btse extends Exchange {
      * @method
      * @name btse#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-summary
+     * @see https://docs.btse.com/markets/rest/get-24-hr-ticker/
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1376,10 +1406,13 @@ export default class btse extends Exchange {
         }
         const request: Dict = {
             'symbol': market['id'],
-            'listFullAttributes': true,
         };
-        const response = await this.publicGetFuturesApiV23MarketSummary (this.extend (request, params));
-        const data = this.safeDict (response, 0, {});
+        const response = await this.publicGetPublicApiMarketV1Ticker24hr (this.extend (request, params));
+        let data = this.safeDict (response, 'data');
+        if (data === undefined) {
+            const rows = this.safeList (response, 'data', []);
+            data = this.safeDict (rows, 0, {});
+        }
         return this.parseFundingRate (data, market);
     }
 
@@ -1387,7 +1420,7 @@ export default class btse extends Exchange {
      * @method
      * @name btse#fetchFundingRates
      * @description fetch the funding rate for multiple markets
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-summary
+     * @see https://docs.btse.com/markets/rest/get-24-hr-ticker/
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
@@ -1395,76 +1428,55 @@ export default class btse extends Exchange {
     override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const request: Dict = {
-            'listFullAttributes': true,
-        };
-        const response = await this.publicGetFuturesApiV23MarketSummary (this.extend (request, params));
-        return this.parseFundingRates (response, symbols);
+        const response = await this.publicGetPublicApiMarketV1Ticker24hr (params);
+        const data = this.safeList (response, 'data', []);
+        const rows = [];
+        for (let i = 0; i < data.length; i++) {
+            const row = data[i];
+            // spot rows do not carry a funding rate
+            if (this.safeString (row, 'fundingRate') !== undefined) {
+                rows.push (row);
+            }
+        }
+        return this.parseFundingRates (rows, symbols);
     }
 
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
+        // ticker/24hr contract rows
         //     {
-        //         "symbol": "ETH-PERP",
-        //         "last": 2034.23,
-        //         "lowestAsk": 2033.9,
-        //         "highestBid": 2033.75,
-        //         "openInterest": 23884716,
-        //         "openInterestUSD": 4859177.67,
-        //         "percentageChange": 4.3728,
-        //         "volume": 2060865914.715277,
-        //         "high24Hr": 2117.35,
-        //         "low24Hr": 1918.26,
-        //         "base": "ETH",
-        //         "quote": "USDT",
-        //         "contractStart": 0,
-        //         "contractEnd": 0,
-        //         "active": true,
-        //         "timeBasedContract": false,
-        //         "openTime": 0,
-        //         "closeTime": 0,
-        //         "startMatching": 0,
-        //         "inactiveTime": 0,
-        //         "fundingRate": 0.0001,
-        //         "contractSize": 0.0001,
-        //         "maxPosition": 800000000,
-        //         "minValidPrice": 0.01,
-        //         "minPriceIncrement": 0.01,
-        //         "minOrderSize": 1,
-        //         "maxOrderSize": 10000000,
-        //         "minRiskLimit": 1500000,
-        //         "maxRiskLimit": 800000000,
-        //         "minSizeIncrement": 1,
-        //         "availableSettlement": [
-        //             "USD",
-        //             "USDT",
-        //             "USDC",
-        //             "BTC",
-        //             "ETH",
-        //             "AED",
-        //             "AUD",
-        //             "CAD",
-        //             "CHF",
-        //             "EUR",
-        //             "GBP",
-        //             "HKD",
-        //             "INR",
-        //             "JPY",
-        //             "MYR",
-        //             "NZD",
-        //             "SGD",
-        //             "SOL",
-        //             "XRP"
-        //         ],
-        //         "fundingIntervalMinutes": 480,
-        //         "fundingTime": 1770480000000
+        //         "symbol": "ETH-PERP-USDT",
+        //         "lastPrice": "1896.17",
+        //         "openPrice": "1887.07",
+        //         "highPrice": "1924",
+        //         "lowPrice": "1872.44",
+        //         "amount": "1937140691",
+        //         "volume": "366459222.269293",
+        //         "openTime": 1786518000,
+        //         "closeTime": 1786607054,
+        //         "priceChange": "9.1",
+        //         "priceChangePercent": "0.005",
+        //         "prevClosePrice": "1897.71",
+        //         "bidPrice": "1896",
+        //         "bidQty": "105",
+        //         "askPrice": "1896.01",
+        //         "askQty": "11354",
+        //         "openInterest": "19344237",
+        //         "fundingRate": "0.00006016",
+        //         "nextFundingTime": 1786608000000,
+        //         "fundingIntervalMinutes": 480
         //     }
         //
         const marketId = this.safeString (contract, 'symbol');
         market = this.safeMarket (marketId, market);
-        const nextFundingTimestamp = this.safeInteger (contract, 'fundingTime');
-        const minutes = this.safeString (contract, 'fundingIntervalMinutes');
-        const interval = minutes + 'm'; // todo check
+        const timestamp = this.safeTimestamp (contract, 'closeTime');
+        const nextFundingTimestamp = this.safeInteger (contract, 'nextFundingTime');
+        const fundingIntervalMinutes = this.safeInteger (contract, 'fundingIntervalMinutes');
+        let interval = undefined;
+        if (fundingIntervalMinutes !== undefined) {
+            const hours = this.parseToInt (fundingIntervalMinutes / 60);
+            interval = hours.toString () + 'h';
+        }
         return {
             'info': contract,
             'symbol': market['symbol'],
@@ -1472,8 +1484,8 @@ export default class btse extends Exchange {
             'indexPrice': undefined,
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'fundingRate': this.safeNumber (contract, 'fundingRate'),
             'fundingTimestamp': undefined,
             'fundingDatetime': undefined,
