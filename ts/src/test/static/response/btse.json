@@ -303,101 +303,115 @@
                 "input": [
                     "ETH/USDT"
                 ],
-                "httpResponse": [
-                    {
-                        "price": "2045.30743685",
-                        "size": "0.0095",
-                        "side": "SELL",
-                        "symbol": "ETH-USDT",
-                        "serialId": "128910248",
-                        "timestamp": "1770474311853"
-                    },
-                    {
-                        "price": "2045.05732955",
-                        "size": "0.2",
-                        "side": "SELL",
-                        "symbol": "ETH-USDT",
-                        "serialId": "128909793",
-                        "timestamp": "1770474310144"
-                    },
-                    {
-                        "price": "2045.07733814",
-                        "size": "0.2",
-                        "side": "SELL",
-                        "symbol": "ETH-USDT",
-                        "serialId": "128909413",
-                        "timestamp": "1770474308777"
-                    },
-                    {
-                        "price": "2045.1273596",
-                        "size": "0.5",
-                        "side": "SELL",
-                        "symbol": "ETH-USDT",
-                        "serialId": "128909361",
-                        "timestamp": "1770474308611"
-                    },
-                    {
-                        "price": "2045.16737676",
-                        "size": "0.03",
-                        "side": "SELL",
-                        "symbol": "ETH-USDT",
-                        "serialId": "128909056",
-                        "timestamp": "1770474307462"
-                    },
-                    {
-                        "price": "2045.16737676",
-                        "size": "0.2",
-                        "side": "SELL",
-                        "symbol": "ETH-USDT",
-                        "serialId": "128908807",
-                        "timestamp": "1770474306596"
-                    },
-                    {
-                        "price": "2045.14736818",
-                        "size": "1.2",
-                        "side": "SELL",
-                        "symbol": "ETH-USDT",
-                        "serialId": "128908415",
-                        "timestamp": "1770474305134"
-                    },
-                    {
-                        "price": "2045.20999997",
-                        "size": "0.29",
-                        "side": "SELL",
-                        "symbol": "ETH-USDT",
-                        "serialId": "128907173",
-                        "timestamp": "1770474300445"
-                    },
-                    {
-                        "price": "2045.29516688",
-                        "size": "0.007",
-                        "side": "SELL",
-                        "symbol": "ETH-USDT",
-                        "serialId": "128907055",
-                        "timestamp": "1770474299891"
-                    }
-                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "id": 91715974,
+                            "timestamp": 1786607527388,
+                            "price": "1895.8047330933",
+                            "size": "0.285",
+                            "quoteSize": "540.3043489316",
+                            "side": "BUY"
+                        },
+                        {
+                            "id": 91715958,
+                            "timestamp": 1786607527388,
+                            "price": "1895.8047330933",
+                            "size": "0.21",
+                            "quoteSize": "398.1189939496",
+                            "side": "BUY"
+                        },
+                        {
+                            "id": 91715980,
+                            "timestamp": 1786607527388,
+                            "price": "1895.8047330933",
+                            "size": "0.305",
+                            "quoteSize": "578.2204435934",
+                            "side": "BUY"
+                        },
+                        {
+                            "id": 91715977,
+                            "timestamp": 1786607527388,
+                            "price": "1895.8047330933",
+                            "size": "0.18",
+                            "quoteSize": "341.2448519568",
+                            "side": "BUY"
+                        },
+                        {
+                            "id": 91715962,
+                            "timestamp": 1786607527388,
+                            "price": "1895.8047330933",
+                            "size": "0.135",
+                            "quoteSize": "255.9336389676",
+                            "side": "BUY"
+                        },
+                        {
+                            "id": 91715966,
+                            "timestamp": 1786607527388,
+                            "price": "1895.8047330933",
+                            "size": "0.12",
+                            "quoteSize": "227.4965679712",
+                            "side": "BUY"
+                        },
+                        {
+                            "id": 91715970,
+                            "timestamp": 1786607527388,
+                            "price": "1895.8047330933",
+                            "size": "0.195",
+                            "quoteSize": "369.6819229532",
+                            "side": "BUY"
+                        },
+                        {
+                            "id": 91715938,
+                            "timestamp": 1786607527387,
+                            "price": "1895.7947272098",
+                            "size": "0.09",
+                            "quoteSize": "170.6215254489",
+                            "side": "BUY"
+                        },
+                        {
+                            "id": 91715942,
+                            "timestamp": 1786607527387,
+                            "price": "1895.7947272098",
+                            "size": "0.015",
+                            "quoteSize": "28.4369209081",
+                            "side": "BUY"
+                        },
+                        {
+                            "id": 91715948,
+                            "timestamp": 1786607527387,
+                            "price": "1895.7947272098",
+                            "size": "0.1",
+                            "quoteSize": "189.579472721",
+                            "side": "BUY"
+                        }
+                    ],
+                    "code": 1,
+                    "msg": "Success",
+                    "success": true,
+                    "time": 1786607529873
+                },
                 "parsedResponse": [
                     {
                         "info": {
-                            "price": "2045.29516688",
-                            "size": "0.007",
-                            "side": "SELL",
-                            "symbol": "ETH-USDT",
-                            "serialId": "128907055",
-                            "timestamp": "1770474299891"
+                            "id": 91715938,
+                            "timestamp": 1786607527387,
+                            "price": "1895.7947272098",
+                            "size": "0.09",
+                            "quoteSize": "170.6215254489",
+                            "side": "BUY"
                         },
-                        "timestamp": 1770474299891,
-                        "datetime": "2026-02-07T14:24:59.891Z",
+                        "timestamp": 1786607527387,
+                        "datetime": "2026-08-13T07:52:07.387Z",
                         "symbol": "ETH/USDT",
-                        "id": "128907055",
+                        "id": "91715938",
                         "order": null,
                         "type": null,
-                        "side": "sell",
+                        "side": "buy",
                         "takerOrMaker": null,
-                        "price": 2045.29516688,
-                        "amount": 0.007,
-                        "cost": 14.31706616816,
+                        "price": 1895.7947272098,
+                        "amount": 0.09,
+                        "cost": 170.621525448882,
                         "fee": {
                             "cost": null,
                             "currency": null
@@ -406,24 +420,24 @@
                     },
                     {
                         "info": {
-                            "price": "2045.20999997",
-                            "size": "0.29",
-                            "side": "SELL",
-                            "symbol": "ETH-USDT",
-                            "serialId": "128907173",
-                            "timestamp": "1770474300445"
+                            "id": 91715942,
+                            "timestamp": 1786607527387,
+                            "price": "1895.7947272098",
+                            "size": "0.015",
+                            "quoteSize": "28.4369209081",
+                            "side": "BUY"
                         },
-                        "timestamp": 1770474300445,
-                        "datetime": "2026-02-07T14:25:00.445Z",
+                        "timestamp": 1786607527387,
+                        "datetime": "2026-08-13T07:52:07.387Z",
                         "symbol": "ETH/USDT",
-                        "id": "128907173",
+                        "id": "91715942",
                         "order": null,
                         "type": null,
-                        "side": "sell",
+                        "side": "buy",
                         "takerOrMaker": null,
-                        "price": 2045.20999997,
-                        "amount": 0.29,
-                        "cost": 593.1108999913,
+                        "price": 1895.7947272098,
+                        "amount": 0.015,
+                        "cost": 28.436920908147,
                         "fee": {
                             "cost": null,
                             "currency": null
@@ -432,24 +446,24 @@
                     },
                     {
                         "info": {
-                            "price": "2045.14736818",
-                            "size": "1.2",
-                            "side": "SELL",
-                            "symbol": "ETH-USDT",
-                            "serialId": "128908415",
-                            "timestamp": "1770474305134"
+                            "id": 91715948,
+                            "timestamp": 1786607527387,
+                            "price": "1895.7947272098",
+                            "size": "0.1",
+                            "quoteSize": "189.579472721",
+                            "side": "BUY"
                         },
-                        "timestamp": 1770474305134,
-                        "datetime": "2026-02-07T14:25:05.134Z",
+                        "timestamp": 1786607527387,
+                        "datetime": "2026-08-13T07:52:07.387Z",
                         "symbol": "ETH/USDT",
-                        "id": "128908415",
+                        "id": "91715948",
                         "order": null,
                         "type": null,
-                        "side": "sell",
+                        "side": "buy",
                         "takerOrMaker": null,
-                        "price": 2045.14736818,
-                        "amount": 1.2,
-                        "cost": 2454.176841816,
+                        "price": 1895.7947272098,
+                        "amount": 0.1,
+                        "cost": 189.57947272098,
                         "fee": {
                             "cost": null,
                             "currency": null
@@ -458,24 +472,24 @@
                     },
                     {
                         "info": {
-                            "price": "2045.16737676",
-                            "size": "0.2",
-                            "side": "SELL",
-                            "symbol": "ETH-USDT",
-                            "serialId": "128908807",
-                            "timestamp": "1770474306596"
+                            "id": 91715958,
+                            "timestamp": 1786607527388,
+                            "price": "1895.8047330933",
+                            "size": "0.21",
+                            "quoteSize": "398.1189939496",
+                            "side": "BUY"
                         },
-                        "timestamp": 1770474306596,
-                        "datetime": "2026-02-07T14:25:06.596Z",
+                        "timestamp": 1786607527388,
+                        "datetime": "2026-08-13T07:52:07.388Z",
                         "symbol": "ETH/USDT",
-                        "id": "128908807",
+                        "id": "91715958",
                         "order": null,
                         "type": null,
-                        "side": "sell",
+                        "side": "buy",
                         "takerOrMaker": null,
-                        "price": 2045.16737676,
-                        "amount": 0.2,
-                        "cost": 409.033475352,
+                        "price": 1895.8047330933,
+                        "amount": 0.21,
+                        "cost": 398.118993949593,
                         "fee": {
                             "cost": null,
                             "currency": null
@@ -484,24 +498,24 @@
                     },
                     {
                         "info": {
-                            "price": "2045.16737676",
-                            "size": "0.03",
-                            "side": "SELL",
-                            "symbol": "ETH-USDT",
-                            "serialId": "128909056",
-                            "timestamp": "1770474307462"
+                            "id": 91715962,
+                            "timestamp": 1786607527388,
+                            "price": "1895.8047330933",
+                            "size": "0.135",
+                            "quoteSize": "255.9336389676",
+                            "side": "BUY"
                         },
-                        "timestamp": 1770474307462,
-                        "datetime": "2026-02-07T14:25:07.462Z",
+                        "timestamp": 1786607527388,
+                        "datetime": "2026-08-13T07:52:07.388Z",
                         "symbol": "ETH/USDT",
-                        "id": "128909056",
+                        "id": "91715962",
                         "order": null,
                         "type": null,
-                        "side": "sell",
+                        "side": "buy",
                         "takerOrMaker": null,
-                        "price": 2045.16737676,
-                        "amount": 0.03,
-                        "cost": 61.3550213028,
+                        "price": 1895.8047330933,
+                        "amount": 0.135,
+                        "cost": 255.9336389675955,
                         "fee": {
                             "cost": null,
                             "currency": null
@@ -510,24 +524,24 @@
                     },
                     {
                         "info": {
-                            "price": "2045.1273596",
-                            "size": "0.5",
-                            "side": "SELL",
-                            "symbol": "ETH-USDT",
-                            "serialId": "128909361",
-                            "timestamp": "1770474308611"
+                            "id": 91715966,
+                            "timestamp": 1786607527388,
+                            "price": "1895.8047330933",
+                            "size": "0.12",
+                            "quoteSize": "227.4965679712",
+                            "side": "BUY"
                         },
-                        "timestamp": 1770474308611,
-                        "datetime": "2026-02-07T14:25:08.611Z",
+                        "timestamp": 1786607527388,
+                        "datetime": "2026-08-13T07:52:07.388Z",
                         "symbol": "ETH/USDT",
-                        "id": "128909361",
+                        "id": "91715966",
                         "order": null,
                         "type": null,
-                        "side": "sell",
+                        "side": "buy",
                         "takerOrMaker": null,
-                        "price": 2045.1273596,
-                        "amount": 0.5,
-                        "cost": 1022.5636798,
+                        "price": 1895.8047330933,
+                        "amount": 0.12,
+                        "cost": 227.496567971196,
                         "fee": {
                             "cost": null,
                             "currency": null
@@ -536,24 +550,24 @@
                     },
                     {
                         "info": {
-                            "price": "2045.07733814",
-                            "size": "0.2",
-                            "side": "SELL",
-                            "symbol": "ETH-USDT",
-                            "serialId": "128909413",
-                            "timestamp": "1770474308777"
+                            "id": 91715970,
+                            "timestamp": 1786607527388,
+                            "price": "1895.8047330933",
+                            "size": "0.195",
+                            "quoteSize": "369.6819229532",
+                            "side": "BUY"
                         },
-                        "timestamp": 1770474308777,
-                        "datetime": "2026-02-07T14:25:08.777Z",
+                        "timestamp": 1786607527388,
+                        "datetime": "2026-08-13T07:52:07.388Z",
                         "symbol": "ETH/USDT",
-                        "id": "128909413",
+                        "id": "91715970",
                         "order": null,
                         "type": null,
-                        "side": "sell",
+                        "side": "buy",
                         "takerOrMaker": null,
-                        "price": 2045.07733814,
-                        "amount": 0.2,
-                        "cost": 409.015467628,
+                        "price": 1895.8047330933,
+                        "amount": 0.195,
+                        "cost": 369.6819229531935,
                         "fee": {
                             "cost": null,
                             "currency": null
@@ -562,24 +576,24 @@
                     },
                     {
                         "info": {
-                            "price": "2045.05732955",
-                            "size": "0.2",
-                            "side": "SELL",
-                            "symbol": "ETH-USDT",
-                            "serialId": "128909793",
-                            "timestamp": "1770474310144"
+                            "id": 91715974,
+                            "timestamp": 1786607527388,
+                            "price": "1895.8047330933",
+                            "size": "0.285",
+                            "quoteSize": "540.3043489316",
+                            "side": "BUY"
                         },
-                        "timestamp": 1770474310144,
-                        "datetime": "2026-02-07T14:25:10.144Z",
+                        "timestamp": 1786607527388,
+                        "datetime": "2026-08-13T07:52:07.388Z",
                         "symbol": "ETH/USDT",
-                        "id": "128909793",
+                        "id": "91715974",
                         "order": null,
                         "type": null,
-                        "side": "sell",
+                        "side": "buy",
                         "takerOrMaker": null,
-                        "price": 2045.05732955,
-                        "amount": 0.2,
-                        "cost": 409.01146591,
+                        "price": 1895.8047330933,
+                        "amount": 0.285,
+                        "cost": 540.3043489315905,
                         "fee": {
                             "cost": null,
                             "currency": null
@@ -588,24 +602,50 @@
                     },
                     {
                         "info": {
-                            "price": "2045.30743685",
-                            "size": "0.0095",
-                            "side": "SELL",
-                            "symbol": "ETH-USDT",
-                            "serialId": "128910248",
-                            "timestamp": "1770474311853"
+                            "id": 91715977,
+                            "timestamp": 1786607527388,
+                            "price": "1895.8047330933",
+                            "size": "0.18",
+                            "quoteSize": "341.2448519568",
+                            "side": "BUY"
                         },
-                        "timestamp": 1770474311853,
-                        "datetime": "2026-02-07T14:25:11.853Z",
+                        "timestamp": 1786607527388,
+                        "datetime": "2026-08-13T07:52:07.388Z",
                         "symbol": "ETH/USDT",
-                        "id": "128910248",
+                        "id": "91715977",
                         "order": null,
                         "type": null,
-                        "side": "sell",
+                        "side": "buy",
                         "takerOrMaker": null,
-                        "price": 2045.30743685,
-                        "amount": 0.0095,
-                        "cost": 19.430420650075,
+                        "price": 1895.8047330933,
+                        "amount": 0.18,
+                        "cost": 341.244851956794,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": 91715980,
+                            "timestamp": 1786607527388,
+                            "price": "1895.8047330933",
+                            "size": "0.305",
+                            "quoteSize": "578.2204435934",
+                            "side": "BUY"
+                        },
+                        "timestamp": 1786607527388,
+                        "datetime": "2026-08-13T07:52:07.388Z",
+                        "symbol": "ETH/USDT",
+                        "id": "91715980",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 1895.8047330933,
+                        "amount": 0.305,
+                        "cost": 578.2204435934565,
                         "fee": {
                             "cost": null,
                             "currency": null
@@ -1198,7 +1238,7 @@
                     "code": 1,
                     "msg": "Success",
                     "success": true,
-                    "time": 1786605104039
+                    "time": 1786607492795
                 },
                 "parsedResponse": [
                     [
@@ -1232,10 +1272,10 @@
                         [
                             "1786604400",
                             "1905.26",
-                            "1906.66",
+                            "1907.54",
                             "1897.18",
-                            "1903.05",
-                            "2597.0682"
+                            "1900.46",
+                            "12466.08866"
                         ],
                         [
                             "1786600800",
@@ -1361,7 +1401,7 @@
                     "code": 1,
                     "msg": "Success",
                     "success": true,
-                    "time": 1786604946912
+                    "time": 1786607433877
                 },
                 "parsedResponse": [
                     [
@@ -1487,10 +1527,10 @@
                     [
                         1786604400000,
                         1905.26,
-                        1906.66,
+                        1907.54,
                         1897.18,
-                        1903.05,
-                        2597.0682
+                        1900.46,
+                        12466.08866
                     ]
                 ]
             },
