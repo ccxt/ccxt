@@ -94,7 +94,6 @@ from ccxt.pro.deepcoin import deepcoin                                    # noqa
 from ccxt.pro.deribit import deribit                                      # noqa: F401
 from ccxt.pro.derive import derive                                        # noqa: F401
 from ccxt.pro.dydx import dydx                                            # noqa: F401
-from ccxt.pro.exmo import exmo                                            # noqa: F401
 from ccxt.pro.extended import extended                                    # noqa: F401
 from ccxt.pro.gate import gate                                            # noqa: F401
 from ccxt.pro.gateeu import gateeu                                        # noqa: F401
@@ -173,7 +172,6 @@ exchanges = [
     'deribit',
     'derive',
     'dydx',
-    'exmo',
     'extended',
     'gate',
     'gateeu',
