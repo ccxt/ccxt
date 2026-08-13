@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, Exch
 import { sha384 } from '@noble/hashes/sha2.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Bool, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, List, MarginMode, Market, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, Transaction, Currency, LedgerEntry } from './base/types.js';
+import type { Balances, Bool, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, List, MarginMode, Market, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, Transaction, Currency, LedgerEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -71,7 +71,7 @@ export default class btse extends Exchange {
                 'editOrders': false,
                 'editOrderWithClientOrderId': true,
                 'fetchAccounts': false,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
@@ -244,12 +244,12 @@ export default class btse extends Exchange {
                         'futures/api/v2.3/user/fees': { 'cost': 5 } as Endpoint<List>, // done
                         'futures/api/v2.3/position_mode': { 'cost': 5 } as Endpoint<List>, // done
                         'futures/api/v2.3/user/margin_setting': 5, // not used
-                        'futures/api/v2.3/user/wallet': 5,
+                        'futures/api/v2.3/user/wallet': { 'cost': 5 } as Endpoint<List>, // done
                         'futures/api/v2.3/user/wallet_history': 5,
                         'futures/api/v2.3/user/unifiedWallet/margin': 5,
                         'futures/api/v2.3/user/margin': 5,
                         'otc/api/v1/getMarket': 1,
-                        'spot/api/v3.2/user/wallet': 15,
+                        'spot/api/v3.2/user/wallet': { 'cost': 15 } as Endpoint<List>, // done
                         'spot/api/v3.2/user/wallet_history': { 'cost': 15 } as Endpoint<List>, // done
                         'spot/api/v3.3/user/wallet/address': 15,
                         'spot/api/v3.2/availableCurrencies': 15,
@@ -977,6 +977,110 @@ export default class btse extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
+    }
+
+    /**
+     * @method
+     * @name btse#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://btsecom.github.io/docs/wallet/en/#query-wallet-balance
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#query-wallet-balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] wallet type, spot or swap, default is spot
+     * @param {string} [params.wallet] futures wallet name, CROSS@ by default, or ISOLATED@ followed by the market id with -USDT appended
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    override async fetchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        let type = 'spot';
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, type);
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.privateGetSpotApiV32UserWallet (params);
+            //
+            //     [
+            //         {"available": 520.52, "currency": "USD", "total": 5566.5566}
+            //     ]
+            //
+        } else {
+            let wallet = undefined;
+            [ wallet, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'wallet', 'CROSS@');
+            const request: Dict = {
+                'wallet': wallet,
+            };
+            response = await this.privateGetFuturesApiV23UserWallet (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "wallet": "CROSS@",
+            //             "totalValue": 100,
+            //             "marginBalance": 100,
+            //             "availableBalance": 100,
+            //             "unrealisedProfitLoss": 0,
+            //             "assets": [
+            //                 {"balance": 0.20183537, "assetPrice": 7158.844999999999, "currency": "BTC"}
+            //             ],
+            //             "assetsInUse": [
+            //                 {"balance": 0.01, "assetPrice": 7158.844999999999, "currency": "BTC"}
+            //             ]
+            //         }
+            //     ]
+            //
+        }
+        return this.parseBalance (response);
+    }
+
+    override parseBalance (response: any): Balances {
+        const result: Dict = {
+            'info': response,
+        };
+        const totals: Dict = {};
+        const frees: Dict = {};
+        const useds: Dict = {};
+        for (let i = 0; i < response.length; i++) {
+            const row = response[i];
+            const assets = this.safeList (row, 'assets');
+            if (assets !== undefined) {
+                // futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
+                // several wallet rows can report the same currency, so amounts are aggregated
+                const inUse = this.safeList (row, 'assetsInUse', []);
+                for (let j = 0; j < inUse.length; j++) {
+                    const usedRow = inUse[j];
+                    const usedCode = this.safeCurrencyCode (this.safeString (usedRow, 'currency'));
+                    if (usedCode === undefined) {
+                        continue;
+                    }
+                    useds[usedCode] = Precise.stringAdd (this.safeString (useds, usedCode, '0'), this.safeString (usedRow, 'balance'));
+                }
+                for (let j = 0; j < assets.length; j++) {
+                    const assetRow = assets[j];
+                    const code = this.safeCurrencyCode (this.safeString (assetRow, 'currency'));
+                    if (code === undefined) {
+                        continue;
+                    }
+                    totals[code] = Precise.stringAdd (this.safeString (totals, code, '0'), this.safeString (assetRow, 'balance'));
+                    useds[code] = this.safeString (useds, code, '0');
+                }
+            } else {
+                // spot wallet row
+                const code = this.safeCurrencyCode (this.safeString (row, 'currency'));
+                if (code === undefined) {
+                    continue;
+                }
+                totals[code] = Precise.stringAdd (this.safeString (totals, code, '0'), this.safeString (row, 'total'));
+                frees[code] = Precise.stringAdd (this.safeString (frees, code, '0'), this.safeString (row, 'available'));
+            }
+        }
+        const codes = Object.keys (totals);
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const account = this.account ();
+            account['total'] = this.safeString (totals, code);
+            account['free'] = this.safeString (frees, code);
+            account['used'] = this.safeString (useds, code);
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     /**
