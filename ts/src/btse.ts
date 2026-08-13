@@ -228,7 +228,7 @@ export default class btse extends Exchange {
                         'public-api/market/v1/exchangeInfo': 3, // not used
                         'public-api/market/v1/orderbook': 3, // not used
                         'public-api/market/v1/trades': 3, // not used
-                        'public-api/market/v1/klines': 3, // not used
+                        'public-api/market/v1/klines': { 'cost': 3 } as Endpoint<Dict>, // done
                         'public-api/market/v1/ticker/24hr': { 'cost': 3 } as Endpoint<Dict>, // done
                         'public-api/market/v1/ticker/price': 3, // not used
                         'public-api/market/v1/ticker/indices': 3, // not used
@@ -768,8 +768,7 @@ export default class btse extends Exchange {
      * @method
      * @name btse#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://btsecom.github.io/docs/spotV3_3/en/#charting-data
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#charting-data
+     * @see https://docs.btse.com/markets/rest/get-klines/
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -789,12 +788,20 @@ export default class btse extends Exchange {
         }
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const info = this.safeDict (market, 'info', {});
         const request: Dict = {
-            'symbol': market['id'],
+            'symbol': this.safeString (info, 'symbol', market['id']),
             'resolution': interval,
         };
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, maxLimit);
+        } else {
+            // the endpoint returns only 10 candles when the limit is omitted
+            request['limit'] = maxLimit;
+        }
         if (since !== undefined) {
-            request['start'] = since;
+            // the endpoint accepts timestamps in seconds
+            request['start'] = this.parseToInt (since / 1000);
         }
         let until = undefined;
         [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
@@ -803,46 +810,48 @@ export default class btse extends Exchange {
                 // check if the requested time range is too large for one request
                 // if so, just omit until for correct paginated calls for not to get an error from the exchange
                 const duration = this.parseTimeframe (timeframe);
-                const maxDelta = duration * maxLimit;
+                const maxDelta = duration * maxLimit * 1000; // parseTimeframe returns seconds, the difference below is in milliseconds
                 const difference = until - since;
                 if (difference < maxDelta) {
-                    request['end'] = until;
+                    request['end'] = this.parseToInt (until / 1000);
                 }
             } else {
-                request['end'] = until;
+                request['end'] = this.parseToInt (until / 1000);
             }
         }
-        let response = undefined;
-        if (market['spot']) {
-            response = await this.publicGetSpotApiV33Ohlcv (this.extend (request, params));
-        } else {
-            response = await this.publicGetFuturesApiV23Ohlcv (this.extend (request, params));
-        }
+        const response = await this.publicGetPublicApiMarketV1Klines (this.extend (request, params));
         //
-        //     [
-        //         [
-        //             1770454800,
-        //             2018.43,
-        //             2020.0,
-        //             2018.43,
-        //             2019.21,
-        //             1291958.948051 // volume in quote currency
-        //         ]
-        //     ]
+        //     {
+        //         "data": [
+        //             [
+        //                 "1786600800",
+        //                 "1895.78",
+        //                 "1898.52",
+        //                 "1892.05",
+        //                 "1898.3",
+        //                 "560622.306372"
+        //             ]
+        //         ],
+        //         "code": 1,
+        //         "msg": "Success",
+        //         "success": true,
+        //         "time": 1786604274378
+        //     }
         //
-        const result = this.parseOHLCVs (response, market, timeframe, since, limit);
+        const data = this.safeList (response, 'data', []);
+        const result = this.parseOHLCVs (data, market, timeframe, since, limit);
         return result;
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
-        //         1770454800,
-        //         2018.43,
-        //         2020.0,
-        //         2018.43,
-        //         2019.21,
-        //         1291958.948051 // volume in quote currency
+        //         "1786600800", // timestamp in seconds
+        //         "1895.78",
+        //         "1898.52",
+        //         "1892.05",
+        //         "1898.3",
+        //         "560622.306372" // volume in quote currency, contract rows may use scientific notation
         //     ]
         //
         return [

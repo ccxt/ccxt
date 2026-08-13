@@ -332,7 +332,7 @@
             {
                 "description": "fetch OHLCV with since, until and limit",
                 "method": "fetchOHLCV",
-                "url": "https://api.btse.com/spot/api/v3.3/ohlcv?symbol=ETH-USDT&resolution=60&start=1770451200000",
+                "url": "https://api.btse.com/public-api/market/v1/klines?symbol=ETH-USDT&resolution=60&limit=1&start=1770451200&end=1770454800",
                 "input": [
                     "ETH/USDT",
                     "1h",
@@ -347,7 +347,7 @@
             {
                 "description": "fetch OHLCV for future",
                 "method": "fetchOHLCV",
-                "url": "https://api.btse.com/futures/api/v2.3/ohlcv?symbol=ETH-260925&resolution=60&start=1770454800000",
+                "url": "https://api.btse.com/public-api/market/v1/klines?symbol=ETH-260925-USDT&resolution=60&limit=300&start=1770454800",
                 "input": [
                     "ETH/USDT:USDT-260925",
                     "1h",
@@ -358,7 +358,7 @@
             {
                 "description": "fetch OHLCV for future",
                 "method": "fetchOHLCV",
-                "url": "https://api.btse.com/futures/api/v2.3/ohlcv?symbol=ETH-260925&resolution=60",
+                "url": "https://api.btse.com/public-api/market/v1/klines?symbol=ETH-260925-USDT&resolution=60&limit=300",
                 "input": [
                     "ETH/USDT:USDT-260925",
                     "1h"
@@ -368,7 +368,7 @@
             {
                 "description": "fetch OHLCV for swap",
                 "method": "fetchOHLCV",
-                "url": "https://api.btse.com/futures/api/v2.3/ohlcv?symbol=ETH-PERP&resolution=60&start=1770454800000",
+                "url": "https://api.btse.com/public-api/market/v1/klines?symbol=ETH-PERP-USDT&resolution=60&limit=300&start=1770454800",
                 "input": [
                     "ETH/USDT:USDT",
                     "1h",
@@ -379,7 +379,7 @@
             {
                 "description": "fetch OHLCV for spot",
                 "method": "fetchOHLCV",
-                "url": "https://api.btse.com/spot/api/v3.3/ohlcv?symbol=ETH-USDT&resolution=60&start=1770454800000",
+                "url": "https://api.btse.com/public-api/market/v1/klines?symbol=ETH-USDT&resolution=60&limit=300&start=1770454800",
                 "input": [
                     "ETH/USDT",
                     "1h",
