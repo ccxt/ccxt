@@ -369,6 +369,7 @@ public partial class xt
     /// See <see href="https://doc.xt.com/docs/futures/Order/see-orders-by-id"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersByEntrustId"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeStopLimitByProfitId"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/GetSingleTrackDetail"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -388,6 +389,12 @@ public partial class xt
     /// bool : if the order is a stop-loss or take-profit order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : if the order is a trailing order or not
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}.</returns>
@@ -403,6 +410,7 @@ public partial class xt
     /// See <see href="https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Order/see-order-history"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersHistory"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -426,6 +434,12 @@ public partial class xt
     /// <term>params.trigger</term>
     /// <description>
     /// bool : if the order is a trigger order or not
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : if the orders are trailing orders or not
     /// </description>
     /// </item>
     /// </list>
@@ -453,6 +467,7 @@ public partial class xt
     /// See <see href="https://doc.xt.com/docs/futures/Order/see-orders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeStopLimit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/getTrackList"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -484,6 +499,12 @@ public partial class xt
     /// bool : if the order is a stop-loss or take-profit order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : if the orders are trailing orders or not
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}.</returns>
@@ -502,6 +523,7 @@ public partial class xt
     /// See <see href="https://doc.xt.com/docs/futures/Order/see-orders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeStopLimit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -531,6 +553,12 @@ public partial class xt
     /// <term>params.stopLossTakeProfit</term>
     /// <description>
     /// bool : if the order is a stop-loss or take-profit order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : if the orders are trailing orders or not
     /// </description>
     /// </item>
     /// </list>
@@ -551,6 +579,7 @@ public partial class xt
     /// See <see href="https://doc.xt.com/docs/futures/Order/see-orders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeStopLimit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -580,6 +609,12 @@ public partial class xt
     /// <term>params.stopLossTakeProfit</term>
     /// <description>
     /// bool : if the order is a stop-loss or take-profit order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : if the orders are trailing orders or not
     /// </description>
     /// </item>
     /// </list>

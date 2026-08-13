@@ -394,6 +394,15 @@ public partial class xt : Exchange
                             { "future/trade/v1/entrust/profit-list", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "future/trade/v1/entrust/track-detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/entrust/track-list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/entrust/track-list-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "future/trade/v1/order/detail", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -527,6 +536,15 @@ public partial class xt : Exchange
                                 { "cost", 1 },
                             } },
                             { "future/trade/v1/entrust/profit-list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/entrust/track-detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/entrust/track-list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/entrust/track-list-history", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "future/trade/v1/order/detail", new Dictionary<string, object>() {
@@ -1063,6 +1081,21 @@ public partial class xt : Exchange
                     { "fetchMyTrades", new Dictionary<string, object>() {
                         { "daysBack", null },
                         { "untilDays", null },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "trailing", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "trailing", true },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "trailing", true },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "trailing", true },
+                    } },
+                    { "fetchCanceledOrders", new Dictionary<string, object>() {
+                        { "trailing", true },
                     } },
                 } },
                 { "swap", new Dictionary<string, object>() {
@@ -3202,11 +3235,13 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/docs/futures/Order/see-orders-by-id
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersByEntrustId
      * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimitByProfitId
+     * @see https://doc.xt.com/docs/futures/Entrust/GetSingleTrackDetail
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the order is a trailing order or not
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -3233,12 +3268,24 @@ public partial class xt : Exchange
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object trigger = this.safeValue(parameters, "stop");
         object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
+        object trailing = this.safeBool(parameters, "trailing");
+        if (isTrue(trailing))
+        {
+            object isContract = isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
+            if (!isTrue(isContract))
+            {
+                throw new NotSupported ((string)add(this.id, " fetchOrder() trailing orders are only supported on swap and future markets")) ;
+            }
+        }
         if (isTrue(trigger))
         {
             ((IDictionary<string,object>)request)["entrustId"] = id;
         } else if (isTrue(stopLossTakeProfit))
         {
             ((IDictionary<string,object>)request)["profitId"] = id;
+        } else if (isTrue(trailing))
+        {
+            ((IDictionary<string,object>)request)["trackId"] = id;
         } else
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
@@ -3262,6 +3309,16 @@ public partial class xt : Exchange
             } else
             {
                 response = await this.privateLinearGetFutureTradeV1EntrustProfitDetail(this.extend(request, parameters));
+            }
+        } else if (isTrue(trailing))
+        {
+            parameters = this.omit(parameters, "trailing");
+            if (isTrue(isEqual(subType, "inverse")))
+            {
+                response = await ((Task<object>)callDynamically(this, "privateInverseGetFutureTradeV1EntrustTrackDetail", new object[] { this.extend(request, parameters) }));
+            } else
+            {
+                response = await ((Task<object>)callDynamically(this, "privateLinearGetFutureTradeV1EntrustTrackDetail", new object[] { this.extend(request, parameters) }));
             }
         } else if (isTrue(isEqual(subType, "inverse")))
         {
@@ -3401,11 +3458,13 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
      * @see https://doc.xt.com/docs/futures/Order/see-order-history
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersHistory
+     * @see https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -3440,6 +3499,15 @@ public partial class xt : Exchange
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object trigger = this.safeValue2(parameters, "trigger", "stop");
+        object trailing = this.safeBool(parameters, "trailing");
+        if (isTrue(trailing))
+        {
+            object isContract = isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
+            if (!isTrue(isContract))
+            {
+                throw new NotSupported ((string)add(this.id, " fetchOrders() trailing orders are only supported on swap and future markets")) ;
+            }
+        }
         if (isTrue(trigger))
         {
             parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
@@ -3449,6 +3517,16 @@ public partial class xt : Exchange
             } else
             {
                 response = await this.privateLinearGetFutureTradeV1EntrustPlanListHistory(this.extend(request, parameters));
+            }
+        } else if (isTrue(trailing))
+        {
+            parameters = this.omit(parameters, "trailing");
+            if (isTrue(isEqual(subType, "inverse")))
+            {
+                response = await ((Task<object>)callDynamically(this, "privateInverseGetFutureTradeV1EntrustTrackListHistory", new object[] { this.extend(request, parameters) }));
+            } else
+            {
+                response = await ((Task<object>)callDynamically(this, "privateLinearGetFutureTradeV1EntrustTrackListHistory", new object[] { this.extend(request, parameters) }));
             }
         } else if (isTrue(isEqual(subType, "inverse")))
         {
@@ -3614,7 +3692,19 @@ public partial class xt : Exchange
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object trigger = this.safeBool2(parameters, "stop", "trigger");
         object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-        if (isTrue(isEqual(status, "open")))
+        object trailing = this.safeBool(parameters, "trailing");
+        if (isTrue(trailing))
+        {
+            object isContract = isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
+            if (!isTrue(isContract))
+            {
+                throw new NotSupported ((string)add(this.id, " fetchOrdersByStatus() trailing orders are only supported on swap and future markets")) ;
+            }
+            // the track endpoints do not accept a state filter, and a server-side
+            // size would truncate the mixed-state page before the local status
+            // filter runs, so the limit is only applied locally after filtering
+            request = this.omit(request, new List<object>() {"state", "size"});
+        } else if (isTrue(isEqual(status, "open")))
         {
             if (isTrue(isTrue(trigger) || isTrue(stopLossTakeProfit)))
             {
@@ -3651,7 +3741,7 @@ public partial class xt : Exchange
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
             }
-            if (isTrue(!isEqual(limit, null)))
+            if (isTrue(isTrue((!isEqual(limit, null))) && !isTrue(trailing)))
             {
                 ((IDictionary<string,object>)request)["size"] = limit;
             }
@@ -3675,6 +3765,28 @@ public partial class xt : Exchange
             } else
             {
                 response = await this.privateLinearGetFutureTradeV1EntrustProfitList(this.extend(request, parameters));
+            }
+        } else if (isTrue(trailing))
+        {
+            parameters = this.omit(parameters, "trailing");
+            if (isTrue(isEqual(status, "open")))
+            {
+                if (isTrue(isEqual(subType, "inverse")))
+                {
+                    response = await ((Task<object>)callDynamically(this, "privateInverseGetFutureTradeV1EntrustTrackList", new object[] { this.extend(request, parameters) }));
+                } else
+                {
+                    response = await ((Task<object>)callDynamically(this, "privateLinearGetFutureTradeV1EntrustTrackList", new object[] { this.extend(request, parameters) }));
+                }
+            } else
+            {
+                if (isTrue(isEqual(subType, "inverse")))
+                {
+                    response = await ((Task<object>)callDynamically(this, "privateInverseGetFutureTradeV1EntrustTrackListHistory", new object[] { this.extend(request, parameters) }));
+                } else
+                {
+                    response = await ((Task<object>)callDynamically(this, "privateLinearGetFutureTradeV1EntrustTrackListHistory", new object[] { this.extend(request, parameters) }));
+                }
             }
         } else if (isTrue(isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")))))
         {
@@ -3897,6 +4009,15 @@ public partial class xt : Exchange
         {
             orders = this.safeList(response, "result", new List<object>() {});
         }
+        if (isTrue(trailing))
+        {
+            // the track endpoints do not support a server-side state filter
+            // and return entries in every state, so filter by status first,
+            // otherwise since/limit could cut off matching rows
+            object parsedOrders = this.parseOrders(orders, market);
+            object filteredOrders = this.filterBy(parsedOrders, "status", status);
+            return this.filterBySinceLimit(filteredOrders, since, limit);
+        }
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -3908,12 +4029,14 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/docs/futures/Order/see-orders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/getTrackList
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -3930,12 +4053,14 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/docs/futures/Order/see-orders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -3952,12 +4077,14 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/docs/futures/Order/see-orders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -4398,7 +4525,7 @@ public partial class xt : Exchange
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
-            { "id", this.safeStringN(order, new List<object>() {"orderId", "result", "cancelId", "entrustId", "profitId"}) },
+            { "id", this.safeStringN(order, new List<object>() {"orderId", "result", "cancelId", "entrustId", "profitId", "trackId"}) },
             { "clientOrderId", this.safeString2(order, "clientOrderId", "clientModifyId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -4437,11 +4564,13 @@ public partial class xt : Exchange
             { "REJECTED", "rejected" },
             { "EXPIRED", "expired" },
             { "UNFINISHED", "open" },
+            { "NOT_ACTIVATION", "open" },
             { "NOT_TRIGGERED", "open" },
             { "TRIGGERING", "open" },
             { "TRIGGERED", "closed" },
             { "USER_REVOCATION", "canceled" },
             { "PLATFORM_REVOCATION", "rejected" },
+            { "DELEGATION_FAILED", "rejected" },
             { "HISTORY", "expired" },
         };
         return this.safeString(statuses, status, status);
