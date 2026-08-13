@@ -3532,21 +3532,9 @@ public partial class woo : Exchange
             { "amount", this.safeNumber(transfer, "amount") },
             { "fromAccount", this.safeString(fromAccount, "applicationId") },
             { "toAccount", this.safeString(toAccount, "applicationId") },
-            { "status", this.parseTransferStatus(this.safeString(transfer, "status", status)) },
+            { "status", this.parseTransactionStatus(this.safeString(transfer, "status", status)) },
             { "info", transfer },
         };
-    }
-
-    public virtual object parseTransferStatus(object status)
-    {
-        object statuses = new Dictionary<string, object>() {
-            { "NEW", "pending" },
-            { "CONFIRMING", "pending" },
-            { "PROCESSING", "pending" },
-            { "COMPLETED", "ok" },
-            { "CANCELED", "canceled" },
-        };
-        return this.safeString(statuses, ((string)status), status);
     }
 
     /**
