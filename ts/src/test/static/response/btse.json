@@ -2513,7 +2513,7 @@
         ],
         "fetchLeverageTiers": [
             {
-                "description": "btse fetchLeverageTiers BTC linear swap - live-captured 2026-08-12, full 10-tier risk-limit ladder",
+                "description": "btse fetchLeverageTiers BTC linear swap via the unified risk limits endpoint - live-captured 2026-08-13, full 10-tier notional ladder, per-tier leverage and margin rates are not reported by the endpoint",
                 "method": "fetchLeverageTiers",
                 "input": [
                     [
@@ -2521,92 +2521,55 @@
                     ]
                 ],
                 "httpResponse": {
+                    "data": {
+                        "symbol": "BTC-PERP-USDT",
+                        "riskLimits": [
+                            {
+                                "level": 1,
+                                "value": 3000000
+                            },
+                            {
+                                "level": 2,
+                                "value": 6000000
+                            },
+                            {
+                                "level": 3,
+                                "value": 12000000
+                            },
+                            {
+                                "level": 4,
+                                "value": 90000000
+                            },
+                            {
+                                "level": 5,
+                                "value": 120000000
+                            },
+                            {
+                                "level": 6,
+                                "value": 300000000
+                            },
+                            {
+                                "level": 7,
+                                "value": 500000000
+                            },
+                            {
+                                "level": 8,
+                                "value": 700000000
+                            },
+                            {
+                                "level": 9,
+                                "value": 900000000
+                            },
+                            {
+                                "level": 10,
+                                "value": 1100000000
+                            }
+                        ]
+                    },
                     "code": 1,
                     "msg": "Success",
-                    "time": 1786563763486,
-                    "data": [
-                        {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 1,
-                            "riskLimitValue": 3000000,
-                            "initialMarginRate": 0.01,
-                            "maintenanceMarginRate": 0.005,
-                            "maxLeverage": 100
-                        },
-                        {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 2,
-                            "riskLimitValue": 6000000,
-                            "initialMarginRate": 0.01333333,
-                            "maintenanceMarginRate": 0.00733333,
-                            "maxLeverage": 75
-                        },
-                        {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 3,
-                            "riskLimitValue": 12000000,
-                            "initialMarginRate": 0.02,
-                            "maintenanceMarginRate": 0.012,
-                            "maxLeverage": 50
-                        },
-                        {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 4,
-                            "riskLimitValue": 90000000,
-                            "initialMarginRate": 0.05,
-                            "maintenanceMarginRate": 0.033,
-                            "maxLeverage": 20
-                        },
-                        {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 5,
-                            "riskLimitValue": 120000000,
-                            "initialMarginRate": 0.1,
-                            "maintenanceMarginRate": 0.068,
-                            "maxLeverage": 10
-                        },
-                        {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 6,
-                            "riskLimitValue": 300000000,
-                            "initialMarginRate": 0.2,
-                            "maintenanceMarginRate": 0.138,
-                            "maxLeverage": 5
-                        },
-                        {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 7,
-                            "riskLimitValue": 500000000,
-                            "initialMarginRate": 0.25,
-                            "maintenanceMarginRate": 0.173,
-                            "maxLeverage": 4
-                        },
-                        {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 8,
-                            "riskLimitValue": 700000000,
-                            "initialMarginRate": 0.33333333,
-                            "maintenanceMarginRate": 0.23133333,
-                            "maxLeverage": 3
-                        },
-                        {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 9,
-                            "riskLimitValue": 900000000,
-                            "initialMarginRate": 0.5,
-                            "maintenanceMarginRate": 0.348,
-                            "maxLeverage": 2
-                        },
-                        {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 10,
-                            "riskLimitValue": 1100000000,
-                            "initialMarginRate": 1,
-                            "maintenanceMarginRate": 0.698,
-                            "maxLeverage": 1
-                        }
-                    ],
-                    "success": true
+                    "success": true,
+                    "time": 1786610158983
                 },
                 "parsedResponse": {
                     "BTC/USDT:USDT": [
@@ -2616,15 +2579,11 @@
                             "currency": "USDT",
                             "minNotional": 0,
                             "maxNotional": 3000000,
-                            "maintenanceMarginRate": 0.005,
-                            "maxLeverage": 100,
+                            "maintenanceMarginRate": null,
+                            "maxLeverage": null,
                             "info": {
-                                "symbol": "BTC-PERP",
-                                "riskLevel": 1,
-                                "riskLimitValue": 3000000,
-                                "initialMarginRate": 0.01,
-                                "maintenanceMarginRate": 0.005,
-                                "maxLeverage": 100
+                                "level": 1,
+                                "value": 3000000
                             }
                         },
                         {
@@ -2633,15 +2592,11 @@
                             "currency": "USDT",
                             "minNotional": 3000000,
                             "maxNotional": 6000000,
-                            "maintenanceMarginRate": 0.00733333,
-                            "maxLeverage": 75,
+                            "maintenanceMarginRate": null,
+                            "maxLeverage": null,
                             "info": {
-                                "symbol": "BTC-PERP",
-                                "riskLevel": 2,
-                                "riskLimitValue": 6000000,
-                                "initialMarginRate": 0.01333333,
-                                "maintenanceMarginRate": 0.00733333,
-                                "maxLeverage": 75
+                                "level": 2,
+                                "value": 6000000
                             }
                         },
                         {
@@ -2650,15 +2605,11 @@
                             "currency": "USDT",
                             "minNotional": 6000000,
                             "maxNotional": 12000000,
-                            "maintenanceMarginRate": 0.012,
-                            "maxLeverage": 50,
+                            "maintenanceMarginRate": null,
+                            "maxLeverage": null,
                             "info": {
-                                "symbol": "BTC-PERP",
-                                "riskLevel": 3,
-                                "riskLimitValue": 12000000,
-                                "initialMarginRate": 0.02,
-                                "maintenanceMarginRate": 0.012,
-                                "maxLeverage": 50
+                                "level": 3,
+                                "value": 12000000
                             }
                         },
                         {
@@ -2667,15 +2618,11 @@
                             "currency": "USDT",
                             "minNotional": 12000000,
                             "maxNotional": 90000000,
-                            "maintenanceMarginRate": 0.033,
-                            "maxLeverage": 20,
+                            "maintenanceMarginRate": null,
+                            "maxLeverage": null,
                             "info": {
-                                "symbol": "BTC-PERP",
-                                "riskLevel": 4,
-                                "riskLimitValue": 90000000,
-                                "initialMarginRate": 0.05,
-                                "maintenanceMarginRate": 0.033,
-                                "maxLeverage": 20
+                                "level": 4,
+                                "value": 90000000
                             }
                         },
                         {
@@ -2684,15 +2631,11 @@
                             "currency": "USDT",
                             "minNotional": 90000000,
                             "maxNotional": 120000000,
-                            "maintenanceMarginRate": 0.068,
-                            "maxLeverage": 10,
+                            "maintenanceMarginRate": null,
+                            "maxLeverage": null,
                             "info": {
-                                "symbol": "BTC-PERP",
-                                "riskLevel": 5,
-                                "riskLimitValue": 120000000,
-                                "initialMarginRate": 0.1,
-                                "maintenanceMarginRate": 0.068,
-                                "maxLeverage": 10
+                                "level": 5,
+                                "value": 120000000
                             }
                         },
                         {
@@ -2701,15 +2644,11 @@
                             "currency": "USDT",
                             "minNotional": 120000000,
                             "maxNotional": 300000000,
-                            "maintenanceMarginRate": 0.138,
-                            "maxLeverage": 5,
+                            "maintenanceMarginRate": null,
+                            "maxLeverage": null,
                             "info": {
-                                "symbol": "BTC-PERP",
-                                "riskLevel": 6,
-                                "riskLimitValue": 300000000,
-                                "initialMarginRate": 0.2,
-                                "maintenanceMarginRate": 0.138,
-                                "maxLeverage": 5
+                                "level": 6,
+                                "value": 300000000
                             }
                         },
                         {
@@ -2718,15 +2657,11 @@
                             "currency": "USDT",
                             "minNotional": 300000000,
                             "maxNotional": 500000000,
-                            "maintenanceMarginRate": 0.173,
-                            "maxLeverage": 4,
+                            "maintenanceMarginRate": null,
+                            "maxLeverage": null,
                             "info": {
-                                "symbol": "BTC-PERP",
-                                "riskLevel": 7,
-                                "riskLimitValue": 500000000,
-                                "initialMarginRate": 0.25,
-                                "maintenanceMarginRate": 0.173,
-                                "maxLeverage": 4
+                                "level": 7,
+                                "value": 500000000
                             }
                         },
                         {
@@ -2735,15 +2670,11 @@
                             "currency": "USDT",
                             "minNotional": 500000000,
                             "maxNotional": 700000000,
-                            "maintenanceMarginRate": 0.23133333,
-                            "maxLeverage": 3,
+                            "maintenanceMarginRate": null,
+                            "maxLeverage": null,
                             "info": {
-                                "symbol": "BTC-PERP",
-                                "riskLevel": 8,
-                                "riskLimitValue": 700000000,
-                                "initialMarginRate": 0.33333333,
-                                "maintenanceMarginRate": 0.23133333,
-                                "maxLeverage": 3
+                                "level": 8,
+                                "value": 700000000
                             }
                         },
                         {
@@ -2752,15 +2683,11 @@
                             "currency": "USDT",
                             "minNotional": 700000000,
                             "maxNotional": 900000000,
-                            "maintenanceMarginRate": 0.348,
-                            "maxLeverage": 2,
+                            "maintenanceMarginRate": null,
+                            "maxLeverage": null,
                             "info": {
-                                "symbol": "BTC-PERP",
-                                "riskLevel": 9,
-                                "riskLimitValue": 900000000,
-                                "initialMarginRate": 0.5,
-                                "maintenanceMarginRate": 0.348,
-                                "maxLeverage": 2
+                                "level": 9,
+                                "value": 900000000
                             }
                         },
                         {
@@ -2769,15 +2696,11 @@
                             "currency": "USDT",
                             "minNotional": 900000000,
                             "maxNotional": 1100000000,
-                            "maintenanceMarginRate": 0.698,
-                            "maxLeverage": 1,
+                            "maintenanceMarginRate": null,
+                            "maxLeverage": null,
                             "info": {
-                                "symbol": "BTC-PERP",
-                                "riskLevel": 10,
-                                "riskLimitValue": 1100000000,
-                                "initialMarginRate": 1,
-                                "maintenanceMarginRate": 0.698,
-                                "maxLeverage": 1
+                                "level": 10,
+                                "value": 1100000000
                             }
                         }
                     ]
@@ -2786,98 +2709,61 @@
         ],
         "fetchMarketLeverageTiers": [
             {
-                "description": "btse fetchMarketLeverageTiers BTC linear swap - live-captured 2026-08-12, full 10-tier risk-limit ladder, report-block verbatim",
+                "description": "btse fetchMarketLeverageTiers BTC linear swap via the unified risk limits endpoint - live-captured 2026-08-13, report-block verbatim, full 10-tier notional ladder",
                 "method": "fetchMarketLeverageTiers",
                 "input": [
                     "BTC/USDT:USDT"
                 ],
                 "httpResponse": {
+                    "data": {
+                        "symbol": "BTC-PERP-USDT",
+                        "riskLimits": [
+                            {
+                                "level": 1,
+                                "value": 3000000
+                            },
+                            {
+                                "level": 2,
+                                "value": 6000000
+                            },
+                            {
+                                "level": 3,
+                                "value": 12000000
+                            },
+                            {
+                                "level": 4,
+                                "value": 90000000
+                            },
+                            {
+                                "level": 5,
+                                "value": 120000000
+                            },
+                            {
+                                "level": 6,
+                                "value": 300000000
+                            },
+                            {
+                                "level": 7,
+                                "value": 500000000
+                            },
+                            {
+                                "level": 8,
+                                "value": 700000000
+                            },
+                            {
+                                "level": 9,
+                                "value": 900000000
+                            },
+                            {
+                                "level": 10,
+                                "value": 1100000000
+                            }
+                        ]
+                    },
                     "code": 1,
                     "msg": "Success",
-                    "time": 1786563839582,
-                    "data": [
-                        {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 1,
-                            "riskLimitValue": 3000000,
-                            "initialMarginRate": 0.01,
-                            "maintenanceMarginRate": 0.005,
-                            "maxLeverage": 100
-                        },
-                        {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 2,
-                            "riskLimitValue": 6000000,
-                            "initialMarginRate": 0.01333333,
-                            "maintenanceMarginRate": 0.00733333,
-                            "maxLeverage": 75
-                        },
-                        {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 3,
-                            "riskLimitValue": 12000000,
-                            "initialMarginRate": 0.02,
-                            "maintenanceMarginRate": 0.012,
-                            "maxLeverage": 50
-                        },
-                        {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 4,
-                            "riskLimitValue": 90000000,
-                            "initialMarginRate": 0.05,
-                            "maintenanceMarginRate": 0.033,
-                            "maxLeverage": 20
-                        },
-                        {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 5,
-                            "riskLimitValue": 120000000,
-                            "initialMarginRate": 0.1,
-                            "maintenanceMarginRate": 0.068,
-                            "maxLeverage": 10
-                        },
-                        {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 6,
-                            "riskLimitValue": 300000000,
-                            "initialMarginRate": 0.2,
-                            "maintenanceMarginRate": 0.138,
-                            "maxLeverage": 5
-                        },
-                        {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 7,
-                            "riskLimitValue": 500000000,
-                            "initialMarginRate": 0.25,
-                            "maintenanceMarginRate": 0.173,
-                            "maxLeverage": 4
-                        },
-                        {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 8,
-                            "riskLimitValue": 700000000,
-                            "initialMarginRate": 0.33333333,
-                            "maintenanceMarginRate": 0.23133333,
-                            "maxLeverage": 3
-                        },
-                        {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 9,
-                            "riskLimitValue": 900000000,
-                            "initialMarginRate": 0.5,
-                            "maintenanceMarginRate": 0.348,
-                            "maxLeverage": 2
-                        },
-                        {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 10,
-                            "riskLimitValue": 1100000000,
-                            "initialMarginRate": 1,
-                            "maintenanceMarginRate": 0.698,
-                            "maxLeverage": 1
-                        }
-                    ],
-                    "success": true
+                    "success": true,
+                    "time": 1786610160164
                 },
                 "parsedResponse": [
                     {
@@ -2886,15 +2772,11 @@
                         "currency": "USDT",
                         "minNotional": 0,
                         "maxNotional": 3000000,
-                        "maintenanceMarginRate": 0.005,
-                        "maxLeverage": 100,
+                        "maintenanceMarginRate": null,
+                        "maxLeverage": null,
                         "info": {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 1,
-                            "riskLimitValue": 3000000,
-                            "initialMarginRate": 0.01,
-                            "maintenanceMarginRate": 0.005,
-                            "maxLeverage": 100
+                            "level": 1,
+                            "value": 3000000
                         }
                     },
                     {
@@ -2903,15 +2785,11 @@
                         "currency": "USDT",
                         "minNotional": 3000000,
                         "maxNotional": 6000000,
-                        "maintenanceMarginRate": 0.00733333,
-                        "maxLeverage": 75,
+                        "maintenanceMarginRate": null,
+                        "maxLeverage": null,
                         "info": {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 2,
-                            "riskLimitValue": 6000000,
-                            "initialMarginRate": 0.01333333,
-                            "maintenanceMarginRate": 0.00733333,
-                            "maxLeverage": 75
+                            "level": 2,
+                            "value": 6000000
                         }
                     },
                     {
@@ -2920,15 +2798,11 @@
                         "currency": "USDT",
                         "minNotional": 6000000,
                         "maxNotional": 12000000,
-                        "maintenanceMarginRate": 0.012,
-                        "maxLeverage": 50,
+                        "maintenanceMarginRate": null,
+                        "maxLeverage": null,
                         "info": {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 3,
-                            "riskLimitValue": 12000000,
-                            "initialMarginRate": 0.02,
-                            "maintenanceMarginRate": 0.012,
-                            "maxLeverage": 50
+                            "level": 3,
+                            "value": 12000000
                         }
                     },
                     {
@@ -2937,15 +2811,11 @@
                         "currency": "USDT",
                         "minNotional": 12000000,
                         "maxNotional": 90000000,
-                        "maintenanceMarginRate": 0.033,
-                        "maxLeverage": 20,
+                        "maintenanceMarginRate": null,
+                        "maxLeverage": null,
                         "info": {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 4,
-                            "riskLimitValue": 90000000,
-                            "initialMarginRate": 0.05,
-                            "maintenanceMarginRate": 0.033,
-                            "maxLeverage": 20
+                            "level": 4,
+                            "value": 90000000
                         }
                     },
                     {
@@ -2954,15 +2824,11 @@
                         "currency": "USDT",
                         "minNotional": 90000000,
                         "maxNotional": 120000000,
-                        "maintenanceMarginRate": 0.068,
-                        "maxLeverage": 10,
+                        "maintenanceMarginRate": null,
+                        "maxLeverage": null,
                         "info": {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 5,
-                            "riskLimitValue": 120000000,
-                            "initialMarginRate": 0.1,
-                            "maintenanceMarginRate": 0.068,
-                            "maxLeverage": 10
+                            "level": 5,
+                            "value": 120000000
                         }
                     },
                     {
@@ -2971,15 +2837,11 @@
                         "currency": "USDT",
                         "minNotional": 120000000,
                         "maxNotional": 300000000,
-                        "maintenanceMarginRate": 0.138,
-                        "maxLeverage": 5,
+                        "maintenanceMarginRate": null,
+                        "maxLeverage": null,
                         "info": {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 6,
-                            "riskLimitValue": 300000000,
-                            "initialMarginRate": 0.2,
-                            "maintenanceMarginRate": 0.138,
-                            "maxLeverage": 5
+                            "level": 6,
+                            "value": 300000000
                         }
                     },
                     {
@@ -2988,15 +2850,11 @@
                         "currency": "USDT",
                         "minNotional": 300000000,
                         "maxNotional": 500000000,
-                        "maintenanceMarginRate": 0.173,
-                        "maxLeverage": 4,
+                        "maintenanceMarginRate": null,
+                        "maxLeverage": null,
                         "info": {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 7,
-                            "riskLimitValue": 500000000,
-                            "initialMarginRate": 0.25,
-                            "maintenanceMarginRate": 0.173,
-                            "maxLeverage": 4
+                            "level": 7,
+                            "value": 500000000
                         }
                     },
                     {
@@ -3005,15 +2863,11 @@
                         "currency": "USDT",
                         "minNotional": 500000000,
                         "maxNotional": 700000000,
-                        "maintenanceMarginRate": 0.23133333,
-                        "maxLeverage": 3,
+                        "maintenanceMarginRate": null,
+                        "maxLeverage": null,
                         "info": {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 8,
-                            "riskLimitValue": 700000000,
-                            "initialMarginRate": 0.33333333,
-                            "maintenanceMarginRate": 0.23133333,
-                            "maxLeverage": 3
+                            "level": 8,
+                            "value": 700000000
                         }
                     },
                     {
@@ -3022,15 +2876,11 @@
                         "currency": "USDT",
                         "minNotional": 700000000,
                         "maxNotional": 900000000,
-                        "maintenanceMarginRate": 0.348,
-                        "maxLeverage": 2,
+                        "maintenanceMarginRate": null,
+                        "maxLeverage": null,
                         "info": {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 9,
-                            "riskLimitValue": 900000000,
-                            "initialMarginRate": 0.5,
-                            "maintenanceMarginRate": 0.348,
-                            "maxLeverage": 2
+                            "level": 9,
+                            "value": 900000000
                         }
                     },
                     {
@@ -3039,15 +2889,11 @@
                         "currency": "USDT",
                         "minNotional": 900000000,
                         "maxNotional": 1100000000,
-                        "maintenanceMarginRate": 0.698,
-                        "maxLeverage": 1,
+                        "maintenanceMarginRate": null,
+                        "maxLeverage": null,
                         "info": {
-                            "symbol": "BTC-PERP",
-                            "riskLevel": 10,
-                            "riskLimitValue": 1100000000,
-                            "initialMarginRate": 1,
-                            "maintenanceMarginRate": 0.698,
-                            "maxLeverage": 1
+                            "level": 10,
+                            "value": 1100000000
                         }
                     }
                 ]
