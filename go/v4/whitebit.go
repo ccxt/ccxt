@@ -4627,13 +4627,13 @@ func (this *WhitebitCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 			AddElementToObject(request, "startDate", since)
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", since)
+			AddElementToObject(request, "limit", limit)
 		}
 		requestparamsVariable := this.HandleUntilOption("endDate", request, params)
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
 
-		response := (<-this.V4PrivatePostCollateralAccountFundingHistory(request))
+		response := (<-this.V4PrivatePostCollateralAccountFundingHistory(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//     {
