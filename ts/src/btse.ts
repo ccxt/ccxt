@@ -2695,6 +2695,10 @@ export default class btse extends Exchange {
             '123': 'open', // AMEND_ORDER = Order amended
             'STATUS_ACTIVE': 'open', // open_orders orderState, observed live
             'STATUS_INACTIVE': 'canceled', // open_orders orderState
+            'ORDER_INSERTED': 'open', // single order lookup orderState, observed live
+            'ORDER_PARTIALLY_TRANSACTED': 'open', // by analogy with the numeric codes
+            'ORDER_FULLY_TRANSACTED': 'closed', // by analogy with the numeric codes
+            'ORDER_CANCELLED': 'canceled', // by analogy with the numeric codes
         };
         return this.safeString (statuses, status, status);
     }
@@ -3635,10 +3639,11 @@ export default class btse extends Exchange {
         const baseUrl = this.urls['api'][api];
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        // the unified spot v4 and futures v3 trading apis read DELETE params from
-        // a signed json body like their POST and PUT counterparts, verified live,
-        // while the legacy apis keep DELETE params in the query string
-        const isBodyDelete = (method === 'DELETE') && (path.startsWith ('spot/api/v4/') || path.startsWith ('futures/api/v3/'));
+        // the futures v3 trading api reads DELETE params from a signed json
+        // body like its POST and PUT counterparts, while the spot v4 and the
+        // legacy apis keep DELETE params in the query string, verified live
+        // in both directions
+        const isBodyDelete = (method === 'DELETE') && path.startsWith ('futures/api/v3/');
         let queryString = '';
         if (((method === 'GET') || (method === 'DELETE')) && !isBodyDelete) {
             if (Object.keys (query).length) {
