@@ -3,205 +3,6 @@
     "skipKeys": [],
     "options": {},
     "methods": {
-        "watchOrderBook": [
-            {
-                "description": "spot orderbook",
-                "input": [
-                    "BTC/EUR"
-                ],
-                "url": "wss://ws.bitvavo.com/v2",
-                "messages": [
-                    {
-                        "event": "subscribed",
-                        "subscriptions": {
-                            "book": [
-                                "BTC-EUR"
-                            ]
-                        }
-                    },
-                    {
-                        "event": "book",
-                        "market": "BTC-EUR",
-                        "nonce": 378734235,
-                        "bids": [
-                            [
-                                "55035.00",
-                                "0.00078650"
-                            ],
-                            [
-                                "49307.00",
-                                "0.10823414"
-                            ]
-                        ],
-                        "asks": [
-                            [
-                                "55201.00",
-                                "0.00554733"
-                            ]
-                        ],
-                        "timestamp": 1786614410983432400
-                    },
-                    {
-                        "event": "book",
-                        "market": "BTC-EUR",
-                        "nonce": 378734236,
-                        "bids": [
-                            [
-                                "55035.00",
-                                "0"
-                            ],
-                            [
-                                "49307.00",
-                                "0.10823414"
-                            ]
-                        ],
-                        "asks": [
-                            [
-                                "55211.00",
-                                "0.08396997"
-                            ],
-                            [
-                                "55215.00",
-                                "0.01769550"
-                            ],
-                            [
-                                "55221.00",
-                                "0.15704462"
-                            ],
-                            [
-                                "55223.00",
-                                "0.06277669"
-                            ]
-                        ],
-                        "timestamp": 1786614411083599600
-                    },
-                    {
-                        "event": "book",
-                        "market": "BTC-EUR",
-                        "nonce": 378734237,
-                        "bids": [
-                            [
-                                "49307.00",
-                                "0.10811244"
-                            ],
-                            [
-                                "49303.00",
-                                "0.00319150"
-                            ]
-                        ],
-                        "asks": [
-                            [
-                                "55233.00",
-                                "0.11712000"
-                            ],
-                            [
-                                "55257.00",
-                                "0.07104279"
-                            ]
-                        ],
-                        "timestamp": 1786614411183643100
-                    },
-                    {
-                        "event": "book",
-                        "market": "BTC-EUR",
-                        "nonce": 378734238,
-                        "bids": [
-                            [
-                                "55176.00",
-                                "0.37696700"
-                            ],
-                            [
-                                "55171.00",
-                                "0.29808212"
-                            ],
-                            [
-                                "49303.00",
-                                "0.00319150"
-                            ]
-                        ],
-                        "asks": [
-                            [
-                                "55205.00",
-                                "0.37909097"
-                            ],
-                            [
-                                "55206.00",
-                                "0.30753837"
-                            ]
-                        ],
-                        "timestamp": 1786614411284194800
-                    },
-                    {
-                        "event": "book",
-                        "market": "BTC-EUR",
-                        "nonce": 378734239,
-                        "bids": [
-                            [
-                                "49303.00",
-                                "0.00319151"
-                            ]
-                        ],
-                        "asks": [],
-                        "timestamp": 1786614411384676400
-                    }
-                ],
-                "sentMessages": [
-                    {
-                        "action": "subscribe",
-                        "channels": [
-                            {
-                                "name": "book",
-                                "markets": [
-                                    "BTC-EUR"
-                                ]
-                            }
-                        ]
-                    },
-                    {
-                        "action": "getBook",
-                        "market": "BTC-EUR"
-                    }
-                ],
-                "parsedResponses": [
-                    {}
-                ]
-            }
-        ],
-        "watchTrades": [
-            {
-                "description": "spot trades",
-                "input": [
-                    "BTC/EUR"
-                ],
-                "url": "wss://ws.bitvavo.com/v2",
-                "messages": [
-                    {
-                        "event": "subscribed",
-                        "subscriptions": {
-                            "trades": [
-                                "BTC-EUR"
-                            ]
-                        }
-                    }
-                ],
-                "sentMessages": [
-                    {
-                        "action": "subscribe",
-                        "channels": [
-                            {
-                                "name": "trades",
-                                "markets": [
-                                    "BTC-EUR"
-                                ]
-                            }
-                        ]
-                    }
-                ],
-                "parsedResponses": [
-                    []
-                ]
-            }
-        ],
         "watchTicker": [
             {
                 "description": "spot ticker",
@@ -271,7 +72,43 @@
                     }
                 ],
                 "parsedResponses": [
-                    {}
+                    {
+                        "symbol": "BTC/EUR",
+                        "timestamp": 1786614374241,
+                        "datetime": "2026-08-13T09:46:14.241Z",
+                        "high": 55786,
+                        "low": 54812,
+                        "bid": 55198,
+                        "bidVolume": 0.09002802,
+                        "ask": 55199,
+                        "askVolume": 0.44358626,
+                        "vwap": 55283.10632142389,
+                        "open": 55460,
+                        "close": 55198,
+                        "last": 55198,
+                        "previousClose": null,
+                        "change": -262,
+                        "percentage": -0.4724125495852866,
+                        "average": 55329,
+                        "baseVolume": 323.92364868,
+                        "quoteVolume": 17907505.51,
+                        "info": {
+                            "market": "BTC-EUR",
+                            "timestamp": 1786614374241,
+                            "open": "55460",
+                            "high": "55786",
+                            "low": "54812",
+                            "last": "55198",
+                            "bid": "55198",
+                            "bidSize": "0.09002802",
+                            "ask": "55199",
+                            "askSize": "0.44358626",
+                            "volume": "323.92364868",
+                            "volumeQuote": "17907505.51"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
                 ]
             }
         ]

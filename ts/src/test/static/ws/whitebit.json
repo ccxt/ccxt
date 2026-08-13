@@ -243,6 +243,9 @@
                         "nonce": null,
                         "symbol": "BTC/USDT"
                     }
+                ],
+                "sentSkipKeys": [
+                    "id"
                 ]
             }
         ],
@@ -453,6 +456,9 @@
                             "fees": []
                         }
                     ]
+                ],
+                "sentSkipKeys": [
+                    "id"
                 ]
             }
         ],
@@ -516,7 +522,42 @@
                     }
                 ],
                 "parsedResponses": [
-                    {}
+                    {
+                        "symbol": "BTC/USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 64457.25,
+                        "low": 63310.44,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 63659.38479441726,
+                        "open": 64045.76,
+                        "close": 63704.54,
+                        "last": 63704.54,
+                        "previousClose": null,
+                        "change": -341.22,
+                        "percentage": -0.5327753156493107,
+                        "average": 63875.15,
+                        "baseVolume": 4455.128839,
+                        "quoteVolume": 283610761.0706064,
+                        "indexPrice": null,
+                        "info": {
+                            "open": "64045.76",
+                            "close": "63704.54",
+                            "high": "64457.25",
+                            "low": "63310.44",
+                            "volume": "4455.128839",
+                            "deal": "283610761.07060643",
+                            "last": "63704.54",
+                            "period": 86400
+                        },
+                        "markPrice": null
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
                 ]
             }
         ]

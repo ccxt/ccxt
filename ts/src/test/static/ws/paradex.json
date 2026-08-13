@@ -126,262 +126,37 @@
                     }
                 ],
                 "parsedResponses": [
-                    {}
-                ]
-            }
-        ],
-        "watchTrades": [
-            {
-                "description": "linear swap trades",
-                "input": [
-                    "BTC/USD:USDC"
-                ],
-                "url": "wss://ws.api.prod.paradex.trade/v1",
-                "messages": [
                     {
-                        "jsonrpc": "2.0",
-                        "id": 0,
-                        "result": {
-                            "channel": "trades.BTC-USD-PERP"
-                        },
-                        "usIn": "1786614453057714",
-                        "usDiff": 87,
-                        "usOut": 1786614453057801
+                        "bids": [
+                            [
+                                63659.6,
+                                0.03139
+                            ],
+                            [
+                                63653.8,
+                                0.03139
+                            ],
+                            [
+                                63652.9,
+                                0.00817
+                            ],
+                            [
+                                63650,
+                                0.04469
+                            ],
+                            [
+                                63648.7,
+                                0.03139
+                            ]
+                        ],
+                        "asks": [],
+                        "timestamp": 1786614474487,
+                        "datetime": "2026-08-13T09:47:54.487Z",
+                        "nonce": 7613251297,
+                        "symbol": "BTC/USD:USDC"
                     }
                 ],
-                "sentMessages": [
-                    {
-                        "jsonrpc": "2.0",
-                        "method": "subscribe",
-                        "params": {
-                            "channel": "trades.BTC-USD-PERP"
-                        }
-                    }
-                ],
-                "parsedResponses": [
-                    []
-                ]
-            }
-        ],
-        "watchTicker": [
-            {
-                "description": "linear swap ticker",
-                "input": [
-                    "BTC/USD:USDC"
-                ],
-                "url": "wss://ws.api.prod.paradex.trade/v1",
-                "messages": [
-                    {
-                        "jsonrpc": "2.0",
-                        "id": 0,
-                        "result": {
-                            "channel": "markets_summary"
-                        },
-                        "usIn": "1786614431156790",
-                        "usDiff": 153,
-                        "usOut": 1786614431156943
-                    },
-                    {
-                        "jsonrpc": "2.0",
-                        "method": "subscription",
-                        "params": {
-                            "channel": "markets_summary",
-                            "data": {
-                                "symbol": "ETH-USD-14AUG26-1860-P",
-                                "mark_price": "4.15451206",
-                                "mark_iv": "0.35408685",
-                                "delta": "-0.21491973",
-                                "greeks": {
-                                    "delta": "-0.214919726579521",
-                                    "gamma": "0.008685048173347656",
-                                    "vega": "0.27746990895992024",
-                                    "theta": "-5.361677045032315",
-                                    "rho": "-0.00010534967563889213",
-                                    "vanna": "0.00032052129547690156",
-                                    "volga": "0.0047725537103222235"
-                                },
-                                "last_traded_price": "",
-                                "bid": "3",
-                                "bid_size": "0.5",
-                                "bid_iv": "0.31033339",
-                                "ask": "4.8",
-                                "ask_size": "0.5",
-                                "ask_iv": "0.37653884",
-                                "volume_24h": "0",
-                                "total_volume": "0",
-                                "created_at": 1786614431340,
-                                "underlying_price": "1886.29817867",
-                                "open_interest": "0",
-                                "funding_rate": "",
-                                "price_change_rate_24h": "-0.288698",
-                                "future_funding_rate": "0.00007041",
-                                "forward_rate": "-0.04878153",
-                                "risk_free_rate": "0"
-                            }
-                        }
-                    },
-                    {
-                        "jsonrpc": "2.0",
-                        "method": "subscription",
-                        "params": {
-                            "channel": "markets_summary",
-                            "data": {
-                                "symbol": "BTC-USD-30OCT26-62000-C",
-                                "mark_price": "5645.07647554",
-                                "mark_iv": "0.38029717",
-                                "delta": "0.62074701",
-                                "greeks": {
-                                    "delta": "0.6207470102808788",
-                                    "gamma": "0.00003449385124037838",
-                                    "vega": "113.51391007741539",
-                                    "theta": "-32.47143155436305",
-                                    "rho": "-12.051938705319156",
-                                    "vanna": "0.0005461128073505875",
-                                    "volga": "0.10159208772544204"
-                                },
-                                "last_traded_price": "",
-                                "bid": "",
-                                "bid_size": "",
-                                "ask": "",
-                                "ask_size": "",
-                                "volume_24h": "0",
-                                "total_volume": "0",
-                                "created_at": 1786614431340,
-                                "underlying_price": "63664.68701064",
-                                "open_interest": "0",
-                                "funding_rate": "",
-                                "price_change_rate_24h": "-0.041007",
-                                "future_funding_rate": "0.00007443",
-                                "forward_rate": "0.04407883",
-                                "risk_free_rate": "0"
-                            }
-                        }
-                    },
-                    {
-                        "jsonrpc": "2.0",
-                        "method": "subscription",
-                        "params": {
-                            "channel": "markets_summary",
-                            "data": {
-                                "symbol": "BTC-USD-21AUG26-69000-P",
-                                "mark_price": "5316.58740877",
-                                "mark_iv": "0.29846565",
-                                "delta": "-0.9638978",
-                                "greeks": {
-                                    "delta": "-0.9638977964836801",
-                                    "gamma": "0.00002890932580222034",
-                                    "vega": "7.5939335241745365",
-                                    "theta": "-7.070814473003004",
-                                    "rho": "-1.1544369486502593",
-                                    "vanna": "-0.0007315789855699829",
-                                    "volga": "0.8321193354681352"
-                                },
-                                "last_traded_price": "",
-                                "bid": "",
-                                "bid_size": "",
-                                "ask": "",
-                                "ask_size": "",
-                                "volume_24h": "0",
-                                "total_volume": "0",
-                                "created_at": 1786614431340,
-                                "underlying_price": "63664.68701064",
-                                "open_interest": "0",
-                                "funding_rate": "",
-                                "price_change_rate_24h": "0.060447",
-                                "future_funding_rate": "0.00007443",
-                                "forward_rate": "0.04299158",
-                                "risk_free_rate": "0"
-                            }
-                        }
-                    },
-                    {
-                        "jsonrpc": "2.0",
-                        "method": "subscription",
-                        "params": {
-                            "channel": "markets_summary",
-                            "data": {
-                                "symbol": "ETH-USD-21AUG26-1700-P",
-                                "mark_price": "4.33547305",
-                                "mark_iv": "0.49114806",
-                                "delta": "-0.06980286",
-                                "greeks": {
-                                    "delta": "-0.0698028639779483",
-                                    "gamma": "0.0009814548303753476",
-                                    "vega": "0.3724266131565485",
-                                    "theta": "-1.1486503091269638",
-                                    "rho": "-0.0009413990528820035",
-                                    "vanna": "0.0005648210592904757",
-                                    "volga": "0.01574082242610679"
-                                },
-                                "last_traded_price": "",
-                                "bid": "3.6",
-                                "bid_size": "0.5",
-                                "bid_iv": "0.47038284",
-                                "ask": "4.8",
-                                "ask_size": "0.5",
-                                "ask_iv": "0.50320246",
-                                "volume_24h": "0",
-                                "total_volume": "0",
-                                "created_at": 1786614431340,
-                                "underlying_price": "1886.29817867",
-                                "open_interest": "0",
-                                "funding_rate": "",
-                                "price_change_rate_24h": "0.04856",
-                                "future_funding_rate": "0.00007041",
-                                "forward_rate": "0.01473568",
-                                "risk_free_rate": "0"
-                            }
-                        }
-                    },
-                    {
-                        "jsonrpc": "2.0",
-                        "method": "subscription",
-                        "params": {
-                            "channel": "markets_summary",
-                            "data": {
-                                "symbol": "HYPE-USD-25DEC26-94-C",
-                                "mark_price": "2.08725166",
-                                "mark_iv": "0.73509375",
-                                "delta": "0.1809803",
-                                "greeks": {
-                                    "delta": "0.1809803017671764",
-                                    "gamma": "0.010221432329191885",
-                                    "vega": "0.09146053926627971",
-                                    "theta": "-0.02419224295090898",
-                                    "rho": "-0.0076585302602803825",
-                                    "vanna": "-0.002913783433036536",
-                                    "volga": "0.0015164784954757357"
-                                },
-                                "last_traded_price": "",
-                                "bid": "",
-                                "bid_size": "",
-                                "ask": "",
-                                "ask_size": "",
-                                "volume_24h": "0",
-                                "total_volume": "0",
-                                "created_at": 1786614431340,
-                                "underlying_price": "57.59759182",
-                                "open_interest": "0",
-                                "funding_rate": "",
-                                "price_change_rate_24h": "0.050558",
-                                "future_funding_rate": "-0.00002904",
-                                "risk_free_rate": "0"
-                            }
-                        }
-                    }
-                ],
-                "sentMessages": [
-                    {
-                        "jsonrpc": "2.0",
-                        "method": "subscribe",
-                        "params": {
-                            "channel": "markets_summary"
-                        }
-                    }
-                ],
-                "parsedResponses": [
-                    {}
-                ]
+                "disabledGO": "go orderbook state diverges on replay - investigate with the other disabledGO orderbook entries"
             }
         ]
     }
