@@ -182,6 +182,19 @@
                 "input": [
                     "LTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "swap trailing orders history with limit",
+                "method": "fetchOrders",
+                "url": "https://fapi.xt.com/future/trade/v1/entrust/track-list-history?limit=5&symbol=xrp_usdt",
+                "input": [
+                    "XRP/USDT:USDT",
+                    null,
+                    5,
+                    {
+                        "trailing": true
+                    }
+                ]
             }
         ],
         "fetchMyTrades": [
@@ -207,6 +220,19 @@
             }
         ],
         "fetchOpenOrders": [
+            {
+                "description": "swap open trailing orders, no state parameter is sent",
+                "method": "fetchOpenOrders",
+                "url": "https://fapi.xt.com/future/trade/v1/entrust/track-list?symbol=xrp_usdt",
+                "input": [
+                    "XRP/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "trailing": true
+                    }
+                ]
+            },
             {
                 "description": "swap open orders no symbol",
                 "method": "fetchOpenOrders",
@@ -349,6 +375,35 @@
                     [
                         "BTC/USD:BTC"
                     ]
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "swap trailing order detail by trackId",
+                "method": "fetchOrder",
+                "url": "https://fapi.xt.com/future/trade/v1/entrust/track-detail?trackId=658271606680303168",
+                "input": [
+                    "658271606680303168",
+                    "XRP/USDT:USDT",
+                    {
+                        "trailing": true
+                    }
+                ]
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "swap trailing orders history, the state filter is applied locally",
+                "method": "fetchCanceledOrders",
+                "url": "https://fapi.xt.com/future/trade/v1/entrust/track-list-history?symbol=xrp_usdt",
+                "input": [
+                    "XRP/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "trailing": true
+                    }
                 ]
             }
         ],

@@ -664,6 +664,136 @@
     ],
     "fetchOpenOrders": [
       {
+        "description": "open trailing orders are filtered locally by status since track-list returns entries in every state",
+        "method": "fetchOpenOrders",
+        "input": [
+          "XRP/USDT:USDT",
+          null,
+          null,
+          {
+            "trailing": true
+          }
+        ],
+        "httpResponse": {
+          "returnCode": 0,
+          "msgInfo": "success",
+          "error": null,
+          "result": {
+            "page": 1,
+            "ps": 10,
+            "total": 2,
+            "items": [
+              {
+                "trackId": "658271606680303168",
+                "symbol": "xrp_usdt",
+                "orderSide": "BUY",
+                "positionSide": "LONG",
+                "configActivation": true,
+                "activationPrice": "0.86",
+                "currentPrice": "1.0048",
+                "price": null,
+                "origQty": "1",
+                "stopPrice": null,
+                "triggerPriceType": "LATEST_PRICE",
+                "callback": "PROPORTION",
+                "callbackVal": "0.01",
+                "executedQty": null,
+                "avgPrice": null,
+                "state": "NOT_ACTIVATION",
+                "desc": "not_activation",
+                "createdTime": 1786646181143,
+                "updatedTime": 1786646181143,
+                "ordinary": false
+              },
+              {
+                "trackId": "658243077162749440",
+                "symbol": "xrp_usdt",
+                "orderSide": "BUY",
+                "positionSide": "LONG",
+                "configActivation": true,
+                "activationPrice": "0.86",
+                "currentPrice": "0.9992",
+                "price": null,
+                "origQty": "1",
+                "stopPrice": null,
+                "triggerPriceType": "LATEST_PRICE",
+                "callback": "FIXED",
+                "callbackVal": "0.05",
+                "executedQty": null,
+                "avgPrice": null,
+                "state": "USER_REVOCATION",
+                "desc": "user_revocation",
+                "createdTime": 1786639379169,
+                "updatedTime": 1786639519337,
+                "ordinary": false
+              }
+            ]
+          }
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "trackId": "658271606680303168",
+              "symbol": "xrp_usdt",
+              "orderSide": "BUY",
+              "positionSide": "LONG",
+              "configActivation": true,
+              "activationPrice": "0.86",
+              "currentPrice": "1.0048",
+              "price": null,
+              "origQty": "1",
+              "stopPrice": null,
+              "triggerPriceType": "LATEST_PRICE",
+              "callback": "PROPORTION",
+              "callbackVal": "0.01",
+              "executedQty": null,
+              "avgPrice": null,
+              "state": "NOT_ACTIVATION",
+              "desc": "not_activation",
+              "createdTime": 1786646181143,
+              "updatedTime": 1786646181143,
+              "ordinary": false
+            },
+            "id": "658271606680303168",
+            "clientOrderId": null,
+            "timestamp": 1786646181143,
+            "datetime": "2026-08-13T18:36:21.143Z",
+            "lastTradeTimestamp": 1786646181143,
+            "lastUpdateTimestamp": 1786646181143,
+            "symbol": "XRP/USDT:USDT",
+            "type": null,
+            "timeInForce": null,
+            "postOnly": null,
+            "side": "buy",
+            "price": null,
+            "triggerPrice": null,
+            "stopLoss": null,
+            "takeProfit": null,
+            "amount": 10,
+            "filled": null,
+            "remaining": null,
+            "cost": null,
+            "average": null,
+            "status": "open",
+            "fee": {
+              "currency": null,
+              "cost": null
+            },
+            "trades": [],
+            "fees": [
+              {
+                "currency": null,
+                "cost": null
+              }
+            ],
+            "reduceOnly": null,
+            "stopPrice": null,
+            "takeProfitPrice": null,
+            "stopLossPrice": null
+          }
+        ]
+      },
+      {
         "description": "swap open orders no symbol",
         "method": "fetchOpenOrders",
         "input": [
