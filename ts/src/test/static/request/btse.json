@@ -165,7 +165,7 @@
             {
                 "description": "fetch trading fees for spot",
                 "method": "fetchTradingFees",
-                "url": "https://api.btse.com/spot/api/v3.3/user/fees",
+                "url": "https://api.btse.com/spot/api/v4/trade/fees",
                 "input": [],
                 "output": null
             }
@@ -174,7 +174,7 @@
             {
                 "description": "fetch trading fee for spot",
                 "method": "fetchTradingFee",
-                "url": "https://api.btse.com/spot/api/v3.3/user/fees?symbol=ETH-USDT",
+                "url": "https://api.btse.com/spot/api/v4/trade/fees?symbol=ETH-USDT",
                 "input": [
                     "ETH/USDT"
                 ],

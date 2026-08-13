@@ -270,7 +270,7 @@ export default class btse extends Exchange {
                         'spot/api/v4/trade/orders': { 'cost': 5 } as Endpoint<Dict>, // done
                         'spot/api/v4/trade/order': { 'cost': 5 } as Endpoint<Dict>, // done
                         'spot/api/v4/trade/trade_history': { 'cost': 5 } as Endpoint<Dict>, // done
-                        'spot/api/v4/trade/fees': 5, // not used
+                        'spot/api/v4/trade/fees': { 'cost': 5 } as Endpoint<Dict>, // done
                         'futures/api/v3/trade/orders': { 'cost': 5 } as Endpoint<Dict>, // done
                         'futures/api/v3/trade/risk_limit': 5, // not used
                         'futures/api/v3/trade/position_mode': 5, // not used
@@ -2732,7 +2732,7 @@ export default class btse extends Exchange {
      * @method
      * @name btse#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://btsecom.github.io/docs/spotV3_3/en/#query-account-fees
+     * @see https://docs.btse.com/spot/rest/get-fees
      * @see https://btsecom.github.io/docs/futuresV2_3/en/#query-account-fee
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot', 'swap' or 'future' (default is 'spot')
@@ -2740,12 +2740,14 @@ export default class btse extends Exchange {
      */
     override async fetchTradingFees (params = {}): Promise<TradingFees> {
         await this.loadMarkets ();
-        let response = [];
+        let response = undefined;
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params, marketType);
         if (marketType === 'spot') {
-            response = await this.privateGetSpotApiV33UserFees (params);
+            response = await this.privateGetSpotApiV4TradeFees (params);
         } else {
+            // the futures fees stay on the legacy endpoint, the unified futures
+            // api has no fees route
             response = await this.privateGetFuturesApiV23UserFees (params);
         }
         //
@@ -2757,7 +2759,8 @@ export default class btse extends Exchange {
         //         }
         //     ]
         //
-        const responseList = this.arrayConcat ([], response);
+        const rows = this.safeList (response, 'data', response as any);
+        const responseList = this.arrayConcat ([], rows);
         const result: Dict = {};
         for (let i = 0; i < responseList.length; i++) {
             const feeInfo = responseList[i];
@@ -3081,7 +3084,7 @@ export default class btse extends Exchange {
      * @method
      * @name btse#fetchTradingFee
      * @description fetch the trading fees for a market
-     * @see https://btsecom.github.io/docs/spotV3_3/en/#query-account-fees
+     * @see https://docs.btse.com/spot/rest/get-fees
      * @see https://btsecom.github.io/docs/futuresV2_3/en/#query-account-fee
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3095,11 +3098,14 @@ export default class btse extends Exchange {
         };
         let response = undefined;
         if (market['spot']) {
-            response = await this.privateGetSpotApiV33UserFees (this.extend (request, params));
+            response = await this.privateGetSpotApiV4TradeFees (this.extend (request, params));
         } else {
+            // the futures fees stay on the legacy endpoint, the unified futures
+            // api has no fees route
             response = await this.privateGetFuturesApiV23UserFees (this.extend (request, params));
         }
-        const feeInfo = this.safeDict (response, 0, {});
+        const rows = this.safeList (response, 'data', response as any);
+        const feeInfo = this.safeDict (rows, 0, {});
         const makerFee = this.safeNumber (feeInfo, 'makerFee');
         const takerFee = this.safeNumber (feeInfo, 'takerFee');
         return {

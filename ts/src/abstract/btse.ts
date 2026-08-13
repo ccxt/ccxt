@@ -70,7 +70,7 @@ interface Exchange {
     privateGetSpotApiV4TradeOrders (params?: {}): Promise<Dict>;
     privateGetSpotApiV4TradeOrder (params?: {}): Promise<Dict>;
     privateGetSpotApiV4TradeTradeHistory (params?: {}): Promise<Dict>;
-    privateGetSpotApiV4TradeFees (params?: {}): Promise<Dict | List>;
+    privateGetSpotApiV4TradeFees (params?: {}): Promise<Dict>;
     privateGetFuturesApiV3TradeOrders (params?: {}): Promise<Dict>;
     privateGetFuturesApiV3TradeRiskLimit (params?: {}): Promise<Dict | List>;
     privateGetFuturesApiV3TradePositionMode (params?: {}): Promise<Dict | List>;
