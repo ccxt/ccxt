@@ -819,6 +819,9 @@ export default class xt extends Exchange {
                     'fetchClosedOrders': {
                         'trailing': true,
                     },
+                    'fetchCanceledOrders': {
+                        'trailing': true,
+                    },
                 },
                 'swap': {
                     'linear': {
@@ -3161,8 +3164,10 @@ export default class xt extends Exchange {
             if (!isContract) {
                 throw new NotSupported (this.id + ' fetchOrdersByStatus() trailing orders are only supported on swap and future markets');
             }
-            // the track endpoints do not accept a state filter
-            request = this.omit (request, 'state');
+            // the track endpoints do not accept a state filter, and a server-side
+            // size would truncate the mixed-state page before the local status
+            // filter runs, so the limit is only applied locally after filtering
+            request = this.omit (request, [ 'state', 'size' ]);
         } else if (status === 'open') {
             if (trigger || stopLossTakeProfit) {
                 request['state'] = 'NOT_TRIGGERED';
@@ -3184,11 +3189,11 @@ export default class xt extends Exchange {
         } else {
             request['state'] = status;
         }
-        if (trigger || stopLossTakeProfit || trailing || (subType !== undefined) || (type === 'swap') || (type === 'future')) {
+        if (trigger || stopLossTakeProfit || (subType !== undefined) || (type === 'swap') || (type === 'future')) {
             if (since !== undefined) {
                 request['startTime'] = since;
             }
-            if (limit !== undefined) {
+            if ((limit !== undefined) && !trailing) {
                 request['size'] = limit;
             }
         }
