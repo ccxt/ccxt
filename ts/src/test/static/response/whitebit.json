@@ -2696,6 +2696,108 @@
                     "tag": null
                 }
             }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus: pong (live)",
+                "method": "fetchStatus",
+                "input": [],
+                "httpResponse": [
+                    "pong"
+                ],
+                "parsedResponse": {
+                    "status": "ok",
+                    "updated": null,
+                    "eta": null,
+                    "url": null,
+                    "info": [
+                        "pong"
+                    ]
+                }
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "fetchBorrowInterest: no open positions (live)",
+                "method": "fetchBorrowInterest",
+                "input": [
+                    null,
+                    "DOGE/USDT:USDT"
+                ],
+                "httpResponse": [],
+                "parsedResponse": []
+            },
+            {
+                "description": "fetchBorrowInterest: open swap position (documented shape)",
+                "method": "fetchBorrowInterest",
+                "input": [
+                    null,
+                    "DOGE/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "positionId": 191823,
+                        "market": "DOGE_PERP",
+                        "openDate": 1786182925.500477,
+                        "modifyDate": 1786182925.500477,
+                        "amount": "80",
+                        "basePrice": "0.070309",
+                        "liquidationPrice": "0.014",
+                        "leverage": "5",
+                        "pnl": "-0.15",
+                        "pnlPercent": "-0.20",
+                        "margin": "1.12",
+                        "freeMargin": "19.55",
+                        "funding": "0",
+                        "unrealizedFunding": "0.0000307828284903",
+                        "liquidationState": null
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "positionId": 191823,
+                            "market": "DOGE_PERP",
+                            "openDate": 1786182925.500477,
+                            "modifyDate": 1786182925.500477,
+                            "amount": "80",
+                            "basePrice": "0.070309",
+                            "liquidationPrice": "0.014",
+                            "leverage": "5",
+                            "pnl": "-0.15",
+                            "pnlPercent": "-0.20",
+                            "margin": "1.12",
+                            "freeMargin": "19.55",
+                            "funding": "0",
+                            "unrealizedFunding": "0.0000307828284903",
+                            "liquidationState": null
+                        },
+                        "symbol": "DOGE/USDT:USDT",
+                        "currency": "USDT",
+                        "interest": 3.07828284903e-05,
+                        "interestRate": 0.00098,
+                        "amountBorrowed": 80,
+                        "marginMode": "cross",
+                        "timestamp": 1786182925500,
+                        "datetime": "2026-08-08T09:55:25.500Z"
+                    }
+                ]
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "setLeverage: account-wide leverage (live)",
+                "method": "setLeverage",
+                "input": [
+                    5
+                ],
+                "httpResponse": {
+                    "leverage": 5
+                },
+                "parsedResponse": {
+                    "leverage": 5
+                }
+            }
         ]
     }
 }
