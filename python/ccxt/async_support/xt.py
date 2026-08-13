@@ -290,6 +290,7 @@ class xt(Exchange, ImplicitAPI):
                         'post': {
                             'future/trade/v1/entrust/cancel-all-plan': {'cost': 1},
                             'future/trade/v1/entrust/cancel-all-profit-stop': {'cost': 1},
+                            'future/trade/v1/entrust/cancel-all-track': {'cost': 1},
                             'future/trade/v1/entrust/cancel-plan': {'cost': 1},
                             'future/trade/v1/entrust/cancel-profit-stop': {'cost': 1},
                             'future/trade/v1/entrust/create-plan': {'cost': 1},
@@ -342,6 +343,7 @@ class xt(Exchange, ImplicitAPI):
                         'post': {
                             'future/trade/v1/entrust/cancel-all-plan': {'cost': 1},
                             'future/trade/v1/entrust/cancel-all-profit-stop': {'cost': 1},
+                            'future/trade/v1/entrust/cancel-all-track': {'cost': 1},
                             'future/trade/v1/entrust/cancel-plan': {'cost': 1},
                             'future/trade/v1/entrust/cancel-profit-stop': {'cost': 1},
                             'future/trade/v1/entrust/create-plan': {'cost': 1},
@@ -3457,11 +3459,13 @@ class xt(Exchange, ImplicitAPI):
         https://doc.xt.com/docs/futures/Order/cancel-all-orders
         https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders
         https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit
+        https://doc.xt.com/docs/futures/Entrust/CancelAllTrack
 
         :param str [symbol]: unified market symbol of the market to cancel orders in
         :param dict params: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
+        :param bool [params.trailing]: if the orders are trailing orders or not
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if self.markets is None:
@@ -3478,6 +3482,11 @@ class xt(Exchange, ImplicitAPI):
         subType, params = self.handle_sub_type_and_params('cancelAllOrders', market, params)
         trigger = self.safe_value_2(params, 'trigger', 'stop')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
+        trailing = self.safe_bool(params, 'trailing')
+        if trailing:
+            isContract = (subType is not None) or (type == 'swap') or (type == 'future')
+            if not isContract:
+                raise NotSupported(self.id + ' cancelAllOrders() trailing orders are only supported on swap and future markets')
         if trigger:
             params = self.omit(params, ['trigger', 'stop'])
             if subType == 'inverse':
@@ -3490,6 +3499,12 @@ class xt(Exchange, ImplicitAPI):
                 response = await self.privateInversePostFutureTradeV1EntrustCancelAllProfitStop(self.extend(request, params))
             else:
                 response = await self.privateLinearPostFutureTradeV1EntrustCancelAllProfitStop(self.extend(request, params))
+        elif trailing:
+            params = self.omit(params, 'trailing')
+            if subType == 'inverse':
+                response = await self.privateInversePostFutureTradeV1EntrustCancelAllTrack(self.extend(request, params))
+            else:
+                response = await self.privateLinearPostFutureTradeV1EntrustCancelAllTrack(self.extend(request, params))
         elif subType == 'inverse':
             response = await self.privateInversePostFutureTradeV1OrderCancelAll(self.extend(request, params))
         elif (subType == 'linear') or (type == 'swap') or (type == 'future'):

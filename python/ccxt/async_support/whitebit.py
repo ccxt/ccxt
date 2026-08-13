@@ -2793,31 +2793,37 @@ class whitebit(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         accounts = []
-        # Fetch sub-accounts
+        response = await self.v4PrivatePostSubAccountList(params)
         #
-        #     [
-        #         {
-        #             "id": "12345",
-        #             "name": "SubAccount1",
-        #             "status": "active",
-        #             "permissions": ["trade", "withdraw"]
-        #         }
-        #     ]
+        #     {
+        #         "offset": 0,
+        #         "limit": 100,
+        #         "data": [
+        #             {
+        #                 "id": "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
+        #                 "alias": "trading_bot",
+        #                 "userId": "u-12345",
+        #                 "email": "s***@example.com",
+        #                 "status": "active",
+        #                 "color": "#FF5733",
+        #                 "kyc": {"shareKyc": False, "kycStatus": "verified"},
+        #                 "permissions": {"spotEnabled": True, "collateralEnabled": False}
+        #             }
+        #         ]
+        #     }
         #
-        subAccounts = await self.v4PrivatePostSubAccountList(params)
-        if subAccounts and isinstance(subAccounts, list):
-            for i in range(0, len(subAccounts)):
-                subAccount = self.safe_value(subAccounts, i)
-                accountId = self.safe_string(subAccount, 'id')
-                accountName = self.safe_string(subAccount, 'name')
-                if accountId:
-                    accounts.append({
-                        'id': accountId,
-                        'type': 'subaccount',
-                        'name': accountName or 'SubAccount ' + accountId,
-                        'code': None,
-                        'info': subAccount,
-                    })
+        subAccounts = self.safe_list(response, 'data', [])
+        for i in range(0, len(subAccounts)):
+            subAccount = self.safe_dict(subAccounts, i, {})
+            accountId = self.safe_string(subAccount, 'id')
+            accountName = self.safe_string(subAccount, 'alias')
+            accounts.append({
+                'id': accountId,
+                'type': 'subaccount',
+                'name': accountName,
+                'code': None,
+                'info': subAccount,
+            })
         return accounts
 
     async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
