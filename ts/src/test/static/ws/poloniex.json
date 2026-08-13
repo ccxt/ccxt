@@ -359,7 +359,8 @@
                         },
                         "last": 63710.73
                     }
-                ]
+                ],
+                "disabledGO": "go: injected ticker frame does not resolve the watch future (hangs) - same parity backlog as other disabledGO entries"
             }
         ]
     }

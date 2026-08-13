@@ -1,6 +1,9 @@
 {
     "exchange": "whitebit",
-    "skipKeys": [],
+    "skipKeys": [
+        "timestamp",
+        "datetime"
+    ],
     "options": {},
     "methods": {
         "watchOrderBook": [
