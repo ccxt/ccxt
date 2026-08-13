@@ -55,6 +55,50 @@ func TestSortBy1() {
 	}})
 	var emptyArray any = exchange.SortBy([]any{}, "x")
 	AssertDeepEqual(exchange, nil, "sortBy", emptyArray, []any{})
+	// regression: keys crossing a digit-count boundary must sort numerically, a lexicographic comparison yields 1, 10, 2 .. 9
+	var arrTwoDigits any = []any{map[string]any{
+		"x": 10,
+	}, map[string]any{
+		"x": 1,
+	}, map[string]any{
+		"x": 3,
+	}, map[string]any{
+		"x": 7,
+	}, map[string]any{
+		"x": 2,
+	}, map[string]any{
+		"x": 9,
+	}, map[string]any{
+		"x": 5,
+	}, map[string]any{
+		"x": 8,
+	}, map[string]any{
+		"x": 4,
+	}, map[string]any{
+		"x": 6,
+	}}
+	var sortedTwoDigits any = exchange.SortBy(arrTwoDigits, "x")
+	AssertDeepEqual(exchange, nil, "sortBy", sortedTwoDigits, []any{map[string]any{
+		"x": 1,
+	}, map[string]any{
+		"x": 2,
+	}, map[string]any{
+		"x": 3,
+	}, map[string]any{
+		"x": 4,
+	}, map[string]any{
+		"x": 5,
+	}, map[string]any{
+		"x": 6,
+	}, map[string]any{
+		"x": 7,
+	}, map[string]any{
+		"x": 8,
+	}, map[string]any{
+		"x": 9,
+	}, map[string]any{
+		"x": 10,
+	}})
 }
 func TestSortBy2() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)

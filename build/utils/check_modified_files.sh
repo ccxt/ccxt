@@ -1,6 +1,12 @@
 #!/bin/bash
 
 diff=$(git diff --name-only HEAD^1 HEAD)
+# deleted files must stay visible to the critical check below (removing a base file is critical),
+# but must NOT feed the scoped exchange collection: a delisted exchange's deleted ts/src/<id>.ts
+# and ts/src/pro/<id>.ts (and its deleted statics) would otherwise schedule scoped transpile and
+# live tests for sources that no longer exist -- build dies with ENOENT ts/src/<id>.ts and the
+# live lanes fail instantly against the ghost exchange, see https://github.com/ccxt/ccxt/pull/29796
+diff_existing=$(git diff --diff-filter=d --name-only HEAD^1 HEAD)
 diff=$(echo "$diff" | sed -e "s/^build\.sh//")
 diff=$(echo "$diff" | sed -e "s/^skip\-tests\.json//")
 diff=$(echo "$diff" | sed -e "s/^run\-tests\-simul\.sh//")
@@ -105,7 +111,7 @@ if [ "$IMPORTANT_MODIFIED" == "true" ]; then
   exit
 fi
 
-readarray -t y <<<"$diff"
+readarray -t y <<<"$diff_existing"
 rest_pattern='ts\/src\/([A-Za-z0-9_-]+).ts' # \w not working for some reason
 ws_pattern='ts\/src\/pro\/([A-Za-z0-9_-]+)\.ts'
 # prediction-market exchanges live under ts/src/prediction/ (rest) and ts/src/pro/prediction/

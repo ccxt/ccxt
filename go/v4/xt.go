@@ -5934,11 +5934,11 @@ func (this *XtCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan any 
 		var response any = nil
 		if IsTrue(IsEqual(subType, "inverse")) {
 
-			response = (<-this.CallDynamically("privateInverseGetFutureUserV1UserStepRate", params))
+			response = (<-this.PrivateInverseGetFutureUserV1UserStepRate(params))
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.CallDynamically("privateLinearGetFutureUserV1UserStepRate", params))
+			response = (<-this.PrivateLinearGetFutureUserV1UserStepRate(params))
 			PanicOnError(response)
 		}
 		//
@@ -5999,11 +5999,11 @@ func (this *XtCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		var response any = nil
 		if IsTrue(isInverse) {
 
-			response = (<-this.CallDynamically("privateInverseGetFutureUserV1UserStepRate", params))
+			response = (<-this.PrivateInverseGetFutureUserV1UserStepRate(params))
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.CallDynamically("privateLinearGetFutureUserV1UserStepRate", params))
+			response = (<-this.PrivateLinearGetFutureUserV1UserStepRate(params))
 			PanicOnError(response)
 		}
 		//

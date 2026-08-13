@@ -169,6 +169,58 @@ function setFetchResponse(exchange, mockResponse) {
     exchange.fetch = async (url, method = 'GET', headers = undefined, body = undefined) => mockResponse;
     return exchange;
 }
+function setupWsMockTransport(exchange, url) {
+    // put the ws client for the given url into an "already connected" state
+    // with a transport stub, so watch* methods never open a real socket;
+    // everything above the socket (subscriptions, futures, caches, message
+    // routing) runs unmodified
+    const client = exchange.client(url);
+    client.startedConnecting = true;
+    client.isConnected = true;
+    client.connectionEstablished = exchange.milliseconds();
+    client.mockSentMessages = [];
+    client.connection = {
+        'readyState': 1, // WebSocket.OPEN, keeps isOpen () happy
+        'send': (message, options = undefined, callback = undefined) => {
+            // record the outgoing frame so the test can assert it
+            client.mockSentMessages.push(JSON.parse(message));
+            if (callback !== undefined) {
+                callback();
+            }
+        },
+        'close': () => { },
+    };
+    client.connected.resolve(url);
+    return exchange;
+}
+function getWsSentMessages(exchange, url) {
+    // the frames the exchange sent over the mocked transport, already parsed
+    const client = exchange.client(url);
+    return client.mockSentMessages;
+}
+function injectWsMessage(exchange, url, message) {
+    // feed one already-json-parsed frame into the exchange's ws message
+    // handler — the same entry point the real transport invokes
+    const client = exchange.client(url);
+    exchange.handleMessage(client, message);
+}
+function wsClientHasPendingFutures(exchange, url) {
+    // whether the watch flow is currently awaiting a message — the frame
+    // injector polls this instead of relying on a fixed head-start sleep
+    const client = exchange.client(url);
+    const messageHashes = Object.keys(client.futures);
+    return messageHashes.length > 0;
+}
+function rejectPendingWsFutures(exchange, url) {
+    // reject any futures the injected frames did not resolve, so a broken
+    // fixture fails the test instead of hanging it; settled js promises
+    // ignore late rejections, so this is a no-op for the happy path
+    const client = exchange.client(url);
+    const messageHashes = Object.keys(client.futures);
+    for (let i = 0; i < messageHashes.length; i++) {
+        client.reject(new ExchangeError('static ws test: the injected messages did not resolve the watch future'), messageHashes[i]);
+    }
+}
 function isNullValue(value) {
     return value === null;
 }
@@ -205,5 +257,5 @@ AuthenticationError, NotSupported, ExchangeError, InvalidProxySettings, Exchange
 // shared
 getCliArgValue, 
 //
-dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, isNullValue, close, getRootDir, argvExchange, argvSymbol, argvMethod, isSync, LANG, ENV_VARS, NEW_LINE, EXT, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, };
+dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, setupWsMockTransport, injectWsMessage, rejectPendingWsFutures, wsClientHasPendingFutures, getWsSentMessages, isNullValue, close, getRootDir, argvExchange, argvSymbol, argvMethod, isSync, LANG, ENV_VARS, NEW_LINE, EXT, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, };
 export default {};

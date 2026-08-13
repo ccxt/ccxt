@@ -3560,8 +3560,8 @@ func (this *KrakenfuturesCore) ParsePositions(response any, optionalArgs ...any)
 	// a degraded response missing openPositions must fail loudly - a flat
 	// account and "could not read positions" are not interchangeable for
 	// reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
-	// (the crash guarded against in #19896 is still avoided, since we no
-	// longer call .length on a non-list value)
+	// the crash guarded against in #19896 is still avoided, since we no
+	// longer call .length on a non-list value
 	var positions any = this.SafeList(response, "openPositions")
 	if IsTrue(IsEqual(positions, nil)) {
 		panic(ExchangeError(Add(this.Id, " fetchPositions() returned a response without an \"openPositions\" list")))

@@ -19,8 +19,10 @@ class testMainClass {
     public $id_tests = false;
     public $request_tests_failed = false;
     public $response_tests_failed = false;
+    public $static_ws_tests_failed = false;
     public $request_tests = false;
     public $ws_tests = false;
+    public $static_ws_tests = false;
     public $response_tests = false;
     public $prediction_tests = false;
     public $info = false;
@@ -52,6 +54,7 @@ class testMainClass {
         $this->sandbox = get_cli_arg_value('--sandbox');
         $this->load_keys = get_cli_arg_value('--loadKeys');
         $this->ws_tests = get_cli_arg_value('--ws');
+        $this->static_ws_tests = get_cli_arg_value('--wsTests');
         // when set, static request/response tests are read from the static/<type>/prediction/ subfolder
         $this->prediction_tests = get_cli_arg_value('--prediction');
         $this->lang = get_lang();
@@ -80,6 +83,10 @@ class testMainClass {
             }
             if ($this->response_tests) {
                 \React\Async\await($this->run_static_response_tests($exchange_id, $symbol_argv));
+                return true;
+            }
+            if ($this->static_ws_tests) {
+                \React\Async\await($this->run_static_ws_tests($exchange_id, $symbol_argv));
                 return true;
             }
             if ($this->request_tests) {
@@ -1625,7 +1632,166 @@ class testMainClass {
         }) ();
     }
 
-    public function init_offline_exchange($exchange_name) {
+    public function inject_ws_messages($exchange, $url, $messages) {
+        // before every frame, wait until the watch flow is actually awaiting
+        // something — a fixed head-start sleep is not enough on slow ci
+        // runners and the frame's resolution would be dropped
+        // yield between frames so the handlers run in arrival order
+        return Async\async(function () use ($exchange, $url, $messages) {
+            for ($i = 0; $i < count($messages); $i++) {
+                $waited = 0;
+                while (!ws_client_has_pending_futures($exchange, $url) && ($waited < 5000)) {
+                    \React\Async\await($exchange->sleep(50));
+                    $waited = $waited + 50;
+                }
+                inject_ws_message($exchange, $url, $messages[$i]);
+                \React\Async\await($exchange->sleep(20));
+            }
+            \React\Async\await($exchange->sleep(50));
+            // reject anything still pending so a wrong fixture fails fast
+            // instead of hanging the test run forever
+            reject_pending_ws_futures($exchange, $url);
+            return true;  // c# methods used with promiseAll need to return something
+        }) ();
+    }
+
+    public function watch_and_assert_sequence($exchange, $method, $input, $skip_keys, $expected_results) {
+        // ws structures can be live typed objects (e.g. orderbooks) in some
+        // runtimes — roundtrip through json so the deep-compare sees plain
+        // dicts in every language
+        return Async\async(function () use ($exchange, $method, $input, $skip_keys, $expected_results) {
+            try {
+                for ($i = 0; $i < count($expected_results); $i++) {
+                    $result = \React\Async\await(call_exchange_method_dynamically($exchange, $method, $input));
+                    $unified_result = json_parse(json_stringify($result));
+                    $this->assert_static_response_output($exchange, $skip_keys, $unified_result, $expected_results[$i]);
+                }
+            } catch(\Throwable $e) {
+                throw $e;
+            }
+            return true;  // c# methods used with promiseAll need to return something
+        }) ();
+    }
+
+    public function assert_ws_sent_messages($exchange, $url, $data) {
+        // the ws analog of the static request tests: assert the frames the
+        // watch method sent over the mocked transport (subscribe requests etc)
+        $expected_sent = $exchange->safe_list($data, 'sentMessages');
+        if ($expected_sent === null) {
+            return;
+        }
+        // ids/signatures/timestamps inside outgoing frames can be volatile —
+        // exclude them per entry without touching the response skipKeys
+        $sent_skip_keys = $exchange->safe_list($data, 'sentSkipKeys', []);
+        $sent_messages = get_ws_sent_messages($exchange, $url);
+        $sent_length = count($sent_messages);
+        $expected_length = count($expected_sent);
+        assert($sent_length === $expected_length, 'sent ws messages count mismatch: sent ' . ((string) $sent_length) . ', expected ' . ((string) $expected_length) . ' ' . json_stringify($sent_messages));
+        for ($i = 0; $i < $expected_length; $i++) {
+            $unified_sent = json_parse(json_stringify($sent_messages[$i]));
+            $this->assert_static_response_output($exchange, $sent_skip_keys, $unified_sent, $expected_sent[$i]);
+        }
+    }
+
+    public function test_ws_statically($exchange, $method, $skip_keys, $data) {
+        return Async\async(function () use ($exchange, $method, $skip_keys, $data) {
+            $url = $exchange->safe_string($data, 'url');
+            setup_ws_mock_transport($exchange, $url);
+            $http_response = $exchange->safe_value($data, 'httpResponse');
+            if ($http_response !== null) {
+                // some watch methods fetch a rest snapshot (e.g. watchOrderBook)
+                set_fetch_response($exchange, $http_response);
+            }
+            if ($this->info) {
+                dump('[INFO] STATIC WS TEST:', $method, ':', $data['description']);
+            }
+            try {
+                $messages = $exchange->safe_list($data, 'messages', []);
+                $input = $this->sanitize_data_input($data['input']);
+                $expected_results = $exchange->safe_list($data, 'parsedResponses');
+                if ($expected_results !== null) {
+                    // 'parsedResponses' asserts one result per successive watch
+                    // resolution (e.g. an order going from open to closed)
+                    $promises = [$this->watch_and_assert_sequence($exchange, $method, $input, $skip_keys, $expected_results), $this->inject_ws_messages($exchange, $url, $messages)];
+                    \React\Async\await(\React\Promise\all($promises));
+                    $this->assert_ws_sent_messages($exchange, $url, $data);
+                } else {
+                    // 'parsedResponse' asserts the final state after every frame
+                    // was replayed — live structures like orderbooks keep updating
+                    // after the first resolution, so serialize only at the end
+                    $promises = [call_exchange_method_dynamically($exchange, $method, $input), $this->inject_ws_messages($exchange, $url, $messages)];
+                    $results = \React\Async\await(\React\Promise\all($promises));
+                    $unified_result = json_parse(json_stringify($results[0]));
+                    $this->assert_static_response_output($exchange, $skip_keys, $unified_result, $data['parsedResponse']);
+                    $this->assert_ws_sent_messages($exchange, $url, $data);
+                }
+            } catch(\Throwable $e) {
+                $this->static_ws_tests_failed = true;
+                $error_message = '[' . $this->lang . '][STATIC_WS]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . exception_message($e);
+                dump('[TEST_FAILURE]' . $error_message);
+            }
+            set_fetch_response($exchange, null); // reset state
+            return true;
+        }) ();
+    }
+
+    public function test_exchange_ws_statically($exchange_name, $exchange_data, $test_name = null) {
+        return Async\async(function () use ($exchange_name, $exchange_data, $test_name) {
+            $global_options = $exchange_data['options'] === null ? array() : $exchange_data['options'];
+            $methods = $exchange_data['methods'] === null ? array() : $exchange_data['methods'];
+            $methods_names = is_array($methods) ? array_keys($methods) : array();
+            for ($i = 0; $i < count($methods_names); $i++) {
+                $method = $methods_names[$i];
+                $results = $methods[$method];
+                for ($j = 0; $j < count($results); $j++) {
+                    $result = $results[$j];
+                    $description = $result['description'];
+                    if (($test_name !== null) && ($test_name !== $description)) {
+                        continue;
+                    }
+                    // a fresh exchange per entry: ws caches (trades, orderbooks,
+                    // ohlcvs) and request-id counters survive between watch calls
+                    // and would leak state across entries otherwise
+                    $exchange = $this->init_offline_exchange($exchange_name, true);
+                    $is_disabled = $exchange->safe_bool($result, 'disabled', false);
+                    if ($is_disabled) {
+                        continue;
+                    }
+                    $disabled_string = $exchange->safe_string($result, 'disabled', '');
+                    if ($disabled_string !== '') {
+                        continue;
+                    }
+                    $is_disabled_c_sharp = $exchange->safe_string($result, 'disabledCS');
+                    if (($is_disabled_c_sharp !== null) && ($this->lang === 'C#')) {
+                        continue;
+                    }
+                    $is_disabled_go = $exchange->safe_string($result, 'disabledGO');
+                    if (($is_disabled_go !== null) && ($this->lang === 'GO')) {
+                        continue;
+                    }
+                    $is_disabled_java = $exchange->safe_string($result, 'disabledJava');
+                    if (($is_disabled_java !== null) && ($this->lang === 'java')) {
+                        continue;
+                    }
+                    $is_disabled_php = $exchange->safe_string($result, 'disabledPHP');
+                    if (($is_disabled_php !== null) && ($this->lang === 'PHP')) {
+                        continue;
+                    }
+                    $exchange->extend_exchange_options($global_options);
+                    $test_exchange_options = $exchange->safe_value($result, 'options', array());
+                    $exchange->extend_exchange_options($test_exchange_options);
+                    $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
+                    \React\Async\await($this->test_ws_statically($exchange, $method, $skip_keys, $result));
+                    if (!is_sync()) {
+                        \React\Async\await(close($exchange));
+                    }
+                }
+            }
+            return true;  // in c# methods that will be used with promiseAll need to return something
+        }) ();
+    }
+
+    public function init_offline_exchange($exchange_name, $is_ws = false) {
         // prediction exchanges load their outcome markets from an event -> markets -> outcomes
         // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
         // standard prediction path (kalshi/limitless/myriad/polymarket/hyperliquid all ship one) and
@@ -1707,7 +1873,7 @@ class testMainClass {
             $options['apiKey'] = '';
             $options['secret'] = '';
         }
-        $exchange = init_exchange($exchange_name, $options);
+        $exchange = init_exchange($exchange_name, $options, $is_ws);
         if ($currencies !== null) {
             $exchange->currencies = $currencies;
         }
@@ -1977,6 +2143,8 @@ class testMainClass {
                 $sum = $exchange->sum($sum, $number_of_tests);
                 if ($type === 'request') {
                     $promises[] = $this->test_exchange_request_statically($exchange_name, $exchange_data, $test_name);
+                } elseif ($type === 'ws') {
+                    $promises[] = $this->test_exchange_ws_statically($exchange_name, $exchange_data, $test_name);
                 } else {
                     $promises[] = $this->test_exchange_response_statically($exchange_name, $exchange_data, $test_name);
                 }
@@ -1986,13 +2154,15 @@ class testMainClass {
             } catch(\Throwable $e) {
                 if ($type === 'request') {
                     $this->request_tests_failed = true;
+                } elseif ($type === 'ws') {
+                    $this->static_ws_tests_failed = true;
                 } else {
                     $this->response_tests_failed = true;
                 }
                 $error_message = '[' . $this->lang . '][STATIC_REQUEST]' . exception_message($e);
                 dump('[TEST_FAILURE]' . $error_message);
             }
-            if ($this->request_tests_failed || $this->response_tests_failed) {
+            if ($this->request_tests_failed || $this->response_tests_failed || $this->static_ws_tests_failed) {
                 exit_script(1);
             } else {
                 $prefix = (is_sync()) ? '[SYNC]' : '';
@@ -2008,6 +2178,21 @@ class testMainClass {
         //  -----------------------------------------------------------------------------
         return Async\async(function () use ($exchange_name, $test) {
             \React\Async\await($this->run_static_tests('response', $exchange_name, $test));
+            return true;
+        }) ();
+    }
+
+    public function run_static_ws_tests($exchange_name = null, $test = null) {
+        //  -----------------------------------------------------------------------------
+        //  --- static ws tests: replay canned frames into the ws message handlers ------
+        //  -----------------------------------------------------------------------------
+        // watch methods are async-only, there is nothing to test in the
+        // synchronous python/php flavours
+        return Async\async(function () use ($exchange_name, $test) {
+            if (is_sync()) {
+                return true;
+            }
+            \React\Async\await($this->run_static_tests('ws', $exchange_name, $test));
             return true;
         }) ();
     }

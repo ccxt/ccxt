@@ -61,10 +61,10 @@ public partial class krakenfutures : Exchange
     }
 
     /// <summary>Calls the privateGetOpenpositions endpoint.</summary>
-    /// <returns>a JSON array</returns>
-    public async Task<List<object>> privateGetOpenpositions (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetOpenpositions (object parameters = null)
     {
-        return await this.callAsync<List<object>> ("privateGetOpenpositions",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetOpenpositions",parameters);
     }
 
     /// <summary>Calls the privateGetNotifications endpoint.</summary>

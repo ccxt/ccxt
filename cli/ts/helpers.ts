@@ -176,7 +176,7 @@ function createRequestTemplate (cliOptions, exchange, methodName, args, result) 
       + ')'
     );
     log.green ('-------------------------------------------');
-    log (JSON.stringify (final, null, 2));
+    log (jsonStringify (final, 2));
     log.green ('-------------------------------------------');
     if (cliOptions.name) {
         final.description = cliOptions.name;
@@ -720,6 +720,151 @@ function handleStaticTests (cliOptions, exchange, methodName, args, result) {
     }
 }
 
+//-----------------------------------------------------------------------------
+
+const wsRecording = {
+    'active': false,
+    'frames': [] as any[],
+    'sent': [] as any[],
+    'results': [] as any[],
+    'httpResponse': undefined as any,
+};
+
+/**
+ * start recording every raw ws frame the exchange receives; the recording is
+ * saved as a static/ws fixture entry when the user presses ctrl+c
+ *
+ * @param exchange
+ * @param methodName
+ * @param args
+ * @param cliOptions
+ */
+function startWsRecording (exchange, methodName: string, args: any[], cliOptions) {
+    if (wsRecording.active) {
+        return;
+    }
+    wsRecording.active = true;
+    const origHandleMessage = exchange.handleMessage.bind (exchange);
+    exchange.handleMessage = (client, message) => {
+        // roundtrip so the saved frame is a plain json value with nulls kept
+        wsRecording.frames.push ({ 'url': client.url, 'message': JSON.parse (jsonStringify (message)) });
+        return origHandleMessage (client, message);
+    };
+    // wrap every client's send so the outgoing frames (subscribe requests
+    // etc) are captured too — saved as the entry's 'sentMessages'
+    const origClientFn = exchange.client.bind (exchange);
+    const wrappedClients = new Set ();
+    exchange.client = (url) => {
+        const client = origClientFn (url);
+        if (!wrappedClients.has (client)) {
+            wrappedClients.add (client);
+            const origSend = client.send.bind (client);
+            client.send = (message) => {
+                let parsed = message;
+                if (typeof message === 'string') {
+                    try {
+                        parsed = JSON.parse (message);
+                    } catch (e) {
+                        // raw non-json frames (e.g. plaintext pongs) are kept as-is
+                    }
+                } else {
+                    parsed = JSON.parse (jsonStringify (message));
+                }
+                wsRecording.sent.push ({ 'url': client.url, 'message': parsed });
+                return origSend (message);
+            };
+        }
+        return client;
+    };
+    process.once ('SIGINT', () => {
+        saveWsRecording (exchange, methodName, args, cliOptions);
+        process.exit (0);
+    });
+    log.green ('recording ws frames for ' + methodName + ' — press ctrl+c to stop and save the static ws test');
+}
+
+/**
+ * collect one watch resolution (and any rest snapshot the method fetched)
+ *
+ * @param exchange
+ * @param result
+ */
+function recordWsResult (exchange, result) {
+    wsRecording.results.push ({
+        'result': JSON.parse (jsonStringify (result)),
+        // remember how many frames had arrived when this resolution fired so
+        // the saved entry keeps a consistent frames/resolutions pairing
+        'framesSeen': wsRecording.frames.length,
+    });
+    if (exchange.last_http_response) {
+        // e.g. the orderbook snapshot fetched by watchOrderBook
+        wsRecording.httpResponse = exchange.parseJson (exchange.last_http_response);
+    }
+}
+
+/**
+ * assemble the recorded frames and resolutions into a static/ws fixture entry
+ *
+ * @param exchange
+ * @param methodName
+ * @param args
+ * @param cliOptions
+ */
+function saveWsRecording (exchange, methodName: string, args: any[], cliOptions) {
+    if (wsRecording.frames.length === 0) {
+        log.red ('no ws frames were recorded, nothing to save');
+        return;
+    }
+    // --recordLimit <n> keeps only the first n watch resolutions and cuts the
+    // frame list right after the frame that produced the last kept one (fast
+    // streams like orderbook deltas would otherwise store hundreds of frames
+    // and full book states) — without the option the full session is saved
+    const recordLimit = cliOptions.recordLimit ? parseInt (cliOptions.recordLimit, 10) : undefined;
+    let keptResultEntries = wsRecording.results;
+    let framesCutoff = wsRecording.frames.length;
+    if (recordLimit !== undefined) {
+        keptResultEntries = wsRecording.results.slice (0, recordLimit);
+        const lastKept = keptResultEntries[keptResultEntries.length - 1];
+        framesCutoff = (lastKept !== undefined) ? lastKept.framesSeen : Math.min (wsRecording.frames.length, 10);
+    }
+    const keptFrames = wsRecording.frames.slice (0, framesCutoff);
+    const keptResults = keptResultEntries.map ((r) => r.result);
+    // the watch method may fan out over several clients — keep the url that
+    // received the most frames (the stream under test)
+    const counts = {};
+    for (const frame of keptFrames) {
+        counts[frame.url] = (counts[frame.url] || 0) + 1;
+    }
+    const mainUrl = Object.keys (counts).sort ((a, b) => counts[b] - counts[a])[0];
+    const entry: any = {
+        'description': cliOptions.name || 'Fill this with a description of the method call',
+        'input': args,
+        'url': mainUrl,
+        'messages': keptFrames.filter ((f) => f.url === mainUrl).map ((f) => f.message),
+    };
+    if (wsRecording.httpResponse !== undefined) {
+        entry['httpResponse'] = wsRecording.httpResponse;
+    }
+    const sentForUrl = wsRecording.sent.filter ((f) => f.url === mainUrl).map ((f) => f.message);
+    if (sentForUrl.length > 0) {
+        // review before committing: ids/signatures/timestamps inside outgoing
+        // frames are volatile — list those keys in 'sentSkipKeys'
+        entry['sentMessages'] = sentForUrl;
+    }
+    // one expected result per watch resolution; trim to a single
+    // 'parsedResponse' manually for live structures like orderbooks where
+    // only the final state is deterministic
+    entry['parsedResponses'] = keptResults;
+    log ('Report: (paste inside static/ws/' + exchange.id + '.json -> ' + methodName + ')');
+    log.green ('-------------------------------------------');
+    log (jsonStringify (entry, 2));
+    log.green ('-------------------------------------------');
+    if (cliOptions.name) {
+        log.green ('auto-saving static ws result');
+        add_static_result ('ws', exchange.id, methodName, entry, undefined, false);
+    }
+}
+
 /**
  *
  * @param value
@@ -920,6 +1065,8 @@ export {
     injectMissingUndefined,
     handleDebug,
     handleStaticTests,
+    startWsRecording,
+    recordWsResult,
     askForArgv,
     printMethodUsage,
     parseValue,

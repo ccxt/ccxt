@@ -1,0 +1,2081 @@
+{
+    "exchange": "bitget",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchOHLCV": [
+            {
+                "description": "linear swap ohlcv 1m",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m"
+                ],
+                "url": "wss://ws.bitget.com/v2/ws/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "instType": "USDT-FUTURES",
+                            "channel": "candle1m",
+                            "instId": "BTCUSDT"
+                        }
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "USDT-FUTURES",
+                            "channel": "candle1m",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            [
+                                "1786540380000",
+                                "63971.8",
+                                "63971.8",
+                                "63905",
+                                "63905.8",
+                                "82.2307",
+                                "5257017.23501",
+                                "5257017.23501"
+                            ],
+                            [
+                                "1786540440000",
+                                "63905.8",
+                                "63954.8",
+                                "63905.7",
+                                "63954.8",
+                                "41.4648",
+                                "2650797.33126",
+                                "2650797.33126"
+                            ],
+                            [
+                                "1786540500000",
+                                "63954.8",
+                                "63986.4",
+                                "63954.7",
+                                "63986.4",
+                                "32.6484",
+                                "2088515.00369",
+                                "2088515.00369"
+                            ]
+                        ],
+                        "ts": 1786540526094
+                    },
+                    {
+                        "action": "update",
+                        "arg": {
+                            "instType": "USDT-FUTURES",
+                            "channel": "candle1m",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            [
+                                "1786540500000",
+                                "63954.8",
+                                "63989",
+                                "63954.7",
+                                "63989",
+                                "32.9132",
+                                "2105459.11147",
+                                "2105459.11147"
+                            ]
+                        ],
+                        "ts": 1786540526374
+                    },
+                    {
+                        "action": "update",
+                        "arg": {
+                            "instType": "USDT-FUTURES",
+                            "channel": "candle1m",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            [
+                                "1786540500000",
+                                "63954.8",
+                                "63989",
+                                "63954.7",
+                                "63989",
+                                "34.7293",
+                                "2221669.53437",
+                                "2221669.53437"
+                            ]
+                        ],
+                        "ts": 1786540527547
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "instType": "USDT-FUTURES",
+                                "channel": "candle1m",
+                                "instId": "BTCUSDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1786540380000,
+                            63971.8,
+                            63971.8,
+                            63905,
+                            63905.8,
+                            82.2307
+                        ],
+                        [
+                            1786540440000,
+                            63905.8,
+                            63954.8,
+                            63905.7,
+                            63954.8,
+                            41.4648
+                        ],
+                        [
+                            1786540500000,
+                            63954.8,
+                            63986.4,
+                            63954.7,
+                            63986.4,
+                            32.6484
+                        ]
+                    ],
+                    [
+                        [
+                            1786540500000,
+                            63954.8,
+                            63989,
+                            63954.7,
+                            63989,
+                            32.9132
+                        ]
+                    ]
+                ],
+                "disabledGO": "go newUpdates tail returns the full cache instead of only the new updates - same family as the other disabledGO entries",
+                "disabledJava": "java newUpdates tail returns the full cache instead of only the new updates - same family as the disabledGO entries"
+            },
+            {
+                "description": "spot ohlcv 1m",
+                "input": [
+                    "BTC/USDT",
+                    "1m"
+                ],
+                "url": "wss://ws.bitget.com/v2/ws/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "candle1m",
+                            "instId": "BTCUSDT"
+                        }
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "candle1m",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            [
+                                "1786539480000",
+                                "64117.94",
+                                "64117.94",
+                                "64103.46",
+                                "64103.46",
+                                "0.44978",
+                                "28836.76052094",
+                                "28836.76052094"
+                            ],
+                            [
+                                "1786539540000",
+                                "64103.46",
+                                "64118.21",
+                                "64103.46",
+                                "64118.21",
+                                "0.041022",
+                                "2630.0647421",
+                                "2630.0647421"
+                            ],
+                            [
+                                "1786539600000",
+                                "64118.21",
+                                "64155.1",
+                                "64118.2",
+                                "64155.1",
+                                "1.134362",
+                                "72762.99326547",
+                                "72762.99326547"
+                            ]
+                        ],
+                        "ts": 1786539626332
+                    },
+                    {
+                        "action": "update",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "candle1m",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            [
+                                "1786539600000",
+                                "64118.21",
+                                "64155.1",
+                                "64118.2",
+                                "64155.1",
+                                "1.135141",
+                                "72812.97008837",
+                                "72812.97008837"
+                            ]
+                        ],
+                        "ts": 1786539628493
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "instType": "SPOT",
+                                "channel": "candle1m",
+                                "instId": "BTCUSDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1786539480000,
+                            64117.94,
+                            64117.94,
+                            64103.46,
+                            64103.46,
+                            0.44978
+                        ],
+                        [
+                            1786539540000,
+                            64103.46,
+                            64118.21,
+                            64103.46,
+                            64118.21,
+                            0.041022
+                        ],
+                        [
+                            1786539600000,
+                            64118.21,
+                            64155.1,
+                            64118.2,
+                            64155.1,
+                            1.134362
+                        ]
+                    ],
+                    [
+                        [
+                            1786539600000,
+                            64118.21,
+                            64155.1,
+                            64118.2,
+                            64155.1,
+                            1.135141
+                        ]
+                    ]
+                ],
+                "disabledGO": "go newUpdates tail returns the full cache instead of only the new updates - same family as the other disabledGO entries",
+                "disabledJava": "java newUpdates tail returns the full cache instead of only the new updates - same family as the disabledGO entries"
+            }
+        ],
+        "watchTrades": [
+            {
+                "description": "linear swap trades",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://ws.bitget.com/v2/ws/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "instType": "USDT-FUTURES",
+                            "channel": "trade",
+                            "instId": "BTCUSDT"
+                        }
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "USDT-FUTURES",
+                            "channel": "trade",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            {
+                                "ts": "1786540506881",
+                                "price": "63961",
+                                "size": "0.0727",
+                                "side": "buy",
+                                "tradeId": "1471423022176681986"
+                            },
+                            {
+                                "ts": "1786540506881",
+                                "price": "63961",
+                                "size": "0.0386",
+                                "side": "buy",
+                                "tradeId": "1471423022176681984"
+                            },
+                            {
+                                "ts": "1786540506836",
+                                "price": "63961",
+                                "size": "0.0207",
+                                "side": "buy",
+                                "tradeId": "1471423021987938304"
+                            }
+                        ],
+                        "ts": 1786540508000
+                    },
+                    {
+                        "action": "update",
+                        "arg": {
+                            "instType": "USDT-FUTURES",
+                            "channel": "trade",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            {
+                                "ts": "1786540508059",
+                                "price": "63961",
+                                "size": "0.7596",
+                                "side": "buy",
+                                "tradeId": "1471423027117572096"
+                            }
+                        ],
+                        "ts": 1786540508060
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "instType": "USDT-FUTURES",
+                                "channel": "trade",
+                                "instId": "BTCUSDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "ts": "1786540506836",
+                                "price": "63961",
+                                "size": "0.0207",
+                                "side": "buy",
+                                "tradeId": "1471423021987938304"
+                            },
+                            "id": "1471423021987938304",
+                            "order": null,
+                            "timestamp": 1786540506836,
+                            "datetime": "2026-08-12T13:15:06.836Z",
+                            "symbol": "BTC/USDT:USDT",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 63961,
+                            "amount": 0.0207,
+                            "cost": 1323.9927,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": {
+                                "ts": "1786540506881",
+                                "price": "63961",
+                                "size": "0.0386",
+                                "side": "buy",
+                                "tradeId": "1471423022176681984"
+                            },
+                            "id": "1471423022176681984",
+                            "order": null,
+                            "timestamp": 1786540506881,
+                            "datetime": "2026-08-12T13:15:06.881Z",
+                            "symbol": "BTC/USDT:USDT",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 63961,
+                            "amount": 0.0386,
+                            "cost": 2468.8946,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": {
+                                "ts": "1786540506881",
+                                "price": "63961",
+                                "size": "0.0727",
+                                "side": "buy",
+                                "tradeId": "1471423022176681986"
+                            },
+                            "id": "1471423022176681986",
+                            "order": null,
+                            "timestamp": 1786540506881,
+                            "datetime": "2026-08-12T13:15:06.881Z",
+                            "symbol": "BTC/USDT:USDT",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 63961,
+                            "amount": 0.0727,
+                            "cost": 4649.9647,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "ts": "1786540508059",
+                                "price": "63961",
+                                "size": "0.7596",
+                                "side": "buy",
+                                "tradeId": "1471423027117572096"
+                            },
+                            "id": "1471423027117572096",
+                            "order": null,
+                            "timestamp": 1786540508059,
+                            "datetime": "2026-08-12T13:15:08.059Z",
+                            "symbol": "BTC/USDT:USDT",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 63961,
+                            "amount": 0.7596,
+                            "cost": 48584.7756,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ],
+                "disabledGO": "go newUpdates tail returns the full cache instead of only the new updates - same family as the other disabledGO entries",
+                "disabledJava": "java newUpdates tail returns the full cache instead of only the new updates - same family as the disabledGO entries"
+            },
+            {
+                "description": "spot trades",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws.bitget.com/v2/ws/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "trade",
+                            "instId": "BTCUSDT"
+                        }
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "trade",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            {
+                                "ts": "1786539564345",
+                                "price": "64115",
+                                "size": "0.000019",
+                                "side": "buy",
+                                "tradeId": "1471419068894134272"
+                            },
+                            {
+                                "ts": "1786539556731",
+                                "price": "64115",
+                                "size": "0.0107",
+                                "side": "buy",
+                                "tradeId": "1471419036958703616"
+                            },
+                            {
+                                "ts": "1786539556687",
+                                "price": "64115",
+                                "size": "0.000019",
+                                "side": "buy",
+                                "tradeId": "1471419036774154240"
+                            }
+                        ],
+                        "ts": 1786539608599
+                    },
+                    {
+                        "action": "update",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "trade",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            {
+                                "ts": "1786539610916",
+                                "price": "64124.62",
+                                "size": "0.0231",
+                                "side": "buy",
+                                "tradeId": "1471419264227065858"
+                            }
+                        ],
+                        "ts": 1786539610919
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "instType": "SPOT",
+                                "channel": "trade",
+                                "instId": "BTCUSDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "ts": "1786539556687",
+                                "price": "64115",
+                                "size": "0.000019",
+                                "side": "buy",
+                                "tradeId": "1471419036774154240"
+                            },
+                            "id": "1471419036774154240",
+                            "order": null,
+                            "timestamp": 1786539556687,
+                            "datetime": "2026-08-12T12:59:16.687Z",
+                            "symbol": "BTC/USDT",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 64115,
+                            "amount": 1.9e-05,
+                            "cost": 1.218185,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": {
+                                "ts": "1786539556731",
+                                "price": "64115",
+                                "size": "0.0107",
+                                "side": "buy",
+                                "tradeId": "1471419036958703616"
+                            },
+                            "id": "1471419036958703616",
+                            "order": null,
+                            "timestamp": 1786539556731,
+                            "datetime": "2026-08-12T12:59:16.731Z",
+                            "symbol": "BTC/USDT",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 64115,
+                            "amount": 0.0107,
+                            "cost": 686.0305,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": {
+                                "ts": "1786539564345",
+                                "price": "64115",
+                                "size": "0.000019",
+                                "side": "buy",
+                                "tradeId": "1471419068894134272"
+                            },
+                            "id": "1471419068894134272",
+                            "order": null,
+                            "timestamp": 1786539564345,
+                            "datetime": "2026-08-12T12:59:24.345Z",
+                            "symbol": "BTC/USDT",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 64115,
+                            "amount": 1.9e-05,
+                            "cost": 1.218185,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "ts": "1786539610916",
+                                "price": "64124.62",
+                                "size": "0.0231",
+                                "side": "buy",
+                                "tradeId": "1471419264227065858"
+                            },
+                            "id": "1471419264227065858",
+                            "order": null,
+                            "timestamp": 1786539610916,
+                            "datetime": "2026-08-12T13:00:10.916Z",
+                            "symbol": "BTC/USDT",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 64124.62,
+                            "amount": 0.0231,
+                            "cost": 1481.278722,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ],
+                "disabledGO": "go newUpdates tail returns the full cache instead of only the new updates - same family as the other disabledGO entries",
+                "disabledJava": "java newUpdates tail returns the full cache instead of only the new updates - same family as the disabledGO entries"
+            }
+        ],
+        "watchTicker": [
+            {
+                "description": "linear swap ticker",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://ws.bitget.com/v2/ws/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "instType": "USDT-FUTURES",
+                            "channel": "ticker",
+                            "instId": "BTCUSDT"
+                        }
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "USDT-FUTURES",
+                            "channel": "ticker",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            {
+                                "instId": "BTCUSDT",
+                                "lastPr": "63997.5",
+                                "bidPr": "63997.5",
+                                "askPr": "63997.6",
+                                "bidSz": "7.4638",
+                                "askSz": "6.7885",
+                                "open24h": "64265.3",
+                                "high24h": "64444",
+                                "low24h": "63218.4",
+                                "change24h": "-0.00417",
+                                "fundingRate": "0.00001",
+                                "nextFundingTime": "1786550400000",
+                                "markPrice": "63997.5",
+                                "indexPrice": "64023.4365",
+                                "holdingAmount": "37698.1952000001167",
+                                "baseVolume": "37088.6039",
+                                "quoteVolume": "2366767375.19224",
+                                "openUtc": "63571.5",
+                                "symbolType": "1",
+                                "symbol": "BTCUSDT",
+                                "ts": "1786540544274"
+                            }
+                        ],
+                        "ts": 1786540544275
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "USDT-FUTURES",
+                            "channel": "ticker",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            {
+                                "instId": "BTCUSDT",
+                                "lastPr": "63997.5",
+                                "bidPr": "63997.5",
+                                "askPr": "63997.6",
+                                "bidSz": "7.4638",
+                                "askSz": "6.7885",
+                                "open24h": "64265.3",
+                                "high24h": "64444",
+                                "low24h": "63218.4",
+                                "change24h": "-0.00417",
+                                "fundingRate": "0.00001",
+                                "nextFundingTime": "1786550400000",
+                                "markPrice": "63997.5",
+                                "indexPrice": "64023.4365",
+                                "holdingAmount": "37698.1952000001167",
+                                "baseVolume": "37088.6039",
+                                "quoteVolume": "2366767375.19224",
+                                "openUtc": "63571.5",
+                                "symbolType": "1",
+                                "symbol": "BTCUSDT",
+                                "ts": "1786540544394"
+                            }
+                        ],
+                        "ts": 1786540544397
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "instType": "USDT-FUTURES",
+                                "channel": "ticker",
+                                "instId": "BTCUSDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1786540544274,
+                        "datetime": "2026-08-12T13:15:44.274Z",
+                        "high": 64444,
+                        "low": 63218.4,
+                        "bid": 63997.5,
+                        "bidVolume": 7.4638,
+                        "ask": 63997.6,
+                        "askVolume": 6.7885,
+                        "vwap": 63813.87073974602,
+                        "open": 64265.3,
+                        "close": 63997.5,
+                        "last": 63997.5,
+                        "previousClose": null,
+                        "change": -267.8,
+                        "percentage": -0.417,
+                        "average": 64131.4,
+                        "baseVolume": 37088.6039,
+                        "quoteVolume": 2366767375.19224,
+                        "info": {
+                            "instId": "BTCUSDT",
+                            "lastPr": "63997.5",
+                            "bidPr": "63997.5",
+                            "askPr": "63997.6",
+                            "bidSz": "7.4638",
+                            "askSz": "6.7885",
+                            "open24h": "64265.3",
+                            "high24h": "64444",
+                            "low24h": "63218.4",
+                            "change24h": "-0.00417",
+                            "fundingRate": "0.00001",
+                            "nextFundingTime": "1786550400000",
+                            "markPrice": "63997.5",
+                            "indexPrice": "64023.4365",
+                            "holdingAmount": "37698.1952000001167",
+                            "baseVolume": "37088.6039",
+                            "quoteVolume": "2366767375.19224",
+                            "openUtc": "63571.5",
+                            "symbolType": "1",
+                            "symbol": "BTCUSDT",
+                            "ts": "1786540544274"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    },
+                    {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1786540544394,
+                        "datetime": "2026-08-12T13:15:44.394Z",
+                        "high": 64444,
+                        "low": 63218.4,
+                        "bid": 63997.5,
+                        "bidVolume": 7.4638,
+                        "ask": 63997.6,
+                        "askVolume": 6.7885,
+                        "vwap": 63813.87073974602,
+                        "open": 64265.3,
+                        "close": 63997.5,
+                        "last": 63997.5,
+                        "previousClose": null,
+                        "change": -267.8,
+                        "percentage": -0.417,
+                        "average": 64131.4,
+                        "baseVolume": 37088.6039,
+                        "quoteVolume": 2366767375.19224,
+                        "info": {
+                            "instId": "BTCUSDT",
+                            "lastPr": "63997.5",
+                            "bidPr": "63997.5",
+                            "askPr": "63997.6",
+                            "bidSz": "7.4638",
+                            "askSz": "6.7885",
+                            "open24h": "64265.3",
+                            "high24h": "64444",
+                            "low24h": "63218.4",
+                            "change24h": "-0.00417",
+                            "fundingRate": "0.00001",
+                            "nextFundingTime": "1786550400000",
+                            "markPrice": "63997.5",
+                            "indexPrice": "64023.4365",
+                            "holdingAmount": "37698.1952000001167",
+                            "baseVolume": "37088.6039",
+                            "quoteVolume": "2366767375.19224",
+                            "openUtc": "63571.5",
+                            "symbolType": "1",
+                            "symbol": "BTCUSDT",
+                            "ts": "1786540544394"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "spot ticker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws.bitget.com/v2/ws/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "ticker",
+                            "instId": "BTCUSDT"
+                        }
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "ticker",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            {
+                                "instId": "BTCUSDT",
+                                "lastPr": "64117.94",
+                                "open24h": "63610.01",
+                                "high24h": "64481.09",
+                                "low24h": "63235.29",
+                                "change24h": "-0.00328",
+                                "bidPr": "64117.93",
+                                "askPr": "64117.94",
+                                "bidSz": "0.963099",
+                                "askSz": "0.563837",
+                                "baseVolume": "1754.541891",
+                                "quoteVolume": "112038111.906637",
+                                "openUtc": "63597.00",
+                                "changeUtc24h": "0.00819",
+                                "ts": "1786539478094"
+                            }
+                        ],
+                        "ts": 1786539478104
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "ticker",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            {
+                                "instId": "BTCUSDT",
+                                "lastPr": "64117.94",
+                                "open24h": "63610.01",
+                                "high24h": "64481.09",
+                                "low24h": "63235.29",
+                                "change24h": "-0.00328",
+                                "bidPr": "64117.93",
+                                "askPr": "64117.94",
+                                "bidSz": "0.900671",
+                                "askSz": "0.563837",
+                                "baseVolume": "1754.541891",
+                                "quoteVolume": "112038111.906637",
+                                "openUtc": "63597.00",
+                                "changeUtc24h": "0.00819",
+                                "ts": "1786539478391"
+                            }
+                        ],
+                        "ts": 1786539478394
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "instType": "SPOT",
+                                "channel": "ticker",
+                                "instId": "BTCUSDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1786539478094,
+                        "datetime": "2026-08-12T12:57:58.094Z",
+                        "high": 64481.09,
+                        "low": 63235.29,
+                        "bid": 64117.93,
+                        "bidVolume": 0.963099,
+                        "ask": 64117.94,
+                        "askVolume": 0.563837,
+                        "vwap": 63856.04839721493,
+                        "open": 63610.01,
+                        "close": 64117.94,
+                        "last": 64117.94,
+                        "previousClose": null,
+                        "change": 507.93,
+                        "percentage": -0.328,
+                        "average": 63863.97,
+                        "baseVolume": 1754.541891,
+                        "quoteVolume": 112038111.906637,
+                        "info": {
+                            "instId": "BTCUSDT",
+                            "lastPr": "64117.94",
+                            "open24h": "63610.01",
+                            "high24h": "64481.09",
+                            "low24h": "63235.29",
+                            "change24h": "-0.00328",
+                            "bidPr": "64117.93",
+                            "askPr": "64117.94",
+                            "bidSz": "0.963099",
+                            "askSz": "0.563837",
+                            "baseVolume": "1754.541891",
+                            "quoteVolume": "112038111.906637",
+                            "openUtc": "63597.00",
+                            "changeUtc24h": "0.00819",
+                            "ts": "1786539478094"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    },
+                    {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1786539478391,
+                        "datetime": "2026-08-12T12:57:58.391Z",
+                        "high": 64481.09,
+                        "low": 63235.29,
+                        "bid": 64117.93,
+                        "bidVolume": 0.900671,
+                        "ask": 64117.94,
+                        "askVolume": 0.563837,
+                        "vwap": 63856.04839721493,
+                        "open": 63610.01,
+                        "close": 64117.94,
+                        "last": 64117.94,
+                        "previousClose": null,
+                        "change": 507.93,
+                        "percentage": -0.328,
+                        "average": 63863.97,
+                        "baseVolume": 1754.541891,
+                        "quoteVolume": 112038111.906637,
+                        "info": {
+                            "instId": "BTCUSDT",
+                            "lastPr": "64117.94",
+                            "open24h": "63610.01",
+                            "high24h": "64481.09",
+                            "low24h": "63235.29",
+                            "change24h": "-0.00328",
+                            "bidPr": "64117.93",
+                            "askPr": "64117.94",
+                            "bidSz": "0.900671",
+                            "askSz": "0.563837",
+                            "baseVolume": "1754.541891",
+                            "quoteVolume": "112038111.906637",
+                            "openUtc": "63597.00",
+                            "changeUtc24h": "0.00819",
+                            "ts": "1786539478391"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            }
+        ],
+        "watchOrderBook": [
+            {
+                "description": "linear swap orderbook depth 5",
+                "input": [
+                    "BTC/USDT:USDT",
+                    5
+                ],
+                "url": "wss://ws.bitget.com/v2/ws/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "instType": "USDT-FUTURES",
+                            "channel": "books5",
+                            "instId": "BTCUSDT"
+                        }
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "USDT-FUTURES",
+                            "channel": "books5",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            {
+                                "asks": [
+                                    [
+                                        "63918.5",
+                                        "3.1562"
+                                    ],
+                                    [
+                                        "63918.8",
+                                        "0.0791"
+                                    ],
+                                    [
+                                        "63919.5",
+                                        "0.0449"
+                                    ],
+                                    [
+                                        "63920",
+                                        "0.0341"
+                                    ],
+                                    [
+                                        "63920.1",
+                                        "0.0001"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "63918.4",
+                                        "8.8614"
+                                    ],
+                                    [
+                                        "63918.3",
+                                        "0.0001"
+                                    ],
+                                    [
+                                        "63918.2",
+                                        "2.5224"
+                                    ],
+                                    [
+                                        "63918.1",
+                                        "2.0925"
+                                    ],
+                                    [
+                                        "63917.9",
+                                        "0.0071"
+                                    ]
+                                ],
+                                "ts": "1786541258897",
+                                "seq": 820531524124,
+                                "pseq": 0
+                            }
+                        ],
+                        "ts": 1786541258899
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "USDT-FUTURES",
+                            "channel": "books5",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            {
+                                "asks": [
+                                    [
+                                        "63918.5",
+                                        "3.1562"
+                                    ],
+                                    [
+                                        "63918.8",
+                                        "0.0791"
+                                    ],
+                                    [
+                                        "63919.5",
+                                        "0.0449"
+                                    ],
+                                    [
+                                        "63920",
+                                        "0.0341"
+                                    ],
+                                    [
+                                        "63920.1",
+                                        "0.0001"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "63918.4",
+                                        "8.8616"
+                                    ],
+                                    [
+                                        "63918.3",
+                                        "0.0001"
+                                    ],
+                                    [
+                                        "63918.2",
+                                        "2.5224"
+                                    ],
+                                    [
+                                        "63918.1",
+                                        "2.0925"
+                                    ],
+                                    [
+                                        "63917.9",
+                                        "0.0071"
+                                    ]
+                                ],
+                                "ts": "1786541259275",
+                                "seq": 820531530480,
+                                "pseq": 0
+                            }
+                        ],
+                        "ts": 1786541259276
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "instType": "USDT-FUTURES",
+                                "channel": "books5",
+                                "instId": "BTCUSDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                63918.4,
+                                8.8614
+                            ],
+                            [
+                                63918.3,
+                                0.0001
+                            ],
+                            [
+                                63918.2,
+                                2.5224
+                            ],
+                            [
+                                63918.1,
+                                2.0925
+                            ],
+                            [
+                                63917.9,
+                                0.0071
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                63918.5,
+                                3.1562
+                            ],
+                            [
+                                63918.8,
+                                0.0791
+                            ],
+                            [
+                                63919.5,
+                                0.0449
+                            ],
+                            [
+                                63920,
+                                0.0341
+                            ],
+                            [
+                                63920.1,
+                                0.0001
+                            ]
+                        ],
+                        "timestamp": 1786541258897,
+                        "datetime": "2026-08-12T13:27:38.897Z",
+                        "nonce": null,
+                        "symbol": "BTC/USDT:USDT"
+                    },
+                    {
+                        "bids": [
+                            [
+                                63918.4,
+                                8.8616
+                            ],
+                            [
+                                63918.3,
+                                0.0001
+                            ],
+                            [
+                                63918.2,
+                                2.5224
+                            ],
+                            [
+                                63918.1,
+                                2.0925
+                            ],
+                            [
+                                63917.9,
+                                0.0071
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                63918.5,
+                                3.1562
+                            ],
+                            [
+                                63918.8,
+                                0.0791
+                            ],
+                            [
+                                63919.5,
+                                0.0449
+                            ],
+                            [
+                                63920,
+                                0.0341
+                            ],
+                            [
+                                63920.1,
+                                0.0001
+                            ]
+                        ],
+                        "timestamp": 1786541259275,
+                        "datetime": "2026-08-12T13:27:39.275Z",
+                        "nonce": null,
+                        "symbol": "BTC/USDT:USDT"
+                    }
+                ]
+            },
+            {
+                "description": "spot orderbook depth 5",
+                "input": [
+                    "BTC/USDT",
+                    5
+                ],
+                "url": "wss://ws.bitget.com/v2/ws/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "books5",
+                            "instId": "BTCUSDT"
+                        }
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "books5",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            {
+                                "asks": [
+                                    [
+                                        "64024.38",
+                                        "1.753445"
+                                    ],
+                                    [
+                                        "64024.44",
+                                        "0.01"
+                                    ],
+                                    [
+                                        "64025",
+                                        "0.02"
+                                    ],
+                                    [
+                                        "64025.58",
+                                        "0.058251"
+                                    ],
+                                    [
+                                        "64026.18",
+                                        "0.069907"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "64024.37",
+                                        "0.178298"
+                                    ],
+                                    [
+                                        "64024.36",
+                                        "0.01"
+                                    ],
+                                    [
+                                        "64022.95",
+                                        "0.004874"
+                                    ],
+                                    [
+                                        "64022.67",
+                                        "0.007817"
+                                    ],
+                                    [
+                                        "64022.3",
+                                        "0.029133"
+                                    ]
+                                ],
+                                "ts": "1786538865366",
+                                "seq": 711330212481,
+                                "pseq": 0
+                            }
+                        ],
+                        "ts": 1786538865369
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "books5",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            {
+                                "asks": [
+                                    [
+                                        "64024.38",
+                                        "0.661199"
+                                    ],
+                                    [
+                                        "64024.44",
+                                        "0.01"
+                                    ],
+                                    [
+                                        "64025",
+                                        "0.02"
+                                    ],
+                                    [
+                                        "64025.58",
+                                        "0.058251"
+                                    ],
+                                    [
+                                        "64026.18",
+                                        "0.069907"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "64024.37",
+                                        "0.178298"
+                                    ],
+                                    [
+                                        "64024.36",
+                                        "0.01"
+                                    ],
+                                    [
+                                        "64022.95",
+                                        "0.004874"
+                                    ],
+                                    [
+                                        "64022.67",
+                                        "0.007817"
+                                    ],
+                                    [
+                                        "64022.3",
+                                        "0.029133"
+                                    ]
+                                ],
+                                "ts": "1786538865451",
+                                "seq": 711330216230,
+                                "pseq": 0
+                            }
+                        ],
+                        "ts": 1786538865453
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "instType": "SPOT",
+                                "channel": "books5",
+                                "instId": "BTCUSDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                64024.37,
+                                0.178298
+                            ],
+                            [
+                                64024.36,
+                                0.01
+                            ],
+                            [
+                                64022.95,
+                                0.004874
+                            ],
+                            [
+                                64022.67,
+                                0.007817
+                            ],
+                            [
+                                64022.3,
+                                0.029133
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                64024.38,
+                                1.753445
+                            ],
+                            [
+                                64024.44,
+                                0.01
+                            ],
+                            [
+                                64025,
+                                0.02
+                            ],
+                            [
+                                64025.58,
+                                0.058251
+                            ],
+                            [
+                                64026.18,
+                                0.069907
+                            ]
+                        ],
+                        "timestamp": 1786538865366,
+                        "datetime": "2026-08-12T12:47:45.366Z",
+                        "nonce": null,
+                        "symbol": "BTC/USDT"
+                    },
+                    {
+                        "bids": [
+                            [
+                                64024.37,
+                                0.178298
+                            ],
+                            [
+                                64024.36,
+                                0.01
+                            ],
+                            [
+                                64022.95,
+                                0.004874
+                            ],
+                            [
+                                64022.67,
+                                0.007817
+                            ],
+                            [
+                                64022.3,
+                                0.029133
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                64024.38,
+                                0.661199
+                            ],
+                            [
+                                64024.44,
+                                0.01
+                            ],
+                            [
+                                64025,
+                                0.02
+                            ],
+                            [
+                                64025.58,
+                                0.058251
+                            ],
+                            [
+                                64026.18,
+                                0.069907
+                            ]
+                        ],
+                        "timestamp": 1786538865451,
+                        "datetime": "2026-08-12T12:47:45.451Z",
+                        "nonce": null,
+                        "symbol": "BTC/USDT"
+                    }
+                ]
+            }
+        ],
+        "watchOrders": [
+            {
+                "description": "linear swap market order lifecycle",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://ws.bitget.com/v2/ws/private",
+                "messages": [
+                    {
+                        "event": "login",
+                        "code": 0,
+                        "connId": "0ad2d6fffe636e9b-00009ba8-0093c14b-fee5ea7a3ea4793a-485ae961"
+                    },
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "instType": "USDT-FUTURES",
+                            "channel": "orders",
+                            "instId": "default"
+                        }
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "USDT-FUTURES",
+                            "channel": "orders",
+                            "instId": "default"
+                        },
+                        "data": [
+                            {
+                                "accBaseVolume": "0",
+                                "cTime": "1786542349176",
+                                "cancelReason": "",
+                                "clientOid": "1471430749322903552",
+                                "enterPointSource": "API",
+                                "feeDetail": [
+                                    {
+                                        "feeCoin": "USDT",
+                                        "fee": "0.00000000"
+                                    }
+                                ],
+                                "force": "gtc",
+                                "instId": "BTCUSDT",
+                                "leverage": "10",
+                                "marginCoin": "USDT",
+                                "marginMode": "crossed",
+                                "notionalUsd": "63.9935",
+                                "orderId": "1471430749318709251",
+                                "orderType": "market",
+                                "posMode": "one_way_mode",
+                                "posSide": "net",
+                                "presetStopLossExecutePrice": "",
+                                "presetStopLossType": "",
+                                "presetStopSurplusExecutePrice": "",
+                                "presetStopSurplusType": "",
+                                "price": "0",
+                                "reduceOnly": "no",
+                                "side": "buy",
+                                "size": "0.001",
+                                "status": "live",
+                                "stpMode": "none",
+                                "totalProfits": "0",
+                                "tradeSide": "buy_single",
+                                "uTime": "1786542349176"
+                            }
+                        ],
+                        "ts": 1786542349180
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "USDT-FUTURES",
+                            "channel": "orders",
+                            "instId": "default"
+                        },
+                        "data": [
+                            {
+                                "accBaseVolume": "0.001",
+                                "baseVolume": "0.001",
+                                "cTime": "1786542349176",
+                                "cancelReason": "",
+                                "clientOid": "1471430749322903552",
+                                "enterPointSource": "API",
+                                "feeDetail": [
+                                    {
+                                        "feeCoin": "USDT",
+                                        "fee": "-0.03842754"
+                                    }
+                                ],
+                                "fillFee": "-0.03842754",
+                                "fillFeeCoin": "USDT",
+                                "fillNotionalUsd": "64.0459",
+                                "fillPrice": "64045.9",
+                                "fillTime": "1786542349220",
+                                "force": "gtc",
+                                "instId": "BTCUSDT",
+                                "leverage": "10",
+                                "marginCoin": "USDT",
+                                "marginMode": "crossed",
+                                "notionalUsd": "63.9982",
+                                "orderId": "1471430749318709251",
+                                "orderType": "market",
+                                "pnl": "0",
+                                "posMode": "one_way_mode",
+                                "posSide": "net",
+                                "presetStopLossExecutePrice": "",
+                                "presetStopLossType": "",
+                                "presetStopSurplusExecutePrice": "",
+                                "presetStopSurplusType": "",
+                                "price": "0",
+                                "priceAvg": "64045.9",
+                                "reduceOnly": "no",
+                                "side": "buy",
+                                "size": "0.001",
+                                "status": "filled",
+                                "stpMode": "none",
+                                "totalProfits": "0",
+                                "tradeId": "1471430749503696898",
+                                "tradeScope": "T",
+                                "tradeSide": "buy_single",
+                                "uTime": "1786542349220"
+                            }
+                        ],
+                        "ts": 1786542349229
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "login",
+                        "args": [
+                            {
+                                "apiKey": "key",
+                                "passphrase": "password",
+                                "timestamp": "1786542606",
+                                "sign": "rX/ObszkaCgezH8s6ShwWvMzypa9Q/JI2kPmOLoWVv8="
+                            }
+                        ],
+                        "url": "wss://ws.bitget.com/v2/ws/private"
+                    },
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "instType": "USDT-FUTURES",
+                                "channel": "orders",
+                                "instId": "default"
+                            }
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "timestamp",
+                    "sign"
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "accBaseVolume": "0",
+                                "cTime": "1786542349176",
+                                "cancelReason": "",
+                                "clientOid": "1471430749322903552",
+                                "enterPointSource": "API",
+                                "feeDetail": [
+                                    {
+                                        "feeCoin": "USDT",
+                                        "fee": "0.00000000"
+                                    }
+                                ],
+                                "force": "gtc",
+                                "instId": "BTCUSDT",
+                                "leverage": "10",
+                                "marginCoin": "USDT",
+                                "marginMode": "crossed",
+                                "notionalUsd": "63.9935",
+                                "orderId": "1471430749318709251",
+                                "orderType": "market",
+                                "posMode": "one_way_mode",
+                                "posSide": "net",
+                                "presetStopLossExecutePrice": "",
+                                "presetStopLossType": "",
+                                "presetStopSurplusExecutePrice": "",
+                                "presetStopSurplusType": "",
+                                "price": "0",
+                                "reduceOnly": "no",
+                                "side": "buy",
+                                "size": "0.001",
+                                "status": "live",
+                                "stpMode": "none",
+                                "totalProfits": "0",
+                                "tradeSide": "buy_single",
+                                "uTime": "1786542349176"
+                            },
+                            "symbol": "BTC/USDT:USDT",
+                            "id": "1471430749318709251",
+                            "clientOrderId": "1471430749322903552",
+                            "timestamp": 1786542349176,
+                            "datetime": "2026-08-12T13:45:49.176Z",
+                            "lastTradeTimestamp": 1786542349176,
+                            "type": "market",
+                            "timeInForce": "GTC",
+                            "postOnly": false,
+                            "side": "buy",
+                            "price": null,
+                            "triggerPrice": null,
+                            "amount": 0.001,
+                            "cost": null,
+                            "average": null,
+                            "filled": 0,
+                            "remaining": 0.001,
+                            "status": "open",
+                            "fee": {
+                                "cost": 0,
+                                "currency": "USDT"
+                            },
+                            "trades": [],
+                            "fees": [
+                                {
+                                    "cost": 0,
+                                    "currency": "USDT"
+                                }
+                            ],
+                            "lastUpdateTimestamp": null,
+                            "reduceOnly": null,
+                            "stopPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "accBaseVolume": "0.001",
+                                "baseVolume": "0.001",
+                                "cTime": "1786542349176",
+                                "cancelReason": "",
+                                "clientOid": "1471430749322903552",
+                                "enterPointSource": "API",
+                                "feeDetail": [
+                                    {
+                                        "feeCoin": "USDT",
+                                        "fee": "-0.03842754"
+                                    }
+                                ],
+                                "fillFee": "-0.03842754",
+                                "fillFeeCoin": "USDT",
+                                "fillNotionalUsd": "64.0459",
+                                "fillPrice": "64045.9",
+                                "fillTime": "1786542349220",
+                                "force": "gtc",
+                                "instId": "BTCUSDT",
+                                "leverage": "10",
+                                "marginCoin": "USDT",
+                                "marginMode": "crossed",
+                                "notionalUsd": "63.9982",
+                                "orderId": "1471430749318709251",
+                                "orderType": "market",
+                                "pnl": "0",
+                                "posMode": "one_way_mode",
+                                "posSide": "net",
+                                "presetStopLossExecutePrice": "",
+                                "presetStopLossType": "",
+                                "presetStopSurplusExecutePrice": "",
+                                "presetStopSurplusType": "",
+                                "price": "0",
+                                "priceAvg": "64045.9",
+                                "reduceOnly": "no",
+                                "side": "buy",
+                                "size": "0.001",
+                                "status": "filled",
+                                "stpMode": "none",
+                                "totalProfits": "0",
+                                "tradeId": "1471430749503696898",
+                                "tradeScope": "T",
+                                "tradeSide": "buy_single",
+                                "uTime": "1786542349220"
+                            },
+                            "symbol": "BTC/USDT:USDT",
+                            "id": "1471430749318709251",
+                            "clientOrderId": "1471430749322903552",
+                            "timestamp": 1786542349176,
+                            "datetime": "2026-08-12T13:45:49.176Z",
+                            "lastTradeTimestamp": 1786542349220,
+                            "type": "market",
+                            "timeInForce": "GTC",
+                            "postOnly": false,
+                            "side": "buy",
+                            "price": 64045.9,
+                            "triggerPrice": null,
+                            "amount": 0.001,
+                            "cost": 64.0459,
+                            "average": 64045.9,
+                            "filled": 0.001,
+                            "remaining": 0,
+                            "status": "closed",
+                            "fee": {
+                                "cost": 0.03842754,
+                                "currency": "USDT"
+                            },
+                            "trades": [],
+                            "fees": [
+                                {
+                                    "cost": 0.03842754,
+                                    "currency": "USDT"
+                                }
+                            ],
+                            "lastUpdateTimestamp": null,
+                            "reduceOnly": null,
+                            "stopPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ]
+                ],
+                "disabledCS": "c# double-completes the ws auth future when the login ack is replayed - investigate separately"
+            }
+        ],
+        "watchMyTrades": [
+            {
+                "description": "linear swap my trades from market buy then sell",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://ws.bitget.com/v2/ws/private",
+                "messages": [
+                    {
+                        "event": "login",
+                        "code": 0,
+                        "connId": "0ad2d6fffe636e9b-00009ba8-0093c14b-fee5ea7a3ea4793a-485ae961"
+                    },
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "instType": "USDT-FUTURES",
+                            "channel": "fill",
+                            "instId": "default"
+                        }
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "USDT-FUTURES",
+                            "channel": "fill",
+                            "instId": "default"
+                        },
+                        "data": [
+                            {
+                                "orderId": "1471430749318709251",
+                                "tradeId": "1471430749503696898",
+                                "symbol": "BTCUSDT",
+                                "orderType": "market",
+                                "side": "buy",
+                                "price": "64045.9",
+                                "baseVolume": "0.001",
+                                "quoteVolume": "64.0459",
+                                "profit": "0",
+                                "tradeSide": "buy_single",
+                                "posMode": "one_way_mode",
+                                "tradeScope": "taker",
+                                "feeDetail": [
+                                    {
+                                        "feeCoin": "USDT",
+                                        "deduction": "no",
+                                        "totalDeductionFee": "0",
+                                        "totalFee": "-0.03842754"
+                                    }
+                                ],
+                                "cTime": "1786542349220",
+                                "uTime": "1786542349220",
+                                "clientOid": "1471430749322903552"
+                            }
+                        ],
+                        "ts": 1786542349230
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "USDT-FUTURES",
+                            "channel": "fill",
+                            "instId": "default"
+                        },
+                        "data": [
+                            {
+                                "orderId": "1471430768155328513",
+                                "tradeId": "1471430768336121857",
+                                "symbol": "BTCUSDT",
+                                "orderType": "market",
+                                "side": "sell",
+                                "price": "64027.7",
+                                "baseVolume": "0.001",
+                                "quoteVolume": "64.0277",
+                                "profit": "-0.0182",
+                                "tradeSide": "sell_single",
+                                "posMode": "one_way_mode",
+                                "tradeScope": "taker",
+                                "feeDetail": [
+                                    {
+                                        "feeCoin": "USDT",
+                                        "deduction": "no",
+                                        "totalDeductionFee": "0",
+                                        "totalFee": "-0.03841662"
+                                    }
+                                ],
+                                "cTime": "1786542353710",
+                                "uTime": "1786542353710",
+                                "clientOid": "1471430768155328514"
+                            }
+                        ],
+                        "ts": 1786542353721
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "login",
+                        "args": [
+                            {
+                                "apiKey": "key",
+                                "passphrase": "password",
+                                "timestamp": "1786542606",
+                                "sign": "rX/ObszkaCgezH8s6ShwWvMzypa9Q/JI2kPmOLoWVv8="
+                            }
+                        ],
+                        "url": "wss://ws.bitget.com/v2/ws/private"
+                    },
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "instType": "USDT-FUTURES",
+                                "channel": "fill",
+                                "instId": "default"
+                            }
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "timestamp",
+                    "sign"
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "orderId": "1471430749318709251",
+                                "tradeId": "1471430749503696898",
+                                "symbol": "BTCUSDT",
+                                "orderType": "market",
+                                "side": "buy",
+                                "price": "64045.9",
+                                "baseVolume": "0.001",
+                                "quoteVolume": "64.0459",
+                                "profit": "0",
+                                "tradeSide": "buy_single",
+                                "posMode": "one_way_mode",
+                                "tradeScope": "taker",
+                                "feeDetail": [
+                                    {
+                                        "feeCoin": "USDT",
+                                        "deduction": "no",
+                                        "totalDeductionFee": "0",
+                                        "totalFee": "-0.03842754"
+                                    }
+                                ],
+                                "cTime": "1786542349220",
+                                "uTime": "1786542349220",
+                                "clientOid": "1471430749322903552"
+                            },
+                            "id": "1471430749503696898",
+                            "order": "1471430749318709251",
+                            "timestamp": 1786542349220,
+                            "datetime": "2026-08-12T13:45:49.220Z",
+                            "symbol": "BTC/USDT:USDT",
+                            "type": "market",
+                            "side": "buy",
+                            "takerOrMaker": "taker",
+                            "price": 64045.9,
+                            "amount": 0.001,
+                            "cost": 64.0459,
+                            "fee": {
+                                "currency": "USDT",
+                                "cost": 0.03842754
+                            },
+                            "fees": [
+                                {
+                                    "currency": "USDT",
+                                    "cost": 0.03842754
+                                }
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "orderId": "1471430768155328513",
+                                "tradeId": "1471430768336121857",
+                                "symbol": "BTCUSDT",
+                                "orderType": "market",
+                                "side": "sell",
+                                "price": "64027.7",
+                                "baseVolume": "0.001",
+                                "quoteVolume": "64.0277",
+                                "profit": "-0.0182",
+                                "tradeSide": "sell_single",
+                                "posMode": "one_way_mode",
+                                "tradeScope": "taker",
+                                "feeDetail": [
+                                    {
+                                        "feeCoin": "USDT",
+                                        "deduction": "no",
+                                        "totalDeductionFee": "0",
+                                        "totalFee": "-0.03841662"
+                                    }
+                                ],
+                                "cTime": "1786542353710",
+                                "uTime": "1786542353710",
+                                "clientOid": "1471430768155328514"
+                            },
+                            "id": "1471430768336121857",
+                            "order": "1471430768155328513",
+                            "timestamp": 1786542353710,
+                            "datetime": "2026-08-12T13:45:53.710Z",
+                            "symbol": "BTC/USDT:USDT",
+                            "type": "market",
+                            "side": "sell",
+                            "takerOrMaker": "taker",
+                            "price": 64027.7,
+                            "amount": 0.001,
+                            "cost": 64.0277,
+                            "fee": {
+                                "currency": "USDT",
+                                "cost": 0.03841662
+                            },
+                            "fees": [
+                                {
+                                    "currency": "USDT",
+                                    "cost": 0.03841662
+                                }
+                            ]
+                        }
+                    ]
+                ],
+                "disabledCS": "c# double-completes the ws auth future when the login ack is replayed - investigate separately",
+                "disabledGO": "go newUpdates tail returns the full cache instead of only the new updates - same family as the other disabledGO entries"
+            }
+        ]
+    }
+}

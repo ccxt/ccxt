@@ -37,6 +37,11 @@ import {
     getTestFilesSync,
     getTestFiles,
     setFetchResponse,
+    setupWsMockTransport,
+    injectWsMessage,
+    rejectPendingWsFutures,
+    wsClientHasPendingFutures,
+    getWsSentMessages,
     isNullValue,
     close,
     getEnvVars,
@@ -52,8 +57,10 @@ class testMainClass {
     idTests: boolean = false;
     requestTestsFailed: boolean = false;
     responseTestsFailed: boolean = false;
+    staticWsTestsFailed: boolean = false;
     requestTests: boolean = false;
     wsTests: boolean = false;
+    staticWsTests: boolean = false;
     responseTests: boolean = false;
     predictionTests: boolean = false;
     info: boolean = false;
@@ -85,6 +92,7 @@ class testMainClass {
         this.sandbox = getCliArgValue ('--sandbox');
         this.loadKeys = getCliArgValue ('--loadKeys');
         this.wsTests = getCliArgValue ('--ws');
+        this.staticWsTests = getCliArgValue ('--wsTests');
         // when set, static request/response tests are read from the static/<type>/prediction/ subfolder
         this.predictionTests = getCliArgValue ('--prediction');
 
@@ -112,6 +120,10 @@ class testMainClass {
         }
         if (this.responseTests) {
             await this.runStaticResponseTests (exchangeId, symbolArgv);
+            return true;
+        }
+        if (this.staticWsTests) {
+            await this.runStaticWsTests (exchangeId, symbolArgv);
             return true;
         }
         if (this.requestTests) {
@@ -1719,7 +1731,169 @@ class testMainClass {
         return true;
     }
 
-    initOfflineExchange (exchangeName: string) {
+    async injectWsMessages (exchange: any, url: string, messages: List) {
+        // before every frame, wait until the watch flow is actually awaiting
+        // something — a fixed head-start sleep is not enough on slow ci
+        // runners and the frame's resolution would be dropped
+        for (let i = 0; i < messages.length; i++) {
+            let waited = 0;
+            while (!wsClientHasPendingFutures (exchange, url) && (waited < 5000)) {
+                await exchange.sleep (50);
+                waited = waited + 50;
+            }
+            injectWsMessage (exchange, url, messages[i]);
+            // yield between frames so the handlers run in arrival order
+            await exchange.sleep (20);
+        }
+        await exchange.sleep (50);
+        // reject anything still pending so a wrong fixture fails fast
+        // instead of hanging the test run forever
+        rejectPendingWsFutures (exchange, url);
+        return true; // c# methods used with promiseAll need to return something
+    }
+
+    async watchAndAssertSequence (exchange: any, method: string, input: any, skipKeys: string[], expectedResults: List) {
+        // await the watch method once per expected result: each injected frame
+        // resolves the pending future, so successive awaits observe the
+        // successive states (e.g. an order going from open to closed)
+        try {
+            for (let i = 0; i < expectedResults.length; i++) {
+                const result = await callExchangeMethodDynamically (exchange, method, input);
+                // ws structures can be live typed objects (e.g. orderbooks) in some
+                // runtimes — roundtrip through json so the deep-compare sees plain
+                // dicts in every language
+                const unifiedResult = jsonParse (jsonStringify (result));
+                this.assertStaticResponseOutput (exchange, skipKeys, unifiedResult, expectedResults[i]);
+            }
+        } catch (e) {
+            // rethrow for the caller to report — the explicit try/catch also
+            // keeps the java transpilation compilable (checked exceptions)
+            throw e;
+        }
+        return true; // c# methods used with promiseAll need to return something
+    }
+
+    assertWsSentMessages (exchange: any, url: string, data: Dict) {
+        // the ws analog of the static request tests: assert the frames the
+        // watch method sent over the mocked transport (subscribe requests etc)
+        const expectedSent = exchange.safeList (data, 'sentMessages');
+        if (expectedSent === undefined) {
+            return;
+        }
+        // ids/signatures/timestamps inside outgoing frames can be volatile —
+        // exclude them per entry without touching the response skipKeys
+        const sentSkipKeys = exchange.safeList (data, 'sentSkipKeys', []);
+        const sentMessages = getWsSentMessages (exchange, url);
+        const sentLength = sentMessages.length;
+        const expectedLength = expectedSent.length;
+        assert (sentLength === expectedLength, 'sent ws messages count mismatch: sent ' + sentLength.toString () + ', expected ' + expectedLength.toString () + ' ' + jsonStringify (sentMessages));
+        for (let i = 0; i < expectedLength; i++) {
+            const unifiedSent = jsonParse (jsonStringify (sentMessages[i]));
+            this.assertStaticResponseOutput (exchange, sentSkipKeys, unifiedSent, expectedSent[i]);
+        }
+    }
+
+    async testWsStatically (exchange: any, method: string, skipKeys: string[], data: Dict) {
+        const url = exchange.safeString (data, 'url');
+        setupWsMockTransport (exchange, url);
+        const httpResponse = exchange.safeValue (data, 'httpResponse');
+        if (httpResponse !== undefined) {
+            // some watch methods fetch a rest snapshot (e.g. watchOrderBook)
+            setFetchResponse (exchange, httpResponse);
+        }
+        if (this.info) {
+            dump ('[INFO] STATIC WS TEST:', method, ':', data['description']);
+        }
+        try {
+            const messages = exchange.safeList (data, 'messages', []);
+            const input = this.sanitizeDataInput (data['input']);
+            const expectedResults = exchange.safeList (data, 'parsedResponses');
+            if (expectedResults !== undefined) {
+                // 'parsedResponses' asserts one result per successive watch
+                // resolution (e.g. an order going from open to closed)
+                const promises = [
+                    this.watchAndAssertSequence (exchange, method, input, skipKeys, expectedResults),
+                    this.injectWsMessages (exchange, url, messages),
+                ];
+                await Promise.all (promises);
+                this.assertWsSentMessages (exchange, url, data);
+            } else {
+                // 'parsedResponse' asserts the final state after every frame
+                // was replayed — live structures like orderbooks keep updating
+                // after the first resolution, so serialize only at the end
+                const promises = [
+                    callExchangeMethodDynamically (exchange, method, input),
+                    this.injectWsMessages (exchange, url, messages),
+                ];
+                const results = await Promise.all (promises);
+                const unifiedResult = jsonParse (jsonStringify (results[0]));
+                this.assertStaticResponseOutput (exchange, skipKeys, unifiedResult, data['parsedResponse']);
+                this.assertWsSentMessages (exchange, url, data);
+            }
+        } catch (e) {
+            this.staticWsTestsFailed = true;
+            const errorMessage = '[' + this.lang + '][STATIC_WS]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + exceptionMessage (e);
+            dump ('[TEST_FAILURE]' + errorMessage);
+        }
+        setFetchResponse (exchange, undefined); // reset state
+        return true;
+    }
+
+    async testExchangeWsStatically (exchangeName: string, exchangeData: Dict, testName: Str = undefined) {
+        const globalOptions = exchangeData['options'] === undefined ? {} : exchangeData['options'];
+        const methods = exchangeData['methods'] === undefined ? {} : exchangeData['methods'];
+        const methodsNames = Object.keys (methods);
+        for (let i = 0; i < methodsNames.length; i++) {
+            const method = methodsNames[i];
+            const results = methods[method];
+            for (let j = 0; j < results.length; j++) {
+                const result = results[j];
+                const description = result['description'];
+                if ((testName !== undefined) && (testName !== description)) {
+                    continue;
+                }
+                // a fresh exchange per entry: ws caches (trades, orderbooks,
+                // ohlcvs) and request-id counters survive between watch calls
+                // and would leak state across entries otherwise
+                const exchange = this.initOfflineExchange (exchangeName, true);
+                const isDisabled = exchange.safeBool (result, 'disabled', false);
+                if (isDisabled) {
+                    continue;
+                }
+                const disabledString = exchange.safeString (result, 'disabled', '');
+                if (disabledString !== '') {
+                    continue;
+                }
+                const isDisabledCSharp = exchange.safeString (result, 'disabledCS');
+                if ((isDisabledCSharp !== undefined) && (this.lang === 'C#')) {
+                    continue;
+                }
+                const isDisabledGo = exchange.safeString (result, 'disabledGO');
+                if ((isDisabledGo !== undefined) && (this.lang === 'GO')) {
+                    continue;
+                }
+                const isDisabledJava = exchange.safeString (result, 'disabledJava');
+                if ((isDisabledJava !== undefined) && (this.lang === 'java')) {
+                    continue;
+                }
+                const isDisabledPhp = exchange.safeString (result, 'disabledPHP');
+                if ((isDisabledPhp !== undefined) && (this.lang === 'PHP')) {
+                    continue;
+                }
+                exchange.extendExchangeOptions (globalOptions);
+                const testExchangeOptions = exchange.safeValue (result, 'options', {});
+                exchange.extendExchangeOptions (testExchangeOptions);
+                const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
+                await this.testWsStatically (exchange, method, skipKeys, result);
+                if (!isSync ()) {
+                    await close (exchange);
+                }
+            }
+        }
+        return true; // in c# methods that will be used with promiseAll need to return something
+    }
+
+    initOfflineExchange (exchangeName: string, isWs: boolean = false) {
         // prediction exchanges load their outcome markets from an event -> markets -> outcomes
         // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
         // standard prediction path (kalshi/limitless/myriad/polymarket/hyperliquid all ship one) and
@@ -1807,7 +1981,7 @@ class testMainClass {
             options['apiKey'] = "";
             options['secret'] = "";
         }
-        const exchange = initExchange (exchangeName, options);
+        const exchange = initExchange (exchangeName, options, isWs);
         if (currencies !== undefined) {
             exchange.currencies = currencies;
         }
@@ -2082,6 +2256,8 @@ class testMainClass {
             sum = exchange.sum (sum, numberOfTests);
             if (type === 'request') {
                 promises.push (this.testExchangeRequestStatically (exchangeName, exchangeData, testName));
+            } else if (type === 'ws') {
+                promises.push (this.testExchangeWsStatically (exchangeName, exchangeData, testName));
             } else {
                 promises.push (this.testExchangeResponseStatically (exchangeName, exchangeData, testName));
             }
@@ -2091,13 +2267,15 @@ class testMainClass {
         } catch (e) {
             if (type === 'request') {
                 this.requestTestsFailed = true;
+            } else if (type === 'ws') {
+                this.staticWsTestsFailed = true;
             } else {
                 this.responseTestsFailed = true;
             }
             const errorMessage = '[' + this.lang + '][STATIC_REQUEST]' + exceptionMessage (e);
             dump ('[TEST_FAILURE]' + errorMessage);
         }
-        if (this.requestTestsFailed || this.responseTestsFailed) {
+        if (this.requestTestsFailed || this.responseTestsFailed || this.staticWsTestsFailed) {
             exitScript (1);
         } else {
             const prefix = (isSync ()) ? '[SYNC]' : '';
@@ -2112,6 +2290,19 @@ class testMainClass {
         //  --- Init of mockResponses tests functions------------------------------------
         //  -----------------------------------------------------------------------------
         await this.runStaticTests ('response', exchangeName, test);
+        return true;
+    }
+
+    async runStaticWsTests (exchangeName = undefined, test = undefined) {
+        //  -----------------------------------------------------------------------------
+        //  --- static ws tests: replay canned frames into the ws message handlers ------
+        //  -----------------------------------------------------------------------------
+        if (isSync ()) {
+            // watch methods are async-only, there is nothing to test in the
+            // synchronous python/php flavours
+            return true;
+        }
+        await this.runStaticTests ('ws', exchangeName, test);
         return true;
     }
 
