@@ -3027,7 +3027,7 @@ export default class woo extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
@@ -3208,20 +3208,9 @@ export default class woo extends Exchange {
             'amount': this.safeNumber (transfer, 'amount'),
             'fromAccount': this.safeString (fromAccount, 'applicationId'),
             'toAccount': this.safeString (toAccount, 'applicationId'),
-            'status': this.parseTransferStatus (this.safeString (transfer, 'status', status)),
+            'status': this.parseTransactionStatus (this.safeString (transfer, 'status', status)),
             'info': transfer,
         };
-    }
-
-    parseTransferStatus (status: Str): Str {
-        const statuses: Dict = {
-            'NEW': 'pending',
-            'CONFIRMING': 'pending',
-            'PROCESSING': 'pending',
-            'COMPLETED': 'ok',
-            'CANCELED': 'canceled',
-        };
-        return this.safeString (statuses, (status as string), status);
     }
 
     /**
