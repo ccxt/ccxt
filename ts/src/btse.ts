@@ -2692,6 +2692,14 @@ export default class btse extends Exchange {
         // is spelled timeInForce there (observed live), so both fall back
         const rawStatus = this.safeString2 (order, 'status', 'orderState');
         const rawType = this.safeString2 (order, 'orderType', 'type');
+        let status = this.parseOrderStatus (rawStatus);
+        const orderType = this.parseOrderType (rawType);
+        if ((orderType === 'market') && (status === 'open')) {
+            // market orders never rest on the book, the exchange reports the
+            // partially filled code on them when a residual quote dust amount
+            // cannot fill, observed live, such orders are finished
+            status = 'closed';
+        }
         const rawTimeInForce = this.safeString2 (order, 'time_in_force', 'timeInForce');
         return this.safeOrder ({
             'info': order,
@@ -2701,9 +2709,9 @@ export default class btse extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': undefined,
-            'status': this.parseOrderStatus (rawStatus),
+            'status': status,
             'symbol': market['symbol'],
-            'type': this.parseOrderType (rawType),
+            'type': orderType,
             'timeInForce': this.parseTimeInForce (rawTimeInForce),
             'postOnly': this.safeBool (order, 'postOnly'),
             'reduceOnly': this.safeBool (order, 'reduceOnly'),
