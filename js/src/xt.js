@@ -276,6 +276,7 @@ export default class xt extends Exchange {
                         'post': {
                             'future/trade/v1/entrust/cancel-all-plan': { 'cost': 1 },
                             'future/trade/v1/entrust/cancel-all-profit-stop': { 'cost': 1 },
+                            'future/trade/v1/entrust/cancel-all-track': { 'cost': 1 },
                             'future/trade/v1/entrust/cancel-plan': { 'cost': 1 },
                             'future/trade/v1/entrust/cancel-profit-stop': { 'cost': 1 },
                             'future/trade/v1/entrust/create-plan': { 'cost': 1 },
@@ -328,6 +329,7 @@ export default class xt extends Exchange {
                         'post': {
                             'future/trade/v1/entrust/cancel-all-plan': { 'cost': 1 },
                             'future/trade/v1/entrust/cancel-all-profit-stop': { 'cost': 1 },
+                            'future/trade/v1/entrust/cancel-all-track': { 'cost': 1 },
                             'future/trade/v1/entrust/cancel-plan': { 'cost': 1 },
                             'future/trade/v1/entrust/cancel-profit-stop': { 'cost': 1 },
                             'future/trade/v1/entrust/create-plan': { 'cost': 1 },
@@ -3683,10 +3685,12 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/docs/futures/Order/cancel-all-orders
      * @see https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/CancelAllTrack
      * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -3706,6 +3710,13 @@ export default class xt extends Exchange {
         [subType, params] = this.handleSubTypeAndParams('cancelAllOrders', market, params);
         const trigger = this.safeValue2(params, 'trigger', 'stop');
         const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
+        const trailing = this.safeBool(params, 'trailing');
+        if (trailing) {
+            const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
+            if (!isContract) {
+                throw new NotSupported(this.id + ' cancelAllOrders() trailing orders are only supported on swap and future markets');
+            }
+        }
         if (trigger) {
             params = this.omit(params, ['trigger', 'stop']);
             if (subType === 'inverse') {
@@ -3722,6 +3733,15 @@ export default class xt extends Exchange {
             }
             else {
                 response = await this.privateLinearPostFutureTradeV1EntrustCancelAllProfitStop(this.extend(request, params));
+            }
+        }
+        else if (trailing) {
+            params = this.omit(params, 'trailing');
+            if (subType === 'inverse') {
+                response = await this.privateInversePostFutureTradeV1EntrustCancelAllTrack(this.extend(request, params));
+            }
+            else {
+                response = await this.privateLinearPostFutureTradeV1EntrustCancelAllTrack(this.extend(request, params));
             }
         }
         else if (subType === 'inverse') {

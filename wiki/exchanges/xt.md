@@ -596,6 +596,7 @@ cancel all open orders in a market
 - https://doc.xt.com/docs/futures/Order/cancel-all-orders
 - https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders
 - https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit
+- https://doc.xt.com/docs/futures/Entrust/CancelAllTrack
 
 
 | Param | Type | Required | Description |
@@ -604,6 +605,7 @@ cancel all open orders in a market
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
+| params.trailing | <code>bool</code> | No | if the orders are trailing orders or not |
 
 
 ```javascript

@@ -101,6 +101,7 @@ interface Exchange {
     privateLinearGetFutureUserV1UserListenKey(params?: {}): Promise<Dict>;
     privateLinearPostFutureTradeV1EntrustCancelAllPlan(params?: {}): Promise<Dict>;
     privateLinearPostFutureTradeV1EntrustCancelAllProfitStop(params?: {}): Promise<Dict>;
+    privateLinearPostFutureTradeV1EntrustCancelAllTrack(params?: {}): Promise<Dict>;
     privateLinearPostFutureTradeV1EntrustCancelPlan(params?: {}): Promise<Dict>;
     privateLinearPostFutureTradeV1EntrustCancelProfitStop(params?: {}): Promise<Dict>;
     privateLinearPostFutureTradeV1EntrustCreatePlan(params?: {}): Promise<Dict>;
@@ -147,6 +148,7 @@ interface Exchange {
     privateInverseGetFutureUserV1UserListenKey(params?: {}): Promise<Dict>;
     privateInversePostFutureTradeV1EntrustCancelAllPlan(params?: {}): Promise<Dict>;
     privateInversePostFutureTradeV1EntrustCancelAllProfitStop(params?: {}): Promise<Dict>;
+    privateInversePostFutureTradeV1EntrustCancelAllTrack(params?: {}): Promise<Dict>;
     privateInversePostFutureTradeV1EntrustCancelPlan(params?: {}): Promise<Dict>;
     privateInversePostFutureTradeV1EntrustCancelProfitStop(params?: {}): Promise<Dict>;
     privateInversePostFutureTradeV1EntrustCreatePlan(params?: {}): Promise<Dict>;

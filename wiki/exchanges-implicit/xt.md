@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official xt API documentation:** [doc.xt.com](https://doc.xt.com/) · [github.com](https://github.com/xtpub/api-doc)
 
-> 172 implicit endpoints across 2 access groups.
+> 174 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -166,6 +166,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateLinearGetFutureUserV1UserListenKey` | GET | `future/user/v1/user/listen-key` | 1 |
 | `privateLinearPostFutureTradeV1EntrustCancelAllPlan` | POST | `future/trade/v1/entrust/cancel-all-plan` | 1 |
 | `privateLinearPostFutureTradeV1EntrustCancelAllProfitStop` | POST | `future/trade/v1/entrust/cancel-all-profit-stop` | 1 |
+| `privateLinearPostFutureTradeV1EntrustCancelAllTrack` | POST | `future/trade/v1/entrust/cancel-all-track` | 1 |
 | `privateLinearPostFutureTradeV1EntrustCancelPlan` | POST | `future/trade/v1/entrust/cancel-plan` | 1 |
 | `privateLinearPostFutureTradeV1EntrustCancelProfitStop` | POST | `future/trade/v1/entrust/cancel-profit-stop` | 1 |
 | `privateLinearPostFutureTradeV1EntrustCreatePlan` | POST | `future/trade/v1/entrust/create-plan` | 1 |
@@ -212,6 +213,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateInverseGetFutureUserV1UserListenKey` | GET | `future/user/v1/user/listen-key` | 1 |
 | `privateInversePostFutureTradeV1EntrustCancelAllPlan` | POST | `future/trade/v1/entrust/cancel-all-plan` | 1 |
 | `privateInversePostFutureTradeV1EntrustCancelAllProfitStop` | POST | `future/trade/v1/entrust/cancel-all-profit-stop` | 1 |
+| `privateInversePostFutureTradeV1EntrustCancelAllTrack` | POST | `future/trade/v1/entrust/cancel-all-track` | 1 |
 | `privateInversePostFutureTradeV1EntrustCancelPlan` | POST | `future/trade/v1/entrust/cancel-plan` | 1 |
 | `privateInversePostFutureTradeV1EntrustCancelProfitStop` | POST | `future/trade/v1/entrust/cancel-profit-stop` | 1 |
 | `privateInversePostFutureTradeV1EntrustCreatePlan` | POST | `future/trade/v1/entrust/create-plan` | 1 |
