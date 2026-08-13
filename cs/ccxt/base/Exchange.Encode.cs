@@ -175,17 +175,14 @@ public partial class BaseExchange
 
     public object numberToBE(object n2, object size2 = null)
     {
-        // BigInteger instead of Int64: callers pack uint256 values (e.g. 32-byte order fields)
-        // whose decimal strings overflow long and need more than its 8 bytes
+        var n = Convert.ToInt64(n2);
         var size = size2 == null ? 0 : Convert.ToInt32(size2);
-        var n = System.Numerics.BigInteger.Parse(n2.ToString());
-        var bytes = new byte[size];
-        for (var i = size - 1; i >= 0; i--)
+        byte[] bytes = BitConverter.GetBytes(n);
+        if (BitConverter.IsLittleEndian)
         {
-            bytes[i] = (byte)(n & 0xff);
-            n >>= 8;
+            Array.Reverse(bytes);
         }
-        return bytes;
+        return bytes[^size..]; // Extract the last 'size' bytes
     }
 
     public static string binaryToHex(byte[] buff)
