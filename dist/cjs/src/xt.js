@@ -873,7 +873,7 @@ class xt extends xt$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result');
+        const data = this.safeDict(response, 'result');
         return this.safeInteger(data, 'serverTime');
     }
     /**
@@ -938,17 +938,17 @@ class xt extends xt$1["default"] {
         //
         // note: individual network's full data is available on per-currency endpoint: https://www.xt.com/sapi/v4/balance/public/currency/11
         //
-        const chainsData = this.safeValue(chainsResponse, 'result', []);
-        const currenciesResult = this.safeValue(currenciesResponse, 'result', []);
-        const currenciesData = this.safeValue(currenciesResult, 'currencies', []);
+        const chainsData = this.safeList(chainsResponse, 'result', []);
+        const currenciesResult = this.safeDict(currenciesResponse, 'result', {});
+        const currenciesData = this.safeList(currenciesResult, 'currencies', []);
         const chainsDataIndexed = this.indexBy(chainsData, 'currency');
         const result = {};
         for (let i = 0; i < currenciesData.length; i++) {
             const entry = currenciesData[i];
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            const networkEntry = this.safeValue(chainsDataIndexed, currencyId, {});
-            const rawNetworks = this.safeValue(networkEntry, 'supportChains', []);
+            const networkEntry = this.safeDict(chainsDataIndexed, currencyId, {});
+            const rawNetworks = this.safeList(networkEntry, 'supportChains', []);
             const networks = {};
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
@@ -1098,8 +1098,8 @@ class xt extends xt$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
-        const symbols = this.safeValue(data, 'symbols', []);
+        const data = this.safeDict(response, 'result', {});
+        const symbols = this.safeList(data, 'symbols', []);
         return this.parseMarkets(symbols);
     }
     async fetchSwapAndFutureMarkets(params = {}) {
@@ -1166,7 +1166,7 @@ class xt extends xt$1["default"] {
         //         ]
         //     }
         //
-        const swapAndFutureMarkets = this.arrayConcat(this.safeValue(markets[0], 'result', []), this.safeValue(markets[1], 'result', []));
+        const swapAndFutureMarkets = this.arrayConcat(this.safeList(markets[0], 'result', []), this.safeList(markets[1], 'result', []));
         return this.parseMarkets(swapAndFutureMarkets);
     }
     parseMarkets(markets) {
@@ -1300,7 +1300,7 @@ class xt extends xt$1["default"] {
         const quote = this.safeCurrencyCode(quoteId);
         const state = this.safeString(market, 'state');
         let symbol = base + '/' + quote;
-        const filters = this.safeValue(market, 'filters', []);
+        const filters = this.safeList(market, 'filters', []);
         let minAmount = undefined;
         let maxAmount = undefined;
         let minCost = undefined;
@@ -1374,10 +1374,10 @@ class xt extends xt$1["default"] {
         }
         let isActive = false;
         if (contract) {
-            isActive = this.safeValue(market, 'isOpenApi', false);
+            isActive = this.safeBool(market, 'isOpenApi', false);
         }
         else {
-            if ((state === 'ONLINE') && (this.safeValue(market, 'tradingEnabled')) && (this.safeValue(market, 'openapiEnabled'))) {
+            if ((state === 'ONLINE') && (this.safeBool(market, 'tradingEnabled')) && (this.safeBool(market, 'openapiEnabled'))) {
                 isActive = true;
             }
         }
@@ -1538,7 +1538,7 @@ class xt extends xt$1["default"] {
         //         ]
         //     }
         //
-        const ohlcvs = this.safeValue(response, 'result', []);
+        const ohlcvs = this.safeList(response, 'result', []);
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1666,7 +1666,7 @@ class xt extends xt$1["default"] {
         //         }
         //     }
         //
-        const orderBook = this.safeValue(response, 'result', {});
+        const orderBook = this.safeDict(response, 'result', {});
         const timestamp = this.safeInteger2(orderBook, 'timestamp', 't');
         if (market['spot']) {
             const ob = this.parseOrderBook(orderBook, symbol, timestamp);
@@ -1839,7 +1839,7 @@ class xt extends xt$1["default"] {
         //         ]
         //     }
         //
-        const tickers = this.safeValue(response, 'result', []);
+        const tickers = this.safeList(response, 'result', []);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker(tickers[i], market);
@@ -2097,7 +2097,7 @@ class xt extends xt$1["default"] {
         //         ]
         //     }
         //
-        const trades = this.safeValue(response, 'result', []);
+        const trades = this.safeList(response, 'result', []);
         return this.parseTrades(trades, market);
     }
     /**
@@ -2209,8 +2209,8 @@ class xt extends xt$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
-        const trades = this.safeValue(data, 'items', []);
+        const data = this.safeDict(response, 'result', {});
+        const trades = this.safeList(data, 'items', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -2464,11 +2464,11 @@ class xt extends xt$1["default"] {
         //
         let balances = undefined;
         if ((subType !== undefined) || isContractWallet) {
-            balances = this.safeValue(response, 'result', []);
+            balances = this.safeList(response, 'result', []);
         }
         else {
-            const data = this.safeValue(response, 'result', {});
-            balances = this.safeValue(data, 'assets', []);
+            const data = this.safeDict(response, 'result', {});
+            balances = this.safeList(data, 'assets', []);
         }
         return this.parseBalance(balances);
     }
@@ -2650,7 +2650,7 @@ class xt extends xt$1["default"] {
         //         }
         //     }
         //
-        const order = this.safeValue(response, 'result', {});
+        const order = this.safeDict(response, 'result', {});
         return this.parseOrder(order, market);
     }
     async createContractOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -2666,7 +2666,7 @@ class xt extends xt$1["default"] {
         if (timeInForce !== undefined) {
             request['timeInForce'] = timeInForce;
         }
-        const reduceOnly = this.safeValue(params, 'reduceOnly', false);
+        const reduceOnly = this.safeBool(params, 'reduceOnly', false);
         if (side === 'buy') {
             const requestType = (reduceOnly) ? 'SHORT' : 'LONG';
             request['positionSide'] = requestType;
@@ -2804,8 +2804,8 @@ class xt extends xt$1["default"] {
         let response = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchOrder', market, params);
         [subType, params] = this.handleSubTypeAndParams('fetchOrder', market, params);
-        const trigger = this.safeValue(params, 'stop');
-        const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
+        const trigger = this.safeBool2(params, 'trigger', 'stop');
+        const stopLossTakeProfit = this.safeBool(params, 'stopLossTakeProfit');
         const trailing = this.safeBool(params, 'trailing');
         if (trailing) {
             const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
@@ -2826,7 +2826,7 @@ class xt extends xt$1["default"] {
             request['orderId'] = id;
         }
         if (trigger) {
-            params = this.omit(params, 'stop');
+            params = this.omit(params, ['trigger', 'stop']);
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustPlanDetail(this.extend(request, params));
             }
@@ -2978,7 +2978,7 @@ class xt extends xt$1["default"] {
         //         }
         //     }
         //
-        const order = this.safeValue(response, 'result', {});
+        const order = this.safeDict(response, 'result', {});
         return this.parseOrder(order, market);
     }
     /**
@@ -3018,7 +3018,7 @@ class xt extends xt$1["default"] {
         let response = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchOrders', market, params);
         [subType, params] = this.handleSubTypeAndParams('fetchOrders', market, params);
-        const trigger = this.safeValue2(params, 'trigger', 'stop');
+        const trigger = this.safeBool2(params, 'trigger', 'stop');
         const trailing = this.safeBool(params, 'trailing');
         if (trailing) {
             const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
@@ -3167,8 +3167,8 @@ class xt extends xt$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
-        const orders = this.safeValue(data, 'items', []);
+        const data = this.safeDict(response, 'result', {});
+        const orders = this.safeList(data, 'items', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchOrdersByStatus(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3193,7 +3193,7 @@ class xt extends xt$1["default"] {
         [type, params] = this.handleMarketTypeAndParams('fetchOrdersByStatus', market, params);
         [subType, params] = this.handleSubTypeAndParams('fetchOrdersByStatus', market, params);
         const trigger = this.safeBool2(params, 'stop', 'trigger');
-        const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
+        const stopLossTakeProfit = this.safeBool(params, 'stopLossTakeProfit');
         const trailing = this.safeBool(params, 'trailing');
         if (trailing) {
             const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
@@ -3594,8 +3594,8 @@ class xt extends xt$1["default"] {
         let response = undefined;
         [type, params] = this.handleMarketTypeAndParams('cancelOrder', market, params);
         [subType, params] = this.handleSubTypeAndParams('cancelOrder', market, params);
-        const trigger = this.safeValue2(params, 'trigger', 'stop');
-        const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
+        const trigger = this.safeBool2(params, 'trigger', 'stop');
+        const stopLossTakeProfit = this.safeBool(params, 'stopLossTakeProfit');
         const trailing = this.safeBool(params, 'trailing');
         if (trailing) {
             const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
@@ -3673,7 +3673,7 @@ class xt extends xt$1["default"] {
         //     }
         //
         const isContractResponse = ((subType !== undefined) || (type === 'swap') || (type === 'future'));
-        const order = isContractResponse ? response : this.safeValue(response, 'result', {});
+        const order = isContractResponse ? response : this.safeDict(response, 'result', {});
         return this.parseOrder(order, market);
     }
     /**
@@ -3707,8 +3707,8 @@ class xt extends xt$1["default"] {
         let response = undefined;
         [type, params] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
         [subType, params] = this.handleSubTypeAndParams('cancelAllOrders', market, params);
-        const trigger = this.safeValue2(params, 'trigger', 'stop');
-        const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
+        const trigger = this.safeBool2(params, 'trigger', 'stop');
+        const stopLossTakeProfit = this.safeBool(params, 'stopLossTakeProfit');
         const trailing = this.safeBool(params, 'trailing');
         if (trailing) {
             const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
@@ -4086,8 +4086,8 @@ class xt extends xt$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
-        const ledger = this.safeValue(data, 'items', []);
+        const data = this.safeDict(response, 'result', {});
+        const ledger = this.safeList(data, 'items', []);
         return this.parseLedger(ledger, currency, since, limit);
     }
     parseLedgerEntry(item, currency = undefined) {
@@ -4177,7 +4177,7 @@ class xt extends xt$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseDepositAddress(result, currency);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
@@ -4251,8 +4251,8 @@ class xt extends xt$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
-        const deposits = this.safeValue(data, 'items', []);
+        const data = this.safeDict(response, 'result', {});
+        const deposits = this.safeList(data, 'items', []);
         return this.parseTransactions(deposits, currency, since, limit, params);
     }
     /**
@@ -4309,8 +4309,8 @@ class xt extends xt$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
-        const withdrawals = this.safeValue(data, 'items', []);
+        const data = this.safeDict(response, 'result', {});
+        const withdrawals = this.safeList(data, 'items', []);
         return this.parseTransactions(withdrawals, currency, since, limit, params);
     }
     /**
@@ -4334,7 +4334,7 @@ class xt extends xt$1["default"] {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
-        const networkIdsByCodes = this.safeValue(this.options, 'networks', {});
+        const networkIdsByCodes = this.safeDict(this.options, 'networks', {});
         const networkId = this.safeString2(networkIdsByCodes, networkCode, code, code);
         const request = {
             'currency': currency['id'],
@@ -4356,7 +4356,7 @@ class xt extends xt$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseTransaction(result, currency);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -4618,7 +4618,7 @@ class xt extends xt$1["default"] {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'result', []);
+        const data = this.safeList(response, 'result', []);
         symbols = this.marketSymbols(symbols);
         return this.parseLeverageTiers(data, symbols, 'symbol');
     }
@@ -4705,7 +4705,7 @@ class xt extends xt$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
+        const data = this.safeDict(response, 'result', {});
         return this.parseMarketLeverageTiers(data, market);
     }
     parseMarketLeverageTiers(info, market = undefined) {
@@ -4727,7 +4727,7 @@ class xt extends xt$1["default"] {
         //     }
         //
         const tiers = [];
-        const brackets = this.safeValue(info, 'leverageBrackets', []);
+        const brackets = this.safeList(info, 'leverageBrackets', []);
         for (let i = 0; i < brackets.length; i++) {
             const tier = brackets[i];
             const marketId = this.safeString(info, 'symbol');
@@ -4812,8 +4812,8 @@ class xt extends xt$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const items = this.safeValue(result, 'items', []);
+        const result = this.safeDict(response, 'result', {});
+        const items = this.safeList(result, 'items', []);
         const rates = [];
         for (let i = 0; i < items.length; i++) {
             const entry = items[i];
@@ -4885,7 +4885,7 @@ class xt extends xt$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseFundingRate(result, market);
     }
     parseFundingRate(contract, market = undefined) {
@@ -5144,8 +5144,8 @@ class xt extends xt$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
-        const items = this.safeValue(data, 'items', []);
+        const data = this.safeDict(response, 'result', {});
+        const items = this.safeList(data, 'items', []);
         const result = [];
         for (let i = 0; i < items.length; i++) {
             const entry = items[i];
@@ -5572,7 +5572,7 @@ class xt extends xt$1["default"] {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        const accountsByType = this.safeValue(this.options, 'accountsById');
+        const accountsByType = this.safeDict(this.options, 'accountsById');
         const fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toAccountId = this.safeString(accountsByType, toAccount, toAccount);
         const amountString = this.currencyToPrecision(code, amount);
@@ -5834,7 +5834,7 @@ class xt extends xt$1["default"] {
         const status = this.safeStringUpper2(response, 'msgInfo', 'mc');
         if (status !== undefined && status !== 'SUCCESS') {
             const feedback = this.id + ' ' + body;
-            const error = this.safeValue(response, 'error', {});
+            const error = this.safeDict(response, 'error', {});
             const spotErrorCode = this.safeString(response, 'mc');
             const errorCode = this.safeString(error, 'code', spotErrorCode);
             const spotMessage = this.safeString(response, 'msgInfo');
