@@ -2875,7 +2875,7 @@ class woo(Exchange, ImplicitAPI):
             'network': self.network_id_to_code(self.safe_string(transaction, 'network'), code),
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
@@ -3046,19 +3046,9 @@ class woo(Exchange, ImplicitAPI):
             'amount': self.safe_number(transfer, 'amount'),
             'fromAccount': self.safe_string(fromAccount, 'applicationId'),
             'toAccount': self.safe_string(toAccount, 'applicationId'),
-            'status': self.parse_transfer_status(self.safe_string(transfer, 'status', status)),
+            'status': self.parse_transaction_status(self.safe_string(transfer, 'status', status)),
             'info': transfer,
         }
-
-    def parse_transfer_status(self, status: Str) -> Str:
-        statuses = {
-            'NEW': 'pending',
-            'CONFIRMING': 'pending',
-            'PROCESSING': 'pending',
-            'COMPLETED': 'ok',
-            'CANCELED': 'canceled',
-        }
-        return self.safe_string(statuses, status, status)
 
     def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
