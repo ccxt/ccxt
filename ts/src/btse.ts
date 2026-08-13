@@ -3415,6 +3415,49 @@ export default class btse extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback);
         }
+        //
+        // futures order and leverage endpoints reply with HTTP 200 and encode failures in a numeric status field, per the API Enum section of the docs
+        //
+        //     {"symbol":"ETH-PERP","timestamp":1770892916507,"status":135,"type":93,"message":"{\"msgKey\":\"trade.error.invalid.position_id\",\"params\":[\"ETH-PERP-USDT\"] ,\"default_msg\":\"User is in ISOLATE_HEDGE in market: ETH-PERP-USDT, but positionId is empty in the request.\"}"}
+        //
+        // success statuses such as 2 ORDER_INSERTED, 4 ORDER_FULLY_TRANSACTED, 5 ORDER_PARTIALLY_TRANSACTED, 6 ORDER_CANCELLED, 9 TRIGGER_INSERTED, 10 TRIGGER_ACTIVATED and 20 SUCCESS fall through without matching
+        //
+        let rows = [];
+        if (Array.isArray (response)) {
+            rows = response;
+        } else {
+            rows = [ response ];
+        }
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const status = this.safeString (row, 'status');
+            if (status !== undefined) {
+                const statusExceptions: Dict = {
+                    '1': ExchangeNotAvailable, // MARKET_UNAVAILABLE
+                    '8': InsufficientFunds, // INSUFFICIENT_BALANCE
+                    '11': BadRequest, // ERROR_INVALID_CURRENCY
+                    '12': BadRequest, // ERROR_UPDATE_RISK_LIMIT
+                    '13': BadRequest, // ERROR_INVALID_LEVERAGE
+                    '15': InvalidOrder, // ORDER_REJECTED
+                    '16': OrderNotFound, // ORDER_NOTFOUND
+                    '17': ExchangeError, // REQUEST_FAILED
+                    '28': ExchangeError, // TRANSFER_UNSUCCESSFUL
+                    '41': BadRequest, // ERROR_INVALID_RISK_LIMIT
+                    '64': ExchangeError, // STATUS_LIQUIDATION
+                    '101': InvalidOrder, // FUTURES_ORDER_PRICE_OUTSIDE_LIQUIDATION_PRICE
+                    '135': BadRequest, // invalid position id, observed live with an embedded json message
+                    '305': InvalidOrder, // ERROR_ORDER_PRICE_OUT_OF_PRICE_PROTECTION_RANGE
+                };
+                let message = this.safeString (row, 'message');
+                const embedded = this.parseJson (message);
+                if (embedded !== undefined) {
+                    message = this.safeString (embedded, 'default_msg', message);
+                }
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (statusExceptions, status, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            }
+        }
         return undefined;
     }
 
