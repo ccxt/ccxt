@@ -3155,11 +3155,25 @@ func (this *BitstampCore) ParseOrder(order any, optionalArgs ...any) any {
 	//        "market": "BTC/USD"
 	//    }
 	//
+	// editOrder
+	//
+	//    {
+	//        "order_id": 1453282316578816,
+	//        "order_type": "0",
+	//        "market": "BTC/USD",
+	//        "amount": "0.02035278",
+	//        "price": "2100.45",
+	//        "datetime": "2025-10-17T14:23:01.725000Z",
+	//        "orig_order_id": 1453282316578816,
+	//        "orig_client_order_id": "my-original-order-123",
+	//        "status": "Open"
+	//    }
+	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var id any = this.SafeString(order, "id")
-	var clientOrderId any = this.SafeString(order, "client_order_id")
-	var side any = this.SafeString(order, "type")
+	var id any = this.SafeString2(order, "id", "order_id")
+	var clientOrderId any = this.SafeString2(order, "client_order_id", "orig_client_order_id")
+	var side any = this.SafeString2(order, "type", "order_type")
 	if IsTrue(!IsEqual(side, nil)) {
 		side = Ternary(IsTrue((IsEqual(side, "1"))), "sell", "buy")
 	}
@@ -3325,8 +3339,8 @@ func (this *BitstampCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes241912 := (<-this.LoadMarkets())
-			PanicOnError(retRes241912)
+			retRes243312 := (<-this.LoadMarkets())
+			PanicOnError(retRes243312)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -3365,8 +3379,8 @@ func (this *BitstampCore) FetchFundingRate(symbol any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes244412 := (<-this.LoadMarkets())
-			PanicOnError(retRes244412)
+			retRes245812 := (<-this.LoadMarkets())
+			PanicOnError(retRes245812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -3454,8 +3468,8 @@ func (this *BitstampCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		var market any = nil
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes251112 := (<-this.LoadMarkets())
-			PanicOnError(retRes251112)
+			retRes252512 := (<-this.LoadMarkets())
+			PanicOnError(retRes252512)
 		}
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3569,8 +3583,8 @@ func (this *BitstampCore) Withdraw(code any, amount any, address any, optionalAr
 		params = GetValue(tagparamsVariable, 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes259612 := (<-this.LoadMarkets())
-			PanicOnError(retRes259612)
+			retRes261012 := (<-this.LoadMarkets())
+			PanicOnError(retRes261012)
 		}
 		this.CheckAddress(address)
 		var request any = map[string]any{
@@ -3630,8 +3644,8 @@ func (this *BitstampCore) Transfer(code any, amount any, fromAccount any, toAcco
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes264212 := (<-this.LoadMarkets())
-			PanicOnError(retRes264212)
+			retRes265612 := (<-this.LoadMarkets())
+			PanicOnError(retRes265612)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
