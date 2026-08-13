@@ -2796,16 +2796,22 @@ export default class btse extends Exchange {
      */
     override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
+        const walletType = this.safeString (params, 'walletType', 'SPOT');
         const request: Dict = {
-            'walletType': 'SPOT',
-            // the endpoint accepts a server side history type filter as a json
-            // encoded array in the query string
+            'walletType': walletType,
+            // the endpoint requires the history type filter as a json encoded
+            // array in the query string
             'historyTypes': this.json ([ 'DEPOSIT', 'WITHDRAW' ]),
         };
+        params = this.omit (params, 'walletType');
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['asset'] = currency['id'];
+        } else if (walletType === 'SPOT') {
+            // the exchange rejects spot wallet history queries without an asset,
+            // verified live, and omitting walletType still defaults to spot
+            throw new ArgumentsRequired (this.id + ' fetchDepositsWithdrawals() requires a code argument for the spot wallet history');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2981,11 +2987,17 @@ export default class btse extends Exchange {
     override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        request['walletType'] = 'SPOT';
+        const walletType = this.safeString (params, 'walletType', 'SPOT');
+        request['walletType'] = walletType;
+        params = this.omit (params, 'walletType');
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['asset'] = currency['id'];
+        } else if (walletType === 'SPOT') {
+            // the exchange rejects spot wallet history queries without an asset,
+            // verified live, and omitting walletType still defaults to spot
+            throw new ArgumentsRequired (this.id + ' fetchLedger() requires a code argument for the spot wallet history');
         }
         if (since !== undefined) {
             request['startTime'] = since;
