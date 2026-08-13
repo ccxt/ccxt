@@ -332,12 +332,12 @@
             {
                 "description": "fetch OHLCV with since, until and limit",
                 "method": "fetchOHLCV",
-                "url": "https://api.btse.com/public-api/market/v1/klines?symbol=ETH-USDT&resolution=60&limit=1&start=1770451200&end=1770454800",
+                "url": "https://api.btse.com/public-api/market/v1/klines?symbol=ETH-USDT&resolution=60&limit=2&start=1770451200&end=1770454800",
                 "input": [
                     "ETH/USDT",
                     "1h",
                     1770451200000,
-                    1,
+                    2,
                     {
                         "until": 1770454800000
                     }
