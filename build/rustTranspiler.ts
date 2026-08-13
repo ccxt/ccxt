@@ -452,6 +452,131 @@ class RustTranspilerBuilder {
         return out;
     }
 
+    // JS `this.spawn(this.method, ...args)` returns an awaitable that resolves
+    // to `method`'s result. The port lowers a bare `this.spawn(...)` statement
+    // to a fire-and-forget enqueue (correct for background loaders), but when
+    // the spawn result is *used as a value* and later awaited — kucoin's
+    // `negotiate` caches `this.spawn(this.negotiateHelper, …)` in options.urls
+    // and returns `await future` to hand back the WS token URL — the enqueue
+    // form yields Null, so kucoin connects to `null`. Rust can't hold a Future
+    // in a Value, so serialise: run the spawn inline via call_dynamic().await
+    // (matching the port's "await eagerly" philosophy) and, within that same
+    // function, rewrite the broken await-on-value `get_value(&x, "await")`
+    // (how `await <ident>` transpiles) to plain `x`. Scoped to functions that
+    // actually inline a spawn, so `authenticate` bodies that `await` a live
+    // client `reusable_future` handle are left untouched.
+    serializeAwaitedSpawns(content: string): string {
+        const spawnMarker = 'self.spawn(&[Value::Str("';
+        const matchParen = (s: string, openIdx: number): number => {
+            let depth = 0;
+            for (let i = openIdx; i < s.length; i++) {
+                if (s[i] === '(') depth++;
+                else if (s[i] === ')') { depth--; if (depth === 0) return i; }
+            }
+            return -1;
+        };
+        const topComma = (s: string): number => {
+            let depth = 0;
+            for (let i = 0; i < s.length; i++) {
+                const c = s[i];
+                if (c === '(' || c === '[' || c === '{') depth++;
+                else if (c === ')' || c === ']' || c === '}') depth--;
+                else if (c === ',' && depth === 0) return i;
+            }
+            return -1;
+        };
+        // Collect the char spans of functions that get an inlined spawn, so the
+        // await-on-value rewrite stays scoped to them.
+        const touchedFns: Array<[number, number]> = [];
+        let out = '';
+        let idx = 0;
+        while (true) {
+            const p = content.indexOf(spawnMarker, idx);
+            if (p < 0) { out += content.slice(idx); break; }
+            // Expression position? Look back past whitespace for ',' or '('.
+            let b = p - 'self.spawn(&['.length - 1;
+            while (b >= 0 && /\s/.test(content[b])) b--;
+            const prev = b >= 0 ? content[b] : '';
+            const spawnCallOpen = p + 'self.spawn'.length; // index of '('
+            const spawnCallEnd = matchParen(content, spawnCallOpen);
+            if ((prev !== ',' && prev !== '(') || spawnCallEnd < 0) {
+                // Fire-and-forget statement (or unbalanced): leave as-is.
+                out += content.slice(idx, p + spawnMarker.length);
+                idx = p + spawnMarker.length;
+                continue;
+            }
+            // inner = contents of the `&[ ... ]`
+            const arrOpen = content.indexOf('[', spawnCallOpen);
+            const inner = content.slice(arrOpen + 1, spawnCallEnd - 1); // strip `]` too
+            // First element: Value::Str("METHOD".to_string())[.clone()], rest = args.
+            const firstComma = topComma(inner);
+            const head = firstComma < 0 ? inner : inner.slice(0, firstComma);
+            const argsPart = firstComma < 0 ? '' : inner.slice(firstComma + 1).trim();
+            const nameM = head.match(/Value::Str\("([^"]+)"\.to_string\(\)\)/);
+            if (!nameM) {
+                out += content.slice(idx, spawnCallEnd + 1);
+                idx = spawnCallEnd + 1;
+                continue;
+            }
+            const method = nameM[1];
+            const replacement = `self.call_dynamic("${method}", vec![${argsPart}]).await`;
+            out += content.slice(idx, p) + replacement;
+            idx = spawnCallEnd + 1;
+            // Record the enclosing function span in the ORIGINAL content for the
+            // await-on-value rewrite below.
+            const fnStart = content.lastIndexOf('\n    pub ', p) >= 0
+                ? Math.max(
+                    content.lastIndexOf('\n    pub fn ', p),
+                    content.lastIndexOf('\n    pub async fn ', p),
+                    content.lastIndexOf('\n    fn ', p),
+                    content.lastIndexOf('\n    async fn ', p),
+                  )
+                : content.lastIndexOf('\n    fn ', p);
+            // Next function declaration after the spawn = end of this one.
+            const nextCandidates = [
+                content.indexOf('\n    pub fn ', spawnCallEnd),
+                content.indexOf('\n    pub async fn ', spawnCallEnd),
+                content.indexOf('\n    fn ', spawnCallEnd),
+                content.indexOf('\n    async fn ', spawnCallEnd),
+            ].filter((x) => x >= 0);
+            const fnEnd = nextCandidates.length ? Math.min(...nextCandidates) : content.length;
+            if (fnStart >= 0) touchedFns.push([fnStart, fnEnd]);
+        }
+        if (touchedFns.length === 0) return out;
+        // Re-run over the rewritten text, rewriting await-on-value only inside the
+        // touched function spans. Spans were computed on the pre-rewrite content;
+        // recompute against `out` by re-locating each function's `fn NAME(`.
+        // Simpler: rewrite every `get_value(&IDENT, &..Value::Str("await"..))`
+        // that sits inside a touched-fn's text, matched by re-scanning `out`.
+        const awaitRe = /get_value\(&(\w+),\s*&(?:crate::)?Value::Str\("await"\.to_string\(\)\)\)/g;
+        // Build the set of function names that were touched.
+        const touchedNames = new Set<string>();
+        for (const [s] of touchedFns) {
+            const decl = content.slice(s, s + 120).match(/fn\s+(\w+)\s*[<(]/);
+            if (decl) touchedNames.add(decl[1]);
+        }
+        // Walk `out` function-by-function; rewrite await-on-value only in touched ones.
+        const fnSplit = /\n    (?:pub )?(?:async )?fn\s+(\w+)/g;
+        let result = '';
+        let last = 0;
+        let mm: RegExpExecArray | null;
+        const bounds: Array<{ name: string; start: number }> = [];
+        while ((mm = fnSplit.exec(out)) !== null) bounds.push({ name: mm[1], start: mm.index });
+        for (let i = 0; i < bounds.length; i++) {
+            const segStart = bounds[i].start;
+            const segEnd = i + 1 < bounds.length ? bounds[i + 1].start : out.length;
+            result += out.slice(last, segStart);
+            let seg = out.slice(segStart, segEnd);
+            if (touchedNames.has(bounds[i].name)) {
+                seg = seg.replace(awaitRe, '$1');
+            }
+            result += seg;
+            last = segEnd;
+        }
+        result += out.slice(last);
+        return result;
+    }
+
     // JS builds a subscribe request by aliasing a local array into a dict
     // literal and then mutating the array: `const args = []; const req = {
     // 'params': args }; ... args.push(x); ... this.watch(url, hash, req)`.
@@ -5677,6 +5802,7 @@ ${arms.join('\n')}
         content = this.writeBackIndexedMutations(content);
         content = this.rewriteInlineFieldAppends(content);
         content = this.writeBackAliasedArrayMutations(content);
+        content = this.serializeAwaitedSpawns(content);
         // Propagate async-ness through the call graph: keep iterating
         // mark-async-if-body-awaits + append-await-to-callers until fixed.
         {
@@ -6667,6 +6793,7 @@ impl std::ops::DerefMut for ${coreName} {
         basePart = this.writeBackIndexedMutations(basePart);
         basePart = this.rewriteInlineFieldAppends(basePart);
         basePart = this.writeBackAliasedArrayMutations(basePart);
+        basePart = this.serializeAwaitedSpawns(basePart);
 
         // The prediction tier has many methods that mutate instance state
         // (set_events/set_outcomes/load_outcomes/index_market_outcomes/…). The
