@@ -678,6 +678,10 @@ export default class btse extends Exchange {
         const isFuture = marketType === 'FuturesTimeBased';
         const isSwap = marketType === 'FuturesPerpetual';
         const id = this.safeString (market, 'symbol');
+        // the futures v3 trading api identifies contracts by the short trade-currency
+        // form, for example RAVE-PERP instead of the RAVE-PERP-USDT market id, so the
+        // short form is stored in uppercaseId for the unified trading requests
+        const uppercaseId = this.safeString (market, 'tradeCurrency', id);
         const baseId = this.safeString (market, 'baseCurrency');
         const quoteId = this.safeString (market, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
@@ -709,6 +713,7 @@ export default class btse extends Exchange {
         }
         return this.safeMarketStructure ({
             'id': id,
+            'uppercaseId': uppercaseId,
             'symbol': symbol,
             'base': base,
             'quote': quote,
@@ -1654,6 +1659,10 @@ export default class btse extends Exchange {
         } else {
             // the futures endpoint does not support a count parameter, the limit is applied client-side
             request = this.omit (request, 'count');
+            if (market !== undefined) {
+                // the futures v3 api identifies contracts by the short form stored in uppercaseId
+                request['symbol'] = market['uppercaseId'];
+            }
             //
             //     {
             //         "data": [
@@ -1797,7 +1806,9 @@ export default class btse extends Exchange {
         //         "avgFilledPrice": 1956.59
         //     }
         //
-        const marketId = this.safeString (trade, 'symbol');
+        // the unified futures rows echo the short symbol form but carry the full
+        // market id in positionId, which resolves against the markets snapshot
+        const marketId = this.safeString2 (trade, 'positionId', 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 'timestamp');
         let fee = undefined;
