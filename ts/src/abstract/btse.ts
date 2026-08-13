@@ -67,20 +67,20 @@ interface Exchange {
     privateGetSpotApiV33UserWalletAddress (params?: {}): Promise<Dict | List>;
     privateGetSpotApiV32AvailableCurrencies (params?: {}): Promise<Dict | List>;
     privateGetSpotApiV32SubaccountWalletHistory (params?: {}): Promise<Dict | List>;
-    privateGetSpotApiV4TradeOrders (params?: {}): Promise<Dict>;
+    privateGetSpotApiV4TradeOrders (params?: {}): Promise<List>;
     privateGetSpotApiV4TradeOrder (params?: {}): Promise<Dict>;
-    privateGetSpotApiV4TradeTradeHistory (params?: {}): Promise<Dict>;
-    privateGetSpotApiV4TradeFees (params?: {}): Promise<Dict>;
-    privateGetFuturesApiV3TradeOrders (params?: {}): Promise<Dict>;
+    privateGetSpotApiV4TradeTradeHistory (params?: {}): Promise<Dict | List>;
+    privateGetSpotApiV4TradeFees (params?: {}): Promise<List>;
+    privateGetFuturesApiV3TradeOrders (params?: {}): Promise<List>;
     privateGetFuturesApiV3TradeRiskLimit (params?: {}): Promise<Dict | List>;
-    privateGetFuturesApiV3TradePositionMode (params?: {}): Promise<Dict>;
-    privateGetFuturesApiV3TradeLeverage (params?: {}): Promise<Dict>;
-    privateGetFuturesApiV3TradeTradeHistory (params?: {}): Promise<Dict>;
-    privateGetFuturesApiV3TradePositions (params?: {}): Promise<Dict>;
+    privateGetFuturesApiV3TradePositionMode (params?: {}): Promise<List>;
+    privateGetFuturesApiV3TradeLeverage (params?: {}): Promise<List>;
+    privateGetFuturesApiV3TradeTradeHistory (params?: {}): Promise<List>;
+    privateGetFuturesApiV3TradePositions (params?: {}): Promise<List>;
     privateGetFuturesApiV3TradeMarginSetting (params?: {}): Promise<Dict | List>;
     privateGetPublicApiWalletV1Assets (params?: {}): Promise<Dict | List>;
     privateGetPublicApiWalletV1UserAssets (params?: {}): Promise<Dict>;
-    privateGetPublicApiWalletV1UserWalletHistory (params?: {}): Promise<Dict>;
+    privateGetPublicApiWalletV1UserWalletHistory (params?: {}): Promise<Dict | List>;
     privateGetPublicApiWalletV1UserCryptoAddress (params?: {}): Promise<Dict | List>;
     privateGetPublicApiOtcV1Quotes (params?: {}): Promise<Dict | List>;
     privatePostSpotApiV33Order (params?: {}): Promise<Dict | List>;
@@ -135,7 +135,7 @@ interface Exchange {
     privateDeleteSpotApiV4TradeOrders (params?: {}): Promise<List>;
     privateDeleteSpotApiV4TradeOrdersAll (params?: {}): Promise<List>;
     privateDeleteFuturesApiV3TradeOrders (params?: {}): Promise<List>;
-    privateDeleteFuturesApiV3TradePositions (params?: {}): Promise<Dict>;
+    privateDeleteFuturesApiV3TradePositions (params?: {}): Promise<Dict | List>;
     privateDeletePublicApiWalletV1UserCryptoAddress (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}

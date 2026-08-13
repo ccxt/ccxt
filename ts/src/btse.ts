@@ -267,20 +267,20 @@ export default class btse extends Exchange {
                         'spot/api/v3.3/user/wallet/address': 15,
                         'spot/api/v3.2/availableCurrencies': 15,
                         'spot/api/v3.2/subaccount/wallet/history': 15,
-                        'spot/api/v4/trade/orders': { 'cost': 5 } as Endpoint<Dict>, // done
+                        'spot/api/v4/trade/orders': { 'cost': 5 } as Endpoint<List>, // done, bare array responses
                         'spot/api/v4/trade/order': { 'cost': 5 } as Endpoint<Dict>, // done
-                        'spot/api/v4/trade/trade_history': { 'cost': 5 } as Endpoint<Dict>, // done
-                        'spot/api/v4/trade/fees': { 'cost': 5 } as Endpoint<Dict>, // done
-                        'futures/api/v3/trade/orders': { 'cost': 5 } as Endpoint<Dict>, // done
+                        'spot/api/v4/trade/trade_history': 5, // done, mixed response shapes, enveloped and bare
+                        'spot/api/v4/trade/fees': { 'cost': 5 } as Endpoint<List>, // done, bare array responses
+                        'futures/api/v3/trade/orders': { 'cost': 5 } as Endpoint<List>, // done, bare array responses
                         'futures/api/v3/trade/risk_limit': 5, // not used
-                        'futures/api/v3/trade/position_mode': { 'cost': 5 } as Endpoint<Dict>, // done
-                        'futures/api/v3/trade/leverage': { 'cost': 5 } as Endpoint<Dict>, // done
-                        'futures/api/v3/trade/trade_history': { 'cost': 5 } as Endpoint<Dict>, // done
-                        'futures/api/v3/trade/positions': { 'cost': 5 } as Endpoint<Dict>, // done
+                        'futures/api/v3/trade/position_mode': { 'cost': 5 } as Endpoint<List>, // done, bare array responses
+                        'futures/api/v3/trade/leverage': { 'cost': 5 } as Endpoint<List>, // done, bare array responses
+                        'futures/api/v3/trade/trade_history': { 'cost': 5 } as Endpoint<List>, // done, bare array responses
+                        'futures/api/v3/trade/positions': { 'cost': 5 } as Endpoint<List>, // done, bare array responses
                         'futures/api/v3/trade/margin_setting': 5, // not used
                         'public-api/wallet/v1/assets': 15, // not used
                         'public-api/wallet/v1/user/assets': { 'cost': 15 } as Endpoint<Dict>, // done
-                        'public-api/wallet/v1/user/walletHistory': { 'cost': 15 } as Endpoint<Dict>, // done
+                        'public-api/wallet/v1/user/walletHistory': 15, // done, mixed response shapes, enveloped and bare
                         'public-api/wallet/v1/user/crypto/address': 15, // not used
                         'public-api/otc/v1/quotes': 1, // not used
                     },
@@ -341,7 +341,7 @@ export default class btse extends Exchange {
                         'spot/api/v4/trade/orders': { 'cost': 1 } as Endpoint<List>, // done
                         'spot/api/v4/trade/orders/all': { 'cost': 1 } as Endpoint<List>, // done
                         'futures/api/v3/trade/orders': { 'cost': 1 } as Endpoint<List>, // done
-                        'futures/api/v3/trade/positions': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'futures/api/v3/trade/positions': 1, // done, mixed response shapes, dict or one element array
                         'public-api/wallet/v1/user/crypto/address': 15, // not used
                     },
                 },
@@ -2829,17 +2829,19 @@ export default class btse extends Exchange {
         return result;
     }
 
-    async fetchWalletHistoryRows (methodName: string, historyTypes: string[], code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async requestWalletHistoryRows (methodName: string, historyTypes: string[], code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        // the helper always receives a non empty history type list, the list is
+        // rebuilt through safeList so the transpilers treat it as an array in
+        // every runtime
+        const typesList = this.safeList ({ 'types': historyTypes }, 'types', []);
         await this.loadMarkets ();
         const walletType = this.safeString (params, 'walletType', 'SPOT');
         const request: Dict = {
             'walletType': walletType,
         };
-        if (historyTypes.length > 0) {
-            // the endpoint applies a server side history type filter sent as a
-            // json encoded array in the query string, verified live
-            request['historyTypes'] = this.json (historyTypes);
-        }
+        // the endpoint applies a server side history type filter sent as a
+        // json encoded array in the query string, verified live
+        request['historyTypes'] = this.json (typesList);
         params = this.omit (params, 'walletType');
         let currency = undefined;
         if (code !== undefined) {
@@ -2893,8 +2895,8 @@ export default class btse extends Exchange {
         // and the unified enum vocabularies as the legacy endpoint ignored the
         // filter and returned the whole mixed ledger
         const allowed: Dict = {};
-        for (let i = 0; i < historyTypes.length; i++) {
-            const historyType = historyTypes[i];
+        for (let i = 0; i < typesList.length; i++) {
+            const historyType = typesList[i];
             allowed[historyType] = true;
             allowed[this.capitalize (historyType.toLowerCase ())] = true;
         }
@@ -2902,7 +2904,7 @@ export default class btse extends Exchange {
         for (let i = 0; i < rawRows.length; i++) {
             const entry = rawRows[i];
             const type = this.safeString (entry, 'type', '');
-            if ((historyTypes.length === 0) || (type in allowed)) {
+            if (type in allowed) {
                 rows.push (entry);
             }
         }
@@ -2923,7 +2925,7 @@ export default class btse extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        const [ rows, currency ] = await this.fetchWalletHistoryRows ('fetchDepositsWithdrawals', [ 'DEPOSIT', 'WITHDRAW' ], code, since, limit, params);
+        const [ rows, currency ] = await this.requestWalletHistoryRows ('fetchDepositsWithdrawals', [ 'DEPOSIT', 'WITHDRAW' ], code, since, limit, params);
         return this.parseTransactions (rows, currency, since, limit);
     }
 
@@ -2941,7 +2943,7 @@ export default class btse extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        const [ rows, currency ] = await this.fetchWalletHistoryRows ('fetchDeposits', [ 'DEPOSIT' ], code, since, limit, params);
+        const [ rows, currency ] = await this.requestWalletHistoryRows ('fetchDeposits', [ 'DEPOSIT' ], code, since, limit, params);
         return this.parseTransactions (rows, currency, since, limit);
     }
 
@@ -2959,7 +2961,7 @@ export default class btse extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        const [ rows, currency ] = await this.fetchWalletHistoryRows ('fetchWithdrawals', [ 'WITHDRAW' ], code, since, limit, params);
+        const [ rows, currency ] = await this.requestWalletHistoryRows ('fetchWithdrawals', [ 'WITHDRAW' ], code, since, limit, params);
         return this.parseTransactions (rows, currency, since, limit);
     }
 
@@ -3616,7 +3618,7 @@ export default class btse extends Exchange {
         //         }
         //     ]
         //
-        let safeResponse = [];
+        let safeResponse: List = [];
         if (Array.isArray (response)) {
             safeResponse = response;
         }
