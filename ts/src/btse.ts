@@ -1285,12 +1285,6 @@ export default class btse extends Exchange {
         market = this.safeMarket (marketId, market);
         const last = this.safeString (ticker, 'lastPrice');
         let baseVolume = this.safeString (ticker, 'amount');
-        // btse saturates overflowing volume fields at the maximum representable value
-        // of 2^63 / 1e8 = 92233720368.54775807, observed live on the PEPE markets -
-        // the saturated value is not a volume, so it is treated like an unavailable value
-        if ((baseVolume !== undefined) && Precise.stringGe (baseVolume, '92233720368.5477')) {
-            baseVolume = undefined;
-        }
         if ((baseVolume !== undefined) && (market !== undefined) && market['contract']) {
             // for contract markets the amount field is denominated in contracts, verified live -
             // scaling by contractSize converts it into base currency units
