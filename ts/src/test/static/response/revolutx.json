@@ -1,6 +1,9 @@
 {
     "exchange": "revolutx",
-    "skipKeys": ["timestamp", "nonce"],
+    "skipKeys": [
+        "timestamp",
+        "nonce"
+    ],
     "outputType": "both",
     "apiKey": "xxxxxxxx",
     "privateKey": "0123456789abcdef0123456789abcdef",
@@ -65,12 +68,12 @@
                         "tierBased": false,
                         "feeSide": "get",
                         "precision": {
-                            "amount": 0.0000001,
+                            "amount": 1e-07,
                             "price": 0.01
                         },
                         "limits": {
                             "amount": {
-                                "min": 0.0000001,
+                                "min": 1e-07,
                                 "max": 1000
                             },
                             "price": {
@@ -130,12 +133,12 @@
                         "tierBased": false,
                         "feeSide": "get",
                         "precision": {
-                            "amount": 0.00000001,
+                            "amount": 1e-08,
                             "price": 0.01
                         },
                         "limits": {
                             "amount": {
-                                "min": 0.00000001,
+                                "min": 1e-08,
                                 "max": 5000
                             },
                             "price": {
@@ -206,7 +209,9 @@
                         "name": "Bitcoin",
                         "active": true,
                         "type": "crypto",
-                        "precision": 0.00000001,
+                        "deposit": null,
+                        "withdraw": null,
+                        "precision": 1e-08,
                         "fee": null,
                         "limits": {
                             "amount": {
@@ -214,6 +219,10 @@
                                 "max": null
                             },
                             "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
                                 "min": null,
                                 "max": null
                             }
@@ -234,6 +243,8 @@
                         "name": "US Dollar",
                         "active": true,
                         "type": "fiat",
+                        "deposit": null,
+                        "withdraw": null,
                         "precision": 0.01,
                         "fee": null,
                         "limits": {
@@ -242,6 +253,10 @@
                                 "max": null
                             },
                             "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
                                 "min": null,
                                 "max": null
                             }
@@ -319,16 +334,34 @@
             {
                 "description": "BTC/USD orderbook",
                 "method": "fetchOrderBook",
-                "input": ["BTC/USD"],
+                "input": [
+                    "BTC/USD"
+                ],
                 "httpResponse": {
                     "data": {
                         "asks": [
-                            {"price": "120050.00", "quantity": "1.7000", "count": 3},
-                            {"price": "120100.00", "quantity": "0.5000", "count": 1}
+                            {
+                                "price": "120050.00",
+                                "quantity": "1.7000",
+                                "count": 3
+                            },
+                            {
+                                "price": "120100.00",
+                                "quantity": "0.5000",
+                                "count": 1
+                            }
                         ],
                         "bids": [
-                            {"price": "119950.00", "quantity": "0.25", "count": 1},
-                            {"price": "119900.00", "quantity": "1.2000", "count": 2}
+                            {
+                                "price": "119950.00",
+                                "quantity": "0.25",
+                                "count": 1
+                            },
+                            {
+                                "price": "119900.00",
+                                "quantity": "1.2000",
+                                "count": 2
+                            }
                         ]
                     },
                     "metadata": {
@@ -339,12 +372,24 @@
                 "parsedResponse": {
                     "symbol": "BTC/USD",
                     "bids": [
-                        [119950, 0.25],
-                        [119900, 1.2]
+                        [
+                            119950,
+                            0.25
+                        ],
+                        [
+                            119900,
+                            1.2
+                        ]
                     ],
                     "asks": [
-                        [120050, 1.7],
-                        [120100, 0.5]
+                        [
+                            120050,
+                            1.7
+                        ],
+                        [
+                            120100,
+                            0.5
+                        ]
                     ],
                     "timestamp": 1785313433816,
                     "datetime": "2026-07-29T08:23:53.816Z",
@@ -356,11 +401,30 @@
             {
                 "description": "BTC/USD 1h candles",
                 "method": "fetchOHLCV",
-                "input": ["BTC/USD", "1h", null, 5],
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    null,
+                    5
+                ],
                 "httpResponse": {
                     "data": [
-                        {"start": 1785309833816, "open": "119800.00", "high": "120100.00", "low": "119700.00", "close": "120000.00", "volume": "0.25000000"},
-                        {"start": 1785309834816, "open": "120000.00", "high": "120200.00", "low": "119900.00", "close": "120100.00", "volume": "0.35000000"}
+                        {
+                            "start": 1785309833816,
+                            "open": "119800.00",
+                            "high": "120100.00",
+                            "low": "119700.00",
+                            "close": "120000.00",
+                            "volume": "0.25000000"
+                        },
+                        {
+                            "start": 1785309834816,
+                            "open": "120000.00",
+                            "high": "120200.00",
+                            "low": "119900.00",
+                            "close": "120100.00",
+                            "volume": "0.35000000"
+                        }
                     ],
                     "metadata": {
                         "region": "EEA",
@@ -368,8 +432,22 @@
                     }
                 },
                 "parsedResponse": [
-                    [1785309833816, 119800, 120100, 119700, 120000, 0.25],
-                    [1785309834816, 120000, 120200, 119900, 120100, 0.35]
+                    [
+                        1785309833816,
+                        119800,
+                        120100,
+                        119700,
+                        120000,
+                        0.25
+                    ],
+                    [
+                        1785309834816,
+                        120000,
+                        120200,
+                        119900,
+                        120100,
+                        0.35
+                    ]
                 ]
             }
         ],
@@ -377,11 +455,27 @@
             {
                 "description": "BTC/USD trades",
                 "method": "fetchTrades",
-                "input": ["BTC/USD"],
+                "input": [
+                    "BTC/USD"
+                ],
                 "httpResponse": {
                     "data": [
-                        {"id": "3b2b202b-7668-43cf-a6c8-b3354e7f4c52", "symbol": "BTC/USD", "price": "119980.00", "quantity": "0.01000000", "side": "sell", "timestamp": 1785313433816},
-                        {"id": "4c3c303c-8779-54dg-b7d9-c4465f8g5d63", "symbol": "BTC/USD", "price": "119990.00", "quantity": "0.02000000", "side": "buy", "timestamp": 1785313434816}
+                        {
+                            "id": "3b2b202b-7668-43cf-a6c8-b3354e7f4c52",
+                            "symbol": "BTC/USD",
+                            "price": "119980.00",
+                            "quantity": "0.01000000",
+                            "side": "sell",
+                            "timestamp": 1785313433816
+                        },
+                        {
+                            "id": "4c3c303c-8779-54dg-b7d9-c4465f8g5d63",
+                            "symbol": "BTC/USD",
+                            "price": "119990.00",
+                            "quantity": "0.02000000",
+                            "side": "buy",
+                            "timestamp": 1785313434816
+                        }
                     ],
                     "metadata": {
                         "timestamp": 1785313433816,
@@ -409,7 +503,8 @@
                             "quantity": "0.01000000",
                             "side": "sell",
                             "timestamp": 1785313433816
-                        }
+                        },
+                        "fees": []
                     },
                     {
                         "id": "4c3c303c-8779-54dg-b7d9-c4465f8g5d63",
@@ -431,7 +526,8 @@
                             "quantity": "0.02000000",
                             "side": "buy",
                             "timestamp": 1785313434816
-                        }
+                        },
+                        "fees": []
                     }
                 ]
             }
@@ -442,13 +538,35 @@
                 "method": "fetchBalance",
                 "input": [],
                 "httpResponse": [
-                    {"currency": "BTC", "available": "1.25000000", "reserved": "0.10000000", "total": "1.35000000"},
-                    {"currency": "USD", "available": "50000.00", "reserved": "1000.00", "staked": "32.00", "total": "51032.00"}
+                    {
+                        "currency": "BTC",
+                        "available": "1.25000000",
+                        "reserved": "0.10000000",
+                        "total": "1.35000000"
+                    },
+                    {
+                        "currency": "USD",
+                        "available": "50000.00",
+                        "reserved": "1000.00",
+                        "staked": "32.00",
+                        "total": "51032.00"
+                    }
                 ],
                 "parsedResponse": {
                     "info": [
-                        {"currency": "BTC", "available": "1.25000000", "reserved": "0.10000000", "total": "1.35000000"},
-                        {"currency": "USD", "available": "50000.00", "reserved": "1000.00", "staked": "32.00", "total": "51032.00"}
+                        {
+                            "currency": "BTC",
+                            "available": "1.25000000",
+                            "reserved": "0.10000000",
+                            "total": "1.35000000"
+                        },
+                        {
+                            "currency": "USD",
+                            "available": "50000.00",
+                            "reserved": "1000.00",
+                            "staked": "32.00",
+                            "total": "51032.00"
+                        }
                     ],
                     "BTC": {
                         "free": 1.25,
@@ -479,10 +597,20 @@
             {
                 "description": "limit buy order",
                 "method": "createOrder",
-                "input": ["BTC/USD", "limit", "buy", 0.001, 120000],
+                "input": [
+                    "BTC/USD",
+                    "limit",
+                    "buy",
+                    0.001,
+                    120000
+                ],
                 "httpResponse": {
                     "data": [
-                        {"venue_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b", "client_order_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890", "state": "new"}
+                        {
+                            "venue_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                            "client_order_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                            "state": "new"
+                        }
                     ]
                 },
                 "parsedResponse": {
@@ -529,7 +657,9 @@
             {
                 "description": "fetch order by id",
                 "method": "fetchOrder",
-                "input": ["7a52e92e-8639-4fe1-abaa-68d3a2d5234b"],
+                "input": [
+                    "7a52e92e-8639-4fe1-abaa-68d3a2d5234b"
+                ],
                 "httpResponse": {
                     "data": {
                         "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
@@ -596,7 +726,9 @@
             {
                 "description": "fetch open orders for BTC/USD",
                 "method": "fetchOpenOrders",
-                "input": ["BTC/USD"],
+                "input": [
+                    "BTC/USD"
+                ],
                 "httpResponse": {
                     "data": [
                         {
@@ -671,10 +803,20 @@
             {
                 "description": "fetch my trades for BTC/USD",
                 "method": "fetchMyTrades",
-                "input": ["BTC/USD"],
+                "input": [
+                    "BTC/USD"
+                ],
                 "httpResponse": {
                     "data": [
-                        {"tdt": 1785309833816, "p": "119900.00", "q": "0.00100000", "tid": "ad3e8787ab623ba5a1dfea53819be6f9", "oid": "2affb2ac-4cf7-4bbf-b7b2-fc1e885bdc2c", "s": "buy", "im": false}
+                        {
+                            "tdt": 1785309833816,
+                            "p": "119900.00",
+                            "q": "0.00100000",
+                            "tid": "ad3e8787ab623ba5a1dfea53819be6f9",
+                            "oid": "2affb2ac-4cf7-4bbf-b7b2-fc1e885bdc2c",
+                            "s": "buy",
+                            "im": false
+                        }
                     ],
                     "metadata": {
                         "timestamp": 1785313433816,
@@ -703,7 +845,8 @@
                             "oid": "2affb2ac-4cf7-4bbf-b7b2-fc1e885bdc2c",
                             "s": "buy",
                             "im": false
-                        }
+                        },
+                        "fees": []
                     }
                 ]
             }
@@ -712,7 +855,14 @@
             {
                 "description": "replace order with object response data",
                 "method": "editOrder",
-                "input": ["7a52e92e-8639-4fe1-abaa-68d3a2d5234b", "BTC/USD", "limit", "buy", 0.002, 121000],
+                "input": [
+                    "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                    "BTC/USD",
+                    "limit",
+                    "buy",
+                    0.002,
+                    121000
+                ],
                 "httpResponse": {
                     "data": {
                         "venue_order_id": "8b63fa3f-974a-50f2-bcbb-79e4b3e6345c",
@@ -758,6 +908,212 @@
                         "type": "limit"
                     }
                 }
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetch historical orders for BTC/USD",
+                "method": "fetchOrders",
+                "input": [
+                    "BTC/USD"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "id": "9c73fa4d-a8b2-4cde-9f01-234567890abc",
+                            "client_order_id": "d4e5f6a7-b8c9-0123-4567-890abcdef012",
+                            "symbol": "BTC/USD",
+                            "side": "buy",
+                            "type": "limit",
+                            "quantity": "0.001",
+                            "filled_quantity": "0.001",
+                            "leaves_quantity": "0",
+                            "price": "120000.00",
+                            "average_fill_price": "119950.00",
+                            "total_fee": "0.108",
+                            "fee_currency": "USD",
+                            "status": "filled",
+                            "time_in_force": "gtc",
+                            "created_date": 1785309833816,
+                            "updated_date": 1785313433816
+                        }
+                    ],
+                    "metadata": {
+                        "timestamp": 1785313433816,
+                        "next_cursor": null
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "9c73fa4d-a8b2-4cde-9f01-234567890abc",
+                        "clientOrderId": "d4e5f6a7-b8c9-0123-4567-890abcdef012",
+                        "symbol": "BTC/USD",
+                        "type": "limit",
+                        "timeInForce": "gtc",
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "side": "buy",
+                        "amount": 0.001,
+                        "price": 120000,
+                        "triggerPrice": null,
+                        "cost": 119.95,
+                        "average": 119950,
+                        "filled": 0.001,
+                        "remaining": 0,
+                        "timestamp": 1785309833816,
+                        "datetime": "2026-07-29T07:23:53.816Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1785313433816,
+                        "status": "closed",
+                        "fee": {
+                            "cost": 0.108,
+                            "currency": "USD"
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "cost": 0.108,
+                                "currency": "USD"
+                            }
+                        ],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "info": {
+                            "id": "9c73fa4d-a8b2-4cde-9f01-234567890abc",
+                            "client_order_id": "d4e5f6a7-b8c9-0123-4567-890abcdef012",
+                            "symbol": "BTC/USD",
+                            "side": "buy",
+                            "type": "limit",
+                            "quantity": "0.001",
+                            "filled_quantity": "0.001",
+                            "leaves_quantity": "0",
+                            "price": "120000.00",
+                            "average_fill_price": "119950.00",
+                            "total_fee": "0.108",
+                            "fee_currency": "USD",
+                            "status": "filled",
+                            "time_in_force": "gtc",
+                            "created_date": 1785309833816,
+                            "updated_date": 1785313433816
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetch closed orders for BTC/USD",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "BTC/USD"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "id": "9c73fa4d-a8b2-4cde-9f01-234567890abc",
+                            "client_order_id": "d4e5f6a7-b8c9-0123-4567-890abcdef012",
+                            "symbol": "BTC/USD",
+                            "side": "buy",
+                            "type": "limit",
+                            "quantity": "0.001",
+                            "filled_quantity": "0.001",
+                            "leaves_quantity": "0",
+                            "price": "120000.00",
+                            "average_fill_price": "119950.00",
+                            "total_fee": "0.108",
+                            "fee_currency": "USD",
+                            "status": "filled",
+                            "time_in_force": "gtc",
+                            "created_date": 1785309833816,
+                            "updated_date": 1785313433816
+                        }
+                    ],
+                    "metadata": {
+                        "timestamp": 1785313433816,
+                        "next_cursor": null
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "9c73fa4d-a8b2-4cde-9f01-234567890abc",
+                        "clientOrderId": "d4e5f6a7-b8c9-0123-4567-890abcdef012",
+                        "symbol": "BTC/USD",
+                        "type": "limit",
+                        "timeInForce": "gtc",
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "side": "buy",
+                        "amount": 0.001,
+                        "price": 120000,
+                        "triggerPrice": null,
+                        "cost": 119.95,
+                        "average": 119950,
+                        "filled": 0.001,
+                        "remaining": 0,
+                        "timestamp": 1785309833816,
+                        "datetime": "2026-07-29T07:23:53.816Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1785313433816,
+                        "status": "closed",
+                        "fee": {
+                            "cost": 0.108,
+                            "currency": "USD"
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "cost": 0.108,
+                                "currency": "USD"
+                            }
+                        ],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "info": {
+                            "id": "9c73fa4d-a8b2-4cde-9f01-234567890abc",
+                            "client_order_id": "d4e5f6a7-b8c9-0123-4567-890abcdef012",
+                            "symbol": "BTC/USD",
+                            "side": "buy",
+                            "type": "limit",
+                            "quantity": "0.001",
+                            "filled_quantity": "0.001",
+                            "leaves_quantity": "0",
+                            "price": "120000.00",
+                            "average_fill_price": "119950.00",
+                            "total_fee": "0.108",
+                            "fee_currency": "USD",
+                            "status": "filled",
+                            "time_in_force": "gtc",
+                            "created_date": 1785309833816,
+                            "updated_date": 1785313433816
+                        }
+                    }
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel order by id",
+                "method": "cancelOrder",
+                "input": [
+                    "7a52e92e-8639-4fe1-abaa-68d3a2d5234b"
+                ],
+                "httpResponse": {},
+                "parsedResponse": {
+                    "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                    "status": "canceled",
+                    "info": null
+                }
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel all orders",
+                "method": "cancelAllOrders",
+                "input": [],
+                "httpResponse": {},
+                "parsedResponse": []
             }
         ]
     }

@@ -407,6 +407,8 @@ export default class revolutx extends Exchange {
             'name': name,
             'active': active,
             'type': type,
+            'deposit': undefined,
+            'withdraw': undefined,
             'precision': this.parseNumber (precision),
             'fee': undefined,
             'limits': {
@@ -415,6 +417,10 @@ export default class revolutx extends Exchange {
                     'max': undefined,
                 },
                 'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
                     'min': undefined,
                     'max': undefined,
                 },
@@ -778,6 +784,7 @@ export default class revolutx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': undefined,
+            'fees': [],
         } as Trade;
     }
 
@@ -835,7 +842,7 @@ export default class revolutx extends Exchange {
             const trade = this.safeDict (data, i, {});
             result.push (this.parseTrade (trade, market));
         }
-        return result;
+        return this.filterBySymbolSinceLimit (this.sortBy (result, 'timestamp'), symbol, since, limit) as Trade[];
     }
 
     /**
@@ -1319,6 +1326,7 @@ export default class revolutx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': undefined,
+            'fees': [],
         } as Trade;
     }
 
