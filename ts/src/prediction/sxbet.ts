@@ -36,6 +36,7 @@ export default class sxbet extends Exchange {
                 'cancelOrders': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchClosedOrders': false,
                 'fetchEvent': true,
                 'fetchEvents': true,
                 'fetchMarkets': true,
@@ -2494,7 +2495,7 @@ export default class sxbet extends Exchange {
         const request: Dict = { 'marketHashes': marketHash };
         const response = await this.sxbetPublicGetOrders (request);
         const rawOrders = this.safeList (response, 'data', []);
-        const existingBooks = this.safeValue (this.options, 'wsRawOrders');
+        const existingBooks = this.safeDict (this.options, 'wsRawOrders');
         if (existingBooks === undefined) {
             this.options['wsRawOrders'] = this.createSafeDictionary ();
         }
@@ -2515,7 +2516,7 @@ export default class sxbet extends Exchange {
             orderMap[orderHash] = order;
         }
         this.options['wsRawOrders'][marketHash as string] = orderMap;
-        const watchedBooks = this.safeValue (this.options, 'wsWatchedBooks');
+        const watchedBooks = this.safeDict (this.options, 'wsWatchedBooks');
         if (watchedBooks === undefined) {
             this.options['wsWatchedBooks'] = this.createSafeDictionary ();
         }
@@ -2628,7 +2629,7 @@ export default class sxbet extends Exchange {
         const sym = this.safeString (outcomeObj, 'outcome');
         const marketHash = this.safeString (outcomeObj['info'], 'marketHash');
         const messageHash = 'ticker::' + sym;
-        const watchedTickers = this.safeValue (this.options, 'wsWatchedTickers');
+        const watchedTickers = this.safeDict (this.options, 'wsWatchedTickers');
         if (watchedTickers === undefined) {
             this.options['wsWatchedTickers'] = this.createSafeDictionary ();
         }
@@ -2636,7 +2637,7 @@ export default class sxbet extends Exchange {
         if (oddsCacheAll === undefined) {
             this.options['wsBestOdds'] = this.createSafeDictionary ();
         }
-        const primed = this.safeValue (this.options['wsBestOdds'], marketHash);
+        const primed = this.safeDict (this.options['wsBestOdds'], marketHash);
         if (primed === undefined) {
             // prime both sides from REST so the merged bid/ask survive one-sided websocket updates
             const sxMetadata = await this.loadSxMetadata ();
