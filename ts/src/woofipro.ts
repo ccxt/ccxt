@@ -5,7 +5,7 @@ import { ed25519 } from '@noble/curves/ed25519.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/woofipro.js';
-import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder, InsufficientFunds, ArgumentsRequired, NetworkError, NotSupported } from './base/errors.js';
+import { AuthenticationError, RateLimitExceeded, BadRequest, BadSymbol, ExchangeError, InvalidOrder, InsufficientFunds, ArgumentsRequired, NetworkError, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { ecdsa, eddsa } from './base/functions/crypto.js';
@@ -3072,7 +3072,11 @@ export default class woofipro extends Exchange {
         }
         const market = this.market (symbol);
         const marginModes = await this.fetchMarginModes ([ market['symbol'] ], params);
-        return this.safeDict (marginModes, market['symbol']) as MarginMode;
+        const marginMode = this.safeDict (marginModes, market['symbol']);
+        if (marginMode === undefined) {
+            throw new BadSymbol (this.id + ' fetchMarginMode() did not return a margin mode for ' + market['symbol']);
+        }
+        return marginMode as MarginMode;
     }
 
     /**
@@ -3126,7 +3130,7 @@ export default class woofipro extends Exchange {
             'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
-            'code': 'USDC',
+            'code': this.safeString (market, 'settle'),
             'status': (success) ? 'ok' : 'failed',
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
