@@ -312,6 +312,20 @@
                 "input": []
             }
         ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel all swap trailing stop orders",
+                "method": "cancelAllOrders",
+                "url": "https://fapi.xt.com/future/trade/v1/entrust/cancel-all-track",
+                "input": [
+                    "XRP/USDT:USDT",
+                    {
+                        "trailing": true
+                    }
+                ],
+                "output": "{\"symbol\":\"xrp_usdt\"}"
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "cancel spot order",
