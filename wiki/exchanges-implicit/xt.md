@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official xt API documentation:** [doc.xt.com](https://doc.xt.com/) · [github.com](https://github.com/xtpub/api-doc)
 
-> 166 implicit endpoints across 2 access groups.
+> 172 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -145,6 +145,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateLinearGetFutureTradeV1EntrustPlanListHistory` | GET | `future/trade/v1/entrust/plan-list-history` | 1 |
 | `privateLinearGetFutureTradeV1EntrustProfitDetail` | GET | `future/trade/v1/entrust/profit-detail` | 1 |
 | `privateLinearGetFutureTradeV1EntrustProfitList` | GET | `future/trade/v1/entrust/profit-list` | 1 |
+| `privateLinearGetFutureTradeV1EntrustTrackDetail` | GET | `future/trade/v1/entrust/track-detail` | 1 |
+| `privateLinearGetFutureTradeV1EntrustTrackList` | GET | `future/trade/v1/entrust/track-list` | 1 |
+| `privateLinearGetFutureTradeV1EntrustTrackListHistory` | GET | `future/trade/v1/entrust/track-list-history` | 1 |
 | `privateLinearGetFutureTradeV1OrderDetail` | GET | `future/trade/v1/order/detail` | 1 |
 | `privateLinearGetFutureTradeV1OrderList` | GET | `future/trade/v1/order/list` | 1 |
 | `privateLinearGetFutureTradeV1OrderListHistory` | GET | `future/trade/v1/order/list-history` | 1 |
@@ -188,6 +191,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateInverseGetFutureTradeV1EntrustPlanListHistory` | GET | `future/trade/v1/entrust/plan-list-history` | 1 |
 | `privateInverseGetFutureTradeV1EntrustProfitDetail` | GET | `future/trade/v1/entrust/profit-detail` | 1 |
 | `privateInverseGetFutureTradeV1EntrustProfitList` | GET | `future/trade/v1/entrust/profit-list` | 1 |
+| `privateInverseGetFutureTradeV1EntrustTrackDetail` | GET | `future/trade/v1/entrust/track-detail` | 1 |
+| `privateInverseGetFutureTradeV1EntrustTrackList` | GET | `future/trade/v1/entrust/track-list` | 1 |
+| `privateInverseGetFutureTradeV1EntrustTrackListHistory` | GET | `future/trade/v1/entrust/track-list-history` | 1 |
 | `privateInverseGetFutureTradeV1OrderDetail` | GET | `future/trade/v1/order/detail` | 1 |
 | `privateInverseGetFutureTradeV1OrderList` | GET | `future/trade/v1/order/list` | 1 |
 | `privateInverseGetFutureTradeV1OrderListHistory` | GET | `future/trade/v1/order/list-history` | 1 |

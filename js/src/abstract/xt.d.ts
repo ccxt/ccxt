@@ -80,6 +80,9 @@ interface Exchange {
     privateLinearGetFutureTradeV1EntrustPlanListHistory(params?: {}): Promise<Dict>;
     privateLinearGetFutureTradeV1EntrustProfitDetail(params?: {}): Promise<Dict>;
     privateLinearGetFutureTradeV1EntrustProfitList(params?: {}): Promise<Dict>;
+    privateLinearGetFutureTradeV1EntrustTrackDetail(params?: {}): Promise<Dict>;
+    privateLinearGetFutureTradeV1EntrustTrackList(params?: {}): Promise<Dict>;
+    privateLinearGetFutureTradeV1EntrustTrackListHistory(params?: {}): Promise<Dict>;
     privateLinearGetFutureTradeV1OrderDetail(params?: {}): Promise<Dict>;
     privateLinearGetFutureTradeV1OrderList(params?: {}): Promise<Dict>;
     privateLinearGetFutureTradeV1OrderListHistory(params?: {}): Promise<Dict>;
@@ -123,6 +126,9 @@ interface Exchange {
     privateInverseGetFutureTradeV1EntrustPlanListHistory(params?: {}): Promise<Dict>;
     privateInverseGetFutureTradeV1EntrustProfitDetail(params?: {}): Promise<Dict>;
     privateInverseGetFutureTradeV1EntrustProfitList(params?: {}): Promise<Dict>;
+    privateInverseGetFutureTradeV1EntrustTrackDetail(params?: {}): Promise<Dict>;
+    privateInverseGetFutureTradeV1EntrustTrackList(params?: {}): Promise<Dict>;
+    privateInverseGetFutureTradeV1EntrustTrackListHistory(params?: {}): Promise<Dict>;
     privateInverseGetFutureTradeV1OrderDetail(params?: {}): Promise<Dict>;
     privateInverseGetFutureTradeV1OrderList(params?: {}): Promise<Dict>;
     privateInverseGetFutureTradeV1OrderListHistory(params?: {}): Promise<Dict>;

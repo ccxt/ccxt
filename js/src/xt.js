@@ -253,6 +253,9 @@ export default class xt extends Exchange {
                             'future/trade/v1/entrust/plan-list-history': { 'cost': 1 },
                             'future/trade/v1/entrust/profit-detail': { 'cost': 1 },
                             'future/trade/v1/entrust/profit-list': { 'cost': 1 },
+                            'future/trade/v1/entrust/track-detail': { 'cost': 1 },
+                            'future/trade/v1/entrust/track-list': { 'cost': 1 },
+                            'future/trade/v1/entrust/track-list-history': { 'cost': 1 },
                             'future/trade/v1/order/detail': { 'cost': 1 },
                             'future/trade/v1/order/list': { 'cost': 1 },
                             'future/trade/v1/order/list-history': { 'cost': 1 },
@@ -302,6 +305,9 @@ export default class xt extends Exchange {
                             'future/trade/v1/entrust/plan-list-history': { 'cost': 1 },
                             'future/trade/v1/entrust/profit-detail': { 'cost': 1 },
                             'future/trade/v1/entrust/profit-list': { 'cost': 1 },
+                            'future/trade/v1/entrust/track-detail': { 'cost': 1 },
+                            'future/trade/v1/entrust/track-list': { 'cost': 1 },
+                            'future/trade/v1/entrust/track-list-history': { 'cost': 1 },
                             'future/trade/v1/order/detail': { 'cost': 1 },
                             'future/trade/v1/order/list': { 'cost': 1 },
                             'future/trade/v1/order/list-history': { 'cost': 1 },
@@ -801,6 +807,21 @@ export default class xt extends Exchange {
                     'fetchMyTrades': {
                         'daysBack': undefined,
                         'untilDays': undefined,
+                    },
+                    'fetchOrder': {
+                        'trailing': true,
+                    },
+                    'fetchOpenOrders': {
+                        'trailing': true,
+                    },
+                    'fetchOrders': {
+                        'trailing': true,
+                    },
+                    'fetchClosedOrders': {
+                        'trailing': true,
+                    },
+                    'fetchCanceledOrders': {
+                        'trailing': true,
                     },
                 },
                 'swap': {
@@ -2759,11 +2780,13 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/docs/futures/Order/see-orders-by-id
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersByEntrustId
      * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimitByProfitId
+     * @see https://doc.xt.com/docs/futures/Entrust/GetSingleTrackDetail
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the order is a trailing order or not
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -2782,11 +2805,21 @@ export default class xt extends Exchange {
         [subType, params] = this.handleSubTypeAndParams('fetchOrder', market, params);
         const trigger = this.safeValue(params, 'stop');
         const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
+        const trailing = this.safeBool(params, 'trailing');
+        if (trailing) {
+            const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
+            if (!isContract) {
+                throw new NotSupported(this.id + ' fetchOrder() trailing orders are only supported on swap and future markets');
+            }
+        }
         if (trigger) {
             request['entrustId'] = id;
         }
         else if (stopLossTakeProfit) {
             request['profitId'] = id;
+        }
+        else if (trailing) {
+            request['trackId'] = id;
         }
         else {
             request['orderId'] = id;
@@ -2807,6 +2840,15 @@ export default class xt extends Exchange {
             }
             else {
                 response = await this.privateLinearGetFutureTradeV1EntrustProfitDetail(this.extend(request, params));
+            }
+        }
+        else if (trailing) {
+            params = this.omit(params, 'trailing');
+            if (subType === 'inverse') {
+                response = await this.privateInverseGetFutureTradeV1EntrustTrackDetail(this.extend(request, params));
+            }
+            else {
+                response = await this.privateLinearGetFutureTradeV1EntrustTrackDetail(this.extend(request, params));
             }
         }
         else if (subType === 'inverse') {
@@ -2945,11 +2987,13 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
      * @see https://doc.xt.com/docs/futures/Order/see-order-history
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersHistory
+     * @see https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2974,6 +3018,13 @@ export default class xt extends Exchange {
         [type, params] = this.handleMarketTypeAndParams('fetchOrders', market, params);
         [subType, params] = this.handleSubTypeAndParams('fetchOrders', market, params);
         const trigger = this.safeValue2(params, 'trigger', 'stop');
+        const trailing = this.safeBool(params, 'trailing');
+        if (trailing) {
+            const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
+            if (!isContract) {
+                throw new NotSupported(this.id + ' fetchOrders() trailing orders are only supported on swap and future markets');
+            }
+        }
         if (trigger) {
             params = this.omit(params, ['trigger', 'stop']);
             if (subType === 'inverse') {
@@ -2981,6 +3032,15 @@ export default class xt extends Exchange {
             }
             else {
                 response = await this.privateLinearGetFutureTradeV1EntrustPlanListHistory(this.extend(request, params));
+            }
+        }
+        else if (trailing) {
+            params = this.omit(params, 'trailing');
+            if (subType === 'inverse') {
+                response = await this.privateInverseGetFutureTradeV1EntrustTrackListHistory(this.extend(request, params));
+            }
+            else {
+                response = await this.privateLinearGetFutureTradeV1EntrustTrackListHistory(this.extend(request, params));
             }
         }
         else if (subType === 'inverse') {
@@ -3133,7 +3193,18 @@ export default class xt extends Exchange {
         [subType, params] = this.handleSubTypeAndParams('fetchOrdersByStatus', market, params);
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
-        if (status === 'open') {
+        const trailing = this.safeBool(params, 'trailing');
+        if (trailing) {
+            const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
+            if (!isContract) {
+                throw new NotSupported(this.id + ' fetchOrdersByStatus() trailing orders are only supported on swap and future markets');
+            }
+            // the track endpoints do not accept a state filter, and a server-side
+            // size would truncate the mixed-state page before the local status
+            // filter runs, so the limit is only applied locally after filtering
+            request = this.omit(request, ['state', 'size']);
+        }
+        else if (status === 'open') {
             if (trigger || stopLossTakeProfit) {
                 request['state'] = 'NOT_TRIGGERED';
             }
@@ -3164,7 +3235,7 @@ export default class xt extends Exchange {
             if (since !== undefined) {
                 request['startTime'] = since;
             }
-            if (limit !== undefined) {
+            if ((limit !== undefined) && !trailing) {
                 request['size'] = limit;
             }
         }
@@ -3184,6 +3255,25 @@ export default class xt extends Exchange {
             }
             else {
                 response = await this.privateLinearGetFutureTradeV1EntrustProfitList(this.extend(request, params));
+            }
+        }
+        else if (trailing) {
+            params = this.omit(params, 'trailing');
+            if (status === 'open') {
+                if (subType === 'inverse') {
+                    response = await this.privateInverseGetFutureTradeV1EntrustTrackList(this.extend(request, params));
+                }
+                else {
+                    response = await this.privateLinearGetFutureTradeV1EntrustTrackList(this.extend(request, params));
+                }
+            }
+            else {
+                if (subType === 'inverse') {
+                    response = await this.privateInverseGetFutureTradeV1EntrustTrackListHistory(this.extend(request, params));
+                }
+                else {
+                    response = await this.privateLinearGetFutureTradeV1EntrustTrackListHistory(this.extend(request, params));
+                }
             }
         }
         else if ((subType !== undefined) || (type === 'swap') || (type === 'future')) {
@@ -3399,6 +3489,14 @@ export default class xt extends Exchange {
         else {
             orders = this.safeList(response, 'result', []);
         }
+        if (trailing) {
+            // the track endpoints do not support a server-side state filter
+            // and return entries in every state, so filter by status first,
+            // otherwise since/limit could cut off matching rows
+            const parsedOrders = this.parseOrders(orders, market);
+            const filteredOrders = this.filterBy(parsedOrders, 'status', status);
+            return this.filterBySinceLimit(filteredOrders, since, limit);
+        }
         return this.parseOrders(orders, market, since, limit);
     }
     /**
@@ -3409,12 +3507,14 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/docs/futures/Order/see-orders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/getTrackList
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3428,12 +3528,14 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/docs/futures/Order/see-orders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3447,12 +3549,14 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/docs/futures/Order/see-orders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3852,7 +3956,7 @@ export default class xt extends Exchange {
         }
         return this.safeOrder({
             'info': order,
-            'id': this.safeStringN(order, ['orderId', 'result', 'cancelId', 'entrustId', 'profitId']),
+            'id': this.safeStringN(order, ['orderId', 'result', 'cancelId', 'entrustId', 'profitId', 'trackId']),
             'clientOrderId': this.safeString2(order, 'clientOrderId', 'clientModifyId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -3889,11 +3993,13 @@ export default class xt extends Exchange {
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
             'UNFINISHED': 'open',
+            'NOT_ACTIVATION': 'open',
             'NOT_TRIGGERED': 'open',
             'TRIGGERING': 'open',
             'TRIGGERED': 'closed',
             'USER_REVOCATION': 'canceled',
             'PLATFORM_REVOCATION': 'rejected',
+            'DELEGATION_FAILED': 'rejected',
             'HISTORY': 'expired',
         };
         return this.safeString(statuses, status, status);
