@@ -137,7 +137,7 @@ public partial class woo : Exchange
                     { "private", "https://api.staging.woox.io" },
                 } },
                 { "www", "https://woox.io/" },
-                { "doc", new List<object>() {"https://docs.woox.io/"} },
+                { "doc", new List<object>() {"https://developer.woox.io/", "https://docs.woox.io/"} },
                 { "fees", new List<object>() {"https://support.woox.io/hc/en-001/articles/4404611795353--Trading-Fees"} },
                 { "referral", new Dictionary<string, object>() {
                     { "url", "https://woox.io/register?ref=DIJT0CNL" },
