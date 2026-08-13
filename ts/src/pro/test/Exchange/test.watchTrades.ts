@@ -25,7 +25,7 @@ async function testWatchTrades (exchange: Exchange, skippedProperties: object, s
             testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, response);
             now = exchange.milliseconds ();
             for (let i = 0; i < response.length; i++) {
-                testTrade (exchange, skippedProperties, method, response[i], symbol, now);
+                testTrade (exchange, skippedProperties, method, response[i], symbol, now, true);
             }
             // temporarily disabled, bcz of neverending breaks
             // if (!('timestampSort' in skippedProperties)) {

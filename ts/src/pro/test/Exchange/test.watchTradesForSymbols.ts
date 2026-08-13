@@ -8,7 +8,7 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
     const method = 'watchTradesForSymbols';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
-    const returnedSymbols: string[] = [];
+    const returnedSymbols: Str[] = [];
     while (now < ends || returnedSymbols.length < symbols.length) {
         let response: Trade[] | undefined = undefined;
         const success = true;
@@ -24,14 +24,10 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
         if ((success === true) && (response !== undefined)) {
             assert (Array.isArray (response), exchange.id + ' ' + method + ' ' + exchange.json (symbols) + ' must return an array. ' + exchange.json (response));
             now = exchange.milliseconds ();
-            let symbol: Str = undefined;
             for (let i = 0; i < response.length; i++) {
                 const trade = response[i];
-                symbol = trade['symbol'];
-                if (symbol === undefined) {
-                    continue;
-                }
-                testTrade (exchange, skippedProperties, method, trade, symbol, now);
+                const symbol: string = trade['symbol'] as string;
+                testTrade (exchange, skippedProperties, method, trade, symbol, now, true);
                 testSharedMethods.assertInArray (exchange, skippedProperties, method, trade, 'symbol', symbols);
                 if (!exchange.inArray (symbol, returnedSymbols)) {
                     returnedSymbols.push (symbol);
