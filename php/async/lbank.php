@@ -723,8 +723,12 @@ class lbank extends Exchange {
                         'max' => $this->safe_number($market, 'maxOrderVolume'),
                     ),
                     'price' => array(
-                        'min' => $this->safe_number($market, 'priceLimitLowerValue'),
-                        'max' => $this->safe_number($market, 'priceLimitUpperValue'),
+                        // priceLimitLowerValue and priceLimitUpperValue are
+                        // deviation ratios around the mark price, observed live
+                        // near 0.2 on nearly every $symbol and asymmetric on some,
+                        // they are not absolute price bounds so they stay in info
+                        'min' => null,
+                        'max' => null,
                     ),
                     'cost' => array(
                         'min' => $this->safe_number($market, 'minOrderCost'),
