@@ -132,9 +132,9 @@ interface Exchange {
     privateDeleteSpotApiV33Order (params?: {}): Promise<Dict | List>;
     privateDeleteFuturesApiV23Order (params?: {}): Promise<Dict | List>;
     privateDeleteSpotApiV33UserWalletAddress (params?: {}): Promise<Dict | List>;
-    privateDeleteSpotApiV4TradeOrders (params?: {}): Promise<Dict | List>;
+    privateDeleteSpotApiV4TradeOrders (params?: {}): Promise<List>;
     privateDeleteSpotApiV4TradeOrdersAll (params?: {}): Promise<Dict | List>;
-    privateDeleteFuturesApiV3TradeOrders (params?: {}): Promise<Dict | List>;
+    privateDeleteFuturesApiV3TradeOrders (params?: {}): Promise<List>;
     privateDeleteFuturesApiV3TradePositions (params?: {}): Promise<Dict>;
     privateDeletePublicApiWalletV1UserCryptoAddress (params?: {}): Promise<Dict | List>;
 }

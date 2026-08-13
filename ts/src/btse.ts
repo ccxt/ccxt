@@ -338,9 +338,9 @@ export default class btse extends Exchange {
                         'spot/api/v3.3/order': 1, // done
                         'futures/api/v2.3/order': 1, // done
                         'spot/api/v3.3/user/wallet/address': 15,
-                        'spot/api/v4/trade/orders': 1, // not used
+                        'spot/api/v4/trade/orders': { 'cost': 1 } as Endpoint<List>, // done
                         'spot/api/v4/trade/orders/all': 1, // not used
-                        'futures/api/v3/trade/orders': 1, // not used
+                        'futures/api/v3/trade/orders': { 'cost': 1 } as Endpoint<List>, // done
                         'futures/api/v3/trade/positions': { 'cost': 1 } as Endpoint<Dict>, // done
                         'public-api/wallet/v1/user/crypto/address': 15, // not used
                     },
@@ -2492,13 +2492,13 @@ export default class btse extends Exchange {
     /**
      * @method
      * @name btse#cancelOrder
-     * @see https://btsecom.github.io/docs/spotV3_3/en/#cancel-order
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#cancel-order
+     * @see https://docs.btse.com/spot/rest/cancel-order
+     * @see https://docs.btse.com/futures/rest/cancel-order
      * @description cancels an open order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.clientOrderId] a unique id for the order (required if id is not provided)
+     * @param {string} [params.clientOrderId] a unique id for the order, required if id is not provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -2507,23 +2507,39 @@ export default class btse extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
+        const request: Dict = {};
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
-            request['clOrderID'] = clientOrderId;
+            request['clOrderId'] = clientOrderId;
             params = this.omit (params, 'clientOrderId');
         } else if (id === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrder() requires an id argument or a clientOrderId parameter');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an id argument or a clientOrderId parameter');
         } else {
-            request['orderID'] = id;
+            request['orderId'] = id;
         }
         let response = undefined;
         if (market['spot']) {
-            response = await this.privateDeleteSpotApiV33Order (this.extend (request, params));
+            request['symbol'] = market['id'];
+            response = await this.privateDeleteSpotApiV4TradeOrders (this.extend (request, params));
         } else {
-            response = await this.privateDeleteFuturesApiV23Order (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "orderId": "0251ea47-88b5-48c0-aeb3-b38774fd1f90",
+            //             "clOrderId": "",
+            //             "symbol": "BTC-PERP",
+            //             "orderSide": "BUY",
+            //             "type": 76,
+            //             "orderPrice": 56439.4,
+            //             "orderSize": 1,
+            //             "filledSize": 0,
+            //             "status": 6,
+            //             "timestamp": 1784882344500
+            //         }
+            //     ]
+            //
+            request['symbol'] = this.futuresRequestId (market);
+            response = await this.privateDeleteFuturesApiV3TradeOrders (this.extend (request, params));
         }
         const order = this.safeDict (response, 0, {});
         return this.parseOrder (order, market);
