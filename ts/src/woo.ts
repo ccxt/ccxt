@@ -228,14 +228,7 @@ export default class woo extends Exchange {
                             'order': { 'cost': 1 } as Endpoint<Dict>,
                             'client/order': { 'cost': 1 } as Endpoint<Dict>,
                             'orders': { 'cost': 1 } as Endpoint<List>,
-                            'asset/withdraw': { 'cost': 120 } as Endpoint<Dict>,  // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
-                        },
-                    },
-                },
-                'v2': {
-                    'private': {
-                        'get': {
-                            'client/holding': { 'cost': 1 } as Endpoint<Dict>,
+                            'asset/withdraw': { 'cost': 120 } as Endpoint<Dict>, // cancel a pending withdrawal, undocumented but alive as of 2026-08
                         },
                     },
                 },
