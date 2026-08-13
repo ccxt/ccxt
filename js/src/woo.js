@@ -229,14 +229,7 @@ export default class woo extends Exchange {
                             'order': { 'cost': 1 },
                             'client/order': { 'cost': 1 },
                             'orders': { 'cost': 1 },
-                            'asset/withdraw': { 'cost': 120 }, // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
-                        },
-                    },
-                },
-                'v2': {
-                    'private': {
-                        'get': {
-                            'client/holding': { 'cost': 1 },
+                            'asset/withdraw': { 'cost': 120 }, // cancel a pending withdrawal, undocumented but alive as of 2026-08
                         },
                     },
                 },
