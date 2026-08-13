@@ -80,7 +80,7 @@ interface Exchange {
     privateGetFuturesApiV3TradeMarginSetting (params?: {}): Promise<Dict | List>;
     privateGetPublicApiWalletV1Assets (params?: {}): Promise<Dict | List>;
     privateGetPublicApiWalletV1UserAssets (params?: {}): Promise<Dict>;
-    privateGetPublicApiWalletV1UserWalletHistory (params?: {}): Promise<Dict | List>;
+    privateGetPublicApiWalletV1UserWalletHistory (params?: {}): Promise<Dict>;
     privateGetPublicApiWalletV1UserCryptoAddress (params?: {}): Promise<Dict | List>;
     privateGetPublicApiOtcV1Quotes (params?: {}): Promise<Dict | List>;
     privatePostSpotApiV33Order (params?: {}): Promise<Dict | List>;
