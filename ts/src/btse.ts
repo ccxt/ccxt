@@ -279,7 +279,7 @@ export default class btse extends Exchange {
                         'futures/api/v3/trade/positions': 5, // not used
                         'futures/api/v3/trade/margin_setting': 5, // not used
                         'public-api/wallet/v1/assets': 15, // not used
-                        'public-api/wallet/v1/user/assets': 15, // not used
+                        'public-api/wallet/v1/user/assets': { 'cost': 15 } as Endpoint<Dict>, // done
                         'public-api/wallet/v1/user/walletHistory': 15, // not used
                         'public-api/wallet/v1/user/crypto/address': 15, // not used
                         'public-api/otc/v1/quotes': 1, // not used
@@ -995,7 +995,7 @@ export default class btse extends Exchange {
      * @method
      * @name btse#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://btsecom.github.io/docs/wallet/en/#query-wallet-balance
+     * @see https://docs.btse.com/wallet/rest/get-user-assets/
      * @see https://btsecom.github.io/docs/futuresV2_3/en/#query-wallet-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] wallet type, spot or swap, default is spot
@@ -1008,12 +1008,26 @@ export default class btse extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, type);
         let response = undefined;
         if (type === 'spot') {
-            response = await this.privateGetSpotApiV32UserWallet (params);
+            const walletResponse = await this.privateGetPublicApiWalletV1UserAssets (params);
             //
-            //     [
-            //         {"available": 520.52, "currency": "USD", "total": 5566.5566}
-            //     ]
+            //     {
+            //         "data": [
+            //             {
+            //                 "asset": "BTC",
+            //                 "type": "CRYPTO",
+            //                 "totalAmount": "100.0",
+            //                 "availableAmount": "100.0",
+            //                 "availableActions": [ "CONVERT", "TRANSFER", "WITHDRAW", "DEPOSIT", "SEND_TO" ],
+            //                 "cryptoNetwork": { "depositNetworks": [ "BITCOIN" ], "withdrawalNetworks": [ "BITCOIN" ] }
+            //             }
+            //         ],
+            //         "code": 1,
+            //         "msg": "Success",
+            //         "success": true,
+            //         "time": 1624989977940
+            //     }
             //
+            response = this.safeList (walletResponse, 'data', []);
         } else {
             let wallet = undefined;
             [ wallet, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'wallet', 'CROSS@');
@@ -1074,13 +1088,14 @@ export default class btse extends Exchange {
                     useds[code] = this.safeString (useds, code, '0');
                 }
             } else {
-                // spot wallet row
-                const code = this.safeCurrencyCode (this.safeString (row, 'currency'));
+                // unified wallet row: {"asset": "BTC", "totalAmount": "100.0", "availableAmount": "100.0"}
+                // legacy spot wallet row: {"available": 520.52, "currency": "USD", "total": 5566.5566}
+                const code = this.safeCurrencyCode (this.safeString2 (row, 'asset', 'currency'));
                 if (code === undefined) {
                     continue;
                 }
-                totals[code] = Precise.stringAdd (this.safeString (totals, code, '0'), this.safeString (row, 'total'));
-                frees[code] = Precise.stringAdd (this.safeString (frees, code, '0'), this.safeString (row, 'available'));
+                totals[code] = Precise.stringAdd (this.safeString (totals, code, '0'), this.safeString2 (row, 'totalAmount', 'total'));
+                frees[code] = Precise.stringAdd (this.safeString (frees, code, '0'), this.safeString2 (row, 'availableAmount', 'available'));
             }
         }
         const codes = Object.keys (totals);
