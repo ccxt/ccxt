@@ -282,7 +282,9 @@ class xt extends Exchange {
                             'future/trade/v1/entrust/cancel-plan' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/cancel-profit-stop' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/create-plan' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/cancel-track' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/create-profit' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/create-track' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/update-profit-stop' => array( 'cost' => 1 ),
                             'future/trade/v1/order/cancel' => array( 'cost' => 1 ),
                             'future/trade/v1/order/cancel-all' => array( 'cost' => 1 ),
@@ -329,7 +331,9 @@ class xt extends Exchange {
                             'future/trade/v1/entrust/cancel-plan' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/cancel-profit-stop' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/create-plan' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/cancel-track' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/create-profit' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/create-track' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/update-profit-stop' => array( 'cost' => 1 ),
                             'future/trade/v1/order/cancel' => array( 'cost' => 1 ),
                             'future/trade/v1/order/cancel-all' => array( 'cost' => 1 ),
@@ -808,9 +812,15 @@ class xt extends Exchange {
                 'swap' => array(
                     'linear' => array(
                         'extends' => 'forDerivatives',
+                        'createOrder' => array(
+                            'trailing' => true,
+                        ),
                     ),
                     'inverse' => array(
                         'extends' => 'forDerivatives',
+                        'createOrder' => array(
+                            'trailing' => true,
+                        ),
                     ),
                 ),
                 'future' => array(
@@ -2576,6 +2586,7 @@ class xt extends Exchange {
          * @see https://doc.xt.com/docs/futures/Order/Create%20Orders
          * @see https://doc.xt.com/docs/futures/Entrust/CreateTriggerOrders
          * @see https://doc.xt.com/docs/futures/Entrust/CreateStopLimit
+         * @see https://doc.xt.com/docs/futures/Entrust/CreateTrack
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -2590,6 +2601,10 @@ class xt extends Exchange {
          * @param {float} [$params->stopPrice] alias for triggerPrice
          * @param {float} [$params->stopLoss] $price to set a stop-loss on an open position
          * @param {float} [$params->takeProfit] $price to set a take-profit on an open position
+         * @param {float} [$params->trailingPercent] the percent to trail away from the current $market $price, swap markets only
+         * @param {float} [$params->trailingAmount] the quote $amount to trail away from the current $market $price, swap markets only
+         * @param {float} [$params->trailingTriggerPrice] the $price to activate a trailing order, swap markets only
+         * @param {string} [$params->marginMode] 'cross' or 'isolated', for trailing orders only, default is 'cross'
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         if ($this->markets === null) {
@@ -2598,6 +2613,11 @@ class xt extends Exchange {
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
         if ($market['spot']) {
+            $isTrailing = (is_array($params) && array_key_exists('trailingPercent' ?? '', $params)) || (is_array($params) && array_key_exists('trailingAmount' ?? '', $params)) || (is_array($params) && array_key_exists('trailingTriggerPrice' ?? '', $params));
+            if ($isTrailing) {
+                // do not silently place a regular spot order when a trailing order was requested
+                throw new NotSupported($this->id . ' createOrder() trailing orders are only supported on swap markets');
+            }
             return Async\await($this->create_spot_order($symbol, $type, $side, $amount, $price, $params));
         } else {
             return Async\await($this->create_contract_order($symbol, $type, $side, $amount, $price, $params));
@@ -2700,15 +2720,48 @@ class xt extends Exchange {
         $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
         $stopLoss = $this->safe_number_2($params, 'stopLoss', 'triggerStopPrice');
         $takeProfit = $this->safe_number_2($params, 'takeProfit', 'triggerProfitPrice');
+        $trailingPercent = $this->safe_string($params, 'trailingPercent');
+        $trailingAmount = $this->safe_string($params, 'trailingAmount');
+        $trailingTriggerPrice = $this->safe_number($params, 'trailingTriggerPrice');
         $isTrigger = ($triggerPrice !== null);
         $isStopLoss = ($stopLoss !== null);
         $isTakeProfit = ($takeProfit !== null);
+        $isTrailing = ($trailingPercent !== null) || ($trailingAmount !== null);
+        if ($isTrailing && !$market['swap']) {
+            throw new NotSupported($this->id . ' createOrder() trailing orders are only supported on swap markets');
+        }
+        if (($trailingTriggerPrice !== null) && !$isTrailing) {
+            // do not silently place a regular order when a trailing activation $price was requested
+            throw new ArgumentsRequired($this->id . ' createOrder() $trailingTriggerPrice requires $trailingPercent or trailingAmount');
+        }
         if ($price !== null) {
-            if (!($isStopLoss) && !($isTakeProfit)) {
+            if (!($isStopLoss) && !($isTakeProfit) && !($isTrailing)) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
         }
-        if ($isTrigger) {
+        if ($isTrailing) {
+            $request['orderSide'] = strtoupper($side);
+            $request['triggerPriceType'] = $this->safe_string($params, 'triggerPriceType', 'LATEST_PRICE');
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params, 'cross');
+            $request['positionType'] = ($marginMode === 'isolated') ? 'ISOLATED' : 'CROSSED';
+            if ($trailingPercent !== null) {
+                $request['callback'] = 'PROPORTION';
+                $request['callbackVal'] = $this->parse_to_numeric(Precise::string_div($trailingPercent, '100'));
+            } else {
+                $request['callback'] = 'FIXED';
+                $request['callbackVal'] = $this->parse_to_numeric($trailingAmount);
+            }
+            if ($trailingTriggerPrice !== null) {
+                $request['activationPrice'] = $this->price_to_precision($symbol, $trailingTriggerPrice);
+            }
+            $params = $this->omit($params, array( 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice' ));
+            if ($market['linear']) {
+                $response = Async\await($this->privateLinearPostFutureTradeV1EntrustCreateTrack($this->extend($request, $params)));
+            } elseif ($market['inverse']) {
+                $response = Async\await($this->privateInversePostFutureTradeV1EntrustCreateTrack($this->extend($request, $params)));
+            }
+        } elseif ($isTrigger) {
             $request['timeInForce'] = $this->safe_string_upper($params, 'timeInForce', 'GTC');
             $request['triggerPriceType'] = $this->safe_string($params, 'triggerPriceType', 'LATEST_PRICE');
             $request['orderSide'] = strtoupper($side);
@@ -3476,12 +3529,14 @@ class xt extends Exchange {
          * @see https://doc.xt.com/docs/futures/Order/cancel-orders
          * @see https://doc.xt.com/docs/futures/Entrust/CancelTriggerOrders
          * @see https://doc.xt.com/docs/futures/Entrust/CancelStopLimit
+         * @see https://doc.xt.com/docs/futures/Entrust/CancelSingleTrack
          *
          * @param {string} $id $order $id
          * @param {string} [$symbol] unified $symbol of the $market the $order was made in
          * @param {array} $params extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->trigger] if the $order is a $trigger $order or not
          * @param {bool} [$params->stopLossTakeProfit] if the $order is a stop-loss or take-profit $order
+         * @param {bool} [$params->trailing] if the $order is a $trailing $order or not
          * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */
         if ($this->markets === null) {
@@ -3499,10 +3554,19 @@ class xt extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('cancelOrder', $market, $params);
         $trigger = $this->safe_value_2($params, 'trigger', 'stop');
         $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
+        $trailing = $this->safe_bool($params, 'trailing');
+        if ($trailing) {
+            $isContract = ($subType !== null) || ($type === 'swap') || ($type === 'future');
+            if (!$isContract) {
+                throw new NotSupported($this->id . ' cancelOrder() $trailing orders are only supported on swap and future markets');
+            }
+        }
         if ($trigger) {
             $request['entrustId'] = $id;
         } elseif ($stopLossTakeProfit) {
             $request['profitId'] = $id;
+        } elseif ($trailing) {
+            $request['trackId'] = $id;
         } else {
             $request['orderId'] = $id;
         }
@@ -3519,6 +3583,13 @@ class xt extends Exchange {
                 $response = Async\await($this->privateInversePostFutureTradeV1EntrustCancelProfitStop($this->extend($request, $params)));
             } else {
                 $response = Async\await($this->privateLinearPostFutureTradeV1EntrustCancelProfitStop($this->extend($request, $params)));
+            }
+        } elseif ($trailing) {
+            $params = $this->omit($params, 'trailing');
+            if ($subType === 'inverse') {
+                $response = Async\await($this->privateInversePostFutureTradeV1EntrustCancelTrack($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->privateLinearPostFutureTradeV1EntrustCancelTrack($this->extend($request, $params)));
             }
         } elseif ($subType === 'inverse') {
             $response = Async\await($this->privateInversePostFutureTradeV1OrderCancel($this->extend($request, $params)));
