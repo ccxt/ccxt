@@ -290,7 +290,9 @@ class xt(Exchange, ImplicitAPI):
                             'future/trade/v1/entrust/cancel-plan': {'cost': 1},
                             'future/trade/v1/entrust/cancel-profit-stop': {'cost': 1},
                             'future/trade/v1/entrust/create-plan': {'cost': 1},
+                            'future/trade/v1/entrust/cancel-track': {'cost': 1},
                             'future/trade/v1/entrust/create-profit': {'cost': 1},
+                            'future/trade/v1/entrust/create-track': {'cost': 1},
                             'future/trade/v1/entrust/update-profit-stop': {'cost': 1},
                             'future/trade/v1/order/cancel': {'cost': 1},
                             'future/trade/v1/order/cancel-all': {'cost': 1},
@@ -337,7 +339,9 @@ class xt(Exchange, ImplicitAPI):
                             'future/trade/v1/entrust/cancel-plan': {'cost': 1},
                             'future/trade/v1/entrust/cancel-profit-stop': {'cost': 1},
                             'future/trade/v1/entrust/create-plan': {'cost': 1},
+                            'future/trade/v1/entrust/cancel-track': {'cost': 1},
                             'future/trade/v1/entrust/create-profit': {'cost': 1},
+                            'future/trade/v1/entrust/create-track': {'cost': 1},
                             'future/trade/v1/entrust/update-profit-stop': {'cost': 1},
                             'future/trade/v1/order/cancel': {'cost': 1},
                             'future/trade/v1/order/cancel-all': {'cost': 1},
@@ -816,9 +820,15 @@ class xt(Exchange, ImplicitAPI):
                 'swap': {
                     'linear': {
                         'extends': 'forDerivatives',
+                        'createOrder': {
+                            'trailing': True,
+                        },
                     },
                     'inverse': {
                         'extends': 'forDerivatives',
+                        'createOrder': {
+                            'trailing': True,
+                        },
                     },
                 },
                 'future': {
@@ -2429,6 +2439,7 @@ class xt(Exchange, ImplicitAPI):
         https://doc.xt.com/docs/futures/Order/Create%20Orders
         https://doc.xt.com/docs/futures/Entrust/CreateTriggerOrders
         https://doc.xt.com/docs/futures/Entrust/CreateStopLimit
+        https://doc.xt.com/docs/futures/Entrust/CreateTrack
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -2443,6 +2454,10 @@ class xt(Exchange, ImplicitAPI):
         :param float [params.stopPrice]: alias for triggerPrice
         :param float [params.stopLoss]: price to set a stop-loss on an open position
         :param float [params.takeProfit]: price to set a take-profit on an open position
+        :param float [params.trailingPercent]: the percent to trail away from the current market price, swap markets only
+        :param float [params.trailingAmount]: the quote amount to trail away from the current market price, swap markets only
+        :param float [params.trailingTriggerPrice]: the price to activate a trailing order, swap markets only
+        :param str [params.marginMode]: 'cross' or 'isolated', for trailing orders only, default is 'cross'
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if self.markets is None:
@@ -2450,6 +2465,10 @@ class xt(Exchange, ImplicitAPI):
         market = self.market(symbol)
         symbol = market['symbol']
         if market['spot']:
+            isTrailing = ('trailingPercent' in params) or ('trailingAmount' in params) or ('trailingTriggerPrice' in params)
+            if isTrailing:
+                # do not silently place a regular spot order when a trailing order was requested
+                raise NotSupported(self.id + ' createOrder() trailing orders are only supported on swap markets')
             return await self.create_spot_order(symbol, type, side, amount, price, params)
         else:
             return await self.create_contract_order(symbol, type, side, amount, price, params)
@@ -2531,13 +2550,41 @@ class xt(Exchange, ImplicitAPI):
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         stopLoss = self.safe_number_2(params, 'stopLoss', 'triggerStopPrice')
         takeProfit = self.safe_number_2(params, 'takeProfit', 'triggerProfitPrice')
+        trailingPercent = self.safe_string(params, 'trailingPercent')
+        trailingAmount = self.safe_string(params, 'trailingAmount')
+        trailingTriggerPrice = self.safe_number(params, 'trailingTriggerPrice')
         isTrigger = (triggerPrice is not None)
         isStopLoss = (stopLoss is not None)
         isTakeProfit = (takeProfit is not None)
+        isTrailing = (trailingPercent is not None) or (trailingAmount is not None)
+        if isTrailing and not market['swap']:
+            raise NotSupported(self.id + ' createOrder() trailing orders are only supported on swap markets')
+        if (trailingTriggerPrice is not None) and not isTrailing:
+            # do not silently place a regular order when a trailing activation price was requested
+            raise ArgumentsRequired(self.id + ' createOrder() trailingTriggerPrice requires trailingPercent or trailingAmount')
         if price is not None:
-            if not (isStopLoss) and not (isTakeProfit):
+            if not (isStopLoss) and not (isTakeProfit) and not (isTrailing):
                 request['price'] = self.price_to_precision(symbol, price)
-        if isTrigger:
+        if isTrailing:
+            request['orderSide'] = side.upper()
+            request['triggerPriceType'] = self.safe_string(params, 'triggerPriceType', 'LATEST_PRICE')
+            marginMode = None
+            marginMode, params = self.handle_margin_mode_and_params('createOrder', params, 'cross')
+            request['positionType'] = 'ISOLATED' if (marginMode == 'isolated') else 'CROSSED'
+            if trailingPercent is not None:
+                request['callback'] = 'PROPORTION'
+                request['callbackVal'] = self.parse_to_numeric(Precise.string_div(trailingPercent, '100'))
+            else:
+                request['callback'] = 'FIXED'
+                request['callbackVal'] = self.parse_to_numeric(trailingAmount)
+            if trailingTriggerPrice is not None:
+                request['activationPrice'] = self.price_to_precision(symbol, trailingTriggerPrice)
+            params = self.omit(params, ['trailingPercent', 'trailingAmount', 'trailingTriggerPrice'])
+            if market['linear']:
+                response = await self.privateLinearPostFutureTradeV1EntrustCreateTrack(self.extend(request, params))
+            elif market['inverse']:
+                response = await self.privateInversePostFutureTradeV1EntrustCreateTrack(self.extend(request, params))
+        elif isTrigger:
             request['timeInForce'] = self.safe_string_upper(params, 'timeInForce', 'GTC')
             request['triggerPriceType'] = self.safe_string(params, 'triggerPriceType', 'LATEST_PRICE')
             request['orderSide'] = side.upper()
@@ -3234,12 +3281,14 @@ class xt(Exchange, ImplicitAPI):
         https://doc.xt.com/docs/futures/Order/cancel-orders
         https://doc.xt.com/docs/futures/Entrust/CancelTriggerOrders
         https://doc.xt.com/docs/futures/Entrust/CancelStopLimit
+        https://doc.xt.com/docs/futures/Entrust/CancelSingleTrack
 
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
+        :param bool [params.trailing]: if the order is a trailing order or not
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if self.markets is None:
@@ -3255,10 +3304,17 @@ class xt(Exchange, ImplicitAPI):
         subType, params = self.handle_sub_type_and_params('cancelOrder', market, params)
         trigger = self.safe_value_2(params, 'trigger', 'stop')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
+        trailing = self.safe_bool(params, 'trailing')
+        if trailing:
+            isContract = (subType is not None) or (type == 'swap') or (type == 'future')
+            if not isContract:
+                raise NotSupported(self.id + ' cancelOrder() trailing orders are only supported on swap and future markets')
         if trigger:
             request['entrustId'] = id
         elif stopLossTakeProfit:
             request['profitId'] = id
+        elif trailing:
+            request['trackId'] = id
         else:
             request['orderId'] = id
         if trigger:
@@ -3273,6 +3329,12 @@ class xt(Exchange, ImplicitAPI):
                 response = await self.privateInversePostFutureTradeV1EntrustCancelProfitStop(self.extend(request, params))
             else:
                 response = await self.privateLinearPostFutureTradeV1EntrustCancelProfitStop(self.extend(request, params))
+        elif trailing:
+            params = self.omit(params, 'trailing')
+            if subType == 'inverse':
+                response = await self.privateInversePostFutureTradeV1EntrustCancelTrack(self.extend(request, params))
+            else:
+                response = await self.privateLinearPostFutureTradeV1EntrustCancelTrack(self.extend(request, params))
         elif subType == 'inverse':
             response = await self.privateInversePostFutureTradeV1OrderCancel(self.extend(request, params))
         elif (subType == 'linear') or (type == 'swap') or (type == 'future'):

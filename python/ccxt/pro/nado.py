@@ -1550,7 +1550,9 @@ class nado(ccxt.async_support.nado):
                 subscriptionSymbol = self.safe_string(subscription, 'symbol')
                 if (streamType == 'book_depth') and (subscriptionSymbol == symbol):
                     del client.subscriptions[subscriptionHash]
-            del client.subscriptions[messageHash]
+            subscriptionMsg = self.safe_value(client.subscriptions, messageHash)
+            if subscriptionMsg is not None:
+                del client.subscriptions[messageHash]
             del self.orderbooks[symbol]
             error = InvalidNonce(self.id + ' watchOrderBook received invalid nonce')
             client.reject(error, messageHash)
