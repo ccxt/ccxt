@@ -5801,10 +5801,10 @@ final Object finalMarket = market;
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInverseGetFutureUserV1UserStepRate", new Object[] { parameters })).join();
+                response = (this.privateInverseGetFutureUserV1UserStepRate(parameters)).join();
             } else
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearGetFutureUserV1UserStepRate", new Object[] { parameters })).join();
+                response = (this.privateLinearGetFutureUserV1UserStepRate(parameters)).join();
             }
             //
             //     {
@@ -5858,10 +5858,10 @@ final Object finalMarket = market;
             Object response = null;
             if (Helpers.isTrue(isInverse))
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInverseGetFutureUserV1UserStepRate", new Object[] { parameters })).join();
+                response = (this.privateInverseGetFutureUserV1UserStepRate(parameters)).join();
             } else
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearGetFutureUserV1UserStepRate", new Object[] { parameters })).join();
+                response = (this.privateLinearGetFutureUserV1UserStepRate(parameters)).join();
             }
             //
             // same response as fetchTradingFee
