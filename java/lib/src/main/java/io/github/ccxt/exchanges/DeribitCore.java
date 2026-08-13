@@ -1651,8 +1651,8 @@ public class DeribitCore extends DeribitApi
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", null );
-            put( "quoteVolume", DeribitCore.this.safeString(stats, "volume") );
+            put( "baseVolume", DeribitCore.this.safeString(stats, "volume") );
+            put( "quoteVolume", DeribitCore.this.safeString2(stats, "volume_notional", "volume_usd") );
             put( "markPrice", DeribitCore.this.safeString(ticker, "mark_price") );
             put( "indexPrice", DeribitCore.this.safeString(ticker, "index_price") );
             put( "info", ticker );

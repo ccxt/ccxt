@@ -1120,6 +1120,17 @@ public class XtApi extends Exchange
     }
 
     /**
+     * Calls the privateLinearPostFutureTradeV1EntrustCancelTrack endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateLinearPostFutureTradeV1EntrustCancelTrack (Object... optionalArgs)
+    {
+        return this.callAsync ("privateLinearPostFutureTradeV1EntrustCancelTrack", optionalArgs);
+    }
+
+    /**
      * Calls the privateLinearPostFutureTradeV1EntrustCreateProfit endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1128,6 +1139,17 @@ public class XtApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateLinearPostFutureTradeV1EntrustCreateProfit (Object... optionalArgs)
     {
         return this.callAsync ("privateLinearPostFutureTradeV1EntrustCreateProfit", optionalArgs);
+    }
+
+    /**
+     * Calls the privateLinearPostFutureTradeV1EntrustCreateTrack endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateLinearPostFutureTradeV1EntrustCreateTrack (Object... optionalArgs)
+    {
+        return this.callAsync ("privateLinearPostFutureTradeV1EntrustCreateTrack", optionalArgs);
     }
 
     /**
@@ -1571,6 +1593,17 @@ public class XtApi extends Exchange
     }
 
     /**
+     * Calls the privateInversePostFutureTradeV1EntrustCancelTrack endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateInversePostFutureTradeV1EntrustCancelTrack (Object... optionalArgs)
+    {
+        return this.callAsync ("privateInversePostFutureTradeV1EntrustCancelTrack", optionalArgs);
+    }
+
+    /**
      * Calls the privateInversePostFutureTradeV1EntrustCreateProfit endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1579,6 +1612,17 @@ public class XtApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateInversePostFutureTradeV1EntrustCreateProfit (Object... optionalArgs)
     {
         return this.callAsync ("privateInversePostFutureTradeV1EntrustCreateProfit", optionalArgs);
+    }
+
+    /**
+     * Calls the privateInversePostFutureTradeV1EntrustCreateTrack endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateInversePostFutureTradeV1EntrustCreateTrack (Object... optionalArgs)
+    {
+        return this.callAsync ("privateInversePostFutureTradeV1EntrustCreateTrack", optionalArgs);
     }
 
     /**

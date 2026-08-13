@@ -1986,7 +1986,7 @@ public class HashkeyCore extends HashkeyApi
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "price", HashkeyCore.this.safeNumber(entry, "p") );
+            put( "price", HashkeyCore.this.safeNumberOmitZero(entry, "p") );
             put( "side", null );
             put( "info", entry );
         }};
