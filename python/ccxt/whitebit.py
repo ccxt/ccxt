@@ -3394,9 +3394,9 @@ class whitebit(Exchange, ImplicitAPI):
         if since is not None:
             request['startDate'] = since
         if limit is not None:
-            request['limit'] = since
+            request['limit'] = limit
         request, params = self.handle_until_option('endDate', request, params)
-        response = self.v4PrivatePostCollateralAccountFundingHistory(request)
+        response = self.v4PrivatePostCollateralAccountFundingHistory(self.extend(request, params))
         #
         #     {
         #         "records": [
