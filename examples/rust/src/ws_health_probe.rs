@@ -30,19 +30,57 @@ fn panic_msg(e: Box<dyn std::any::Any + Send>) -> String {
     s.chars().take(90).collect()
 }
 
-fn classify(ob: &Value, sym: &str) -> String {
-    let bids = get_value(ob, &Value::Str("bids".to_string()));
-    let asks = get_value(ob, &Value::Str("asks".to_string()));
-    let bid = get_value(&get_value(&bids, &Value::Int(0)), &Value::Int(0)).as_f64().unwrap_or(0.0);
-    let ask = get_value(&get_value(&asks, &Value::Int(0)), &Value::Int(0)).as_f64().unwrap_or(0.0);
-    // A resolved book with at least one populated side means the WS runtime
-    // works for this venue (some markets are thin / one-sided).
-    if bid > 0.0 && ask > 0.0 {
-        format!("OK        [{sym}] {bid}/{ask}")
-    } else if bid > 0.0 || ask > 0.0 {
-        format!("OK1SIDE   [{sym}] {bid}/{ask}")
-    } else {
-        format!("EMPTY     [{sym}]")
+// The watch_* method under test — defaults to watch_order_book.
+fn probe_method() -> String {
+    std::env::var("CCXT_METHOD").unwrap_or_else(|_| "watch_order_book".to_string())
+}
+
+// Extra positional args after the symbol (watch_ohlcv needs a timeframe).
+fn extra_args(method: &str) -> Vec<Value> {
+    match method {
+        "watch_ohlcv" => vec![Value::Str("1m".to_string())],
+        _ => vec![],
+    }
+}
+
+fn nonempty_list(v: &Value) -> bool {
+    !matches!(get_value(v, &Value::Int(0)), Value::Null)
+}
+
+fn classify(method: &str, result: &Value, sym: &str) -> String {
+    match method {
+        "watch_order_book" => {
+            let bids = get_value(result, &Value::Str("bids".to_string()));
+            let asks = get_value(result, &Value::Str("asks".to_string()));
+            let bid = get_value(&get_value(&bids, &Value::Int(0)), &Value::Int(0)).as_f64().unwrap_or(0.0);
+            let ask = get_value(&get_value(&asks, &Value::Int(0)), &Value::Int(0)).as_f64().unwrap_or(0.0);
+            // A two-sided book is a definitive success; some markets are thin.
+            if bid > 0.0 && ask > 0.0 {
+                format!("OK        [{sym}] {bid}/{ask}")
+            } else if bid > 0.0 || ask > 0.0 {
+                format!("OK1SIDE   [{sym}] {bid}/{ask}")
+            } else {
+                format!("EMPTY     [{sym}]")
+            }
+        }
+        "watch_ticker" => {
+            let field = |k: &str| get_value(result, &Value::Str(k.to_string())).as_f64().unwrap_or(0.0);
+            let px = [field("last"), field("close"), field("bid"), field("ask")]
+                .into_iter().find(|x| *x > 0.0).unwrap_or(0.0);
+            if px > 0.0 { format!("OK        [{sym}] last={px}") } else { format!("EMPTY     [{sym}]") }
+        }
+        // watch_trades / watch_ohlcv resolve a non-empty list.
+        _ => {
+            if nonempty_list(result) {
+                let first = get_value(result, &Value::Int(0));
+                let px = get_value(&first, &Value::Str("price".to_string())).as_f64()
+                    .or_else(|| get_value(&first, &Value::Int(4)).as_f64()) // ohlcv close
+                    .unwrap_or(0.0);
+                format!("OK        [{sym}] px={px}")
+            } else {
+                format!("EMPTY     [{sym}]")
+            }
+        }
     }
 }
 
@@ -76,6 +114,8 @@ async fn watch_probe<T: ExchangeBase + Send + 'static>(mut ex: Box<T>) -> String
         }
     };
     let sym: &str = &sym;
+    let method = probe_method();
+    let extra = extra_args(&method);
     // Loop like real usage: many venues resolve an empty book first and fill via
     // subsequent deltas. Keep watching (within a total budget) until the book is
     // two-sided. We track the best partial result so a genuinely one-sided venue
@@ -89,13 +129,15 @@ async fn watch_probe<T: ExchangeBase + Send + 'static>(mut ex: Box<T>) -> String
         if now >= deadline {
             return if resolved_once { last } else { format!("TIMEOUT   [{sym}]") };
         }
-        let fut = ExchangeBase::call_dynamic(&mut *ex, "watch_order_book", vec![Value::Str(sym.to_string())]);
+        let mut args = vec![Value::Str(sym.to_string())];
+        args.extend(extra.iter().cloned());
+        let fut = ExchangeBase::call_dynamic(&mut *ex, &method, args);
         match tokio::time::timeout(deadline - now, AssertUnwindSafe(fut).catch_unwind()).await {
             Err(_) => return if resolved_once { last } else { format!("TIMEOUT   [{sym}]") },
             Ok(Err(e)) => return format!("PANIC     [{sym}]: {}", panic_msg(e)),
             Ok(Ok(ob)) => {
                 resolved_once = true;
-                let c = classify(&ob, sym);
+                let c = classify(&method, &ob, sym);
                 // Only a two-sided book ("OK        ") is a definitive success.
                 // Incremental venues (e.g. bithumb) resolve a one-sided book first
                 // and fill the other side via later deltas, so keep looping on
