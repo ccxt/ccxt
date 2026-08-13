@@ -3184,19 +3184,9 @@ class woo extends woo$1["default"] {
             'amount': this.safeNumber(transfer, 'amount'),
             'fromAccount': this.safeString(fromAccount, 'applicationId'),
             'toAccount': this.safeString(toAccount, 'applicationId'),
-            'status': this.parseTransferStatus(this.safeString(transfer, 'status', status)),
+            'status': this.parseTransactionStatus(this.safeString(transfer, 'status', status)),
             'info': transfer,
         };
-    }
-    parseTransferStatus(status) {
-        const statuses = {
-            'NEW': 'pending',
-            'CONFIRMING': 'pending',
-            'PROCESSING': 'pending',
-            'COMPLETED': 'ok',
-            'CANCELED': 'canceled',
-        };
-        return this.safeString(statuses, status, status);
     }
     /**
      * @method
