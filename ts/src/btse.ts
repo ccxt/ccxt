@@ -1042,7 +1042,7 @@ export default class btse extends Exchange {
                     'info': entry,
                 };
                 tiers.push (parsed);
-                result[symbol] = this.sortBy (tiers, 'tier');
+                result[symbol] = tiers; // rows arrive ordered by riskLevel ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
             }
         }
         // the exchange only provides the cap of each risk tier, so the floor
