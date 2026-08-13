@@ -3690,8 +3690,12 @@ export default class btse extends Exchange {
         const baseUrl = this.urls['api'][api];
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
+        // the unified spot v4 and futures v3 trading apis read DELETE params from
+        // a signed json body like their POST and PUT counterparts, verified live,
+        // while the legacy apis keep DELETE params in the query string
+        const isBodyDelete = (method === 'DELETE') && (path.startsWith ('spot/api/v4/') || path.startsWith ('futures/api/v3/'));
         let queryString = '';
-        if ((method === 'GET') || (method === 'DELETE')) {
+        if (((method === 'GET') || (method === 'DELETE')) && !isBodyDelete) {
             if (Object.keys (query).length) {
                 queryString = this.urlencode (query);
                 url += '?' + queryString;
@@ -3701,7 +3705,7 @@ export default class btse extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ();
             let bodyString = this.json (query);
-            if ((method === 'GET') || (method === 'DELETE')) {
+            if (((method === 'GET') || (method === 'DELETE')) && !isBodyDelete) {
                 bodyString = '';
             } else {
                 body = bodyString;
