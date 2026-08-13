@@ -270,7 +270,7 @@
         ],
         "fetchTradingFee": [
             {
-                "description": "fetch trading fee for spot",
+                "description": "btse fetchTradingFee for a spot market - live-captured 2026-08-13 on the unified spot v4 fees endpoint, single row array, report-block verbatim",
                 "method": "fetchTradingFee",
                 "input": [
                     "ETH/USDT"
@@ -2422,7 +2422,7 @@
         ],
         "fetchTradingFees": [
             {
-                "description": "btse fetchTradingFees - live-captured 2026-08-12, httpResponse and parsedResponse trimmed to 4 console-verbatim rows: three mapped through the markets snapshot (BTC-USD, TRUMPSOL-USD, K_SATS-USD incl. the K_ prefix path) and FUSD-USD as the unmapped-market case",
+                "description": "btse fetchTradingFees spot - live-captured 2026-08-13 on the unified spot v4 fees endpoint, trimmed from the full 279 row bare array to four representative rows preserving the unmapped FUSD-USD raw id key beside mapped symbols including the K_ prefixed K_SATS-USD, report-block verbatim",
                 "method": "fetchTradingFees",
                 "input": [],
                 "httpResponse": [
