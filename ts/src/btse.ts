@@ -331,8 +331,8 @@ export default class btse extends Exchange {
                     'put': {
                         'spot/api/v3.3/order': 1, // done
                         'futures/api/v2.3/order': 1, // done
-                        'spot/api/v4/trade/orders': 1, // not used
-                        'futures/api/v3/trade/orders': 1, // not used
+                        'spot/api/v4/trade/orders': { 'cost': 1 } as Endpoint<List>, // done
+                        'futures/api/v3/trade/orders': { 'cost': 1 } as Endpoint<List>, // done
                     },
                     'delete': {
                         'spot/api/v3.3/order': 1, // done
@@ -2420,34 +2420,38 @@ export default class btse extends Exchange {
      * @method
      * @name btse#editOrder
      * @description edit a trade order
-     * @see https://btsecom.github.io/docs/spotV3_3/en/#amend-order
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#amend-order
-     * @param {string} id cancel order id
+     * @see https://docs.btse.com/spot/rest/amend-order
+     * @see https://docs.btse.com/futures/rest/amend-order
+     * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit' (not used by btse)
      * @param {string} side 'buy' or 'sell' (not used by btse)
-     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [amount] how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.clientOrderId] a unique id for the order (required if id is not provided)
+     * @param {string} [params.clientOrderId] a unique id for the order, required if id is not provided
      * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
+     * @param {bool} [params.totalAmountMode] if true, the amount is treated as the new total order quantity including the already filled portion, default is false
+     * @param {bool} [params.slide] *contract markets only* if true and only the price is amended, the price slides to the best available price
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-            'type': 'ALL',
-        };
+        const request: Dict = {};
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
-            request['clOrderID'] = clientOrderId;
+            request['clOrderId'] = clientOrderId;
             params = this.omit (params, 'clientOrderId');
         } else if (id === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrder() requires an id argument or a clientOrderId parameter');
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an id argument or a clientOrderId parameter');
         } else {
-            request['orderID'] = id;
+            request['orderId'] = id;
+        }
+        const triggerPrice = this.safeString (params, 'triggerPrice');
+        if (triggerPrice !== undefined) {
+            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            params = this.omit (params, 'triggerPrice');
         }
         if (amount !== undefined) {
             request['orderSize'] = this.amountToPrecision (symbol, amount);
@@ -2455,16 +2459,31 @@ export default class btse extends Exchange {
         if (price !== undefined) {
             request['orderPrice'] = this.priceToPrecision (symbol, price);
         }
-        const triggerPrice = this.safeString (params, 'triggerPrice');
-        if (triggerPrice !== undefined) {
-            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
-            params = this.omit (params, 'triggerPrice');
+        const isSlide = this.safeBool (params, 'slide', false);
+        if ((amount === undefined) && (price === undefined) && (triggerPrice === undefined) && !isSlide) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument, a price argument or a triggerPrice parameter');
         }
         let response = undefined;
         if (market['spot']) {
-            response = await this.privatePutSpotApiV33Order (this.extend (request, params));
+            request['symbol'] = market['id'];
+            response = await this.privatePutSpotApiV4TradeOrders (this.extend (request, params));
         } else {
-            response = await this.privatePutFuturesApiV23Order (this.extend (request, params));
+            // the futures amend requires an explicit amendType discriminator
+            // which can change the price and size together or a single field
+            request['symbol'] = this.futuresRequestId (market);
+            if (triggerPrice !== undefined) {
+                if ((amount !== undefined) || (price !== undefined)) {
+                    throw new BadRequest (this.id + ' editOrder() can not amend the trigger price together with the price or the amount on contract markets');
+                }
+                request['amendType'] = 'TRIGGER_PRICE';
+            } else if ((amount !== undefined) && (price !== undefined)) {
+                request['amendType'] = 'ALL';
+            } else if (amount !== undefined) {
+                request['amendType'] = 'SIZE';
+            } else {
+                request['amendType'] = 'PRICE';
+            }
+            response = await this.privatePutFuturesApiV3TradeOrders (this.extend (request, params));
         }
         const order = this.safeDict (response, 0, {});
         return this.parseOrder (order, market);

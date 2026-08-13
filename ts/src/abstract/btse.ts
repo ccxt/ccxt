@@ -127,8 +127,8 @@ interface Exchange {
     privatePostPublicApiOtcV1QuotesAccept (params?: {}): Promise<Dict | List>;
     privatePutSpotApiV33Order (params?: {}): Promise<Dict | List>;
     privatePutFuturesApiV23Order (params?: {}): Promise<Dict | List>;
-    privatePutSpotApiV4TradeOrders (params?: {}): Promise<Dict | List>;
-    privatePutFuturesApiV3TradeOrders (params?: {}): Promise<Dict | List>;
+    privatePutSpotApiV4TradeOrders (params?: {}): Promise<List>;
+    privatePutFuturesApiV3TradeOrders (params?: {}): Promise<List>;
     privateDeleteSpotApiV33Order (params?: {}): Promise<Dict | List>;
     privateDeleteFuturesApiV23Order (params?: {}): Promise<Dict | List>;
     privateDeleteSpotApiV33UserWalletAddress (params?: {}): Promise<Dict | List>;
