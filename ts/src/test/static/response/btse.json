@@ -3402,6 +3402,204 @@
                     }
                 ]
             }
+        ],
+        "fetchBalance": [
+            {
+                "description": "btse fetchBalance spot - live-captured 2026-08-13, httpResponse and parsedResponse trimmed to 3 console-verbatim rows of the 418-row wallet: USDT nonzero + USD and BTC zero rows",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "currency": "USD",
+                        "total": 0,
+                        "available": 0
+                    },
+                    {
+                        "currency": "BTC",
+                        "total": 0,
+                        "available": 0
+                    },
+                    {
+                        "currency": "USDT",
+                        "total": 50.00003451,
+                        "available": 50.00003451
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "currency": "USD",
+                            "total": 0,
+                            "available": 0
+                        },
+                        {
+                            "currency": "BTC",
+                            "total": 0,
+                            "available": 0
+                        },
+                        {
+                            "currency": "USDT",
+                            "total": 50.00003451,
+                            "available": 50.00003451
+                        }
+                    ],
+                    "USD": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "BTC": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "USDT": {
+                        "free": 50.00003451,
+                        "used": 0,
+                        "total": 50.00003451
+                    },
+                    "free": {
+                        "USD": 0,
+                        "BTC": 0,
+                        "USDT": 50.00003451
+                    },
+                    "used": {
+                        "USD": 0,
+                        "BTC": 0,
+                        "USDT": 0
+                    },
+                    "total": {
+                        "USD": 0,
+                        "BTC": 0,
+                        "USDT": 50.00003451
+                    }
+                }
+            },
+            {
+                "description": "btse fetchBalance swap cross wallet - live-captured 2026-08-13, report-block verbatim, numeric fields arrive as strings via big-int-safe json parsing",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "trackingID": "8652679827533950098",
+                        "requestId": "0",
+                        "wallet": "CROSS@",
+                        "totalValue": "49.99230975",
+                        "marginBalance": "49.99230975",
+                        "availableBalance": "49.99230975",
+                        "originalAvailableBalance": "49.99230975",
+                        "unrealisedProfitLoss": "0",
+                        "maintenanceMargin": "0",
+                        "leverage": "0",
+                        "openMargin": "0",
+                        "assets": [
+                            {
+                                "memo": null,
+                                "market": null,
+                                "timestamp": "0",
+                                "snapshotID": "0",
+                                "balance": "49.99230975",
+                                "value": "0.0",
+                                "assetPrice": "1.0",
+                                "type": "0",
+                                "total": "0.0",
+                                "currency": "USDT",
+                                "display": false,
+                                "availableBalanceForTransfer": "49.99230975"
+                            },
+                            {
+                                "memo": null,
+                                "market": null,
+                                "timestamp": "0",
+                                "snapshotID": "0",
+                                "balance": "0.0",
+                                "value": "0.0",
+                                "assetPrice": "1.00105411",
+                                "type": "0",
+                                "total": "0.0",
+                                "currency": "USD",
+                                "display": false,
+                                "availableBalanceForTransfer": "0.0"
+                            }
+                        ],
+                        "assetsInUse": []
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "trackingID": "8652679827533950098",
+                            "requestId": "0",
+                            "wallet": "CROSS@",
+                            "totalValue": "49.99230975",
+                            "marginBalance": "49.99230975",
+                            "availableBalance": "49.99230975",
+                            "originalAvailableBalance": "49.99230975",
+                            "unrealisedProfitLoss": "0",
+                            "maintenanceMargin": "0",
+                            "leverage": "0",
+                            "openMargin": "0",
+                            "assets": [
+                                {
+                                    "memo": null,
+                                    "market": null,
+                                    "timestamp": "0",
+                                    "snapshotID": "0",
+                                    "balance": "49.99230975",
+                                    "value": "0.0",
+                                    "assetPrice": "1.0",
+                                    "type": "0",
+                                    "total": "0.0",
+                                    "currency": "USDT",
+                                    "display": false,
+                                    "availableBalanceForTransfer": "49.99230975"
+                                },
+                                {
+                                    "memo": null,
+                                    "market": null,
+                                    "timestamp": "0",
+                                    "snapshotID": "0",
+                                    "balance": "0.0",
+                                    "value": "0.0",
+                                    "assetPrice": "1.00105411",
+                                    "type": "0",
+                                    "total": "0.0",
+                                    "currency": "USD",
+                                    "display": false,
+                                    "availableBalanceForTransfer": "0.0"
+                                }
+                            ],
+                            "assetsInUse": []
+                        }
+                    ],
+                    "USDT": {
+                        "free": 49.99230975,
+                        "used": 0,
+                        "total": 49.99230975
+                    },
+                    "USD": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "free": {
+                        "USDT": 49.99230975,
+                        "USD": 0
+                    },
+                    "used": {
+                        "USDT": 0,
+                        "USD": 0
+                    },
+                    "total": {
+                        "USDT": 49.99230975,
+                        "USD": 0
+                    }
+                }
+            }
         ]
     }
 }
