@@ -63,6 +63,50 @@ def test_sort_by_1():
 }])
     empty_array = exchange.sort_by([], 'x')
     test_shared_methods.assert_deep_equal(exchange, None, 'sortBy', empty_array, [])
+    # regression: keys crossing a digit-count boundary must sort numerically, a lexicographic comparison yields 1, 10, 2 .. 9
+    arr_two_digits = [{
+    'x': 10,
+}, {
+    'x': 1,
+}, {
+    'x': 3,
+}, {
+    'x': 7,
+}, {
+    'x': 2,
+}, {
+    'x': 9,
+}, {
+    'x': 5,
+}, {
+    'x': 8,
+}, {
+    'x': 4,
+}, {
+    'x': 6,
+}]
+    sorted_two_digits = exchange.sort_by(arr_two_digits, 'x')
+    test_shared_methods.assert_deep_equal(exchange, None, 'sortBy', sorted_two_digits, [{
+    'x': 1,
+}, {
+    'x': 2,
+}, {
+    'x': 3,
+}, {
+    'x': 4,
+}, {
+    'x': 5,
+}, {
+    'x': 6,
+}, {
+    'x': 7,
+}, {
+    'x': 8,
+}, {
+    'x': 9,
+}, {
+    'x': 10,
+}])
 
 
 def test_sort_by_2():

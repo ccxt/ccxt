@@ -35,6 +35,22 @@ function testSortBy1 () {
 
     const emptyArray = exchange.sortBy ([], 'x');
     testSharedMethods.assertDeepEqual (exchange, undefined, 'sortBy', emptyArray, []);
+
+    // regression: keys crossing a digit-count boundary must sort numerically, a lexicographic comparison yields 1, 10, 2 .. 9
+    const arrTwoDigits = [ { 'x': 10 }, { 'x': 1 }, { 'x': 3 }, { 'x': 7 }, { 'x': 2 }, { 'x': 9 }, { 'x': 5 }, { 'x': 8 }, { 'x': 4 }, { 'x': 6 } ];
+    const sortedTwoDigits = exchange.sortBy (arrTwoDigits, 'x');
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'sortBy', sortedTwoDigits, [
+        { 'x': 1 },
+        { 'x': 2 },
+        { 'x': 3 },
+        { 'x': 4 },
+        { 'x': 5 },
+        { 'x': 6 },
+        { 'x': 7 },
+        { 'x': 8 },
+        { 'x': 9 },
+        { 'x': 10 },
+    ]);
 }
 
 function testSortBy2 () {
