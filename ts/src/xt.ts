@@ -796,7 +796,6 @@ export default class xt extends Exchange {
                         },
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
-                        'trailing': true,
                     },
                     'fetchMyTrades': {
                         'daysBack': undefined,
@@ -806,9 +805,15 @@ export default class xt extends Exchange {
                 'swap': {
                     'linear': {
                         'extends': 'forDerivatives',
+                        'createOrder': {
+                            'trailing': true,
+                        },
                     },
                     'inverse': {
                         'extends': 'forDerivatives',
+                        'createOrder': {
+                            'trailing': true,
+                        },
                     },
                 },
                 'future': {
@@ -2649,6 +2654,10 @@ export default class xt extends Exchange {
         const isTrailing = (trailingPercent !== undefined) || (trailingAmount !== undefined);
         if (isTrailing && !market['swap']) {
             throw new NotSupported (this.id + ' createOrder() trailing orders are only supported on swap markets');
+        }
+        if ((trailingTriggerPrice !== undefined) && !isTrailing) {
+            // do not silently place a regular order when a trailing activation price was requested
+            throw new ArgumentsRequired (this.id + ' createOrder() trailingTriggerPrice requires trailingPercent or trailingAmount');
         }
         if (price !== undefined) {
             if (!(isStopLoss) && !(isTakeProfit) && !(isTrailing)) {
