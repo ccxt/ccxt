@@ -2262,9 +2262,23 @@ export default class bitstamp extends Exchange {
         //        "market": "BTC/USD"
         //    }
         //
-        const id = this.safeString (order, 'id');
-        const clientOrderId = this.safeString (order, 'client_order_id');
-        let side = this.safeString (order, 'type');
+        // editOrder
+        //
+        //    {
+        //        "order_id": 1453282316578816,
+        //        "order_type": "0",
+        //        "market": "BTC/USD",
+        //        "amount": "0.02035278",
+        //        "price": "2100.45",
+        //        "datetime": "2025-10-17T14:23:01.725000Z",
+        //        "orig_order_id": 1453282316578816,
+        //        "orig_client_order_id": "my-original-order-123",
+        //        "status": "Open"
+        //    }
+        //
+        const id = this.safeString2 (order, 'id', 'order_id');
+        const clientOrderId = this.safeString2 (order, 'client_order_id', 'orig_client_order_id');
+        let side = this.safeString2 (order, 'type', 'order_type');
         if (side !== undefined) {
             side = (side === '1') ? 'sell' : 'buy';
         }
