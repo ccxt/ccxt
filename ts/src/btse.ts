@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/btse.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, RateLimitExceeded, RequestTimeout } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { sha384 } from '@noble/hashes/sha2.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
@@ -520,15 +520,40 @@ export default class btse extends Exchange {
                     // when position mode is wrong {"status":429,"errorCode":-1,"message":"Order not found","extraData":["117","0"]}
                     // {"status":400,"errorCode":-2,"message":"Invalid request parameters","extraData":null}
                     // {"status":400,"errorCode":-2,"message":"Can't support count more than 500","extraData":null}
-                    // errorCode -1 is a generic failure whose message varies, observed live both as
-                    // Order not found and as a plain Failed on a malformed request against an existing
-                    // order, so it is classified by message in the broad map instead of by code here
-                    '-2': BadRequest, // {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
+                    // code -1 is ambiguous across the api surfaces, the official api status
+                    // enum defines it as TIMEOUT while the legacy error envelope uses it as a
+                    // generic failure whose message varies, observed live both as Order not
+                    // found and as a plain Failed on a malformed request against an existing
+                    // order, so it is classified by message in the broad map instead
+                    '-2': BadRequest, // INVALID_REQUEST {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
                     '-7': AuthenticationError, // {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
                     '-7006': BadSymbol, // {"status":400,"errorCode":-7006,"message":"Unsupported symbol","extraData":null} observed live for a full contract id sent to the unified futures api
                     '-11': ExchangeNotAvailable, // 400 Bad Request {"code":-11,"msg":"System error","success":false,"time":1770451790797,"data":[]}
+                    // the entries below come from the api status enum on the official error
+                    // codes reference page, success and neutral codes are deliberately absent
+                    '1': ExchangeNotAvailable, // MARKET_UNAVAILABLE
+                    '8': InsufficientFunds, // INSUFFICIENT_BALANCE
+                    '11': BadRequest, // ERROR_INVALID_CURRENCY
+                    '12': BadRequest, // ERROR_UPDATE_RISK_LIMIT
+                    '13': BadRequest, // ERROR_INVALID_LEVERAGE
+                    '15': InvalidOrder, // ORDER_REJECTED
+                    '16': OrderNotFound, // ORDER_NOTFOUND
+                    '17': ExchangeError, // REQUEST_FAILED
+                    '28': ExchangeError, // TRANSFER_UNSUCCESSFUL
+                    '41': BadRequest, // ERROR_INVALID_RISK_LIMIT
+                    '64': ExchangeError, // STATUS_LIQUIDATION
+                    '101': InvalidOrder, // FUTURES_ORDER_PRICE_OUTSIDE_LIQUIDATION_PRICE
                     '133': InvalidOrder, // {"status":400,"errorCode":133,"message":"Position mode invalid","extraData":["0","150"]}
                     '134': BadRequest, // {"status":400,"errorCode":134,"message":"failure","extraData":"Remaining positions."}
+                    '135': BadRequest, // invalid position id, observed live with an embedded json message
+                    '300': InvalidOrder, // ERROR_MAX_ORDER_SIZE_EXCEEDED
+                    '301': InvalidOrder, // ERROR_INVALID_ORDER_SIZE
+                    '302': InvalidOrder, // ERROR_INVALID_ORDER_PRICE
+                    '303': RateLimitExceeded, // ERROR_RATE_LIMITS_EXCEEDED
+                    '304': InvalidOrder, // ERROR_MAX_OPEN_ORDER_EXCEEDED
+                    '305': InvalidOrder, // ERROR_ORDER_PRICE_OUT_OF_PRICE_PROTECTION_RANGE
+                    '1003': InvalidOrder, // ORDER_LIQUIDATION
+                    '1004': InvalidOrder, // ORDER_ADL
                     '4003': InvalidOrder, // {"code":4003,"msg":"BADREQUEST: The order amount cannot surpass 100.0 BTC. Please adjust your order size and try again.","time":1786509292895,"data":null,"success":false}
                     '4005': InvalidOrder, // {"code":4005,"msg":"BADREQUEST: order price must be at least 0.01 USDT","time":1786622000000,"data":null,"success":false} observed live on the unified spot api
                     '4051': InvalidOrder, // {"status":400,"errorCode":4051,"message":"[RAVE-PERP] The order size cannot surpass 50000.0 contracts. Please adjust your order size and try again.","extraData":null}
@@ -3696,33 +3721,6 @@ export default class btse extends Exchange {
         //
         // success statuses such as 2 ORDER_INSERTED, 4 ORDER_FULLY_TRANSACTED, 5 ORDER_PARTIALLY_TRANSACTED, 6 ORDER_CANCELLED, 9 TRIGGER_INSERTED, 10 TRIGGER_ACTIVATED and 20 SUCCESS fall through without matching
         //
-        // the numeric api status enum from the official error codes reference,
-        // shared between the http 200 status field layer and the legacy error
-        // envelope below, success and neutral codes are deliberately absent
-        const statusExceptions: Dict = {
-            '-1': RequestTimeout, // TIMEOUT, verify order status separately
-            '1': ExchangeNotAvailable, // MARKET_UNAVAILABLE
-            '8': InsufficientFunds, // INSUFFICIENT_BALANCE
-            '11': BadRequest, // ERROR_INVALID_CURRENCY
-            '12': BadRequest, // ERROR_UPDATE_RISK_LIMIT
-            '13': BadRequest, // ERROR_INVALID_LEVERAGE
-            '15': InvalidOrder, // ORDER_REJECTED
-            '16': OrderNotFound, // ORDER_NOTFOUND
-            '17': ExchangeError, // REQUEST_FAILED
-            '28': ExchangeError, // TRANSFER_UNSUCCESSFUL
-            '41': BadRequest, // ERROR_INVALID_RISK_LIMIT
-            '64': ExchangeError, // STATUS_LIQUIDATION
-            '101': InvalidOrder, // FUTURES_ORDER_PRICE_OUTSIDE_LIQUIDATION_PRICE
-            '135': BadRequest, // invalid position id, observed live with an embedded json message
-            '300': InvalidOrder, // ERROR_MAX_ORDER_SIZE_EXCEEDED
-            '301': InvalidOrder, // ERROR_INVALID_ORDER_SIZE
-            '302': InvalidOrder, // ERROR_INVALID_ORDER_PRICE
-            '303': RateLimitExceeded, // ERROR_RATE_LIMITS_EXCEEDED
-            '304': InvalidOrder, // ERROR_MAX_OPEN_ORDER_EXCEEDED
-            '305': InvalidOrder, // ERROR_ORDER_PRICE_OUT_OF_PRICE_PROTECTION_RANGE
-            '1003': InvalidOrder, // ORDER_LIQUIDATION
-            '1004': InvalidOrder, // ORDER_ADL
-        };
         // the legacy error envelope documented on the error codes page carries
         // the numeric api status enum in the code field beside the http status
         //
@@ -3733,7 +3731,7 @@ export default class btse extends Exchange {
         if ((legacyErrorText !== undefined) && (legacyEnumCode !== undefined)) {
             const legacyMessage = this.safeString (response, 'message');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (statusExceptions, legacyEnumCode, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], legacyEnumCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], legacyMessage, feedback);
             throw new ExchangeError (feedback);
         }
@@ -3753,7 +3751,7 @@ export default class btse extends Exchange {
                     message = this.safeString (embedded, 'default_msg', message);
                 }
                 const feedback = this.id + ' ' + body;
-                this.throwExactlyMatchedException (statusExceptions, status, feedback);
+                this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
                 this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             }
         }
