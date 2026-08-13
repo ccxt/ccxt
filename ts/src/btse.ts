@@ -3560,8 +3560,15 @@ export default class btse extends Exchange {
             } else {
                 body = bodyString;
             }
-            path = this.cleanPath (path);
-            const payload = path + nonce.toString () + bodyString;
+            // the unified apis sign the full url path with the leading slash, the legacy apis sign the path without the product prefix
+            const isUnifiedApi = path.startsWith ('public-api/') || path.startsWith ('spot/api/v4/') || path.startsWith ('futures/api/v3/');
+            let signPath = undefined;
+            if (isUnifiedApi) {
+                signPath = '/' + path;
+            } else {
+                signPath = this.cleanPath (path);
+            }
+            const payload = signPath + nonce.toString () + bodyString;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384);
             headers = {
                 'request-api': this.apiKey,
