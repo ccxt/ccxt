@@ -267,11 +267,11 @@ export default class btse extends Exchange {
                         'spot/api/v3.3/user/wallet/address': 15,
                         'spot/api/v3.2/availableCurrencies': 15,
                         'spot/api/v3.2/subaccount/wallet/history': 15,
-                        'spot/api/v4/trade/orders': 5, // not used
-                        'spot/api/v4/trade/order': 1, // not used
+                        'spot/api/v4/trade/orders': { 'cost': 5 } as Endpoint<Dict>, // done
+                        'spot/api/v4/trade/order': { 'cost': 5 } as Endpoint<Dict>, // done
                         'spot/api/v4/trade/trade_history': { 'cost': 5 } as Endpoint<Dict>, // done
                         'spot/api/v4/trade/fees': 5, // not used
-                        'futures/api/v3/trade/orders': 5, // not used
+                        'futures/api/v3/trade/orders': { 'cost': 5 } as Endpoint<Dict>, // done
                         'futures/api/v3/trade/risk_limit': 5, // not used
                         'futures/api/v3/trade/position_mode': 5, // not used
                         'futures/api/v3/trade/leverage': 5, // not used
@@ -2299,13 +2299,14 @@ export default class btse extends Exchange {
      * @method
      * @name btse#fetchOpenOrder
      * @description fetches information on an open order made by the user
-     * @see https://btsecom.github.io/docs/spotV3_3/en/#query-order
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#query-order
+     * @see https://docs.btse.com/spot/rest/get-order
+     * @see https://docs.btse.com/futures/rest/get-orders
      * @param {string} id the order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @param {string} [params.type] 'spot', 'swap' or 'future' (default is 'spot')
+     * @param {string} [params.type] 'spot', 'swap' or 'future', default is 'spot'
+     * @param {bool} [params.includeCancelled] *contract markets only* if true, cancelled orders are included in the lookup
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -2313,12 +2314,12 @@ export default class btse extends Exchange {
         const request: Dict = {};
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
-            request['clOrderID'] = clientOrderId;
+            request['clOrderId'] = clientOrderId;
             params = this.omit (params, 'clientOrderId');
         } else if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrder() requires an id argument or a clientOrderId parameter');
         } else {
-            request['orderID'] = id;
+            request['orderId'] = id;
         }
         let market = undefined;
         if (symbol !== undefined) {
@@ -2328,92 +2329,18 @@ export default class btse extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params, marketType);
         let response = undefined;
         if (marketType === 'spot') {
-            //
-            //     {
-            //         "orderID": "a5ff04c6-c0bc-47a4-ac7f-6750e9b1699c",
-            //         "orderType": 76,
-            //         "price": 1000,
-            //         "side": "BUY",
-            //         "orderValue": 0.0999846,
-            //         "pegPriceMin": 0,
-            //         "pegPriceMax": 0,
-            //         "pegPriceDeviation": 0,
-            //         "timestamp": 1770830503384,
-            //         "triggerOrder": false,
-            //         "triggerPrice": 0,
-            //         "triggerOriginalPrice": 0,
-            //         "triggerOrderType": 0,
-            //         "triggerTrailingStopDeviation": 0,
-            //         "triggerStopPrice": 0,
-            //         "symbol": "ETH-USDT",
-            //         "trailValue": 0,
-            //         "trailValueType": "DISTANCE",
-            //         "quote": "USDT",
-            //         "clOrderID": null,
-            //         "status": 2,
-            //         "timeInForce": "GTC",
-            //         "triggerUseLastPrice": false,
-            //         "activationPrice": null,
-            //         "activationPriceType": null,
-            //         "currentPegPrice": 999.84,
-            //         "originalOrderBaseSize": 0.0001,
-            //         "originalOrderQuoteSize": null,
-            //         "currentOrderBaseSize": 0.0001,
-            //         "currentOrderQuoteSize": null,
-            //         "remainingOrderBaseSize": 0.0001,
-            //         "remainingOrderQuoteSize": null,
-            //         "totalFilledBaseSize": 0,
-            //         "orderCurrency": "base",
-            //         "avgFilledPrice": 0,
-            //         "triggered": false,
-            //         "wrapperOrder": false
-            //     }
-            //
-            response = await this.privateGetSpotApiV33Order (this.extend (request, params));
+            response = await this.privateGetSpotApiV4TradeOrder (this.extend (request, params));
         } else {
-            //
-            //     {
-            //         "orderType": 76,
-            //         "price": 1830,
-            //         "originalOrderSize": 1,
-            //         "currentOrderSize": 1,
-            //         "totalFilledSize": 1,
-            //         "remainingSize": 0,
-            //         "side": "SELL",
-            //         "orderValue": 0.183,
-            //         "pegPriceMin": 0,
-            //         "pegPriceMax": 0,
-            //         "pegPriceDeviation": 1,
-            //         "timestamp": 1770831088059,
-            //         "orderID": "5857e882-52ba-4668-a733-b0c346d087fd",
-            //         "stealth": 1,
-            //         "triggerOrder": false,
-            //         "triggered": false,
-            //         "triggerPrice": 0,
-            //         "triggerOriginalPrice": 0,
-            //         "triggerOrderType": 0,
-            //         "triggerTrailingStopDeviation": 0,
-            //         "triggerStopPrice": 0,
-            //         "symbol": "ETH-PERP",
-            //         "trailValue": 0,
-            //         "trailValueType": "DISTANCE",
-            //         "clOrderID": "",
-            //         "reduceOnly": false,
-            //         "status": 4,
-            //         "triggerUseLastPrice": false,
-            //         "avgFilledPrice": 1932.16,
-            //         "contractSize": 0.0001,
-            //         "timeInForce": "GTC",
-            //         "closeOrder": false,
-            //         "activationPrice": null,
-            //         "activationPriceType": null,
-            //         "currentPegPrice": 1830,
-            //         "wrapperOrder": false
-            //     }
-            //
-            response = await this.privateGetFuturesApiV23Order (this.extend (request, params));
+            // the futures endpoint doubles as the single order lookup when an
+            // order id is sent and responds with a bare array
+            response = await this.privateGetFuturesApiV3TradeOrders (this.extend (request, params));
         }
-        return this.parseOrder (response);
+        // accept a bare order dict, a data envelope and a one element array
+        let order = this.safeValue (response, 'data', response);
+        if (Array.isArray (order)) {
+            order = this.safeDict (order, 0, {});
+        }
+        return this.parseOrder (order as any, market);
     }
 
     /**
@@ -2615,13 +2542,13 @@ export default class btse extends Exchange {
      * @method
      * @name btse#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://btsecom.github.io/docs/spotV3_3/en/#query-open-orders
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#query-open-orders
+     * @see https://docs.btse.com/spot/rest/get-orders
+     * @see https://docs.btse.com/futures/rest/get-orders
      * @param {string} [symbol] unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch open orders for
-     * @param {int} [limit] the maximum number of open orders structures to retrieve
+     * @param {int} [since] the earliest time in ms to fetch open orders for, filtered client-side
+     * @param {int} [limit] the maximum number of open orders structures to retrieve, filtered client-side
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'spot', 'swap' or 'future' (default is 'spot')
+     * @param {string} [params.type] 'spot', 'swap' or 'future', default is 'spot'
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -2630,18 +2557,25 @@ export default class btse extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
         }
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params, marketType);
         let response = undefined;
         if (marketType === 'spot') {
-            response = await this.privateGetSpotApiV33UserOpenOrders (this.extend (request, params));
+            if (market !== undefined) {
+                request['symbol'] = market['id'];
+            }
+            response = await this.privateGetSpotApiV4TradeOrders (this.extend (request, params));
         } else {
-            response = await this.privateGetFuturesApiV23UserOpenOrders (this.extend (request, params));
+            if (market !== undefined) {
+                request['symbol'] = this.futuresRequestId (market);
+            }
+            response = await this.privateGetFuturesApiV3TradeOrders (this.extend (request, params));
         }
-        // todo check parsing
-        return this.parseOrders (response, market);
+        // the endpoints have no server side time filters, accept a bare array
+        // and a data envelope and filter client-side
+        const rows = this.safeList (response, 'data', response as any);
+        return this.parseOrders (rows, market, since, limit);
     }
 
     override parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2740,7 +2674,7 @@ export default class btse extends Exchange {
             'cost': undefined,
             'trades': undefined,
             'fee': undefined,
-            'average': this.omitZero (this.safeString (order, 'avgFilledPrice')),
+            'average': this.omitZero (this.safeString2 (order, 'avgFilledPrice', 'averageFillPrice')),
         }, market);
     }
 
