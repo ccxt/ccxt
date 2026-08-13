@@ -50,7 +50,7 @@
             {
                 "description": "set margin mode to cross and hedged",
                 "method": "setMarginMode",
-                "url": "https://api.btse.com/futures/api/v2.3/position_mode",
+                "url": "https://api.btse.com/futures/api/v3/trade/position_mode",
                 "input": [
                     "CROSS",
                     "ETH/USDT:USDT",
@@ -58,12 +58,12 @@
                         "hedged": true
                     }
                 ],
-                "output": "{\"symbol\":\"ETH-PERP-USDT\",\"positionMode\":\"HEDGE\"}"
+                "output": "{\"symbol\":\"ETH-PERP\",\"positionMode\":\"HEDGE\"}"
             },
             {
                 "description": "set margin mode to cross and one-way",
                 "method": "setMarginMode",
-                "url": "https://api.btse.com/futures/api/v2.3/position_mode",
+                "url": "https://api.btse.com/futures/api/v3/trade/position_mode",
                 "input": [
                     "CROSS",
                     "ETH/USDT:USDT",
@@ -71,24 +71,24 @@
                         "hedged": false
                     }
                 ],
-                "output": "{\"symbol\":\"ETH-PERP-USDT\",\"positionMode\":\"ONE_WAY\"}"
+                "output": "{\"symbol\":\"ETH-PERP\",\"positionMode\":\"ONE_WAY\"}"
             },
             {
                 "description": "set margin mode to isolated",
                 "method": "setMarginMode",
-                "url": "https://api.btse.com/futures/api/v2.3/position_mode",
+                "url": "https://api.btse.com/futures/api/v3/trade/position_mode",
                 "input": [
                     "isolated",
                     "ETH/USDT:USDT"
                 ],
-                "output": "{\"symbol\":\"ETH-PERP-USDT\",\"positionMode\":\"ISOLATED\"}"
+                "output": "{\"symbol\":\"ETH-PERP\",\"positionMode\":\"ISOLATED\"}"
             }
         ],
         "fetchMarginMode": [
             {
                 "description": "fetch margin mode",
                 "method": "fetchMarginMode",
-                "url": "https://api.btse.com/futures/api/v2.3/leverage?symbol=ETH-PERP-USDT",
+                "url": "https://api.btse.com/futures/api/v3/trade/leverage?symbol=ETH-PERP",
                 "input": [
                     "ETH/USDT:USDT"
                 ],
@@ -99,31 +99,31 @@
             {
                 "description": "set leverage for market",
                 "method": "setLeverage",
-                "url": "https://api.btse.com/futures/api/v2.3/leverage",
+                "url": "https://api.btse.com/futures/api/v3/trade/leverage",
                 "input": [
                     10,
                     "ETH/USDT:USDT"
                 ],
-                "output": "{\"symbol\":\"ETH-PERP-USDT\",\"leverage\":10}"
+                "output": "{\"symbol\":\"ETH-PERP\",\"leverage\":10}"
             }
         ],
         "setPositionMode": [
             {
                 "description": "set position mode for market",
                 "method": "setPositionMode",
-                "url": "https://api.btse.com/futures/api/v2.3/position_mode",
+                "url": "https://api.btse.com/futures/api/v3/trade/position_mode",
                 "input": [
                     false,
                     "ETH/USDT:USDT"
                 ],
-                "output": "{\"symbol\":\"ETH-PERP-USDT\",\"positionMode\":\"ONE_WAY\"}"
+                "output": "{\"symbol\":\"ETH-PERP\",\"positionMode\":\"ONE_WAY\"}"
             }
         ],
         "fetchPositionMode": [
             {
                 "description": "fetch position mode for market",
                 "method": "fetchPositionMode",
-                "url": "https://api.btse.com/futures/api/v2.3/position_mode?symbol=ETH-PERP-USDT",
+                "url": "https://api.btse.com/futures/api/v3/trade/position_mode?symbol=ETH-PERP",
                 "input": [
                     "ETH/USDT:USDT"
                 ],

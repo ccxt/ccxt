@@ -73,8 +73,8 @@ interface Exchange {
     privateGetSpotApiV4TradeFees (params?: {}): Promise<Dict>;
     privateGetFuturesApiV3TradeOrders (params?: {}): Promise<Dict>;
     privateGetFuturesApiV3TradeRiskLimit (params?: {}): Promise<Dict | List>;
-    privateGetFuturesApiV3TradePositionMode (params?: {}): Promise<Dict | List>;
-    privateGetFuturesApiV3TradeLeverage (params?: {}): Promise<Dict | List>;
+    privateGetFuturesApiV3TradePositionMode (params?: {}): Promise<Dict>;
+    privateGetFuturesApiV3TradeLeverage (params?: {}): Promise<Dict>;
     privateGetFuturesApiV3TradeTradeHistory (params?: {}): Promise<Dict>;
     privateGetFuturesApiV3TradePositions (params?: {}): Promise<Dict>;
     privateGetFuturesApiV3TradeMarginSetting (params?: {}): Promise<Dict | List>;
@@ -117,8 +117,8 @@ interface Exchange {
     privatePostFuturesApiV3TradeSettleIn (params?: {}): Promise<Dict | List>;
     privatePostFuturesApiV3TradeRiskLimit (params?: {}): Promise<Dict | List>;
     privatePostFuturesApiV3TradePositionsTpsl (params?: {}): Promise<Dict | List>;
-    privatePostFuturesApiV3TradePositionMode (params?: {}): Promise<Dict | List>;
-    privatePostFuturesApiV3TradeLeverage (params?: {}): Promise<Dict | List>;
+    privatePostFuturesApiV3TradePositionMode (params?: {}): Promise<Dict>;
+    privatePostFuturesApiV3TradeLeverage (params?: {}): Promise<Dict>;
     privatePostPublicApiWalletV1UserCryptoAddress (params?: {}): Promise<Dict | List>;
     privatePostPublicApiWalletV1UserCryptoWithdraw (params?: {}): Promise<Dict | List>;
     privatePostPublicApiWalletV1UserAssetsSendTo (params?: {}): Promise<Dict | List>;

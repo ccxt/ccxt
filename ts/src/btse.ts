@@ -273,8 +273,8 @@ export default class btse extends Exchange {
                         'spot/api/v4/trade/fees': { 'cost': 5 } as Endpoint<Dict>, // done
                         'futures/api/v3/trade/orders': { 'cost': 5 } as Endpoint<Dict>, // done
                         'futures/api/v3/trade/risk_limit': 5, // not used
-                        'futures/api/v3/trade/position_mode': 5, // not used
-                        'futures/api/v3/trade/leverage': 5, // not used
+                        'futures/api/v3/trade/position_mode': { 'cost': 5 } as Endpoint<Dict>, // done
+                        'futures/api/v3/trade/leverage': { 'cost': 5 } as Endpoint<Dict>, // done
                         'futures/api/v3/trade/trade_history': { 'cost': 5 } as Endpoint<Dict>, // done
                         'futures/api/v3/trade/positions': { 'cost': 5 } as Endpoint<Dict>, // done
                         'futures/api/v3/trade/margin_setting': 5, // not used
@@ -319,8 +319,8 @@ export default class btse extends Exchange {
                         'futures/api/v3/trade/settle_in': 5, // not used
                         'futures/api/v3/trade/risk_limit': 5, // not used
                         'futures/api/v3/trade/positions/tpsl': 1, // not used
-                        'futures/api/v3/trade/position_mode': 5, // not used
-                        'futures/api/v3/trade/leverage': 5, // not used
+                        'futures/api/v3/trade/position_mode': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'futures/api/v3/trade/leverage': { 'cost': 1 } as Endpoint<Dict>, // done
                         'public-api/wallet/v1/user/crypto/address': 15, // not used
                         'public-api/wallet/v1/user/crypto/withdraw': 15, // not used
                         'public-api/wallet/v1/user/assets/sendTo': 15, // not used
@@ -3340,7 +3340,7 @@ export default class btse extends Exchange {
      * @method
      * @name btse#fetchPositionMode
      * @description fetchs the position mode, hedged or one way, hedged for btse is set identically for all linear markets or all inverse markets
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#query-position-mode
+     * @see https://docs.btse.com/futures/rest/get-position-mode
      * @param {string} symbol unified symbol of the market to fetch entry for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
@@ -3352,9 +3352,9 @@ export default class btse extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': market['id'],
+            'symbol': this.futuresRequestId (market),
         };
-        const response = await this.privateGetFuturesApiV23PositionMode (this.extend (request, params));
+        const response = await this.privateGetFuturesApiV3TradePositionMode (this.extend (request, params));
         //
         //     [
         //         {
@@ -3376,7 +3376,7 @@ export default class btse extends Exchange {
      * @method
      * @name btse#setPositionMode
      * @description NB!!! This method also sets margin mode to cross on btse. Set hedged to true or false for a cross-margin market.
-     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode
+     * @see https://docs.btse.com/futures/rest/change-position-mode
      * @param {bool} hedged set to true to use dualSidePosition
      * @param {string} symbol unified symbol of the market to set position mode for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3395,17 +3395,17 @@ export default class btse extends Exchange {
         const market = this.market (symbol);
         const positionMode = hedged ? 'HEDGE' : 'ONE_WAY';
         const request: Dict = {
-            'symbol': market['id'],
+            'symbol': this.futuresRequestId (market),
             'positionMode': positionMode,
         };
-        return await this.privatePostFuturesApiV23PositionMode (this.extend (request, params));
+        return await this.privatePostFuturesApiV3TradePositionMode (this.extend (request, params));
     }
 
     /**
      * @method
      * @name btse#fetchMarginMode
      * @description fetches the margin mode of a specific symbol
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#get-leverage
+     * @see https://docs.btse.com/futures/rest/get-leverage
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
@@ -3414,9 +3414,9 @@ export default class btse extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': market['id'],
+            'symbol': this.futuresRequestId (market),
         };
-        const response = await this.privateGetFuturesApiV23Leverage (this.extend (request, params));
+        const response = await this.privateGetFuturesApiV3TradeLeverage (this.extend (request, params));
         const data = this.safeDict (response, 0, {});
         return this.parseMarginMode (data, market);
     }
@@ -3448,7 +3448,7 @@ export default class btse extends Exchange {
      * @method
      * @name btse#setMarginMode
      * @description set margin mode to 'cross' or 'isolated'
-     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode
+     * @see https://docs.btse.com/futures/rest/change-position-mode
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3486,10 +3486,10 @@ export default class btse extends Exchange {
         }
         params = this.omit (params, 'hedged');
         const request: Dict = {
-            'symbol': market['id'],
+            'symbol': this.futuresRequestId (market),
             'positionMode': positionMode,
         };
-        return await this.privatePostFuturesApiV23PositionMode (this.extend (request, params));
+        return await this.privatePostFuturesApiV3TradePositionMode (this.extend (request, params));
     }
 
     /**
@@ -3540,7 +3540,7 @@ export default class btse extends Exchange {
      * @method
      * @name btse#fetchLeverage
      * @description fetch the leverage for a market
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#get-leverage
+     * @see https://docs.btse.com/futures/rest/get-leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
@@ -3549,9 +3549,9 @@ export default class btse extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': market['id'],
+            'symbol': this.futuresRequestId (market),
         };
-        const response = await this.privateGetFuturesApiV23Leverage (this.extend (request, params));
+        const response = await this.privateGetFuturesApiV3TradeLeverage (this.extend (request, params));
         //
         //     [
         //         {
@@ -3603,10 +3603,13 @@ export default class btse extends Exchange {
      * @method
      * @name btse#setLeverage
      * @description set the level of leverage for a market
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#set-leverage
+     * @see https://docs.btse.com/futures/rest/change-leverage
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionMode] ONE_WAY or HEDGE, defaults to ONE_WAY on the exchange side when omitted
+     * @param {string} [params.positionDirection] LONG or SHORT, identifies the side to update in hedge mode
+     * @param {string} [params.positionId] existing position id to update, disambiguates the target position in hedge mode
      * @returns {object} response from the exchange
      */
     override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
@@ -3616,7 +3619,7 @@ export default class btse extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': market['id'],
+            'symbol': this.futuresRequestId (market),
             'leverage': leverage, // a value of 0 requests the maximum cross leverage per the documentation
         };
         // the endpoint defaults to the ISOLATED bucket when marginMode is omitted,
@@ -3627,7 +3630,7 @@ export default class btse extends Exchange {
         if (marginMode !== undefined) {
             request['marginMode'] = marginMode.toUpperCase ();
         }
-        const response = await this.privatePostFuturesApiV23Leverage (this.extend (request, params));
+        const response = await this.privatePostFuturesApiV3TradeLeverage (this.extend (request, params));
         return response;
     }
 
