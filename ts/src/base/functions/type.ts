@@ -37,7 +37,7 @@ const getValueFromKeysInArray = <T>(
     object: Dictionary<any>,
     keys: any[],
 ): T | undefined => {
-    if (object === undefined || object === null || typeof object !== 'object') return undefined;
+    if (!isObject (object)) return undefined;
     for (const k of keys) {
         if (k === undefined || k === null) continue;
         const v = object[k];
