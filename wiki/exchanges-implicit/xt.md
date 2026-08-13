@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official xt API documentation:** [doc.xt.com](https://doc.xt.com/) · [github.com](https://github.com/xtpub/api-doc)
 
-> 162 implicit endpoints across 2 access groups.
+> 166 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -166,7 +166,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateLinearPostFutureTradeV1EntrustCancelPlan` | POST | `future/trade/v1/entrust/cancel-plan` | 1 |
 | `privateLinearPostFutureTradeV1EntrustCancelProfitStop` | POST | `future/trade/v1/entrust/cancel-profit-stop` | 1 |
 | `privateLinearPostFutureTradeV1EntrustCreatePlan` | POST | `future/trade/v1/entrust/create-plan` | 1 |
+| `privateLinearPostFutureTradeV1EntrustCancelTrack` | POST | `future/trade/v1/entrust/cancel-track` | 1 |
 | `privateLinearPostFutureTradeV1EntrustCreateProfit` | POST | `future/trade/v1/entrust/create-profit` | 1 |
+| `privateLinearPostFutureTradeV1EntrustCreateTrack` | POST | `future/trade/v1/entrust/create-track` | 1 |
 | `privateLinearPostFutureTradeV1EntrustUpdateProfitStop` | POST | `future/trade/v1/entrust/update-profit-stop` | 1 |
 | `privateLinearPostFutureTradeV1OrderCancel` | POST | `future/trade/v1/order/cancel` | 1 |
 | `privateLinearPostFutureTradeV1OrderCancelAll` | POST | `future/trade/v1/order/cancel-all` | 1 |
@@ -207,7 +209,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateInversePostFutureTradeV1EntrustCancelPlan` | POST | `future/trade/v1/entrust/cancel-plan` | 1 |
 | `privateInversePostFutureTradeV1EntrustCancelProfitStop` | POST | `future/trade/v1/entrust/cancel-profit-stop` | 1 |
 | `privateInversePostFutureTradeV1EntrustCreatePlan` | POST | `future/trade/v1/entrust/create-plan` | 1 |
+| `privateInversePostFutureTradeV1EntrustCancelTrack` | POST | `future/trade/v1/entrust/cancel-track` | 1 |
 | `privateInversePostFutureTradeV1EntrustCreateProfit` | POST | `future/trade/v1/entrust/create-profit` | 1 |
+| `privateInversePostFutureTradeV1EntrustCreateTrack` | POST | `future/trade/v1/entrust/create-track` | 1 |
 | `privateInversePostFutureTradeV1EntrustUpdateProfitStop` | POST | `future/trade/v1/entrust/update-profit-stop` | 1 |
 | `privateInversePostFutureTradeV1OrderCancel` | POST | `future/trade/v1/order/cancel` | 1 |
 | `privateInversePostFutureTradeV1OrderCancelAll` | POST | `future/trade/v1/order/cancel-all` | 1 |
