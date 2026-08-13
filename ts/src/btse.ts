@@ -1536,7 +1536,9 @@ export default class btse extends Exchange {
         const marketId = this.safeString (contract, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeTimestamp (contract, 'closeTime');
-        const nextFundingTimestamp = this.safeInteger (contract, 'nextFundingTime');
+        // dated futures carry a zero nextFundingTime as funding only applies to
+        // perpetuals, observed live, the zero means no next funding and is omitted
+        const nextFundingTimestamp = this.safeIntegerOmitZero (contract, 'nextFundingTime');
         const fundingIntervalMinutes = this.safeInteger (contract, 'fundingIntervalMinutes');
         let interval = undefined;
         if (fundingIntervalMinutes !== undefined) {
