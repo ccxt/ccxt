@@ -1796,6 +1796,80 @@
                     }
                 ]
             }
+        ,
+            {
+                "description": "btse fetchDepositsWithdrawals - live-captured 2026-08-13 on the unified wallet v1 walletHistory endpoint with the server side historyTypes filter, enveloped response with success code 1 and a data array, uppercase DEPOSIT type and string numerics and the plural fees key, report-block verbatim",
+                "method": "fetchDepositsWithdrawals",
+                "input": [
+                    "USDT"
+                ],
+                "httpResponse": {
+                    "code": 1,
+                    "msg": "Success",
+                    "time": 1786624541092,
+                    "data": [
+                        {
+                            "transactionTime": 1786510157962,
+                            "type": "DEPOSIT",
+                            "walletName": "SPOT@",
+                            "asset": "USDT",
+                            "netAmount": "100",
+                            "amount": "100",
+                            "transactionRef": "2026081200000367",
+                            "status": "COMPLETED",
+                            "description": null,
+                            "fees": "0",
+                            "cryptoNetwork": "ERC20",
+                            "toAddress": "0x36bd7cbc486658c9777672fe742971bda65d5e6f",
+                            "confirmTimes": "(15/15)",
+                            "txId": "0xb4d88986d013f799d78e6232792c44b45dff1213a015171ddcf4adfcd283b3fd"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "transactionTime": 1786510157962,
+                            "type": "DEPOSIT",
+                            "walletName": "SPOT@",
+                            "asset": "USDT",
+                            "netAmount": "100",
+                            "amount": "100",
+                            "transactionRef": "2026081200000367",
+                            "status": "COMPLETED",
+                            "description": null,
+                            "fees": "0",
+                            "cryptoNetwork": "ERC20",
+                            "toAddress": "0x36bd7cbc486658c9777672fe742971bda65d5e6f",
+                            "confirmTimes": "(15/15)",
+                            "txId": "0xb4d88986d013f799d78e6232792c44b45dff1213a015171ddcf4adfcd283b3fd"
+                        },
+                        "id": "2026081200000367",
+                        "txid": "0xb4d88986d013f799d78e6232792c44b45dff1213a015171ddcf4adfcd283b3fd",
+                        "timestamp": 1786510157962,
+                        "datetime": "2026-08-12T04:49:17.962Z",
+                        "network": "ERC20",
+                        "address": "0x36bd7cbc486658c9777672fe742971bda65d5e6f",
+                        "addressTo": "0x36bd7cbc486658c9777672fe742971bda65d5e6f",
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "deposit",
+                        "amount": 100,
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": null,
+                        "internal": null,
+                        "comment": null,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0
+                        }
+                    }
+                ]
+            }
         ],
         "fetchLedger": [
             {

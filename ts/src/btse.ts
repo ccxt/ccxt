@@ -2781,28 +2781,17 @@ export default class btse extends Exchange {
         return result;
     }
 
-    /**
-     * @method
-     * @name btse#fetchDepositsWithdrawals
-     * @description fetch history of deposits and withdrawals
-     * @see https://docs.btse.com/wallet/rest/get-user-wallet-history
-     * @param {string} [code] unified currency code
-     * @param {int} [since] the earliest time in ms to fetch transactions for
-     * @param {int} [limit] the maximum number of transaction structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch transactions for, excluded
-     * @param {string} [params.walletType] wallet to query, SPOT by default, ISOLATED requires params.walletName
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-     */
-    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWalletHistoryRows (methodName: string, historyTypes: string[], code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const walletType = this.safeString (params, 'walletType', 'SPOT');
         const request: Dict = {
             'walletType': walletType,
-            // the endpoint requires the history type filter as a json encoded
-            // array in the query string
-            'historyTypes': this.json ([ 'DEPOSIT', 'WITHDRAW' ]),
         };
+        if (historyTypes.length > 0) {
+            // the endpoint applies a server side history type filter sent as a
+            // json encoded array in the query string, verified live
+            request['historyTypes'] = this.json (historyTypes);
+        }
         params = this.omit (params, 'walletType');
         let currency = undefined;
         if (code !== undefined) {
@@ -2811,7 +2800,7 @@ export default class btse extends Exchange {
         } else if (walletType === 'SPOT') {
             // the exchange rejects spot wallet history queries without an asset,
             // verified live, and omitting walletType still defaults to spot
-            throw new ArgumentsRequired (this.id + ' fetchDepositsWithdrawals() requires a code argument for the spot wallet history');
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a code argument for the spot wallet history');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2820,43 +2809,73 @@ export default class btse extends Exchange {
             request['pageSize'] = limit;
         }
         let until = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'until');
+        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
         const response = await this.privateGetPublicApiWalletV1UserWalletHistory (this.extend (request, params));
         //
-        //     [
-        //         {
-        //             "transactionTime": 1786510157962,
-        //             "type": "DEPOSIT",
-        //             "walletName": "SPOT@",
-        //             "asset": "USDT",
-        //             "netAmount": "100",
-        //             "amount": "100",
-        //             "transactionRef": "2026081200000367",
-        //             "status": "PROCESSING",
-        //             "description": "",
-        //             "fee": "0",
-        //             "cryptoNetwork": "",
-        //             "toAddress": "0x0000000000000000000000000000000000000000",
-        //             "confirmTimes": "",
-        //             "txId": ""
-        //         }
-        //     ]
+        //     {
+        //         "code": 1,
+        //         "msg": "Success",
+        //         "time": 1786624541092,
+        //         "data": [
+        //             {
+        //                 "transactionTime": 1786510157962,
+        //                 "type": "DEPOSIT",
+        //                 "walletName": "SPOT@",
+        //                 "asset": "USDT",
+        //                 "netAmount": "100",
+        //                 "amount": "100",
+        //                 "transactionRef": "2026081200000367",
+        //                 "status": "COMPLETED",
+        //                 "description": null,
+        //                 "fees": "0",
+        //                 "cryptoNetwork": "ERC20",
+        //                 "toAddress": "0x36bd7cbc486658c9777672fe742971bda65d5e6f",
+        //                 "confirmTimes": "(15/15)",
+        //                 "txId": "0xb4d88986d013f799d78e6232792c44b45dff1213a015171ddcf4adfcd283b3fd"
+        //             }
+        //         ],
+        //         "success": true
+        //     }
         //
-        // the history type filter is also applied client side over both the
-        // legacy and the unified enum vocabularies as the legacy endpoint
-        // ignored the filter and returned the whole mixed ledger
         const rawRows = this.safeList (response, 'data', response as any);
+        // the requested types are also filtered client side over both the legacy
+        // and the unified enum vocabularies as the legacy endpoint ignored the
+        // filter and returned the whole mixed ledger
+        const allowed: Dict = {};
+        for (let i = 0; i < historyTypes.length; i++) {
+            const historyType = historyTypes[i];
+            allowed[historyType] = true;
+            allowed[this.capitalize (historyType.toLowerCase ())] = true;
+        }
         const rows = [];
         for (let i = 0; i < rawRows.length; i++) {
             const entry = rawRows[i];
-            const type = this.safeString (entry, 'type');
-            if ((type === 'Deposit') || (type === 'Withdraw') || (type === 'DEPOSIT') || (type === 'WITHDRAW')) {
+            const type = this.safeString (entry, 'type', '');
+            if ((historyTypes.length === 0) || (type in allowed)) {
                 rows.push (entry);
             }
         }
+        return [ rows, currency ] as any;
+    }
+
+    /**
+     * @method
+     * @name btse#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://docs.btse.com/wallet/rest/get-user-wallet-history
+     * @param {string} [code] unified currency code, required for the default spot wallet
+     * @param {int} [since] the earliest time in ms to fetch transactions for
+     * @param {int} [limit] the maximum number of transaction structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transactions for, excluded
+     * @param {string} [params.walletType] wallet to query, SPOT by default, ISOLATED requires params.walletName
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        const [ rows, currency ] = await this.fetchWalletHistoryRows ('fetchDepositsWithdrawals', [ 'DEPOSIT', 'WITHDRAW' ], code, since, limit, params);
         return this.parseTransactions (rows, currency, since, limit);
     }
 
@@ -2865,16 +2884,17 @@ export default class btse extends Exchange {
      * @name btse#fetchDeposits
      * @description fetch all deposits made to an account
      * @see https://docs.btse.com/wallet/rest/get-user-wallet-history
-     * @param {string} [code] unified currency code
+     * @param {string} [code] unified currency code, required for the default spot wallet
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of transaction structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch deposits for, excluded
+     * @param {string} [params.walletType] wallet to query, SPOT by default, ISOLATED requires params.walletName
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        const transactions = await this.fetchDepositsWithdrawals (code, since, limit, this.extend ({ 'historyTypes': this.json ([ 'DEPOSIT' ]) }, params));
-        return this.filterBy (transactions, 'type', 'deposit') as Transaction[];
+        const [ rows, currency ] = await this.fetchWalletHistoryRows ('fetchDeposits', [ 'DEPOSIT' ], code, since, limit, params);
+        return this.parseTransactions (rows, currency, since, limit);
     }
 
     /**
@@ -2882,16 +2902,17 @@ export default class btse extends Exchange {
      * @name btse#fetchWithdrawals
      * @description fetch all withdrawals made from an account
      * @see https://docs.btse.com/wallet/rest/get-user-wallet-history
-     * @param {string} [code] unified currency code
+     * @param {string} [code] unified currency code, required for the default spot wallet
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of transaction structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch withdrawals for, excluded
+     * @param {string} [params.walletType] wallet to query, SPOT by default, ISOLATED requires params.walletName
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        const transactions = await this.fetchDepositsWithdrawals (code, since, limit, this.extend ({ 'historyTypes': this.json ([ 'WITHDRAW' ]) }, params));
-        return this.filterBy (transactions, 'type', 'withdrawal') as Transaction[];
+        const [ rows, currency ] = await this.fetchWalletHistoryRows ('fetchWithdrawals', [ 'WITHDRAW' ], code, since, limit, params);
+        return this.parseTransactions (rows, currency, since, limit);
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
