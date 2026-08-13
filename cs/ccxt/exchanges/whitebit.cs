@@ -4146,12 +4146,12 @@ public partial class whitebit : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = since;
+            ((IDictionary<string,object>)request)["limit"] = limit;
         }
         var requestparametersVariable = this.handleUntilOption("endDate", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object response = await this.v4PrivatePostCollateralAccountFundingHistory(request);
+        object response = await this.v4PrivatePostCollateralAccountFundingHistory(this.extend(request, parameters));
         //
         //     {
         //         "records": [
