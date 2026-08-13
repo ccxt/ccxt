@@ -3579,19 +3579,13 @@ export default class btse extends Exchange {
             } else {
                 body = bodyString;
             }
-            // what is signed is the path exactly as it appears in the openapi spec for the endpoint,
-            // whatever the spec places in the server url is part of the host and is never signed:
-            // spot v4 and public-api sign the full path with the leading slash, futures v3 signs
-            // only the /v3/... tail because /futures/api lives in the server url, and the legacy
-            // apis sign the path without the product prefix
-            const isUnifiedApi = path.startsWith ('public-api/') || path.startsWith ('spot/api/v4/') || path.startsWith ('futures/api/v3/');
+            // the signed urlpath is the path relative to the base url of the product, the
+            // spot and futures apis of every generation mount under /spot and /futures and
+            // sign the /api/v... remainder, while the public-api wallet, otc and markets
+            // endpoints mount on the bare host and sign the full path with the leading slash
             let signPath = undefined;
-            if (isUnifiedApi) {
-                if (path.startsWith ('futures/api/')) {
-                    signPath = path.replace ('futures/api', '');
-                } else {
-                    signPath = '/' + path;
-                }
+            if (path.startsWith ('public-api/')) {
+                signPath = '/' + path;
             } else {
                 signPath = this.cleanPath (path);
             }
