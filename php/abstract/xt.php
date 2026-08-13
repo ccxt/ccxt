@@ -484,6 +484,24 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_linear_get_future_trade_v1_entrust_track_detail($params = array()) {
+        return $this->request('future/trade/v1/entrust/track-detail', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_linear_get_future_trade_v1_entrust_track_list($params = array()) {
+        return $this->request('future/trade/v1/entrust/track-list', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_linear_get_future_trade_v1_entrust_track_list_history($params = array()) {
+        return $this->request('future/trade/v1/entrust/track-list-history', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_linear_get_future_trade_v1_order_detail($params = array()) {
         return $this->request('future/trade/v1/order/detail', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -738,6 +756,24 @@ abstract class xt extends \ccxt\Exchange {
      */
     public function private_inverse_get_future_trade_v1_entrust_profit_list($params = array()) {
         return $this->request('future/trade/v1/entrust/profit-list', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_inverse_get_future_trade_v1_entrust_track_detail($params = array()) {
+        return $this->request('future/trade/v1/entrust/track-detail', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_inverse_get_future_trade_v1_entrust_track_list($params = array()) {
+        return $this->request('future/trade/v1/entrust/track-list', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_inverse_get_future_trade_v1_entrust_track_list_history($params = array()) {
+        return $this->request('future/trade/v1/entrust/track-list-history', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1480,6 +1516,24 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateLinearGetFutureTradeV1EntrustTrackDetail($params = array()) {
+        return $this->request('future/trade/v1/entrust/track-detail', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateLinearGetFutureTradeV1EntrustTrackList($params = array()) {
+        return $this->request('future/trade/v1/entrust/track-list', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateLinearGetFutureTradeV1EntrustTrackListHistory($params = array()) {
+        return $this->request('future/trade/v1/entrust/track-list-history', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateLinearGetFutureTradeV1OrderDetail($params = array()) {
         return $this->request('future/trade/v1/order/detail', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1734,6 +1788,24 @@ abstract class xt extends \ccxt\Exchange {
      */
     public function privateInverseGetFutureTradeV1EntrustProfitList($params = array()) {
         return $this->request('future/trade/v1/entrust/profit-list', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateInverseGetFutureTradeV1EntrustTrackDetail($params = array()) {
+        return $this->request('future/trade/v1/entrust/track-detail', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateInverseGetFutureTradeV1EntrustTrackList($params = array()) {
+        return $this->request('future/trade/v1/entrust/track-list', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateInverseGetFutureTradeV1EntrustTrackListHistory($params = array()) {
+        return $this->request('future/trade/v1/entrust/track-list-history', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
