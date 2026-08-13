@@ -2278,8 +2278,8 @@ export default class bitstamp extends Exchange {
         //    }
         //
         const id = this.safeString2 (order, 'id', 'order_id');
-        const clientOrderId = this.safeString (order, 'client_order_id');
-        let side = this.safeString (order, 'type');
+        const clientOrderId = this.safeString2 (order, 'client_order_id', 'orig_client_order_id');
+        let side = this.safeString2 (order, 'type', 'order_type');
         if (side !== undefined) {
             side = (side === '1') ? 'sell' : 'buy';
         }
