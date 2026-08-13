@@ -1343,15 +1343,13 @@ class testMainClass:
                 settled = settled + 20
         exchange.sleep(50)
         if sequential:
-            # the last watch call of a sequence can register its future after
-            # every frame was already consumed — keep rejecting until the
-            # watch side reports completion so a wrong fixture fails fast
-            # instead of hanging the test run forever
-            waited_done = 0
-            while not is_ws_test_completed(exchange, url) and (waited_done < 5000):
+            # a watch call of a sequence can register its future after every
+            # frame was already consumed — keep rejecting until the watch side
+            # reports completion (the rejections themselves force it to finish,
+            # successfully or not, so this loop always terminates)
+            while not is_ws_test_completed(exchange, url):
                 reject_pending_ws_futures(exchange, url)
                 exchange.sleep(50)
-                waited_done = waited_done + 50
         # reject anything still pending so a wrong fixture fails fast
         # instead of hanging the test run forever
         reject_pending_ws_futures(exchange, url)

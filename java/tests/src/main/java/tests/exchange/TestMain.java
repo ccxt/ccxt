@@ -2050,16 +2050,14 @@ public class TestMain extends BaseTest
             (exchange.sleep(50)).join();
             if (Helpers.isTrue(sequential))
             {
-                // the last watch call of a sequence can register its future after
-                // every frame was already consumed — keep rejecting until the
-                // watch side reports completion so a wrong fixture fails fast
-                // instead of hanging the test run forever
-                Object waitedDone = 0;
-                while (!Helpers.isTrue(isWsTestCompleted(exchange, url)) && Helpers.isTrue((Helpers.isLessThan(waitedDone, 5000))))
+                // a watch call of a sequence can register its future after every
+                // frame was already consumed — keep rejecting until the watch side
+                // reports completion (the rejections themselves force it to finish,
+                // successfully or not, so this loop always terminates)
+                while (!Helpers.isTrue(isWsTestCompleted(exchange, url)))
                 {
                     rejectPendingWsFutures(exchange, url);
                     (exchange.sleep(50)).join();
-                    waitedDone = Helpers.add(waitedDone, 50);
                 }
             }
             // reject anything still pending so a wrong fixture fails fast

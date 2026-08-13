@@ -1022,7 +1022,8 @@ class kraken extends \ccxt\async\kraken {
                 $key = $keys[$i];
                 $bookside = $orderbook[$key];
                 $deltas = $this->safe_value($first, $key, array());
-                if (strlen($deltas) > 0) {
+                $deltasLength = count($deltas);
+                if ($deltasLength > 0) {
                     $this->custom_handle_deltas($bookside, $deltas);
                 }
             }

@@ -1942,16 +1942,14 @@ public partial class testMainClass
         await exchange.sleep(50);
         if (isTrue(sequential))
         {
-            // the last watch call of a sequence can register its future after
-            // every frame was already consumed — keep rejecting until the
-            // watch side reports completion so a wrong fixture fails fast
-            // instead of hanging the test run forever
-            object waitedDone = 0;
-            while (!isTrue(isWsTestCompleted(exchange, url)) && isTrue((isLessThan(waitedDone, 5000))))
+            // a watch call of a sequence can register its future after every
+            // frame was already consumed — keep rejecting until the watch side
+            // reports completion (the rejections themselves force it to finish,
+            // successfully or not, so this loop always terminates)
+            while (!isTrue(isWsTestCompleted(exchange, url)))
             {
                 rejectPendingWsFutures(exchange, url);
                 await exchange.sleep(50);
-                waitedDone = add(waitedDone, 50);
             }
         }
         // reject anything still pending so a wrong fixture fails fast
