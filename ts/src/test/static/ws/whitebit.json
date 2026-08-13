@@ -1,0 +1,304 @@
+{
+    "exchange": "whitebit",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://api.whitebit.com/ws",
+                "messages": [
+                    {
+                        "error": null,
+                        "result": {
+                            "status": "success"
+                        },
+                        "id": 1786614302262
+                    },
+                    {
+                        "method": "depth_update",
+                        "params": [
+                            true,
+                            {
+                                "timestamp": 1786614302.448288,
+                                "update_id": 14599575078,
+                                "asks": [
+                                    [
+                                        "63700.77",
+                                        "0.016579"
+                                    ],
+                                    [
+                                        "63702.39",
+                                        "0.154972"
+                                    ],
+                                    [
+                                        "63704.55",
+                                        "0.164837"
+                                    ],
+                                    [
+                                        "63706.23",
+                                        "0.011114"
+                                    ],
+                                    [
+                                        "63707.93",
+                                        "0.039436"
+                                    ],
+                                    [
+                                        "63708.13",
+                                        "0.017885"
+                                    ],
+                                    [
+                                        "63708.31",
+                                        "0.028253"
+                                    ],
+                                    [
+                                        "63708.56",
+                                        "0.003139"
+                                    ],
+                                    [
+                                        "63709.63",
+                                        "0.08794"
+                                    ],
+                                    [
+                                        "63711.33",
+                                        "0.117529"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "63700.76",
+                                        "0.01649"
+                                    ],
+                                    [
+                                        "63695.67",
+                                        "0.164834"
+                                    ],
+                                    [
+                                        "63694.97",
+                                        "0.003139"
+                                    ],
+                                    [
+                                        "63694.71",
+                                        "0.028259"
+                                    ],
+                                    [
+                                        "63694.33",
+                                        "0.027968"
+                                    ],
+                                    [
+                                        "63692.82",
+                                        "0.013437"
+                                    ],
+                                    [
+                                        "63692.63",
+                                        "0.078615"
+                                    ],
+                                    [
+                                        "63690.93",
+                                        "0.128725"
+                                    ],
+                                    [
+                                        "63689.3",
+                                        "0.824166"
+                                    ],
+                                    [
+                                        "63689.23",
+                                        "0.135106"
+                                    ]
+                                ],
+                                "event_time": 1786614302.512598
+                            },
+                            "BTC_USDT"
+                        ],
+                        "id": null
+                    },
+                    {
+                        "method": "depth_update",
+                        "params": [
+                            false,
+                            {
+                                "timestamp": 1786614302.548734,
+                                "update_id": 14599575081,
+                                "past_update_id": 14599575078,
+                                "asks": [
+                                    [
+                                        "63702.39",
+                                        "0"
+                                    ],
+                                    [
+                                        "63712.23",
+                                        "0.824166"
+                                    ]
+                                ],
+                                "event_time": 1786614302.558053
+                            },
+                            "BTC_USDT"
+                        ],
+                        "id": null
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1786614302262,
+                        "method": "depth_subscribe",
+                        "params": [
+                            "BTC_USDT",
+                            10,
+                            "0",
+                            true
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {}
+                ]
+            }
+        ],
+        "watchTrades": [
+            {
+                "description": "spot trades",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://api.whitebit.com/ws",
+                "messages": [
+                    {
+                        "error": null,
+                        "result": {
+                            "status": "success"
+                        },
+                        "id": 1786614284188
+                    },
+                    {
+                        "method": "trades_update",
+                        "params": [
+                            "BTC_USDT",
+                            [
+                                {
+                                    "id": 22905266013,
+                                    "time": 1786614248.774515,
+                                    "price": "63704.54",
+                                    "amount": "0.015",
+                                    "type": "sell",
+                                    "rpi": false
+                                },
+                                {
+                                    "id": 22905260357,
+                                    "time": 1786614226.961985,
+                                    "price": "63704.54",
+                                    "amount": "0.00001",
+                                    "type": "sell",
+                                    "rpi": false
+                                },
+                                {
+                                    "id": 22905259755,
+                                    "time": 1786614223.546529,
+                                    "price": "63704.54",
+                                    "amount": "0.0004",
+                                    "type": "sell",
+                                    "rpi": false
+                                },
+                                {
+                                    "id": 22905257816,
+                                    "time": 1786614214.448362,
+                                    "price": "63694.4",
+                                    "amount": "0.008572",
+                                    "type": "buy",
+                                    "rpi": false
+                                },
+                                {
+                                    "id": 22905257491,
+                                    "time": 1786614213.732388,
+                                    "price": "63687.98",
+                                    "amount": "0.975277",
+                                    "type": "sell",
+                                    "rpi": false
+                                }
+                            ]
+                        ],
+                        "id": null
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1786614284188,
+                        "method": "trades_subscribe",
+                        "params": [
+                            "BTC_USDT"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    []
+                ]
+            }
+        ],
+        "watchTicker": [
+            {
+                "description": "spot ticker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://api.whitebit.com/ws",
+                "messages": [
+                    {
+                        "error": null,
+                        "result": {
+                            "status": "success"
+                        },
+                        "id": 1786614266674
+                    },
+                    {
+                        "method": "market_update",
+                        "params": [
+                            "BTC_USDT",
+                            {
+                                "open": "64045.76",
+                                "close": "63704.54",
+                                "high": "64457.25",
+                                "low": "63310.44",
+                                "volume": "4455.128839",
+                                "deal": "283610761.07060643",
+                                "last": "63704.54",
+                                "period": 86400
+                            }
+                        ],
+                        "id": null
+                    },
+                    {
+                        "method": "market_update",
+                        "params": [
+                            "BTC_USDT",
+                            {
+                                "open": "64040.57",
+                                "close": "63704.54",
+                                "high": "64457.25",
+                                "low": "63310.44",
+                                "volume": "4455.121002",
+                                "deal": "283610259.14398531",
+                                "last": "63704.54",
+                                "period": 86400
+                            }
+                        ],
+                        "id": null
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1786614266674,
+                        "method": "market_subscribe",
+                        "params": [
+                            "BTC_USDT"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {}
+                ]
+            }
+        ]
+    }
+}
