@@ -125,7 +125,7 @@
         ],
         "fetchPositionMode": [
             {
-                "description": "fetch position mode for market",
+                "description": "btse fetchPositionMode on a linear swap - live-captured 2026-08-13 on the unified futures v3 position mode endpoint with the short contract symbol, bare array single row ONE_WAY parsed as not hedged, report-block verbatim",
                 "method": "fetchPositionMode",
                 "input": [
                     "ETH/USDT:USDT"
@@ -133,15 +133,15 @@
                 "httpResponse": [
                     {
                         "symbol": "ETH-PERP",
-                        "positionMode": "HEDGE"
+                        "positionMode": "ONE_WAY"
                     }
                 ],
                 "parsedResponse": {
                     "info": {
                         "symbol": "ETH-PERP",
-                        "positionMode": "HEDGE"
+                        "positionMode": "ONE_WAY"
                     },
-                    "hedged": true
+                    "hedged": false
                 }
             }
         ],
@@ -3227,29 +3227,31 @@
         ],
         "fetchLeverage": [
             {
-                "description": "btse fetchLeverage RAVE linear swap - live-captured 2026-08-12, cross 25x account state, report-block verbatim",
+                "description": "btse fetchLeverage on a linear swap without an open position - live-captured 2026-08-13 on the unified futures v3 leverage endpoint with the short contract symbol, bare array default leverage row with null positionMode and positionDirection applied to both sides, report-block verbatim",
                 "method": "fetchLeverage",
                 "input": [
-                    "RAVE/USDT:USDT"
+                    "ETH/USDT:USDT"
                 ],
                 "httpResponse": [
                     {
-                        "symbol": "RAVE-PERP",
+                        "symbol": "ETH-PERP",
                         "leverage": 25,
                         "marginMode": "CROSS",
+                        "positionMode": null,
                         "positionDirection": null
                     }
                 ],
                 "parsedResponse": {
                     "info": [
                         {
-                            "symbol": "RAVE-PERP",
+                            "symbol": "ETH-PERP",
                             "leverage": 25,
                             "marginMode": "CROSS",
+                            "positionMode": null,
                             "positionDirection": null
                         }
                     ],
-                    "symbol": "RAVE/USDT:USDT",
+                    "symbol": "ETH/USDT:USDT",
                     "marginMode": "cross",
                     "longLeverage": 25,
                     "shortLeverage": 25
