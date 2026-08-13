@@ -1685,6 +1685,12 @@ impl Exchange {
     // ── array / object utilities ────────────────────────────────────────────
 
     pub fn to_array(&self, v: Value) -> Value {
+        // A WS cache (ArrayCache / order-book cache) keeps its entries in `_data`
+        // or the shared cache registry, not the dict's meta fields — surface
+        // those, else `to_array` would leak `__cacheKind`/counters/flags as rows.
+        if let Some(entries) = crate::value::cache_entries_as_value(&v) {
+            return entries;
+        }
         match v {
             Value::Arr(_) => v,
             Value::Dict(m) => Value::Array(m.values().cloned().collect()),

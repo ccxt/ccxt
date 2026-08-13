@@ -1270,6 +1270,28 @@ pub(crate) fn book_cache_set(id: i64, items: Vec<Value>) {
     BOOK_CACHE.lock().unwrap().insert(id, items);
 }
 
+/// Snapshot a WS cache's rolling buffer as a plain array. Handles both the
+/// `_data`-backed ArrayCache / ArrayCacheByTimestamp (trades, ohlcv, tickers)
+/// and the registry-backed order-book cache handle. Returns `None` when `v`
+/// isn't a cache — `to_array` then falls back to its generic Dict handling.
+/// Without this, `to_array(cache)` would surface the cache's meta fields
+/// (`__cacheKind`, counters, boolean flags) as if they were entries.
+pub fn cache_entries_as_value(v: &Value) -> Option<Value> {
+    if let Value::Dict(m) = v {
+        if let Some(id) = book_cache_id_of(m) {
+            let items = BOOK_CACHE.lock().unwrap().get(&id).cloned().unwrap_or_default();
+            return Some(Value::Array(items));
+        }
+        if m.contains_key("__cacheKind") {
+            return Some(match m.get("_data") {
+                Some(Value::Arr(a)) => Value::Array((**a).clone()),
+                _ => Value::Array(vec![]),
+            });
+        }
+    }
+    None
+}
+
 /// If `m` is a shared book and `k` a meta key, write `v` to the book store and
 /// return true (the caller should skip its own Dict insert); else false.
 pub(crate) fn try_book_meta_write(m: &HashMap<String, Value>, k: &str, v: &Value) -> bool {
