@@ -3,6 +3,126 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "watchBidsAsks": [
+            {
+                "description": "spot bids asks",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ],
+                "url": "wss://stream.bybit.com/v5/public/spot",
+                "messages": [
+                    {
+                        "success": true,
+                        "ret_msg": "subscribe",
+                        "conn_id": "d9avsh3fo0jvsls9d82g-5m9jh",
+                        "req_id": "1",
+                        "op": "subscribe"
+                    },
+                    {
+                        "topic": "orderbook.1.BTCUSDT",
+                        "ts": 1786613159749,
+                        "type": "snapshot",
+                        "data": {
+                            "s": "BTCUSDT",
+                            "b": [
+                                [
+                                    "63705.3",
+                                    "2.045546"
+                                ]
+                            ],
+                            "a": [
+                                [
+                                    "63705.4",
+                                    "2.334566"
+                                ]
+                            ],
+                            "u": 72212457,
+                            "seq": 112603120278
+                        },
+                        "cts": 1786613159748
+                    },
+                    {
+                        "topic": "orderbook.1.BTCUSDT",
+                        "ts": 1786613159819,
+                        "type": "snapshot",
+                        "data": {
+                            "s": "BTCUSDT",
+                            "b": [
+                                [
+                                    "63705.3",
+                                    "2.014151"
+                                ]
+                            ],
+                            "a": [
+                                [
+                                    "63705.4",
+                                    "2.334566"
+                                ]
+                            ],
+                            "u": 72212458,
+                            "seq": 112603120305
+                        },
+                        "cts": 1786613159817
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "req_id": 1,
+                        "args": [
+                            "orderbook.1.BTCUSDT"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USDT": {
+                            "symbol": "BTC/USDT",
+                            "timestamp": 1786613159749,
+                            "datetime": "2026-08-13T09:25:59.749Z",
+                            "ask": 63705.4,
+                            "askVolume": 2.334566,
+                            "bid": 63705.3,
+                            "bidVolume": 2.045546,
+                            "info": {
+                                "bids": [
+                                    [
+                                        63705.3,
+                                        2.045546
+                                    ]
+                                ],
+                                "asks": [
+                                    [
+                                        63705.4,
+                                        2.334566
+                                    ]
+                                ],
+                                "timestamp": 1786613159749,
+                                "datetime": "2026-08-13T09:25:59.749Z",
+                                "nonce": null,
+                                "symbol": "BTC/USDT"
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            }
+        ],
         "watchTicker": [
             {
                 "description": "linear swap ticker",
@@ -2493,5 +2613,5 @@
                 ]
             }
         ]
-  }
+    }
 }

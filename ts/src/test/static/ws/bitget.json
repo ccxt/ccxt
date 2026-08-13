@@ -3,6 +3,139 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "watchBidsAsks": [
+            {
+                "description": "spot bids asks",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ],
+                "url": "wss://ws.bitget.com/v2/ws/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "ticker",
+                            "instId": "BTCUSDT"
+                        }
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "ticker",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            {
+                                "instId": "BTCUSDT",
+                                "lastPr": "63707.42",
+                                "open24h": "63449.01",
+                                "high24h": "64481.09",
+                                "low24h": "63306.48",
+                                "change24h": "-0.00396",
+                                "bidPr": "63707.41",
+                                "askPr": "63707.42",
+                                "bidSz": "4.00188",
+                                "askSz": "0.094654",
+                                "baseVolume": "1891.78125",
+                                "quoteVolume": "120647061.749114",
+                                "openUtc": "63488.34",
+                                "changeUtc24h": "0.00345",
+                                "ts": "1786613190242"
+                            }
+                        ],
+                        "ts": 1786613190253
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "ticker",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            {
+                                "instId": "BTCUSDT",
+                                "lastPr": "63707.42",
+                                "open24h": "63449.01",
+                                "high24h": "64481.09",
+                                "low24h": "63306.48",
+                                "change24h": "-0.00396",
+                                "bidPr": "63707.41",
+                                "askPr": "63707.42",
+                                "bidSz": "4.00188",
+                                "askSz": "0.094654",
+                                "baseVolume": "1891.78125",
+                                "quoteVolume": "120647061.749114",
+                                "openUtc": "63488.34",
+                                "changeUtc24h": "0.00345",
+                                "ts": "1786613190545"
+                            }
+                        ],
+                        "ts": 1786613190547
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "instType": "SPOT",
+                                "channel": "ticker",
+                                "instId": "BTCUSDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USDT": {
+                            "symbol": "BTC/USDT",
+                            "timestamp": 1786613190242,
+                            "datetime": "2026-08-13T09:26:30.242Z",
+                            "ask": 63707.42,
+                            "askVolume": 0.094654,
+                            "bid": 63707.41,
+                            "bidVolume": 4.00188,
+                            "info": {
+                                "instId": "BTCUSDT",
+                                "lastPr": "63707.42",
+                                "open24h": "63449.01",
+                                "high24h": "64481.09",
+                                "low24h": "63306.48",
+                                "change24h": "-0.00396",
+                                "bidPr": "63707.41",
+                                "askPr": "63707.42",
+                                "bidSz": "4.00188",
+                                "askSz": "0.094654",
+                                "baseVolume": "1891.78125",
+                                "quoteVolume": "120647061.749114",
+                                "openUtc": "63488.34",
+                                "changeUtc24h": "0.00345",
+                                "ts": "1786613190242"
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            }
+        ],
         "watchOHLCV": [
             {
                 "description": "linear swap ohlcv 1m",
