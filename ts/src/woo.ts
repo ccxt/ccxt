@@ -147,7 +147,8 @@ export default class woo extends Exchange {
                 },
                 'www': 'https://woox.io/',
                 'doc': [
-                    'https://docs.woox.io/',
+                    'https://developer.woox.io/',
+                    'https://docs.woox.io/', // legacy v1 api reference
                 ],
                 'fees': [
                     'https://support.woox.io/hc/en-001/articles/4404611795353--Trading-Fees',
@@ -3026,7 +3027,7 @@ export default class woo extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
@@ -3207,20 +3208,9 @@ export default class woo extends Exchange {
             'amount': this.safeNumber (transfer, 'amount'),
             'fromAccount': this.safeString (fromAccount, 'applicationId'),
             'toAccount': this.safeString (toAccount, 'applicationId'),
-            'status': this.parseTransferStatus (this.safeString (transfer, 'status', status)),
+            'status': this.parseTransactionStatus (this.safeString (transfer, 'status', status)),
             'info': transfer,
         };
-    }
-
-    parseTransferStatus (status: Str): Str {
-        const statuses: Dict = {
-            'NEW': 'pending',
-            'CONFIRMING': 'pending',
-            'PROCESSING': 'pending',
-            'COMPLETED': 'ok',
-            'CANCELED': 'canceled',
-        };
-        return this.safeString (statuses, (status as string), status);
     }
 
     /**

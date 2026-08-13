@@ -727,6 +727,83 @@
                 ],
                 "output": "{\"request\":\"/api/v4/trade-account/order\",\"nonce\":\"1786484584696\",\"nonceWindow\":false,\"orderId\":2558095898746,\"market\":\"DOGE_PERP\"}"
             }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits USDT with limit",
+                "method": "fetchDeposits",
+                "url": "https://whitebit.com/api/v4/main-account/history",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "output": "{\"request\":\"/api/v4/main-account/history\",\"nonce\":\"1786637757003\",\"nonceWindow\":false,\"transactionMethod\":1,\"limit\":2,\"offset\":0,\"ticker\":\"USDT\"}"
+            }
+        ],
+        "fetchDeposit": [
+            {
+                "description": "fetchDeposit by uniqueId",
+                "method": "fetchDeposit",
+                "url": "https://whitebit.com/api/v4/main-account/history",
+                "input": [
+                    "5593377049",
+                    "USDT"
+                ],
+                "output": "{\"request\":\"/api/v4/main-account/history\",\"nonce\":\"1786637757003\",\"nonceWindow\":false,\"transactionMethod\":1,\"uniqueId\":\"5593377049\",\"limit\":1,\"offset\":0,\"ticker\":\"USDT\"}"
+            }
+        ],
+        "fetchTransactions": [
+            {
+                "description": "fetchTransactions USDT with limit",
+                "method": "fetchTransactions",
+                "url": "https://whitebit.com/api/v4/main-account/history",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "output": "{\"request\":\"/api/v4/main-account/history\",\"nonce\":\"1786637757319\",\"nonceWindow\":false,\"ticker\":\"USDT\",\"limit\":2}"
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals USDT with limit",
+                "method": "fetchWithdrawals",
+                "url": "https://whitebit.com/api/v4/main-account/history",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "output": {
+                    "request": "/api/v4/main-account/history",
+                    "nonce": "1786645149548",
+                    "nonceWindow": false,
+                    "ticker": "USDT",
+                    "limit": 2,
+                    "transactionMethod": "2"
+                }
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory swap with limit",
+                "method": "fetchFundingHistory",
+                "url": "https://whitebit.com/api/v4/collateral-account/funding-history",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    2
+                ],
+                "output": {
+                    "request": "/api/v4/collateral-account/funding-history",
+                    "nonce": "1786645149703",
+                    "nonceWindow": false,
+                    "market": "DOGE_PERP",
+                    "limit": 2
+                }
+            }
         ]
     }
 }

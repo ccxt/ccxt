@@ -851,43 +851,42 @@ class bitstamp extends Exchange {
         //         ),
         //     )
         //
-        $this->options['_temp_currencies_result'] = array();
-        $result = $this->parse_currencies($response);
-        $finalResult = $this->deep_extend($result, $this->options['_temp_currencies_result']);
-        unset($this->options['_temp_currencies_result']);
-        return $finalResult;
+        return $this->parse_currencies($response);
     }
 
-    public function parse_currency(array $rawCurrency): array {
-        $market = $rawCurrency;
-        $existing = $this->safe_dict($this->options, '_temp_currencies_result', array());
-        list($baseId, $quoteId) = array( $this->safe_string($market, 'base_currency'), $this->safe_string($market, 'counter_currency') );
-        $base = $this->safe_currency_code($baseId);
-        $quote = $this->safe_currency_code($quoteId);
-        $description = $this->safe_string($market, 'description');
-        if ($description === null) {
-            throw new ExchangeError($this->id . ' parseCurrency() missing description');
-        }
-        list($baseDescription, $quoteDescription) = explode(' / ', $description);
-        $minimumOrder = $this->safe_string($market, 'minimum_order_value');
-        if ($minimumOrder === null) {
-            throw new ExchangeError($this->id . ' parseCurrency() missing minimumOrder');
-        }
-        $parts = explode(' ', $minimumOrder);
-        $cost = $parts[0];
-        if (($base === null) || !(is_array($existing) && array_key_exists($base ?? '', $existing))) {
-            $baseDecimals = $this->safe_integer($market, 'base_decimals');
-            if ($base !== null) {
-                $this->options['_temp_currencies_result'][$base] = $this->construct_currency_object($baseId, $base, $baseDescription, $baseDecimals, null, $market);
+    public function parse_currencies(mixed $rawCurrencies): array {
+        // each $market row yields two currencies so the accumulation happens
+        // in a local dictionary here instead of a temp key inside $this->options
+        // because the shared scratch key raced between concurrent
+        // fetchCurrencies invocations in the multi threaded runtimes
+        $result = array();
+        $arr = $this->to_array($rawCurrencies);
+        for ($i = 0; $i < count($arr); $i++) {
+            $market = $arr[$i];
+            list($baseId, $quoteId) = array( $this->safe_string($market, 'base_currency'), $this->safe_string($market, 'counter_currency') );
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $description = $this->safe_string($market, 'description');
+            if ($description === null) {
+                throw new ExchangeError($this->id . ' parseCurrencies() missing description');
+            }
+            list($baseDescription, $quoteDescription) = explode(' / ', $description);
+            $minimumOrder = $this->safe_string($market, 'minimum_order_value');
+            if ($minimumOrder === null) {
+                throw new ExchangeError($this->id . ' parseCurrencies() missing minimumOrder');
+            }
+            $parts = explode(' ', $minimumOrder);
+            $cost = $parts[0];
+            if (($base !== null) && !(is_array($result) && array_key_exists($base ?? '', $result))) {
+                $baseDecimals = $this->safe_integer($market, 'base_decimals');
+                $result[$base] = $this->construct_currency_object($baseId, $base, $baseDescription, $baseDecimals, null, $market);
+            }
+            if (($quote !== null) && !(is_array($result) && array_key_exists($quote ?? '', $result))) {
+                $counterDecimals = $this->safe_integer($market, 'counter_decimals');
+                $result[$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $counterDecimals, $this->parse_number($cost), $market);
             }
         }
-        if (($quote === null) || !(is_array($existing) && array_key_exists($quote ?? '', $existing))) {
-            $counterDecimals = $this->safe_integer($market, 'counter_decimals');
-            if ($quote !== null) {
-                $this->options['_temp_currencies_result'][$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $counterDecimals, $this->parse_number($cost), $market);
-            }
-        }
-        return $this->safe_value($this->options['_temp_currencies_result'], $quote);
+        return $result;
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2356,9 +2355,23 @@ class bitstamp extends Exchange {
         //        "market" => "BTC/USD"
         //    }
         //
-        $id = $this->safe_string($order, 'id');
-        $clientOrderId = $this->safe_string($order, 'client_order_id');
-        $side = $this->safe_string($order, 'type');
+        // editOrder
+        //
+        //    {
+        //        "order_id" => 1453282316578816,
+        //        "order_type" => "0",
+        //        "market" => "BTC/USD",
+        //        "amount" => "0.02035278",
+        //        "price" => "2100.45",
+        //        "datetime" => "2025-10-17T14:23:01.725000Z",
+        //        "orig_order_id" => 1453282316578816,
+        //        "orig_client_order_id" => "my-original-$order-123",
+        //        "status" => "Open"
+        //    }
+        //
+        $id = $this->safe_string_2($order, 'id', 'order_id');
+        $clientOrderId = $this->safe_string_2($order, 'client_order_id', 'orig_client_order_id');
+        $side = $this->safe_string_2($order, 'type', 'order_type');
         if ($side !== null) {
             $side = ($side === '1') ? 'sell' : 'buy';
         }

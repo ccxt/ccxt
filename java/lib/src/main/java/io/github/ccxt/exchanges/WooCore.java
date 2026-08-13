@@ -149,7 +149,7 @@ public class WooCore extends WooApi
                     put( "private", "https://api.staging.woox.io" );
                 }} );
                 put( "www", "https://woox.io/" );
-                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://docs.woox.io/")) );
+                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://developer.woox.io/", "https://docs.woox.io/")) );
                 put( "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://support.woox.io/hc/en-001/articles/4404611795353--Trading-Fees")) );
                 put( "referral", new java.util.HashMap<String, Object>() {{
                     put( "url", "https://woox.io/register?ref=DIJT0CNL" );

@@ -1848,7 +1848,10 @@ class nado extends \ccxt\async\nado {
                     unset($client->subscriptions[$subscriptionHash]);
                 }
             }
-            unset($client->subscriptions[$messageHash]);
+            $subscriptionMsg = $this->safe_value($client->subscriptions, $messageHash);
+            if ($subscriptionMsg !== null) {
+                unset($client->subscriptions[$messageHash]);
+            }
             unset($this->orderbooks[$symbol]);
             $error = new InvalidNonce($this->id . ' watchOrderBook received invalid nonce');
             $client->reject($error, $messageHash);

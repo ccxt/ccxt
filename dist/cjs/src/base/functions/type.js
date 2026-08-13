@@ -14,30 +14,26 @@ const isInteger = Number.isInteger;
 const isArray = Array.isArray;
 const hasProps = (o) => ((o !== undefined) && (o !== null));
 const isString = (s) => (typeof s === 'string');
-const isObject = (o) => ((o !== null) && (typeof o === 'object'));
+const isObject = (o) => ((o !== undefined) && (o !== null) && (typeof o === 'object'));
 const isRegExp = (o) => (o instanceof RegExp);
 const isDictionary = (o) => (isObject(o) && (Object.getPrototypeOf(o) === Object.prototype) && !isArray(o) && !isRegExp(o));
 const isStringCoercible = (x) => ((hasProps(x) && x.toString) || isNumber(x));
 /*  .............................................   */
 const prop = (o, k) => {
-    if (k === undefined || k === null) {
-        return undefined;
+    if (k !== undefined && k !== null && isObject(o) && o[k] !== null && o[k] !== '') {
+        return o[k];
     }
-    return (isObject(o) && o[k] !== '' && o[k] !== null ? o[k] : undefined);
+    return undefined;
 };
 const prop2 = (o, k1, k2) => {
     if (!isObject(o)) {
         return undefined;
     }
-    if (k1 !== undefined && k1 !== null) {
-        if (o[k1] !== undefined && o[k1] !== '' && o[k1] !== null) {
-            return o[k1];
-        }
+    if (k1 !== undefined && k1 !== null && o[k1] !== undefined && o[k1] !== null && o[k1] !== '') {
+        return o[k1];
     }
-    if (k2 !== undefined && k2 !== null) {
-        if (o[k2] !== '' && o[k2] !== null) {
-            return o[k2];
-        }
+    if (k2 !== undefined && k2 !== null && o[k2] !== undefined && o[k2] !== null && o[k2] !== '') {
+        return o[k2];
     }
     return undefined;
 };

@@ -1761,7 +1761,9 @@ class hashkey extends Exchange {
             'symbol' => $market['symbol'],
             'timestamp' => null,
             'datetime' => null,
-            'price' => $this->safe_number($entry, 'p'),
+            // dormant listings carry a literal zero price meaning never traded,
+            // the zero is omitted so the structure reports no price instead
+            'price' => $this->safe_number_omit_zero($entry, 'p'),
             'side' => null,
             'info' => $entry,
         );

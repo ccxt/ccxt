@@ -130,6 +130,40 @@
                   1
                 ],
                 "output": "{\"symbol\":\"ltc_usdt\",\"origQty\":\"1\",\"positionSide\":\"SHORT\",\"orderSide\":\"SELL\",\"orderType\":\"MARKET\",\"clientMedia\":\"CCXT\"}"
+            },
+            {
+                "description": "swap trailing stop order with trailingPercent and activation price",
+                "method": "createOrder",
+                "url": "https://fapi.xt.com/future/trade/v1/entrust/create-track",
+                "input": [
+                    "XRP/USDT:USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "trailingPercent": 1,
+                        "trailingTriggerPrice": 0.86
+                    }
+                ],
+                "output": "{\"symbol\":\"xrp_usdt\",\"origQty\":\"1\",\"positionSide\":\"LONG\",\"orderSide\":\"BUY\",\"triggerPriceType\":\"LATEST_PRICE\",\"positionType\":\"CROSSED\",\"callback\":\"PROPORTION\",\"callbackVal\":0.01,\"activationPrice\":\"0.86\"}"
+            },
+            {
+                "description": "swap trailing stop order with a fixed trailingAmount",
+                "method": "createOrder",
+                "url": "https://fapi.xt.com/future/trade/v1/entrust/create-track",
+                "input": [
+                    "XRP/USDT:USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "trailingAmount": 0.05,
+                        "trailingTriggerPrice": 0.86
+                    }
+                ],
+                "output": "{\"symbol\":\"xrp_usdt\",\"origQty\":\"1\",\"positionSide\":\"LONG\",\"orderSide\":\"BUY\",\"triggerPriceType\":\"LATEST_PRICE\",\"positionType\":\"CROSSED\",\"callback\":\"FIXED\",\"callbackVal\":0.05,\"activationPrice\":\"0.86\"}"
             }
         ],
         "fetchOrders": [
@@ -271,6 +305,19 @@
                   "LTC/USDT:USDT"
                 ],
                 "output": "{\"orderId\":\"371184779575507520\"}"
+            },
+            {
+                "description": "cancel swap trailing stop order",
+                "method": "cancelOrder",
+                "url": "https://fapi.xt.com/future/trade/v1/entrust/cancel-track",
+                "input": [
+                    "658239170722259328",
+                    "XRP/USDT:USDT",
+                    {
+                        "trailing": true
+                    }
+                ],
+                "output": "{\"trackId\":\"658239170722259328\"}"
             }
         ],
         "fetchBidsAsks": [

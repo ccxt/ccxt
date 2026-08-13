@@ -10416,6 +10416,7 @@ export default class kucoin extends Exchange {
             //                 "mmr": "0.007",
             //                 "maintenanceMargin": "0.128086",
             //                 "creationTime": 1774469753178000000
+            //                 "updateTime": 1774469753178000000
             //             }
             //         ]
             //     }
@@ -10759,6 +10760,7 @@ export default class kucoin extends Exchange {
         //         "mmr": "0.007",
         //         "maintenanceMargin": "0.128086",
         //         "creationTime": 1774469753178000000
+        //         "updateTime": 1774469753178000000
         //     }
         //
         // uta fetchPositionsHistory
@@ -10817,7 +10819,11 @@ export default class kucoin extends Exchange {
         }
         let lastUpdateTimestamp = this.safeInteger (position, 'closeTime');
         if (lastUpdateTimestamp === undefined) {
-            lastUpdateTimestamp = this.safeIntegerProduct (position, 'closingTime', 0.000001);
+            if ('closingTime' in position) {
+                lastUpdateTimestamp = this.safeIntegerProduct (position, 'closingTime', 0.000001);
+            } else if ('updateTime' in position) {
+                lastUpdateTimestamp = this.safeIntegerProduct (position, 'updateTime', 0.000001);
+            }
         }
         return this.safePosition ({
             'info': position,

@@ -471,7 +471,13 @@ public class XtCore extends XtApi
                             put( "future/trade/v1/entrust/create-plan", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "future/trade/v1/entrust/cancel-track", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "future/trade/v1/entrust/create-profit", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/trade/v1/entrust/create-track", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "future/trade/v1/entrust/update-profit-stop", new java.util.HashMap<String, Object>() {{
@@ -600,7 +606,13 @@ public class XtCore extends XtApi
                             put( "future/trade/v1/entrust/create-plan", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "future/trade/v1/entrust/cancel-track", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "future/trade/v1/entrust/create-profit", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/trade/v1/entrust/create-track", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "future/trade/v1/entrust/update-profit-stop", new java.util.HashMap<String, Object>() {{
@@ -1068,9 +1080,15 @@ public class XtCore extends XtApi
                 put( "swap", new java.util.HashMap<String, Object>() {{
                     put( "linear", new java.util.HashMap<String, Object>() {{
                         put( "extends", "forDerivatives" );
+                        put( "createOrder", new java.util.HashMap<String, Object>() {{
+                            put( "trailing", true );
+                        }} );
                     }} );
                     put( "inverse", new java.util.HashMap<String, Object>() {{
                         put( "extends", "forDerivatives" );
+                        put( "createOrder", new java.util.HashMap<String, Object>() {{
+                            put( "trailing", true );
+                        }} );
                     }} );
                 }} );
                 put( "future", new java.util.HashMap<String, Object>() {{
@@ -3039,6 +3057,7 @@ public class XtCore extends XtApi
      * @see https://doc.xt.com/docs/futures/Order/Create%20Orders
      * @see https://doc.xt.com/docs/futures/Entrust/CreateTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/CreateStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/CreateTrack
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -3052,6 +3071,10 @@ public class XtCore extends XtApi
      * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.stopLoss] price to set a stop-loss on an open position
      * @param {float} [params.takeProfit] price to set a take-profit on an open position
+     * @param {float} [params.trailingPercent] the percent to trail away from the current market price, swap markets only
+     * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price, swap markets only
+     * @param {float} [params.trailingTriggerPrice] the price to activate a trailing order, swap markets only
+     * @param {string} [params.marginMode] 'cross' or 'isolated', for trailing orders only, default is 'cross'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol2, Object type, Object side, Object amount, Object... optionalArgs)
@@ -3069,6 +3092,11 @@ public class XtCore extends XtApi
             symbol = Helpers.GetValue(market, "symbol");
             if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
             {
+                Object isTrailing = Helpers.isTrue(Helpers.isTrue((Helpers.inOp(parameters, "trailingPercent"))) || Helpers.isTrue((Helpers.inOp(parameters, "trailingAmount")))) || Helpers.isTrue((Helpers.inOp(parameters, "trailingTriggerPrice")));
+                if (Helpers.isTrue(isTrailing))
+                {
+                    throw new NotSupported((String)Helpers.add(this.id, " createOrder() trailing orders are only supported on swap markets")) ;
+                }
                 return (this.createSpotOrder(symbol, type, side, amount, price, parameters)).join();
             } else
             {
@@ -3203,17 +3231,59 @@ public class XtCore extends XtApi
             Object triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
             Object stopLoss = this.safeNumber2(parameters, "stopLoss", "triggerStopPrice");
             Object takeProfit = this.safeNumber2(parameters, "takeProfit", "triggerProfitPrice");
+            Object trailingPercent = this.safeString(parameters, "trailingPercent");
+            Object trailingAmount = this.safeString(parameters, "trailingAmount");
+            Object trailingTriggerPrice = this.safeNumber(parameters, "trailingTriggerPrice");
             Object isTrigger = (!Helpers.isEqual(triggerPrice, null));
             Object isStopLoss = (!Helpers.isEqual(stopLoss, null));
             Object isTakeProfit = (!Helpers.isEqual(takeProfit, null));
+            Object isTrailing = Helpers.isTrue((!Helpers.isEqual(trailingPercent, null))) || Helpers.isTrue((!Helpers.isEqual(trailingAmount, null)));
+            if (Helpers.isTrue(Helpers.isTrue(isTrailing) && !Helpers.isTrue(Helpers.GetValue(market, "swap"))))
+            {
+                throw new NotSupported((String)Helpers.add(this.id, " createOrder() trailing orders are only supported on swap markets")) ;
+            }
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(trailingTriggerPrice, null))) && !Helpers.isTrue(isTrailing)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() trailingTriggerPrice requires trailingPercent or trailingAmount")) ;
+            }
             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
             {
-                if (Helpers.isTrue(!Helpers.isTrue((isStopLoss)) && !Helpers.isTrue((isTakeProfit))))
+                if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue((isStopLoss)) && !Helpers.isTrue((isTakeProfit))) && !Helpers.isTrue((isTrailing))))
                 {
                     Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
                 }
             }
-            if (Helpers.isTrue(isTrigger))
+            if (Helpers.isTrue(isTrailing))
+            {
+                Helpers.addElementToObject(request, "orderSide", ((String)side).toUpperCase());
+                Helpers.addElementToObject(request, "triggerPriceType", this.safeString(parameters, "triggerPriceType", "LATEST_PRICE"));
+                Object marginMode = null;
+                var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters, "cross");
+                marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
+                parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
+                Helpers.addElementToObject(request, "positionType", ((Helpers.isTrue((Helpers.isEqual(marginMode, "isolated"))))) ? "ISOLATED" : "CROSSED");
+                if (Helpers.isTrue(!Helpers.isEqual(trailingPercent, null)))
+                {
+                    Helpers.addElementToObject(request, "callback", "PROPORTION");
+                    Helpers.addElementToObject(request, "callbackVal", this.parseToNumeric(Precise.stringDiv(trailingPercent, "100")));
+                } else
+                {
+                    Helpers.addElementToObject(request, "callback", "FIXED");
+                    Helpers.addElementToObject(request, "callbackVal", this.parseToNumeric(trailingAmount));
+                }
+                if (Helpers.isTrue(!Helpers.isEqual(trailingTriggerPrice, null)))
+                {
+                    Helpers.addElementToObject(request, "activationPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
+                }
+                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trailingPercent", "trailingAmount", "trailingTriggerPrice")));
+                if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+                {
+                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearPostFutureTradeV1EntrustCreateTrack", new Object[] { this.extend(request, parameters) })).join();
+                } else if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+                {
+                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInversePostFutureTradeV1EntrustCreateTrack", new Object[] { this.extend(request, parameters) })).join();
+                }
+            } else if (Helpers.isTrue(isTrigger))
             {
                 Helpers.addElementToObject(request, "timeInForce", this.safeStringUpper(parameters, "timeInForce", "GTC"));
                 Helpers.addElementToObject(request, "triggerPriceType", this.safeString(parameters, "triggerPriceType", "LATEST_PRICE"));
@@ -4097,11 +4167,13 @@ public class XtCore extends XtApi
      * @see https://doc.xt.com/docs/futures/Order/cancel-orders
      * @see https://doc.xt.com/docs/futures/Entrust/CancelTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/CancelStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/CancelSingleTrack
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the order is a trailing order or not
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
@@ -4132,12 +4204,24 @@ public class XtCore extends XtApi
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object trigger = this.safeValue2(parameters, "trigger", "stop");
             Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
+            Object trailing = this.safeBool(parameters, "trailing");
+            if (Helpers.isTrue(trailing))
+            {
+                Object isContract = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subType, null))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future")));
+                if (!Helpers.isTrue(isContract))
+                {
+                    throw new NotSupported((String)Helpers.add(this.id, " cancelOrder() trailing orders are only supported on swap and future markets")) ;
+                }
+            }
             if (Helpers.isTrue(trigger))
             {
                 Helpers.addElementToObject(request, "entrustId", id);
             } else if (Helpers.isTrue(stopLossTakeProfit))
             {
                 Helpers.addElementToObject(request, "profitId", id);
+            } else if (Helpers.isTrue(trailing))
+            {
+                Helpers.addElementToObject(request, "trackId", id);
             } else
             {
                 Helpers.addElementToObject(request, "orderId", id);
@@ -4161,6 +4245,16 @@ public class XtCore extends XtApi
                 } else
                 {
                     response = (this.privateLinearPostFutureTradeV1EntrustCancelProfitStop(this.extend(request, parameters))).join();
+                }
+            } else if (Helpers.isTrue(trailing))
+            {
+                parameters = this.omit(parameters, "trailing");
+                if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
+                {
+                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInversePostFutureTradeV1EntrustCancelTrack", new Object[] { this.extend(request, parameters) })).join();
+                } else
+                {
+                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearPostFutureTradeV1EntrustCancelTrack", new Object[] { this.extend(request, parameters) })).join();
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
@@ -5801,10 +5895,10 @@ final Object finalMarket = market;
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInverseGetFutureUserV1UserStepRate", new Object[] { parameters })).join();
+                response = (this.privateInverseGetFutureUserV1UserStepRate(parameters)).join();
             } else
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearGetFutureUserV1UserStepRate", new Object[] { parameters })).join();
+                response = (this.privateLinearGetFutureUserV1UserStepRate(parameters)).join();
             }
             //
             //     {
@@ -5858,10 +5952,10 @@ final Object finalMarket = market;
             Object response = null;
             if (Helpers.isTrue(isInverse))
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInverseGetFutureUserV1UserStepRate", new Object[] { parameters })).join();
+                response = (this.privateInverseGetFutureUserV1UserStepRate(parameters)).join();
             } else
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearGetFutureUserV1UserStepRate", new Object[] { parameters })).join();
+                response = (this.privateLinearGetFutureUserV1UserStepRate(parameters)).join();
             }
             //
             // same response as fetchTradingFee

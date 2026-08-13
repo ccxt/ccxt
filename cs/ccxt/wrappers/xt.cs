@@ -266,6 +266,7 @@ public partial class xt
     /// See <see href="https://doc.xt.com/docs/futures/Order/Create%20Orders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/CreateTriggerOrders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/CreateStopLimit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/CreateTrack"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -313,6 +314,30 @@ public partial class xt
     /// <term>params.takeProfit</term>
     /// <description>
     /// float : price to set a take-profit on an open position
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailingPercent</term>
+    /// <description>
+    /// float : the percent to trail away from the current market price, swap markets only
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailingAmount</term>
+    /// <description>
+    /// float : the quote amount to trail away from the current market price, swap markets only
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailingTriggerPrice</term>
+    /// <description>
+    /// float : the price to activate a trailing order, swap markets only
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', for trailing orders only, default is 'cross'
     /// </description>
     /// </item>
     /// </list>
@@ -575,6 +600,7 @@ public partial class xt
     /// See <see href="https://doc.xt.com/docs/futures/Order/cancel-orders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/CancelTriggerOrders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/CancelStopLimit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/CancelSingleTrack"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -592,6 +618,12 @@ public partial class xt
     /// <term>params.stopLossTakeProfit</term>
     /// <description>
     /// bool : if the order is a stop-loss or take-profit order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : if the order is a trailing order or not
     /// </description>
     /// </item>
     /// </list>

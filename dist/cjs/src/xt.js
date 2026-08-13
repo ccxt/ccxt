@@ -275,7 +275,9 @@ class xt extends xt$1["default"] {
                             'future/trade/v1/entrust/cancel-plan': { 'cost': 1 },
                             'future/trade/v1/entrust/cancel-profit-stop': { 'cost': 1 },
                             'future/trade/v1/entrust/create-plan': { 'cost': 1 },
+                            'future/trade/v1/entrust/cancel-track': { 'cost': 1 },
                             'future/trade/v1/entrust/create-profit': { 'cost': 1 },
+                            'future/trade/v1/entrust/create-track': { 'cost': 1 },
                             'future/trade/v1/entrust/update-profit-stop': { 'cost': 1 },
                             'future/trade/v1/order/cancel': { 'cost': 1 },
                             'future/trade/v1/order/cancel-all': { 'cost': 1 },
@@ -322,7 +324,9 @@ class xt extends xt$1["default"] {
                             'future/trade/v1/entrust/cancel-plan': { 'cost': 1 },
                             'future/trade/v1/entrust/cancel-profit-stop': { 'cost': 1 },
                             'future/trade/v1/entrust/create-plan': { 'cost': 1 },
+                            'future/trade/v1/entrust/cancel-track': { 'cost': 1 },
                             'future/trade/v1/entrust/create-profit': { 'cost': 1 },
+                            'future/trade/v1/entrust/create-track': { 'cost': 1 },
                             'future/trade/v1/entrust/update-profit-stop': { 'cost': 1 },
                             'future/trade/v1/order/cancel': { 'cost': 1 },
                             'future/trade/v1/order/cancel-all': { 'cost': 1 },
@@ -801,9 +805,15 @@ class xt extends xt$1["default"] {
                 'swap': {
                     'linear': {
                         'extends': 'forDerivatives',
+                        'createOrder': {
+                            'trailing': true,
+                        },
                     },
                     'inverse': {
                         'extends': 'forDerivatives',
+                        'createOrder': {
+                            'trailing': true,
+                        },
                     },
                 },
                 'future': {
@@ -2516,6 +2526,7 @@ class xt extends xt$1["default"] {
      * @see https://doc.xt.com/docs/futures/Order/Create%20Orders
      * @see https://doc.xt.com/docs/futures/Entrust/CreateTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/CreateStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/CreateTrack
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2529,6 +2540,10 @@ class xt extends xt$1["default"] {
      * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.stopLoss] price to set a stop-loss on an open position
      * @param {float} [params.takeProfit] price to set a take-profit on an open position
+     * @param {float} [params.trailingPercent] the percent to trail away from the current market price, swap markets only
+     * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price, swap markets only
+     * @param {float} [params.trailingTriggerPrice] the price to activate a trailing order, swap markets only
+     * @param {string} [params.marginMode] 'cross' or 'isolated', for trailing orders only, default is 'cross'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -2538,6 +2553,11 @@ class xt extends xt$1["default"] {
         const market = this.market(symbol);
         symbol = market['symbol'];
         if (market['spot']) {
+            const isTrailing = ('trailingPercent' in params) || ('trailingAmount' in params) || ('trailingTriggerPrice' in params);
+            if (isTrailing) {
+                // do not silently place a regular spot order when a trailing order was requested
+                throw new errors.NotSupported(this.id + ' createOrder() trailing orders are only supported on swap markets');
+            }
             return await this.createSpotOrder(symbol, type, side, amount, price, params);
         }
         else {
@@ -2636,15 +2656,51 @@ class xt extends xt$1["default"] {
         const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeNumber2(params, 'stopLoss', 'triggerStopPrice');
         const takeProfit = this.safeNumber2(params, 'takeProfit', 'triggerProfitPrice');
+        const trailingPercent = this.safeString(params, 'trailingPercent');
+        const trailingAmount = this.safeString(params, 'trailingAmount');
+        const trailingTriggerPrice = this.safeNumber(params, 'trailingTriggerPrice');
         const isTrigger = (triggerPrice !== undefined);
         const isStopLoss = (stopLoss !== undefined);
         const isTakeProfit = (takeProfit !== undefined);
+        const isTrailing = (trailingPercent !== undefined) || (trailingAmount !== undefined);
+        if (isTrailing && !market['swap']) {
+            throw new errors.NotSupported(this.id + ' createOrder() trailing orders are only supported on swap markets');
+        }
+        if ((trailingTriggerPrice !== undefined) && !isTrailing) {
+            // do not silently place a regular order when a trailing activation price was requested
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() trailingTriggerPrice requires trailingPercent or trailingAmount');
+        }
         if (price !== undefined) {
-            if (!(isStopLoss) && !(isTakeProfit)) {
+            if (!(isStopLoss) && !(isTakeProfit) && !(isTrailing)) {
                 request['price'] = this.priceToPrecision(symbol, price);
             }
         }
-        if (isTrigger) {
+        if (isTrailing) {
+            request['orderSide'] = side.toUpperCase();
+            request['triggerPriceType'] = this.safeString(params, 'triggerPriceType', 'LATEST_PRICE');
+            let marginMode = undefined;
+            [marginMode, params] = this.handleMarginModeAndParams('createOrder', params, 'cross');
+            request['positionType'] = (marginMode === 'isolated') ? 'ISOLATED' : 'CROSSED';
+            if (trailingPercent !== undefined) {
+                request['callback'] = 'PROPORTION';
+                request['callbackVal'] = this.parseToNumeric(Precise["default"].stringDiv(trailingPercent, '100'));
+            }
+            else {
+                request['callback'] = 'FIXED';
+                request['callbackVal'] = this.parseToNumeric(trailingAmount);
+            }
+            if (trailingTriggerPrice !== undefined) {
+                request['activationPrice'] = this.priceToPrecision(symbol, trailingTriggerPrice);
+            }
+            params = this.omit(params, ['trailingPercent', 'trailingAmount', 'trailingTriggerPrice']);
+            if (market['linear']) {
+                response = await this.privateLinearPostFutureTradeV1EntrustCreateTrack(this.extend(request, params));
+            }
+            else if (market['inverse']) {
+                response = await this.privateInversePostFutureTradeV1EntrustCreateTrack(this.extend(request, params));
+            }
+        }
+        else if (isTrigger) {
             request['timeInForce'] = this.safeStringUpper(params, 'timeInForce', 'GTC');
             request['triggerPriceType'] = this.safeString(params, 'triggerPriceType', 'LATEST_PRICE');
             request['orderSide'] = side.toUpperCase();
@@ -3409,11 +3465,13 @@ class xt extends xt$1["default"] {
      * @see https://doc.xt.com/docs/futures/Order/cancel-orders
      * @see https://doc.xt.com/docs/futures/Entrust/CancelTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/CancelStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/CancelSingleTrack
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the order is a trailing order or not
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -3432,11 +3490,21 @@ class xt extends xt$1["default"] {
         [subType, params] = this.handleSubTypeAndParams('cancelOrder', market, params);
         const trigger = this.safeValue2(params, 'trigger', 'stop');
         const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
+        const trailing = this.safeBool(params, 'trailing');
+        if (trailing) {
+            const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
+            if (!isContract) {
+                throw new errors.NotSupported(this.id + ' cancelOrder() trailing orders are only supported on swap and future markets');
+            }
+        }
         if (trigger) {
             request['entrustId'] = id;
         }
         else if (stopLossTakeProfit) {
             request['profitId'] = id;
+        }
+        else if (trailing) {
+            request['trackId'] = id;
         }
         else {
             request['orderId'] = id;
@@ -3457,6 +3525,15 @@ class xt extends xt$1["default"] {
             }
             else {
                 response = await this.privateLinearPostFutureTradeV1EntrustCancelProfitStop(this.extend(request, params));
+            }
+        }
+        else if (trailing) {
+            params = this.omit(params, 'trailing');
+            if (subType === 'inverse') {
+                response = await this.privateInversePostFutureTradeV1EntrustCancelTrack(this.extend(request, params));
+            }
+            else {
+                response = await this.privateLinearPostFutureTradeV1EntrustCancelTrack(this.extend(request, params));
             }
         }
         else if (subType === 'inverse') {

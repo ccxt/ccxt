@@ -2787,22 +2787,31 @@ class whitebit extends Exchange {
         // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
         $response = $this->v4PrivatePostMainAccountHistory($this->extend($request, $params));
         //
-        //     array(
-        //         array(
-        //             "id" => 123456789,                    // Transaction ID
-        //             "method" => "1",                      // Method => 1=deposit, 2=withdrawal
-        //             "ticker" => "BTC",                    // Currency ticker
-        //             "amount" => "0.001",                  // Transaction amount
-        //             "address" => "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", // Transaction address
-        //             "memo" => "",                         // Memo/tag (if required)
-        //             "network" => "BTC",                   // Network name
-        //             "fee" => "0.0005",                    // Transaction fee
-        //             "status" => "1",                      // Status => 0=pending, 1=completed, 2=failed
-        //             "timestamp" => 1641051917,            // Transaction timestamp
-        //             "txid" => "abc123def456..."           // Transaction hash
+        //     {
+        //         "records" => array(
+        //             {
+        //                 "address" => "TDepositAddressExample1111111111111",
+        //                 "uniqueId" => null,
+        //                 "transactionId" => "11111111-2222-3333-4444-555555555555",
+        //                 "createdAt" => 1786182572,
+        //                 "currency" => "Tether US",
+        //                 "ticker" => "USDT",
+        //                 "method" => 1,                    // 1 = deposit, 2 = withdraw
+        //                 "amount" => "20.723117",
+        //                 "description" => null,
+        //                 "memo" => null,
+        //                 "fee" => "0",
+        //                 "status" => 3,
+        //                 "network" => "TRC20",
+        //                 "transactionHash" => "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+        //                 "details" => array( "partial" => null ),
+        //                 "centralized" => false
+        //             }
         //         ),
-        //         array( ... )                                 // More transactions (deposits and withdrawals)
-        //     )
+        //         "total" => 1,
+        //         "limit" => 100,
+        //         "offset" => 0
+        //     }
         //
         $records = $this->safe_list($response, 'records', array());
         return $this->parse_transactions($records, $currency, $since, $limit);
@@ -3596,10 +3605,10 @@ class whitebit extends Exchange {
             $request['startDate'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = $since;
+            $request['limit'] = $limit;
         }
         list($request, $params) = $this->handle_until_option('endDate', $request, $params);
-        $response = $this->v4PrivatePostCollateralAccountFundingHistory($request);
+        $response = $this->v4PrivatePostCollateralAccountFundingHistory($this->extend($request, $params));
         //
         //     {
         //         "records" => array(

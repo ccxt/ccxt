@@ -9760,6 +9760,7 @@ class kucoin(Exchange, ImplicitAPI):
             #                 "mmr": "0.007",
             #                 "maintenanceMargin": "0.128086",
             #                 "creationTime": 1774469753178000000
+            #                 "updateTime": 1774469753178000000
             #             }
             #         ]
             #     }
@@ -10088,6 +10089,7 @@ class kucoin(Exchange, ImplicitAPI):
         #         "mmr": "0.007",
         #         "maintenanceMargin": "0.128086",
         #         "creationTime": 1774469753178000000
+        #         "updateTime": 1774469753178000000
         #     }
         #
         # uta fetchPositionsHistory
@@ -10140,7 +10142,10 @@ class kucoin(Exchange, ImplicitAPI):
             marginMode = 'cross' if crossMode else 'isolated'
         lastUpdateTimestamp = self.safe_integer(position, 'closeTime')
         if lastUpdateTimestamp is None:
-            lastUpdateTimestamp = self.safe_integer_product(position, 'closingTime', 0.000001)
+            if 'closingTime' in position:
+                lastUpdateTimestamp = self.safe_integer_product(position, 'closingTime', 0.000001)
+            elif 'updateTime' in position:
+                lastUpdateTimestamp = self.safe_integer_product(position, 'updateTime', 0.000001)
         return self.safe_position({
             'info': position,
             'id': self.safe_string_n(position, ['id', 'positionId', 'closeId']),

@@ -610,8 +610,20 @@ abstract class xt extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_linear_post_future_trade_v1_entrust_cancel_track($params = array()) {
+        return $this->request('future/trade/v1/entrust/cancel-track', array('private', 'linear'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_linear_post_future_trade_v1_entrust_create_profit($params = array()) {
         return $this->request('future/trade/v1/entrust/create-profit', array('private', 'linear'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_linear_post_future_trade_v1_entrust_create_track($params = array()) {
+        return $this->request('future/trade/v1/entrust/create-track', array('private', 'linear'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -856,8 +868,20 @@ abstract class xt extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_inverse_post_future_trade_v1_entrust_cancel_track($params = array()) {
+        return $this->request('future/trade/v1/entrust/cancel-track', array('private', 'inverse'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_inverse_post_future_trade_v1_entrust_create_profit($params = array()) {
         return $this->request('future/trade/v1/entrust/create-profit', array('private', 'inverse'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_inverse_post_future_trade_v1_entrust_create_track($params = array()) {
+        return $this->request('future/trade/v1/entrust/create-track', array('private', 'inverse'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1582,8 +1606,20 @@ abstract class xt extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateLinearPostFutureTradeV1EntrustCancelTrack($params = array()) {
+        return $this->request('future/trade/v1/entrust/cancel-track', array('private', 'linear'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateLinearPostFutureTradeV1EntrustCreateProfit($params = array()) {
         return $this->request('future/trade/v1/entrust/create-profit', array('private', 'linear'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateLinearPostFutureTradeV1EntrustCreateTrack($params = array()) {
+        return $this->request('future/trade/v1/entrust/create-track', array('private', 'linear'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1828,8 +1864,20 @@ abstract class xt extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateInversePostFutureTradeV1EntrustCancelTrack($params = array()) {
+        return $this->request('future/trade/v1/entrust/cancel-track', array('private', 'inverse'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateInversePostFutureTradeV1EntrustCreateProfit($params = array()) {
         return $this->request('future/trade/v1/entrust/create-profit', array('private', 'inverse'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateInversePostFutureTradeV1EntrustCreateTrack($params = array()) {
+        return $this->request('future/trade/v1/entrust/create-track', array('private', 'inverse'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

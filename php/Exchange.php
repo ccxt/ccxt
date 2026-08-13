@@ -393,7 +393,6 @@ class BaseExchange {
         'derive',
         'digifinex',
         'dydx',
-        'exmo',
         'extended',
         'fmfwio',
         'foxbit',
