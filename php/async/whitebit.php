@@ -3786,10 +3786,10 @@ class whitebit extends Exchange {
             $request['startDate'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = $since;
+            $request['limit'] = $limit;
         }
         list($request, $params) = $this->handle_until_option('endDate', $request, $params);
-        $response = Async\await($this->v4PrivatePostCollateralAccountFundingHistory($request));
+        $response = Async\await($this->v4PrivatePostCollateralAccountFundingHistory($this->extend($request, $params)));
         //
         //     {
         //         "records" => array(
