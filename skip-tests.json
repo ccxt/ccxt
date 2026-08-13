@@ -2302,6 +2302,7 @@
     "woofipro": {
         "httpsProxy": "http://188.245.226.105:8911",
         "wsProxy": "http://188.245.226.105:8911",
+        "skipGo": "go live harness panics on AuthenticationError: woofipro fetchOrderBook/fetchOHLCV hit private endpoints and CI has no woofipro creds; until go testSafe tolerates missing credentials like js/php (2026-10-13)",
         "skipMethods": {
             "loadMarkets": {
                 "active": "undefined",
