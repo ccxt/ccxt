@@ -798,8 +798,8 @@ public partial class lbank : Exchange
                         { "max", this.safeNumber(market, "maxOrderVolume") },
                     } },
                     { "price", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(market, "priceLimitLowerValue") },
-                        { "max", this.safeNumber(market, "priceLimitUpperValue") },
+                        { "min", null },
+                        { "max", null },
                     } },
                     { "cost", new Dictionary<string, object>() {
                         { "min", this.safeNumber(market, "minOrderCost") },
