@@ -151,6 +151,45 @@
                     0.5
                 ],
                 "output": "{\"market\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"isTakerBettingOutcomeOne\":false,\"stakeWei\":\"1000000\",\"desiredOdds\":\"50000000000000000000\",\"oddsSlippage\":5,\"fillSalt\":\"0\",\"taker\":\"0xabababababababababababababababababababab\",\"takerSig\":\"0x0\"}"
+            },
+            {
+                "description": "createOrder limit sell posts the complementary-outcome maker order",
+                "url": "https://api.sx.bet/orders/new",
+                "input": [
+                    "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL",
+                    "limit",
+                    "sell",
+                    5,
+                    0.5
+                ],
+                "output": "{\"orders\":[{\"marketHash\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"maker\":\"0xabababababababababababababababababababab\",\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"totalBetSize\":\"5000000\",\"percentageOdds\":\"50000000000000000000\",\"expiry\":2209006800,\"apiExpiry\":1786646251,\"executor\":\"0x52adf738AAD93c31f798a30b2C74D658e1E9a562\",\"salt\":\"1786642651715\",\"isMakerBettingOutcomeOne\":false,\"signature\":\"0x6ae0cdba75361ae05f30cd8e890ab8e53b4df1e01ce0ba69733a530100fad890348d319daac5151b171b4f4477c1e3958f83bad2e2fbe92ca0a331ec17abfd681b\"}]}"
+            },
+            {
+                "description": "createOrder market buy fills the requested outcome with an eip712-signed taker order",
+                "url": "https://api.sx.bet/orders/fill/v2",
+                "input": [
+                    "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL",
+                    "market",
+                    "buy",
+                    1,
+                    0.5
+                ],
+                "output": "{\"market\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"isTakerBettingOutcomeOne\":true,\"stakeWei\":\"1000000\",\"desiredOdds\":\"50000000000000000000\",\"oddsSlippage\":5,\"fillSalt\":\"1786642651738\",\"taker\":\"0xabababababababababababababababababababab\",\"takerSig\":\"0x1811808ceac5ace4a57e3c36b94e819615f9f727963af318ebd14f99a775b871026e228986fadb8e79942e041f179571dc7d5091b61a84c11d06850edcb97cb41c\"}"
+            },
+            {
+                "description": "createOrder market buy honors the oddsSlippage override",
+                "url": "https://api.sx.bet/orders/fill/v2",
+                "input": [
+                    "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL",
+                    "market",
+                    "buy",
+                    1,
+                    0.5,
+                    {
+                        "oddsSlippage": 10
+                    }
+                ],
+                "output": "{\"market\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"isTakerBettingOutcomeOne\":true,\"stakeWei\":\"1000000\",\"desiredOdds\":\"50000000000000000000\",\"oddsSlippage\":10,\"fillSalt\":\"1786642651741\",\"taker\":\"0xabababababababababababababababababababab\",\"takerSig\":\"0x1fcecbd0e2651c2047f9eee10b003172cbd6ac6b0d347f93bd8a2e9da8cc07756aac40307d1d2096241752bad38474f7a0c0679c5701452ae92aef443919f1cb1b\"}"
             }
         ],
         "cancelOrder": [
@@ -183,6 +222,19 @@
                     }
                 ],
                 "output": "{\"sportXeventId\":\"L12003787\",\"signature\":\"0x0\",\"salt\":\"0x0\",\"maker\":\"0xabababababababababababababababababababab\",\"timestamp\":0}"
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancelOrders posts one eip712-signed batch cancel for several order hashes",
+                "url": "https://api.sx.bet/orders/cancel/v2",
+                "input": [
+                    [
+                        "0x1111111111111111111111111111111111111111111111111111111111111111",
+                        "0x2222222222222222222222222222222222222222222222222222222222222222"
+                    ]
+                ],
+                "output": "{\"orderHashes\":[\"0x1111111111111111111111111111111111111111111111111111111111111111\",\"0x2222222222222222222222222222222222222222222222222222222222222222\"],\"signature\":\"0x9d82076b1b3d157bc2f9c07f1bc7a8160072f2b61f9db98839a7dc7219d42c764658217d4c0c5e048c8fbae8e49c39960d4ebdf31ad9d9a8a073d35b440fb9201b\",\"salt\":\"0x0000000000000000000000000000000000000000000000000000019ffc335a5e\",\"maker\":\"0xabababababababababababababababababababab\",\"timestamp\":1786642651}"
             }
         ]
     }
