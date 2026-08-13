@@ -677,11 +677,7 @@ export default class btse extends Exchange {
         const isSpot = marketType === 'Spot';
         const isFuture = marketType === 'FuturesTimeBased';
         const isSwap = marketType === 'FuturesPerpetual';
-        // the trading endpoints identify contract markets by the tradeCurrency value, e.g. BTC-PERP, while spot markets keep the full symbol
-        let id = this.safeString (market, 'symbol');
-        if (!isSpot) {
-            id = this.safeString (market, 'tradeCurrency', id);
-        }
+        const id = this.safeString (market, 'symbol');
         const baseId = this.safeString (market, 'baseCurrency');
         const quoteId = this.safeString (market, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
@@ -1130,7 +1126,7 @@ export default class btse extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
-            const marketId = this.safeString (entry, 'symbol');
+            const marketId = this.resolveLegacyMarketId (this.safeString (entry, 'symbol'), entry);
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             if (symbols === undefined || this.inArray (symbol, symbols)) {
@@ -1267,21 +1263,40 @@ export default class btse extends Exchange {
         return this.parseTicker (data, market);
     }
 
+    resolveLegacyMarketId (marketId: Str, row: any = undefined): Str {
+        // the legacy endpoints identify contract markets by the tradeCurrency value, e.g. BTC-PERP,
+        // while the unified market ids keep the full symbol, e.g. BTC-PERP-USDT
+        if ((marketId === undefined) || (this.markets_by_id === undefined) || (marketId in this.markets_by_id)) {
+            return marketId;
+        }
+        const suffixes = [];
+        if (row !== undefined) {
+            const quote = this.safeString (row, 'quote');
+            if (quote !== undefined) {
+                suffixes.push (quote);
+            }
+            const settleWithAsset = this.safeString (row, 'settleWithAsset');
+            if (settleWithAsset !== undefined) {
+                suffixes.push (settleWithAsset);
+            }
+        }
+        suffixes.push ('USDT');
+        suffixes.push ('USD');
+        for (let i = 0; i < suffixes.length; i++) {
+            const candidate = marketId + '-' + suffixes[i];
+            if (candidate in this.markets_by_id) {
+                return candidate;
+            }
+        }
+        return marketId;
+    }
+
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // spot rows carry the fields up to askQty, contract rows additionally carry
         // openInterest, fundingRate, nextFundingTime and fundingIntervalMinutes
         //
-        let marketId = this.safeString (ticker, 'symbol');
-        if ((marketId !== undefined) && (this.markets_by_id !== undefined) && !(marketId in this.markets_by_id)) {
-            // contract tickers append the settlement currency to the trading id, e.g. BTC-PERP-USDT for BTC-PERP
-            const parts = marketId.split ('-');
-            const partsLength = parts.length;
-            if (partsLength > 1) {
-                const trimmed = this.arraySlice (parts, 0, partsLength - 1);
-                marketId = trimmed.join ('-');
-            }
-        }
+        const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         const last = this.safeString (ticker, 'lastPrice');
         let baseVolume = this.safeString (ticker, 'amount');
@@ -1360,7 +1375,7 @@ export default class btse extends Exchange {
     }
 
     override parseOpenInterest (interest: any, market: Market = undefined) {
-        const marketId = this.safeString (interest, 'symbol');
+        const marketId = this.resolveLegacyMarketId (this.safeString (interest, 'symbol'), interest);
         market = this.safeMarket (marketId, market);
         return this.safeOpenInterest ({
             'symbol': market['symbol'],
@@ -1473,7 +1488,7 @@ export default class btse extends Exchange {
         //         "fundingTime": 1770480000000
         //     }
         //
-        const marketId = this.safeString (contract, 'symbol');
+        const marketId = this.resolveLegacyMarketId (this.safeString (contract, 'symbol'), contract);
         market = this.safeMarket (marketId, market);
         const nextFundingTimestamp = this.safeInteger (contract, 'fundingTime');
         const minutes = this.safeString (contract, 'fundingIntervalMinutes');
@@ -1764,7 +1779,7 @@ export default class btse extends Exchange {
         //         "avgFilledPrice": 1956.59
         //     }
         //
-        const marketId = this.safeString (trade, 'symbol');
+        const marketId = this.resolveLegacyMarketId (this.safeString (trade, 'symbol'), trade);
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 'timestamp');
         let fee = undefined;
@@ -2560,7 +2575,7 @@ export default class btse extends Exchange {
         //         "time_in_force": "GTC"
         //     }
         //
-        const marketId = this.safeString (order, 'symbol');
+        const marketId = this.resolveLegacyMarketId (this.safeString (order, 'symbol'), order);
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (order, 'timestamp');
         // open_orders rows carry no numeric status - the state lives in
@@ -2677,7 +2692,7 @@ export default class btse extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < responseList.length; i++) {
             const feeInfo = responseList[i];
-            const marketId = this.safeString (feeInfo, 'symbol');
+            const marketId = this.resolveLegacyMarketId (this.safeString (feeInfo, 'symbol'), feeInfo);
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             const makerFee = this.safeNumber (feeInfo, 'makerFee');
@@ -3102,7 +3117,7 @@ export default class btse extends Exchange {
         //         "minimumRequiredMargin": 0
         //     }
         //
-        const marketId = this.safeString (position, 'symbol');
+        const marketId = this.resolveLegacyMarketId (this.safeString (position, 'symbol'), position);
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (position, 'timestamp');
         const marginType = this.safeString (position, 'marginType');
@@ -3255,7 +3270,7 @@ export default class btse extends Exchange {
         //         "positionDirection": "SHORT"
         //     }
         //
-        const marketId = this.safeString (marginMode, 'symbol');
+        const marketId = this.resolveLegacyMarketId (this.safeString (marginMode, 'symbol'), marginMode);
         market = this.safeMarket (marketId, market);
         const positionMode = this.safeStringLower (marginMode, 'marginMode');
         let marginModeValue = 'cross';

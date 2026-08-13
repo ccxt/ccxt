@@ -11,7 +11,7 @@
                 "input": [
                     "ETH/USDT:USDT"
                 ],
-                "output": "{\"symbol\":\"ETH-PERP\",\"type\":\"MARKET\"}"
+                "output": "{\"symbol\":\"ETH-PERP-USDT\",\"type\":\"MARKET\"}"
             },
             {
                 "description": "close isolated position with limit order",
@@ -26,7 +26,7 @@
                         "price": 1980
                     }
                 ],
-                "output": "{\"symbol\":\"ETH-PERP\",\"type\":\"LIMIT\",\"price\":1980,\"positionId\":\"ETH-PERP-USDT|6#1\"}"
+                "output": "{\"symbol\":\"ETH-PERP-USDT\",\"type\":\"LIMIT\",\"price\":1980,\"positionId\":\"ETH-PERP-USDT|6#1\"}"
             },
             {
                 "description": "close isolated position",
@@ -39,7 +39,7 @@
                         "positionId": "ETH-PERP-USDT|4#1"
                     }
                 ],
-                "output": "{\"symbol\":\"ETH-PERP\",\"type\":\"MARKET\",\"positionId\":\"ETH-PERP-USDT|4#1\"}"
+                "output": "{\"symbol\":\"ETH-PERP-USDT\",\"type\":\"MARKET\",\"positionId\":\"ETH-PERP-USDT|4#1\"}"
             }
         ],
         "setMarginMode": [
@@ -54,7 +54,7 @@
                         "hedged": true
                     }
                 ],
-                "output": "{\"symbol\":\"ETH-PERP\",\"positionMode\":\"HEDGE\"}"
+                "output": "{\"symbol\":\"ETH-PERP-USDT\",\"positionMode\":\"HEDGE\"}"
             },
             {
                 "description": "set margin mode to cross and one-way",
@@ -67,7 +67,7 @@
                         "hedged": false
                     }
                 ],
-                "output": "{\"symbol\":\"ETH-PERP\",\"positionMode\":\"ONE_WAY\"}"
+                "output": "{\"symbol\":\"ETH-PERP-USDT\",\"positionMode\":\"ONE_WAY\"}"
             },
             {
                 "description": "set margin mode to isolated",
@@ -77,14 +77,14 @@
                     "isolated",
                     "ETH/USDT:USDT"
                 ],
-                "output": "{\"symbol\":\"ETH-PERP\",\"positionMode\":\"ISOLATED\"}"
+                "output": "{\"symbol\":\"ETH-PERP-USDT\",\"positionMode\":\"ISOLATED\"}"
             }
         ],
         "fetchMarginMode": [
             {
                 "description": "fetch margin mode",
                 "method": "fetchMarginMode",
-                "url": "https://api.btse.com/futures/api/v2.3/leverage?symbol=ETH-PERP",
+                "url": "https://api.btse.com/futures/api/v2.3/leverage?symbol=ETH-PERP-USDT",
                 "input": [
                     "ETH/USDT:USDT"
                 ],
@@ -100,7 +100,7 @@
                     10,
                     "ETH/USDT:USDT"
                 ],
-                "output": "{\"symbol\":\"ETH-PERP\",\"leverage\":10}"
+                "output": "{\"symbol\":\"ETH-PERP-USDT\",\"leverage\":10}"
             }
         ],
         "setPositionMode": [
@@ -112,14 +112,14 @@
                     false,
                     "ETH/USDT:USDT"
                 ],
-                "output": "{\"symbol\":\"ETH-PERP\",\"positionMode\":\"ONE_WAY\"}"
+                "output": "{\"symbol\":\"ETH-PERP-USDT\",\"positionMode\":\"ONE_WAY\"}"
             }
         ],
         "fetchPositionMode": [
             {
                 "description": "fetch position mode for market",
                 "method": "fetchPositionMode",
-                "url": "https://api.btse.com/futures/api/v2.3/position_mode?symbol=ETH-PERP",
+                "url": "https://api.btse.com/futures/api/v2.3/position_mode?symbol=ETH-PERP-USDT",
                 "input": [
                     "ETH/USDT:USDT"
                 ],
@@ -130,7 +130,7 @@
             {
                 "description": "fetch positions for market",
                 "method": "fetchPositionsForSymbol",
-                "url": "https://api.btse.com/futures/api/v2.3/user/positions?symbol=ETH-PERP",
+                "url": "https://api.btse.com/futures/api/v2.3/user/positions?symbol=ETH-PERP-USDT",
                 "input": [
                     "ETH/USDT:USDT"
                 ],
@@ -181,7 +181,7 @@
             {
                 "description": "fetch trades for swap",
                 "method": "fetchTrades",
-                "url": "https://api.btse.com/public-api/market/v1/trades?symbol=ETH-PERP",
+                "url": "https://api.btse.com/public-api/market/v1/trades?symbol=ETH-PERP-USDT",
                 "input": [
                     "ETH/USDT:USDT"
                 ],
@@ -210,7 +210,7 @@
             {
                 "description": "fetch funding rate",
                 "method": "fetchFundingRate",
-                "url": "https://api.btse.com/futures/api/v2.3/market_summary?symbol=ETH-PERP&listFullAttributes=true",
+                "url": "https://api.btse.com/futures/api/v2.3/market_summary?symbol=ETH-PERP-USDT&listFullAttributes=true",
                 "input": [
                     "ETH/USDT:USDT"
                 ],
@@ -230,7 +230,7 @@
             {
                 "description": "fetch open interest",
                 "method": "fetchOpenInterest",
-                "url": "https://api.btse.com/futures/api/v2.3/market_summary?symbol=BTC-PERP",
+                "url": "https://api.btse.com/futures/api/v2.3/market_summary?symbol=BTC-PERP-USDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ],
@@ -267,7 +267,7 @@
             {
                 "description": "fetch ticker for contract",
                 "method": "fetchTicker",
-                "url": "https://api.btse.com/public-api/market/v1/ticker/24hr?symbol=ETH-PERP",
+                "url": "https://api.btse.com/public-api/market/v1/ticker/24hr?symbol=ETH-PERP-USDT",
                 "input": [
                     "ETH/USDT:USDT"
                 ],
@@ -287,7 +287,7 @@
             {
                 "description": "fetch leverage tiers for ETH/USDT:USDT",
                 "method": "fetchMarketLeverageTiers",
-                "url": "https://api.btse.com/futures/api/v2.3/market/risk_limit?symbol=ETH-PERP",
+                "url": "https://api.btse.com/futures/api/v2.3/market/risk_limit?symbol=ETH-PERP-USDT",
                 "input": [
                     "ETH/USDT:USDT"
                 ],
@@ -298,7 +298,7 @@
             {
                 "description": "fetch funding rate history with since",
                 "method": "fetchFundingRateHistory",
-                "url": "https://api.btse.com/futures/api/v2.3/funding_history?symbol=ETH-PERP&from=1770451200000",
+                "url": "https://api.btse.com/futures/api/v2.3/funding_history?symbol=ETH-PERP-USDT&from=1770451200000",
                 "input": [
                     "ETH/USDT:USDT",
                     1770451200000
@@ -310,7 +310,7 @@
             {
                 "description": "fetch orderbook for contract",
                 "method": "fetchOrderBook",
-                "url": "https://api.btse.com/public-api/market/v1/orderbook?symbol=ETH-PERP&depth=1",
+                "url": "https://api.btse.com/public-api/market/v1/orderbook?symbol=ETH-PERP-USDT&depth=1",
                 "input": [
                     "ETH/USDT:USDT",
                     1
@@ -347,7 +347,7 @@
             {
                 "description": "fetch OHLCV for future",
                 "method": "fetchOHLCV",
-                "url": "https://api.btse.com/public-api/market/v1/klines?symbol=ETH-260925&resolution=60&limit=300&start=1770454800",
+                "url": "https://api.btse.com/public-api/market/v1/klines?symbol=ETH-260925-USDT&resolution=60&limit=300&start=1770454800",
                 "input": [
                     "ETH/USDT:USDT-260925",
                     "1h",
@@ -358,7 +358,7 @@
             {
                 "description": "fetch OHLCV for future",
                 "method": "fetchOHLCV",
-                "url": "https://api.btse.com/public-api/market/v1/klines?symbol=ETH-260925&resolution=60&limit=300",
+                "url": "https://api.btse.com/public-api/market/v1/klines?symbol=ETH-260925-USDT&resolution=60&limit=300",
                 "input": [
                     "ETH/USDT:USDT-260925",
                     "1h"
@@ -368,7 +368,7 @@
             {
                 "description": "fetch OHLCV for swap",
                 "method": "fetchOHLCV",
-                "url": "https://api.btse.com/public-api/market/v1/klines?symbol=ETH-PERP&resolution=60&limit=300&start=1770454800",
+                "url": "https://api.btse.com/public-api/market/v1/klines?symbol=ETH-PERP-USDT&resolution=60&limit=300&start=1770454800",
                 "input": [
                     "ETH/USDT:USDT",
                     "1h",

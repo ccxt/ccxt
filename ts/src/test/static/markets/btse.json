@@ -112,7 +112,7 @@
         }
     },
     "ETH/USDT:USDT": {
-        "id": "ETH-PERP",
+        "id": "ETH-PERP-USDT",
         "lowercaseId": null,
         "symbol": "ETH/USDT:USDT",
         "base": "ETH",
@@ -178,7 +178,7 @@
         }
     },
     "ETH/USDT:USDT-260925": {
-        "id": "ETH-260925",
+        "id": "ETH-260925-USDT",
         "lowercaseId": null,
         "symbol": "ETH/USDT:USDT-260925",
         "base": "ETH",
@@ -248,7 +248,7 @@
         }
     },
     "BTC/USDT:USDT": {
-        "id": "BTC-PERP",
+        "id": "BTC-PERP-USDT",
         "lowercaseId": null,
         "symbol": "BTC/USDT:USDT",
         "base": "BTC",
@@ -314,7 +314,7 @@
         }
     },
     "RAVE/USDT:USDT": {
-        "id": "RAVE-PERP",
+        "id": "RAVE-PERP-USDT",
         "lowercaseId": null,
         "symbol": "RAVE/USDT:USDT",
         "base": "RAVE",
