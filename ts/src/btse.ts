@@ -1258,9 +1258,13 @@ export default class btse extends Exchange {
         //         "time": 1786602644221
         //     }
         //
-        const data = this.safeList (response, 'data', []);
-        const first = this.safeDict (data, 0, {});
-        return this.parseTicker (first, market);
+        // a single-symbol query returns data as one object, a multi-symbol or bare query returns an array
+        let data = this.safeDict (response, 'data');
+        if (data === undefined) {
+            const rows = this.safeList (response, 'data', []);
+            data = this.safeDict (rows, 0, {});
+        }
+        return this.parseTicker (data, market);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
