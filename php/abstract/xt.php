@@ -610,6 +610,12 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_linear_post_future_trade_v1_entrust_cancel_all_track($params = array()) {
+        return $this->request('future/trade/v1/entrust/cancel-all-track', array('private', 'linear'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_linear_post_future_trade_v1_entrust_cancel_plan($params = array()) {
         return $this->request('future/trade/v1/entrust/cancel-plan', array('private', 'linear'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -882,6 +888,12 @@ abstract class xt extends \ccxt\Exchange {
      */
     public function private_inverse_post_future_trade_v1_entrust_cancel_all_profit_stop($params = array()) {
         return $this->request('future/trade/v1/entrust/cancel-all-profit-stop', array('private', 'inverse'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_inverse_post_future_trade_v1_entrust_cancel_all_track($params = array()) {
+        return $this->request('future/trade/v1/entrust/cancel-all-track', array('private', 'inverse'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1642,6 +1654,12 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateLinearPostFutureTradeV1EntrustCancelAllTrack($params = array()) {
+        return $this->request('future/trade/v1/entrust/cancel-all-track', array('private', 'linear'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateLinearPostFutureTradeV1EntrustCancelPlan($params = array()) {
         return $this->request('future/trade/v1/entrust/cancel-plan', array('private', 'linear'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1914,6 +1932,12 @@ abstract class xt extends \ccxt\Exchange {
      */
     public function privateInversePostFutureTradeV1EntrustCancelAllProfitStop($params = array()) {
         return $this->request('future/trade/v1/entrust/cancel-all-profit-stop', array('private', 'inverse'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateInversePostFutureTradeV1EntrustCancelAllTrack($params = array()) {
+        return $this->request('future/trade/v1/entrust/cancel-all-track', array('private', 'inverse'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>

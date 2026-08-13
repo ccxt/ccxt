@@ -332,7 +332,7 @@ abstract class whitebit extends \ccxt\async\Exchange {
         return $this->request('main-account/withdraw-pay', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function v4_private_post_main_account_transfer($params = array()) {
         return $this->request('main-account/transfer', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -572,7 +572,7 @@ abstract class whitebit extends \ccxt\async\Exchange {
         return $this->request('sub-account/edit', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function v4_private_post_sub_account_list($params = array()) {
         return $this->request('sub-account/list', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -998,7 +998,7 @@ abstract class whitebit extends \ccxt\async\Exchange {
         return $this->request('main-account/withdraw-pay', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function v4PrivatePostMainAccountTransfer($params = array()) {
         return $this->request('main-account/transfer', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -1238,7 +1238,7 @@ abstract class whitebit extends \ccxt\async\Exchange {
         return $this->request('sub-account/edit', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function v4PrivatePostSubAccountList($params = array()) {
         return $this->request('sub-account/list', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));

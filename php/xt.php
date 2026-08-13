@@ -269,6 +269,7 @@ class xt extends Exchange {
                         'post' => array(
                             'future/trade/v1/entrust/cancel-all-plan' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/cancel-all-profit-stop' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/cancel-all-track' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/cancel-plan' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/cancel-profit-stop' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/create-plan' => array( 'cost' => 1 ),
@@ -321,6 +322,7 @@ class xt extends Exchange {
                         'post' => array(
                             'future/trade/v1/entrust/cancel-all-plan' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/cancel-all-profit-stop' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/cancel-all-track' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/cancel-plan' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/cancel-profit-stop' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/create-plan' => array( 'cost' => 1 ),
@@ -3617,11 +3619,13 @@ class xt extends Exchange {
          * @see https://doc.xt.com/docs/futures/Order/cancel-all-orders
          * @see https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders
          * @see https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit
+         * @see https://doc.xt.com/docs/futures/Entrust/CancelAllTrack
          *
          * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
          * @param {array} $params extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->trigger] if the order is a $trigger order or not
          * @param {bool} [$params->stopLossTakeProfit] if the order is a stop-loss or take-profit order
+         * @param {bool} [$params->trailing] if the orders are $trailing orders or not
          * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if ($this->markets === null) {
@@ -3640,6 +3644,13 @@ class xt extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('cancelAllOrders', $market, $params);
         $trigger = $this->safe_value_2($params, 'trigger', 'stop');
         $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
+        $trailing = $this->safe_bool($params, 'trailing');
+        if ($trailing) {
+            $isContract = ($subType !== null) || ($type === 'swap') || ($type === 'future');
+            if (!$isContract) {
+                throw new NotSupported($this->id . ' cancelAllOrders() $trailing orders are only supported on swap and future markets');
+            }
+        }
         if ($trigger) {
             $params = $this->omit($params, array( 'trigger', 'stop' ));
             if ($subType === 'inverse') {
@@ -3653,6 +3664,13 @@ class xt extends Exchange {
                 $response = $this->privateInversePostFutureTradeV1EntrustCancelAllProfitStop($this->extend($request, $params));
             } else {
                 $response = $this->privateLinearPostFutureTradeV1EntrustCancelAllProfitStop($this->extend($request, $params));
+            }
+        } elseif ($trailing) {
+            $params = $this->omit($params, 'trailing');
+            if ($subType === 'inverse') {
+                $response = $this->privateInversePostFutureTradeV1EntrustCancelAllTrack($this->extend($request, $params));
+            } else {
+                $response = $this->privateLinearPostFutureTradeV1EntrustCancelAllTrack($this->extend($request, $params));
             }
         } elseif ($subType === 'inverse') {
             $response = $this->privateInversePostFutureTradeV1OrderCancelAll($this->extend($request, $params));

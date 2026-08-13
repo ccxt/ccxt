@@ -3110,33 +3110,37 @@ class whitebit extends Exchange {
             Async\await($this->load_markets());
         }
         $accounts = array();
-        // Fetch sub-$accounts
+        $response = Async\await($this->v4PrivatePostSubAccountList($params));
         //
-        //     array(
-        //         {
-        //             "id" => "12345",
-        //             "name" => "SubAccount1",
-        //             "status" => "active",
-        //             "permissions" => ["trade", "withdraw"]
-        //         }
-        //     )
+        //     {
+        //         "offset" => 0,
+        //         "limit" => 100,
+        //         "data" => array(
+        //             {
+        //                 "id" => "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
+        //                 "alias" => "trading_bot",
+        //                 "userId" => "u-12345",
+        //                 "email" => "s***@example.com",
+        //                 "status" => "active",
+        //                 "color" => "#FF5733",
+        //                 "kyc" => array( "shareKyc" => false, "kycStatus" => "verified" ),
+        //                 "permissions" => array( "spotEnabled" => true, "collateralEnabled" => false )
+        //             }
+        //         )
+        //     }
         //
-        $subAccounts = Async\await($this->v4PrivatePostSubAccountList($params));
-        if ($subAccounts && (gettype($subAccounts) === 'array' && array_keys($subAccounts) === array_keys(array_keys($subAccounts)))) {
-            for ($i = 0; $i < count($subAccounts); $i++) {
-                $subAccount = $this->safe_value($subAccounts, $i);
-                $accountId = $this->safe_string($subAccount, 'id');
-                $accountName = $this->safe_string($subAccount, 'name');
-                if ($accountId) {
-                    $accounts[] = array(
-                        'id' => $accountId,
-                        'type' => 'subaccount',
-                        'name' => $accountName || 'SubAccount ' . $accountId,
-                        'code' => null,
-                        'info' => $subAccount,
-                    );
-                }
-            }
+        $subAccounts = $this->safe_list($response, 'data', array());
+        for ($i = 0; $i < count($subAccounts); $i++) {
+            $subAccount = $this->safe_dict($subAccounts, $i, array());
+            $accountId = $this->safe_string($subAccount, 'id');
+            $accountName = $this->safe_string($subAccount, 'alias');
+            $accounts[] = array(
+                'id' => $accountId,
+                'type' => 'subaccount',
+                'name' => $accountName,
+                'code' => null,
+                'info' => $subAccount,
+            );
         }
         return $accounts;
     }
