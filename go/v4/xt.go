@@ -1168,7 +1168,7 @@ func (this *XtCore) FetchTime(optionalArgs ...any) <-chan any {
 		//         }
 		//     }
 		//
-		var data any = this.SafeValue(response, "result")
+		var data any = this.SafeDict(response, "result")
 
 		ch <- this.SafeInteger(data, "serverTime")
 		return nil
@@ -1247,17 +1247,17 @@ func (this *XtCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		//
 		// note: individual network's full data is available on per-currency endpoint: https://www.xt.com/sapi/v4/balance/public/currency/11
 		//
-		var chainsData any = this.SafeValue(chainsResponse, "result", []any{})
-		var currenciesResult any = this.SafeValue(currenciesResponse, "result", []any{})
-		var currenciesData any = this.SafeValue(currenciesResult, "currencies", []any{})
+		var chainsData any = this.SafeList(chainsResponse, "result", []any{})
+		var currenciesResult any = this.SafeDict(currenciesResponse, "result", map[string]any{})
+		var currenciesData any = this.SafeList(currenciesResult, "currencies", []any{})
 		var chainsDataIndexed any = this.IndexBy(chainsData, "currency")
 		var result any = map[string]any{}
 		for i := 0; IsLessThan(i, GetArrayLength(currenciesData)); i++ {
 			var entry any = GetValue(currenciesData, i)
 			var currencyId any = this.SafeString(entry, "currency")
 			var code any = this.SafeCurrencyCode(currencyId)
-			var networkEntry any = this.SafeValue(chainsDataIndexed, currencyId, map[string]any{})
-			var rawNetworks any = this.SafeValue(networkEntry, "supportChains", []any{})
+			var networkEntry any = this.SafeDict(chainsDataIndexed, currencyId, map[string]any{})
+			var rawNetworks any = this.SafeList(networkEntry, "supportChains", []any{})
 			var networks any = map[string]any{}
 			for j := 0; IsLessThan(j, GetArrayLength(rawNetworks)); j++ {
 				var rawNetwork any = GetValue(rawNetworks, j)
@@ -1432,8 +1432,8 @@ func (this *XtCore) FetchSpotMarkets(optionalArgs ...any) <-chan any {
 		//         }
 		//     }
 		//
-		var data any = this.SafeValue(response, "result", map[string]any{})
-		var symbols any = this.SafeValue(data, "symbols", []any{})
+		var data any = this.SafeDict(response, "result", map[string]any{})
+		var symbols any = this.SafeList(data, "symbols", []any{})
 
 		ch <- this.ParseMarkets(symbols)
 		return nil
@@ -1513,7 +1513,7 @@ func (this *XtCore) FetchSwapAndFutureMarkets(optionalArgs ...any) <-chan any {
 		//         ]
 		//     }
 		//
-		var swapAndFutureMarkets any = this.ArrayConcat(this.SafeValue(GetValue(markets, 0), "result", []any{}), this.SafeValue(GetValue(markets, 1), "result", []any{}))
+		var swapAndFutureMarkets any = this.ArrayConcat(this.SafeList(GetValue(markets, 0), "result", []any{}), this.SafeList(GetValue(markets, 1), "result", []any{}))
 
 		ch <- this.ParseMarkets(swapAndFutureMarkets)
 		return nil
@@ -1652,7 +1652,7 @@ func (this *XtCore) ParseMarket(market any) any {
 	var quote any = this.SafeCurrencyCode(quoteId)
 	var state any = this.SafeString(market, "state")
 	var symbol any = Add(Add(base, "/"), quote)
-	var filters any = this.SafeValue(market, "filters", []any{})
+	var filters any = this.SafeList(market, "filters", []any{})
 	var minAmount any = nil
 	var maxAmount any = nil
 	var minCost any = nil
@@ -1724,9 +1724,9 @@ func (this *XtCore) ParseMarket(market any) any {
 	}
 	var isActive any = false
 	if IsTrue(contract) {
-		isActive = this.SafeValue(market, "isOpenApi", false)
+		isActive = this.SafeBool(market, "isOpenApi", false)
 	} else {
-		if IsTrue(IsTrue(IsTrue((IsEqual(state, "ONLINE"))) && IsTrue((this.SafeValue(market, "tradingEnabled")))) && IsTrue((this.SafeValue(market, "openapiEnabled")))) {
+		if IsTrue(IsTrue(IsTrue((IsEqual(state, "ONLINE"))) && IsTrue((this.SafeBool(market, "tradingEnabled")))) && IsTrue((this.SafeBool(market, "openapiEnabled")))) {
 			isActive = true
 		}
 	}
@@ -1910,7 +1910,7 @@ func (this *XtCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		//         ]
 		//     }
 		//
-		var ohlcvs any = this.SafeValue(response, "result", []any{})
+		var ohlcvs any = this.SafeList(response, "result", []any{})
 
 		ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
 		return nil
@@ -2052,7 +2052,7 @@ func (this *XtCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 		//         }
 		//     }
 		//
-		var orderBook any = this.SafeValue(response, "result", map[string]any{})
+		var orderBook any = this.SafeDict(response, "result", map[string]any{})
 		var timestamp any = this.SafeInteger2(orderBook, "timestamp", "t")
 		if IsTrue(GetValue(market, "spot")) {
 			var ob any = this.ParseOrderBook(orderBook, symbol, timestamp)
@@ -2271,7 +2271,7 @@ func (this *XtCore) FetchTickers(optionalArgs ...any) <-chan any {
 		//         ]
 		//     }
 		//
-		var tickers any = this.SafeValue(response, "result", []any{})
+		var tickers any = this.SafeList(response, "result", []any{})
 		var result any = map[string]any{}
 		for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
 			var ticker any = this.ParseTicker(GetValue(tickers, i), market)
@@ -2577,7 +2577,7 @@ func (this *XtCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		//         ]
 		//     }
 		//
-		var trades any = this.SafeValue(response, "result", []any{})
+		var trades any = this.SafeList(response, "result", []any{})
 
 		ch <- this.ParseTrades(trades, market)
 		return nil
@@ -2719,8 +2719,8 @@ func (this *XtCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		//         }
 		//     }
 		//
-		var data any = this.SafeValue(response, "result", map[string]any{})
-		var trades any = this.SafeValue(data, "items", []any{})
+		var data any = this.SafeDict(response, "result", map[string]any{})
+		var trades any = this.SafeList(data, "items", []any{})
 
 		ch <- this.ParseTrades(trades, market, since, limit)
 		return nil
@@ -2993,10 +2993,10 @@ func (this *XtCore) FetchBalance(optionalArgs ...any) <-chan any {
 		//
 		var balances any = nil
 		if IsTrue(IsTrue((!IsEqual(subType, nil))) || IsTrue(isContractWallet)) {
-			balances = this.SafeValue(response, "result", []any{})
+			balances = this.SafeList(response, "result", []any{})
 		} else {
-			var data any = this.SafeValue(response, "result", map[string]any{})
-			balances = this.SafeValue(data, "assets", []any{})
+			var data any = this.SafeDict(response, "result", map[string]any{})
+			balances = this.SafeList(data, "assets", []any{})
 		}
 
 		ch <- this.ParseBalance(balances)
@@ -3231,7 +3231,7 @@ func (this *XtCore) CreateSpotOrder(symbol any, typeVar any, side any, amount an
 		//         }
 		//     }
 		//
-		var order any = this.SafeValue(response, "result", map[string]any{})
+		var order any = this.SafeDict(response, "result", map[string]any{})
 
 		ch <- this.ParseOrder(order, market)
 		return nil
@@ -3262,7 +3262,7 @@ func (this *XtCore) CreateContractOrder(symbol any, typeVar any, side any, amoun
 		if IsTrue(!IsEqual(timeInForce, nil)) {
 			AddElementToObject(request, "timeInForce", timeInForce)
 		}
-		var reduceOnly any = this.SafeValue(params, "reduceOnly", false)
+		var reduceOnly any = this.SafeBool(params, "reduceOnly", false)
 		if IsTrue(IsEqual(side, "buy")) {
 			var requestType any = Ternary(IsTrue((reduceOnly)), "SHORT", "LONG")
 			AddElementToObject(request, "positionSide", requestType)
@@ -3427,8 +3427,8 @@ func (this *XtCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchOrder", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var trigger any = this.SafeValue(params, "stop")
-		var stopLossTakeProfit any = this.SafeValue(params, "stopLossTakeProfit")
+		var trigger any = this.SafeBool2(params, "trigger", "stop")
+		var stopLossTakeProfit any = this.SafeBool(params, "stopLossTakeProfit")
 		var trailing any = this.SafeBool(params, "trailing")
 		if IsTrue(trailing) {
 			var isContract any = IsTrue(IsTrue((!IsEqual(subType, nil))) || IsTrue((IsEqual(typeVar, "swap")))) || IsTrue((IsEqual(typeVar, "future")))
@@ -3446,7 +3446,7 @@ func (this *XtCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 			AddElementToObject(request, "orderId", id)
 		}
 		if IsTrue(trigger) {
-			params = this.Omit(params, "stop")
+			params = this.Omit(params, []any{"trigger", "stop"})
 			if IsTrue(IsEqual(subType, "inverse")) {
 
 				response = (<-this.PrivateInverseGetFutureTradeV1EntrustPlanDetail(this.Extend(request, params)))
@@ -3608,7 +3608,7 @@ func (this *XtCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		//         }
 		//     }
 		//
-		var order any = this.SafeValue(response, "result", map[string]any{})
+		var order any = this.SafeDict(response, "result", map[string]any{})
 
 		ch <- this.ParseOrder(order, market)
 		return nil
@@ -3672,7 +3672,7 @@ func (this *XtCore) FetchOrders(optionalArgs ...any) <-chan any {
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchOrders", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var trigger any = this.SafeValue2(params, "trigger", "stop")
+		var trigger any = this.SafeBool2(params, "trigger", "stop")
 		var trailing any = this.SafeBool(params, "trailing")
 		if IsTrue(trailing) {
 			var isContract any = IsTrue(IsTrue((!IsEqual(subType, nil))) || IsTrue((IsEqual(typeVar, "swap")))) || IsTrue((IsEqual(typeVar, "future")))
@@ -3831,8 +3831,8 @@ func (this *XtCore) FetchOrders(optionalArgs ...any) <-chan any {
 		//         }
 		//     }
 		//
-		var data any = this.SafeValue(response, "result", map[string]any{})
-		var orders any = this.SafeValue(data, "items", []any{})
+		var data any = this.SafeDict(response, "result", map[string]any{})
+		var orders any = this.SafeList(data, "items", []any{})
 
 		ch <- this.ParseOrders(orders, market, since, limit)
 		return nil
@@ -3880,7 +3880,7 @@ func (this *XtCore) FetchOrdersByStatus(status any, optionalArgs ...any) <-chan 
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
 		var trigger any = this.SafeBool2(params, "stop", "trigger")
-		var stopLossTakeProfit any = this.SafeValue(params, "stopLossTakeProfit")
+		var stopLossTakeProfit any = this.SafeBool(params, "stopLossTakeProfit")
 		var trailing any = this.SafeBool(params, "trailing")
 		if IsTrue(trailing) {
 			var isContract any = IsTrue(IsTrue((!IsEqual(subType, nil))) || IsTrue((IsEqual(typeVar, "swap")))) || IsTrue((IsEqual(typeVar, "future")))
@@ -4370,8 +4370,8 @@ func (this *XtCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		subTypeparamsVariable := this.HandleSubTypeAndParams("cancelOrder", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var trigger any = this.SafeValue2(params, "trigger", "stop")
-		var stopLossTakeProfit any = this.SafeValue(params, "stopLossTakeProfit")
+		var trigger any = this.SafeBool2(params, "trigger", "stop")
+		var stopLossTakeProfit any = this.SafeBool(params, "stopLossTakeProfit")
 		var trailing any = this.SafeBool(params, "trailing")
 		if IsTrue(trailing) {
 			var isContract any = IsTrue(IsTrue((!IsEqual(subType, nil))) || IsTrue((IsEqual(typeVar, "swap")))) || IsTrue((IsEqual(typeVar, "future")))
@@ -4456,7 +4456,7 @@ func (this *XtCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		//     }
 		//
 		var isContractResponse any = (IsTrue(IsTrue((!IsEqual(subType, nil))) || IsTrue((IsEqual(typeVar, "swap")))) || IsTrue((IsEqual(typeVar, "future"))))
-		var order any = Ternary(IsTrue(isContractResponse), response, this.SafeValue(response, "result", map[string]any{}))
+		var order any = Ternary(IsTrue(isContractResponse), response, this.SafeDict(response, "result", map[string]any{}))
 
 		ch <- this.ParseOrder(order, market)
 		return nil
@@ -4510,8 +4510,8 @@ func (this *XtCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		subTypeparamsVariable := this.HandleSubTypeAndParams("cancelAllOrders", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		var trigger any = this.SafeValue2(params, "trigger", "stop")
-		var stopLossTakeProfit any = this.SafeValue(params, "stopLossTakeProfit")
+		var trigger any = this.SafeBool2(params, "trigger", "stop")
+		var stopLossTakeProfit any = this.SafeBool(params, "stopLossTakeProfit")
 		var trailing any = this.SafeBool(params, "trailing")
 		if IsTrue(trailing) {
 			var isContract any = IsTrue(IsTrue((!IsEqual(subType, nil))) || IsTrue((IsEqual(typeVar, "swap")))) || IsTrue((IsEqual(typeVar, "future")))
@@ -4944,8 +4944,8 @@ func (this *XtCore) FetchLedger(optionalArgs ...any) <-chan any {
 		//         }
 		//     }
 		//
-		var data any = this.SafeValue(response, "result", map[string]any{})
-		var ledger any = this.SafeValue(data, "items", []any{})
+		var data any = this.SafeDict(response, "result", map[string]any{})
+		var ledger any = this.SafeList(data, "items", []any{})
 
 		ch <- this.ParseLedger(ledger, currency, since, limit)
 		return nil
@@ -5055,7 +5055,7 @@ func (this *XtCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan an
 		//         }
 		//     }
 		//
-		var result any = this.SafeValue(response, "result", map[string]any{})
+		var result any = this.SafeDict(response, "result", map[string]any{})
 
 		ch <- this.ParseDepositAddress(result, currency)
 		return nil
@@ -5153,8 +5153,8 @@ func (this *XtCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		//         }
 		//     }
 		//
-		var data any = this.SafeValue(response, "result", map[string]any{})
-		var deposits any = this.SafeValue(data, "items", []any{})
+		var data any = this.SafeDict(response, "result", map[string]any{})
+		var deposits any = this.SafeList(data, "items", []any{})
 
 		ch <- this.ParseTransactions(deposits, currency, since, limit, params)
 		return nil
@@ -5233,8 +5233,8 @@ func (this *XtCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		//         }
 		//     }
 		//
-		var data any = this.SafeValue(response, "result", map[string]any{})
-		var withdrawals any = this.SafeValue(data, "items", []any{})
+		var data any = this.SafeDict(response, "result", map[string]any{})
+		var withdrawals any = this.SafeList(data, "items", []any{})
 
 		ch <- this.ParseTransactions(withdrawals, currency, since, limit, params)
 		return nil
@@ -5278,7 +5278,7 @@ func (this *XtCore) Withdraw(code any, amount any, address any, optionalArgs ...
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode = GetValue(networkCodeparamsVariable, 0)
 		params = GetValue(networkCodeparamsVariable, 1)
-		var networkIdsByCodes any = this.SafeValue(this.Options, "networks", map[string]any{})
+		var networkIdsByCodes any = this.SafeDict(this.Options, "networks", map[string]any{})
 		var networkId any = this.SafeString2(networkIdsByCodes, networkCode, code, code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -5302,7 +5302,7 @@ func (this *XtCore) Withdraw(code any, amount any, address any, optionalArgs ...
 		//         }
 		//     }
 		//
-		var result any = this.SafeValue(response, "result", map[string]any{})
+		var result any = this.SafeDict(response, "result", map[string]any{})
 
 		ch <- this.ParseTransaction(result, currency)
 		return nil
@@ -5656,7 +5656,7 @@ func (this *XtCore) FetchLeverageTiers(optionalArgs ...any) <-chan any {
 		//         ]
 		//     }
 		//
-		var data any = this.SafeValue(response, "result", []any{})
+		var data any = this.SafeList(response, "result", []any{})
 		symbols = this.MarketSymbols(symbols)
 
 		ch <- this.ParseLeverageTiers(data, symbols, "symbol")
@@ -5765,7 +5765,7 @@ func (this *XtCore) FetchMarketLeverageTiers(symbol any, optionalArgs ...any) <-
 		//         }
 		//     }
 		//
-		var data any = this.SafeValue(response, "result", map[string]any{})
+		var data any = this.SafeDict(response, "result", map[string]any{})
 
 		ch <- this.ParseMarketLeverageTiers(data, market)
 		return nil
@@ -5794,7 +5794,7 @@ func (this *XtCore) ParseMarketLeverageTiers(info any, optionalArgs ...any) any 
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var tiers any = []any{}
-	var brackets any = this.SafeValue(info, "leverageBrackets", []any{})
+	var brackets any = this.SafeList(info, "leverageBrackets", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(brackets)); i++ {
 		var tier any = GetValue(brackets, i)
 		var marketId any = this.SafeString(info, "symbol")
@@ -5904,8 +5904,8 @@ func (this *XtCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		//         }
 		//     }
 		//
-		var result any = this.SafeValue(response, "result", map[string]any{})
-		var items any = this.SafeValue(result, "items", []any{})
+		var result any = this.SafeDict(response, "result", map[string]any{})
+		var items any = this.SafeList(result, "items", []any{})
 		var rates any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(items)); i++ {
 			var entry any = GetValue(items, i)
@@ -6010,7 +6010,7 @@ func (this *XtCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan any
 		//         }
 		//     }
 		//
-		var result any = this.SafeValue(response, "result", map[string]any{})
+		var result any = this.SafeDict(response, "result", map[string]any{})
 
 		ch <- this.ParseFundingRate(result, market)
 		return nil
@@ -6357,8 +6357,8 @@ func (this *XtCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		//         }
 		//     }
 		//
-		var data any = this.SafeValue(response, "result", map[string]any{})
-		var items any = this.SafeValue(data, "items", []any{})
+		var data any = this.SafeDict(response, "result", map[string]any{})
+		var items any = this.SafeList(data, "items", []any{})
 		var result any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(items)); i++ {
 			var entry any = GetValue(items, i)
@@ -6868,7 +6868,7 @@ func (this *XtCore) Transfer(code any, amount any, fromAccount any, toAccount an
 			PanicOnError(retRes552612)
 		}
 		var currency any = this.Currency(code)
-		var accountsByType any = this.SafeValue(this.Options, "accountsById")
+		var accountsByType any = this.SafeDict(this.Options, "accountsById")
 		var fromAccountId any = this.SafeString(accountsByType, fromAccount, fromAccount)
 		var toAccountId any = this.SafeString(accountsByType, toAccount, toAccount)
 		var amountString any = this.CurrencyToPrecision(code, amount)
@@ -7154,7 +7154,7 @@ func (this *XtCore) HandleErrors(code any, reason any, url any, method any, head
 	var status any = this.SafeStringUpper2(response, "msgInfo", "mc")
 	if IsTrue(IsTrue(!IsEqual(status, nil)) && IsTrue(!IsEqual(status, "SUCCESS"))) {
 		var feedback any = Add(Add(this.Id, " "), body)
-		var error any = this.SafeValue(response, "error", map[string]any{})
+		var error any = this.SafeDict(response, "error", map[string]any{})
 		var spotErrorCode any = this.SafeString(response, "mc")
 		var errorCode any = this.SafeString(error, "code", spotErrorCode)
 		var spotMessage any = this.SafeString(response, "msgInfo")
