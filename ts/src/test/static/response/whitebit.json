@@ -2522,6 +2522,94 @@
                     }
                 ]
             }
+        ],
+        "transfer": [
+            {
+                "description": "transfer: empty array response (live)",
+                "method": "transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "margin",
+                    "spot"
+                ],
+                "httpResponse": [],
+                "parsedResponse": {
+                    "info": [],
+                    "id": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "USDT",
+                    "amount": null,
+                    "fromAccount": null,
+                    "toAccount": null,
+                    "status": null
+                }
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts: no sub-accounts (live)",
+                "method": "fetchAccounts",
+                "input": [],
+                "httpResponse": {
+                    "data": [],
+                    "offset": 0,
+                    "limit": 100
+                },
+                "parsedResponse": []
+            },
+            {
+                "description": "fetchAccounts: one sub-account (documented shape)",
+                "method": "fetchAccounts",
+                "input": [],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "id": "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
+                            "alias": "trading_bot",
+                            "userId": "u-12345",
+                            "email": "s***@example.com",
+                            "status": "active",
+                            "color": "#FF5733",
+                            "kyc": {
+                                "shareKyc": false,
+                                "kycStatus": "verified"
+                            },
+                            "permissions": {
+                                "spotEnabled": true,
+                                "collateralEnabled": false
+                            }
+                        }
+                    ],
+                    "offset": 0,
+                    "limit": 100
+                },
+                "parsedResponse": [
+                    {
+                        "id": "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
+                        "type": "subaccount",
+                        "name": "trading_bot",
+                        "code": null,
+                        "info": {
+                            "id": "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
+                            "alias": "trading_bot",
+                            "userId": "u-12345",
+                            "email": "s***@example.com",
+                            "status": "active",
+                            "color": "#FF5733",
+                            "kyc": {
+                                "shareKyc": false,
+                                "kycStatus": "verified"
+                            },
+                            "permissions": {
+                                "spotEnabled": true,
+                                "collateralEnabled": false
+                            }
+                        }
+                    }
+                ]
+            }
         ]
     }
 }

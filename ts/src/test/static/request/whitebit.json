@@ -804,6 +804,41 @@
                     "limit": 2
                 }
             }
+        ],
+        "transfer": [
+            {
+                "description": "transfer USDT from collateral to spot",
+                "method": "transfer",
+                "url": "https://whitebit.com/api/v4/main-account/transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "margin",
+                    "spot"
+                ],
+                "output": {
+                    "request": "/api/v4/main-account/transfer",
+                    "nonce": "1786650935076",
+                    "nonceWindow": false,
+                    "ticker": "USDT",
+                    "amount": "1",
+                    "from": "collateral",
+                    "to": "spot"
+                }
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts sub-account list",
+                "method": "fetchAccounts",
+                "url": "https://whitebit.com/api/v4/sub-account/list",
+                "input": [],
+                "output": {
+                    "request": "/api/v4/sub-account/list",
+                    "nonce": "1786650973437",
+                    "nonceWindow": false
+                }
+            }
         ]
     }
 }
