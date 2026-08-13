@@ -234,7 +234,7 @@ export default class btse extends Exchange {
                         'public-api/market/v1/ticker/indices': 3, // not used
                         'public-api/market/v1/ticker/l1': 3, // not used
                         'public-api/market/v1/recentFundingHistory': { 'cost': 3 } as Endpoint<Dict>, // done
-                        'public-api/market/v1/riskLimits': 3, // not used
+                        'public-api/market/v1/riskLimits': { 'cost': 3 } as Endpoint<Dict>, // done
                         'public-api/wallet/v1/crypto/list': 15, // not used
                         'public-api/otc/v1/markets': 1, // not used
                     },
@@ -1113,7 +1113,7 @@ export default class btse extends Exchange {
     /**
      * @method
      * @name btse#fetchLeverageTiers
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-risk-limit-setting
+     * @see https://docs.btse.com/markets/rest/get-market-risk-limits/
      * @description retrieve information on the maximum leverage, for different trade sizes
      * @param {string[]|undefined} symbols a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1131,26 +1131,31 @@ export default class btse extends Exchange {
                 request['symbol'] = market['id'];
             }
         }
-        const response = await this.publicGetFuturesApiV23MarketRiskLimit (this.extend (request, params));
+        const response = await this.publicGetPublicApiMarketV1RiskLimits (this.extend (request, params));
         //
         //     {
-        //         "code": 1,
-        //         "msg": "Success",
-        //         "time": 1770462468706,
         //         "data": [
         //             {
-        //                 "symbol": "RENDER-PERP",
-        //                 "riskLevel": 1,
-        //                 "riskLimitValue": 5000,
-        //                 "initialMarginRate": 0.01333333,
-        //                 "maintenanceMarginRate": 0.00666667,
-        //                 "maxLeverage": 75
+        //                 "symbol": "BTC-PERP-USDT",
+        //                 "riskLimits": [
+        //                     { "level": 1, "value": 3000000 },
+        //                     { "level": 2, "value": 6000000 }
+        //                 ]
         //             }
         //         ],
-        //         "success": true
+        //         "code": 1,
+        //         "msg": "Success",
+        //         "success": true,
+        //         "time": 1786609503920
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        // a single-symbol request returns the entry directly in data
+        //
+        let data = this.safeList (response, 'data');
+        if (data === undefined) {
+            const single = this.safeDict (response, 'data', {});
+            data = [ single ];
+        }
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -1158,22 +1163,24 @@ export default class btse extends Exchange {
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             if (symbols === undefined || this.inArray (symbol, symbols)) {
-                if (!(symbol in result)) {
-                    result[symbol] = [];
+                const levels = this.safeList (entry, 'riskLimits', []);
+                const tiers = [];
+                for (let j = 0; j < levels.length; j++) {
+                    const level = levels[j];
+                    // the endpoint only reports the notional ladder, the
+                    // per-tier leverage and margin rates are not available
+                    tiers.push ({
+                        'tier': this.safeInteger (level, 'level'),
+                        'symbol': symbol,
+                        'currency': market['settle'],
+                        'minNotional': undefined,
+                        'maxNotional': this.safeNumber (level, 'value'),
+                        'maintenanceMarginRate': undefined,
+                        'maxLeverage': undefined,
+                        'info': level,
+                    });
                 }
-                const tiers = result[symbol];
-                const parsed = {
-                    'tier': this.safeInteger (entry, 'riskLevel'),
-                    'symbol': symbol,
-                    'currency': market['settle'],
-                    'minNotional': undefined,
-                    'maxNotional': this.safeNumber (entry, 'riskLimitValue'),
-                    'maintenanceMarginRate': this.safeNumber (entry, 'maintenanceMarginRate'),
-                    'maxLeverage': this.safeNumber (entry, 'maxLeverage'),
-                    'info': entry,
-                };
-                tiers.push (parsed);
-                result[symbol] = tiers; // rows arrive ordered by riskLevel ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
+                result[symbol] = tiers; // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
             }
         }
         // the exchange only provides the cap of each risk tier, so the floor
@@ -1200,7 +1207,7 @@ export default class btse extends Exchange {
      * @method
      * @name btse#fetchMarketLeverageTiers
      * @description retrieve information on the maximum leverage, for different trade sizes for a single market
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-risk-limit-setting
+     * @see https://docs.btse.com/markets/rest/get-market-risk-limits/
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
