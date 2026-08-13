@@ -329,7 +329,8 @@
                             "initialMargin": "3.0603333330273",
                             "mmr": "0.007",
                             "maintenanceMargin": "0.064267",
-                            "creationTime": 1774469753178000000
+                            "creationTime": 1774469753178000000,
+                            "updateTime": 1774469753178000000
                         }
                     ]
                 },
@@ -348,13 +349,14 @@
                         "initialMargin": "3.0603333330273",
                         "mmr": "0.007",
                         "maintenanceMargin": "0.064267",
-                        "creationTime": 1774469753178000000
+                        "creationTime": 1774469753178000000,
+                        "updateTime": 1774469753178000000
                     },
                     "id": "30000000000084351",
                     "symbol": "DOGE/USDT:USDT",
                     "timestamp": 1774469753177,
                     "datetime": "2026-03-25T20:15:53.177Z",
-                    "lastUpdateTimestamp": null,
+                    "lastUpdateTimestamp": 1774469753177,
                     "initialMargin": 3.0603333330273,
                     "initialMarginPercentage": 0.3333333333,
                     "maintenanceMargin": 0.064267,
