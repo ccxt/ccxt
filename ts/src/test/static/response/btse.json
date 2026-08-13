@@ -147,7 +147,7 @@
         ],
         "fetchPositions": [
             {
-                "description": "fetch positions",
+                "description": "btse fetchPositions legacy-shaped row set retained deliberately - the unified futures v3 rows share this shape and both generations resolve the market through the full id in positionId",
                 "method": "fetchPositions",
                 "input": [],
                 "httpResponse": [
