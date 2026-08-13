@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/btse.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound } from './base/errors.js';
 import { sha384 } from '@noble/hashes/sha2.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
@@ -520,15 +520,21 @@ export default class btse extends Exchange {
                     // when position mode is wrong {"status":429,"errorCode":-1,"message":"Order not found","extraData":["117","0"]}
                     // {"status":400,"errorCode":-2,"message":"Invalid request parameters","extraData":null}
                     // {"status":400,"errorCode":-2,"message":"Can't support count more than 500","extraData":null}
-                    '-1': OrderNotFound, // bad request {"status":429,"errorCode":-1,"message":"Order not found","extraData":["ETHPFC-USD","0","117"]}
+                    // errorCode -1 is a generic failure whose message varies, observed live both as
+                    // Order not found and as a plain Failed on a malformed request against an existing
+                    // order, so it is classified by message in the broad map instead of by code here
                     '-2': BadRequest, // {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
                     '-7': AuthenticationError, // {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
+                    '-7006': BadSymbol, // {"status":400,"errorCode":-7006,"message":"Unsupported symbol","extraData":null} observed live for a full contract id sent to the unified futures api
                     '-11': ExchangeNotAvailable, // 400 Bad Request {"code":-11,"msg":"System error","success":false,"time":1770451790797,"data":[]}
                     '133': InvalidOrder, // {"status":400,"errorCode":133,"message":"Position mode invalid","extraData":["0","150"]}
                     '134': BadRequest, // {"status":400,"errorCode":134,"message":"failure","extraData":"Remaining positions."}
                     '4003': InvalidOrder, // {"code":4003,"msg":"BADREQUEST: The order amount cannot surpass 100.0 BTC. Please adjust your order size and try again.","time":1786509292895,"data":null,"success":false}
+                    '4005': InvalidOrder, // {"code":4005,"msg":"BADREQUEST: order price must be at least 0.01 USDT","time":1786622000000,"data":null,"success":false} observed live on the unified spot api
                     '4051': InvalidOrder, // {"status":400,"errorCode":4051,"message":"[RAVE-PERP] The order size cannot surpass 50000.0 contracts. Please adjust your order size and try again.","extraData":null}
                     '10002': AuthenticationError, // {"code":10002,"msg":"UNAUTHORIZED: Authentication Failed","time":1770477230034,"data":null,"success":false}
+                    '10010004': BadRequest, // {"code":10010004,"msg":"BADREQUEST: resolution too small for the requested time range. Records returned exceeds 300","success":false} observed live on the unified markets api
+                    '11000001': BadRequest, // {"code":11000001,"msg":"Request parameter is error, 'asset' is required in spot wallet history query","time":1786624306820,"data":null,"success":false} observed live on the unified wallet api
                     '51523': InsufficientFunds, // {"code":51523,"msg":"BADREQUEST: Insufficient wallet balance","time":1770814875493,"data":null,"success":false}
                     '33001001': InvalidOrder, // {"code":33001001,"msg":"BADREQUEST: The distance between Trigger Price and Limit Price cannot exceed 5.0 %","time":1770815167145,"data":["5.0 %"],"success":false}
                     '33001003': InvalidOrder, // {"status":400,"errorCode":33001003,"message":"You can not SELL ETH lower than 1825.24 USDT","extraData":["SELL","ETH","lower","1825.24","USDT"]}
@@ -536,6 +542,7 @@ export default class btse extends Exchange {
                     '33199120': InvalidOrder, // {"status":400,"errorCode":33199120,"message":"Reduce only open order canceled because no active position exists","extraData":null}
                 },
                 'broad': {
+                    'Order not found': OrderNotFound, // {"status":429,"errorCode":-1,"message":"Order not found","extraData":["ETHPFC-USD","0","117"]}
                     'Insufficient wallet balance': InsufficientFunds,
                     'Authentication Failed': AuthenticationError,
                     'Authenticate failed': AuthenticationError,
@@ -553,6 +560,7 @@ export default class btse extends Exchange {
                     'GTC': 'GTC',
                     'IOC': 'IOC',
                     'FOK': 'FOK',
+                    'HALFSEC': 'HALFSEC',
                     'HALFMIN': 'HALFMIN',
                     'FIVEMIN': 'FIVEMIN',
                     'HOUR': 'HOUR',
@@ -2705,6 +2713,9 @@ export default class btse extends Exchange {
 
     parseOrderType (type: Str) {
         const types = {
+            // the unified futures place order response reports a degenerate 0
+            // in the type field regardless of the real order type, observed
+            // live, the value is deliberately left unmapped and passes through
             '76': 'limit', // Limit order
             '77': 'market', // Market order
             '80': 'limit', // Peg/Algo order
@@ -2717,6 +2728,7 @@ export default class btse extends Exchange {
             'GTC': 'GTC',
             'IOC': 'IOC',
             'FOK': 'FOK',
+            'HALFSEC': 'GTD',
             'HALFMIN': 'GTD',
             'FIVEMIN': 'GTD',
             'HOUR': 'GTD',
