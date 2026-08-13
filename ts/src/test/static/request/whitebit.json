@@ -839,6 +839,26 @@
                     "nonceWindow": false
                 }
             }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "createDepositAddress USDT on TRC20",
+                "method": "createDepositAddress",
+                "url": "https://whitebit.com/api/v4/main-account/create-new-address",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "output": {
+                    "request": "/api/v4/main-account/create-new-address",
+                    "nonce": "1786653783376",
+                    "nonceWindow": false,
+                    "ticker": "USDT",
+                    "network": "TRC20"
+                }
+            }
         ]
     }
 }

@@ -2610,6 +2610,92 @@
                     }
                 ]
             }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetchDepositAddress: TRC20 USDT address (masked)",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "httpResponse": {
+                    "account": {
+                        "address": "TDepositAddressExample1111111111111"
+                    },
+                    "required": {
+                        "maxAmount": "0",
+                        "minAmount": "5",
+                        "fixedFee": "0",
+                        "flexFee": {
+                            "percent": "0",
+                            "minFee": "0",
+                            "maxFee": "0"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "account": {
+                            "address": "TDepositAddressExample1111111111111"
+                        },
+                        "required": {
+                            "maxAmount": "0",
+                            "minAmount": "5",
+                            "fixedFee": "0",
+                            "flexFee": {
+                                "percent": "0",
+                                "minFee": "0",
+                                "maxFee": "0"
+                            }
+                        }
+                    },
+                    "currency": "USDT",
+                    "network": null,
+                    "address": "TDepositAddressExample1111111111111",
+                    "tag": null
+                }
+            }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "createDepositAddress: documented shape (endpoint needs support-enabled permission)",
+                "method": "createDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "httpResponse": {
+                    "account": {
+                        "address": "TDepositAddressExample1111111111111",
+                        "memo": null
+                    },
+                    "required": {
+                        "maxAmount": "0",
+                        "minAmount": "5",
+                        "fixedFee": "0",
+                        "flexFee": {
+                            "percent": "0",
+                            "minFee": "0",
+                            "maxFee": "0"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "TDepositAddressExample1111111111111",
+                        "memo": null
+                    },
+                    "currency": "USDT",
+                    "network": null,
+                    "address": "TDepositAddressExample1111111111111",
+                    "tag": null
+                }
+            }
         ]
     }
 }
