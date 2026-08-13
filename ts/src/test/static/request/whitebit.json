@@ -859,6 +859,75 @@
                     "network": "TRC20"
                 }
             }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus public ping",
+                "method": "fetchStatus",
+                "url": "https://whitebit.com/api/v4/public/ping",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "fetchBorrowInterest with symbol",
+                "method": "fetchBorrowInterest",
+                "url": "https://whitebit.com/api/v4/collateral-account/positions/open",
+                "input": [
+                    null,
+                    "DOGE/USDT:USDT"
+                ],
+                "output": {
+                    "request": "/api/v4/collateral-account/positions/open",
+                    "nonce": "1786656245070",
+                    "nonceWindow": false,
+                    "market": "DOGE_PERP"
+                }
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "setLeverage account-wide",
+                "method": "setLeverage",
+                "url": "https://whitebit.com/api/v4/collateral-account/leverage",
+                "input": [
+                    5
+                ],
+                "output": {
+                    "request": "/api/v4/collateral-account/leverage",
+                    "nonce": "1786656245319",
+                    "nonceWindow": false,
+                    "leverage": 5
+                }
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw USDT on TRC20 (request only, never live-tested)",
+                "method": "withdraw",
+                "url": "https://whitebit.com/api/v4/main-account/withdraw",
+                "input": [
+                    "USDT",
+                    5,
+                    "TQMbNLpgvJ4hPtR3HXi5zccc2mL2n9PURD",
+                    null,
+                    {
+                        "uniqueId": "ccxt-test-withdraw-0001",
+                        "network": "TRC20"
+                    }
+                ],
+                "output": {
+                    "request": "/api/v4/main-account/withdraw",
+                    "nonce": "1786656245400",
+                    "nonceWindow": false,
+                    "ticker": "USDT",
+                    "amount": "5",
+                    "address": "TQMbNLpgvJ4hPtR3HXi5zccc2mL2n9PURD",
+                    "uniqueId": "ccxt-test-withdraw-0001",
+                    "network": "TRC20"
+                }
+            }
         ]
     }
 }
