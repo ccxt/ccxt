@@ -340,12 +340,6 @@ abstract class woo extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function v2_private_get_client_holding($params = array()) {
-        return $this->request('client/holding', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
     public function v3_public_get_systeminfo($params = array()) {
         return $this->request('systemInfo', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1140,12 +1134,6 @@ abstract class woo extends \ccxt\Exchange {
      */
     public function v1PrivateDeleteAssetWithdraw($params = array()) {
         return $this->request('asset/withdraw', array('v1', 'private'), 'DELETE', $params, null, null, array("cost" => 120));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function v2PrivateGetClientHolding($params = array()) {
-        return $this->request('client/holding', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
