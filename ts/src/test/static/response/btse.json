@@ -255,6 +255,17 @@
                         "percentage": null
                     }
                 ]
+            },
+            {
+                "description": "btse fetchPositions RAVE linear swap - live-captured 2026-08-13, flat account (no open positions), report-block verbatim",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "RAVE/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": [],
+                "parsedResponse": []
             }
         ],
         "fetchTradingFee": [
