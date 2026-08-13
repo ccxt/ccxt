@@ -3838,7 +3838,7 @@
                 }
             },
             {
-                "description": "btse fetchBalance swap cross wallet - live-captured 2026-08-13, report-block verbatim, numeric fields arrive as strings via big-int-safe json parsing",
+                "description": "btse fetchBalance swap cross wallet - live-captured 2026-08-13, report-block verbatim, legacy futures v2.3 wallet re-verified after the unified wallet migration",
                 "method": "fetchBalance",
                 "input": [
                     {
@@ -3847,7 +3847,7 @@
                 ],
                 "httpResponse": [
                     {
-                        "trackingID": "8652679827533950098",
+                        "trackingID": "5487314837591206140",
                         "requestId": "0",
                         "wallet": "CROSS@",
                         "totalValue": "49.99230975",
@@ -3880,7 +3880,7 @@
                                 "snapshotID": "0",
                                 "balance": "0.0",
                                 "value": "0.0",
-                                "assetPrice": "1.00105411",
+                                "assetPrice": "1.000947898",
                                 "type": "0",
                                 "total": "0.0",
                                 "currency": "USD",
@@ -3894,7 +3894,7 @@
                 "parsedResponse": {
                     "info": [
                         {
-                            "trackingID": "8652679827533950098",
+                            "trackingID": "5487314837591206140",
                             "requestId": "0",
                             "wallet": "CROSS@",
                             "totalValue": "49.99230975",
@@ -3927,7 +3927,7 @@
                                     "snapshotID": "0",
                                     "balance": "0.0",
                                     "value": "0.0",
-                                    "assetPrice": "1.00105411",
+                                    "assetPrice": "1.000947898",
                                     "type": "0",
                                     "total": "0.0",
                                     "currency": "USD",
