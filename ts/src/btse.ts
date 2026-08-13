@@ -222,7 +222,7 @@ export default class btse extends Exchange {
                         'futures/api/v2.3/market/risk_limit': 5, // done
                         'spot/api/v3.2/availableCurrencyNetworks': 15, // not used
                         'spot/api/v3.2/exchangeRate': 15, // not used
-                        'public-api/wallet/v1/crypto/networks ': 15, // not used
+                        'public-api/wallet/v1/crypto/networks': 15, // not used
                         'public-api/wallet/v1/assets/exchangeRate': 15, // not used
                         'public-api/market/v1/markets': { 'cost': 3 } as Endpoint<Dict>, // done
                         'public-api/market/v1/exchangeInfo': 3, // not used
