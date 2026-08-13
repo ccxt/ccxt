@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitstamp import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -839,36 +839,36 @@ class bitstamp(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        self.options['_temp_currencies_result'] = {}
-        result = self.parse_currencies(response)
-        finalResult = self.deep_extend(result, self.options['_temp_currencies_result'])
-        del self.options['_temp_currencies_result']
-        return finalResult
+        return self.parse_currencies(response)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
-        market = rawCurrency
-        existing = self.safe_dict(self.options, '_temp_currencies_result', {})
-        baseId, quoteId = [self.safe_string(market, 'base_currency'), self.safe_string(market, 'counter_currency')]
-        base = self.safe_currency_code(baseId)
-        quote = self.safe_currency_code(quoteId)
-        description = self.safe_string(market, 'description')
-        if description is None:
-            raise ExchangeError(self.id + ' parseCurrency() missing description')
-        baseDescription, quoteDescription = description.split(' / ')
-        minimumOrder = self.safe_string(market, 'minimum_order_value')
-        if minimumOrder is None:
-            raise ExchangeError(self.id + ' parseCurrency() missing minimumOrder')
-        parts = minimumOrder.split(' ')
-        cost = parts[0]
-        if (base is None) or not (base in existing):
-            baseDecimals = self.safe_integer(market, 'base_decimals')
-            if base is not None:
-                self.options['_temp_currencies_result'][base] = self.construct_currency_object(baseId, base, baseDescription, baseDecimals, None, market)
-        if (quote is None) or not (quote in existing):
-            counterDecimals = self.safe_integer(market, 'counter_decimals')
-            if quote is not None:
-                self.options['_temp_currencies_result'][quote] = self.construct_currency_object(quoteId, quote, quoteDescription, counterDecimals, self.parse_number(cost), market)
-        return self.safe_value(self.options['_temp_currencies_result'], quote)
+    def parse_currencies(self, rawCurrencies: Any) -> Currencies:
+        # each market row yields two currencies so the accumulation happens
+        # in a local dictionary here instead of a temp key inside self.options
+        # because the shared scratch key raced between concurrent
+        # fetchCurrencies invocations in the multi threaded runtimes
+        result = {}
+        arr = self.to_array(rawCurrencies)
+        for i in range(0, len(arr)):
+            market = arr[i]
+            baseId, quoteId = [self.safe_string(market, 'base_currency'), self.safe_string(market, 'counter_currency')]
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            description = self.safe_string(market, 'description')
+            if description is None:
+                raise ExchangeError(self.id + ' parseCurrencies() missing description')
+            baseDescription, quoteDescription = description.split(' / ')
+            minimumOrder = self.safe_string(market, 'minimum_order_value')
+            if minimumOrder is None:
+                raise ExchangeError(self.id + ' parseCurrencies() missing minimumOrder')
+            parts = minimumOrder.split(' ')
+            cost = parts[0]
+            if (base is not None) and not (base in result):
+                baseDecimals = self.safe_integer(market, 'base_decimals')
+                result[base] = self.construct_currency_object(baseId, base, baseDescription, baseDecimals, None, market)
+            if (quote is not None) and not (quote in result):
+                counterDecimals = self.safe_integer(market, 'counter_decimals')
+                result[quote] = self.construct_currency_object(quoteId, quote, quoteDescription, counterDecimals, self.parse_number(cost), market)
+        return result
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
