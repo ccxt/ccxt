@@ -1291,6 +1291,14 @@ export default class btse extends Exchange {
         if ((baseVolume !== undefined) && Precise.stringGe (baseVolume, '92233720368.5477')) {
             baseVolume = undefined;
         }
+        if ((baseVolume !== undefined) && (market !== undefined) && market['contract']) {
+            // for contract markets the amount field is denominated in contracts, verified live -
+            // scaling by contractSize converts it into base currency units
+            const contractSizeString = this.numberToString (market['contractSize']);
+            if (contractSizeString !== undefined) {
+                baseVolume = Precise.stringMul (baseVolume, contractSizeString);
+            }
+        }
         const timestamp = this.safeTimestamp (ticker, 'closeTime');
         return this.safeTicker ({
             'symbol': this.safeSymbol (marketId, market),
