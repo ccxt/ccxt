@@ -888,7 +888,7 @@ class xt(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result')
+        data = self.safe_dict(response, 'result')
         return self.safe_integer(data, 'serverTime')
 
     async def fetch_currencies(self, params={}) -> Currencies:
@@ -953,17 +953,17 @@ class xt(Exchange, ImplicitAPI):
         #
         # note: individual network's full data is available on per-currency endpoint: https://www.xt.com/sapi/v4/balance/public/currency/11
         #
-        chainsData = self.safe_value(chainsResponse, 'result', [])
-        currenciesResult = self.safe_value(currenciesResponse, 'result', [])
-        currenciesData = self.safe_value(currenciesResult, 'currencies', [])
+        chainsData = self.safe_list(chainsResponse, 'result', [])
+        currenciesResult = self.safe_dict(currenciesResponse, 'result', {})
+        currenciesData = self.safe_list(currenciesResult, 'currencies', [])
         chainsDataIndexed = self.index_by(chainsData, 'currency')
         result = {}
         for i in range(0, len(currenciesData)):
             entry = currenciesData[i]
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
-            networkEntry = self.safe_value(chainsDataIndexed, currencyId, {})
-            rawNetworks = self.safe_value(networkEntry, 'supportChains', [])
+            networkEntry = self.safe_dict(chainsDataIndexed, currencyId, {})
+            rawNetworks = self.safe_list(networkEntry, 'supportChains', [])
             networks = {}
             for j in range(0, len(rawNetworks)):
                 rawNetwork = rawNetworks[j]
@@ -1106,8 +1106,8 @@ class xt(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
-        symbols = self.safe_value(data, 'symbols', [])
+        data = self.safe_dict(response, 'result', {})
+        symbols = self.safe_list(data, 'symbols', [])
         return self.parse_markets(symbols)
 
     async def fetch_swap_and_future_markets(self, params={}):
@@ -1174,7 +1174,7 @@ class xt(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        swapAndFutureMarkets = self.array_concat(self.safe_value(markets[0], 'result', []), self.safe_value(markets[1], 'result', []))
+        swapAndFutureMarkets = self.array_concat(self.safe_list(markets[0], 'result', []), self.safe_list(markets[1], 'result', []))
         return self.parse_markets(swapAndFutureMarkets)
 
     def parse_markets(self, markets: Any):
@@ -1307,7 +1307,7 @@ class xt(Exchange, ImplicitAPI):
         quote = self.safe_currency_code(quoteId)
         state = self.safe_string(market, 'state')
         symbol = base + '/' + quote
-        filters = self.safe_value(market, 'filters', [])
+        filters = self.safe_list(market, 'filters', [])
         minAmount = None
         maxAmount = None
         minCost = None
@@ -1371,9 +1371,9 @@ class xt(Exchange, ImplicitAPI):
             spot = False
         isActive = False
         if contract:
-            isActive = self.safe_value(market, 'isOpenApi', False)
+            isActive = self.safe_bool(market, 'isOpenApi', False)
         else:
-            if (state == 'ONLINE') and (self.safe_value(market, 'tradingEnabled')) and (self.safe_value(market, 'openapiEnabled')):
+            if (state == 'ONLINE') and (self.safe_bool(market, 'tradingEnabled')) and (self.safe_bool(market, 'openapiEnabled')):
                 isActive = True
         return self.safe_market_structure({
             'id': id,
@@ -1521,7 +1521,7 @@ class xt(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        ohlcvs = self.safe_value(response, 'result', [])
+        ohlcvs = self.safe_list(response, 'result', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
@@ -1641,7 +1641,7 @@ class xt(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        orderBook = self.safe_value(response, 'result', {})
+        orderBook = self.safe_dict(response, 'result', {})
         timestamp = self.safe_integer_2(orderBook, 'timestamp', 't')
         if market['spot']:
             ob = self.parse_order_book(orderBook, symbol, timestamp)
@@ -1803,7 +1803,7 @@ class xt(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        tickers = self.safe_value(response, 'result', [])
+        tickers = self.safe_list(response, 'result', [])
         result = {}
         for i in range(0, len(tickers)):
             ticker = self.parse_ticker(tickers[i], market)
@@ -2043,7 +2043,7 @@ class xt(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        trades = self.safe_value(response, 'result', [])
+        trades = self.safe_list(response, 'result', [])
         return self.parse_trades(trades, market)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -2146,8 +2146,8 @@ class xt(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
-        trades = self.safe_value(data, 'items', [])
+        data = self.safe_dict(response, 'result', {})
+        trades = self.safe_list(data, 'items', [])
         return self.parse_trades(trades, market, since, limit)
 
     def parse_trade(self, trade: Any, market: Market = None):
@@ -2384,10 +2384,10 @@ class xt(Exchange, ImplicitAPI):
         #
         balances = None
         if (subType is not None) or isContractWallet:
-            balances = self.safe_value(response, 'result', [])
+            balances = self.safe_list(response, 'result', [])
         else:
-            data = self.safe_value(response, 'result', {})
-            balances = self.safe_value(data, 'assets', [])
+            data = self.safe_dict(response, 'result', {})
+            balances = self.safe_list(data, 'assets', [])
         return self.parse_balance(balances)
 
     def parse_balance(self, response: Any):
@@ -2548,7 +2548,7 @@ class xt(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        order = self.safe_value(response, 'result', {})
+        order = self.safe_dict(response, 'result', {})
         return self.parse_order(order, market)
 
     async def create_contract_order(self, symbol: str, type: Any, side: Any, amount: Any, price: Num = None, params={}):
@@ -2562,7 +2562,7 @@ class xt(Exchange, ImplicitAPI):
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         if timeInForce is not None:
             request['timeInForce'] = timeInForce
-        reduceOnly = self.safe_value(params, 'reduceOnly', False)
+        reduceOnly = self.safe_bool(params, 'reduceOnly', False)
         if side == 'buy':
             requestType = 'SHORT' if (reduceOnly) else 'LONG'
             request['positionSide'] = requestType
@@ -2675,8 +2675,8 @@ class xt(Exchange, ImplicitAPI):
         response = None
         type, params = self.handle_market_type_and_params('fetchOrder', market, params)
         subType, params = self.handle_sub_type_and_params('fetchOrder', market, params)
-        trigger = self.safe_value(params, 'stop')
-        stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
+        trigger = self.safe_bool_2(params, 'trigger', 'stop')
+        stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
         trailing = self.safe_bool(params, 'trailing')
         if trailing:
             isContract = (subType is not None) or (type == 'swap') or (type == 'future')
@@ -2691,7 +2691,7 @@ class xt(Exchange, ImplicitAPI):
         else:
             request['orderId'] = id
         if trigger:
-            params = self.omit(params, 'stop')
+            params = self.omit(params, ['trigger', 'stop'])
             if subType == 'inverse':
                 response = await self.privateInverseGetFutureTradeV1EntrustPlanDetail(self.extend(request, params))
             else:
@@ -2831,7 +2831,7 @@ class xt(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        order = self.safe_value(response, 'result', {})
+        order = self.safe_dict(response, 'result', {})
         return self.parse_order(order, market)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -2867,7 +2867,7 @@ class xt(Exchange, ImplicitAPI):
         response = None
         type, params = self.handle_market_type_and_params('fetchOrders', market, params)
         subType, params = self.handle_sub_type_and_params('fetchOrders', market, params)
-        trigger = self.safe_value_2(params, 'trigger', 'stop')
+        trigger = self.safe_bool_2(params, 'trigger', 'stop')
         trailing = self.safe_bool(params, 'trailing')
         if trailing:
             isContract = (subType is not None) or (type == 'swap') or (type == 'future')
@@ -3005,8 +3005,8 @@ class xt(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
-        orders = self.safe_value(data, 'items', [])
+        data = self.safe_dict(response, 'result', {})
+        orders = self.safe_list(data, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -3027,7 +3027,7 @@ class xt(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
         subType, params = self.handle_sub_type_and_params('fetchOrdersByStatus', market, params)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
-        stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
+        stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
         trailing = self.safe_bool(params, 'trailing')
         if trailing:
             isContract = (subType is not None) or (type == 'swap') or (type == 'future')
@@ -3387,8 +3387,8 @@ class xt(Exchange, ImplicitAPI):
         response = None
         type, params = self.handle_market_type_and_params('cancelOrder', market, params)
         subType, params = self.handle_sub_type_and_params('cancelOrder', market, params)
-        trigger = self.safe_value_2(params, 'trigger', 'stop')
-        stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
+        trigger = self.safe_bool_2(params, 'trigger', 'stop')
+        stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
         trailing = self.safe_bool(params, 'trailing')
         if trailing:
             isContract = (subType is not None) or (type == 'swap') or (type == 'future')
@@ -3448,7 +3448,7 @@ class xt(Exchange, ImplicitAPI):
         #     }
         #
         isContractResponse = ((subType is not None) or (type == 'swap') or (type == 'future'))
-        order = response if isContractResponse else self.safe_value(response, 'result', {})
+        order = response if isContractResponse else self.safe_dict(response, 'result', {})
         return self.parse_order(order, market)
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
@@ -3480,8 +3480,8 @@ class xt(Exchange, ImplicitAPI):
         response = None
         type, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         subType, params = self.handle_sub_type_and_params('cancelAllOrders', market, params)
-        trigger = self.safe_value_2(params, 'trigger', 'stop')
-        stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
+        trigger = self.safe_bool_2(params, 'trigger', 'stop')
+        stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
         trailing = self.safe_bool(params, 'trailing')
         if trailing:
             isContract = (subType is not None) or (type == 'swap') or (type == 'future')
@@ -3831,8 +3831,8 @@ class xt(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
-        ledger = self.safe_value(data, 'items', [])
+        data = self.safe_dict(response, 'result', {})
+        ledger = self.safe_list(data, 'items', [])
         return self.parse_ledger(ledger, currency, since, limit)
 
     def parse_ledger_entry(self, item: Any, currency: Currency = None) -> LedgerEntry:
@@ -3921,7 +3921,7 @@ class xt(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_deposit_address(result, currency)
 
     def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
@@ -3991,8 +3991,8 @@ class xt(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
-        deposits = self.safe_value(data, 'items', [])
+        data = self.safe_dict(response, 'result', {})
+        deposits = self.safe_list(data, 'items', [])
         return self.parse_transactions(deposits, currency, since, limit, params)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -4045,8 +4045,8 @@ class xt(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
-        withdrawals = self.safe_value(data, 'items', [])
+        data = self.safe_dict(response, 'result', {})
+        withdrawals = self.safe_list(data, 'items', [])
         return self.parse_transactions(withdrawals, currency, since, limit, params)
 
     async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
@@ -4069,7 +4069,7 @@ class xt(Exchange, ImplicitAPI):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
-        networkIdsByCodes = self.safe_value(self.options, 'networks', {})
+        networkIdsByCodes = self.safe_dict(self.options, 'networks', {})
         networkId = self.safe_string_2(networkIdsByCodes, networkCode, code, code)
         request = {
             'currency': currency['id'],
@@ -4090,7 +4090,7 @@ class xt(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_transaction(result, currency)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
@@ -4340,7 +4340,7 @@ class xt(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'result', [])
+        data = self.safe_list(response, 'result', [])
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
@@ -4420,7 +4420,7 @@ class xt(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
+        data = self.safe_dict(response, 'result', {})
         return self.parse_market_leverage_tiers(data, market)
 
     def parse_market_leverage_tiers(self, info: Any, market: Market = None) -> List[LeverageTier]:
@@ -4442,7 +4442,7 @@ class xt(Exchange, ImplicitAPI):
         #     }
         #
         tiers = []
-        brackets = self.safe_value(info, 'leverageBrackets', [])
+        brackets = self.safe_list(info, 'leverageBrackets', [])
         for i in range(0, len(brackets)):
             tier = brackets[i]
             marketId = self.safe_string(info, 'symbol')
@@ -4518,8 +4518,8 @@ class xt(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        items = self.safe_value(result, 'items', [])
+        result = self.safe_dict(response, 'result', {})
+        items = self.safe_list(result, 'items', [])
         rates = []
         for i in range(0, len(items)):
             entry = items[i]
@@ -4586,7 +4586,7 @@ class xt(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_funding_rate(result, market)
 
     def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
@@ -4828,8 +4828,8 @@ class xt(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
-        items = self.safe_value(data, 'items', [])
+        data = self.safe_dict(response, 'result', {})
+        items = self.safe_list(data, 'items', [])
         result = []
         for i in range(0, len(items)):
             entry = items[i]
@@ -5235,7 +5235,7 @@ class xt(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
-        accountsByType = self.safe_value(self.options, 'accountsById')
+        accountsByType = self.safe_dict(self.options, 'accountsById')
         fromAccountId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toAccountId = self.safe_string(accountsByType, toAccount, toAccount)
         amountString = self.currency_to_precision(code, amount)
@@ -5474,7 +5474,7 @@ class xt(Exchange, ImplicitAPI):
         status = self.safe_string_upper_2(response, 'msgInfo', 'mc')
         if status is not None and status != 'SUCCESS':
             feedback = self.id + ' ' + body
-            error = self.safe_value(response, 'error', {})
+            error = self.safe_dict(response, 'error', {})
             spotErrorCode = self.safe_string(response, 'mc')
             errorCode = self.safe_string(error, 'code', spotErrorCode)
             spotMessage = self.safe_string(response, 'msgInfo')
