@@ -1759,11 +1759,16 @@ class testMainClass {
         if (sequential) {
             // a watch call of a sequence can register its future after every
             // frame was already consumed — keep rejecting until the watch side
-            // reports completion (the rejections themselves force it to finish,
-            // successfully or not, so this loop always terminates)
-            while (!isWsTestCompleted (exchange, url)) {
+            // reports completion (the rejections force it to finish). the time
+            // bound is a backstop for threaded runtimes where this task can be
+            // executed inline on a stack that blocks the watch side (forkjoin
+            // work stealing): give up eventually so the stack unwinds instead
+            // of deadlocking
+            let waitedDone = 0;
+            while (!isWsTestCompleted (exchange, url) && (waitedDone < 30000)) {
                 rejectPendingWsFutures (exchange, url);
                 await exchange.sleep (50);
+                waitedDone = waitedDone + 50;
             }
         }
         // reject anything still pending so a wrong fixture fails fast
@@ -1834,9 +1839,14 @@ class testMainClass {
             if (expectedResults !== undefined) {
                 // 'parsedResponses' asserts one result per successive watch
                 // resolution (e.g. an order going from open to closed)
+                // start the injector before the watch side: it must never sit
+                // queued while the watch chain blocks on a join — a forkjoin
+                // worker could execute it inline on the blocked stack and the
+                // rejection loop would then wait on the very watch side it is
+                // buried on top of
                 const promises = [
-                    this.watchAndAssertSequence (exchange, url, method, input, skipKeys, expectedResults),
                     this.injectWsMessages (exchange, url, messages, true),
+                    this.watchAndAssertSequence (exchange, url, method, input, skipKeys, expectedResults),
                 ];
                 await Promise.all (promises);
                 this.assertWsSentMessages (exchange, url, data);
