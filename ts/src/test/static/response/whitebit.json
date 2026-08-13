@@ -2029,6 +2029,339 @@
                     }
                 ]
             }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits: real TRC20 USDT deposit",
+                "method": "fetchDeposits",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "records": [
+                        {
+                            "address": "TDepositAddressExample1111111111111",
+                            "uniqueId": null,
+                            "transactionId": "11111111-2222-3333-4444-555555555555",
+                            "createdAt": 1786182572,
+                            "currency": "Tether US",
+                            "ticker": "USDT",
+                            "method": 1,
+                            "amount": "20.723117",
+                            "description": null,
+                            "memo": null,
+                            "fee": "0",
+                            "status": 3,
+                            "network": "TRC20",
+                            "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+                            "details": {
+                                "partial": null
+                            },
+                            "centralized": false
+                        }
+                    ],
+                    "total": 1,
+                    "limit": 2,
+                    "offset": 0
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "txid": "11111111-2222-3333-4444-555555555555",
+                        "timestamp": 1786182572000,
+                        "datetime": "2026-08-08T09:49:32.000Z",
+                        "network": "TRC20",
+                        "addressFrom": "TDepositAddressExample1111111111111",
+                        "address": "TDepositAddressExample1111111111111",
+                        "addressTo": null,
+                        "amount": 20.723117,
+                        "type": "deposit",
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": null,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDT"
+                        },
+                        "info": {
+                            "address": "TDepositAddressExample1111111111111",
+                            "uniqueId": null,
+                            "transactionId": "11111111-2222-3333-4444-555555555555",
+                            "createdAt": 1786182572,
+                            "currency": "Tether US",
+                            "ticker": "USDT",
+                            "method": 1,
+                            "amount": "20.723117",
+                            "description": null,
+                            "memo": null,
+                            "fee": "0",
+                            "status": 3,
+                            "network": "TRC20",
+                            "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+                            "details": {
+                                "partial": null
+                            },
+                            "centralized": false
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchDeposit": [
+            {
+                "description": "fetchDeposit: single deposit by uniqueId",
+                "method": "fetchDeposit",
+                "input": [
+                    "5593377049",
+                    "USDT"
+                ],
+                "httpResponse": {
+                    "records": [
+                        {
+                            "address": "TDepositAddressExample1111111111111",
+                            "uniqueId": "5593377049",
+                            "transactionId": "11111111-2222-3333-4444-555555555555",
+                            "createdAt": 1786182572,
+                            "currency": "Tether US",
+                            "ticker": "USDT",
+                            "method": 1,
+                            "amount": "20.723117",
+                            "description": null,
+                            "memo": null,
+                            "fee": "0",
+                            "status": 3,
+                            "network": "TRC20",
+                            "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+                            "details": {
+                                "partial": null
+                            },
+                            "centralized": false
+                        }
+                    ],
+                    "total": 1,
+                    "limit": 1,
+                    "offset": 0
+                },
+                "parsedResponse": {
+                    "id": "5593377049",
+                    "txid": "11111111-2222-3333-4444-555555555555",
+                    "timestamp": 1786182572000,
+                    "datetime": "2026-08-08T09:49:32.000Z",
+                    "network": "TRC20",
+                    "addressFrom": "TDepositAddressExample1111111111111",
+                    "address": "TDepositAddressExample1111111111111",
+                    "addressTo": null,
+                    "amount": 20.723117,
+                    "type": "deposit",
+                    "currency": "USDT",
+                    "status": "ok",
+                    "updated": null,
+                    "tagFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": {
+                        "cost": 0,
+                        "currency": "USDT"
+                    },
+                    "info": {
+                        "address": "TDepositAddressExample1111111111111",
+                        "uniqueId": "5593377049",
+                        "transactionId": "11111111-2222-3333-4444-555555555555",
+                        "createdAt": 1786182572,
+                        "currency": "Tether US",
+                        "ticker": "USDT",
+                        "method": 1,
+                        "amount": "20.723117",
+                        "description": null,
+                        "memo": null,
+                        "fee": "0",
+                        "status": 3,
+                        "network": "TRC20",
+                        "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+                        "details": {
+                            "partial": null
+                        },
+                        "centralized": false
+                    }
+                }
+            }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "fetchDepositsWithdrawals: deposit history all methods",
+                "method": "fetchDepositsWithdrawals",
+                "input": [
+                    null,
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "records": [
+                        {
+                            "address": "TDepositAddressExample1111111111111",
+                            "uniqueId": null,
+                            "transactionId": "11111111-2222-3333-4444-555555555555",
+                            "createdAt": 1786182572,
+                            "currency": "Tether US",
+                            "ticker": "USDT",
+                            "method": 1,
+                            "amount": "20.723117",
+                            "description": null,
+                            "memo": null,
+                            "fee": "0",
+                            "status": 3,
+                            "network": "TRC20",
+                            "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+                            "details": {
+                                "partial": null
+                            },
+                            "centralized": false
+                        }
+                    ],
+                    "total": 1,
+                    "limit": 2,
+                    "offset": 0
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "txid": "11111111-2222-3333-4444-555555555555",
+                        "timestamp": 1786182572000,
+                        "datetime": "2026-08-08T09:49:32.000Z",
+                        "network": "TRC20",
+                        "addressFrom": "TDepositAddressExample1111111111111",
+                        "address": "TDepositAddressExample1111111111111",
+                        "addressTo": null,
+                        "amount": 20.723117,
+                        "type": "deposit",
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": null,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDT"
+                        },
+                        "info": {
+                            "address": "TDepositAddressExample1111111111111",
+                            "uniqueId": null,
+                            "transactionId": "11111111-2222-3333-4444-555555555555",
+                            "createdAt": 1786182572,
+                            "currency": "Tether US",
+                            "ticker": "USDT",
+                            "method": 1,
+                            "amount": "20.723117",
+                            "description": null,
+                            "memo": null,
+                            "fee": "0",
+                            "status": 3,
+                            "network": "TRC20",
+                            "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+                            "details": {
+                                "partial": null
+                            },
+                            "centralized": false
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchTransactions": [
+            {
+                "description": "fetchTransactions: USDT transaction history",
+                "method": "fetchTransactions",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "records": [
+                        {
+                            "address": "TDepositAddressExample1111111111111",
+                            "uniqueId": null,
+                            "transactionId": "11111111-2222-3333-4444-555555555555",
+                            "createdAt": 1786182572,
+                            "currency": "Tether US",
+                            "ticker": "USDT",
+                            "method": 1,
+                            "amount": "20.723117",
+                            "description": null,
+                            "memo": null,
+                            "fee": "0",
+                            "status": 3,
+                            "network": "TRC20",
+                            "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+                            "details": {
+                                "partial": null
+                            },
+                            "centralized": false
+                        }
+                    ],
+                    "total": 1,
+                    "limit": 2,
+                    "offset": 0
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "txid": "11111111-2222-3333-4444-555555555555",
+                        "timestamp": 1786182572000,
+                        "datetime": "2026-08-08T09:49:32.000Z",
+                        "network": "TRC20",
+                        "addressFrom": "TDepositAddressExample1111111111111",
+                        "address": "TDepositAddressExample1111111111111",
+                        "addressTo": null,
+                        "amount": 20.723117,
+                        "type": "deposit",
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": null,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDT"
+                        },
+                        "info": {
+                            "address": "TDepositAddressExample1111111111111",
+                            "uniqueId": null,
+                            "transactionId": "11111111-2222-3333-4444-555555555555",
+                            "createdAt": 1786182572,
+                            "currency": "Tether US",
+                            "ticker": "USDT",
+                            "method": 1,
+                            "amount": "20.723117",
+                            "description": null,
+                            "memo": null,
+                            "fee": "0",
+                            "status": 3,
+                            "network": "TRC20",
+                            "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+                            "details": {
+                                "partial": null
+                            },
+                            "centralized": false
+                        }
+                    }
+                ]
+            }
         ]
     }
 }
