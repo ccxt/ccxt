@@ -2375,7 +2375,10 @@ func (this *NadoCore) HandleOrderBook(client any, message any) {
 				ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
 			}
 		}
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		var subscriptionMsg any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		if ccxt.IsTrue(!ccxt.IsEqual(subscriptionMsg, nil)) {
+			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		}
 		ccxt.Remove(this.Orderbooks, symbol)
 		error := ccxt.InvalidNonce(ccxt.Add(this.Id, " watchOrderBook received invalid nonce"))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
