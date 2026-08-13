@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/btse.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { sha384 } from '@noble/hashes/sha2.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
@@ -542,10 +542,21 @@ export default class btse extends Exchange {
                     '33199120': InvalidOrder, // {"status":400,"errorCode":33199120,"message":"Reduce only open order canceled because no active position exists","extraData":null}
                 },
                 'broad': {
+                    // the specific strings come from the official error codes reference and
+                    // must stay above the generic BADREQUEST catch all
                     'Order not found': OrderNotFound, // {"status":429,"errorCode":-1,"message":"Order not found","extraData":["ETHPFC-USD","0","117"]}
                     'Insufficient wallet balance': InsufficientFunds,
+                    'Insufficient balance': InsufficientFunds, // official error string for enum code 8
                     'Authentication Failed': AuthenticationError,
                     'Authenticate failed': AuthenticationError,
+                    'Signature verification failed': AuthenticationError, // official error string, signed payload mismatch
+                    'api parameter is mandatory': AuthenticationError, // official error string, wrong auth header names
+                    'Invalid nonce': InvalidNonce, // official error string, clock drift or nonce reuse
+                    'Invalid order size': InvalidOrder, // official error string for enum code 301
+                    'Invalid order price': InvalidOrder, // official error string for enum code 302
+                    'Maximum open orders exceeded': InvalidOrder, // official error string for enum code 304
+                    'Rate limit exceeded': RateLimitExceeded, // official error string for enum code 303
+                    'auto-deleveraging': InvalidOrder, // official error string for enum code 1004
                     'BADREQUEST': BadRequest,
                 },
             },
@@ -3685,6 +3696,47 @@ export default class btse extends Exchange {
         //
         // success statuses such as 2 ORDER_INSERTED, 4 ORDER_FULLY_TRANSACTED, 5 ORDER_PARTIALLY_TRANSACTED, 6 ORDER_CANCELLED, 9 TRIGGER_INSERTED, 10 TRIGGER_ACTIVATED and 20 SUCCESS fall through without matching
         //
+        // the numeric api status enum from the official error codes reference,
+        // shared between the http 200 status field layer and the legacy error
+        // envelope below, success and neutral codes are deliberately absent
+        const statusExceptions: Dict = {
+            '-1': RequestTimeout, // TIMEOUT, verify order status separately
+            '1': ExchangeNotAvailable, // MARKET_UNAVAILABLE
+            '8': InsufficientFunds, // INSUFFICIENT_BALANCE
+            '11': BadRequest, // ERROR_INVALID_CURRENCY
+            '12': BadRequest, // ERROR_UPDATE_RISK_LIMIT
+            '13': BadRequest, // ERROR_INVALID_LEVERAGE
+            '15': InvalidOrder, // ORDER_REJECTED
+            '16': OrderNotFound, // ORDER_NOTFOUND
+            '17': ExchangeError, // REQUEST_FAILED
+            '28': ExchangeError, // TRANSFER_UNSUCCESSFUL
+            '41': BadRequest, // ERROR_INVALID_RISK_LIMIT
+            '64': ExchangeError, // STATUS_LIQUIDATION
+            '101': InvalidOrder, // FUTURES_ORDER_PRICE_OUTSIDE_LIQUIDATION_PRICE
+            '135': BadRequest, // invalid position id, observed live with an embedded json message
+            '300': InvalidOrder, // ERROR_MAX_ORDER_SIZE_EXCEEDED
+            '301': InvalidOrder, // ERROR_INVALID_ORDER_SIZE
+            '302': InvalidOrder, // ERROR_INVALID_ORDER_PRICE
+            '303': RateLimitExceeded, // ERROR_RATE_LIMITS_EXCEEDED
+            '304': InvalidOrder, // ERROR_MAX_OPEN_ORDER_EXCEEDED
+            '305': InvalidOrder, // ERROR_ORDER_PRICE_OUT_OF_PRICE_PROTECTION_RANGE
+            '1003': InvalidOrder, // ORDER_LIQUIDATION
+            '1004': InvalidOrder, // ORDER_ADL
+        };
+        // the legacy error envelope documented on the error codes page carries
+        // the numeric api status enum in the code field beside the http status
+        //
+        //     {"status":400,"error":"Bad Request","code":301,"message":"Invalid order size"}
+        //
+        const legacyErrorText = this.safeString (response, 'error');
+        const legacyEnumCode = this.safeString (response, 'code');
+        if ((legacyErrorText !== undefined) && (legacyEnumCode !== undefined)) {
+            const legacyMessage = this.safeString (response, 'message');
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (statusExceptions, legacyEnumCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], legacyMessage, feedback);
+            throw new ExchangeError (feedback);
+        }
         let rows = [];
         if (Array.isArray (response)) {
             rows = response;
@@ -3695,22 +3747,6 @@ export default class btse extends Exchange {
             const row = rows[i];
             const status = this.safeString (row, 'status');
             if (status !== undefined) {
-                const statusExceptions: Dict = {
-                    '1': ExchangeNotAvailable, // MARKET_UNAVAILABLE
-                    '8': InsufficientFunds, // INSUFFICIENT_BALANCE
-                    '11': BadRequest, // ERROR_INVALID_CURRENCY
-                    '12': BadRequest, // ERROR_UPDATE_RISK_LIMIT
-                    '13': BadRequest, // ERROR_INVALID_LEVERAGE
-                    '15': InvalidOrder, // ORDER_REJECTED
-                    '16': OrderNotFound, // ORDER_NOTFOUND
-                    '17': ExchangeError, // REQUEST_FAILED
-                    '28': ExchangeError, // TRANSFER_UNSUCCESSFUL
-                    '41': BadRequest, // ERROR_INVALID_RISK_LIMIT
-                    '64': ExchangeError, // STATUS_LIQUIDATION
-                    '101': InvalidOrder, // FUTURES_ORDER_PRICE_OUTSIDE_LIQUIDATION_PRICE
-                    '135': BadRequest, // invalid position id, observed live with an embedded json message
-                    '305': InvalidOrder, // ERROR_ORDER_PRICE_OUT_OF_PRICE_PROTECTION_RANGE
-                };
                 let message = this.safeString (row, 'message');
                 const embedded = this.parseJson (message);
                 if (embedded !== undefined) {
