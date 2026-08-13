@@ -362,23 +362,24 @@ class woo(Exchange, ImplicitAPI):
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'sandboxMode': False,
                 'createMarketBuyOrderRequiresPrice': True,
-                # these network aliases require manual mapping here
-                'network-aliases-for-tokens': {
-                    'HT': 'ERC20',
-                    'OMG': 'ERC20',
-                    'UATOM': 'ATOM',
-                    'ZRX': 'ZRX',
-                },
                 'networks': {
                     'TRX': 'TRX',  # WOO X renamed the network id from TRON to TRX
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
                     'ARBITRUM': 'Arbitrum',
+                    'BASE': 'BASE',
+                    'AVAXC': 'AVAXC',
+                    'OP': 'OP',
+                    'OPTIMISM': 'OP',
+                    'MATIC': 'MATIC',
+                    'SONIC': 'S',
+                    'HYPEREVM': 'HyperEVM',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
                     'TRON': 'TRC20',
+                    'OP': 'OP',
                 },
                 # override defaultNetworkCodePriorities for a specific currency
                 'defaultNetworkCodeForCurrencies': {
