@@ -3458,36 +3458,38 @@ public partial class whitebit : Exchange
             await this.loadMarkets();
         }
         object accounts = new List<object>() {};
-        // Fetch sub-accounts
+        object response = await this.v4PrivatePostSubAccountList(parameters);
         //
-        //     [
-        //         {
-        //             "id": "12345",
-        //             "name": "SubAccount1",
-        //             "status": "active",
-        //             "permissions": ["trade", "withdraw"]
-        //         }
-        //     ]
+        //     {
+        //         "offset": 0,
+        //         "limit": 100,
+        //         "data": [
+        //             {
+        //                 "id": "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
+        //                 "alias": "trading_bot",
+        //                 "userId": "u-12345",
+        //                 "email": "s***@example.com",
+        //                 "status": "active",
+        //                 "color": "#FF5733",
+        //                 "kyc": { "shareKyc": false, "kycStatus": "verified" },
+        //                 "permissions": { "spotEnabled": true, "collateralEnabled": false }
+        //             }
+        //         ]
+        //     }
         //
-        object subAccounts = await this.v4PrivatePostSubAccountList(parameters);
-        if (isTrue(isTrue(subAccounts) && isTrue(((subAccounts is IList<object>) || (subAccounts.GetType().IsGenericType && subAccounts.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        object subAccounts = this.safeList(response, "data", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(subAccounts)); postFixIncrement(ref i))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(subAccounts)); postFixIncrement(ref i))
-            {
-                object subAccount = this.safeValue(subAccounts, i);
-                object accountId = this.safeString(subAccount, "id");
-                object accountName = this.safeString(subAccount, "name");
-                if (isTrue(accountId))
-                {
-                    ((IList<object>)accounts).Add(new Dictionary<string, object>() {
-                        { "id", accountId },
-                        { "type", "subaccount" },
-                        { "name", isTrue(accountName) || isTrue(add("SubAccount ", accountId)) },
-                        { "code", null },
-                        { "info", subAccount },
-                    });
-                }
-            }
+            object subAccount = this.safeDict(subAccounts, i, new Dictionary<string, object>() {});
+            object accountId = this.safeString(subAccount, "id");
+            object accountName = this.safeString(subAccount, "alias");
+            ((IList<object>)accounts).Add(new Dictionary<string, object>() {
+                { "id", accountId },
+                { "type", "subaccount" },
+                { "name", accountName },
+                { "code", null },
+                { "info", subAccount },
+            });
         }
         return accounts;
     }

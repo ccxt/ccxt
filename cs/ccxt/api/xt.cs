@@ -711,6 +711,13 @@ public partial class xt : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateLinearPostFutureTradeV1EntrustCancelAllProfitStop",parameters);
     }
 
+    /// <summary>Calls the privateLinearPostFutureTradeV1EntrustCancelAllTrack endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateLinearPostFutureTradeV1EntrustCancelAllTrack (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateLinearPostFutureTradeV1EntrustCancelAllTrack",parameters);
+    }
+
     /// <summary>Calls the privateLinearPostFutureTradeV1EntrustCancelPlan endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateLinearPostFutureTradeV1EntrustCancelPlan (object parameters = null)
@@ -1031,6 +1038,13 @@ public partial class xt : Exchange
     public async Task<Dictionary<string, object>> privateInversePostFutureTradeV1EntrustCancelAllProfitStop (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateInversePostFutureTradeV1EntrustCancelAllProfitStop",parameters);
+    }
+
+    /// <summary>Calls the privateInversePostFutureTradeV1EntrustCancelAllTrack endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateInversePostFutureTradeV1EntrustCancelAllTrack (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateInversePostFutureTradeV1EntrustCancelAllTrack",parameters);
     }
 
     /// <summary>Calls the privateInversePostFutureTradeV1EntrustCancelPlan endpoint.</summary>

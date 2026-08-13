@@ -677,6 +677,7 @@ public partial class xt
     /// See <see href="https://doc.xt.com/docs/futures/Order/cancel-all-orders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/CancelAllTrack"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -694,6 +695,12 @@ public partial class xt
     /// <term>params.stopLossTakeProfit</term>
     /// <description>
     /// bool : if the order is a stop-loss or take-profit order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : if the orders are trailing orders or not
     /// </description>
     /// </item>
     /// </list>

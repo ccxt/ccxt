@@ -459,6 +459,9 @@ public partial class xt : Exchange
                             { "future/trade/v1/entrust/cancel-all-profit-stop", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "future/trade/v1/entrust/cancel-all-track", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "future/trade/v1/entrust/cancel-plan", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -601,6 +604,9 @@ public partial class xt : Exchange
                                 { "cost", 1 },
                             } },
                             { "future/trade/v1/entrust/cancel-all-profit-stop", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/entrust/cancel-all-track", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "future/trade/v1/entrust/cancel-plan", new Dictionary<string, object>() {
@@ -4230,10 +4236,12 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/docs/futures/Order/cancel-all-orders
      * @see https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/CancelAllTrack
      * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -4261,6 +4269,15 @@ public partial class xt : Exchange
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object trigger = this.safeValue2(parameters, "trigger", "stop");
         object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
+        object trailing = this.safeBool(parameters, "trailing");
+        if (isTrue(trailing))
+        {
+            object isContract = isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
+            if (!isTrue(isContract))
+            {
+                throw new NotSupported ((string)add(this.id, " cancelAllOrders() trailing orders are only supported on swap and future markets")) ;
+            }
+        }
         if (isTrue(trigger))
         {
             parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
@@ -4280,6 +4297,16 @@ public partial class xt : Exchange
             } else
             {
                 response = await this.privateLinearPostFutureTradeV1EntrustCancelAllProfitStop(this.extend(request, parameters));
+            }
+        } else if (isTrue(trailing))
+        {
+            parameters = this.omit(parameters, "trailing");
+            if (isTrue(isEqual(subType, "inverse")))
+            {
+                response = await ((Task<object>)callDynamically(this, "privateInversePostFutureTradeV1EntrustCancelAllTrack", new object[] { this.extend(request, parameters) }));
+            } else
+            {
+                response = await ((Task<object>)callDynamically(this, "privateLinearPostFutureTradeV1EntrustCancelAllTrack", new object[] { this.extend(request, parameters) }));
             }
         } else if (isTrue(isEqual(subType, "inverse")))
         {
