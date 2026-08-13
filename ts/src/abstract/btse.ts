@@ -33,7 +33,7 @@ interface Exchange {
     publicGetPublicApiMarketV1Orderbook (params?: {}): Promise<Dict | List>;
     publicGetPublicApiMarketV1Trades (params?: {}): Promise<Dict | List>;
     publicGetPublicApiMarketV1Klines (params?: {}): Promise<Dict | List>;
-    publicGetPublicApiMarketV1Ticker24hr (params?: {}): Promise<Dict | List>;
+    publicGetPublicApiMarketV1Ticker24hr (params?: {}): Promise<Dict>;
     publicGetPublicApiMarketV1TickerPrice (params?: {}): Promise<Dict | List>;
     publicGetPublicApiMarketV1TickerIndices (params?: {}): Promise<Dict | List>;
     publicGetPublicApiMarketV1TickerL1 (params?: {}): Promise<Dict | List>;

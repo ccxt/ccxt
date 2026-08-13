@@ -241,7 +241,7 @@
             {
                 "description": "fetch tickers for spot",
                 "method": "fetchTickers",
-                "url": "https://api.btse.com/spot/api/v3.3/market_summary",
+                "url": "https://api.btse.com/public-api/market/v1/ticker/24hr",
                 "input": [
                     null,
                     {
@@ -253,7 +253,7 @@
             {
                 "description": "fetch tickers for swap",
                 "method": "fetchTickers",
-                "url": "https://api.btse.com/futures/api/v2.3/market_summary",
+                "url": "https://api.btse.com/public-api/market/v1/ticker/24hr",
                 "input": [
                     null,
                     {
@@ -267,7 +267,7 @@
             {
                 "description": "fetch ticker for contract",
                 "method": "fetchTicker",
-                "url": "https://api.btse.com/futures/api/v2.3/market_summary?symbol=ETH-PERP",
+                "url": "https://api.btse.com/public-api/market/v1/ticker/24hr?symbol=ETH-PERP-USDT",
                 "input": [
                     "ETH/USDT:USDT"
                 ],
@@ -276,7 +276,7 @@
             {
                 "description": "fetch ticker for spot",
                 "method": "fetchTicker",
-                "url": "https://api.btse.com/spot/api/v3.3/market_summary?symbol=ETH-USDT",
+                "url": "https://api.btse.com/public-api/market/v1/ticker/24hr?symbol=ETH-USDT",
                 "input": [
                     "ETH/USDT"
                 ],
