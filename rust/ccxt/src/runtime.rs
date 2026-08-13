@@ -1083,9 +1083,81 @@ fn pb_decode_depths(b: &[u8]) -> Value {
     Value::Map(m)
 }
 
+/// Decode a book-ticker body (`PublicBookTickerV3Api` / `PublicAggreBook
+/// TickerV3Api` — bidPrice=1, bidQuantity=2, askPrice=3, askQuantity=4).
+fn pb_decode_book_ticker(b: &[u8]) -> Value {
+    let mut r = PbReader::new(b);
+    let mut m: HashMap<String, Value> = HashMap::new();
+    let fields = ["bidPrice", "bidQuantity", "askPrice", "askQuantity"];
+    while !r.eof() {
+        match r.read_tag() {
+            (n @ 1..=4, 2) => {
+                m.insert(fields[(n - 1) as usize].to_string(), pb_string(r.read_bytes()));
+            }
+            (_, wire) => r.skip(wire),
+        }
+    }
+    Value::Map(m)
+}
+
+/// Decode a deal item (`PublicDealsV3ApiItem` / `PublicAggreDealsV3ApiItem` —
+/// price=1, quantity=2, tradeType=3 (varint), time=4 (varint)).
+fn pb_decode_deal_item(b: &[u8]) -> Value {
+    let mut r = PbReader::new(b);
+    let mut m: HashMap<String, Value> = HashMap::new();
+    while !r.eof() {
+        match r.read_tag() {
+            (1, 2) => { m.insert("price".to_string(), pb_string(r.read_bytes())); }
+            (2, 2) => { m.insert("quantity".to_string(), pb_string(r.read_bytes())); }
+            (3, 0) => { m.insert("tradeType".to_string(), Value::Int(r.read_varint() as i64)); }
+            (4, 0) => { m.insert("time".to_string(), Value::Int(r.read_varint() as i64)); }
+            (_, wire) => r.skip(wire),
+        }
+    }
+    Value::Map(m)
+}
+
+/// Decode a deals body (`PublicDealsV3Api` / `PublicAggreDealsV3Api` —
+/// deals=1 (repeated), eventType=2).
+fn pb_decode_deals(b: &[u8]) -> Value {
+    let mut r = PbReader::new(b);
+    let mut deals: Vec<Value> = Vec::new();
+    let mut m: HashMap<String, Value> = HashMap::new();
+    while !r.eof() {
+        match r.read_tag() {
+            (1, 2) => deals.push(pb_decode_deal_item(r.read_bytes())),
+            (2, 2) => { m.insert("eventType".to_string(), pb_string(r.read_bytes())); }
+            (_, wire) => r.skip(wire),
+        }
+    }
+    m.insert("deals".to_string(), Value::List(deals));
+    Value::Map(m)
+}
+
+/// Decode a spot-kline body (`PublicSpotKlineV3Api`).
+fn pb_decode_spot_kline(b: &[u8]) -> Value {
+    let mut r = PbReader::new(b);
+    let mut m: HashMap<String, Value> = HashMap::new();
+    while !r.eof() {
+        match r.read_tag() {
+            (1, 2) => { m.insert("interval".to_string(), pb_string(r.read_bytes())); }
+            (2, 0) => { m.insert("windowStart".to_string(), Value::Int(r.read_varint() as i64)); }
+            (3, 2) => { m.insert("openingPrice".to_string(), pb_string(r.read_bytes())); }
+            (4, 2) => { m.insert("closingPrice".to_string(), pb_string(r.read_bytes())); }
+            (5, 2) => { m.insert("highestPrice".to_string(), pb_string(r.read_bytes())); }
+            (6, 2) => { m.insert("lowestPrice".to_string(), pb_string(r.read_bytes())); }
+            (7, 2) => { m.insert("volume".to_string(), pb_string(r.read_bytes())); }
+            (8, 2) => { m.insert("amount".to_string(), pb_string(r.read_bytes())); }
+            (9, 0) => { m.insert("windowEnd".to_string(), Value::Int(r.read_varint() as i64)); }
+            (_, wire) => r.skip(wire),
+        }
+    }
+    Value::Map(m)
+}
+
 /// Decode mexc's `PushDataV3ApiWrapper` protobuf frame into the same shape
 /// protobufjs' `.toJSON()` produces, so the ported handlers read it unchanged.
-/// Currently wires the order-book (depth) bodies; other bodies are skipped.
+/// Wires the public order-book (depth), book-ticker, deals and kline bodies.
 pub fn decode_mexc_push_data(bytes: &[u8]) -> Value {
     let mut r = PbReader::new(bytes);
     let mut m: HashMap<String, Value> = HashMap::new();
@@ -1114,6 +1186,21 @@ pub fn decode_mexc_push_data(bytes: &[u8]) -> Value {
             }
             (313, 2) => {
                 m.insert("publicAggreDepths".to_string(), pb_decode_depths(r.read_bytes()));
+            }
+            (301, 2) => {
+                m.insert("publicDeals".to_string(), pb_decode_deals(r.read_bytes()));
+            }
+            (314, 2) => {
+                m.insert("publicAggreDeals".to_string(), pb_decode_deals(r.read_bytes()));
+            }
+            (305, 2) => {
+                m.insert("publicBookTicker".to_string(), pb_decode_book_ticker(r.read_bytes()));
+            }
+            (315, 2) => {
+                m.insert("publicAggreBookTicker".to_string(), pb_decode_book_ticker(r.read_bytes()));
+            }
+            (308, 2) => {
+                m.insert("publicSpotKline".to_string(), pb_decode_spot_kline(r.read_bytes()));
             }
             (_, wire) => r.skip(wire),
         }
