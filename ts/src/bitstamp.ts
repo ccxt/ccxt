@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 ;
-import type { Balances, Currencies, Currency, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict, FeeString, FeeStringInterface, CurrencyInterface, DepositWithdrawFees, Endpoint } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict, FeeString, FeeStringInterface, DepositWithdrawFees, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -838,43 +838,42 @@ export default class bitstamp extends Exchange {
         //         },
         //     ]
         //
-        this.options['_temp_currencies_result'] = {};
-        const result = this.parseCurrencies (response);
-        const finalResult = this.deepExtend (result, this.options['_temp_currencies_result']);
-        delete this.options['_temp_currencies_result'];
-        return finalResult;
+        return this.parseCurrencies (response);
     }
 
-    override parseCurrency (rawCurrency: Dict): CurrencyInterface {
-        const market = rawCurrency;
-        const existing = this.safeDict (this.options, '_temp_currencies_result', {});
-        const [ baseId, quoteId ] = [ this.safeString (market, 'base_currency'), this.safeString (market, 'counter_currency') ];
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
-        const description = this.safeString (market, 'description');
-        if (description === undefined) {
-            throw new ExchangeError (this.id + ' parseCurrency() missing description');
-        }
-        const [ baseDescription, quoteDescription ] = description.split (' / ');
-        const minimumOrder = this.safeString (market, 'minimum_order_value');
-        if (minimumOrder === undefined) {
-            throw new ExchangeError (this.id + ' parseCurrency() missing minimumOrder');
-        }
-        const parts = minimumOrder.split (' ');
-        const cost = parts[0];
-        if ((base === undefined) || !(base in existing)) {
-            const baseDecimals = this.safeInteger (market, 'base_decimals');
-            if (base !== undefined) {
-                this.options['_temp_currencies_result'][base] = this.constructCurrencyObject (baseId, base, baseDescription, baseDecimals, undefined, market);
+    override parseCurrencies (rawCurrencies: any): Currencies {
+        // each market row yields two currencies so the accumulation happens
+        // in a local dictionary here instead of a temp key inside this.options
+        // because the shared scratch key raced between concurrent
+        // fetchCurrencies invocations in the multi threaded runtimes
+        const result: Dict = {};
+        const arr = this.toArray (rawCurrencies);
+        for (let i = 0; i < arr.length; i++) {
+            const market = arr[i];
+            const [ baseId, quoteId ] = [ this.safeString (market, 'base_currency'), this.safeString (market, 'counter_currency') ];
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const description = this.safeString (market, 'description');
+            if (description === undefined) {
+                throw new ExchangeError (this.id + ' parseCurrencies() missing description');
+            }
+            const [ baseDescription, quoteDescription ] = description.split (' / ');
+            const minimumOrder = this.safeString (market, 'minimum_order_value');
+            if (minimumOrder === undefined) {
+                throw new ExchangeError (this.id + ' parseCurrencies() missing minimumOrder');
+            }
+            const parts = minimumOrder.split (' ');
+            const cost = parts[0];
+            if ((base !== undefined) && !(base in result)) {
+                const baseDecimals = this.safeInteger (market, 'base_decimals');
+                result[base] = this.constructCurrencyObject (baseId, base, baseDescription, baseDecimals, undefined, market);
+            }
+            if ((quote !== undefined) && !(quote in result)) {
+                const counterDecimals = this.safeInteger (market, 'counter_decimals');
+                result[quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, counterDecimals, this.parseNumber (cost), market);
             }
         }
-        if ((quote === undefined) || !(quote in existing)) {
-            const counterDecimals = this.safeInteger (market, 'counter_decimals');
-            if (quote !== undefined) {
-                this.options['_temp_currencies_result'][quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, counterDecimals, this.parseNumber (cost), market);
-            }
-        }
-        return this.safeValue (this.options['_temp_currencies_result'], quote);
+        return result;
     }
 
     /**
