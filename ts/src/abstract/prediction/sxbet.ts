@@ -5,34 +5,35 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../../base/types.js';
+import { Dict, List } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
 
 interface Exchange {
-    sxbetPublicGetMetadata (params?: {}): Promise<implicitReturnType>;
-    sxbetPublicGetMarketsActive (params?: {}): Promise<implicitReturnType>;
-    sxbetPublicGetMarketsFind (params?: {}): Promise<implicitReturnType>;
-    sxbetPublicGetMarketsPopular (params?: {}): Promise<implicitReturnType>;
-    sxbetPublicGetOrders (params?: {}): Promise<implicitReturnType>;
-    sxbetPublicGetOrdersOddsBest (params?: {}): Promise<implicitReturnType>;
-    sxbetPublicGetTrades (params?: {}): Promise<implicitReturnType>;
-    sxbetPublicGetTradesConsolidated (params?: {}): Promise<implicitReturnType>;
-    sxbetPublicGetTradesOrders (params?: {}): Promise<implicitReturnType>;
-    sxbetPublicGetTradesPortfolioRefunds (params?: {}): Promise<implicitReturnType>;
-    sxbetPublicGetFixtureActive (params?: {}): Promise<implicitReturnType>;
-    sxbetPublicGetFixtureStatus (params?: {}): Promise<implicitReturnType>;
-    sxbetPublicGetSports (params?: {}): Promise<implicitReturnType>;
-    sxbetPublicGetLeagues (params?: {}): Promise<implicitReturnType>;
-    sxbetPublicGetLeaguesActive (params?: {}): Promise<implicitReturnType>;
-    sxbetPublicGetTeams (params?: {}): Promise<implicitReturnType>;
-    sxbetPublicGetLiveScores (params?: {}): Promise<implicitReturnType>;
-    sxbetPrivatePostOrdersNew (params?: {}): Promise<implicitReturnType>;
-    sxbetPrivatePostOrdersFillV2 (params?: {}): Promise<implicitReturnType>;
-    sxbetPrivatePostOrdersCancelV2 (params?: {}): Promise<implicitReturnType>;
-    sxbetPrivatePostOrdersCancelEvent (params?: {}): Promise<implicitReturnType>;
-    sxbetPrivatePostOrdersCancelAll (params?: {}): Promise<implicitReturnType>;
-    sxbetPrivatePostOrdersApprove (params?: {}): Promise<implicitReturnType>;
-    explorerPublicGetApi (params?: {}): Promise<implicitReturnType>;
+    sxbetPublicGetMetadata (params?: {}): Promise<Dict | List>;
+    sxbetPublicGetMarketsActive (params?: {}): Promise<Dict | List>;
+    sxbetPublicGetMarketsFind (params?: {}): Promise<Dict | List>;
+    sxbetPublicGetMarketsPopular (params?: {}): Promise<Dict | List>;
+    sxbetPublicGetOrders (params?: {}): Promise<Dict | List>;
+    sxbetPublicGetOrdersOddsBest (params?: {}): Promise<Dict | List>;
+    sxbetPublicGetTrades (params?: {}): Promise<Dict | List>;
+    sxbetPublicGetTradesConsolidated (params?: {}): Promise<Dict | List>;
+    sxbetPublicGetTradesOrders (params?: {}): Promise<Dict | List>;
+    sxbetPublicGetTradesPortfolioRefunds (params?: {}): Promise<Dict | List>;
+    sxbetPublicGetFixtureActive (params?: {}): Promise<Dict | List>;
+    sxbetPublicGetFixtureStatus (params?: {}): Promise<Dict | List>;
+    sxbetPublicGetSports (params?: {}): Promise<Dict | List>;
+    sxbetPublicGetLeagues (params?: {}): Promise<Dict | List>;
+    sxbetPublicGetLeaguesActive (params?: {}): Promise<Dict | List>;
+    sxbetPublicGetTeams (params?: {}): Promise<Dict | List>;
+    sxbetPublicGetLiveScores (params?: {}): Promise<Dict | List>;
+    sxbetPrivateGetUserRealtimeTokenApiKey (params?: {}): Promise<Dict | List>;
+    sxbetPrivatePostOrdersNew (params?: {}): Promise<Dict | List>;
+    sxbetPrivatePostOrdersFillV2 (params?: {}): Promise<Dict | List>;
+    sxbetPrivatePostOrdersCancelV2 (params?: {}): Promise<Dict | List>;
+    sxbetPrivatePostOrdersCancelEvent (params?: {}): Promise<Dict | List>;
+    sxbetPrivatePostOrdersCancelAll (params?: {}): Promise<Dict | List>;
+    sxbetPrivatePostOrdersApprove (params?: {}): Promise<Dict | List>;
+    explorerPublicGetApi (params?: {}): Promise<Dict | List>;
 }
 abstract class Exchange extends _Exchange {}
 
