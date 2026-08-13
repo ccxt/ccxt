@@ -328,15 +328,6 @@ public partial class woo : Exchange
                         } },
                     } },
                 } },
-                { "v2", new Dictionary<string, object>() {
-                    { "private", new Dictionary<string, object>() {
-                        { "get", new Dictionary<string, object>() {
-                            { "client/holding", new Dictionary<string, object>() {
-                                { "cost", 1 },
-                            } },
-                        } },
-                    } },
-                } },
                 { "v3", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
