@@ -28,6 +28,7 @@ interface Exchange {
     publicGetSpotApiV32ExchangeRate (params?: {}): Promise<Dict | List>;
     publicGetPublicApiWalletV1CryptoNetworks (params?: {}): Promise<Dict | List>;
     publicGetPublicApiWalletV1AssetsExchangeRate (params?: {}): Promise<Dict | List>;
+    publicGetPublicApiMarketV1Markets (params?: {}): Promise<Dict>;
     privateGetSpotApiV33Order (params?: {}): Promise<Dict | List>;
     privateGetSpotApiV33UserOpenOrders (params?: {}): Promise<Dict | List>;
     privateGetSpotApiV33UserTradeHistory (params?: {}): Promise<List>;
@@ -44,12 +45,12 @@ interface Exchange {
     privateGetFuturesApiV23UserFees (params?: {}): Promise<List>;
     privateGetFuturesApiV23PositionMode (params?: {}): Promise<List>;
     privateGetFuturesApiV23UserMarginSetting (params?: {}): Promise<Dict | List>;
-    privateGetFuturesApiV23UserWallet (params?: {}): Promise<Dict | List>;
+    privateGetFuturesApiV23UserWallet (params?: {}): Promise<List>;
     privateGetFuturesApiV23UserWalletHistory (params?: {}): Promise<Dict | List>;
     privateGetFuturesApiV23UserUnifiedWalletMargin (params?: {}): Promise<Dict | List>;
     privateGetFuturesApiV23UserMargin (params?: {}): Promise<Dict | List>;
     privateGetOtcApiV1GetMarket (params?: {}): Promise<Dict | List>;
-    privateGetSpotApiV32UserWallet (params?: {}): Promise<Dict | List>;
+    privateGetSpotApiV32UserWallet (params?: {}): Promise<List>;
     privateGetSpotApiV32UserWalletHistory (params?: {}): Promise<List>;
     privateGetSpotApiV33UserWalletAddress (params?: {}): Promise<Dict | List>;
     privateGetSpotApiV32AvailableCurrencies (params?: {}): Promise<Dict | List>;

@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, Exch
 import { sha384 } from '@noble/hashes/sha2.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, List, MarginMode, Market, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, Transaction, Currency, LedgerEntry } from './base/types.js';
+import type { Balances, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, List, MarginMode, Market, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, Transaction, Currency, LedgerEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -224,6 +224,7 @@ export default class btse extends Exchange {
                         'spot/api/v3.2/exchangeRate': 15, // not used
                         'public-api/wallet/v1/crypto/networks ': 15, // not used
                         'public-api/wallet/v1/assets/exchangeRate': 15, // not used
+                        'public-api/market/v1/markets': { 'cost': 3 } as Endpoint<Dict>, // done
                     },
                 },
                 'private': {
@@ -539,8 +540,7 @@ export default class btse extends Exchange {
      * @method
      * @name btse#fetchMarkets
      * @description retrieves data on all markets for btse
-     * @see https://btsecom.github.io/docs/spotV3_3/en/#market-summary
-     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-summary
+     * @see https://docs.btse.com/markets/rest/get-markets/
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -548,10 +548,9 @@ export default class btse extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        const spotPromise = this.publicGetSpotApiV33MarketSummary (params);
-        const contractPromise = this.publicGetFuturesApiV23MarketSummary (params);
-        const [ spotMarkets, contractMarkets ] = await Promise.all ([ spotPromise, contractPromise ]);
-        const markets = this.arrayConcat (spotMarkets, contractMarkets);
+        const response = await this.publicGetPublicApiMarketV1Markets (params);
+        const data = this.safeDict (response, 'data', {});
+        const markets = this.safeList (data, 'symbols', []);
         return this.parseMarkets (markets);
     }
 
@@ -559,150 +558,101 @@ export default class btse extends Exchange {
         //
         // spot
         //     {
-        //         "symbol": "ZSWAP-USDT",
-        //         "last": 0.0014137,
-        //         "lowestAsk": 0.0014242,
-        //         "highestBid": 0.0014051,
-        //         "percentageChange": -1.26414303,
-        //         "volume": 35492.87247512,
-        //         "high24Hr": 0.0014591,
-        //         "low24Hr": 0.0011803,
-        //         "base": "ZSWAP",
-        //         "quote": "USDT",
+        //         "symbol": "BTC-USDT",
+        //         "type": "Spot",
+        //         "category": "CRYPTO",
+        //         "tradeCurrency": "BTC",
+        //         "baseCurrency": "BTC",
+        //         "quoteCurrency": "USDT",
+        //         "displayName": "Bitcoin",
         //         "active": true,
-        //         "size": 26176204.2,
-        //         "minValidPrice": 0.0000001,
-        //         "minPriceIncrement": 0.0000001,
-        //         "minOrderSize": 0.1,
-        //         "maxOrderSize": 20000000,
-        //         "minSizeIncrement": 0.1,
-        //         "openInterest": 0,
-        //         "openInterestUSD": 0,
-        //         "contractStart": 0,
-        //         "contractEnd": 0,
-        //         "timeBasedContract": false,
-        //         "openTime": 0,
-        //         "closeTime": 0,
-        //         "startMatching": 0,
-        //         "inactiveTime": 0,
-        //         "fundingRate": 0,
-        //         "contractSize": 0,
-        //         "maxPosition": 0,
-        //         "minRiskLimit": 0,
-        //         "maxRiskLimit": 0,
-        //         "availableSettlement": null,
-        //         "futures": false,
-        //         "isMarketOpenToOtc": false,
-        //         "isMarketOpenToSpot": true
+        //         "minOrderPrice": "0.1",
+        //         "minPriceIncrement": "0.1",
+        //         "pricePrecision": 1,
+        //         "minOrderSize": "0.00001",
+        //         "maxOrderSize": "100",
+        //         "minSizeIncrement": "0.00001",
+        //         "sizePrecision": 5
         //     }
         //
         // swap
         //     {
-        //         "symbol": "BTC-PERP",
-        //         "last": 66358.6,
-        //         "lowestAsk": 66359.8,
-        //         "highestBid": 66352.6,
-        //         "openInterest": 31447681,
-        //         "openInterestUSD": 20867816.81,
-        //         "percentageChange": -4.5777,
-        //         "volume": 4296340617.722564,
-        //         "high24Hr": 70819.6,
-        //         "low24Hr": 59838.9,
-        //         "base": "BTC",
-        //         "quote": "USDT",
-        //         "contractStart": 0,
-        //         "contractEnd": 0,
+        //         "symbol": "BTC-PERP-USDT",
+        //         "type": "FuturesPerpetual",
+        //         "category": "CRYPTO",
+        //         "tradeCurrency": "BTC-PERP",
+        //         "baseCurrency": "BTC",
+        //         "quoteCurrency": "USDT",
+        //         "displayName": "Bitcoin",
         //         "active": true,
-        //         "timeBasedContract": false,
-        //         "openTime": 0,
-        //         "closeTime": 0,
-        //         "startMatching": 0,
-        //         "inactiveTime": 0,
-        //         "fundingRate": -0.000058,
-        //         "contractSize": 0.00001,
-        //         "maxPosition": 1100000000,
-        //         "minValidPrice": 0.1,
-        //         "minPriceIncrement": 0.1,
-        //         "minOrderSize": 1,
-        //         "maxOrderSize": 7500000,
-        //         "minRiskLimit": 3000000,
-        //         "maxRiskLimit": 1100000000,
-        //         "minSizeIncrement": 1,
-        //         "availableSettlement": [
-        //             "USD",
-        //             "USDT"
-        //         ]
+        //         "minOrderPrice": "0.1",
+        //         "minPriceIncrement": "0.1",
+        //         "pricePrecision": 1,
+        //         "minOrderSize": "1",
+        //         "maxOrderSize": "7500000",
+        //         "minSizeIncrement": "1",
+        //         "sizePrecision": 0,
+        //         "contractSize": "0.00001",
+        //         "availableSettlement": [ "USD", "USDT" ]
         //     }
         //
         // future
         //     {
-        //         "symbol": "BTC-260626",
-        //         "last": "67433.8",
-        //         "lowestAsk": "67485.5",
-        //         "highestBid": "67435.8",
-        //         "openInterest": "1571293",
-        //         "openInterestUSD": "1059955.67",
-        //         "percentageChange": "-4.5871",
-        //         "volume": "5969.600405",
-        //         "high24Hr": "71933.7",
-        //         "low24Hr": "60731.8",
-        //         "base": "BTC",
-        //         "quote": "USDT",
-        //         "contractStart": "0",
-        //         "contractEnd": "1782460830",
+        //         "symbol": "BTC-260925-USDT",
+        //         "type": "FuturesTimeBased",
+        //         "category": "CRYPTO",
+        //         "tradeCurrency": "BTC-260925",
+        //         "baseCurrency": "BTC",
+        //         "quoteCurrency": "USDT",
+        //         "displayName": "Bitcoin",
         //         "active": true,
-        //         "timeBasedContract": true,
-        //         "openTime": "1766736000000",
-        //         "closeTime": "1782460830000",
-        //         "startMatching": "1766736015000",
-        //         "inactiveTime": "1782460800000",
-        //         "fundingRate": "0",
-        //         "contractSize": "0.00001",
-        //         "maxPosition": "40000000",
-        //         "minValidPrice": "0.1",
+        //         "minOrderPrice": "0.1",
         //         "minPriceIncrement": "0.1",
+        //         "pricePrecision": 1,
         //         "minOrderSize": "1",
         //         "maxOrderSize": "100000",
-        //         "minRiskLimit": "30000",
-        //         "maxRiskLimit": "40000000",
         //         "minSizeIncrement": "1",
-        //         "availableSettlement": [
-        //             "USD",
-        //             "USDT"
-        //         ]
+        //         "sizePrecision": 0,
+        //         "contractSize": "0.00001",
+        //         "availableSettlement": [ "USD", "USDT" ],
+        //         "contractStartTime": 1774569600000,
+        //         "contractEndTime": 1790323230000,
+        //         "matchingStartTime": 1774569615000,
+        //         "becomeInactiveTime": 1790323200000
         //     }
-        const id = this.safeString (market, 'symbol');
-        const baseId = this.safeString (market, 'base');
-        const quoteId = this.safeString (market, 'quote');
+        //
+        const marketType = this.safeString (market, 'type');
+        const isSpot = marketType === 'Spot';
+        const isFuture = marketType === 'FuturesTimeBased';
+        const isSwap = marketType === 'FuturesPerpetual';
+        // the trading endpoints identify contract markets by the tradeCurrency value, e.g. BTC-PERP, while spot markets keep the full symbol
+        let id = this.safeString (market, 'symbol');
+        if (!isSpot) {
+            id = this.safeString (market, 'tradeCurrency', id);
+        }
+        const baseId = this.safeString (market, 'baseCurrency');
+        const quoteId = this.safeString (market, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
         const maxAmountString = this.safeString (market, 'maxOrderSize');
         const minAmountString = this.safeString (market, 'minOrderSize');
-        const minPriceString = this.safeString (market, 'minValidPrice');
+        const minPriceString = this.safeString (market, 'minOrderPrice');
         const pricePrecision = this.safeString (market, 'minPriceIncrement');
         const amountPrecision = this.safeString (market, 'minSizeIncrement');
-        const isSpot = !(this.safeBool (market, 'futures', true)); // only spot markets have the 'futures' field, and it's false
-        let active = this.safeBool (market, 'active');
+        const active = this.safeBool (market, 'active');
         let type = 'spot';
-        let isSwap = false;
-        let isFuture: Bool = false;
         let expiry = undefined;
         let contractSize = undefined;
-        if (isSpot) {
-            active = this.safeValue (market, 'isMarketOpenToSpot');
-        }
         if (!isSpot) {
-            symbol += ':' + quote; // todo check
+            symbol += ':' + quote;
             contractSize = this.safeString (market, 'contractSize');
-            isFuture = this.safeBool (market, 'timeBasedContract', false);
             if (isFuture) {
-                expiry = this.safeInteger (market, 'closeTime');
+                expiry = this.safeInteger (market, 'contractEndTime');
                 symbol += '-' + this.yymmdd (expiry);
                 type = 'future';
             } else {
                 type = 'swap';
-                isSwap = true;
             }
         }
         let fees = this.safeValue (this.fees, 'contract');
@@ -757,7 +707,7 @@ export default class btse extends Exchange {
                     'max': undefined,
                 },
             },
-            'created': this.parse8601 (this.safeString (market, 'createdAt')),
+            'created': undefined,
             'info': market,
         });
     }
