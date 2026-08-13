@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide
 import hashlib
 from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
@@ -314,7 +314,10 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #    }
         #
         if self.positions is None:
-            self.positions = ArrayCacheBySymbolById()
+            # krakenfutures positions carry no id(parseWsPosition always sets
+            # 'id': None), so key by symbol + side instead of by-id, see
+            # https://github.com/ccxt/ccxt/issues/29709
+            self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
         rawPositions = self.safe_value(message, 'positions', [])
         newPositions = []

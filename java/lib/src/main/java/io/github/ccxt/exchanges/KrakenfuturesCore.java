@@ -3566,8 +3566,8 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         // a degraded response missing openPositions must fail loudly - a flat
         // account and "could not read positions" are not interchangeable for
         // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
-        // (the crash guarded against in #19896 is still avoided, since we no
-        // longer call .length on a non-list value)
+        // the crash guarded against in #19896 is still avoided, since we no
+        // longer call .length on a non-list value
         Object positions = this.safeList(response, "openPositions");
         if (Helpers.isTrue(Helpers.isEqual(positions, null)))
         {

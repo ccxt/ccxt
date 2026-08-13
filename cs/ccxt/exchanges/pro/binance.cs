@@ -6208,6 +6208,13 @@ public partial class binance : ccxt.binance
                         object orderTrades = this.safeList(order, "trades", new List<object>() {});
                         ((IList<object>)orderTrades).Add(trade);
                         ((IDictionary<string,object>)order)["trades"] = orderTrades;
+                        // write the updated order back into the cache: php
+                        // arrays are value types, so the fee/trades mutations
+                        // above only touched a local copy there — the cache
+                        // hashmap rows are wired by reference, so this
+                        // assignment reaches the cached row (and is a no-op
+                        // in the reference-semantics runtimes)
+                        ((IDictionary<string,object>)orders)[(string)orderId] = order;
                     }
                 }
             }

@@ -1629,7 +1629,7 @@ class kucoin extends \ccxt\async\kucoin {
         $method = $isFuturesMethod ? '/contractMarket/level2' : '/market/level2';
         $optionName = $isFuturesMethod ? 'contractMethod' : 'spotMethod';
         list($method, $params) = $this->handle_option_and_params_2($params, 'watchOrderBook', $optionName, 'method', $method);
-        if (mb_strpos($method, 'Depth') === -1) {
+        if (mb_strpos($method, 'Depth') === false) {
             if (($limit === 5) || ($limit === 50)) {
                 if (!$isFuturesMethod) {
                     $method = '/spotMarket/level2';
@@ -1691,7 +1691,7 @@ class kucoin extends \ccxt\async\kucoin {
         $method = $isFuturesMethod ? '/contractMarket/level2' : '/market/level2';
         $optionName = $isFuturesMethod ? 'contractMethod' : 'spotMethod';
         list($method, $params) = $this->handle_option_and_params_2($params, 'watchOrderBook', $optionName, 'method', $method);
-        if (mb_strpos($method, 'Depth') === -1) {
+        if (mb_strpos($method, 'Depth') === false) {
             if (($limit === 5) || ($limit === 50)) {
                 if (!$isFuturesMethod) {
                     $method = '/spotMarket/level2';
