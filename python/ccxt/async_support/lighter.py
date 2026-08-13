@@ -830,35 +830,16 @@ class lighter(Exchange, ImplicitAPI):
         response = await self.publicGetNextNonce({'account_index': accountIndex, 'api_key_index': apiKeyIndex})
         return self.safe_integer(response, 'nonce')
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}):
-        """
-        create a trade order
-        :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
-        :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.timeInForce]: 'GTT' or 'IOC', default is 'GTT'
-        :param int [params.clientOrderId]: client order id, should be unique for each order, default is a random number
-        :param str [params.triggerPrice]: trigger price for stop loss or take profit orders, in units of the quote currency
-        :param boolean [params.reduceOnly]: whether the order is reduce only, default False
-        :param int [params.nonce]: nonce for the account
-        :param int [params.apiKeyIndex]: apiKeyIndex
-        :param int [params.accountIndex]: accountIndex
-        :param int [params.orderExpiry]: orderExpiry
-        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
-        """
+    async def sign_and_create_order(self, method: str, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> List[Any]:
         if self.markets is None:
             await self.load_markets()
         accountIndex = None
-        accountIndex, params = await self.handle_account_index(params, 'createOrder', 'accountIndex', 'account_index')
+        accountIndex, params = await self.handle_account_index(params, method, 'accountIndex', 'account_index')
         params['accountIndex'] = accountIndex
         market = self.market(symbol)
         groupingType = None
-        groupingType, params = self.handle_option_and_params(params, 'createOrder', 'groupingType', 3)  # default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
+        groupingType, params = self.handle_option_and_params(params, method, 'groupingType', 3)  # default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         orderRequests = self.create_order_request(symbol, type, side, amount, price, params)
-        # for php
         totalOrderRequests = len(orderRequests)
         apiKeyIndex = None
         order = None
@@ -888,6 +869,28 @@ class lighter(Exchange, ImplicitAPI):
                 signingPayload['integrator_taker_fee'] = order['integrator_taker_fee']
                 signingPayload['integrator_maker_fee'] = order['integrator_maker_fee']
             txType, txInfo = self.lighter_sign_create_grouped_orders(signer, signingPayload)
+        return [txType, txInfo, order, market]
+
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.timeInForce]: 'GTT' or 'IOC', default is 'GTT'
+        :param int [params.clientOrderId]: client order id, should be unique for each order, default is a random number
+        :param str [params.triggerPrice]: trigger price for stop loss or take profit orders, in units of the quote currency
+        :param boolean [params.reduceOnly]: whether the order is reduce only, default False
+        :param int [params.nonce]: nonce for the account
+        :param int [params.apiKeyIndex]: apiKeyIndex
+        :param int [params.accountIndex]: accountIndex
+        :param int [params.orderExpiry]: orderExpiry
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        txType, txInfo, order, market = await self.sign_and_create_order('createOrder', symbol, type, side, amount, price, params)
         request = {
             'tx_type': txType,
             'tx_info': txInfo,
@@ -2911,27 +2914,18 @@ class lighter(Exchange, ImplicitAPI):
         }
         return await self.publicPostSendTx(request)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
-        """
-        cancels an open order
-        :param str id: order id
-        :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.accountIndex]: account index
-        :param str [params.apiKeyIndex]: api key index
-        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
-        """
+    async def sign_and_cancel_order(self, method: str, id: str, symbol: Str = None, params: dict = {}) -> List[Any]:
         if self.markets is None:
             await self.load_markets()
-        apiKeyIndex = None
-        apiKeyIndex, params = self.handle_api_key_index(params, 'cancelOrder', 'apiKeyIndex', 'api_key_index')
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' ' + method + ' requires a symbol argument')
+        apiKeyIndex = None
+        apiKeyIndex, params = self.handle_api_key_index(params, method, 'apiKeyIndex', 'api_key_index')
+        accountIndex = None
+        accountIndex, params = await self.handle_account_index(params, method, 'accountIndex', 'account_index')
         market = self.market(symbol)
         clientOrderId = self.safe_string_2(params, 'client_order_index', 'clientOrderId')
         params = self.omit(params, ['client_order_index', 'clientOrderId'])
-        accountIndex = None
-        accountIndex, params = await self.handle_account_index(params, 'cancelOrder', 'accountIndex', 'account_index')
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
         signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
@@ -2947,8 +2941,21 @@ class lighter(Exchange, ImplicitAPI):
         elif id is not None:
             signRaw['order_index'] = self.parse_to_int(id)
         else:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires order id or client order id')
+            raise ArgumentsRequired(self.id + ' ' + method + ' requires order id or client order id')
         txType, txInfo = self.lighter_sign_cancel_order(signer, self.extend(signRaw, params))
+        return [txType, txInfo, market]
+
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.accountIndex]: account index
+        :param str [params.apiKeyIndex]: api key index
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        txType, txInfo, market = await self.sign_and_cancel_order('cancelOrder', id, symbol, params)
         request = {
             'tx_type': txType,
             'tx_info': txInfo,
@@ -2956,21 +2963,13 @@ class lighter(Exchange, ImplicitAPI):
         response = await self.publicPostSendTx(request)
         return self.parse_order(response, market)
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
-        """
-        cancel all open orders
-        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.accountIndex]: account index
-        :param str [params.apiKeyIndex]: api key index
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
-        """
+    async def sign_and_cancel_all_orders(self, method: str, symbol: Str = None, params: dict = {}) -> List[Any]:
         if self.markets is None:
             await self.load_markets()
         apiKeyIndex = None
-        apiKeyIndex, params = self.handle_api_key_index(params, 'cancelAllOrders', 'apiKeyIndex', 'api_key_index')
+        apiKeyIndex, params = self.handle_api_key_index(params, method, 'apiKeyIndex', 'api_key_index')
         accountIndex = None
-        accountIndex, params = await self.handle_account_index(params, 'cancelAllOrders', 'accountIndex', 'account_index')
+        accountIndex, params = await self.handle_account_index(params, method, 'accountIndex', 'account_index')
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
         signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
@@ -2983,6 +2982,18 @@ class lighter(Exchange, ImplicitAPI):
             'account_index': accountIndex,
         }
         txType, txInfo = self.lighter_sign_cancel_all_orders(signer, self.extend(signRaw, params))
+        return [txType, txInfo]
+
+    async def cancel_all_orders(self, symbol: Str = None, params={}):
+        """
+        cancel all open orders
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.accountIndex]: account index
+        :param str [params.apiKeyIndex]: api key index
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        txType, txInfo = await self.sign_and_cancel_all_orders('cancelAllOrdersWs', symbol, params)
         request = {
             'tx_type': txType,
             'tx_info': txInfo,
