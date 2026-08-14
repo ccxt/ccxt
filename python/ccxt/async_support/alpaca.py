@@ -969,7 +969,8 @@ class alpaca(Exchange, ImplicitAPI):
                 'percentage': None,
                 'average': None,
                 'baseVolume': self.safe_string(dailyBar, 'v'),
-                'quoteVolume': self.safe_string(dailyBar, 'n'),
+                # 'n' is the trade count; the quote volume is the daily volume at the daily vwap
+                'quoteVolume': Precise.string_mul(self.safe_string(dailyBar, 'v'), self.safe_string(dailyBar, 'vw')),
             }, market)
             results.append(ticker)
         return self.filter_by_array(results, 'symbol', symbols)
