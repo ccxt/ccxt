@@ -40,6 +40,13 @@ mod base_ws_transpiled;
 #[cfg(feature = "exchange-tests")]
 #[path = "../exchange/mod.rs"]
 pub mod exchange_transpiled;
+// WS per-method tests (`ts/src/pro/test/Exchange/test.watch*.ts`), generated
+// into `rust/tests/exchange_ws/`. They reuse the REST base validators
+// (re-exported from `exchange_transpiled` by that mod.rs) and are dispatched
+// under `--ws` by `test_helpers::{getTestFiles, callMethod}`.
+#[cfg(feature = "exchange-tests")]
+#[path = "../exchange_ws/mod.rs"]
+pub mod exchange_ws_transpiled;
 // `tests.rs` — the transpiled `TestMainClass` test harness, generated
 // from `ts/src/test/tests.ts` by `tsx build/rustTranspiler.ts --testMain`.
 mod tests;

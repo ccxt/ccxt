@@ -331,13 +331,25 @@ pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
         m.get(&id).copied()
     };
     let entry = match entry { Some(e) => e, None => return Value::Null };
-    // Pre-flight: propagate snapshot writes (e.g. `options.uta = false`
-    // in the kucoin broker test) to the live Core before the call so the
-    // dispatched code path observes them.
-    let opts = ccxt::get_value(ex, &Value::Str("options".to_string()));
-    if matches!(opts, Value::Dict(_)) {
-        (entry.write_options)(entry.ptr.0, opts);
+    // The pre-flight snapshot→Core write-throughs below exist for the REST
+    // static request/response tests (broker-id options, fixture credentials,
+    // canned mock responses). WS live tests need none of them — worse, the
+    // per-call `write_options` overwrites the Core's *live* options (where the
+    // pro venues keep WS subscription / requestId state) with the stale init
+    // snapshot, so a repeated `watchTicker` loop loses its subscription and the
+    // 2nd call blocks forever. Skip the write-throughs for watch*/unWatch*.
+    let is_ws_method = method.starts_with("watch") || method.starts_with("un_watch")
+        || method.starts_with("unWatch");
+    if !is_ws_method {
+        // Pre-flight: propagate snapshot writes (e.g. `options.uta = false`
+        // in the kucoin broker test) to the live Core before the call so the
+        // dispatched code path observes them.
+        let opts = ccxt::get_value(ex, &Value::Str("options".to_string()));
+        if matches!(opts, Value::Dict(_)) {
+            (entry.write_options)(entry.ptr.0, opts);
+        }
     }
+    if !is_ws_method {
     // Propagate per-case credential overrides too. Static request tests
     // for chain-signature exchanges (pacifica/hyperliquid/paradex) set
     // `walletAddress` / `privateKey` on the snapshot from the fixture;
@@ -391,6 +403,7 @@ pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
     // Clear the snapshot's mock so it doesn't leak into a subsequent
     // dispatch on the same exchange.
     if let Value::Dict(m) = &mut *ex { std::sync::Arc::make_mut(m).shift_remove("__fetchResponse"); }
+    } // end `if !is_ws_method` pre-flight write-throughs
     let snake = camel_to_snake(method);
     let fut = (entry.call)(entry.ptr.0, &snake, args);
     let result = futures::FutureExt::catch_unwind(

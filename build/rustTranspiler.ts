@@ -3310,6 +3310,19 @@ class RustTranspilerBuilder {
             'fetch_withdrawals',
             'load_markets', 'sign_in', 'set_leverage', 'set_margin_mode',
             'set_position_mode', 'transfer',
+            // WS watch*/unWatch* methods — routed to the pro Core via the same
+            // live_dispatch path (the WS per-method tests call these).
+            'watch_order_book', 'watch_order_book_for_symbols',
+            'watch_trades', 'watch_trades_for_symbols',
+            'watch_ticker', 'watch_tickers', 'watch_bids_asks',
+            'watch_ohlcv', 'watch_ohlcv_for_symbols',
+            'watch_balance', 'watch_my_trades', 'watch_orders', 'watch_order',
+            'watch_position', 'watch_positions',
+            'watch_liquidations', 'watch_liquidations_for_symbols',
+            'un_watch_positions', 'un_watch_orders', 'un_watch_order_book',
+            'un_watch_trades', 'un_watch_ticker', 'un_watch_tickers',
+            'un_watch_ohlcv', 'un_watch_ohlcv_for_symbols',
+            'un_watch_order_book_for_symbols', 'un_watch_trades_for_symbols',
         ]);
         let out = '';
         let i = 0;
@@ -8417,6 +8430,136 @@ impl std::ops::DerefMut for ${coreName} {
         overwriteFileAndFolder(`${outDir}/mod.rs`, file);
     }
 
+    /**
+     * Transpiles the WS per-method tests (`ts/src/pro/test/Exchange/test.watch*.ts`)
+     * into `rust/tests/exchange_ws/`. These reuse the REST base validators
+     * (testOrderBook/testTrade/…) — already transpiled into `rust/tests/exchange`
+     * — so the emitted mod.rs re-exports them and only the watch* method-test
+     * entry points are newly generated. Wired into the harness by `--ws`
+     * (getTestFiles / callMethod route here).
+     */
+    transpileWsExchangeTests(outDir: string) {
+        const folder = './ts/src/pro/test/Exchange';
+        if (!fs.existsSync(folder)) return;
+        // Tests whose transpiled output doesn't compile yet — kept out of
+        // available_tests() so `ti-rust --ws <id>` still links. Grow this down
+        // as the transpiler learns the remaining patterns.
+        // `test.unWatchPositions` / `test.watchLiquidations` use `exchange.spawn`
+        // (concurrent watch loops) which the transpiler doesn't lower for the
+        // test surface yet — keep them out of available_tests() so the harness
+        // links. The other watch* tests cover the public methods.
+        const WS_SKIP = new Set<string>([
+            'test.sharedMethods',
+            'test.unWatchPositions',
+            'test.watchLiquidations',
+        ]);
+        const written: Array<{ name: string, entry: string, isAsync: boolean, extraArgs: number, isMethodTest: boolean }> = [];
+        const files = fs.readdirSync(folder).filter(f => f.endsWith('.ts')).map(f => f.replace('.ts', ''));
+        for (const testName of files) {
+            if (WS_SKIP.has(testName)) continue;
+            const tsFile = `${folder}/${testName}.ts`;
+            if (fs.readFileSync(tsFile, 'utf8').includes('// NO_AUTO_TRANSPILE')) continue;
+            try {
+                const result = this.transpiler.transpileRustByPath(tsFile);
+                const asyncMethods = new Set<string>(
+                    (result.methodsTypes || []).filter((m: any) => m.async).map((m: any) => m.name),
+                );
+                const tsSrc = fs.readFileSync(tsFile, 'utf8');
+                const defaultArgFns = this.detectFreeFnDefaultArgs(tsSrc);
+                let content = this.runExchangeTestPipeline(result.content ?? '', asyncMethods);
+                if (defaultArgFns.size > 0) {
+                    content = this.foldDefaultArgsIntoOptional(content, defaultArgFns);
+                }
+                const stem = testName.replace(/^test\./, '');
+                const cand = 'test' + stem.charAt(0).toUpperCase() + stem.slice(1);
+                let entry = cand;
+                let m = content.match(new RegExp(`\\bfn\\s+(${cand})\\s*\\(([^)]*)\\)`));
+                if (!m) m = content.match(/\bfn\s+(test[A-Za-z0-9_]*)\s*\(([^)]*)\)/);
+                let extraArgs = 0;
+                let isAsync = false;
+                if (m) {
+                    entry = m[1];
+                    const params = m[2].split(',').map(s => s.trim()).filter(Boolean);
+                    extraArgs = Math.max(0, params.length - 2);
+                    isAsync = new RegExp(`\\bpub\\s+async\\s+fn\\s+${entry}\\b`).test(content);
+                }
+                const file = [
+                    ...this.createGeneratedHeader(),
+                    '#![allow(unused, non_snake_case, dead_code, clippy::all)]',
+                    'use ccxt::Value;',
+                    'use ccxt::get_value;',
+                    'use ccxt::runtime::*;',
+                    'use crate::test_helpers::*;',
+                    '// REST base validators (testOrderBook/…) are re-exported from mod.rs',
+                    'use super::*;',
+                    '',
+                    content,
+                ].join('\n')
+                    .replace(/\bstd::collections::HashMap\b/g, 'indexmap::IndexMap');
+                overwriteFileAndFolder(`${outDir}/${testName}.rs`, file);
+                written.push({ name: testName, entry, isAsync, extraArgs, isMethodTest: true });
+            } catch (e: any) {
+                log.red(`[rust] Error transpiling WS exchange test ${testName}:`, e.message ?? e);
+                this.droppedTests.push({ kind: 'exchange', name: testName, error: String(e.message ?? e) });
+            }
+        }
+        this.writeWsExchangeTestsModFile(outDir, written);
+    }
+
+    /** Emits `rust/tests/exchange_ws/mod.rs` — like the REST one, but re-exports
+     * the REST base validators (which the watch* tests call) instead of defining
+     * them. */
+    writeWsExchangeTestsModFile(
+        outDir: string,
+        written: Array<{ name: string, entry: string, isAsync: boolean, extraArgs: number, isMethodTest: boolean }>,
+    ) {
+        const modLines = written.map(w =>
+            `#[path = "${w.name}.rs"] pub mod ${this.modIdentFor(w.name)};\n` +
+            `pub use ${this.modIdentFor(w.name)}::${w.entry};`,
+        ).join('\n');
+        const arms = written.map(w => {
+            const stem = w.name.replace(/^test\./, '');
+            const extra = Array.from({ length: w.extraArgs },
+                (_, i) => `, get_value(&args, &Value::Int(${i}))`).join('');
+            const call = `${w.entry}(exchange, skipped${extra})${w.isAsync ? '.await' : ''}`;
+            return `        "${stem}" => { ${call}; }`;
+        }).join('\n');
+        const markers = written.map(w =>
+            `    m.insert("${w.name.replace(/^test\./, '')}".to_string(), Value::Bool(true));`,
+        ).join('\n');
+        const file = [
+            ...this.createGeneratedHeader(),
+            '#![allow(unused, non_snake_case, dead_code, clippy::all)]',
+            'use ccxt::Value;',
+            'use ccxt::get_value;',
+            '// The watch* tests validate results with the REST base validators —',
+            '// re-export them so the sibling modules resolve them via `use super::*`.',
+            'pub use crate::exchange_transpiled::{',
+            '    testOrderBook, testTrade, testTicker, testOHLCV,',
+            '    testBalance, testOrder, testPosition, testLiquidation,',
+            '};',
+            '',
+            modLines,
+            '',
+            '/// Marker map of available WS method tests (Go `FunctionsMap`).',
+            'pub fn available_tests() -> Value {',
+            '    let mut m = indexmap::IndexMap::new();',
+            markers,
+            '    Value::Map(m)',
+            '}',
+            '',
+            '/// Dispatch a WS method test by name.',
+            'pub async fn call_test(name: &str, exchange: Value, skipped: Value, args: Value) {',
+            '    match name {',
+            arms,
+            '        _ => {}',
+            '    }',
+            '}',
+            '',
+        ].join('\n');
+        overwriteFileAndFolder(`${outDir}/mod.rs`, file);
+    }
+
     transpileTests() {
         createFolderRecursively(BASE_TESTS_FOLDER);
         createFolderRecursively(BASE_TESTS_WS_FOLDER);
@@ -8424,6 +8567,7 @@ impl std::ops::DerefMut for ${coreName} {
         this.transpileBaseTests(BASE_TESTS_FOLDER);
         this.transpileBaseTestsWs(BASE_TESTS_WS_FOLDER);
         this.transpileExchangeTests(GENERATED_TESTS_FOLDER);
+        this.transpileWsExchangeTests('./rust/tests/exchange_ws');
         this.transpileTestsMain('./rust/tests/src');
     }
 

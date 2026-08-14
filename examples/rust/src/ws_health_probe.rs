@@ -116,6 +116,25 @@ async fn watch_probe<T: ExchangeBase + Send + 'static>(mut ex: Box<T>) -> String
     let sym: &str = &sym;
     let method = probe_method();
     let extra = extra_args(&method);
+    // Diagnostic: CCXT_LOOPS=N calls the method N times back-to-back (like the
+    // real watch* test loop) and reports each call's latency, exposing a
+    // re-resolve hang on the 2nd+ call.
+    if let Ok(n) = std::env::var("CCXT_LOOPS").map(|s| s.parse::<usize>().unwrap_or(0)) {
+        if n > 0 {
+            for i in 0..n {
+                let t0 = tokio::time::Instant::now();
+                let mut args = vec![Value::Str(sym.to_string())];
+                args.extend(extra.iter().cloned());
+                let fut = ExchangeBase::call_dynamic(&mut *ex, &method, args);
+                match tokio::time::timeout(Duration::from_secs(20), AssertUnwindSafe(fut).catch_unwind()).await {
+                    Err(_)       => { eprintln!("[loop {i}] {method} TIMEOUT after 20s"); return format!("LOOP_HANG [{sym}] at call {i}"); }
+                    Ok(Err(e))   => { eprintln!("[loop {i}] {method} PANIC {}", panic_msg(e)); return format!("LOOP_PANIC [{sym}] at {i}"); }
+                    Ok(Ok(_ob))  => { eprintln!("[loop {i}] {method} resolved in {}ms", t0.elapsed().as_millis()); }
+                }
+            }
+            return format!("LOOP_OK   [{sym}] {n} calls");
+        }
+    }
     // Loop like real usage: many venues resolve an empty book first and fill via
     // subsequent deltas. Keep watching (within a total budget) until the book is
     // two-sided. We track the best partial result so a genuinely one-sided venue

@@ -88,6 +88,17 @@ pub mod shared {
         ccxt::runtime::in_op(&markets, symbol)
     }
 
+    /// `testSharedMethods.isTemporaryFailure(e)` — the WS method tests treat a
+    /// transient network/exchange failure as retryable rather than a hard fail.
+    /// Mirrors TS `(e instanceof OperationFailed) && !(e instanceof
+    /// OnMaintenance)`; panic payloads stringify as `[Kind] message`, so
+    /// `is_instance` walks the error hierarchy.
+    pub fn is_temporary_failure(e: Value) -> Value {
+        let op_failed = ccxt::runtime::is_instance(&e, &Value::Str("OperationFailed".to_string()));
+        let on_maint = ccxt::runtime::is_instance(&e, &Value::Str("OnMaintenance".to_string()));
+        Value::Bool(op_failed && !on_maint)
+    }
+
     pub trait AsValue { fn as_value(&self) -> Value; }
     impl AsValue for Value { fn as_value(&self) -> Value { self.clone() } }
     impl AsValue for &Value { fn as_value(&self) -> Value { (*self).clone() } }

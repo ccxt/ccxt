@@ -322,7 +322,13 @@ pub async fn callMethod(
     skipped_properties: Value, args: Value,
 ) -> Value {
     let name = match &method_name { Value::Str(s) => s.clone(), _ => return Value::Null };
-    crate::exchange_transpiled::call_test(&name, exchange, skipped_properties, args).await;
+    // WS method tests (watch*/unWatch*) live in the exchange_ws module; every
+    // other name is a REST unified-method test.
+    if name.starts_with("watch") || name.starts_with("unWatch") {
+        crate::exchange_ws_transpiled::call_test(&name, exchange, skipped_properties, args).await;
+    } else {
+        crate::exchange_transpiled::call_test(&name, exchange, skipped_properties, args).await;
+    }
     Value::Null
 }
 #[cfg(not(feature = "exchange-tests"))]
@@ -372,8 +378,12 @@ pub fn callExchangeMethodDynamicallySync(
 }
 
 #[cfg(feature = "exchange-tests")]
-pub async fn getTestFiles(_properties: Value, _ws: Value) -> Value {
-    crate::exchange_transpiled::available_tests()
+pub async fn getTestFiles(_properties: Value, ws: Value) -> Value {
+    if matches!(ws, Value::Bool(true)) {
+        crate::exchange_ws_transpiled::available_tests()
+    } else {
+        crate::exchange_transpiled::available_tests()
+    }
 }
 #[cfg(not(feature = "exchange-tests"))]
 pub async fn getTestFiles(_properties: Value, _ws: Value) -> Value {
@@ -381,8 +391,12 @@ pub async fn getTestFiles(_properties: Value, _ws: Value) -> Value {
 }
 
 #[cfg(feature = "exchange-tests")]
-pub fn getTestFilesSync(_properties: Value, _ws: Value) -> Value {
-    crate::exchange_transpiled::available_tests()
+pub fn getTestFilesSync(_properties: Value, ws: Value) -> Value {
+    if matches!(ws, Value::Bool(true)) {
+        crate::exchange_ws_transpiled::available_tests()
+    } else {
+        crate::exchange_transpiled::available_tests()
+    }
 }
 #[cfg(not(feature = "exchange-tests"))]
 pub fn getTestFilesSync(_properties: Value, _ws: Value) -> Value {
