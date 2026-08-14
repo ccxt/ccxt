@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { ed25519 } from '@noble/curves/ed25519.js';
 import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
-import { ChecksumError, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
+import { ChecksumError, ArgumentsRequired, AuthenticationError, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Balances, Bool, Dict, Int, Liquidation, List, Market, Num, FeeString, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { rsa } from '../base/functions/rsa.js';
@@ -2947,7 +2947,14 @@ export default class binance extends binanceRest {
         const subscriptionId = this.safeInteger (result, 'subscriptionId');
         if (subscriptionId === undefined) {
             delete client.subscriptions[accountType];
-            client.reject (message, accountType);
+            const error = new AuthenticationError (this.id + ' user data stream subscribe failed ' + this.json (message));
+            client.reject (error, accountType);
+            // the request messageHash is what the subscribing watch call is
+            // awaiting - it must reject too, otherwise the watch fulfills, the
+            // leader resolves the auth flight, and waiters proceed onto an
+            // unauthenticated stream, see https://github.com/ccxt/ccxt/issues/29393
+            client.reject (error, messageHash);
+            return;
         }
         client.resolve (message, messageHash);
     }
@@ -3130,8 +3137,17 @@ export default class binance extends binanceRest {
                 this.singleFlightReject (flightHash, e);
                 throw e;
             }
+            const listenKey = this.safeString (response, 'listenKey');
+            if (listenKey === undefined) {
+                // caching an empty key and resolving waiters would look like
+                // success from every caller's point of view - fail the flight
+                // the same way a failed fetch would
+                const error = new AuthenticationError (this.id + ' authenticate() failed to obtain a listenKey ' + this.json (response));
+                this.singleFlightReject (flightHash, error);
+                throw error;
+            }
             this.options[type] = this.extend (options, {
-                'listenKey': this.safeString (response, 'listenKey'),
+                'listenKey': listenKey,
                 'lastAuthenticatedTime': time,
             });
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
