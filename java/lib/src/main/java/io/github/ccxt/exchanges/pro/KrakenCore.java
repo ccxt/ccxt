@@ -1176,7 +1176,8 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                 Object key = Helpers.GetValue(keys, i);
                 Object bookside = Helpers.GetValue(orderbook, key);
                 Object deltas = this.safeValue(first, key, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(deltas), 0)))
+                Object deltasLength = Helpers.getArrayLength(deltas);
+                if (Helpers.isTrue(Helpers.isGreaterThan(deltasLength, 0)))
                 {
                     this.customHandleDeltas(bookside, deltas);
                 }
