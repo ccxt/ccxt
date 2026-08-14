@@ -709,6 +709,127 @@
                 ]
             }
         ],
+        "fetchCanceledOrders": [
+            {
+                "description": "fetchCanceledOrders returns only orders with the native cancelled status",
+                "method": "fetchCanceledOrders",
+                "input": [
+                    "80372897:2",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "errno": 0,
+                    "errmsg": "no error",
+                    "data": {
+                        "list": [
+                            {
+                                "id": 1004,
+                                "market_id": 80372897,
+                                "outcome_idx": 2,
+                                "side": "buy",
+                                "order_type": "limit",
+                                "price": 0.4,
+                                "amount": 10,
+                                "filled_amount": 2,
+                                "status": "cancelled",
+                                "created_at": 1786500300,
+                                "updated_at": 1786500360
+                            }
+                        ],
+                        "count": 1
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1004",
+                        "clientOrderId": null,
+                        "timestamp": 1786500300000,
+                        "datetime": "2026-08-12T02:05:00.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1786500360000,
+                        "status": "canceled",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "side": "buy",
+                        "price": 0.4,
+                        "average": null,
+                        "amount": 10,
+                        "filled": 2,
+                        "remaining": 8,
+                        "cost": 0.8,
+                        "fee": null,
+                        "reduceOnly": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "outcome": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259:NO",
+                        "outcomeId": "80372897:2",
+                        "label": "No",
+                        "market": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259",
+                        "event": "INSIGHTX_EVENT_9151820",
+                        "info": {
+                            "id": 1004,
+                            "market_id": 80372897,
+                            "outcome_idx": 2,
+                            "side": "buy",
+                            "order_type": "limit",
+                            "price": 0.4,
+                            "amount": 10,
+                            "filled_amount": 2,
+                            "status": "cancelled",
+                            "created_at": 1786500300,
+                            "updated_at": 1786500360
+                        }
+                    }
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder returns a minimal canceled prediction order",
+                "method": "cancelOrder",
+                "input": [
+                    "1004"
+                ],
+                "httpResponse": {
+                    "errno": 0,
+                    "errmsg": "no error",
+                    "data": {}
+                },
+                "parsedResponse": {
+                    "id": "1004",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "canceled",
+                    "type": null,
+                    "timeInForce": null,
+                    "side": null,
+                    "price": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "fee": null,
+                    "reduceOnly": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "outcome": null,
+                    "outcomeId": null,
+                    "label": null,
+                    "market": null,
+                    "event": null,
+                    "info": {
+                        "errno": 0,
+                        "errmsg": "no error",
+                        "data": {}
+                    }
+                }
+            }
+        ],
         "fetchEvents": [
             {
                 "description": "fetchEvents event limit preserves all sibling markets",

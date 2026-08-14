@@ -148,6 +148,38 @@
                     }
                 ]
             }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "fetchCanceledOrders forces the native cancelled status and preserves pagination parameters",
+                "method": "fetchCanceledOrders",
+                "url": "https://mainnet-api.insightx.finance/predict/v2/orders?market_id=80372897&page=2&size=20&status=cancelled",
+                "input": [
+                    "80372897:2",
+                    null,
+                    1,
+                    {
+                        "page": 2,
+                        "size": 20,
+                        "status": "pending"
+                    }
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder sends the unified order id as order_id without loading an outcome",
+                "method": "cancelOrder",
+                "url": "https://mainnet-api.insightx.finance/predict/v2/cancel-order",
+                "input": [
+                    "1004",
+                    null,
+                    {
+                        "order_id": "9999"
+                    }
+                ],
+                "output": "{\"order_id\":1004}"
+            }
         ]
     },
     "options": {

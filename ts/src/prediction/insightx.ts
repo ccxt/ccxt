@@ -29,6 +29,8 @@ export default class insightx extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'cancelOrder': true,
+                'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchEvent': false,
                 'fetchEvents': true,
@@ -93,6 +95,7 @@ export default class insightx extends Exchange {
                     '4005': InsufficientFunds,
                     '4008': InvalidOrder, // Market Closed
                     '5000': ExchangeError, // Internal Error
+                    '9001': InvalidOrder, // Invalid Order ID
                 },
                 'broad': {},
             },
@@ -943,6 +946,49 @@ export default class insightx extends Exchange {
             }
         }
         return this.filterBySinceLimit (result, since, limit, 'timestamp') as PredictionOrder[];
+    }
+
+    /**
+     * @method
+     * @name insightx#fetchCanceledOrders
+     * @description fetches the authenticated user's cancelled orders
+     * @see https://insightx-2.gitbook.io/whitepaper/insightx-whitepaper/10.-developer-resources-and-api-integration#get-orders
+     * @param {string} [outcome] unified outcome handle or raw outcome id in marketId:outcomeIndex format
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of canceled orders to return
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {int} [params.page] page number to fetch, defaults to 1
+     * @param {int} [params.size] number of orders to request per page
+     * @param {string} [params.status] not used by insightx.fetchCanceledOrders
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async fetchCanceledOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        const rest = this.omit (params, [ 'status' ]);
+        return await this.fetchOrders (outcome, since, limit, this.extend ({ 'status': 'cancelled' }, rest));
+    }
+
+    /**
+     * @method
+     * @name insightx#cancelOrder
+     * @description cancels an open or partially filled insightx order
+     * @see https://insightx-2.gitbook.io/whitepaper/insightx-whitepaper/10.-developer-resources-and-api-integration#id-10.10-cancel-order
+     * @param {string} id insightx order id
+     * @param {string} [outcome] not used by insightx.cancelOrder
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    override async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+        await this.handleToken ();
+        const request: Dict = {
+            'order_id': this.parseToInt (id),
+        };
+        const rest = this.omit (params, [ 'order_id' ]);
+        const response = await this.insightxPrivatePostPredictV2CancelOrder (this.extend (request, rest));
+        return this.safePredictionOrder ({
+            'id': id,
+            'status': 'canceled',
+            'info': response,
+        });
     }
 
     /**
