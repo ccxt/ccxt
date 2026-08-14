@@ -5214,7 +5214,7 @@ export default class bybit extends Exchange {
         const request: Dict = {
             'orderId': id,
         };
-        const result = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
+        const result = await this.fetchOrdersClassic (symbol, undefined, undefined, this.extend (request, params));
         const length = result.length;
         if (length === 0) {
             const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
@@ -5351,9 +5351,9 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrdersClassic', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'nextPageCursor', 'cursor', undefined, 50) as Order[];
+            return await this.fetchPaginatedCallCursor ('fetchOrdersClassic', symbol, since, limit, params, 'nextPageCursor', 'cursor', undefined, 50) as Order[];
         }
         const request: Dict = {};
         let market: Market = undefined;
@@ -5362,9 +5362,9 @@ export default class bybit extends Exchange {
             request['symbol'] = market['id'];
         }
         let type: Str = undefined;
-        [ type, params ] = this.getBybitType ('fetchOrders', market, params);
+        [ type, params ] = this.getBybitType ('fetchOrdersClassic', market, params);
         if (type === 'spot') {
-            throw new NotSupported (this.id + ' fetchOrders() is not supported for spot markets');
+            throw new NotSupported (this.id + ' fetchOrdersClassic() is not supported for spot markets');
         }
         request['category'] = type;
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
