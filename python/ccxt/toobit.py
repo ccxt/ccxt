@@ -1369,6 +1369,10 @@ class toobit(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(ticker, 't')
         last = self.safe_string(ticker, 'c')
+        baseVolume = self.safe_string(ticker, 'v')
+        if market['contract'] and (market['contractSize'] is not None):
+            # 'v' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.string_mul(baseVolume, self.number_to_string(market['contractSize']))
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -1387,7 +1391,7 @@ class toobit(Exchange, ImplicitAPI):
             'change': self.safe_string(ticker, 'pc'),
             'percentage': self.safe_string(ticker, 'pcp'),
             'average': None,
-            'baseVolume': self.safe_string(ticker, 'v'),
+            'baseVolume': baseVolume,
             'quoteVolume': self.safe_string(ticker, 'qv'),
             'info': ticker,
         }, market)
