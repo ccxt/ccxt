@@ -10,7 +10,6 @@ use ccxt\async\abstract\xt as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
-use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\NullResponse;
@@ -4550,7 +4549,7 @@ class xt extends Exchange {
         }
         $market = $this->market($symbol);
         if (!($market['contract'])) {
-            throw new BadSymbol($this->id . ' setLeverage() supports contract markets only');
+            throw new NotSupported($this->id . ' setLeverage() supports contract markets only');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -4878,7 +4877,7 @@ class xt extends Exchange {
         }
         $market = $this->market($symbol);
         if (!$market['swap']) {
-            throw new BadSymbol($this->id . ' fetchFundingRateHistory() supports swap contracts only');
+            throw new NotSupported($this->id . ' fetchFundingRateHistory() supports swap contracts only');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -4972,7 +4971,7 @@ class xt extends Exchange {
         }
         $market = $this->market($symbol);
         if (!$market['swap']) {
-            throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
+            throw new NotSupported($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -5236,7 +5235,7 @@ class xt extends Exchange {
         }
         $market = $this->market($symbol);
         if (!$market['swap']) {
-            throw new BadSymbol($this->id . ' fetchFundingHistory() supports swap contracts only');
+            throw new NotSupported($this->id . ' fetchFundingHistory() supports swap contracts only');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -5789,7 +5788,7 @@ class xt extends Exchange {
         }
         $market = $this->market($symbol);
         if ($market['spot']) {
-            throw new BadSymbol($this->id . ' setMarginMode() supports contract markets only');
+            throw new NotSupported($this->id . ' setMarginMode() supports contract markets only');
         }
         $marginMode = strtolower($marginMode);
         if ($marginMode !== 'isolated' && $marginMode !== 'cross') {

@@ -6,7 +6,6 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\BadSymbol;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -727,7 +726,7 @@ class xt extends \ccxt\async\xt {
         }
         $market = $this->market($symbol);
         if (!$market['swap']) {
-            throw new BadSymbol($this->id . ' watchFundingRate() supports swap contracts only');
+            throw new NotSupported($this->id . ' watchFundingRate() supports swap contracts only');
         }
         $name = 'fund_rate@' . $market['id'];
         return Async\await($this->subscribe($name, 'public', 'watchFundingRate', $market, null, $params));
@@ -752,7 +751,7 @@ class xt extends \ccxt\async\xt {
         }
         $market = $this->market($symbol);
         if (!$market['swap']) {
-            throw new BadSymbol($this->id . ' unWatchFundingRate() supports swap contracts only');
+            throw new NotSupported($this->id . ' unWatchFundingRate() supports swap contracts only');
         }
         $name = 'fund_rate@' . $market['id'];
         $messageHash = 'unsubscribe::' . $name;
