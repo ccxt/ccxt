@@ -349,7 +349,7 @@ pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
             (entry.write_options)(entry.ptr.0, opts);
         }
     }
-    if !is_ws_method {
+    {
     // Propagate per-case credential overrides too. Static request tests
     // for chain-signature exchanges (pacifica/hyperliquid/paradex) set
     // `walletAddress` / `privateKey` on the snapshot from the fixture;
