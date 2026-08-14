@@ -5,12 +5,13 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.woofipro import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
@@ -39,7 +40,7 @@ class woofipro(Exchange, ImplicitAPI):
                 'swap': True,
                 'future': False,
                 'option': False,
-                'addMargin': False,
+                'addMargin': True,
                 'borrowCrossMargin': False,
                 'borrowIsolatedMargin': False,
                 'borrowMargin': False,
@@ -101,7 +102,8 @@ class woofipro(Exchange, ImplicitAPI):
                 'fetchLedger': True,
                 'fetchLeverage': True,
                 'fetchMarginAdjustmentHistory': False,
-                'fetchMarginMode': False,
+                'fetchMarginMode': True,
+                'fetchMarginModes': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -132,11 +134,12 @@ class woofipro(Exchange, ImplicitAPI):
                 'fetchTransfers': False,
                 'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
-                'reduceMargin': False,
+                'reduceMargin': True,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
                 'setLeverage': True,
                 'setMargin': False,
+                'setMarginMode': True,
                 'setPositionMode': False,
                 'transfer': False,
                 'withdraw': True,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
@@ -266,6 +269,7 @@ class woofipro(Exchange, ImplicitAPI):
                             'broker/user_info': {'cost': 10},
                             'orderbook/{symbol}': {'cost': 1},
                             'kline': {'cost': 1},
+                            'client/margin_modes': {'cost': 1},
                         },
                         'post': {
                             'orderly_key': {'cost': 1},
@@ -281,6 +285,8 @@ class woofipro(Exchange, ImplicitAPI):
                             'notification/inbox/mark_read': {'cost': 60},
                             'notification/inbox/mark_read_all': {'cost': 60},
                             'client/leverage': {'cost': 120},
+                            'client/margin_mode': {'cost': 1},
+                            'position_margin': {'cost': 1},
                             'client/maintenance_config': {'cost': 60},
                             'delegate_signer': {'cost': 10},
                             'delegate_orderly_key': {'cost': 10},
@@ -2828,6 +2834,182 @@ class woofipro(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
+
+    def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
+        #
+        #     {
+        #         "symbol": "PERP_BTC_USDC",
+        #         "default_margin_mode": "CROSS"
+        #     }
+        #
+        marketId = self.safe_string(marginMode, 'symbol')
+        market = self.safe_market(marketId, market)
+        return {
+            'info': marginMode,
+            'symbol': market['symbol'],
+            'marginMode': self.safe_string_lower(marginMode, 'default_margin_mode'),
+        }
+
+    def fetch_margin_modes(self, symbols: Strings = None, params={}) -> MarginModes:
+        """
+        fetches the set margin mode of every contract market
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+
+        :param str[] [symbols]: a list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `margin mode structures <https://docs.ccxt.com/?id=margin-mode-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = self.v1PrivateGetClientMarginModes(params)
+        #
+        # {
+        #     "success": True,
+        #     "timestamp": 1702989203989,
+        #     "data": {
+        #         "rows": [{
+        #             "symbol": "PERP_BTC_USDC",
+        #             "default_margin_mode": "CROSS"
+        #         }]
+        #     }
+        # }
+        #
+        data = self.safe_dict(response, 'data', {})
+        rows = self.safe_list(data, 'rows', [])
+        return self.parse_margin_modes(rows, symbols, 'symbol')
+
+    def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
+        """
+        fetches the set margin mode of a contract market
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+
+        :param str symbol: unified symbol of the market
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin mode structure <https://docs.ccxt.com/?id=margin-mode-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        marginModes = self.fetch_margin_modes([market['symbol']], params)
+        marginMode = self.safe_dict(marginModes, market['symbol'])
+        if marginMode is None:
+            raise BadSymbol(self.id + ' fetchMarginMode() did not return a margin mode for ' + market['symbol'])
+        return marginMode
+
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
+        """
+        set margin mode to 'cross' or 'isolated' for a market
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/update-margin-mode
+
+        :param str marginMode: 'cross' or 'isolated'
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        if self.markets is None:
+            self.load_markets()
+        marginMode = marginMode.lower()
+        if marginMode != 'cross' and marginMode != 'isolated':
+            raise BadRequest(self.id + ' setMarginMode() marginMode must be either cross or isolated')
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'default_margin_mode': marginMode.upper(),
+        }
+        #
+        # {
+        #     "success": True,
+        #     "timestamp": 1702989203989
+        # }
+        #
+        return self.v1PrivatePostClientMarginMode(self.extend(request, params))
+
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
+        #
+        #     {
+        #         "success": True,
+        #         "timestamp": 1702989203989
+        #     }
+        #
+        timestamp = self.safe_integer(data, 'timestamp')
+        success = self.safe_bool(data, 'success', False)
+        return {
+            'info': data,
+            'symbol': self.safe_string(market, 'symbol'),
+            'type': None,
+            'marginMode': 'isolated',
+            'amount': None,
+            'total': None,
+            'code': self.safe_string(market, 'settle'),
+            'status': 'ok' if (success) else 'failed',
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+
+    def modify_margin_helper(self, symbol: str, amount: Any, type: str, params={}) -> MarginModification:
+        """
+ @ignore
+        add or reduce isolated position margin
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add or reduce
+        :param str type: 'ADD' or 'REDUCE'
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'amount': self.number_to_string(amount),
+            'type': type,
+        }
+        response = self.v1PrivatePostPositionMargin(self.extend(request, params))
+        #
+        # {
+        #     "success": True,
+        #     "timestamp": 1702989203989
+        # }
+        #
+        modification = self.parse_margin_modification(response, market)
+        modification['type'] = 'add' if (type == 'ADD') else 'reduce'
+        modification['amount'] = self.parse_number(self.number_to_string(amount))
+        return modification
+
+    def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+        """
+        add margin to an isolated position
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        """
+        return self.modify_margin_helper(symbol, amount, 'ADD', params)
+
+    def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+        """
+        remove margin from an isolated position
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to remove
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
+        """
+        return self.modify_margin_helper(symbol, amount, 'REDUCE', params)
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         leverageValue = self.safe_integer(leverage, 'max_leverage')

@@ -1069,9 +1069,16 @@ class delta(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.001)
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         last = self.safe_string(ticker, 'close')
         quotes = self.safe_dict(ticker, 'quotes', {})
+        # turnover_symbol names the currency turnover is denominated in, and on
+        # spot markets that is the base currency rather than the quote
+        turnoverSymbol = self.safe_string_upper(ticker, 'turnover_symbol')
+        quoteId = self.safe_string_upper(market, 'quoteId')
+        baseDenominated = (turnoverSymbol is not None) and (quoteId is not None) and (turnoverSymbol != quoteId)
+        quoteVolume = self.safe_number(ticker, 'turnover_usd') if baseDenominated else self.safe_number(ticker, 'turnover')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1091,7 +1098,7 @@ class delta(Exchange, ImplicitAPI):
             'percentage': None,
             'average': None,
             'baseVolume': self.safe_number(ticker, 'volume'),
-            'quoteVolume': self.safe_number(ticker, 'turnover'),
+            'quoteVolume': quoteVolume,
             'markPrice': self.safe_number(ticker, 'mark_price'),
             'indexPrice': self.safe_number(ticker, 'spot_price'),
             'info': ticker,
