@@ -1912,11 +1912,17 @@ public partial class testMainClass
         return true;
     }
 
-    public async virtual Task<object> injectWsMessages(BaseExchange exchange, object url, object messages)
+    public async virtual Task<object> injectWsMessages(BaseExchange exchange, object url, object messages, object sequential = null)
     {
         // before every frame, wait until the watch flow is actually awaiting
         // something — a fixed head-start sleep is not enough on slow ci
         // runners and the frame's resolution would be dropped
+        // threaded runtimes resolve futures on another thread — wait for
+        // the consumed frame to settle so the pending check above does not
+        // observe a stale future and burn the next frame early; frames
+        // that resolve nothing (e.g. subscribe acks) fall through on the
+        // timeout
+        sequential ??= false;
         for (object i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
         {
             object waited = 0;
@@ -1926,17 +1932,38 @@ public partial class testMainClass
                 waited = add(waited, 50);
             }
             injectWsMessage(exchange, url, getValue(messages, i));
-            // yield between frames so the handlers run in arrival order
-            await exchange.sleep(20);
+            object settled = 0;
+            while (isTrue(wsClientHasPendingFutures(exchange, url)) && isTrue((isLessThan(settled, 500))))
+            {
+                await exchange.sleep(20);
+                settled = add(settled, 20);
+            }
         }
         await exchange.sleep(50);
+        if (isTrue(sequential))
+        {
+            // a watch call of a sequence can register its future after every
+            // frame was already consumed — keep rejecting until the watch side
+            // reports completion (the rejections force it to finish). the time
+            // bound is a backstop for threaded runtimes where this task can be
+            // executed inline on a stack that blocks the watch side (forkjoin
+            // work stealing): give up eventually so the stack unwinds instead
+            // of deadlocking
+            object waitedDone = 0;
+            while (!isTrue(isWsTestCompleted(exchange, url)) && isTrue((isLessThan(waitedDone, 30000))))
+            {
+                rejectPendingWsFutures(exchange, url);
+                await exchange.sleep(50);
+                waitedDone = add(waitedDone, 50);
+            }
+        }
         // reject anything still pending so a wrong fixture fails fast
         // instead of hanging the test run forever
         rejectPendingWsFutures(exchange, url);
         return true;  // c# methods used with promiseAll need to return something
     }
 
-    public async virtual Task<object> watchAndAssertSequence(BaseExchange exchange, object method, object input, object skipKeys, object expectedResults)
+    public async virtual Task<object> watchAndAssertSequence(BaseExchange exchange, object url, object method, object input, object skipKeys, object expectedResults)
     {
         try
         {
@@ -1951,8 +1978,13 @@ public partial class testMainClass
             }
         } catch(Exception e)
         {
+            // let the injector's rejection loop exit before the caller reports
+            // — the explicit try/catch also keeps the java transpilation
+            // compilable (checked exceptions)
+            markWsTestCompleted(exchange, url);
             throw e;
         }
+        markWsTestCompleted(exchange, url);
         return true;  // c# methods used with promiseAll need to return something
     }
 
@@ -2002,7 +2034,12 @@ public partial class testMainClass
             {
                 // 'parsedResponses' asserts one result per successive watch
                 // resolution (e.g. an order going from open to closed)
-                object promises = new List<object> {this.watchAndAssertSequence(exchange, method, input, skipKeys, expectedResults), this.injectWsMessages(exchange, url, messages)};
+                // start the injector before the watch side: it must never sit
+                // queued while the watch chain blocks on a join — a forkjoin
+                // worker could execute it inline on the blocked stack and the
+                // rejection loop would then wait on the very watch side it is
+                // buried on top of
+                object promises = new List<object> {this.injectWsMessages(exchange, url, messages, true), this.watchAndAssertSequence(exchange, url, method, input, skipKeys, expectedResults)};
                 await promiseAll(promises);
                 this.assertWsSentMessages(exchange, url, data);
             } else

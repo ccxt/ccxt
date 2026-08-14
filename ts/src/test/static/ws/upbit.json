@@ -1,0 +1,434 @@
+{
+    "exchange": "upbit",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "input": [
+                    "BTC/KRW"
+                ],
+                "url": "wss://api.upbit.com/websocket/v1",
+                "messages": [
+                    {
+                        "type": "orderbook",
+                        "code": "KRW-BTC",
+                        "timestamp": 1786613105466,
+                        "total_ask_size": 2.19289608,
+                        "total_bid_size": 3.19573885,
+                        "orderbook_units": [
+                            {
+                                "ask_price": 89890000,
+                                "bid_price": 89886000,
+                                "ask_size": 0.00426302,
+                                "bid_size": 0.04721853
+                            },
+                            {
+                                "ask_price": 89900000,
+                                "bid_price": 89874000,
+                                "ask_size": 0.23958101,
+                                "bid_size": 0.14587626
+                            },
+                            {
+                                "ask_price": 89902000,
+                                "bid_price": 89871000,
+                                "ask_size": 0.00111232,
+                                "bid_size": 0.14587626
+                            },
+                            {
+                                "ask_price": 89908000,
+                                "bid_price": 89863000,
+                                "ask_size": 0.02664214,
+                                "bid_size": 0.14408835
+                            },
+                            {
+                                "ask_price": 89909000,
+                                "bid_price": 89861000,
+                                "ask_size": 0.00222447,
+                                "bid_size": 0.001
+                            }
+                        ],
+                        "stream_type": "SNAPSHOT",
+                        "level": 0
+                    },
+                    {
+                        "type": "orderbook",
+                        "code": "KRW-BTC",
+                        "timestamp": 1786613106166,
+                        "total_ask_size": 2.27612679,
+                        "total_bid_size": 3.06301779,
+                        "orderbook_units": [
+                            {
+                                "ask_price": 89890000,
+                                "bid_price": 89886000,
+                                "ask_size": 0.00426302,
+                                "bid_size": 0.04721853
+                            },
+                            {
+                                "ask_price": 89900000,
+                                "bid_price": 89874000,
+                                "ask_size": 0.23958101,
+                                "bid_size": 0.14587626
+                            },
+                            {
+                                "ask_price": 89902000,
+                                "bid_price": 89864000,
+                                "ask_size": 0.00111232,
+                                "bid_size": 0.01388397
+                            },
+                            {
+                                "ask_price": 89908000,
+                                "bid_price": 89863000,
+                                "ask_size": 0.02664214,
+                                "bid_size": 0.14408835
+                            },
+                            {
+                                "ask_price": 89909000,
+                                "bid_price": 89861000,
+                                "ask_size": 0.00222447,
+                                "bid_size": 0.001
+                            }
+                        ],
+                        "stream_type": "REALTIME",
+                        "level": 0
+                    }
+                ],
+                "sentMessages": [
+                    [
+                        {
+                            "ticket": "8a355546-669e-4fbf-9f29-a0598c2215aa"
+                        },
+                        {
+                            "type": "orderbook",
+                            "codes": [
+                                "KRW-BTC"
+                            ]
+                        }
+                    ]
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                89886000,
+                                0.04721853
+                            ],
+                            [
+                                89874000,
+                                0.14587626
+                            ],
+                            [
+                                89871000,
+                                0.14587626
+                            ],
+                            [
+                                89863000,
+                                0.14408835
+                            ],
+                            [
+                                89861000,
+                                0.001
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                89890000,
+                                0.00426302
+                            ],
+                            [
+                                89900000,
+                                0.23958101
+                            ],
+                            [
+                                89902000,
+                                0.00111232
+                            ],
+                            [
+                                89908000,
+                                0.02664214
+                            ],
+                            [
+                                89909000,
+                                0.00222447
+                            ]
+                        ],
+                        "timestamp": 1786613105466,
+                        "datetime": "2026-08-13T09:25:05.466Z",
+                        "nonce": null,
+                        "symbol": "BTC/KRW"
+                    }
+                ],
+                "sentSkipKeys": [
+                    "ticket"
+                ]
+            }
+        ],
+        "watchTrades": [
+            {
+                "description": "spot trades",
+                "input": [
+                    "BTC/KRW"
+                ],
+                "url": "wss://api.upbit.com/websocket/v1",
+                "messages": [
+                    {
+                        "type": "trade",
+                        "code": "KRW-BTC",
+                        "timestamp": 1786613086090,
+                        "trade_date": "2026-08-13",
+                        "trade_time": "09:24:46",
+                        "trade_timestamp": 1786613086048,
+                        "trade_price": 89888000,
+                        "trade_volume": 0.01112495,
+                        "ask_bid": "BID",
+                        "prev_closing_price": 89642000,
+                        "change": "RISE",
+                        "change_price": 246000,
+                        "sequential_id": "17866130860480000",
+                        "best_ask_price": 89888000,
+                        "best_ask_size": 0.18724636,
+                        "best_bid_price": 89886000,
+                        "best_bid_size": 0.0421604,
+                        "stream_type": "SNAPSHOT"
+                    },
+                    {
+                        "type": "trade",
+                        "code": "KRW-BTC",
+                        "timestamp": 1786613091500,
+                        "trade_date": "2026-08-13",
+                        "trade_time": "09:24:51",
+                        "trade_timestamp": 1786613091449,
+                        "trade_price": 89888000,
+                        "trade_volume": 5.673e-05,
+                        "ask_bid": "BID",
+                        "prev_closing_price": 89642000,
+                        "change": "RISE",
+                        "change_price": 246000,
+                        "sequential_id": "17866130914490000",
+                        "best_ask_price": 89888000,
+                        "best_ask_size": 0.18718963,
+                        "best_bid_price": 89886000,
+                        "best_bid_size": 0.0421604,
+                        "stream_type": "REALTIME"
+                    }
+                ],
+                "sentMessages": [
+                    [
+                        {
+                            "ticket": "69e81cc0-3b9f-416e-9761-02355ddf051b"
+                        },
+                        {
+                            "type": "trade",
+                            "codes": [
+                                "KRW-BTC"
+                            ]
+                        }
+                    ]
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "17866130860480000",
+                            "info": {
+                                "type": "trade",
+                                "code": "KRW-BTC",
+                                "timestamp": 1786613086090,
+                                "trade_date": "2026-08-13",
+                                "trade_time": "09:24:46",
+                                "trade_timestamp": 1786613086048,
+                                "trade_price": 89888000,
+                                "trade_volume": 0.01112495,
+                                "ask_bid": "BID",
+                                "prev_closing_price": 89642000,
+                                "change": "RISE",
+                                "change_price": 246000,
+                                "sequential_id": "17866130860480000",
+                                "best_ask_price": 89888000,
+                                "best_ask_size": 0.18724636,
+                                "best_bid_price": 89886000,
+                                "best_bid_size": 0.0421604,
+                                "stream_type": "SNAPSHOT"
+                            },
+                            "order": null,
+                            "timestamp": 1786613086090,
+                            "datetime": "2026-08-13T09:24:46.090Z",
+                            "symbol": "BTC/KRW",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 89888000,
+                            "amount": 0.01112495,
+                            "cost": 999999.5056,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ],
+                "sentSkipKeys": [
+                    "ticket"
+                ]
+            }
+        ],
+        "watchTicker": [
+            {
+                "description": "spot ticker",
+                "input": [
+                    "BTC/KRW"
+                ],
+                "url": "wss://api.upbit.com/websocket/v1",
+                "messages": [
+                    {
+                        "type": "ticker",
+                        "code": "KRW-BTC",
+                        "opening_price": 89642000,
+                        "high_price": 90230000,
+                        "low_price": 89338000,
+                        "trade_price": 89886000,
+                        "prev_closing_price": 89642000,
+                        "acc_trade_price": 22607755132.86587,
+                        "change": "RISE",
+                        "change_price": 244000,
+                        "signed_change_price": 244000,
+                        "change_rate": 0.0027219384,
+                        "signed_change_rate": 0.0027219384,
+                        "ask_bid": "ASK",
+                        "trade_volume": 0.00854858,
+                        "acc_trade_volume": 251.93715664,
+                        "trade_date": "20260813",
+                        "trade_time": "092430",
+                        "trade_timestamp": 1786613070200,
+                        "acc_ask_volume": 110.92768896,
+                        "acc_bid_volume": 141.00946768,
+                        "highest_52_week_price": 179869000,
+                        "highest_52_week_date": "2025-10-09",
+                        "lowest_52_week_price": 88770000,
+                        "lowest_52_week_date": "2026-07-01",
+                        "market_state": "ACTIVE",
+                        "is_trading_suspended": false,
+                        "delisting_date": null,
+                        "market_warning": "NONE",
+                        "timestamp": 1786613070431,
+                        "acc_trade_price_24h": 51158711929.01375,
+                        "acc_trade_volume_24h": 569.49951948,
+                        "stream_type": "SNAPSHOT"
+                    },
+                    {
+                        "type": "ticker",
+                        "code": "KRW-BTC",
+                        "opening_price": 89642000,
+                        "high_price": 90230000,
+                        "low_price": 89338000,
+                        "trade_price": 89887000,
+                        "prev_closing_price": 89642000,
+                        "acc_trade_price": 22607930042.18143,
+                        "change": "RISE",
+                        "change_price": 245000,
+                        "signed_change_price": 245000,
+                        "change_rate": 0.0027330939,
+                        "signed_change_rate": 0.0027330939,
+                        "ask_bid": "ASK",
+                        "trade_volume": 0.00194588,
+                        "acc_trade_volume": 251.93910252,
+                        "trade_date": "20260813",
+                        "trade_time": "092431",
+                        "trade_timestamp": 1786613071880,
+                        "acc_ask_volume": 110.92963484,
+                        "acc_bid_volume": 141.00946768,
+                        "highest_52_week_price": 179869000,
+                        "highest_52_week_date": "2025-10-09",
+                        "lowest_52_week_price": 88770000,
+                        "lowest_52_week_date": "2026-07-01",
+                        "market_state": "ACTIVE",
+                        "is_trading_suspended": false,
+                        "delisting_date": null,
+                        "market_warning": "NONE",
+                        "timestamp": 1786613071943,
+                        "acc_trade_price_24h": 51158711929.01375,
+                        "acc_trade_volume_24h": 569.49951948,
+                        "stream_type": "REALTIME"
+                    }
+                ],
+                "sentMessages": [
+                    [
+                        {
+                            "ticket": "51629674-2a88-4b59-8b94-043a9701d04a"
+                        },
+                        {
+                            "type": "ticker",
+                            "codes": [
+                                "KRW-BTC"
+                            ]
+                        }
+                    ]
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/KRW",
+                        "timestamp": 1786613070200,
+                        "datetime": "2026-08-13T09:24:30.200Z",
+                        "high": 90230000,
+                        "low": 89338000,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 89831001.04408494,
+                        "open": 89642000,
+                        "close": 89886000,
+                        "last": 89886000,
+                        "previousClose": 89642000,
+                        "change": 244000,
+                        "percentage": 0.0027219384,
+                        "average": 89764000,
+                        "baseVolume": 569.49951948,
+                        "quoteVolume": 51158711929.01375,
+                        "info": {
+                            "type": "ticker",
+                            "code": "KRW-BTC",
+                            "opening_price": 89642000,
+                            "high_price": 90230000,
+                            "low_price": 89338000,
+                            "trade_price": 89886000,
+                            "prev_closing_price": 89642000,
+                            "acc_trade_price": 22607755132.86587,
+                            "change": "RISE",
+                            "change_price": 244000,
+                            "signed_change_price": 244000,
+                            "change_rate": 0.0027219384,
+                            "signed_change_rate": 0.0027219384,
+                            "ask_bid": "ASK",
+                            "trade_volume": 0.00854858,
+                            "acc_trade_volume": 251.93715664,
+                            "trade_date": "20260813",
+                            "trade_time": "092430",
+                            "trade_timestamp": 1786613070200,
+                            "acc_ask_volume": 110.92768896,
+                            "acc_bid_volume": 141.00946768,
+                            "highest_52_week_price": 179869000,
+                            "highest_52_week_date": "2025-10-09",
+                            "lowest_52_week_price": 88770000,
+                            "lowest_52_week_date": "2026-07-01",
+                            "market_state": "ACTIVE",
+                            "is_trading_suspended": false,
+                            "delisting_date": null,
+                            "market_warning": "NONE",
+                            "timestamp": 1786613070431,
+                            "acc_trade_price_24h": 51158711929.01375,
+                            "acc_trade_volume_24h": 569.49951948,
+                            "stream_type": "SNAPSHOT"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ],
+                "sentSkipKeys": [
+                    "ticket"
+                ]
+            }
+        ]
+    }
+}

@@ -907,7 +907,8 @@ class kraken(ccxt.async_support.kraken):
                 key = keys[i]
                 bookside = orderbook[key]
                 deltas = self.safe_value(first, key, [])
-                if len(deltas) > 0:
+                deltasLength = len(deltas)
+                if deltasLength > 0:
                     self.custom_handle_deltas(bookside, deltas)
             orderbook['symbol'] = symbol
         orderbook.limit()

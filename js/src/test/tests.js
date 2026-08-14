@@ -12,7 +12,7 @@ AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, O
 // shared
 getCliArgValue, 
 //
-getRootDir, isSync, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, getRootException, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFilesSync, getTestFiles, setFetchResponse, setupWsMockTransport, injectWsMessage, rejectPendingWsFutures, wsClientHasPendingFutures, getWsSentMessages, isNullValue, close, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, } from './tests.helpers.js';
+getRootDir, isSync, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, getRootException, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFilesSync, getTestFiles, setFetchResponse, setupWsMockTransport, injectWsMessage, rejectPendingWsFutures, wsClientHasPendingFutures, markWsTestCompleted, isWsTestCompleted, getWsSentMessages, isNullValue, close, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, } from './tests.helpers.js';
 class testMainClass {
     constructor() {
         this.idTests = false;
@@ -1687,7 +1687,7 @@ class testMainClass {
         setFetchResponse(exchange, undefined); // reset state
         return true;
     }
-    async injectWsMessages(exchange, url, messages) {
+    async injectWsMessages(exchange, url, messages, sequential = false) {
         // before every frame, wait until the watch flow is actually awaiting
         // something — a fixed head-start sleep is not enough on slow ci
         // runners and the frame's resolution would be dropped
@@ -1698,16 +1698,39 @@ class testMainClass {
                 waited = waited + 50;
             }
             injectWsMessage(exchange, url, messages[i]);
-            // yield between frames so the handlers run in arrival order
-            await exchange.sleep(20);
+            // threaded runtimes resolve futures on another thread — wait for
+            // the consumed frame to settle so the pending check above does not
+            // observe a stale future and burn the next frame early; frames
+            // that resolve nothing (e.g. subscribe acks) fall through on the
+            // timeout
+            let settled = 0;
+            while (wsClientHasPendingFutures(exchange, url) && (settled < 500)) {
+                await exchange.sleep(20);
+                settled = settled + 20;
+            }
         }
         await exchange.sleep(50);
+        if (sequential) {
+            // a watch call of a sequence can register its future after every
+            // frame was already consumed — keep rejecting until the watch side
+            // reports completion (the rejections force it to finish). the time
+            // bound is a backstop for threaded runtimes where this task can be
+            // executed inline on a stack that blocks the watch side (forkjoin
+            // work stealing): give up eventually so the stack unwinds instead
+            // of deadlocking
+            let waitedDone = 0;
+            while (!isWsTestCompleted(exchange, url) && (waitedDone < 30000)) {
+                rejectPendingWsFutures(exchange, url);
+                await exchange.sleep(50);
+                waitedDone = waitedDone + 50;
+            }
+        }
         // reject anything still pending so a wrong fixture fails fast
         // instead of hanging the test run forever
         rejectPendingWsFutures(exchange, url);
         return true; // c# methods used with promiseAll need to return something
     }
-    async watchAndAssertSequence(exchange, method, input, skipKeys, expectedResults) {
+    async watchAndAssertSequence(exchange, url, method, input, skipKeys, expectedResults) {
         // await the watch method once per expected result: each injected frame
         // resolves the pending future, so successive awaits observe the
         // successive states (e.g. an order going from open to closed)
@@ -1722,10 +1745,13 @@ class testMainClass {
             }
         }
         catch (e) {
-            // rethrow for the caller to report — the explicit try/catch also
-            // keeps the java transpilation compilable (checked exceptions)
+            // let the injector's rejection loop exit before the caller reports
+            // — the explicit try/catch also keeps the java transpilation
+            // compilable (checked exceptions)
+            markWsTestCompleted(exchange, url);
             throw e;
         }
+        markWsTestCompleted(exchange, url);
         return true; // c# methods used with promiseAll need to return something
     }
     assertWsSentMessages(exchange, url, data) {
@@ -1765,9 +1791,14 @@ class testMainClass {
             if (expectedResults !== undefined) {
                 // 'parsedResponses' asserts one result per successive watch
                 // resolution (e.g. an order going from open to closed)
+                // start the injector before the watch side: it must never sit
+                // queued while the watch chain blocks on a join — a forkjoin
+                // worker could execute it inline on the blocked stack and the
+                // rejection loop would then wait on the very watch side it is
+                // buried on top of
                 const promises = [
-                    this.watchAndAssertSequence(exchange, method, input, skipKeys, expectedResults),
-                    this.injectWsMessages(exchange, url, messages),
+                    this.injectWsMessages(exchange, url, messages, true),
+                    this.watchAndAssertSequence(exchange, url, method, input, skipKeys, expectedResults),
                 ];
                 await Promise.all(promises);
                 this.assertWsSentMessages(exchange, url, data);
