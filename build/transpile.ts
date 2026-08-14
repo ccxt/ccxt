@@ -977,9 +977,26 @@ class Transpiler {
         // transpile camelCase base method names to underscore base method names
         const baseMethods = this.getPythonBaseMethods ()
         methods = methods.concat (baseMethods)
+        // the rename can only fire where the body literally contains `.<method>` followed by
+        // a non-identifier char, so index the dotted names once and skip the methods that
+        // cannot possibly occur — that avoids building and running ~1.5k regexes per class.
+        // names that are not plain identifiers (Object.prototype stringifications that reach
+        // getBaseMethods) are interpolated as regex source, so they are never skipped, and
+        // every dotted name a replacement introduces is added back to the index.
+        const dottedNames = new Set<string> ()
+        for (const dotted of bodyAsString.matchAll (/\.([A-Za-z0-9_]+)/g)) {
+            dottedNames.add (dotted[1])
+        }
         for (let method of methods) {
+            if (/^[A-Za-z0-9_]+$/.test (method) && !dottedNames.has (method)) {
+                continue
+            }
             const regex = new RegExp ('(self|super\\([^)]+\\))\\.(' + method + ')([^a-zA-Z0-9_])', 'g')
-            bodyAsString = bodyAsString.replace (regex, (match: any, p1: string, p2: string, p3: string) => (p1 + '.' + unCamelCase (p2) + p3))
+            bodyAsString = bodyAsString.replace (regex, (match: any, p1: string, p2: string, p3: string) => {
+                const renamed = unCamelCase (p2)
+                dottedNames.add (renamed)
+                return p1 + '.' + renamed + p3
+            })
         }
 
         header.push ("\n\n" + this.createPythonClassDeclaration (className, baseClass))
@@ -1387,22 +1404,43 @@ class Transpiler {
         const baseMethods = this.getPHPBaseMethods ()
         methods = methods.concat (baseMethods)
 
-        for (let method of methods) {
-            let regex = new RegExp ('\\$this->(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
-            bodyAsString = bodyAsString.replace (regex,
-                (match: any, p1: string, p2: string) => {
-                    return ((p2 === '(') ?
-                        ('$this->' + unCamelCase (p1) + p2) : // support direct php calls
-                        ("array($this, '" + unCamelCase (p1) + "')" + p2)) // as well as passing instance methods as callables
-                })
+        // same index-then-skip gate as createPythonClass: a rename can only fire where the
+        // body literally contains `$this-><method>` / `parent::<method>`, so the methods that
+        // occur in neither form are skipped instead of compiling and running two regexes each
+        const thisNames = new Set<string> ()
+        for (const named of bodyAsString.matchAll (/\$this->([A-Za-z0-9_]+)/g)) {
+            thisNames.add (named[1])
+        }
+        const parentNames = new Set<string> ()
+        for (const named of bodyAsString.matchAll (/parent::([A-Za-z0-9_]+)/g)) {
+            parentNames.add (named[1])
+        }
 
-            regex = new RegExp ('parent::(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
-            bodyAsString = bodyAsString.replace (regex,
-                (match: any, p1: string, p2: string) => {
-                    return ((p2 === '(') ?
-                        ('parent::' + unCamelCase (p1) + p2) : // support direct php calls
-                        ("array($this, '" + unCamelCase (p1) + "')" + p2)) // as well as passing instance methods as callables
-                })
+        for (let method of methods) {
+            const plain = /^[A-Za-z0-9_]+$/.test (method)
+            if (!plain || thisNames.has (method)) {
+                let regex = new RegExp ('\\$this->(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
+                bodyAsString = bodyAsString.replace (regex,
+                    (match: any, p1: string, p2: string) => {
+                        const renamed = unCamelCase (p1)
+                        thisNames.add (renamed)
+                        return ((p2 === '(') ?
+                            ('$this->' + renamed + p2) : // support direct php calls
+                            ("array($this, '" + renamed + "')" + p2)) // as well as passing instance methods as callables
+                    })
+            }
+
+            if (!plain || parentNames.has (method)) {
+                const regex = new RegExp ('parent::(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
+                bodyAsString = bodyAsString.replace (regex,
+                    (match: any, p1: string, p2: string) => {
+                        const renamed = unCamelCase (p1)
+                        parentNames.add (renamed)
+                        return ((p2 === '(') ?
+                            ('parent::' + renamed + p2) : // support direct php calls
+                            ("array($this, '" + renamed + "')" + p2)) // as well as passing instance methods as callables
+                    })
+            }
         }
 
         header.push ("\n" + this.createPHPClassDeclaration (className, baseClass))
