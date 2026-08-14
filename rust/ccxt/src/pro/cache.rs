@@ -27,20 +27,25 @@ pub const KIND_ARRAY_CACHE_BY_SYMBOL_SIDE: &str = "ArrayCacheBySymbolBySide";
 /// Internal constructor: builds the marker `Value::Dict` with default
 /// bookkeeping fields. Per-kind overrides flip specific fields after.
 fn new_marker(kind: &str, max_size: Value) -> Value {
+    // The mutable rolling buffer + hashmap + counters live in the shared cache
+    // registry (keyed by __cache_id) so COW clones of the marker share them —
+    // see value::CACHE_STORE. The marker Dict keeps only the immutable tags.
+    let mut state: IndexMap<String, Value> = IndexMap::new();
+    state.insert("_data".to_string(),             Value::Array(Vec::new()));
+    state.insert("hashmap".to_string(),           Value::Map(IndexMap::new()));
+    state.insert("_newUpdatesBySymbol".to_string(),   Value::Map(IndexMap::new()));
+    state.insert("_clearUpdatesBySymbol".to_string(), Value::Map(IndexMap::new()));
+    state.insert("_allNewUpdates".to_string(),    Value::Int(0));
+    state.insert("_clearAllUpdates".to_string(),  Value::Bool(false));
+    // Per-timestamp cache fields (default zero/empty; unused by the other kinds).
+    state.insert("_sizeTracker".to_string(),      Value::Map(IndexMap::new()));
+    state.insert("_newUpdates".to_string(),       Value::Int(0));
+    state.insert("_clearUpdates".to_string(),     Value::Bool(false));
+    let id = crate::value::alloc_cache_id(state);
     let mut m = IndexMap::new();
     m.insert("__cacheKind".to_string(),       Value::Str(kind.to_string()));
+    m.insert("__cache_id".to_string(),        Value::Int(id));
     m.insert("maxSize".to_string(),           max_size);
-    m.insert("_data".to_string(),             Value::Array(Vec::new()));
-    m.insert("hashmap".to_string(),          Value::Map(IndexMap::new()));
-    m.insert("_newUpdatesBySymbol".to_string(),   Value::Map(IndexMap::new()));
-    m.insert("_clearUpdatesBySymbol".to_string(), Value::Map(IndexMap::new()));
-    m.insert("_allNewUpdates".to_string(),    Value::Int(0));
-    m.insert("_clearAllUpdates".to_string(),  Value::Bool(false));
-    // Per-timestamp cache fields (default zero/empty; unused by the
-    // other kinds).
-    m.insert("_sizeTracker".to_string(),      Value::Map(IndexMap::new()));
-    m.insert("_newUpdates".to_string(),       Value::Int(0));
-    m.insert("_clearUpdates".to_string(),     Value::Bool(false));
     Value::Map(m)
 }
 

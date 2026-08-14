@@ -84,7 +84,9 @@ pub fn ws_deep_equal(a: &Value, b: &Value) -> bool {
 fn unwrap_marker_to_array(v: &Value) -> Option<Value> {
     let d = match v { Value::Dict(d) => d, _ => return None };
     if d.contains_key("__cacheKind") {
-        return d.get("_data").cloned();
+        // The rolling buffer now lives in the shared cache registry, not the
+        // marker Dict — surface it via the public snapshot helper.
+        return ccxt::value::cache_entries_as_value(v);
     }
     if d.contains_key("__sideKind") {
         return ccxt::value::side_entries_as_value(v);

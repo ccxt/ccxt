@@ -108,9 +108,15 @@ impl Value {
         match self {
             Value::Arr(a) => Arc::make_mut(a).clear(),
             Value::Dict(m) if m.contains_key("__cacheKind") => {
-                let m = Arc::make_mut(m);
-                if let Some(Value::Arr(data)) = m.get_mut("_data") {
-                    Arc::make_mut(data).clear();
+                if let Some(id) = cache_id_of_m(m) {
+                    with_cache_cell(id, |c| {
+                        if let Some(Value::Arr(data)) = c.get_mut("_data") { Arc::make_mut(data).clear(); }
+                    });
+                } else {
+                    let m = Arc::make_mut(m);
+                    if let Some(Value::Arr(data)) = m.get_mut("_data") {
+                        Arc::make_mut(data).clear();
+                    }
                 }
             }
             _ => {}
@@ -418,6 +424,13 @@ impl Value {
                 if let Some(Value::Int(id)) = m.get("__book_id") {
                     for (k, v) in book_meta_snapshot(*id) { obj.insert(k, v.to_json()); }
                 }
+                // A cache marker keeps its rolling buffer in the shared cache
+                // store — surface it under `_data` for serialization.
+                if m.contains_key("__cacheKind") {
+                    let data = cache_data_snapshot(m);
+                    obj.insert("_data".to_string(),
+                        serde_json::Value::Array(data.iter().map(Value::to_json).collect()));
+                }
                 serde_json::Value::Object(obj)
             }
         }
@@ -625,9 +638,7 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
                 return book_cache_at(id, i);
             }
             if m.contains_key("__cacheKind") {
-                if let Some(Value::Arr(data)) = m.get("_data") {
-                    return data.get(i).cloned().unwrap_or(Value::Null);
-                }
+                return cache_at(m, i);
             }
             if m.contains_key("__sideKind") {
                 return side_entry_at(m, i);
@@ -862,12 +873,89 @@ fn cache_set_bool(m: &mut HashMap<String, Value>, key: &str, value: bool) {
     m.insert(key.to_string(), Value::Bool(value));
 }
 
+// ── Shared cache backing store ──────────────────────────────────────────────
+// ArrayCache & friends must survive COW clones the way order-book sides do: a
+// handler creates a cache, stores a *clone* in `self.ohlcvs[sym][tf]`, appends
+// to the local, then re-reads the stored clone to resolve (gate watchOHLCV).
+// With the rolling buffer + hashmap + counters kept in the Dict, the clone and
+// the local diverge on the first append (Arc::make_mut) and the re-read is
+// empty. So hold the whole mutable cache state (`_data`, `hashmap`, counters)
+// in a registry keyed by a stable `__cache_id`; every COW clone shares it.
+static CACHE_STORE: once_cell::sync::Lazy<std::sync::Mutex<std::collections::HashMap<i64, HashMap<String, Value>>>> =
+    once_cell::sync::Lazy::new(|| std::sync::Mutex::new(std::collections::HashMap::new()));
+static NEXT_CACHE_ID: std::sync::atomic::AtomicI64 = std::sync::atomic::AtomicI64::new(1);
+
+/// Register a cache's initial mutable state, returning its shared id.
+pub(crate) fn alloc_cache_id(initial: HashMap<String, Value>) -> i64 {
+    let id = NEXT_CACHE_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    CACHE_STORE.lock().unwrap().insert(id, initial);
+    id
+}
+
+fn cache_id_of(v: &Value) -> Option<i64> {
+    match v {
+        Value::Dict(d) => match d.get("__cache_id") { Some(Value::Int(n)) => Some(*n), _ => None },
+        _ => None,
+    }
+}
+fn cache_id_of_m(m: &HashMap<String, Value>) -> Option<i64> {
+    match m.get("__cache_id") { Some(Value::Int(n)) => Some(*n), _ => None }
+}
+
+fn with_cache_cell<R>(id: i64, f: impl FnOnce(&mut HashMap<String, Value>) -> R) -> R {
+    let mut g = CACHE_STORE.lock().unwrap();
+    let cell = g.entry(id).or_insert_with(HashMap::new);
+    f(cell)
+}
+
+/// Snapshot a cache marker's rolling buffer (from the shared cell if it carries
+/// a `__cache_id`, else the inline `_data` field for legacy markers).
+fn cache_data_snapshot(m: &HashMap<String, Value>) -> Vec<Value> {
+    if let Some(id) = cache_id_of_m(m) {
+        return with_cache_cell(id, |c| match c.get("_data") {
+            Some(Value::Arr(a)) => (**a).clone(),
+            _ => Vec::new(),
+        });
+    }
+    match m.get("_data") { Some(Value::Arr(a)) => (**a).clone(), _ => Vec::new() }
+}
+
+fn cache_len_of(m: &HashMap<String, Value>) -> usize {
+    if let Some(id) = cache_id_of_m(m) {
+        return with_cache_cell(id, |c| match c.get("_data") { Some(Value::Arr(a)) => a.len(), _ => 0 });
+    }
+    match m.get("_data") { Some(Value::Arr(a)) => a.len(), _ => 0 }
+}
+
+fn cache_at(m: &HashMap<String, Value>, i: usize) -> Value {
+    if let Some(id) = cache_id_of_m(m) {
+        return with_cache_cell(id, |c| match c.get("_data") {
+            Some(Value::Arr(a)) => a.get(i).cloned().unwrap_or(Value::Null),
+            _ => Value::Null,
+        });
+    }
+    match m.get("_data") { Some(Value::Arr(a)) => a.get(i).cloned().unwrap_or(Value::Null), _ => Value::Null }
+}
+
+/// Public: cache buffer length, or None when `m` isn't a cache marker.
+pub(crate) fn cache_len_of_marker(m: &HashMap<String, Value>) -> Option<usize> {
+    if m.contains_key("__cacheKind") { Some(cache_len_of(m)) } else { None }
+}
+
 pub(crate) fn cache_append(target: &mut Value, item: Value) {
     let kind = cache_kind(target).unwrap_or_default();
     let cap = cache_max_size(target);
-    if let Value::Dict(m_arc) = target {
+    if let Some(id) = cache_id_of(target) {
+        with_cache_cell(id, |m| cache_append_inner(m, &kind, cap, item));
+    } else if let Value::Dict(m_arc) = target {
         let m = Arc::make_mut(m_arc);
-        match kind.as_str() {
+        cache_append_inner(m, &kind, cap, item);
+    }
+}
+
+fn cache_append_inner(m: &mut HashMap<String, Value>, kind: &str, cap: Option<usize>, item: Value) {
+    {
+        match kind {
             "ArrayCache" => {
                 let data = cache_data_mut(m);
                 if let Some(cap) = cap { if data.len() == cap { data.remove(0); } }
@@ -1079,8 +1167,19 @@ fn cache_reset_counters_if_needed(m: &mut HashMap<String, Value>, item: &Value, 
 pub(crate) fn cache_get_limit(target: &mut Value, symbol: Value, limit: Value) -> Value {
     let kind = cache_kind(target).unwrap_or_default();
     let nested_set = matches!(kind.as_str(), "ArrayCacheBySymbolById" | "ArrayCacheBySymbolBySide");
+    if let Some(id) = cache_id_of(target) {
+        return with_cache_cell(id, |m| cache_get_limit_inner(m, &kind, nested_set, symbol, limit));
+    }
     if let Value::Dict(m_arc) = target {
         let m = Arc::make_mut(m_arc);
+        cache_get_limit_inner(m, &kind, nested_set, symbol, limit)
+    } else {
+        limit
+    }
+}
+
+fn cache_get_limit_inner(m: &mut HashMap<String, Value>, kind: &str, nested_set: bool, symbol: Value, limit: Value) -> Value {
+    {
         // `ArrayCacheByTimestamp` doesn't track per-symbol updates —
         // both `getLimit(undefined, …)` and `getLimit(sym, …)` return
         // `this.newUpdates` and arm a single global `clearUpdates` flag.
@@ -1116,8 +1215,6 @@ pub(crate) fn cache_get_limit(target: &mut Value, symbol: Value, limit: Value) -
             (Some(v), Value::Null)    => Value::Int(v),
             (Some(v), _)              => Value::Int(v),
         }
-    } else {
-        limit
     }
 }
 
@@ -1283,10 +1380,7 @@ pub fn cache_entries_as_value(v: &Value) -> Option<Value> {
             return Some(Value::Array(items));
         }
         if m.contains_key("__cacheKind") {
-            return Some(match m.get("_data") {
-                Some(Value::Arr(a)) => Value::Array((**a).clone()),
-                _ => Value::Array(vec![]),
-            });
+            return Some(Value::Array(cache_data_snapshot(m)));
         }
     }
     None

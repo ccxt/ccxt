@@ -484,10 +484,8 @@ pub fn get_array_length(v: &Value) -> Value {
         if let Some(n) = crate::value::book_cache_len_of(d) {
             return Value::Int(n as i64);
         }
-        if d.contains_key("__cacheKind") {
-            if let Some(Value::Arr(data)) = d.get("_data") {
-                return Value::Int(data.len() as i64);
-            }
+        if let Some(n) = crate::value::cache_len_of_marker(d) {
+            return Value::Int(n as i64);
         }
         if d.contains_key("__sideKind") {
             return Value::Int(crate::value::side_entries_len(d) as i64);
