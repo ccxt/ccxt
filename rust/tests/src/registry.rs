@@ -191,6 +191,93 @@ macro_rules! for_each_core {
 }
 pub(crate) use for_each_core;
 
+/// Pro (WebSocket) Cores, expanded like `for_each_core!` but only over the
+/// exchanges that ship a `ccxt::pro::<id>` Core. Used by `build_core` under
+/// `--ws` so the live WS tests get a Core whose `has` carries the watch*
+/// methods and whose `call_dynamic` routes the WS handlers.
+macro_rules! for_each_ws_core {
+    ($cb:ident) => {
+        $cb!(alpaca, WsAlpacaCore);
+        $cb!(apex, WsApexCore);
+        $cb!(aster, WsAsterCore);
+        $cb!(backpack, WsBackpackCore);
+        $cb!(bequant, WsBequantCore);
+        $cb!(binance, WsBinanceCore);
+        $cb!(binancecoinm, WsBinancecoinmCore);
+        $cb!(binanceus, WsBinanceusCore);
+        $cb!(binanceusdm, WsBinanceusdmCore);
+        $cb!(bingx, WsBingxCore);
+        $cb!(bitfinex, WsBitfinexCore);
+        $cb!(bitget, WsBitgetCore);
+        $cb!(bithumb, WsBithumbCore);
+        $cb!(bitmex, WsBitmexCore);
+        $cb!(bitopro, WsBitoproCore);
+        $cb!(bitrue, WsBitrueCore);
+        $cb!(bitstamp, WsBitstampCore);
+        $cb!(bittrade, WsBittradeCore);
+        $cb!(bitvavo, WsBitvavoCore);
+        $cb!(blockchaincom, WsBlockchaincomCore);
+        $cb!(blofin, WsBlofinCore);
+        $cb!(bullish, WsBullishCore);
+        $cb!(bybit, WsBybitCore);
+        $cb!(bybiteu, WsBybiteuCore);
+        $cb!(bydfi, WsBydfiCore);
+        $cb!(cex, WsCexCore);
+        $cb!(coinbase, WsCoinbaseCore);
+        $cb!(coinbaseexchange, WsCoinbaseexchangeCore);
+        $cb!(coinbaseinternational, WsCoinbaseinternationalCore);
+        $cb!(coincheck, WsCoincheckCore);
+        $cb!(coinex, WsCoinexCore);
+        $cb!(coinone, WsCoinoneCore);
+        $cb!(cryptocom, WsCryptocomCore);
+        $cb!(deepcoin, WsDeepcoinCore);
+        $cb!(deribit, WsDeribitCore);
+        $cb!(derive, WsDeriveCore);
+        $cb!(dydx, WsDydxCore);
+        $cb!(exmo, WsExmoCore);
+        $cb!(extended, WsExtendedCore);
+        $cb!(gate, WsGateCore);
+        $cb!(gateeu, WsGateeuCore);
+        $cb!(gemini, WsGeminiCore);
+        $cb!(grvt, WsGrvtCore);
+        $cb!(hashkey, WsHashkeyCore);
+        $cb!(hitbtc, WsHitbtcCore);
+        $cb!(hollaex, WsHollaexCore);
+        $cb!(htx, WsHtxCore);
+        $cb!(hyperliquid, WsHyperliquidCore);
+        $cb!(independentreserve, WsIndependentreserveCore);
+        $cb!(kraken, WsKrakenCore);
+        $cb!(krakenfutures, WsKrakenfuturesCore);
+        $cb!(kucoin, WsKucoinCore);
+        $cb!(kucoinfutures, WsKucoinfuturesCore);
+        $cb!(lbank, WsLbankCore);
+        $cb!(lighter, WsLighterCore);
+        $cb!(luno, WsLunoCore);
+        $cb!(mexc, WsMexcCore);
+        $cb!(modetrade, WsModetradeCore);
+        $cb!(mudrex, WsMudrexCore);
+        $cb!(myokx, WsMyokxCore);
+        $cb!(nado, WsNadoCore);
+        $cb!(ndax, WsNdaxCore);
+        $cb!(okx, WsOkxCore);
+        $cb!(okxus, WsOkxusCore);
+        $cb!(onetrading, WsOnetradingCore);
+        $cb!(p2b, WsP2bCore);
+        $cb!(pacifica, WsPacificaCore);
+        $cb!(paradex, WsParadexCore);
+        $cb!(phemex, WsPhemexCore);
+        $cb!(poloniex, WsPoloniexCore);
+        $cb!(toobit, WsToobitCore);
+        $cb!(upbit, WsUpbitCore);
+        $cb!(weex, WsWeexCore);
+        $cb!(whitebit, WsWhitebitCore);
+        $cb!(woo, WsWooCore);
+        $cb!(woofipro, WsWoofiproCore);
+        $cb!(xt, WsXtCore);
+    };
+}
+pub(crate) use for_each_ws_core;
+
 #[derive(Debug, Default, Clone)]
 pub struct Captured {
     pub url:     String,

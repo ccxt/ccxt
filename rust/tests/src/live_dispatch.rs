@@ -55,6 +55,88 @@ use ccxt::exchanges::{
     bybiteu::BybiteuCore, extended::ExtendedCore, gateeu::GateeuCore,
     mudrex::MudrexCore, nado::NadoCore,
 };
+
+// Pro (WebSocket) Cores — built for --ws live tests (they carry the watch*
+// methods in `has` and their `call_dynamic` routes the watch handlers).
+use ccxt::pro::{
+    alpaca::AlpacaCore as WsAlpacaCore,
+    apex::ApexCore as WsApexCore,
+    aster::AsterCore as WsAsterCore,
+    backpack::BackpackCore as WsBackpackCore,
+    bequant::BequantCore as WsBequantCore,
+    binance::BinanceCore as WsBinanceCore,
+    binancecoinm::BinancecoinmCore as WsBinancecoinmCore,
+    binanceus::BinanceusCore as WsBinanceusCore,
+    binanceusdm::BinanceusdmCore as WsBinanceusdmCore,
+    bingx::BingxCore as WsBingxCore,
+    bitfinex::BitfinexCore as WsBitfinexCore,
+    bitget::BitgetCore as WsBitgetCore,
+    bithumb::BithumbCore as WsBithumbCore,
+    bitmex::BitmexCore as WsBitmexCore,
+    bitopro::BitoproCore as WsBitoproCore,
+    bitrue::BitrueCore as WsBitrueCore,
+    bitstamp::BitstampCore as WsBitstampCore,
+    bittrade::BittradeCore as WsBittradeCore,
+    bitvavo::BitvavoCore as WsBitvavoCore,
+    blockchaincom::BlockchaincomCore as WsBlockchaincomCore,
+    blofin::BlofinCore as WsBlofinCore,
+    bullish::BullishCore as WsBullishCore,
+    bybit::BybitCore as WsBybitCore,
+    bybiteu::BybiteuCore as WsBybiteuCore,
+    bydfi::BydfiCore as WsBydfiCore,
+    cex::CexCore as WsCexCore,
+    coinbase::CoinbaseCore as WsCoinbaseCore,
+    coinbaseexchange::CoinbaseexchangeCore as WsCoinbaseexchangeCore,
+    coinbaseinternational::CoinbaseinternationalCore as WsCoinbaseinternationalCore,
+    coincheck::CoincheckCore as WsCoincheckCore,
+    coinex::CoinexCore as WsCoinexCore,
+    coinone::CoinoneCore as WsCoinoneCore,
+    cryptocom::CryptocomCore as WsCryptocomCore,
+    deepcoin::DeepcoinCore as WsDeepcoinCore,
+    deribit::DeribitCore as WsDeribitCore,
+    derive::DeriveCore as WsDeriveCore,
+    dydx::DydxCore as WsDydxCore,
+    exmo::ExmoCore as WsExmoCore,
+    extended::ExtendedCore as WsExtendedCore,
+    gate::GateCore as WsGateCore,
+    gateeu::GateeuCore as WsGateeuCore,
+    gemini::GeminiCore as WsGeminiCore,
+    grvt::GrvtCore as WsGrvtCore,
+    hashkey::HashkeyCore as WsHashkeyCore,
+    hitbtc::HitbtcCore as WsHitbtcCore,
+    hollaex::HollaexCore as WsHollaexCore,
+    htx::HtxCore as WsHtxCore,
+    hyperliquid::HyperliquidCore as WsHyperliquidCore,
+    independentreserve::IndependentreserveCore as WsIndependentreserveCore,
+    kraken::KrakenCore as WsKrakenCore,
+    krakenfutures::KrakenfuturesCore as WsKrakenfuturesCore,
+    kucoin::KucoinCore as WsKucoinCore,
+    kucoinfutures::KucoinfuturesCore as WsKucoinfuturesCore,
+    lbank::LbankCore as WsLbankCore,
+    lighter::LighterCore as WsLighterCore,
+    luno::LunoCore as WsLunoCore,
+    mexc::MexcCore as WsMexcCore,
+    modetrade::ModetradeCore as WsModetradeCore,
+    mudrex::MudrexCore as WsMudrexCore,
+    myokx::MyokxCore as WsMyokxCore,
+    nado::NadoCore as WsNadoCore,
+    ndax::NdaxCore as WsNdaxCore,
+    okx::OkxCore as WsOkxCore,
+    okxus::OkxusCore as WsOkxusCore,
+    onetrading::OnetradingCore as WsOnetradingCore,
+    p2b::P2bCore as WsP2bCore,
+    pacifica::PacificaCore as WsPacificaCore,
+    paradex::ParadexCore as WsParadexCore,
+    phemex::PhemexCore as WsPhemexCore,
+    poloniex::PoloniexCore as WsPoloniexCore,
+    toobit::ToobitCore as WsToobitCore,
+    upbit::UpbitCore as WsUpbitCore,
+    weex::WeexCore as WsWeexCore,
+    whitebit::WhitebitCore as WsWhitebitCore,
+    woo::WooCore as WsWooCore,
+    woofipro::WoofiproCore as WsWoofiproCore,
+    xt::XtCore as WsXtCore,
+};
 // Prediction-market venue Cores (Deref through PredictionExchange → Exchange).
 use ccxt::prediction::{
     kalshi::KalshiCore, limitless::LimitlessCore,
@@ -82,6 +164,7 @@ pub fn is_prediction_mode() -> bool {
     PREDICTION_MODE.load(Ordering::Relaxed)
 }
 use crate::registry::for_each_core;
+use crate::registry::for_each_ws_core;
 use indexmap::IndexMap as HashMap;
 use std::sync::{Mutex, OnceLock};
 
@@ -200,8 +283,8 @@ pub fn write_field_for_id(id: &str, key: &str, value: Value) {
     }
 }
 
-pub fn ensure_live_core(id: &str, cfg: Value) {
-    if let Some(entry) = build_core(id, cfg) {
+pub fn ensure_live_core(id: &str, cfg: Value, ws: bool) {
+    if let Some(entry) = build_core(id, cfg, ws) {
         // Drop the old entry's leaked Box before replacing — otherwise
         // static-fixture tests (one initExchange per case, ~thousands of
         // cases) would leak a Box<Core> per test.
@@ -327,7 +410,7 @@ pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
     }
 }
 
-fn build_core(id: &str, cfg: Value) -> Option<CoreEntry> {
+fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
     // Field access on `core.last_request_*` auto-derefs through each
     // Core's `Deref` chain (root: `BinanceCore → Exchange`; subclass:
     // `BinanceusCore → BinanceCore → Exchange`) — so this one expression
@@ -527,6 +610,11 @@ fn build_core(id: &str, cfg: Value) -> Option<CoreEntry> {
     if PREDICTION_MODE.load(Ordering::Relaxed) {
         arm!(hyperliquid, PredHyperliquidCore);
         arm!(binance, PredBinanceCore);
+    }
+    // Under --ws, prefer the pro Core (carries watch* in `has`, routes the WS
+    // handlers). Falls through to the REST Core for ids without a pro variant.
+    if ws {
+        for_each_ws_core!(arm);
     }
     for_each_core!(arm);
     None

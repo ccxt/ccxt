@@ -22,7 +22,7 @@ transpiled-tests = []
 exchange-tests = []
 
 [dependencies]
-ccxt = { path = "../ccxt", features = ["transpiled-base"] }
+ccxt = { path = "../ccxt", features = ["transpiled-base", "transpiled-ws"] }
 serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
 tokio = { version = "1", features = ["full"] }
 futures = "0.3"

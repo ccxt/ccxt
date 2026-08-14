@@ -239,7 +239,9 @@ pub fn initExchange(exchange_id: Value, optional_args: &[Value]) -> Value {
     // `markets` / `options` from offline harnesses (broker-id tests,
     // static request/response) — the cached Core simply uses them.
     if !id.is_empty() {
-        crate::live_dispatch::ensure_live_core(&id, cfg.clone());
+        // optional_args[1] is the wsTests flag (initExchange(id, cfg, ws)).
+        let ws = matches!(optional_args.get(1), Some(Value::Bool(true)));
+        crate::live_dispatch::ensure_live_core(&id, cfg.clone(), ws);
         // `--useProxy`: TS source mutates `exchange.httpProxy = …` on the
         // Value object directly. The Rust transpiler emits that as a
         // `set_value(&mut exchange, …)` call, but the surrounding test
