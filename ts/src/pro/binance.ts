@@ -2889,8 +2889,18 @@ export default class binance extends binanceRest {
         const subscriptions = client.subscriptions;
         const subscriptionsKeys = Object.keys (subscriptions);
         const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        // https://github.com/ccxt/ccxt/issues/29393 - the subscriptions flag is
+        // set before the subscribe request resolves, so a concurrent caller
+        // would previously return early and start watching an unauthenticated
+        // stream - waiters must block until the leader's subscribe confirms
+        const flightHash = 'authenticate:signature:' + marketType;
         if (accountType === marketType) {
+            await this.singleFlightWait (flightHash);
             return;
+        }
+        const isLeader = await this.singleFlightAcquire (flightHash);
+        if (!isLeader) {
+            return; // the flight settled, the leader's subscribe confirmed
         }
         client.subscriptions[marketType] = true;
         const requestId = this.requestId (url);
@@ -2905,7 +2915,13 @@ export default class binance extends binanceRest {
             'method': this.handleUserDataStreamSubscribe,
             'subscription': marketType,
         };
-        await this.watch (url, messageHash, message, messageHash, subscription);
+        try {
+            await this.watch (url, messageHash, message, messageHash, subscription);
+        } catch (e) {
+            this.singleFlightReject (flightHash, e);
+            throw e;
+        }
+        this.singleFlightResolve (flightHash);
     }
 
     handleUserDataStreamSubscribe (client: Client, message: any) {
@@ -2950,57 +2966,77 @@ export default class binance extends binanceRest {
         const time = this.milliseconds ();
         const delay = this.sum (listenTokenRefreshRate, 10000);
         if (time - lastAuthenticatedTime > delay) {
-            // Step 1: Create listenToken via REST API
-            const symbol = this.safeString (params, 'symbol');
-            const isIsolated = this.safeBool (params, 'isIsolated', false);
-            const validity = this.safeInteger (params, 'validity');
-            const request: Dict = {};
-            if (isIsolated) {
-                if (symbol === undefined) {
-                    throw new ArgumentsRequired (this.id + ' ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode');
+            // single-flight guard - the staleness check alone lets concurrent
+            // callers create two different listenTokens; the renewal timer can
+            // also re-enter here through renewListenToken
+            // https://github.com/ccxt/ccxt/issues/29393
+            const flightHash = 'authenticate:listenToken:' + marketType;
+            const isLeader = await this.singleFlightAcquire (flightHash);
+            if (!isLeader) {
+                return; // the flight settled, the leader's subscribe confirmed
+            }
+            try {
+                // Step 1: Create listenToken via REST API
+                const symbol = this.safeString (params, 'symbol');
+                const isIsolated = this.safeBool (params, 'isIsolated', false);
+                const validity = this.safeInteger (params, 'validity');
+                const request: Dict = {};
+                if (isIsolated) {
+                    if (symbol === undefined) {
+                        throw new ArgumentsRequired (this.id + ' ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode');
+                    }
+                    const marketId = this.marketId (symbol);
+                    request['symbol'] = marketId;
+                    request['isIsolated'] = true;
                 }
-                const marketId = this.marketId (symbol);
-                request['symbol'] = marketId;
-                request['isIsolated'] = true;
-            }
-            if (validity !== undefined) {
-                request['validity'] = validity;
-            }
-            const response = await this.sapiPostUserListenToken (request);
-            const listenToken = this.safeString (response, 'token');
-            const expirationTime = this.safeInteger (response, 'expirationTime');
-            // Step 2: Subscribe to user data stream via WebSocket API
-            const requestId = this.requestId (url);
-            const messageHash = requestId.toString ();
-            const message: Dict = {
-                'id': messageHash,
-                'method': 'userDataStream.subscribe.listenToken',
-                'params': {
+                if (validity !== undefined) {
+                    request['validity'] = validity;
+                }
+                const response = await this.sapiPostUserListenToken (request);
+                const listenToken = this.safeString (response, 'token');
+                const expirationTime = this.safeInteger (response, 'expirationTime');
+                // Step 2: Subscribe to user data stream via WebSocket API
+                const requestId = this.requestId (url);
+                const messageHash = requestId.toString ();
+                const message: Dict = {
+                    'id': messageHash,
+                    'method': 'userDataStream.subscribe.listenToken',
+                    'params': {
+                        'listenToken': listenToken,
+                    },
+                };
+                const subscription: Dict = {
+                    'id': messageHash,
+                    'method': this.handleUserDataStreamSubscribe,
+                    'subscription': marketType,
+                };
+                this.options[marketType] = this.extend (options, {
                     'listenToken': listenToken,
-                },
-            };
-            const subscription: Dict = {
-                'id': messageHash,
-                'method': this.handleUserDataStreamSubscribe,
-                'subscription': marketType,
-            };
-            this.options[marketType] = this.extend (options, {
-                'listenToken': listenToken,
-                'expirationTime': expirationTime,
-                'lastAuthenticatedTime': time,
-                'symbol': symbol,
-                'isIsolated': isIsolated,
-                'validity': validity,
-            });
-            // Schedule token renewal before expiration
-            if (expirationTime !== undefined) {
-                const renewalTime = expirationTime - time - 60000; // Renew 1 minute before expiration
-                if (renewalTime > 0) {
-                    const extendedParams = this.extend (params, { 'type': marketType });
-                    this.delay (renewalTime, this.renewListenToken, extendedParams);
+                    'expirationTime': expirationTime,
+                    'lastAuthenticatedTime': time,
+                    'symbol': symbol,
+                    'isIsolated': isIsolated,
+                    'validity': validity,
+                });
+                // Schedule token renewal before expiration
+                if (expirationTime !== undefined) {
+                    const renewalTime = expirationTime - time - 60000; // Renew 1 minute before expiration
+                    if (renewalTime > 0) {
+                        const extendedParams = this.extend (params, { 'type': marketType });
+                        this.delay (renewalTime, this.renewListenToken, extendedParams);
+                    }
                 }
+                await this.watch (url, messageHash, message, messageHash, subscription);
+            } catch (e) {
+                // a failed flight must not leave a fresh lastAuthenticatedTime
+                // behind, the next caller has to retry the token creation
+                this.options[marketType] = this.extend (options, {
+                    'lastAuthenticatedTime': 0,
+                });
+                this.singleFlightReject (flightHash, e);
+                throw e;
             }
-            await this.watch (url, messageHash, message, messageHash, subscription);
+            this.singleFlightResolve (flightHash);
         }
     }
 
@@ -3063,24 +3099,39 @@ export default class binance extends binanceRest {
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
         const delay = this.sum (listenKeyRefreshRate, 10000);
         if (time - lastAuthenticatedTime > delay) {
+            // single-flight guard - two concurrent private watch calls would
+            // both pass the staleness check and fetch two different listenKeys,
+            // splitting user-data subscriptions across two connections
+            // https://github.com/ccxt/ccxt/issues/29393
+            const flightHash = 'authenticate:listenKey:' + type;
+            const isLeader = await this.singleFlightAcquire (flightHash);
+            if (!isLeader) {
+                return; // the flight settled, the leader cached a fresh listenKey
+            }
             let response: Dict;
-            if (isPortfolioMargin) {
-                response = await this.papiPostListenKey (params);
-                params = this.extend (params, { 'portfolioMargin': true });
-            } else if (type === 'future') {
-                response = await this.fapiPrivatePostListenKey (params);
-            } else if (type === 'delivery') {
-                response = await this.dapiPrivatePostListenKey (params);
-            } else if (type === 'option') {
-                response = await this.eapiPrivatePostListenKey (params);
-            } else {
-                response = await this.publicPostUserDataStream (params);
+            try {
+                if (isPortfolioMargin) {
+                    response = await this.papiPostListenKey (params);
+                    params = this.extend (params, { 'portfolioMargin': true });
+                } else if (type === 'future') {
+                    response = await this.fapiPrivatePostListenKey (params);
+                } else if (type === 'delivery') {
+                    response = await this.dapiPrivatePostListenKey (params);
+                } else if (type === 'option') {
+                    response = await this.eapiPrivatePostListenKey (params);
+                } else {
+                    response = await this.publicPostUserDataStream (params);
+                }
+            } catch (e) {
+                this.singleFlightReject (flightHash, e);
+                throw e;
             }
             this.options[type] = this.extend (options, {
                 'listenKey': this.safeString (response, 'listenKey'),
                 'lastAuthenticatedTime': time,
             });
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+            this.singleFlightResolve (flightHash);
         }
     }
 

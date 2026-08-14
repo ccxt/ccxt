@@ -455,6 +455,46 @@ class BaseExchange(SyncExchange):
     def counted_order_book(self, snapshot={}, depth=None):
         return CountedOrderBook(snapshot, depth)
 
+    async def single_flight_acquire(self, flight_hash):
+        # leader election for check-then-fetch authentication flows such as
+        # listenKey and token fetches - https://github.com/ccxt/ccxt/issues/29393
+        # returns True when the caller is elected leader and must perform the
+        # fetch itself, then settle the flight with single_flight_resolve on
+        # success or single_flight_reject on failure
+        # returns False when another flight is already in progress - in that
+        # case the call awaits the in-progress flight and the caller must
+        # re-read the cached credential after it returns
+        # a rejected flight throws into all waiters so nothing deadlocks
+        self.authentication_flights = getattr(self, 'authentication_flights', None) or {}
+        if flight_hash in self.authentication_flights:
+            await self.authentication_flights[flight_hash]
+            return False
+        self.authentication_flights[flight_hash] = Future()
+        return True
+
+    async def single_flight_wait(self, flight_hash):
+        # awaits an in-progress flight without electing a leader
+        # returns immediately when no flight is in progress
+        self.authentication_flights = getattr(self, 'authentication_flights', None) or {}
+        if flight_hash in self.authentication_flights:
+            await self.authentication_flights[flight_hash]
+
+    def single_flight_resolve(self, flight_hash, result=None):
+        # settles a flight successfully and wakes all waiters
+        self.authentication_flights = getattr(self, 'authentication_flights', None) or {}
+        if flight_hash in self.authentication_flights:
+            future = self.authentication_flights[flight_hash]
+            del self.authentication_flights[flight_hash]
+            future.resolve(result)
+
+    def single_flight_reject(self, flight_hash, error):
+        # settles a flight with an error - all waiters throw
+        self.authentication_flights = getattr(self, 'authentication_flights', None) or {}
+        if flight_hash in self.authentication_flights:
+            future = self.authentication_flights[flight_hash]
+            del self.authentication_flights[flight_hash]
+            future.reject(error)
+
     def client(self, url):
         self.open()  # ensure self.asyncio_loop is set
         self.clients = self.clients or {}

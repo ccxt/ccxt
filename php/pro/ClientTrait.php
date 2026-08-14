@@ -43,6 +43,50 @@ trait ClientTrait {
         return new CountedOrderBook($snapshot, $depth);
     }
 
+    public $authenticationFlights = array();
+
+    public function single_flight_acquire($flight_hash) {
+        // leader election for check-then-fetch authentication flows
+        // see https://github.com/ccxt/ccxt/issues/29393
+        // returns true when the caller is elected leader and must perform the fetch
+        // returns false after awaiting an in-progress flight
+        return Async\async(function () use ($flight_hash) {
+            if (array_key_exists($flight_hash, $this->authenticationFlights)) {
+                Async\await($this->authenticationFlights[$flight_hash]);
+                return false;
+            }
+            $this->authenticationFlights[$flight_hash] = new Future();
+            return true;
+        })();
+    }
+
+    public function single_flight_wait($flight_hash) {
+        // awaits an in-progress flight without electing a leader
+        return Async\async(function () use ($flight_hash) {
+            if (array_key_exists($flight_hash, $this->authenticationFlights)) {
+                Async\await($this->authenticationFlights[$flight_hash]);
+            }
+        })();
+    }
+
+    public function single_flight_resolve($flight_hash, $result = null) {
+        // settles a flight successfully and wakes all waiters
+        if (array_key_exists($flight_hash, $this->authenticationFlights)) {
+            $future = $this->authenticationFlights[$flight_hash];
+            unset($this->authenticationFlights[$flight_hash]);
+            $future->resolve($result);
+        }
+    }
+
+    public function single_flight_reject($flight_hash, $error) {
+        // settles a flight with an error - all waiters throw
+        if (array_key_exists($flight_hash, $this->authenticationFlights)) {
+            $future = $this->authenticationFlights[$flight_hash];
+            unset($this->authenticationFlights[$flight_hash]);
+            $future->reject($error);
+        }
+    }
+
     public function client($url) : Client {
         if (!array_key_exists($url, $this->clients)) {
             $on_message = array($this, 'handle_message');

@@ -439,6 +439,7 @@ export class BaseExchange {
     clients: Dictionary<WsClient> = {};
     newUpdates: boolean = true;
     streaming: Dictionary<any> = {};
+    authenticationFlights: Dictionary<FutureInterface> = {};  // single-flight guards for check-then-fetch auth flows, see singleFlightAcquire
 
     // INTERNAL METHODS
     sleep = sleep;
@@ -1688,6 +1689,50 @@ export class BaseExchange {
 
     ping (client: Client): Dict | Str {
         return undefined;
+    }
+
+    async singleFlightAcquire (flightHash: string): Promise<boolean> {
+        // leader election for check-then-fetch authentication flows such as
+        // listenKey and token fetches - https://github.com/ccxt/ccxt/issues/29393
+        // returns true when the caller is elected leader and must perform the
+        // fetch itself, then settle the flight with singleFlightResolve on
+        // success or singleFlightReject on failure
+        // returns false when another flight is already in progress - in that
+        // case the call awaits the in-progress flight and the caller must
+        // re-read the cached credential after it returns
+        // a rejected flight throws into all waiters so nothing deadlocks
+        if (flightHash in this.authenticationFlights) {
+            await this.authenticationFlights[flightHash];
+            return false;
+        }
+        this.authenticationFlights[flightHash] = Future ();
+        return true;
+    }
+
+    async singleFlightWait (flightHash: string) {
+        // awaits an in-progress flight without electing a leader
+        // returns immediately when no flight is in progress
+        if (flightHash in this.authenticationFlights) {
+            await this.authenticationFlights[flightHash];
+        }
+    }
+
+    singleFlightResolve (flightHash: string, result: any = undefined) {
+        // settles a flight successfully and wakes all waiters
+        if (flightHash in this.authenticationFlights) {
+            const future = this.authenticationFlights[flightHash];
+            delete this.authenticationFlights[flightHash];
+            future.resolve (result);
+        }
+    }
+
+    singleFlightReject (flightHash: string, error: any) {
+        // settles a flight with an error - all waiters throw
+        if (flightHash in this.authenticationFlights) {
+            const future = this.authenticationFlights[flightHash];
+            delete this.authenticationFlights[flightHash];
+            future.reject (error);
+        }
     }
 
     client (url: Str): WsClient {
