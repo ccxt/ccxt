@@ -410,17 +410,28 @@ impl Value {
             Value::Str(s)      => serde_json::Value::String(s.clone()),
             Value::Arr(a)      => serde_json::Value::Array(a.iter().map(Value::to_json).collect()),
             Value::Dict(m)     => {
-                let mut obj: serde_json::Map<String, serde_json::Value> =
-                    m.iter().map(|(k, v)| (k.clone(), v.to_json())).collect();
-                // A side marker keeps its entries in the shared side store, not
-                // in the Dict — surface them under `_entries` for serialization.
+                // A side marker keeps its entries in the shared side store —
+                // serialize as the plain `[[price, amount], …]` array (CCXT's
+                // orderbook.bids/asks shape), matching jsonStringify(orderbook)
+                // in the other languages rather than exposing the internal side
+                // struct. The WS deep-compare unwraps markers itself, so it's
+                // unaffected.
                 if m.contains_key("__side_id") {
                     let entries = side_entries_view(m);
-                    obj.insert("_entries".to_string(),
-                        serde_json::Value::Array(entries.iter().map(Value::to_json).collect()));
+                    return serde_json::Value::Array(entries.iter().map(Value::to_json).collect());
                 }
-                // A shared book keeps scalar meta (nonce/timestamp/…) in the
-                // book store — surface it for serialization.
+                // A shared book keeps its scalar meta (nonce/timestamp/…) in the
+                // book store and tags itself with internal markers — drop the
+                // markers and surface the meta so the serialized book is the
+                // clean { bids, asks, timestamp, datetime, nonce, symbol } form.
+                let is_book = m.contains_key("__book_id") || m.contains_key("__bookKind");
+                let mut obj = serde_json::Map::new();
+                for (k, v) in m.iter() {
+                    if is_book && matches!(k.as_str(), "__bookKind" | "__book_id" | "_depth") {
+                        continue;
+                    }
+                    obj.insert(k.clone(), v.to_json());
+                }
                 if let Some(Value::Int(id)) = m.get("__book_id") {
                     for (k, v) in book_meta_snapshot(*id) { obj.insert(k, v.to_json()); }
                 }
