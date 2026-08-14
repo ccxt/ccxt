@@ -64,6 +64,27 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
         return low;
     }
 
+    // perf: the IList<decimal> overload above enters/exits SlimConcurrentList's
+    // ReaderWriterLockSlim once for Count plus once per ~log2(n) probe. When the
+    // argument is statically known to be a SlimConcurrentList<decimal> (which every
+    // in-repo call site is, since _index is one) this overload runs the identical
+    // binary search under a SINGLE read lock. The IList<decimal> signature above is
+    // public API and is deliberately left untouched.
+    public static int bisectLeft(SlimConcurrentList<decimal> arr, decimal x)
+    {
+        return arr.BisectLeft(x);
+    }
+
+    // perf: bisect + the `index < _index.Count && _index[index] == x` hit test that
+    // every caller runs immediately afterwards, fused into ONE read lock instead of
+    // three. `hit` is by construction exactly that expression: Comparer<decimal>.
+    // Default.Compare is decimal.Compare, i.e. the same value-based (scale-ignoring)
+    // comparison as decimal's == and < operators, so tie-breaking is unchanged.
+    public static int bisectLeft(SlimConcurrentList<decimal> arr, decimal x, out bool hit)
+    {
+        return arr.BisectLeft(x, out hit);
+    }
+
 
     private SlimConcurrentList<decimal> __index = new SlimConcurrentList<decimal>();
 
@@ -130,7 +151,14 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
             var delta = (IList<object>)delta2;
             var price = Convert.ToDecimal(delta[0]);
             var amount = Convert.ToDecimal(delta[1]);
-            var type = (this.side) ? "bid" : "ask";
+            // perf: we already hold _syncRoot, and both the `side` and `_index`
+            // property accessors lock that very same object, so each extra read below
+            // was a pure recursive Monitor re-entry returning an identical value
+            // (nothing can reassign either one without also holding _syncRoot).
+            // Hoisting them into locals removes those re-entries without touching
+            // lock ordering or observable behaviour.
+            var sideLocal = this.side;
+            var type = (sideLocal) ? "bid" : "ask";
             // if (amount == 0)
             // {
             //     Console.WriteLine($"[{type}]Will deleteeeeee {price} {amount}");
@@ -142,23 +170,27 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
 
             // }
             // debug
-            var index_price = (this.side) ? -price : price;
-            var index = bisectLeft(this._index, index_price);
+            var index_price = (sideLocal) ? -price : price;
+            var indexList = this._index;
+            // perf: `hit` is exactly `index < indexList.Count && indexList[index] == index_price`,
+            // computed under the same single read lock as the bisect itself. Nothing can
+            // mutate _index in between anyway: every writer holds _syncRoot, which we hold.
+            var index = bisectLeft(indexList, index_price, out var hit);
             if (amount != 0)
             { // check this out does not make sense right now we have to consider null amounts?
-                if (index < this._index.Count && this._index[index] == index_price)
+                if (hit)
                 {
                     (this[index] as IList<object>)[1] = amount;
                 }
                 else
                 {
-                    this._index.Insert(index, index_price);
+                    indexList.Insert(index, index_price);
                     this.Insert(index, delta);
                 }
             }
-            else if (index < this._index.Count && this._index[index] == index_price)
+            else if (hit)
             {
-                this._index.RemoveAt(index);
+                indexList.RemoveAt(index);
                 this.RemoveAt(index);
 
             }
@@ -208,11 +240,12 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
         lock (_syncRoot)
         {
             var different = this.Count - this._depth;
+            var indexList = this._index; // perf: hoist the recursive-lock property read out of the loop
             for (var i = 0; i < different; i++)
             {
                 var length = this.Count;
                 this.RemoveAt(length - 1);
-                this._index.RemoveAt(length - 1); // don't use this.Count because it mutates from one line to the other
+                indexList.RemoveAt(length - 1); // don't use this.Count because it mutates from one line to the other
             }
         }
     }
@@ -327,12 +360,16 @@ public class CountedOrderBookSide : OrderBookSide, IOrderBookSide
             // }
             // int.TryParse(deltaArray[2].ToString(), out count);
             var decimalPrice = Convert.ToDecimal(price);
-            var index_price = (this.side) ? -decimalPrice : decimalPrice;
-            var index = bisectLeft(this._index, index_price);
+            // perf: hoist the `side` / `_index` property reads (both re-enter the
+            // _syncRoot Monitor we already hold) into locals, see OrderBookSide.storeArray
+            var sideLocal = this.side;
+            var indexList = this._index;
+            var index_price = (sideLocal) ? -decimalPrice : decimalPrice;
+            var index = bisectLeft(indexList, index_price, out var hit); // see OrderBookSide.storeArray
             if (size != 0 && countObject != null && count != 0)
             {
 
-                if ((index < this._index.Count) && this._index[index] == index_price)
+                if (hit)
                 {
 
                     var entry = this[index] as IList<object>;
@@ -342,13 +379,13 @@ public class CountedOrderBookSide : OrderBookSide, IOrderBookSide
                 else
                 {
                     // this._index.InsertRange(index, new List<decimal>() { index_price });
-                    this._index.Insert(index, index_price);
+                    indexList.Insert(index, index_price);
                     this.Insert(index, new SlimConcurrentList<object>() { price, size, countObject });
                 }
             }
-            else if (index < this._index.Count && this._index[index] == index_price)
+            else if (hit)
             {
-                this._index.RemoveAt(index);
+                indexList.RemoveAt(index);
                 this.RemoveAt(index);
             }
         }
@@ -415,12 +452,13 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
         lock (_syncRoot)
         {
             var different = this.Count - this._depth;
+            var indexList = this._index; // perf: hoist the recursive-lock property read out of the loop
             for (var i = 0; i < different; i++)
             {
                 var length = this.Count;
                 this.remove_index(this[length - 1]);
                 this.RemoveAt(length - 1);
-                this._index.RemoveAt(length - 1); // don't use this.Count because it mutates from one line to the other
+                indexList.RemoveAt(length - 1); // don't use this.Count because it mutates from one line to the other
             }
         }
     }
@@ -434,11 +472,15 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
             var price = Convert.ToDecimal(delta[0]);
             var size = Convert.ToDecimal(delta[1]);
             var order_id = delta[2];
+            // perf: hoist the `side` / `_index` property reads (both re-enter the
+            // _syncRoot Monitor we already hold) into locals, see OrderBookSide.storeArray
+            var sideLocal = this.side;
+            var indexList = this._index;
             decimal? index_price = -1;
             if (price != 0)
             {
                 var decimalPrice = Convert.ToDecimal(price);
-                index_price = (this.side) ? -decimalPrice : decimalPrice;
+                index_price = (sideLocal) ? -decimalPrice : decimalPrice;
             }
             else
             {
@@ -462,10 +504,10 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
 
                     if (index_price == old_price)
                     {
-                        var index2 = this.findRowById(bisectLeft(this._index, Convert.ToDecimal(index_price)), stringId);
+                        var index2 = this.findRowById(bisectLeft(indexList, Convert.ToDecimal(index_price)), stringId);
                         if (index2 >= 0)
                         {
-                            this._index[index2] = index_price.Value;
+                            indexList[index2] = index_price.Value;
                             this[index2] = delta;
                             return;
                         }
@@ -475,10 +517,10 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
                     }
                     else
                     {
-                        var old_index = this.findRowById(bisectLeft(this._index, old_price), stringId);
+                        var old_index = this.findRowById(bisectLeft(indexList, old_price), stringId);
                         if (old_index >= 0)
                         {
-                            this._index.RemoveAt(old_index);
+                            indexList.RemoveAt(old_index);
                             this.RemoveAt(old_index);
                         }
                         // stale entry: nothing to move, fall through and insert as new
@@ -491,24 +533,30 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
                 {
                     indexPriceValue = index_price.Value;
                 }
-                var index = bisectLeft(this._index, indexPriceValue);
+                var index = bisectLeft(indexList, indexPriceValue);
                 // var index2Val = ((IList<object>)this[index])[2];
                 // index might be a stringified number like '1' or an id like '11AABB'
-                while (index < this._index.Count && (this._index[index] == index_price) && this.isOrderIsBigger(order_id, index))
+                // perf: indexList.Count is loop-invariant here (the body only advances
+                // `index` and reads rows), so hoist its lock out of the loop. The
+                // `indexList[index] == index_price` test is deliberately NOT fused into
+                // the bisect: index_price is a `decimal?` and may be null here, where the
+                // lifted == yields false; the fused decimal hit test cannot express that.
+                var indexCount = indexList.Count;
+                while (index < indexCount && (indexList[index] == index_price) && this.isOrderIsBigger(order_id, index))
                 {
                     index++;
                 }
-                this._index.Insert(index, indexPriceValue);
+                indexList.Insert(index, indexPriceValue);
                 this.Insert(index, delta);
             }
             else if (this.hashmap.ContainsKey(order_id.ToString()))
             {
                 var stringId2 = order_id.ToString();
                 var old_price2 = Convert.ToDecimal(this.hashmap[stringId2]);
-                var index3 = this.findRowById(bisectLeft(this._index, old_price2), stringId2);
+                var index3 = this.findRowById(bisectLeft(indexList, old_price2), stringId2);
                 if (index3 >= 0)
                 {
-                    this._index.RemoveAt(index3);
+                    indexList.RemoveAt(index3);
                     this.RemoveAt(index3);
                 }
                 // a stale entry has no row to remove, just heal the hashmap,
