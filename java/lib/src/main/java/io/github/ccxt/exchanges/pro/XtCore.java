@@ -862,7 +862,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " watchFundingRate() supports swap contracts only")) ;
+                throw new NotSupported((String)Helpers.add(this.id, " watchFundingRate() supports swap contracts only")) ;
             }
             Object name = Helpers.add("fund_rate@", Helpers.GetValue(market, "id"));
             return (this.subscribe(name, "public", "watchFundingRate", market, null, parameters)).join();
@@ -892,7 +892,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " unWatchFundingRate() supports swap contracts only")) ;
+                throw new NotSupported((String)Helpers.add(this.id, " unWatchFundingRate() supports swap contracts only")) ;
             }
             Object name = Helpers.add("fund_rate@", Helpers.GetValue(market, "id"));
             Object messageHash = Helpers.add("unsubscribe::", name);

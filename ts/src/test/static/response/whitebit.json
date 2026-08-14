@@ -1474,6 +1474,2650 @@
                     "stopLossPrice": null
                 }
             }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders: one open swap limit order",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "orderId": 2561678336401,
+                        "clientOrderId": "ccxt741b9853049c898e",
+                        "market": "DOGE_PERP",
+                        "side": "buy",
+                        "type": "margin limit",
+                        "timestamp": 1786454925.04916,
+                        "dealMoney": "0",
+                        "dealStock": "0",
+                        "amount": "100",
+                        "left": "100",
+                        "dealFee": "0",
+                        "ioc": false,
+                        "status": "OPEN",
+                        "stp": "no",
+                        "positionSide": "BOTH",
+                        "rpi": false,
+                        "reduceOnly": false,
+                        "price": "0.05",
+                        "postOnly": false
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": 2561678336401,
+                            "clientOrderId": "ccxt741b9853049c898e",
+                            "market": "DOGE_PERP",
+                            "side": "buy",
+                            "type": "margin limit",
+                            "timestamp": 1786454925.04916,
+                            "dealMoney": "0",
+                            "dealStock": "0",
+                            "amount": "100",
+                            "left": "100",
+                            "dealFee": "0",
+                            "ioc": false,
+                            "status": "OPEN",
+                            "stp": "no",
+                            "positionSide": "BOTH",
+                            "rpi": false,
+                            "reduceOnly": false,
+                            "price": "0.05",
+                            "postOnly": false
+                        },
+                        "id": "2561678336401",
+                        "symbol": "DOGE/USDT:USDT",
+                        "clientOrderId": "ccxt741b9853049c898e",
+                        "timestamp": 1786454925049,
+                        "datetime": "2026-08-11T13:28:45.049Z",
+                        "lastTradeTimestamp": null,
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "status": "open",
+                        "side": "buy",
+                        "price": 0.05,
+                        "type": "limit",
+                        "triggerPrice": null,
+                        "amount": 100,
+                        "filled": 0,
+                        "remaining": 100,
+                        "average": null,
+                        "cost": 0,
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDT"
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "cost": 0,
+                                "currency": "USDT"
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetchClosedOrders: filled and canceled swap orders",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "DOGE_PERP": [
+                        {
+                            "id": 2560087414918,
+                            "clientOrderId": "ccxtdf3eb517e4dc968a",
+                            "ctime": 1786350578.292032,
+                            "ftime": 1786350578.679142,
+                            "side": "buy",
+                            "amount": "100",
+                            "price": "0.05",
+                            "type": "margin limit",
+                            "dealFee": "0",
+                            "dealStock": "0",
+                            "dealMoney": "0",
+                            "postOnly": false,
+                            "ioc": false,
+                            "status": "CANCELED",
+                            "feeAsset": "USDT",
+                            "positionSide": "BOTH",
+                            "rpi": false,
+                            "reduceOnly": false
+                        },
+                        {
+                            "id": 2558095898746,
+                            "clientOrderId": "ccxta9f20ba8b49fbafe",
+                            "ctime": 1786182944.22833,
+                            "ftime": 1786182944.22833,
+                            "side": "sell",
+                            "amount": "80",
+                            "price": "0",
+                            "type": "margin market",
+                            "dealFee": "0.003091924",
+                            "dealStock": "80",
+                            "dealMoney": "5.62168",
+                            "postOnly": false,
+                            "ioc": false,
+                            "status": "FILLED",
+                            "feeAsset": "USDT",
+                            "positionSide": "BOTH",
+                            "rpi": false,
+                            "reduceOnly": false
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": 2558095898746,
+                            "clientOrderId": "ccxta9f20ba8b49fbafe",
+                            "ctime": 1786182944.22833,
+                            "ftime": 1786182944.22833,
+                            "side": "sell",
+                            "amount": "80",
+                            "price": "0",
+                            "type": "margin market",
+                            "dealFee": "0.003091924",
+                            "dealStock": "80",
+                            "dealMoney": "5.62168",
+                            "postOnly": false,
+                            "ioc": false,
+                            "status": "FILLED",
+                            "feeAsset": "USDT",
+                            "positionSide": "BOTH",
+                            "rpi": false,
+                            "reduceOnly": false
+                        },
+                        "id": "2558095898746",
+                        "symbol": "DOGE/USDT:USDT",
+                        "clientOrderId": "ccxta9f20ba8b49fbafe",
+                        "timestamp": 1786182944228,
+                        "datetime": "2026-08-08T09:55:44.228Z",
+                        "lastTradeTimestamp": 1786182944228,
+                        "timeInForce": "IOC",
+                        "postOnly": false,
+                        "status": "closed",
+                        "side": "sell",
+                        "price": 0.070271,
+                        "type": "market",
+                        "triggerPrice": null,
+                        "amount": 80,
+                        "filled": 80,
+                        "remaining": 0,
+                        "average": 0.070271,
+                        "cost": 5.62168,
+                        "fee": {
+                            "cost": 0.003091924,
+                            "currency": "USDT"
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "cost": 0.003091924,
+                                "currency": "USDT"
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "info": {
+                            "id": 2560087414918,
+                            "clientOrderId": "ccxtdf3eb517e4dc968a",
+                            "ctime": 1786350578.292032,
+                            "ftime": 1786350578.679142,
+                            "side": "buy",
+                            "amount": "100",
+                            "price": "0.05",
+                            "type": "margin limit",
+                            "dealFee": "0",
+                            "dealStock": "0",
+                            "dealMoney": "0",
+                            "postOnly": false,
+                            "ioc": false,
+                            "status": "CANCELED",
+                            "feeAsset": "USDT",
+                            "positionSide": "BOTH",
+                            "rpi": false,
+                            "reduceOnly": false
+                        },
+                        "id": "2560087414918",
+                        "symbol": "DOGE/USDT:USDT",
+                        "clientOrderId": "ccxtdf3eb517e4dc968a",
+                        "timestamp": 1786350578292,
+                        "datetime": "2026-08-10T08:29:38.292Z",
+                        "lastTradeTimestamp": 1786350578679,
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "status": "closed",
+                        "side": "buy",
+                        "price": 0.05,
+                        "type": "limit",
+                        "triggerPrice": null,
+                        "amount": 100,
+                        "filled": 0,
+                        "remaining": 100,
+                        "average": null,
+                        "cost": 0,
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDT"
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "cost": 0,
+                                "currency": "USDT"
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades: swap trades with symbol (array format)",
+                "method": "fetchMyTrades",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "id": 22798472870,
+                        "clientOrderId": "ccxta9f20ba8b49fbafe",
+                        "time": 1786182944.22833,
+                        "side": "sell",
+                        "role": 2,
+                        "amount": "80",
+                        "price": "0.070271",
+                        "deal": "5.62168",
+                        "fee": "0.003091924",
+                        "orderId": 2558095898746,
+                        "feeAsset": "USDT"
+                    },
+                    {
+                        "id": 22798468873,
+                        "clientOrderId": "ccxtb7d3a2cb14b49f33",
+                        "time": 1786182925.500477,
+                        "side": "buy",
+                        "role": 2,
+                        "amount": "80",
+                        "price": "0.070309",
+                        "deal": "5.62472",
+                        "fee": "0.003093596",
+                        "orderId": 2558095665513,
+                        "feeAsset": "USDT"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": 22798468873,
+                            "clientOrderId": "ccxtb7d3a2cb14b49f33",
+                            "time": 1786182925.500477,
+                            "side": "buy",
+                            "role": 2,
+                            "amount": "80",
+                            "price": "0.070309",
+                            "deal": "5.62472",
+                            "fee": "0.003093596",
+                            "orderId": 2558095665513,
+                            "feeAsset": "USDT"
+                        },
+                        "timestamp": 1786182925500,
+                        "datetime": "2026-08-08T09:55:25.500Z",
+                        "symbol": "DOGE/USDT:USDT",
+                        "id": "22798468873",
+                        "order": "2558095665513",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 0.070309,
+                        "amount": 80,
+                        "cost": 5.62472,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.003093596
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.003093596
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "id": 22798472870,
+                            "clientOrderId": "ccxta9f20ba8b49fbafe",
+                            "time": 1786182944.22833,
+                            "side": "sell",
+                            "role": 2,
+                            "amount": "80",
+                            "price": "0.070271",
+                            "deal": "5.62168",
+                            "fee": "0.003091924",
+                            "orderId": 2558095898746,
+                            "feeAsset": "USDT"
+                        },
+                        "timestamp": 1786182944228,
+                        "datetime": "2026-08-08T09:55:44.228Z",
+                        "symbol": "DOGE/USDT:USDT",
+                        "id": "22798472870",
+                        "order": "2558095898746",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "sell",
+                        "price": 0.070271,
+                        "amount": 80,
+                        "cost": 5.62168,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.003091924
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.003091924
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "fetchMyTrades: all symbols (dict format)",
+                "method": "fetchMyTrades",
+                "input": [
+                    null,
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "DOGE_PERP": [
+                        {
+                            "id": 22798472870,
+                            "clientOrderId": "ccxta9f20ba8b49fbafe",
+                            "time": 1786182944.22833,
+                            "side": "sell",
+                            "role": 2,
+                            "amount": "80",
+                            "price": "0.070271",
+                            "deal": "5.62168",
+                            "fee": "0.003091924",
+                            "orderId": 2558095898746,
+                            "feeAsset": "USDT"
+                        },
+                        {
+                            "id": 22798468873,
+                            "clientOrderId": "ccxtb7d3a2cb14b49f33",
+                            "time": 1786182925.500477,
+                            "side": "buy",
+                            "role": 2,
+                            "amount": "80",
+                            "price": "0.070309",
+                            "deal": "5.62472",
+                            "fee": "0.003093596",
+                            "orderId": 2558095665513,
+                            "feeAsset": "USDT"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": 22798468873,
+                            "clientOrderId": "ccxtb7d3a2cb14b49f33",
+                            "time": 1786182925.500477,
+                            "side": "buy",
+                            "role": 2,
+                            "amount": "80",
+                            "price": "0.070309",
+                            "deal": "5.62472",
+                            "fee": "0.003093596",
+                            "orderId": 2558095665513,
+                            "feeAsset": "USDT"
+                        },
+                        "timestamp": 1786182925500,
+                        "datetime": "2026-08-08T09:55:25.500Z",
+                        "symbol": "DOGE/USDT:USDT",
+                        "id": "22798468873",
+                        "order": "2558095665513",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 0.070309,
+                        "amount": 80,
+                        "cost": 5.62472,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.003093596
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.003093596
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "id": 22798472870,
+                            "clientOrderId": "ccxta9f20ba8b49fbafe",
+                            "time": 1786182944.22833,
+                            "side": "sell",
+                            "role": 2,
+                            "amount": "80",
+                            "price": "0.070271",
+                            "deal": "5.62168",
+                            "fee": "0.003091924",
+                            "orderId": 2558095898746,
+                            "feeAsset": "USDT"
+                        },
+                        "timestamp": 1786182944228,
+                        "datetime": "2026-08-08T09:55:44.228Z",
+                        "symbol": "DOGE/USDT:USDT",
+                        "id": "22798472870",
+                        "order": "2558095898746",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "sell",
+                        "price": 0.070271,
+                        "amount": 80,
+                        "cost": 5.62168,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.003091924
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.003091924
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchOrderTrades": [
+            {
+                "description": "fetchOrderTrades: trades of a filled swap market order",
+                "method": "fetchOrderTrades",
+                "input": [
+                    "2558095898746",
+                    "DOGE/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "limit": 500,
+                    "offset": 0,
+                    "records": [
+                        {
+                            "time": 1786182944.22833,
+                            "fee": "0.003091924",
+                            "price": "0.070271",
+                            "amount": "80",
+                            "id": 22798472870,
+                            "clientOrderId": "ccxta9f20ba8b49fbafe",
+                            "dealOrderId": 2558095898746,
+                            "role": 2,
+                            "deal": "5.62168",
+                            "feeAsset": "USDT",
+                            "rpi": false
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "time": 1786182944.22833,
+                            "fee": "0.003091924",
+                            "price": "0.070271",
+                            "amount": "80",
+                            "id": 22798472870,
+                            "clientOrderId": "ccxta9f20ba8b49fbafe",
+                            "dealOrderId": 2558095898746,
+                            "role": 2,
+                            "deal": "5.62168",
+                            "feeAsset": "USDT",
+                            "rpi": false
+                        },
+                        "timestamp": 1786182944228,
+                        "datetime": "2026-08-08T09:55:44.228Z",
+                        "symbol": "DOGE/USDT:USDT",
+                        "id": "22798472870",
+                        "order": "2558095898746",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": null,
+                        "price": 0.070271,
+                        "amount": 80,
+                        "cost": 5.62168,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.003091924
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.003091924
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits: real TRC20 USDT deposit",
+                "method": "fetchDeposits",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "records": [
+                        {
+                            "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                            "uniqueId": null,
+                            "transactionId": "11111111-2222-3333-4444-555555555555",
+                            "createdAt": 1786182572,
+                            "currency": "Tether US",
+                            "ticker": "USDT",
+                            "method": 1,
+                            "amount": "20.723117",
+                            "description": null,
+                            "memo": null,
+                            "fee": "0",
+                            "status": 3,
+                            "network": "TRC20",
+                            "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+                            "details": {
+                                "partial": null
+                            },
+                            "centralized": false
+                        }
+                    ],
+                    "total": 1,
+                    "limit": 2,
+                    "offset": 0
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "txid": "11111111-2222-3333-4444-555555555555",
+                        "timestamp": 1786182572000,
+                        "datetime": "2026-08-08T09:49:32.000Z",
+                        "network": "TRC20",
+                        "addressFrom": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                        "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                        "addressTo": null,
+                        "amount": 20.723117,
+                        "type": "deposit",
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": null,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDT"
+                        },
+                        "info": {
+                            "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                            "uniqueId": null,
+                            "transactionId": "11111111-2222-3333-4444-555555555555",
+                            "createdAt": 1786182572,
+                            "currency": "Tether US",
+                            "ticker": "USDT",
+                            "method": 1,
+                            "amount": "20.723117",
+                            "description": null,
+                            "memo": null,
+                            "fee": "0",
+                            "status": 3,
+                            "network": "TRC20",
+                            "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+                            "details": {
+                                "partial": null
+                            },
+                            "centralized": false
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchDeposit": [
+            {
+                "description": "fetchDeposit: single deposit by uniqueId",
+                "method": "fetchDeposit",
+                "input": [
+                    "5593377049",
+                    "USDT"
+                ],
+                "httpResponse": {
+                    "records": [
+                        {
+                            "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                            "uniqueId": "5593377049",
+                            "transactionId": "11111111-2222-3333-4444-555555555555",
+                            "createdAt": 1786182572,
+                            "currency": "Tether US",
+                            "ticker": "USDT",
+                            "method": 1,
+                            "amount": "20.723117",
+                            "description": null,
+                            "memo": null,
+                            "fee": "0",
+                            "status": 3,
+                            "network": "TRC20",
+                            "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+                            "details": {
+                                "partial": null
+                            },
+                            "centralized": false
+                        }
+                    ],
+                    "total": 1,
+                    "limit": 1,
+                    "offset": 0
+                },
+                "parsedResponse": {
+                    "id": "5593377049",
+                    "txid": "11111111-2222-3333-4444-555555555555",
+                    "timestamp": 1786182572000,
+                    "datetime": "2026-08-08T09:49:32.000Z",
+                    "network": "TRC20",
+                    "addressFrom": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                    "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                    "addressTo": null,
+                    "amount": 20.723117,
+                    "type": "deposit",
+                    "currency": "USDT",
+                    "status": "ok",
+                    "updated": null,
+                    "tagFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": {
+                        "cost": 0,
+                        "currency": "USDT"
+                    },
+                    "info": {
+                        "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                        "uniqueId": "5593377049",
+                        "transactionId": "11111111-2222-3333-4444-555555555555",
+                        "createdAt": 1786182572,
+                        "currency": "Tether US",
+                        "ticker": "USDT",
+                        "method": 1,
+                        "amount": "20.723117",
+                        "description": null,
+                        "memo": null,
+                        "fee": "0",
+                        "status": 3,
+                        "network": "TRC20",
+                        "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+                        "details": {
+                            "partial": null
+                        },
+                        "centralized": false
+                    }
+                }
+            }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "fetchDepositsWithdrawals: deposit history all methods",
+                "method": "fetchDepositsWithdrawals",
+                "input": [
+                    null,
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "records": [
+                        {
+                            "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                            "uniqueId": null,
+                            "transactionId": "11111111-2222-3333-4444-555555555555",
+                            "createdAt": 1786182572,
+                            "currency": "Tether US",
+                            "ticker": "USDT",
+                            "method": 1,
+                            "amount": "20.723117",
+                            "description": null,
+                            "memo": null,
+                            "fee": "0",
+                            "status": 3,
+                            "network": "TRC20",
+                            "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+                            "details": {
+                                "partial": null
+                            },
+                            "centralized": false
+                        }
+                    ],
+                    "total": 1,
+                    "limit": 2,
+                    "offset": 0
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "txid": "11111111-2222-3333-4444-555555555555",
+                        "timestamp": 1786182572000,
+                        "datetime": "2026-08-08T09:49:32.000Z",
+                        "network": "TRC20",
+                        "addressFrom": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                        "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                        "addressTo": null,
+                        "amount": 20.723117,
+                        "type": "deposit",
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": null,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDT"
+                        },
+                        "info": {
+                            "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                            "uniqueId": null,
+                            "transactionId": "11111111-2222-3333-4444-555555555555",
+                            "createdAt": 1786182572,
+                            "currency": "Tether US",
+                            "ticker": "USDT",
+                            "method": 1,
+                            "amount": "20.723117",
+                            "description": null,
+                            "memo": null,
+                            "fee": "0",
+                            "status": 3,
+                            "network": "TRC20",
+                            "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+                            "details": {
+                                "partial": null
+                            },
+                            "centralized": false
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchTransactions": [
+            {
+                "description": "fetchTransactions: USDT transaction history",
+                "method": "fetchTransactions",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "records": [
+                        {
+                            "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                            "uniqueId": null,
+                            "transactionId": "11111111-2222-3333-4444-555555555555",
+                            "createdAt": 1786182572,
+                            "currency": "Tether US",
+                            "ticker": "USDT",
+                            "method": 1,
+                            "amount": "20.723117",
+                            "description": null,
+                            "memo": null,
+                            "fee": "0",
+                            "status": 3,
+                            "network": "TRC20",
+                            "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+                            "details": {
+                                "partial": null
+                            },
+                            "centralized": false
+                        }
+                    ],
+                    "total": 1,
+                    "limit": 2,
+                    "offset": 0
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "txid": "11111111-2222-3333-4444-555555555555",
+                        "timestamp": 1786182572000,
+                        "datetime": "2026-08-08T09:49:32.000Z",
+                        "network": "TRC20",
+                        "addressFrom": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                        "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                        "addressTo": null,
+                        "amount": 20.723117,
+                        "type": "deposit",
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": null,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDT"
+                        },
+                        "info": {
+                            "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                            "uniqueId": null,
+                            "transactionId": "11111111-2222-3333-4444-555555555555",
+                            "createdAt": 1786182572,
+                            "currency": "Tether US",
+                            "ticker": "USDT",
+                            "method": 1,
+                            "amount": "20.723117",
+                            "description": null,
+                            "memo": null,
+                            "fee": "0",
+                            "status": 3,
+                            "network": "TRC20",
+                            "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+                            "details": {
+                                "partial": null
+                            },
+                            "centralized": false
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals: empty history (live)",
+                "method": "fetchWithdrawals",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "records": [],
+                    "total": 0,
+                    "limit": 2,
+                    "offset": 0
+                },
+                "parsedResponse": []
+            },
+            {
+                "description": "fetchWithdrawals: completed TRC20 withdrawal (synthetic record in the live response shape)",
+                "method": "fetchWithdrawals",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "records": [
+                        {
+                            "address": "TQMbNLpgvJ4hPtR3HXi5zccc2mL2n9PURD",
+                            "uniqueId": "7788990011",
+                            "transactionId": "22222222-3333-4444-5555-666666666666",
+                            "createdAt": 1786200000,
+                            "currency": "Tether US",
+                            "ticker": "USDT",
+                            "method": 2,
+                            "amount": "10",
+                            "description": null,
+                            "memo": null,
+                            "fee": "1.5",
+                            "status": 3,
+                            "network": "TRC20",
+                            "transactionHash": "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3",
+                            "details": {
+                                "partial": null
+                            },
+                            "centralized": false
+                        }
+                    ],
+                    "total": 1,
+                    "limit": 2,
+                    "offset": 0
+                },
+                "parsedResponse": [
+                    {
+                        "id": "7788990011",
+                        "txid": "22222222-3333-4444-5555-666666666666",
+                        "timestamp": 1786200000000,
+                        "datetime": "2026-08-08T14:40:00.000Z",
+                        "network": "TRC20",
+                        "addressFrom": null,
+                        "address": "TQMbNLpgvJ4hPtR3HXi5zccc2mL2n9PURD",
+                        "addressTo": "TQMbNLpgvJ4hPtR3HXi5zccc2mL2n9PURD",
+                        "amount": 10,
+                        "type": "withdrawal",
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": null,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "cost": 1.5,
+                            "currency": "USDT"
+                        },
+                        "info": {
+                            "address": "TQMbNLpgvJ4hPtR3HXi5zccc2mL2n9PURD",
+                            "uniqueId": "7788990011",
+                            "transactionId": "22222222-3333-4444-5555-666666666666",
+                            "createdAt": 1786200000,
+                            "currency": "Tether US",
+                            "ticker": "USDT",
+                            "method": 2,
+                            "amount": "10",
+                            "description": null,
+                            "memo": null,
+                            "fee": "1.5",
+                            "status": 3,
+                            "network": "TRC20",
+                            "transactionHash": "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3",
+                            "details": {
+                                "partial": null
+                            },
+                            "centralized": false
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory: empty history (live)",
+                "method": "fetchFundingHistory",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "records": [],
+                    "limit": 2,
+                    "offset": 0
+                },
+                "parsedResponse": []
+            },
+            {
+                "description": "fetchFundingHistory: negative funding payment (synthetic record in the documented shape)",
+                "method": "fetchFundingHistory",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "records": [
+                        {
+                            "market": "DOGE_PERP",
+                            "fundingTime": "1786608000000",
+                            "fundingRate": "0.0001",
+                            "fundingAmount": "-0.0056",
+                            "positionAmount": "80",
+                            "settlementPrice": "0.070309",
+                            "rateCalculatedTime": "1786579200000"
+                        }
+                    ],
+                    "limit": 2,
+                    "offset": 0
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "market": "DOGE_PERP",
+                            "fundingTime": "1786608000000",
+                            "fundingRate": "0.0001",
+                            "fundingAmount": "-0.0056",
+                            "positionAmount": "80",
+                            "settlementPrice": "0.070309",
+                            "rateCalculatedTime": "1786579200000"
+                        },
+                        "symbol": "DOGE/USDT:USDT",
+                        "code": null,
+                        "timestamp": 1786608000000,
+                        "datetime": "2026-08-13T08:00:00.000Z",
+                        "id": null,
+                        "amount": -0.0056
+                    }
+                ]
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer: empty array response (live)",
+                "method": "transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "margin",
+                    "spot"
+                ],
+                "httpResponse": [],
+                "parsedResponse": {
+                    "info": [],
+                    "id": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "USDT",
+                    "amount": null,
+                    "fromAccount": null,
+                    "toAccount": null,
+                    "status": null
+                }
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts: no sub-accounts (live)",
+                "method": "fetchAccounts",
+                "input": [],
+                "httpResponse": {
+                    "data": [],
+                    "offset": 0,
+                    "limit": 100
+                },
+                "parsedResponse": []
+            },
+            {
+                "description": "fetchAccounts: one sub-account (documented shape)",
+                "method": "fetchAccounts",
+                "input": [],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "id": "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
+                            "alias": "trading_bot",
+                            "userId": "u-12345",
+                            "email": "s***@example.com",
+                            "status": "active",
+                            "color": "#FF5733",
+                            "kyc": {
+                                "shareKyc": false,
+                                "kycStatus": "verified"
+                            },
+                            "permissions": {
+                                "spotEnabled": true,
+                                "collateralEnabled": false
+                            }
+                        }
+                    ],
+                    "offset": 0,
+                    "limit": 100
+                },
+                "parsedResponse": [
+                    {
+                        "id": "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
+                        "type": "subaccount",
+                        "name": "trading_bot",
+                        "code": null,
+                        "info": {
+                            "id": "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
+                            "alias": "trading_bot",
+                            "userId": "u-12345",
+                            "email": "s***@example.com",
+                            "status": "active",
+                            "color": "#FF5733",
+                            "kyc": {
+                                "shareKyc": false,
+                                "kycStatus": "verified"
+                            },
+                            "permissions": {
+                                "spotEnabled": true,
+                                "collateralEnabled": false
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetchDepositAddress: TRC20 USDT address (masked)",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "httpResponse": {
+                    "account": {
+                        "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT"
+                    },
+                    "required": {
+                        "maxAmount": "0",
+                        "minAmount": "5",
+                        "fixedFee": "0",
+                        "flexFee": {
+                            "percent": "0",
+                            "minFee": "0",
+                            "maxFee": "0"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "account": {
+                            "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT"
+                        },
+                        "required": {
+                            "maxAmount": "0",
+                            "minAmount": "5",
+                            "fixedFee": "0",
+                            "flexFee": {
+                                "percent": "0",
+                                "minFee": "0",
+                                "maxFee": "0"
+                            }
+                        }
+                    },
+                    "currency": "USDT",
+                    "network": null,
+                    "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                    "tag": null
+                }
+            }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "createDepositAddress: documented shape (endpoint needs support-enabled permission)",
+                "method": "createDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "httpResponse": {
+                    "account": {
+                        "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                        "memo": null
+                    },
+                    "required": {
+                        "maxAmount": "0",
+                        "minAmount": "5",
+                        "fixedFee": "0",
+                        "flexFee": {
+                            "percent": "0",
+                            "minFee": "0",
+                            "maxFee": "0"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                        "memo": null
+                    },
+                    "currency": "USDT",
+                    "network": null,
+                    "address": "TEDwhVCrtSLHoMZz1QeEEzkrdgq89Z6jpT",
+                    "tag": null
+                }
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus: pong (live)",
+                "method": "fetchStatus",
+                "input": [],
+                "httpResponse": [
+                    "pong"
+                ],
+                "parsedResponse": {
+                    "status": "ok",
+                    "updated": null,
+                    "eta": null,
+                    "url": null,
+                    "info": [
+                        "pong"
+                    ]
+                }
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "fetchBorrowInterest: no open positions (live)",
+                "method": "fetchBorrowInterest",
+                "input": [
+                    null,
+                    "DOGE/USDT:USDT"
+                ],
+                "httpResponse": [],
+                "parsedResponse": []
+            },
+            {
+                "description": "fetchBorrowInterest: open swap position (documented shape)",
+                "method": "fetchBorrowInterest",
+                "input": [
+                    null,
+                    "DOGE/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "positionId": 191823,
+                        "market": "DOGE_PERP",
+                        "openDate": 1786182925.500477,
+                        "modifyDate": 1786182925.500477,
+                        "amount": "80",
+                        "basePrice": "0.070309",
+                        "liquidationPrice": "0.014",
+                        "leverage": "5",
+                        "pnl": "-0.15",
+                        "pnlPercent": "-0.20",
+                        "margin": "1.12",
+                        "freeMargin": "19.55",
+                        "funding": "0",
+                        "unrealizedFunding": "0.0000307828284903",
+                        "liquidationState": null
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "positionId": 191823,
+                            "market": "DOGE_PERP",
+                            "openDate": 1786182925.500477,
+                            "modifyDate": 1786182925.500477,
+                            "amount": "80",
+                            "basePrice": "0.070309",
+                            "liquidationPrice": "0.014",
+                            "leverage": "5",
+                            "pnl": "-0.15",
+                            "pnlPercent": "-0.20",
+                            "margin": "1.12",
+                            "freeMargin": "19.55",
+                            "funding": "0",
+                            "unrealizedFunding": "0.0000307828284903",
+                            "liquidationState": null
+                        },
+                        "symbol": "DOGE/USDT:USDT",
+                        "currency": "USDT",
+                        "interest": 3.07828284903e-05,
+                        "interestRate": 0.00098,
+                        "amountBorrowed": 80,
+                        "marginMode": "cross",
+                        "timestamp": 1786182925500,
+                        "datetime": "2026-08-08T09:55:25.500Z"
+                    }
+                ]
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "setLeverage: account-wide leverage (live)",
+                "method": "setLeverage",
+                "input": [
+                    5
+                ],
+                "httpResponse": {
+                    "leverage": 5
+                },
+                "parsedResponse": {
+                    "leverage": 5
+                }
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "fetchTradingFees: per-symbol maker/taker from public assets (trimmed to snapshot markets)",
+                "method": "fetchTradingFees",
+                "input": [],
+                "httpResponse": {
+                    "BTC": {
+                        "name": "Bitcoin",
+                        "unified_cryptoasset_id": 1,
+                        "can_withdraw": true,
+                        "can_deposit": true,
+                        "min_withdraw": "0.0003",
+                        "max_withdraw": "0",
+                        "maker_fee": "0.1",
+                        "taker_fee": "0.1",
+                        "min_deposit": "0.0001",
+                        "max_deposit": "0",
+                        "networks": {
+                            "deposits": [
+                                "BTC"
+                            ],
+                            "withdraws": [
+                                "BTC"
+                            ],
+                            "default": "BTC"
+                        },
+                        "confirmations": {
+                            "BTC": 2
+                        },
+                        "limits": {
+                            "deposit": {
+                                "BTC": {
+                                    "min": "0.0001"
+                                }
+                            },
+                            "withdraw": {
+                                "BTC": {
+                                    "min": "0.0003"
+                                }
+                            }
+                        },
+                        "currency_precision": 8,
+                        "is_memo": false,
+                        "memo": {
+                            "deposit": false,
+                            "withdraw": false
+                        }
+                    },
+                    "ETH": {
+                        "name": "Ethereum",
+                        "unified_cryptoasset_id": 1027,
+                        "can_withdraw": true,
+                        "can_deposit": true,
+                        "min_withdraw": "0.0015",
+                        "max_withdraw": "0",
+                        "maker_fee": "0.1",
+                        "taker_fee": "0.1",
+                        "min_deposit": "0.001",
+                        "max_deposit": "0",
+                        "networks": {
+                            "deposits": [
+                                "SCROLL",
+                                "BASE",
+                                "STARKNET",
+                                "ZKSYNC",
+                                "ARBITRUM",
+                                "OPTIMISM",
+                                "BEP20",
+                                "ERC20"
+                            ],
+                            "withdraws": [
+                                "SCROLL",
+                                "BASE",
+                                "STARKNET",
+                                "ZKSYNC",
+                                "ARBITRUM",
+                                "OPTIMISM",
+                                "BEP20",
+                                "ERC20"
+                            ],
+                            "default": "ERC20"
+                        },
+                        "confirmations": {
+                            "ARBITRUM": 600,
+                            "BASE": 300,
+                            "BEP20": 20,
+                            "ERC20": 64,
+                            "OPTIMISM": 1400,
+                            "SCROLL": 900,
+                            "STARKNET": 5,
+                            "ZKSYNC": 1000
+                        },
+                        "limits": {
+                            "deposit": {
+                                "ARBITRUM": {
+                                    "min": "0.0019"
+                                },
+                                "BASE": {
+                                    "min": "0.0019"
+                                },
+                                "BEP20": {
+                                    "min": "0.0019"
+                                },
+                                "ERC20": {
+                                    "min": "0.0019"
+                                },
+                                "OPTIMISM": {
+                                    "min": "0.0019"
+                                },
+                                "SCROLL": {
+                                    "min": "0.0019"
+                                },
+                                "STARKNET": {
+                                    "min": "0.001"
+                                },
+                                "ZKSYNC": {
+                                    "min": "0.001"
+                                }
+                            },
+                            "withdraw": {
+                                "ARBITRUM": {
+                                    "min": "0.0038"
+                                },
+                                "BASE": {
+                                    "min": "0.0038"
+                                },
+                                "BEP20": {
+                                    "min": "0.0038"
+                                },
+                                "ERC20": {
+                                    "min": "0.0038"
+                                },
+                                "OPTIMISM": {
+                                    "min": "0.0038"
+                                },
+                                "SCROLL": {
+                                    "min": "0.0038"
+                                },
+                                "STARKNET": {
+                                    "min": "0.0015"
+                                },
+                                "ZKSYNC": {
+                                    "min": "0.0015"
+                                }
+                            }
+                        },
+                        "currency_precision": 18,
+                        "is_memo": false,
+                        "memo": {
+                            "deposit": false,
+                            "withdraw": false
+                        }
+                    },
+                    "ADA": {
+                        "name": "Cardano",
+                        "unified_cryptoasset_id": 2010,
+                        "can_withdraw": true,
+                        "can_deposit": true,
+                        "min_withdraw": "12.8",
+                        "max_withdraw": "0",
+                        "maker_fee": "0.1",
+                        "taker_fee": "0.1",
+                        "min_deposit": "6.39",
+                        "max_deposit": "0",
+                        "networks": {
+                            "deposits": [
+                                "ADA"
+                            ],
+                            "withdraws": [
+                                "ADA"
+                            ],
+                            "default": "ADA"
+                        },
+                        "confirmations": {
+                            "ADA": 40
+                        },
+                        "limits": {
+                            "deposit": {
+                                "ADA": {
+                                    "min": "6.39"
+                                }
+                            },
+                            "withdraw": {
+                                "ADA": {
+                                    "min": "12.8"
+                                }
+                            }
+                        },
+                        "currency_precision": 6,
+                        "is_memo": false,
+                        "memo": {
+                            "deposit": false,
+                            "withdraw": false
+                        }
+                    },
+                    "LTC": {
+                        "name": "Litecoin",
+                        "unified_cryptoasset_id": 2,
+                        "can_withdraw": true,
+                        "can_deposit": true,
+                        "min_withdraw": "0.105",
+                        "max_withdraw": "0",
+                        "maker_fee": "0.1",
+                        "taker_fee": "0.1",
+                        "min_deposit": "0.053",
+                        "max_deposit": "0",
+                        "networks": {
+                            "deposits": [
+                                "LTC"
+                            ],
+                            "withdraws": [
+                                "LTC"
+                            ],
+                            "default": "LTC"
+                        },
+                        "confirmations": {
+                            "LTC": 20
+                        },
+                        "limits": {
+                            "deposit": {
+                                "LTC": {
+                                    "min": "0.053"
+                                }
+                            },
+                            "withdraw": {
+                                "LTC": {
+                                    "min": "0.105"
+                                }
+                            }
+                        },
+                        "currency_precision": 8,
+                        "is_memo": false,
+                        "memo": {
+                            "deposit": false,
+                            "withdraw": false
+                        }
+                    },
+                    "XRP": {
+                        "name": "Ripple",
+                        "unified_cryptoasset_id": 52,
+                        "can_withdraw": true,
+                        "can_deposit": true,
+                        "min_withdraw": "3.8",
+                        "max_withdraw": "0",
+                        "maker_fee": "0.1",
+                        "taker_fee": "0.1",
+                        "min_deposit": "1",
+                        "max_deposit": "0",
+                        "networks": {
+                            "deposits": [
+                                "XRP"
+                            ],
+                            "withdraws": [
+                                "XRP"
+                            ],
+                            "default": "XRP"
+                        },
+                        "confirmations": {
+                            "XRP": 1
+                        },
+                        "limits": {
+                            "deposit": {
+                                "XRP": {
+                                    "min": "1"
+                                }
+                            },
+                            "withdraw": {
+                                "XRP": {
+                                    "min": "3.8"
+                                }
+                            }
+                        },
+                        "currency_precision": 6,
+                        "is_memo": true,
+                        "memo": {
+                            "deposit": true,
+                            "withdraw": true
+                        }
+                    },
+                    "DOGE": {
+                        "name": "Dogecoin",
+                        "unified_cryptoasset_id": 74,
+                        "can_withdraw": true,
+                        "can_deposit": true,
+                        "min_withdraw": "26",
+                        "max_withdraw": "0",
+                        "maker_fee": "0.1",
+                        "taker_fee": "0.1",
+                        "min_deposit": "13",
+                        "max_deposit": "0",
+                        "networks": {
+                            "deposits": [
+                                "DOGE"
+                            ],
+                            "withdraws": [
+                                "DOGE"
+                            ],
+                            "default": "DOGE"
+                        },
+                        "confirmations": {
+                            "DOGE": 36
+                        },
+                        "limits": {
+                            "deposit": {
+                                "DOGE": {
+                                    "min": "13"
+                                }
+                            },
+                            "withdraw": {
+                                "DOGE": {
+                                    "min": "26"
+                                }
+                            }
+                        },
+                        "currency_precision": 8,
+                        "is_memo": false,
+                        "memo": {
+                            "deposit": false,
+                            "withdraw": false
+                        }
+                    },
+                    "TRX": {
+                        "name": "Tron",
+                        "unified_cryptoasset_id": 1958,
+                        "can_withdraw": true,
+                        "can_deposit": true,
+                        "min_withdraw": "20",
+                        "max_withdraw": "0",
+                        "maker_fee": "0.1",
+                        "taker_fee": "0.1",
+                        "min_deposit": "10",
+                        "max_deposit": "0",
+                        "networks": {
+                            "deposits": [
+                                "TRC20"
+                            ],
+                            "withdraws": [
+                                "TRC20"
+                            ],
+                            "default": "TRC20"
+                        },
+                        "confirmations": {
+                            "TRC20": 20
+                        },
+                        "limits": {
+                            "deposit": {
+                                "TRC20": {
+                                    "min": "10"
+                                }
+                            },
+                            "withdraw": {
+                                "TRC20": {
+                                    "min": "20"
+                                }
+                            }
+                        },
+                        "currency_precision": 6,
+                        "is_memo": false,
+                        "memo": {
+                            "deposit": false,
+                            "withdraw": false
+                        }
+                    },
+                    "PEPE": {
+                        "name": "Pepe",
+                        "unified_cryptoasset_id": 0,
+                        "can_withdraw": true,
+                        "can_deposit": true,
+                        "min_withdraw": "10622",
+                        "max_withdraw": "0",
+                        "maker_fee": "0.1",
+                        "taker_fee": "0.1",
+                        "min_deposit": "292000",
+                        "max_deposit": "0",
+                        "networks": {
+                            "deposits": [
+                                "ERC20"
+                            ],
+                            "withdraws": [
+                                "ERC20"
+                            ],
+                            "default": "ERC20"
+                        },
+                        "confirmations": {
+                            "ERC20": 64
+                        },
+                        "limits": {
+                            "deposit": {
+                                "ERC20": {
+                                    "min": "292000"
+                                }
+                            },
+                            "withdraw": {
+                                "ERC20": {
+                                    "min": "10622"
+                                }
+                            }
+                        },
+                        "currency_precision": 18,
+                        "is_memo": false,
+                        "memo": {
+                            "deposit": false,
+                            "withdraw": false
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "ADA/USDT": {
+                        "info": {
+                            "name": "Cardano",
+                            "unified_cryptoasset_id": 2010,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "12.8",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "6.39",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "ADA"
+                                ],
+                                "withdraws": [
+                                    "ADA"
+                                ],
+                                "default": "ADA"
+                            },
+                            "confirmations": {
+                                "ADA": 40
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "ADA": {
+                                        "min": "6.39"
+                                    }
+                                },
+                                "withdraw": {
+                                    "ADA": {
+                                        "min": "12.8"
+                                    }
+                                }
+                            },
+                            "currency_precision": 6,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "ADA/USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "ADA/USDT:USDT": {
+                        "info": {
+                            "name": "Cardano",
+                            "unified_cryptoasset_id": 2010,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "12.8",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "6.39",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "ADA"
+                                ],
+                                "withdraws": [
+                                    "ADA"
+                                ],
+                                "default": "ADA"
+                            },
+                            "confirmations": {
+                                "ADA": 40
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "ADA": {
+                                        "min": "6.39"
+                                    }
+                                },
+                                "withdraw": {
+                                    "ADA": {
+                                        "min": "12.8"
+                                    }
+                                }
+                            },
+                            "currency_precision": 6,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "ADA/USDT:USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "BTC/USD": {
+                        "info": {
+                            "name": "Bitcoin",
+                            "unified_cryptoasset_id": 1,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "0.0003",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "0.0001",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "BTC"
+                                ],
+                                "withdraws": [
+                                    "BTC"
+                                ],
+                                "default": "BTC"
+                            },
+                            "confirmations": {
+                                "BTC": 2
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "BTC": {
+                                        "min": "0.0001"
+                                    }
+                                },
+                                "withdraw": {
+                                    "BTC": {
+                                        "min": "0.0003"
+                                    }
+                                }
+                            },
+                            "currency_precision": 8,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "BTC/USD",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "BTC/USDT": {
+                        "info": {
+                            "name": "Bitcoin",
+                            "unified_cryptoasset_id": 1,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "0.0003",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "0.0001",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "BTC"
+                                ],
+                                "withdraws": [
+                                    "BTC"
+                                ],
+                                "default": "BTC"
+                            },
+                            "confirmations": {
+                                "BTC": 2
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "BTC": {
+                                        "min": "0.0001"
+                                    }
+                                },
+                                "withdraw": {
+                                    "BTC": {
+                                        "min": "0.0003"
+                                    }
+                                }
+                            },
+                            "currency_precision": 8,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "BTC/USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "BTC/USDT:USDT": {
+                        "info": {
+                            "name": "Bitcoin",
+                            "unified_cryptoasset_id": 1,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "0.0003",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "0.0001",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "BTC"
+                                ],
+                                "withdraws": [
+                                    "BTC"
+                                ],
+                                "default": "BTC"
+                            },
+                            "confirmations": {
+                                "BTC": 2
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "BTC": {
+                                        "min": "0.0001"
+                                    }
+                                },
+                                "withdraw": {
+                                    "BTC": {
+                                        "min": "0.0003"
+                                    }
+                                }
+                            },
+                            "currency_precision": 8,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "DOGE/USDT": {
+                        "info": {
+                            "name": "Dogecoin",
+                            "unified_cryptoasset_id": 74,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "26",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "13",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "DOGE"
+                                ],
+                                "withdraws": [
+                                    "DOGE"
+                                ],
+                                "default": "DOGE"
+                            },
+                            "confirmations": {
+                                "DOGE": 36
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "DOGE": {
+                                        "min": "13"
+                                    }
+                                },
+                                "withdraw": {
+                                    "DOGE": {
+                                        "min": "26"
+                                    }
+                                }
+                            },
+                            "currency_precision": 8,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "DOGE/USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "DOGE/USDT:USDT": {
+                        "info": {
+                            "name": "Dogecoin",
+                            "unified_cryptoasset_id": 74,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "26",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "13",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "DOGE"
+                                ],
+                                "withdraws": [
+                                    "DOGE"
+                                ],
+                                "default": "DOGE"
+                            },
+                            "confirmations": {
+                                "DOGE": 36
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "DOGE": {
+                                        "min": "13"
+                                    }
+                                },
+                                "withdraw": {
+                                    "DOGE": {
+                                        "min": "26"
+                                    }
+                                }
+                            },
+                            "currency_precision": 8,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "DOGE/USDT:USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "ETH/USDT": {
+                        "info": {
+                            "name": "Ethereum",
+                            "unified_cryptoasset_id": 1027,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "0.0015",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "0.001",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "SCROLL",
+                                    "BASE",
+                                    "STARKNET",
+                                    "ZKSYNC",
+                                    "ARBITRUM",
+                                    "OPTIMISM",
+                                    "BEP20",
+                                    "ERC20"
+                                ],
+                                "withdraws": [
+                                    "SCROLL",
+                                    "BASE",
+                                    "STARKNET",
+                                    "ZKSYNC",
+                                    "ARBITRUM",
+                                    "OPTIMISM",
+                                    "BEP20",
+                                    "ERC20"
+                                ],
+                                "default": "ERC20"
+                            },
+                            "confirmations": {
+                                "ARBITRUM": 600,
+                                "BASE": 300,
+                                "BEP20": 20,
+                                "ERC20": 64,
+                                "OPTIMISM": 1400,
+                                "SCROLL": 900,
+                                "STARKNET": 5,
+                                "ZKSYNC": 1000
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "ARBITRUM": {
+                                        "min": "0.0019"
+                                    },
+                                    "BASE": {
+                                        "min": "0.0019"
+                                    },
+                                    "BEP20": {
+                                        "min": "0.0019"
+                                    },
+                                    "ERC20": {
+                                        "min": "0.0019"
+                                    },
+                                    "OPTIMISM": {
+                                        "min": "0.0019"
+                                    },
+                                    "SCROLL": {
+                                        "min": "0.0019"
+                                    },
+                                    "STARKNET": {
+                                        "min": "0.001"
+                                    },
+                                    "ZKSYNC": {
+                                        "min": "0.001"
+                                    }
+                                },
+                                "withdraw": {
+                                    "ARBITRUM": {
+                                        "min": "0.0038"
+                                    },
+                                    "BASE": {
+                                        "min": "0.0038"
+                                    },
+                                    "BEP20": {
+                                        "min": "0.0038"
+                                    },
+                                    "ERC20": {
+                                        "min": "0.0038"
+                                    },
+                                    "OPTIMISM": {
+                                        "min": "0.0038"
+                                    },
+                                    "SCROLL": {
+                                        "min": "0.0038"
+                                    },
+                                    "STARKNET": {
+                                        "min": "0.0015"
+                                    },
+                                    "ZKSYNC": {
+                                        "min": "0.0015"
+                                    }
+                                }
+                            },
+                            "currency_precision": 18,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "ETH/USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "ETH/USDT:USDT": {
+                        "info": {
+                            "name": "Ethereum",
+                            "unified_cryptoasset_id": 1027,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "0.0015",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "0.001",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "SCROLL",
+                                    "BASE",
+                                    "STARKNET",
+                                    "ZKSYNC",
+                                    "ARBITRUM",
+                                    "OPTIMISM",
+                                    "BEP20",
+                                    "ERC20"
+                                ],
+                                "withdraws": [
+                                    "SCROLL",
+                                    "BASE",
+                                    "STARKNET",
+                                    "ZKSYNC",
+                                    "ARBITRUM",
+                                    "OPTIMISM",
+                                    "BEP20",
+                                    "ERC20"
+                                ],
+                                "default": "ERC20"
+                            },
+                            "confirmations": {
+                                "ARBITRUM": 600,
+                                "BASE": 300,
+                                "BEP20": 20,
+                                "ERC20": 64,
+                                "OPTIMISM": 1400,
+                                "SCROLL": 900,
+                                "STARKNET": 5,
+                                "ZKSYNC": 1000
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "ARBITRUM": {
+                                        "min": "0.0019"
+                                    },
+                                    "BASE": {
+                                        "min": "0.0019"
+                                    },
+                                    "BEP20": {
+                                        "min": "0.0019"
+                                    },
+                                    "ERC20": {
+                                        "min": "0.0019"
+                                    },
+                                    "OPTIMISM": {
+                                        "min": "0.0019"
+                                    },
+                                    "SCROLL": {
+                                        "min": "0.0019"
+                                    },
+                                    "STARKNET": {
+                                        "min": "0.001"
+                                    },
+                                    "ZKSYNC": {
+                                        "min": "0.001"
+                                    }
+                                },
+                                "withdraw": {
+                                    "ARBITRUM": {
+                                        "min": "0.0038"
+                                    },
+                                    "BASE": {
+                                        "min": "0.0038"
+                                    },
+                                    "BEP20": {
+                                        "min": "0.0038"
+                                    },
+                                    "ERC20": {
+                                        "min": "0.0038"
+                                    },
+                                    "OPTIMISM": {
+                                        "min": "0.0038"
+                                    },
+                                    "SCROLL": {
+                                        "min": "0.0038"
+                                    },
+                                    "STARKNET": {
+                                        "min": "0.0015"
+                                    },
+                                    "ZKSYNC": {
+                                        "min": "0.0015"
+                                    }
+                                }
+                            },
+                            "currency_precision": 18,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "LTC/USDT": {
+                        "info": {
+                            "name": "Litecoin",
+                            "unified_cryptoasset_id": 2,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "0.105",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "0.053",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "LTC"
+                                ],
+                                "withdraws": [
+                                    "LTC"
+                                ],
+                                "default": "LTC"
+                            },
+                            "confirmations": {
+                                "LTC": 20
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "LTC": {
+                                        "min": "0.053"
+                                    }
+                                },
+                                "withdraw": {
+                                    "LTC": {
+                                        "min": "0.105"
+                                    }
+                                }
+                            },
+                            "currency_precision": 8,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "LTC/USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "LTC/USDT:USDT": {
+                        "info": {
+                            "name": "Litecoin",
+                            "unified_cryptoasset_id": 2,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "0.105",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "0.053",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "LTC"
+                                ],
+                                "withdraws": [
+                                    "LTC"
+                                ],
+                                "default": "LTC"
+                            },
+                            "confirmations": {
+                                "LTC": 20
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "LTC": {
+                                        "min": "0.053"
+                                    }
+                                },
+                                "withdraw": {
+                                    "LTC": {
+                                        "min": "0.105"
+                                    }
+                                }
+                            },
+                            "currency_precision": 8,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "LTC/USDT:USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "PEPE/USDT:USDT": {
+                        "info": {
+                            "name": "Pepe",
+                            "unified_cryptoasset_id": 0,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "10622",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "292000",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "ERC20"
+                                ],
+                                "withdraws": [
+                                    "ERC20"
+                                ],
+                                "default": "ERC20"
+                            },
+                            "confirmations": {
+                                "ERC20": 64
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "ERC20": {
+                                        "min": "292000"
+                                    }
+                                },
+                                "withdraw": {
+                                    "ERC20": {
+                                        "min": "10622"
+                                    }
+                                }
+                            },
+                            "currency_precision": 18,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "PEPE/USDT:USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "TRX/USDT": {
+                        "info": {
+                            "name": "Tron",
+                            "unified_cryptoasset_id": 1958,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "20",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "10",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "TRC20"
+                                ],
+                                "withdraws": [
+                                    "TRC20"
+                                ],
+                                "default": "TRC20"
+                            },
+                            "confirmations": {
+                                "TRC20": 20
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "TRC20": {
+                                        "min": "10"
+                                    }
+                                },
+                                "withdraw": {
+                                    "TRC20": {
+                                        "min": "20"
+                                    }
+                                }
+                            },
+                            "currency_precision": 6,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "TRX/USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "TRX/USDT:USDT": {
+                        "info": {
+                            "name": "Tron",
+                            "unified_cryptoasset_id": 1958,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "20",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "10",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "TRC20"
+                                ],
+                                "withdraws": [
+                                    "TRC20"
+                                ],
+                                "default": "TRC20"
+                            },
+                            "confirmations": {
+                                "TRC20": 20
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "TRC20": {
+                                        "min": "10"
+                                    }
+                                },
+                                "withdraw": {
+                                    "TRC20": {
+                                        "min": "20"
+                                    }
+                                }
+                            },
+                            "currency_precision": 6,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "TRX/USDT:USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "XRP/USDT": {
+                        "info": {
+                            "name": "Ripple",
+                            "unified_cryptoasset_id": 52,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "3.8",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "1",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "XRP"
+                                ],
+                                "withdraws": [
+                                    "XRP"
+                                ],
+                                "default": "XRP"
+                            },
+                            "confirmations": {
+                                "XRP": 1
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "XRP": {
+                                        "min": "1"
+                                    }
+                                },
+                                "withdraw": {
+                                    "XRP": {
+                                        "min": "3.8"
+                                    }
+                                }
+                            },
+                            "currency_precision": 6,
+                            "is_memo": true,
+                            "memo": {
+                                "deposit": true,
+                                "withdraw": true
+                            }
+                        },
+                        "symbol": "XRP/USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "XRP/USDT:USDT": {
+                        "info": {
+                            "name": "Ripple",
+                            "unified_cryptoasset_id": 52,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "3.8",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "1",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "XRP"
+                                ],
+                                "withdraws": [
+                                    "XRP"
+                                ],
+                                "default": "XRP"
+                            },
+                            "confirmations": {
+                                "XRP": 1
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "XRP": {
+                                        "min": "1"
+                                    }
+                                },
+                                "withdraw": {
+                                    "XRP": {
+                                        "min": "3.8"
+                                    }
+                                }
+                            },
+                            "currency_precision": 6,
+                            "is_memo": true,
+                            "memo": {
+                                "deposit": true,
+                                "withdraw": true
+                            }
+                        },
+                        "symbol": "XRP/USDT:USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    }
+                }
+            }
         ]
     }
 }

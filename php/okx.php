@@ -353,6 +353,16 @@ class okx extends Exchange {
                         'asset/convert/currencies' => array( 'cost' => 5 / 3 ),
                         'asset/convert/currency-pair' => array( 'cost' => 5 / 3 ),
                         'asset/convert/history' => array( 'cost' => 5 / 3 ),
+                        // fiat
+                        'fiat/deposit-payment-methods' => array( 'cost' => 10 / 3 ),
+                        'fiat/withdrawal-payment-methods' => array( 'cost' => 10 / 3 ),
+                        'fiat/deposit-order-history' => array( 'cost' => 10 / 3 ),
+                        'fiat/deposit' => array( 'cost' => 10 / 3 ),
+                        'fiat/withdrawal-order-history' => array( 'cost' => 10 / 3 ),
+                        'fiat/withdrawal' => array( 'cost' => 10 / 3 ),
+                        'fiat/buy-sell/currencies' => array( 'cost' => 5 / 3 ),
+                        'fiat/buy-sell/currency-pair' => array( 'cost' => 5 / 3 ),
+                        'fiat/buy-sell/history' => array( 'cost' => 5 / 3 ),
                         // account
                         'account/instruments' => array( 'cost' => 1 ),
                         'account/balance' => array( 'cost' => 2 ),
@@ -534,6 +544,11 @@ class okx extends Exchange {
                         'asset/monthly-statement' => array( 'cost' => 1296000 ), // 20 req/month, 10/20*30*24*60*60 = 1296000
                         'asset/convert/estimate-quote' => array( 'cost' => 50 ),
                         'asset/convert/trade' => array( 'cost' => 1 ),
+                        // fiat
+                        'fiat/create-withdrawal' => array( 'cost' => 10 / 3 ),
+                        'fiat/cancel-withdrawal' => array( 'cost' => 10 / 3 ),
+                        'fiat/buy-sell/quote' => array( 'cost' => 50 ),
+                        'fiat/buy-sell/trade' => array( 'cost' => 50 ),
                         // account
                         'account/bills-history-archive' => array( 'cost' => 72000 ), // 12 req/day
                         'account/set-position-mode' => array( 'cost' => 4 ),

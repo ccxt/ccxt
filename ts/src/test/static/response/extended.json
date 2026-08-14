@@ -2996,7 +2996,9 @@
                     5000
                 ],
                 "httpResponse": "",
-                "parsedResponse": ""
+                "parsedResponse": {
+                    "info": ""
+                }
             },
             {
                 "description": "close cancel all orders after",
@@ -3005,7 +3007,9 @@
                     0
                 ],
                 "httpResponse": "",
-                "parsedResponse": ""
+                "parsedResponse": {
+                    "info": ""
+                }
             }
         ]
     }

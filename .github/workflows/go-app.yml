@@ -90,13 +90,20 @@ jobs:
         run: npm run transpile-prediction-go
       - name: Build
         run: go build -C go ./v4
+      - name: Run Go Unit Tests
+        # native *_test.go coverage for go-only behaviors (e.g. the indexed
+        # orderbook regression battery from
+        # https://github.com/ccxt/ccxt/pull/29750); go build skips test files,
+        # so without this step hand-written go/v4 tests never execute in CI
+        if: env.important_modified == 'true'
+        run: go test -C go -count=1 ./v4
       - name: Build Ws
         run: go build -C go ./v4/pro
       - name: Build prediction
         if: env.prediction_modified == 'true'
         run: go build -C go ./v4/prediction
       - name: Build tests
-        run: go -C go build ./tests/main.go
+        run: go -C go build -o tests.bin ./tests/main.go
       - name: Test GO Types
         if: env.important_modified == 'true'
         run: npm run test-types-go
@@ -128,6 +135,16 @@ jobs:
           cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
           for exchange in $cleaned_rest_files; do
             npm run response-go -- $exchange
+          done
+      - name: Ws Static tests
+        if: env.important_modified == 'true'
+        run: npm run ws-tests-go
+      - name: Ws Static tests (specific)
+        if: env.important_modified == 'false'
+        run: |
+          cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+          for exchange in $cleaned_rest_files; do
+            npm run ws-tests-go -- $exchange
           done
       - name: Prediction request tests
         if: env.prediction_modified == 'true'
@@ -182,6 +199,7 @@ jobs:
           rm -f ./go/tests/main
           rm -f ./go/v4/ccxt
           rm -f ./go/main
+          rm -f ./go/tests.bin
 
           git add go/
 
@@ -207,7 +225,7 @@ jobs:
 
   live-tests:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, linux, x64, go ]
     steps:
       - uses: actions/checkout@v5
         with:
@@ -221,12 +239,6 @@ jobs:
         with:
           name: go-files
           path: go/
-      # Cache Go toolchain + module/build caches (ubuntu-latest is ephemeral).
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go/v4/go.mod
-          cache-dependency-path: go/v4/go.sum
       - name: Restore shared_env
         run: ./build/utils/restore_shared_env.sh
       - uses: actions/setup-node@v5
@@ -237,13 +249,15 @@ jobs:
         run: npm ci --include=dev
       - name: Export exchanges
         run: npm run export-exchanges
-      - name: Build
-        run: go build -C go ./v4
-      - name: Build tests
-        run: go build -C go ./tests/main.go
+      - name: Prepare tests binary
+        run: chmod +x go/tests.bin
       - name: Live tests
         if: env.important_modified == 'true'
         run: ./run-tests-simul.sh --go
+        env:
+          GO_TESTS_BINARY: ./go/tests.bin
       - name: Live tests (specific)
         if: env.important_modified == 'false'
         run: ./run-tests-simul.sh --go "${{ env.rest_files }}" "${{ env.ws_files }}"
+        env:
+          GO_TESTS_BINARY: ./go/tests.bin

@@ -625,7 +625,7 @@ class NewTranspiler {
             [/<-spawaned/g, '<-spawaned.(<-chan any)'],
             [/promise\.Resolve\(([^)]+)\)/g, 'promise.(*Future).Resolve(ToGetsLimit($1))'],
             // GetsLimit
-            [/([a-z]+)\.GetLimit/g, 'ToGetsLimit($1).GetLimit'],
+            [/([a-zA-Z]\w*)\.GetLimit/g, 'ToGetsLimit($1).GetLimit'],
             [/order.Limit([^"])/g, 'ToGetsLimit(orderbooks).Limit$1'],
             // OrderBook
             [/\.Cache\s*=\s*(.+)/g, '.(OrderBookInterface).SetCache($1)'],
@@ -1189,6 +1189,7 @@ class NewTranspiler {
             'watchPublic',
             'watchPublicMultiple',
             'watchSpotPrivate',
+            'watchStockMarketStream',
             'watchSwapPrivate',
             'watchSpotPublic',
             'watchSwapPublic',
@@ -3225,7 +3226,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)\(/g, 'exchange.(ccxt.I$1).$1('],
             [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
             [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
-            [/InitOfflineExchange\(exchangeName any\) any  {/g, 'InitOfflineExchange(exchangeName any) ccxt.ICoreExchange {'],
+            [/InitOfflineExchange\(exchangeName any, optionalArgs \.\.\.any\) any\s+{/g, 'InitOfflineExchange(exchangeName any, optionalArgs ...any) ccxt.ICoreExchange {'],
             [/assert\(/g, 'Assert('],
             [/OnlySpecificTests \[\]any/g, 'OnlySpecificTests any '],
             [ /any\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals

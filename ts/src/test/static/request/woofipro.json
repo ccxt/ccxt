@@ -94,14 +94,14 @@
                 "method": "createOrder",
                 "url": "https://api-evm.orderly.org/v1/order",
                 "input": [
-                  "XRP/USDC:USDC",
-                  "limit",
-                  "buy",
-                  20,
-                  0.5,
-                  {
-                    "postOnly": true
-                  }
+                    "XRP/USDC:USDC",
+                    "limit",
+                    "buy",
+                    20,
+                    0.5,
+                    {
+                        "postOnly": true
+                    }
                 ],
                 "output": "{\"order_price\":\"0.5\",\"order_quantity\":\"20\",\"order_tag\":\"CCXT\",\"order_type\":\"POST_ONLY\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}"
             },
@@ -110,11 +110,11 @@
                 "method": "createOrder",
                 "url": "https://api-evm.orderly.org/v1/order",
                 "input": [
-                  "XRP/USDC:USDC",
-                  "limit",
-                  "buy",
-                  20,
-                  0.5
+                    "XRP/USDC:USDC",
+                    "limit",
+                    "buy",
+                    20,
+                    0.5
                 ],
                 "output": "{\"order_price\":\"0.5\",\"order_quantity\":\"20\",\"order_tag\":\"CCXT\",\"order_type\":\"LIMIT\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}"
             },
@@ -123,14 +123,14 @@
                 "method": "createOrder",
                 "url": "https://api-evm.orderly.org/v1/order",
                 "input": [
-                  "XRP/USDC:USDC",
-                  "limit",
-                  "buy",
-                  20,
-                  0.5,
-                  {
-                    "clientOrderId": "myOrder"
-                  }
+                    "XRP/USDC:USDC",
+                    "limit",
+                    "buy",
+                    20,
+                    0.5,
+                    {
+                        "clientOrderId": "myOrder"
+                    }
                 ],
                 "output": "{\"client_order_id\":\"myOrder\",\"order_price\":\"0.5\",\"order_quantity\":\"20\",\"order_tag\":\"CCXT\",\"order_type\":\"LIMIT\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}"
             }
@@ -215,7 +215,7 @@
                 "method": "fetchOrder",
                 "url": "https://api-evm.orderly.org/v1/order/1167852149",
                 "input": [
-                  1167852149
+                    1167852149
                 ]
             },
             {
@@ -223,11 +223,11 @@
                 "method": "fetchOrder",
                 "url": "https://api-evm.orderly.org/v1/client/order/myOrder",
                 "input": [
-                  "random",
-                  null,
-                  {
-                    "clientOrderId": "myOrder"
-                  }
+                    "random",
+                    null,
+                    {
+                        "clientOrderId": "myOrder"
+                    }
                 ]
             }
         ],
@@ -245,12 +245,12 @@
                 "method": "fetchOrders",
                 "url": "https://api-evm.orderly.org/v1/algo/orders?algo_type=STOP&size=100&symbol=PERP_XRP_USDC",
                 "input": [
-                  "XRP/USDC:USDC",
-                  null,
-                  null,
-                  {
-                    "trigger": true
-                  }
+                    "XRP/USDC:USDC",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
                 ]
             }
         ],
@@ -276,12 +276,102 @@
                 ]
             }
         ],
+        "fetchTicker": [
+            {
+                "description": "swap ticker",
+                "method": "fetchTicker",
+                "url": "https://api-evm.orderly.org/v1/public/futures/PERP_BTC_USDC",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "all swap tickers",
+                "method": "fetchTickers",
+                "url": "https://api-evm.orderly.org/v1/public/futures",
+                "input": []
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "swap open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://api-evm.orderly.org/v1/public/futures/PERP_BTC_USDC",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "all swap open interests",
+                "method": "fetchOpenInterests",
+                "url": "https://api-evm.orderly.org/v1/public/futures",
+                "input": []
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "Fetch swap Balance",
                 "method": "fetchBalance",
                 "url": "https://api-evm.orderly.org/v1/client/holding",
                 "input": []
+            }
+        ],
+        "fetchMarginModes": [
+            {
+                "description": "fetch margin modes of all markets",
+                "method": "fetchMarginModes",
+                "url": "https://api-evm.orderly.org/v1/client/margin_modes",
+                "input": []
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "fetch margin mode of one market",
+                "method": "fetchMarginMode",
+                "url": "https://api-evm.orderly.org/v1/client/margin_modes",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set isolated margin mode",
+                "method": "setMarginMode",
+                "url": "https://api-evm.orderly.org/v1/client/margin_mode",
+                "input": [
+                    "isolated",
+                    "LTC/USDC:USDC"
+                ],
+                "output": "{\"symbol\":\"PERP_LTC_USDC\",\"default_margin_mode\":\"ISOLATED\"}"
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "add margin to isolated position",
+                "method": "addMargin",
+                "url": "https://api-evm.orderly.org/v1/position_margin",
+                "input": [
+                    "LTC/USDC:USDC",
+                    1
+                ],
+                "output": "{\"symbol\":\"PERP_LTC_USDC\",\"amount\":\"1\",\"type\":\"ADD\"}"
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "reduce margin of isolated position",
+                "method": "reduceMargin",
+                "url": "https://api-evm.orderly.org/v1/position_margin",
+                "input": [
+                    "LTC/USDC:USDC",
+                    0.5
+                ],
+                "output": "{\"symbol\":\"PERP_LTC_USDC\",\"amount\":\"0.5\",\"type\":\"REDUCE\"}"
             }
         ],
         "fetchPositions": [
@@ -357,12 +447,12 @@
                 "method": "editOrder",
                 "url": "https://api-evm.orderly.org/v1/order",
                 "input": [
-                  "1088643232",
-                  "XRP/USDC:USDC",
-                  "limit",
-                  "buy",
-                  25,
-                  0.45
+                    "1088643232",
+                    "XRP/USDC:USDC",
+                    "limit",
+                    "buy",
+                    25,
+                    0.45
                 ],
                 "output": "{\"order_id\":\"1088643232\",\"order_price\":\"0.45\",\"order_quantity\":\"25\",\"order_tag\":\"CCXT\",\"order_type\":\"LIMIT\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}"
             }
@@ -422,11 +512,11 @@
                 "method": "cancelOrder",
                 "url": "https://api-evm.orderly.org/v1/client/order?client_order_id=myOrder&symbol=PERP_XRP_USDC",
                 "input": [
-                  "random",
-                  "XRP/USDC:USDC",
-                  {
-                    "clientOrderId": "myOrder"
-                  }
+                    "random",
+                    "XRP/USDC:USDC",
+                    {
+                        "clientOrderId": "myOrder"
+                    }
                 ],
                 "output": ""
             }
@@ -559,7 +649,7 @@
                 "method": "fetchPosition",
                 "url": "https://api-evm.orderly.org/v1/position/PERP_BTC_USDC",
                 "input": [
-                  "BTC/USDC:USDC"
+                    "BTC/USDC:USDC"
                 ]
             }
         ],
@@ -569,10 +659,10 @@
                 "method": "cancelOrders",
                 "url": "https://api-evm.orderly.org/v1/batch-order?order_ids=1088558009%2C1088643232",
                 "input": [
-                  [
-                    "1088558009",
-                    "1088643232"
-                  ]
+                    [
+                        "1088558009",
+                        "1088643232"
+                    ]
                 ]
             }
         ],
@@ -582,7 +672,7 @@
                 "method": "fetchFundingInterval",
                 "url": "https://api-evm.orderly.org/v1/public/funding_rate/PERP_BTC_USDC",
                 "input": [
-                  "BTC/USDC:USDC"
+                    "BTC/USDC:USDC"
                 ]
             }
         ]

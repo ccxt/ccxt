@@ -448,7 +448,10 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         //
         if (Helpers.isTrue(Helpers.isEqual(this.positions, null)))
         {
-            this.positions = new ArrayCache.ArrayCacheBySymbolById();
+            // krakenfutures positions carry no id (parseWsPosition always sets
+            // 'id': undefined), so key by symbol + side instead of by-id, see
+            // https://github.com/ccxt/ccxt/issues/29709
+            this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object cache = this.positions;
         Object rawPositions = this.safeValue(message, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));

@@ -887,18 +887,18 @@ func TestFutureSubscribersCleanedAfterResolve(t *testing.T) {
 		f.Await()
 	}
 
-	f.subscribersMu.Lock()
+	f.mu.Lock()
 	countBefore := len(f.subscribers)
-	f.subscribersMu.Unlock()
+	f.mu.Unlock()
 	if countBefore != 10 {
 		t.Fatalf("expected 10 subscribers before resolve, got %d", countBefore)
 	}
 
 	f.Resolve("done")
 
-	f.subscribersMu.Lock()
+	f.mu.Lock()
 	countAfter := len(f.subscribers)
-	f.subscribersMu.Unlock()
+	f.mu.Unlock()
 	if countAfter != 0 {
 		t.Errorf("expected 0 subscribers after resolve, got %d", countAfter)
 	}

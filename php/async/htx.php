@@ -8446,8 +8446,14 @@ class htx extends Exchange {
         $entryPrice = $this->safe_number_2($position, 'cost_open', 'open_avg_price');
         $initialMargin = $this->safe_string_2($position, 'position_margin', 'initial_margin');
         $rawSide = $this->safe_string($position, 'direction');
-        $rawPositionSide = ($rawSide === 'buy') ? 'long' : 'short';
-        $side = $this->safe_string($position, 'position_side', $rawPositionSide);
+        $directionSide = ($rawSide === 'buy') ? 'long' : 'short';
+        $rawPositionSide = $this->safe_string($position, 'position_side');
+        // in one-way mode, "position_side" is "both" and the actual long/short signal is only present in "direction"
+        $side = $directionSide;
+        $isHedgedPositionSide = ($rawPositionSide === 'long') || ($rawPositionSide === 'short');
+        if ($isHedgedPositionSide) {
+            $side = $rawPositionSide;
+        }
         $unrealizedProfit = $this->safe_number($position, 'profit_unreal');
         $marginMode = $this->safe_string($position, 'margin_mode');
         $leverage = $this->safe_string($position, 'lever_rate');

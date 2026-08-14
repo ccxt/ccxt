@@ -703,8 +703,12 @@ export default class lbank extends Exchange {
                         'max': this.safeNumber (market, 'maxOrderVolume'),
                     },
                     'price': {
-                        'min': this.safeNumber (market, 'priceLimitLowerValue'),
-                        'max': this.safeNumber (market, 'priceLimitUpperValue'),
+                        // priceLimitLowerValue and priceLimitUpperValue are
+                        // deviation ratios around the mark price, observed live
+                        // near 0.2 on nearly every symbol and asymmetric on some,
+                        // they are not absolute price bounds so they stay in info
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'cost': {
                         'min': this.safeNumber (market, 'minOrderCost'),

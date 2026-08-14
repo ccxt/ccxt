@@ -17,7 +17,7 @@ public class TestFetchLeverageTiers extends BaseTest {
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "fetchLeverageTiers";
-        Object tiers = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLeverageTiers", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList("symbol"))})).join();
+        Object tiers = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLeverageTiers", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))})).join();
         // const format = {
         //     'RAY/USDT': [
         //       {},

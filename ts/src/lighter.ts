@@ -789,6 +789,7 @@ export default class lighter extends Exchange {
         }
         if (postOnly) {
             timeInForceNum = 2;
+            orderExpiry = -1;
         } else {
             if (!isMarketOrder) {
                 if (timeInForce === 'ioc') {
@@ -901,38 +902,17 @@ export default class lighter extends Exchange {
         return this.safeInteger (response, 'nonce');
     }
 
-    /**
-     * @method
-     * @name lighter#createOrder
-     * @description create a trade order
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.timeInForce] 'GTT' or 'IOC', default is 'GTT'
-     * @param {int} [params.clientOrderId] client order id, should be unique for each order, default is a random number
-     * @param {string} [params.triggerPrice] trigger price for stop loss or take profit orders, in units of the quote currency
-     * @param {boolean} [params.reduceOnly] whether the order is reduce only, default false
-     * @param {int} [params.nonce] nonce for the account
-     * @param {int} [params.apiKeyIndex] apiKeyIndex
-     * @param {int} [params.accountIndex] accountIndex
-     * @param {int} [params.orderExpiry] orderExpiry
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}) {
+    async signAndCreateOrder (method: string, symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Promise<any[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let accountIndex: Int = undefined;
-        [ accountIndex, params ] = await this.handleAccountIndex (params, 'createOrder', 'accountIndex', 'account_index');
+        [ accountIndex, params ] = await this.handleAccountIndex (params, method, 'accountIndex', 'account_index');
         params['accountIndex'] = accountIndex;
         const market = this.market (symbol);
         let groupingType: Int = undefined;
-        [ groupingType, params ] = this.handleOptionAndParams (params, 'createOrder', 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
+        [ groupingType, params ] = this.handleOptionAndParams (params, method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         const orderRequests = this.createOrderRequest (symbol, type, side, amount, price, params);
-        // for php
         const totalOrderRequests = orderRequests.length;
         let apiKeyIndex: Int = undefined;
         let order: NullableDict = undefined;
@@ -966,6 +946,31 @@ export default class lighter extends Exchange {
             }
             [ txType, txInfo ] = this.lighterSignCreateGroupedOrders (signer, signingPayload);
         }
+        return [ txType, txInfo, order, market ];
+    }
+
+    /**
+     * @method
+     * @name lighter#createOrder
+     * @description create a trade order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] 'GTT' or 'IOC', default is 'GTT'
+     * @param {int} [params.clientOrderId] client order id, should be unique for each order, default is a random number
+     * @param {string} [params.triggerPrice] trigger price for stop loss or take profit orders, in units of the quote currency
+     * @param {boolean} [params.reduceOnly] whether the order is reduce only, default false
+     * @param {int} [params.nonce] nonce for the account
+     * @param {int} [params.apiKeyIndex] apiKeyIndex
+     * @param {int} [params.accountIndex] accountIndex
+     * @param {int} [params.orderExpiry] orderExpiry
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}) {
+        const [ txType, txInfo, order, market ] = await this.signAndCreateOrder ('createOrder', symbol, type, side, amount, price, params);
         const request = {
             'tx_type': txType,
             'tx_info': txInfo,
@@ -3127,31 +3132,20 @@ export default class lighter extends Exchange {
         return await this.publicPostSendTx (request);
     }
 
-    /**
-     * @method
-     * @name lighter#cancelOrder
-     * @description cancels an open order
-     * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.accountIndex] account index
-     * @param {string} [params.apiKeyIndex] api key index
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async signAndCancelOrder (method: string, id: string, symbol: Str = undefined, params: Dict = {}): Promise<any[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let apiKeyIndex: Int = undefined;
-        [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' ' + method + ' requires a symbol argument');
         }
+        let apiKeyIndex: Int = undefined;
+        [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, method, 'apiKeyIndex', 'api_key_index');
+        let accountIndex: Int = undefined;
+        [ accountIndex, params ] = await this.handleAccountIndex (params, method, 'accountIndex', 'account_index');
         const market = this.market (symbol);
         const clientOrderId = this.safeString2 (params, 'client_order_index', 'clientOrderId');
         params = this.omit (params, [ 'client_order_index', 'clientOrderId' ]);
-        let accountIndex: Int = undefined;
-        [ accountIndex, params ] = await this.handleAccountIndex (params, 'cancelOrder', 'accountIndex', 'account_index');
         const strAccountIndex = this.numberToString (accountIndex) as string;
         const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
         const signer = await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
@@ -3167,15 +3161,54 @@ export default class lighter extends Exchange {
         } else if (id !== undefined) {
             signRaw['order_index'] = this.parseToInt (id);
         } else {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires order id or client order id');
+            throw new ArgumentsRequired (this.id + ' ' + method + ' requires order id or client order id');
         }
         const [ txType, txInfo ] = this.lighterSignCancelOrder (signer, this.extend (signRaw, params));
+        return [ txType, txInfo, market ];
+    }
+
+    /**
+     * @method
+     * @name lighter#cancelOrder
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        const [ txType, txInfo, market ] = await this.signAndCancelOrder ('cancelOrder', id, symbol, params);
         const request: Dict = {
             'tx_type': txType,
             'tx_info': txInfo,
         };
         const response = await this.publicPostSendTx (request);
         return this.parseOrder (response, market);
+    }
+
+    async signAndCancelAllOrders (method: string, symbol: Str = undefined, params: Dict = {}): Promise<any[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let apiKeyIndex: Int = undefined;
+        [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, method, 'apiKeyIndex', 'api_key_index');
+        let accountIndex: Int = undefined;
+        [ accountIndex, params ] = await this.handleAccountIndex (params, method, 'accountIndex', 'account_index');
+        const strAccountIndex = this.numberToString (accountIndex) as string;
+        const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
+        const signer = await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
+        const nonce = await this.fetchNonce (accountIndex, apiKeyIndex, params);
+        const signRaw: Dict = {
+            'time_in_force': 0, // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+            'time': 0, // if time_in_force is not IMMEDIATE, set the timestamp_ms here
+            'nonce': nonce,
+            'api_key_index': apiKeyIndex,
+            'account_index': accountIndex,
+        };
+        const [ txType, txInfo ] = this.lighterSignCancelAllOrders (signer, this.extend (signRaw, params));
+        return [ txType, txInfo ];
     }
 
     /**
@@ -3189,25 +3222,7 @@ export default class lighter extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        let apiKeyIndex: Int = undefined;
-        [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'cancelAllOrders', 'apiKeyIndex', 'api_key_index');
-        let accountIndex: Int = undefined;
-        [ accountIndex, params ] = await this.handleAccountIndex (params, 'cancelAllOrders', 'accountIndex', 'account_index');
-        const strAccountIndex = this.numberToString (accountIndex) as string;
-        const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
-        const signer = await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
-        const nonce = await this.fetchNonce (accountIndex, apiKeyIndex, params);
-        const signRaw: Dict = {
-            'time_in_force': 0, // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
-            'time': 0, // if time_in_force is not IMMEDIATE, set the timestamp_ms here
-            'nonce': nonce,
-            'api_key_index': apiKeyIndex,
-            'account_index': accountIndex,
-        };
-        const [ txType, txInfo ] = this.lighterSignCancelAllOrders (signer, this.extend (signRaw, params));
+        const [ txType, txInfo ] = await this.signAndCancelAllOrders ('cancelAllOrdersWs', symbol, params);
         const request: Dict = {
             'tx_type': txType,
             'tx_info': txInfo,

@@ -243,6 +243,196 @@
         }
       }
     ],
+    "fetchTradingFee": [
+      {
+        "description": "swap trading fee from the account step rate",
+        "method": "fetchTradingFee",
+        "input": [
+          "BTC/USDT:USDT"
+        ],
+        "httpResponse": {
+          "returnCode": 0,
+          "msgInfo": "success",
+          "error": null,
+          "result": {
+            "specialType": false,
+            "vipProType": false,
+            "stepRateProName": null,
+            "discountLevel": 0,
+            "makerFee": "0.0002",
+            "takerFee": "0.0006",
+            "levelReturnDay": 90,
+            "totalTradeVolume": "78.708",
+            "walletBalance": "21.95",
+            "nextLvTradeVolume": "200000",
+            "nextLvMakerFee": "0.00018",
+            "nextLvTakerFee": "0.00054",
+            "feeSource": "step_rate"
+          }
+        },
+        "parsedResponse": {
+          "info": {
+            "specialType": false,
+            "vipProType": false,
+            "stepRateProName": null,
+            "discountLevel": 0,
+            "makerFee": "0.0002",
+            "takerFee": "0.0006",
+            "levelReturnDay": 90,
+            "totalTradeVolume": "78.708",
+            "walletBalance": "21.95",
+            "nextLvTradeVolume": "200000",
+            "nextLvMakerFee": "0.00018",
+            "nextLvTakerFee": "0.00054",
+            "feeSource": "step_rate"
+          },
+          "symbol": "BTC/USDT:USDT",
+          "maker": 0.0002,
+          "taker": 0.0006,
+          "percentage": null,
+          "tierBased": true
+        }
+      }
+    ],
+    "fetchTradingFees": [
+      {
+        "description": "the account-level linear step rate is applied to every linear swap market",
+        "method": "fetchTradingFees",
+        "input": [],
+        "httpResponse": {
+          "returnCode": 0,
+          "msgInfo": "success",
+          "error": null,
+          "result": {
+            "specialType": false,
+            "vipProType": false,
+            "stepRateProName": null,
+            "discountLevel": 0,
+            "makerFee": "0.0002",
+            "takerFee": "0.0006",
+            "levelReturnDay": 90,
+            "totalTradeVolume": "78.708",
+            "walletBalance": "21.95",
+            "nextLvTradeVolume": "200000",
+            "nextLvMakerFee": "0.00018",
+            "nextLvTakerFee": "0.00054",
+            "feeSource": "step_rate"
+          }
+        },
+        "parsedResponse": {
+          "LTC/USDT:USDT": {
+            "info": {
+              "specialType": false,
+              "vipProType": false,
+              "stepRateProName": null,
+              "discountLevel": 0,
+              "makerFee": "0.0002",
+              "takerFee": "0.0006",
+              "levelReturnDay": 90,
+              "totalTradeVolume": "78.708",
+              "walletBalance": "21.95",
+              "nextLvTradeVolume": "200000",
+              "nextLvMakerFee": "0.00018",
+              "nextLvTakerFee": "0.00054",
+              "feeSource": "step_rate"
+            },
+            "symbol": "LTC/USDT:USDT",
+            "maker": 0.0002,
+            "taker": 0.0006,
+            "percentage": null,
+            "tierBased": true
+          },
+          "BTC/USDT:USDT": {
+            "info": {
+              "specialType": false,
+              "vipProType": false,
+              "stepRateProName": null,
+              "discountLevel": 0,
+              "makerFee": "0.0002",
+              "takerFee": "0.0006",
+              "levelReturnDay": 90,
+              "totalTradeVolume": "78.708",
+              "walletBalance": "21.95",
+              "nextLvTradeVolume": "200000",
+              "nextLvMakerFee": "0.00018",
+              "nextLvTakerFee": "0.00054",
+              "feeSource": "step_rate"
+            },
+            "symbol": "BTC/USDT:USDT",
+            "maker": 0.0002,
+            "taker": 0.0006,
+            "percentage": null,
+            "tierBased": true
+          },
+          "XRP/USDT:USDT": {
+            "info": {
+              "specialType": false,
+              "vipProType": false,
+              "stepRateProName": null,
+              "discountLevel": 0,
+              "makerFee": "0.0002",
+              "takerFee": "0.0006",
+              "levelReturnDay": 90,
+              "totalTradeVolume": "78.708",
+              "walletBalance": "21.95",
+              "nextLvTradeVolume": "200000",
+              "nextLvMakerFee": "0.00018",
+              "nextLvTakerFee": "0.00054",
+              "feeSource": "step_rate"
+            },
+            "symbol": "XRP/USDT:USDT",
+            "maker": 0.0002,
+            "taker": 0.0006,
+            "percentage": null,
+            "tierBased": true
+          },
+          "ADA/USDT:USDT": {
+            "info": {
+              "specialType": false,
+              "vipProType": false,
+              "stepRateProName": null,
+              "discountLevel": 0,
+              "makerFee": "0.0002",
+              "takerFee": "0.0006",
+              "levelReturnDay": 90,
+              "totalTradeVolume": "78.708",
+              "walletBalance": "21.95",
+              "nextLvTradeVolume": "200000",
+              "nextLvMakerFee": "0.00018",
+              "nextLvTakerFee": "0.00054",
+              "feeSource": "step_rate"
+            },
+            "symbol": "ADA/USDT:USDT",
+            "maker": 0.0002,
+            "taker": 0.0006,
+            "percentage": null,
+            "tierBased": true
+          },
+          "RIVER/USDT:USDT": {
+            "info": {
+              "specialType": false,
+              "vipProType": false,
+              "stepRateProName": null,
+              "discountLevel": 0,
+              "makerFee": "0.0002",
+              "takerFee": "0.0006",
+              "levelReturnDay": 90,
+              "totalTradeVolume": "78.708",
+              "walletBalance": "21.95",
+              "nextLvTradeVolume": "200000",
+              "nextLvMakerFee": "0.00018",
+              "nextLvTakerFee": "0.00054",
+              "feeSource": "step_rate"
+            },
+            "symbol": "RIVER/USDT:USDT",
+            "maker": 0.0002,
+            "taker": 0.0006,
+            "percentage": null,
+            "tierBased": true
+          }
+        }
+      }
+    ],
     "fetchPositions": [
       {
         "description": "isolated short position with a real margin-call price (position/list and position/break-list share one mocked response here since the static test harness returns the same httpResponse for every fetch() call within a method; the raw payload below carries both position/list fields and position/break-list fields so the merge + parse logic is still exercised end-to-end)",
@@ -261,6 +451,7 @@
               "positionSize": "1",
               "entryPrice": "1.0663",
               "isolatedMargin": "0.5",
+              "realizedProfit": "-0.0013",
               "leverage": 10,
               "markPrice": "1.0664",
               "breakPrice": "1.2",
@@ -278,6 +469,7 @@
               "positionSize": "1",
               "entryPrice": "1.0663",
               "isolatedMargin": "0.5",
+              "realizedProfit": "-0.0013",
               "leverage": 10,
               "markPrice": "1.0664",
               "breakPrice": "1.2",
@@ -293,6 +485,7 @@
             "contractSize": 10,
             "entryPrice": 1.0663,
             "markPrice": 1.0664,
+            "lastPrice": null,
             "notional": null,
             "leverage": 10,
             "collateral": 0.5,
@@ -301,7 +494,100 @@
             "initialMarginPercentage": null,
             "maintenanceMarginPercentage": null,
             "unrealizedPnl": null,
+            "realizedPnl": -0.0013,
             "liquidationPrice": 1.2,
+            "marginMode": "isolated",
+            "percentage": null,
+            "marginRatio": null
+          }
+        ]
+      }
+    ],
+    "fetchPositionsHistory": [
+      {
+        "description": "closed isolated long position, positionType is an integer here (1 = cross, 2 = isolated) unlike position/list",
+        "method": "fetchPositionsHistory",
+        "input": [
+          [
+            "XRP/USDT:USDT"
+          ]
+        ],
+        "httpResponse": {
+          "returnCode": 0,
+          "msgInfo": "success",
+          "error": null,
+          "result": {
+            "hasPrev": false,
+            "hasNext": false,
+            "items": [
+              {
+                "id": "654559911738263296",
+                "positionSide": "LONG",
+                "contractType": "PERPETUAL",
+                "symbol": "xrp_usdt",
+                "positionType": 2,
+                "closeProfit": "0.001",
+                "closePositionSize": "1",
+                "closeOpenPrice": "1.0651",
+                "closePrice": "1.0652",
+                "maxPositionSize": "1",
+                "openTime": 1785761266645,
+                "closeTime": 1785761266645,
+                "startLeverage": 10,
+                "endLeverage": 10,
+                "working": false,
+                "force": false,
+                "forceMarkPrice": null,
+                "totalFee": "0.0063",
+                "totalFundFee": "0"
+              }
+            ]
+          }
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "id": "654559911738263296",
+              "positionSide": "LONG",
+              "contractType": "PERPETUAL",
+              "symbol": "xrp_usdt",
+              "positionType": 2,
+              "closeProfit": "0.001",
+              "closePositionSize": "1",
+              "closeOpenPrice": "1.0651",
+              "closePrice": "1.0652",
+              "maxPositionSize": "1",
+              "openTime": 1785761266645,
+              "closeTime": 1785761266645,
+              "startLeverage": 10,
+              "endLeverage": 10,
+              "working": false,
+              "force": false,
+              "forceMarkPrice": null,
+              "totalFee": "0.0063",
+              "totalFundFee": "0"
+            },
+            "id": "654559911738263296",
+            "symbol": "XRP/USDT:USDT",
+            "timestamp": 1785761266645,
+            "datetime": "2026-08-03T12:47:46.645Z",
+            "hedged": null,
+            "side": "long",
+            "contracts": 1,
+            "contractSize": 10,
+            "entryPrice": 1.0651,
+            "markPrice": null,
+            "lastPrice": 1.0652,
+            "notional": null,
+            "leverage": 10,
+            "collateral": null,
+            "initialMargin": null,
+            "maintenanceMargin": null,
+            "initialMarginPercentage": null,
+            "maintenanceMarginPercentage": null,
+            "unrealizedPnl": null,
+            "realizedPnl": 0.001,
+            "liquidationPrice": null,
             "marginMode": "isolated",
             "percentage": null,
             "marginRatio": null
@@ -377,6 +663,136 @@
       }
     ],
     "fetchOpenOrders": [
+      {
+        "description": "open trailing orders are filtered locally by status since track-list returns entries in every state",
+        "method": "fetchOpenOrders",
+        "input": [
+          "XRP/USDT:USDT",
+          null,
+          null,
+          {
+            "trailing": true
+          }
+        ],
+        "httpResponse": {
+          "returnCode": 0,
+          "msgInfo": "success",
+          "error": null,
+          "result": {
+            "page": 1,
+            "ps": 10,
+            "total": 2,
+            "items": [
+              {
+                "trackId": "658271606680303168",
+                "symbol": "xrp_usdt",
+                "orderSide": "BUY",
+                "positionSide": "LONG",
+                "configActivation": true,
+                "activationPrice": "0.86",
+                "currentPrice": "1.0048",
+                "price": null,
+                "origQty": "1",
+                "stopPrice": null,
+                "triggerPriceType": "LATEST_PRICE",
+                "callback": "PROPORTION",
+                "callbackVal": "0.01",
+                "executedQty": null,
+                "avgPrice": null,
+                "state": "NOT_ACTIVATION",
+                "desc": "not_activation",
+                "createdTime": 1786646181143,
+                "updatedTime": 1786646181143,
+                "ordinary": false
+              },
+              {
+                "trackId": "658243077162749440",
+                "symbol": "xrp_usdt",
+                "orderSide": "BUY",
+                "positionSide": "LONG",
+                "configActivation": true,
+                "activationPrice": "0.86",
+                "currentPrice": "0.9992",
+                "price": null,
+                "origQty": "1",
+                "stopPrice": null,
+                "triggerPriceType": "LATEST_PRICE",
+                "callback": "FIXED",
+                "callbackVal": "0.05",
+                "executedQty": null,
+                "avgPrice": null,
+                "state": "USER_REVOCATION",
+                "desc": "user_revocation",
+                "createdTime": 1786639379169,
+                "updatedTime": 1786639519337,
+                "ordinary": false
+              }
+            ]
+          }
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "trackId": "658271606680303168",
+              "symbol": "xrp_usdt",
+              "orderSide": "BUY",
+              "positionSide": "LONG",
+              "configActivation": true,
+              "activationPrice": "0.86",
+              "currentPrice": "1.0048",
+              "price": null,
+              "origQty": "1",
+              "stopPrice": null,
+              "triggerPriceType": "LATEST_PRICE",
+              "callback": "PROPORTION",
+              "callbackVal": "0.01",
+              "executedQty": null,
+              "avgPrice": null,
+              "state": "NOT_ACTIVATION",
+              "desc": "not_activation",
+              "createdTime": 1786646181143,
+              "updatedTime": 1786646181143,
+              "ordinary": false
+            },
+            "id": "658271606680303168",
+            "clientOrderId": null,
+            "timestamp": 1786646181143,
+            "datetime": "2026-08-13T18:36:21.143Z",
+            "lastTradeTimestamp": 1786646181143,
+            "lastUpdateTimestamp": 1786646181143,
+            "symbol": "XRP/USDT:USDT",
+            "type": null,
+            "timeInForce": null,
+            "postOnly": null,
+            "side": "buy",
+            "price": null,
+            "triggerPrice": null,
+            "stopLoss": null,
+            "takeProfit": null,
+            "amount": 10,
+            "filled": null,
+            "remaining": null,
+            "cost": null,
+            "average": null,
+            "status": "open",
+            "fee": {
+              "currency": null,
+              "cost": null
+            },
+            "trades": [],
+            "fees": [
+              {
+                "currency": null,
+                "cost": null
+              }
+            ],
+            "reduceOnly": null,
+            "stopPrice": null,
+            "takeProfitPrice": null,
+            "stopLossPrice": null
+          }
+        ]
+      },
       {
         "description": "swap open orders no symbol",
         "method": "fetchOpenOrders",

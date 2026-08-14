@@ -702,8 +702,12 @@ class lbank(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'maxOrderVolume'),
                     },
                     'price': {
-                        'min': self.safe_number(market, 'priceLimitLowerValue'),
-                        'max': self.safe_number(market, 'priceLimitUpperValue'),
+                        # priceLimitLowerValue and priceLimitUpperValue are
+                        # deviation ratios around the mark price, observed live
+                        # near 0.2 on nearly every symbol and asymmetric on some,
+                        # they are not absolute price bounds so they stay in info
+                        'min': None,
+                        'max': None,
                     },
                     'cost': {
                         'min': self.safe_number(market, 'minOrderCost'),

@@ -1526,7 +1526,7 @@ export default class kucoin extends kucoinRest {
         let method = isFuturesMethod ? '/contractMarket/level2' : '/market/level2';
         const optionName = isFuturesMethod ? 'contractMethod' : 'spotMethod';
         [ method, params ] = this.handleOptionAndParams2 (params, 'watchOrderBook', optionName, 'method', method);
-        if (method.indexOf ('Depth') === -1) {
+        if (method.indexOf ('Depth') < 0) {
             if ((limit === 5) || (limit === 50)) {
                 if (!isFuturesMethod) {
                     method = '/spotMarket/level2';
@@ -1584,7 +1584,7 @@ export default class kucoin extends kucoinRest {
         let method = isFuturesMethod ? '/contractMarket/level2' : '/market/level2';
         const optionName = isFuturesMethod ? 'contractMethod' : 'spotMethod';
         [ method, params ] = this.handleOptionAndParams2 (params, 'watchOrderBook', optionName, 'method', method);
-        if (method.indexOf ('Depth') === -1) {
+        if (method.indexOf ('Depth') < 0) {
             if ((limit === 5) || (limit === 50)) {
                 if (!isFuturesMethod) {
                     method = '/spotMarket/level2';

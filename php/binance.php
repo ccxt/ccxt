@@ -538,6 +538,17 @@ class binance extends Exchange {
                         'accumulator/product/list' => array( 'cost' => 0.1 ),
                         'accumulator/product/position/list' => array( 'cost' => 0.1 ),
                         'accumulator/product/sum-holding' => array( 'cost' => 0.1 ),
+                        // tokenized equities public
+                        'equity/market/exchangeInfo' => array( 'cost' => 0.1 ),
+                        'equity/market/tokenized-assets' => array( 'cost' => 0.1 ),
+                        'equity/market/quote' => array( 'cost' => 0.1 ),
+                        // tokenized equities private
+                        'equity/order/open-orders' => array( 'cost' => 0.1 ),
+                        'equity/order/history' => array( 'cost' => 0.1 ),
+                        'equity/order/detail' => array( 'cost' => 0.1 ),
+                        'equity/trade/history' => array( 'cost' => 0.1 ),
+                        'equity/tokenized/convert-status' => array( 'cost' => 0.1 ),
+                        'equity/tokenized/history' => array( 'cost' => 0.1 ),
                     ),
                     'post' => array(
                         'asset/dust' => array( 'cost' => 0.06667 ), // Weight(UID) => 10 => cost = 0.006667 * 10 = 0.06667
@@ -678,6 +689,14 @@ class binance extends Exchange {
                         'dci/product/auto_compound/edit' => array( 'cost' => 0.1 ),
                         // discount buy
                         'accumulator/product/subscribe' => array( 'cost' => 0.1 ),
+                        // tokenized equities
+                        'equity/order/place' => array( 'cost' => 0.1 ),
+                        'equity/order/cancel' => array( 'cost' => 0.1 ),
+                        'equity/order/cancel-all' => array( 'cost' => 0.1 ),
+                        'equity/tokenized/mint' => array( 'cost' => 0.1 ),
+                        'equity/tokenized/redeem' => array( 'cost' => 0.1 ),
+                        'equity/account/disclaimer' => array( 'cost' => 0.1 ),
+                        'equity/listenKey' => array( 'cost' => 0.1 ),
                     ),
                     'put' => array(
                         'userDataStream' => array( 'cost' => 0.1 ),
@@ -2920,6 +2939,147 @@ class binance extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
+    public function mint_tokenized_asset(string $underlyingAsset, string $underlyingAssetAmount, $params = array()): mixed {
+        /**
+         * @ignore
+         * mint a tokenized asset from an underlying equity holding
+         *
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/tokenized#tokenized-mint
+         *
+         * @param {string} $underlyingAsset underlying asset to mint into tokenized asset, ex. AAPL
+         * @param {string} $underlyingAssetAmount quantity of the underlying asset to mint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] the clientOrderId of the order
+         * @param {int} [$params->recvWindow] cannot be greater than 60000
+         * @return {array} the $response from the exchange
+         */
+        $request = array(
+            'underlyingAsset' => $underlyingAsset,
+            'underlyingAssetAmount' => $underlyingAssetAmount,
+            'timestamp' => $this->milliseconds(),
+        );
+        $response = $this->sapiPostEquityTokenizedRedeem($this->extend($request, $params));
+        //
+        //     {
+        //         "issuerRequestId" => "mint-20260505-8f3b9e1a2d3c4b5a",
+        //         "status" => "P"
+        //     }
+        //
+        return $response;
+    }
+
+    public function redeem_tokenized_asset(string $tokenizedAsset, string $tokenizedAssetAmount, $params = array()): mixed {
+        /**
+         * @ignore
+         * redeem a tokenized stock asset for the underlying asset
+         *
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/tokenized#tokenized-redeem
+         *
+         * @param {string} $tokenizedAsset tokenized asset to redeem, the onchain token identifier not the equity ticker ex. AAPLB
+         * @param {string} $tokenizedAssetAmount quantity of the tokenized asset to redeem
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] the clientOrderId of the order
+         * @param {int} [$params->recvWindow] cannot be greater than 60000
+         * @return {array} the $response from the exchange
+         */
+        $request = array(
+            'tokenizedAsset' => $tokenizedAsset,
+            'tokenizedAssetAmount' => $tokenizedAssetAmount,
+            'timestamp' => $this->milliseconds(),
+        );
+        $response = $this->sapiPostEquityTokenizedRedeem($this->extend($request, $params));
+        //
+        //     {
+        //         "issuerRequestId" => "d9a01aa5-c8b0-46bb-bc58-43b7e122ec20",
+        //         "status" => "P"
+        //     }
+        //
+        return $response;
+    }
+
+    public function tokenized_convert_status(string $issuerRequestId, string $convertType, $params = array()): mixed {
+        /**
+         * @ignore
+         * check the status of redeeming or minting between a tokenized stock asset and the underlying asset
+         *
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/tokenized#tokenized-convert-status
+         *
+         * @param {string} $issuerRequestId the $issuerRequestId returned from redeemTokenizedAsset or mintTokenizedAsset
+         * @param {string} $convertType either MINT or REDEEM
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->recvWindow] cannot be greater than 60000
+         * @return {array} the $response from the exchange
+         */
+        $request = array(
+            'issuerRequestId' => $issuerRequestId,
+            'convertType' => $convertType,
+            'timestamp' => $this->milliseconds(),
+        );
+        $response = $this->sapiGetEquityTokenizedConvertStatus($this->extend($request, $params));
+        //
+        //     {
+        //         "underlyingAsset" => "AAPL",
+        //         "underlyingAssetAmount" => "0.0576724",
+        //         "tokenizedAsset" => "AAPLB",
+        //         "tokenizedAssetAmount" => "0.0576724",
+        //         "issuerRequestId" => "d9a01aa5-c8b0-46bb-bc58-43b7e122ec20",
+        //         "convertType" => "REDEEM",
+        //         "status" => "S",
+        //         "createdAt" => 1785986980000,
+        //         "updatedAt" => 1785986980000
+        //     }
+        //
+        return $response;
+    }
+
+    public function tokenized_convert_history(?int $since = null, ?int $limit = null, $params = array()): mixed {
+        /**
+         * @ignore
+         * check the history of redeeming or minting between a tokenized stock asset and the underlying asset
+         *
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/tokenized#tokenized-convert-history
+         *
+         * @param {int} [$since] timestamp in ms of the earliest conversion to fetch
+         * @param {int} [$limit] the maximum amount of conversions to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->recvWindow] cannot be greater than 60000
+         * @param {int} [$params->endTime] timestamp in ms of the latest conversion to fetch
+         * @param {int} [$params->lastTradeTokenId] last record id from the previous page
+         * @return {array} the $response from the exchange
+         */
+        $request = array(
+            'timestamp' => $this->milliseconds(),
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        $response = $this->sapiGetEquityTokenizedHistory($this->extend($request, $params));
+        //
+        //     {
+        //         "rows" => array(
+        //             {
+        //                 "underlyingAsset" => "AAPL",
+        //                 "underlyingAssetAmount" => "0.0576724",
+        //                 "tokenizedAsset" => "AAPLB",
+        //                 "tokenizedAssetAmount" => "0.0576724",
+        //                 "issuerRequestId" => "d9a01aa5-c8b0-46bb-bc58-43b7e122ec20",
+        //                 "convertType" => "REDEEM",
+        //                 "status" => "S",
+        //                 "createdAt" => "1785986980000",
+        //                 "updatedAt" => "1785986980000"
+        //             }
+        //         ),
+        //         "hasMore" => true,
+        //         "nextLastId" => "5167862022496942848"
+        //     }
+        //
+        return $response;
+    }
+
     public function enable_demo_trading(bool $enable) {
         /**
          * enables or disables demo trading mode
@@ -3229,12 +3389,13 @@ class binance extends Exchange {
         /**
          * retrieves data on all $markets for binance
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#exchange-information           // spot
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     // swap
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Exchange-Information     // future
-         * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             // option
-         * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                           // cross margin
-         * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                       // isolated margin
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#exchange-information               // spot
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information         // swap
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Exchange-Information         // future
+         * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                                 // option
+         * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                               // cross margin
+         * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                           // isolated margin
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/market-data#exchange-info   // tokenized stocks
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
@@ -3274,6 +3435,9 @@ class binance extends Exchange {
                 if ($fetchMargins && $this->check_required_credentials(false) && !$isDemoEnv) {
                     $promisesRaw[] = $this->sapiGetMarginAllPairs($params);
                     $promisesRaw[] = $this->sapiGetMarginIsolatedAllPairs($params);
+                }
+                if (!$isDemoEnv && ($this->apiKey !== null)) {
+                    $promisesRaw[] = $this->sapiGetEquityMarketExchangeInfo($params);
                 }
             } elseif ($marketType === 'linear') {
                 $promisesRaw[] = $this->fapiPublicGetExchangeInfo($params);
@@ -3521,6 +3685,31 @@ class binance extends Exchange {
         //         )
         //     }
         //
+        // spot tokenized equities
+        //
+        //     {
+        //         "timezone" => "UTC",
+        //         "symbols" => array(
+        //             array(
+        //                 "symbol" => "A",
+        //                 "tradability" => "BUY_SELL",
+        //                 "tradabilityUpdateTime" => 1778468796000,
+        //                 "overnightSupported" => true,
+        //                 "fractionable" => true,
+        //                 "fractionableEh" => true,
+        //                 "extendedSession" => true,
+        //                 "maxNumOrders" => 200,
+        //                 "stepSize" => "0.000000001",
+        //                 "multiplierUp" => "1.1000",
+        //                 "multiplierDown" => "0.9000",
+        //                 "maxQty" => "1000000.000000000",
+        //                 "minNotional" => "5.00000000",
+        //                 "maxNotional" => "1000000.00000000",
+        //                 "listingTime" => 1778468966000
+        //             ),
+        //         )
+        //     }
+        //
         if ($this->options['adjustForTimeDifference']) {
             $this->load_time_difference();
         }
@@ -3545,6 +3734,11 @@ class binance extends Exchange {
         $lowercaseId = $this->safe_string_lower($market, 'symbol');
         $baseId = $this->safe_string($market, 'baseAsset', $optionBase);
         $quoteId = $this->safe_string($market, 'quoteAsset');
+        $stock = false;
+        if (is_array($market) && array_key_exists('tradability' ?? '', $market)) {
+            $quoteId = 'USDC';
+            $stock = true;
+        }
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $contractType = $this->safe_string($market, 'contractType');
@@ -3627,6 +3821,12 @@ class binance extends Exchange {
         if ($strike !== null) {
             $parsedStrike = $this->parse_to_numeric($strike);
         }
+        $tradability = $this->safe_string($market, 'tradability');
+        if ($tradability !== null) {
+            if ($tradability !== 'NONE') {
+                $active = true;
+            }
+        }
         $entry = array(
             'id' => $id,
             'lowercaseId' => $lowercaseId,
@@ -3644,6 +3844,7 @@ class binance extends Exchange {
             'swap' => $swap,
             'future' => $future,
             'option' => $option,
+            'stock' => $stock,
             'active' => $active,
             'contract' => $contract,
             'linear' => $linear,
@@ -3675,13 +3876,17 @@ class binance extends Exchange {
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => null,
-                    'max' => null,
+                    'min' => $this->safe_number($market, 'minNotional'),
+                    'max' => $this->safe_number($market, 'maxNotional'),
                 ),
             ),
             'info' => $market,
-            'created' => $this->safe_integer($market, 'onboardDate'), // present in $inverse & $linear apis
+            'created' => $this->safe_integer_2($market, 'onboardDate', 'listingTime'),
         );
+        $stepSize = $this->safe_number($market, 'stepSize');
+        if ($stepSize !== null) {
+            $entry['precision']['amount'] = $stepSize;
+        }
         if (is_array($filtersByType) && array_key_exists('PRICE_FILTER' ?? '', $filtersByType)) {
             $filter = $this->safe_dict($filtersByType, 'PRICE_FILTER', array());
             // PRICE_FILTER reports zero values for maxPrice
@@ -4356,6 +4561,16 @@ class binance extends Exchange {
         //         "time":"1673899278514"
         //     }
         //
+        // fetchTicker => tokenized equities
+        //
+        //     {
+        //         "symbol" => "AAPL",
+        //         "bidPrice" => "339.51",
+        //         "askPrice" => "339.6",
+        //         "bidSize" => 45,
+        //         "askSize" => 90
+        //     }
+        //
         $timestamp = $this->safe_integer_2($ticker, 'closeTime', 'time');
         $marketType = null;
         if ((is_array($ticker) && array_key_exists('time' ?? '', $ticker))) {
@@ -4386,9 +4601,9 @@ class binance extends Exchange {
             'high' => $this->safe_string_2($ticker, 'highPrice', 'high'),
             'low' => $this->safe_string_2($ticker, 'lowPrice', 'low'),
             'bid' => $this->safe_string($ticker, 'bidPrice'),
-            'bidVolume' => $this->safe_string($ticker, 'bidQty'),
+            'bidVolume' => $this->safe_string_2($ticker, 'bidQty', 'bidSize'),
             'ask' => $this->safe_string($ticker, 'askPrice'),
-            'askVolume' => $this->safe_string($ticker, 'askQty'),
+            'askVolume' => $this->safe_string_2($ticker, 'askQty', 'askSize'),
             'vwap' => $wAvg,
             'open' => $this->safe_string_2($ticker, 'openPrice', 'open'),
             'close' => $last,
@@ -4440,6 +4655,7 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // swap
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // future
          * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                           // option
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/market-data#latest-quote             // $stock
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4461,12 +4677,17 @@ class binance extends Exchange {
         } elseif ($market['inverse']) {
             $response = $this->dapiPublicGetTicker24hr($this->extend($request, $params));
         } else {
-            $rolling = $this->safe_bool($params, 'rolling', false);
-            $params = $this->omit($params, 'rolling');
-            if ($rolling) {
-                $response = $this->publicGetTicker($this->extend($request, $params));
+            $stock = $this->safe_bool($market, 'stock', false);
+            if ($stock) {
+                $response = $this->sapiGetEquityMarketQuote($this->extend($request, $params));
             } else {
-                $response = $this->publicGetTicker24hr($this->extend($request, $params));
+                $rolling = $this->safe_bool($params, 'rolling', false);
+                $params = $this->omit($params, 'rolling');
+                if ($rolling) {
+                    $response = $this->publicGetTicker($this->extend($request, $params));
+                } else {
+                    $response = $this->publicGetTicker24hr($this->extend($request, $params));
+                }
             }
         }
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
@@ -5172,7 +5393,23 @@ class binance extends Exchange {
         //         "isBestMatch" => true
         //     }
         //
-        $timestamp = $this->safe_integer_2($trade, 'T', 'time');
+        // fetchMyTrades => tokenized equities
+        //
+        //     {
+        //         "executionId" => "cc942eb9-eaa0-47e7-8273-2a9bc10c5741",
+        //         "orderId" => "ef66a86f-202b-4b41-b15c-e1c90f975f17",
+        //         "symbol" => "AAPL",
+        //         "quote" => "USDC",
+        //         "side" => "BUY",
+        //         "orderType" => "MARKET",
+        //         "price" => "309.16",
+        //         "qty" => "0.0576724",
+        //         "total" => "17.83",
+        //         "executionAt" => 1785936600545,
+        //         "updatedAt" => 1785936601012
+        //     }
+        //
+        $timestamp = $this->safe_integer_n($trade, array( 'T', 'time', 'executionAt' ));
         $amount = $this->safe_string_2($trade, 'q', 'qty');
         $amount = $this->safe_string($trade, 'quantity', $amount);
         $marketId = $this->safe_string($trade, 'symbol');
@@ -5228,14 +5465,14 @@ class binance extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
-            'id' => $this->safe_string_n($trade, array( 't', 'a', 'tradeId', 'id' )),
+            'id' => $this->safe_string_n($trade, array( 't', 'a', 'tradeId', 'id', 'executionId' )),
             'order' => $this->safe_string($trade, 'orderId'),
-            'type' => $this->safe_string_lower($trade, 'type'),
+            'type' => $this->safe_string_lower_2($trade, 'type', 'orderType'),
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
             'price' => $this->safe_string_2($trade, 'p', 'price'),
             'amount' => $amount,
-            'cost' => $this->safe_string_2($trade, 'quoteQty', 'baseQty'),
+            'cost' => $this->safe_string_n($trade, array( 'quoteQty', 'baseQty', 'total' )),
             'fee' => $fee,
         ), $market);
     }
@@ -5862,6 +6099,8 @@ class binance extends Exchange {
             'REJECTED' => 'rejected',
             'EXPIRED' => 'expired',
             'EXPIRED_IN_MATCH' => 'expired',
+            'S' => 'ok', // success for creating order and canceling order
+            'F' => 'rejected',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -6409,6 +6648,80 @@ class binance extends Exchange {
         //         "msg" => "success"
         //     }
         //
+        // createOrder => tokenized equities
+        //
+        //     {
+        //         "status" => "S",
+        //         "orderId" => "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+        //         "clientOrderId" => "x-TKT5PX2F989bcdc4d06c430e92b8f4"
+        //     }
+        //
+        // cancelOrder => tokenized equities
+        //
+        //     {
+        //         "orderId" => "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+        //         "status" => "S"
+        //     }
+        //
+        // fetchOpenOrders => tokenized equities
+        //
+        //     {
+        //         "orderId" => "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+        //         "symbol" => "AAPL",
+        //         "quoteAsset" => "USDC",
+        //         "side" => "BUY",
+        //         "orderType" => "LIMIT",
+        //         "limitPrice" => "290",
+        //         "qty" => "0.05",
+        //         "filledQty" => "0",
+        //         "filledNotional" => "0",
+        //         "totalCost" => "14.67",
+        //         "filledPercent" => "0",
+        //         "status" => "NEW",
+        //         "session" => "24H",
+        //         "createdAt" => 1785924334509,
+        //         "updatedAt" => 1785924334514
+        //     }
+        //
+        // fetchOrders => tokenized equities
+        //
+        //     {
+        //         "orderId" => "1ef94d47-0c95-4785-9834-37376312834e",
+        //         "symbol" => "AAPL",
+        //         "quote" => "USDC",
+        //         "side" => "BUY",
+        //         "orderType" => "LIMIT",
+        //         "limitPrice" => "290",
+        //         "qty" => "0.05",
+        //         "filledQty" => "0",
+        //         "filledTotal" => "0",
+        //         "fee" => "0",
+        //         "session" => "24H",
+        //         "status" => "CANCELED",
+        //         "createdAt" => 1785925755841,
+        //         "updatedAt" => 1785925792975
+        //     }
+        //
+        // fetchOrder => tokenized equities
+        //
+        //     {
+        //         "orderId" => "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+        //         "symbol" => "AAPL",
+        //         "quote" => "USDC",
+        //         "side" => "BUY",
+        //         "orderType" => "LIMIT",
+        //         "limitPrice" => "290",
+        //         "qty" => "0.05",
+        //         "filledQty" => "0",
+        //         "filledTotal" => "0",
+        //         "session" => "24H",
+        //         "status" => "NEW",
+        //         "createdAt" => 1785924334509,
+        //         "updatedAt" => 1785924334514,
+        //         "clientOrderId" => "x-TKT5PX2F989bcdc4d06c430e92b8f4",
+        //         "trades" => array()
+        //     }
+        //
         $code = $this->safe_string($order, 'code');
         if ($code !== null) {
             // cancelOrders/createOrders might have a partial success
@@ -6422,11 +6735,11 @@ class binance extends Exchange {
         $isContract = (is_array($order) && array_key_exists('positionSide' ?? '', $order)) || (is_array($order) && array_key_exists('cumQuote' ?? '', $order));
         $marketType = $isContract ? 'contract' : 'spot';
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
-        $filled = $this->safe_string($order, 'executedQty', '0');
-        $timestamp = $this->safe_integer_n($order, array( 'time', 'createTime', 'workingTime', 'transactTime', 'updateTime' )); // $order of the keys matters here
+        $filled = $this->safe_string_2($order, 'executedQty', 'filledQty', '0');
+        $timestamp = $this->safe_integer_n($order, array( 'time', 'createTime', 'workingTime', 'transactTime', 'updateTime', 'createdAt' )); // $order of the keys matters here
         $lastTradeTimestamp = null;
-        if ((is_array($order) && array_key_exists('transactTime' ?? '', $order)) || (is_array($order) && array_key_exists('updateTime' ?? '', $order))) {
-            $timestampValue = $this->safe_integer_2($order, 'updateTime', 'transactTime');
+        if ((is_array($order) && array_key_exists('transactTime' ?? '', $order)) || (is_array($order) && array_key_exists('updateTime' ?? '', $order)) || (is_array($order) && array_key_exists('updatedAt' ?? '', $order))) {
+            $timestampValue = $this->safe_integer_n($order, array( 'updateTime', 'transactTime', 'updatedAt' ));
             if ($status === 'open') {
                 if (Precise::string_gt($filled, '0')) {
                     $lastTradeTimestamp = $timestampValue;
@@ -6435,10 +6748,10 @@ class binance extends Exchange {
                 $lastTradeTimestamp = $timestampValue;
             }
         }
-        $lastUpdateTimestamp = $this->safe_integer_2($order, 'transactTime', 'updateTime');
-        $average = $this->safe_string($order, 'avgPrice');
-        $price = $this->safe_string($order, 'price');
-        $amount = $this->safe_string_2($order, 'origQty', 'quantity');
+        $lastUpdateTimestamp = $this->safe_integer_n($order, array( 'transactTime', 'updateTime', 'updatedAt' ));
+        $average = $this->safe_string_2($order, 'avgPrice', 'avgFilledPrice');
+        $price = $this->safe_string_2($order, 'price', 'limitPrice');
+        $amount = $this->safe_string_n($order, array( 'origQty', 'quantity', 'qty' ));
         // - Spot/Margin $market => cummulativeQuoteQty
         // - Futures $market => cumQuote.
         //   Note this is not the actual $cost, since Binance futures uses leverage to calculate margins.
@@ -6446,7 +6759,7 @@ class binance extends Exchange {
         $cost = $this->safe_string($order, 'cumBase', $cost);
         $type = $this->safe_string_lower_2($order, 'type', 'orderType');
         $side = $this->safe_string_lower($order, 'side');
-        $fills = $this->safe_list($order, 'fills', array());
+        $fills = $this->safe_list_2($order, 'fills', 'trades', array());
         $timeInForce = $this->safe_string($order, 'timeInForce');
         if ($timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
@@ -6459,7 +6772,7 @@ class binance extends Exchange {
         $fee = null;
         if ($feeCost !== null) {
             $fee = array(
-                'currency' => $this->safe_string($order, 'quoteAsset'),
+                'currency' => $this->safe_string_2($order, 'quoteAsset', 'quote'),
                 'cost' => $feeCost,
                 'rate' => null,
             );
@@ -6591,6 +6904,7 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Algo-Order
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#place-equity-order
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
@@ -6614,6 +6928,7 @@ class binance extends Exchange {
          * @param {string} [$params->positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy $side of hedged mode, "SHORT" for sell $side of hedged mode
          * @param {bool} [$params->hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
          * @param {string} [$params->clientOrderId] the clientOrderId of the order
+         * @param {string} [$params->tradingSession] *$stock only* required for limit orders, RTH, EXTENDED or 24H, default is 24H
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->markets === null) {
@@ -6635,6 +6950,7 @@ class binance extends Exchange {
         $isConditional = ($triggerPrice !== null) || $isTrailingPercentOrder || $isStopLoss || $isTakeProfit;
         $sor = $this->safe_bool_2($params, 'sor', 'SOR', false);
         $test = $this->safe_bool($params, 'test', false);
+        $stock = $this->safe_bool($market, 'stock', false);
         $params = $this->omit($params, array( 'sor', 'SOR', 'test' ));
         // if ($isPortfolioMargin) {
         //     $params['portfolioMargin'] = $isPortfolioMargin;
@@ -6686,7 +7002,9 @@ class binance extends Exchange {
                 $response = $this->sapiPostMarginOrder($request);
             }
         } else {
-            if ($test) {
+            if ($stock) {
+                $response = $this->sapiPostEquityOrderPlace($request);
+            } elseif ($test) {
                 $response = $this->privatePostOrderTest($request);
             } else {
                 $response = $this->privatePostOrder($request);
@@ -6699,12 +7017,6 @@ class binance extends Exchange {
     }
 
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
-        }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
-        }
         /**
          * @ignore
          * helper function to build the $request
@@ -6716,11 +7028,15 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} $request to be sent to the exchange
          */
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrderRequest() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
         }
         $market = $this->market($symbol);
         $marketType = $this->safe_string($params, 'type', $market['type']);
+        $stock = $this->safe_bool($market, 'stock', false);
         $clientOrderId = $this->safe_string_n($params, array( 'clientAlgoId', 'newClientOrderId', 'clientOrderId' ));
         $initialUppercaseType = strtoupper($type);
         $isMarketOrder = $initialUppercaseType === 'MARKET';
@@ -6818,6 +7134,9 @@ class binance extends Exchange {
             }
         } else {
             $validOrderTypes = $this->safe_list($market['info'], 'orderTypes', array());
+            if ($stock) {
+                $validOrderTypes = array( 'LIMIT', 'MARKET' );
+            }
             if (!$this->in_array($uppercaseType, $validOrderTypes)) {
                 if ($initialUppercaseType !== $uppercaseType) {
                     throw new InvalidOrder($this->id . ' $triggerPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
@@ -6829,6 +7148,8 @@ class binance extends Exchange {
         $clientOrderIdRequest = $isPortfolioMarginConditional ? 'newClientStrategyId' : 'newClientOrderId';
         if ($market['linear'] && $market['swap'] && $isConditional && !$isPortfolioMargin) {
             $clientOrderIdRequest = 'clientAlgoId';
+        } elseif ($stock) {
+            $clientOrderIdRequest = 'clientOrderId';
         }
         if ($clientOrderId === null) {
             $broker = $this->safe_dict($this->options, 'broker', array());
@@ -6865,13 +7186,16 @@ class binance extends Exchange {
             }
         }
         // handle newOrderRespType response $type
-        if ((($marketType === 'spot') || ($marketType === 'margin')) && !$isPortfolioMargin) {
+        if ((($marketType === 'spot') || ($marketType === 'margin')) && !$isPortfolioMargin && !$stock) {
             $request['newOrderRespType'] = $this->safe_string($this->options['newOrderRespType'], $type, 'FULL'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-        } else {
+        } elseif (!$stock) {
             // swap, futures and options
             $request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
         }
         $typeRequest = $isPortfolioMarginConditional ? 'strategyType' : 'type';
+        if ($stock) {
+            $typeRequest = 'orderType';
+        }
         $request[$typeRequest] = $uppercaseType;
         // additional required fields depending on the order $type
         $closePosition = $this->safe_bool($params, 'closePosition', false);
@@ -6900,11 +7224,41 @@ class binance extends Exchange {
         //     TRAILING_STOP_MARKET callbackRate
         //
         if ($uppercaseType === 'MARKET') {
-            if ($market['spot']) {
+            if ($stock) {
+                if ($upperCaseSide === 'BUY') {
+                    $precision = $this->safe_value($market['precision'], 'price');
+                    $quoteOrderQtyNew = $this->safe_string_2($params, 'quoteOrderQty', 'cost');
+                    $notional = null;
+                    if ($quoteOrderQtyNew !== null) {
+                        $notional = $quoteOrderQtyNew;
+                    } elseif ($price !== null) {
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $notional = Precise::string_mul($amountString, $priceString);
+                    } else {
+                        $notional = $this->number_to_string($amount);
+                    }
+                    if ($precision === null) {
+                        $request['notional'] = $notional;
+                    } else {
+                        $request['notional'] = $this->decimal_to_precision($notional, TRUNCATE, $precision, $this->precisionMode);
+                    }
+                } else {
+                    // Redeem $stock to underlying using sapiPostEquityTokenizedRedeem or call redeemTokenizedAsset (tokenizedAsset, tokenizedAssetAmount, $params)
+                    // Poll sapiGetEquityTokenizedConvertStatus with the returned issuerRequestId and convertType REDEEM until status is S or call tokenizedConvertStatus (issuerRequestId, convertType, $params)
+                    // Then you can place a sell order
+                    $marketAmountPrecision = $this->safe_string($market['precision'], 'amount');
+                    if ($marketAmountPrecision !== null) {
+                        $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+                    } else {
+                        $request['quantity'] = $this->parse_to_numeric($amount);
+                    }
+                }
+            } elseif ($market['spot']) {
                 $quoteOrderQty = $this->handle_option('createOrder', 'quoteOrderQty', true);
                 if ($quoteOrderQty) {
                     $quoteOrderQtyNew = $this->safe_string_2($params, 'quoteOrderQty', 'cost');
-                    $precision = $market['precision']['price'];
+                    $precision = $this->safe_value($market['precision'], 'price');
                     if ($quoteOrderQtyNew !== null) {
                         $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQtyNew, TRUNCATE, $precision, $this->precisionMode);
                     } elseif ($price !== null) {
@@ -6922,6 +7276,10 @@ class binance extends Exchange {
                 $quantityIsRequired = true;
             }
         } elseif ($uppercaseType === 'LIMIT') {
+            if ($stock) {
+                $tradingSession = $this->safe_string($params, 'tradingSession', '24H');
+                $request['tradingSession'] = $tradingSession;
+            }
             $priceIsRequired = true;
             $timeInForceIsRequired = true;
             $quantityIsRequired = true;
@@ -7118,6 +7476,7 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-CM-Order
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Algo-Order
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-detail
          *
          * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
@@ -7125,44 +7484,57 @@ class binance extends Exchange {
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch an order in a portfolio margin account
          * @param {boolean} [$params->trigger] set to true if you would like to fetch a trigger or conditional order
+         * @param {boolean} [$params->stock] set to true if you would like to fetch tokenized $stock orders
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
-        }
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $market = $this->market($symbol);
-        $defaultType = $this->safe_string_2($this->options, 'fetchOrder', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
+        $request = array();
+        $market = null;
+        $stock = null;
+        list($stock, $params) = $this->handle_option_and_params($params, 'fetchOrder', 'stock', false);
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $stock = $this->safe_bool($market, 'stock', false);
+            if (!$stock) {
+                $request['symbol'] = $market['id'];
+            }
+        } else {
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchOrder', $market, $params, 'spot');
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchOrder', $market, $params);
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrder', $params);
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchOrder', 'papi', 'portfolioMargin', false);
-        $request = array(
-            'symbol' => $market['id'],
-        );
         $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
+        $isOptionType = $type === 'option';
+        $isLinearType = $this->is_linear($type, $subType);
+        $isInverseType = $this->is_inverse($type, $subType);
+        $isLinearSwapConditional = $isLinearType && ($market !== null) && $market['swap'] && $isConditional && !$isPortfolioMargin;
         $clientOrderId = $this->safe_string_n($params, array( 'origClientOrderId', 'clientOrderId', 'clientAlgoId' ));
         if ($clientOrderId !== null) {
-            if ($market['option']) {
+            if ($isOptionType) {
                 $request['clientOrderId'] = $clientOrderId;
-            } elseif ($market['linear'] && $market['swap'] && $isConditional && !$isPortfolioMargin) {
+            } elseif ($isLinearSwapConditional) {
                 $request['clientAlgoId'] = $clientOrderId;
             } else {
                 $request['origClientOrderId'] = $clientOrderId;
             }
-        } elseif ($market['linear'] && $market['swap'] && $isConditional && !$isPortfolioMargin) {
+        } elseif ($isLinearSwapConditional) {
             $request['algoId'] = $id;
         } else {
             $request['orderId'] = $id;
         }
-        $params = $this->omit($params, array( 'type', 'clientOrderId', 'origClientOrderId', 'stop', 'trigger', 'conditional', 'clientAlgoId' ));
+        $params = $this->omit($params, array( 'clientOrderId', 'origClientOrderId', 'stop', 'trigger', 'conditional', 'clientAlgoId' ));
         $response = null;
-        if ($market['option']) {
+        if ($isOptionType) {
             $response = $this->eapiPrivateGetOrder($this->extend($request, $params));
-        } elseif ($market['linear']) {
+        } elseif ($isLinearType) {
             if ($isPortfolioMargin) {
                 $response = $this->papiGetUmOrder($this->extend($request, $params));
             } else {
@@ -7172,7 +7544,7 @@ class binance extends Exchange {
                     $response = $this->fapiPrivateGetOrder($this->extend($request, $params));
                 }
             }
-        } elseif ($market['inverse']) {
+        } elseif ($isInverseType) {
             if ($isPortfolioMargin) {
                 $response = $this->papiGetCmOrder($this->extend($request, $params));
             } else {
@@ -7187,6 +7559,8 @@ class binance extends Exchange {
                 }
                 $response = $this->sapiGetMarginOrder($this->extend($request, $params));
             }
+        } elseif ($stock) {
+            $response = $this->sapiGetEquityOrderDetail($this->extend($request, $params));
         } else {
             $response = $this->privateGetOrder($this->extend($request, $params));
         }
@@ -7210,6 +7584,7 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-All-Algo-Orders
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
          *
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -7220,11 +7595,9 @@ class binance extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
          * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
+         * @param {boolean} [$params->stock] set to true if you would like to fetch tokenized $stock orders
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
-        }
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -7233,29 +7606,59 @@ class binance extends Exchange {
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $params);
         }
-        $market = $this->market($symbol);
-        $defaultType = $this->safe_string_2($this->options, 'fetchOrders', 'defaultType', $market['type']);
-        $type = $this->safe_string($params, 'type', $defaultType);
+        $request = array();
+        $market = null;
+        $stock = null;
+        list($stock, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'stock', false);
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $stock = $this->safe_bool($market, 'stock', false);
+            $request['symbol'] = $market['id'];
+        } elseif (!$stock) {
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params, 'spot');
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchOrders', $market, $params);
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrders', $params);
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchOrders', 'papi', 'portfolioMargin', false);
         $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
-        $params = $this->omit($params, array( 'stop', 'trigger', 'conditional', 'type' ));
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        $isOptionType = $type === 'option';
+        $isLinearType = $this->is_linear($type, $subType);
+        $isInverseType = $this->is_inverse($type, $subType);
+        $until = $this->safe_integer_n($params, array( 'until', 'till', 'endTime' ));
+        $params = $this->omit($params, array( 'stop', 'trigger', 'conditional', 'until', 'till', 'endTime' ));
         if ($since !== null) {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            if ($stock) {
+                $limit = min($limit, 100); // max 100
+                $request['size'] = $limit;
+            } else {
+                $request['limit'] = $limit;
+            }
+        }
+        if ($until !== null) {
+            $request['endTime'] = $until;
+        }
+        if ($stock) {
+            if ($until === null) {
+                $until = $this->milliseconds();
+                $request['endTime'] = $until;
+            }
+            if ($since === null) {
+                $oneWeek = 7 * 24 * 60 * 60 * 1000;
+                $request['startTime'] = $until - $oneWeek;
+            }
         }
         $response = null;
-        if ($market['option']) {
+        if ($isOptionType) {
             $response = $this->eapiPrivateGetHistoryOrders($this->extend($request, $params));
-        } elseif ($market['linear']) {
+        } elseif ($isLinearType) {
             if ($isPortfolioMargin) {
                 if ($isConditional) {
                     $response = $this->papiGetUmConditionalAllOrders($this->extend($request, $params));
@@ -7269,7 +7672,7 @@ class binance extends Exchange {
                     $response = $this->fapiPrivateGetAllOrders($this->extend($request, $params));
                 }
             }
-        } elseif ($market['inverse']) {
+        } elseif ($isInverseType) {
             if ($isPortfolioMargin) {
                 if ($isConditional) {
                     $response = $this->papiGetCmConditionalAllOrders($this->extend($request, $params));
@@ -7287,6 +7690,8 @@ class binance extends Exchange {
                     $request['isIsolated'] = true;
                 }
                 $response = $this->sapiGetMarginAllOrders($this->extend($request, $params));
+            } elseif ($stock) {
+                $response = $this->sapiGetEquityOrderHistory($this->extend($request, $params));
             } else {
                 $response = $this->privateGetAllOrders($this->extend($request, $params));
             }
@@ -7471,6 +7876,36 @@ class binance extends Exchange {
         //         ),
         //     )
         //
+        // $stock
+        //
+        //     {
+        //         "page" => 1,
+        //         "size" => 20,
+        //         "total" => 2,
+        //         "rows" => array(
+        //             array(
+        //                 "orderId" => "1ef94d47-0c95-4785-9834-37376312834e",
+        //                 "symbol" => "AAPL",
+        //                 "quote" => "USDC",
+        //                 "side" => "BUY",
+        //                 "orderType" => "LIMIT",
+        //                 "limitPrice" => "290",
+        //                 "qty" => "0.05",
+        //                 "filledQty" => "0",
+        //                 "filledTotal" => "0",
+        //                 "fee" => "0",
+        //                 "session" => "24H",
+        //                 "status" => "CANCELED",
+        //                 "createdAt" => 1785925755841,
+        //                 "updatedAt" => 1785925792975
+        //             ),
+        //         )
+        //     }
+        //
+        if ($stock) {
+            $result = $this->safe_list($response, 'rows', array());
+            return $this->parse_orders($result, $market, $since, $limit);
+        }
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
@@ -7488,14 +7923,16 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Algo-Open-Orders
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#current-open-orders
          *
-         * @param {string} $symbol unified $market $symbol
+         * @param {string} [$symbol] unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of open orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch open orders in the portfolio margin account
          * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account conditional orders
+         * @param {boolean} [$params->stock] set to true if you would like to fetch tokenized $stock orders
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -7510,25 +7947,25 @@ class binance extends Exchange {
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchOpenOrders', 'papi', 'portfolioMargin', false);
         $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
+        $stock = null;
+        list($stock, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'stock', false);
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-            $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
-            $marketType = (is_array($market) && array_key_exists('type' ?? '', $market)) ? $market['type'] : $defaultType;
-            $type = $this->safe_string($params, 'type', $marketType);
-        } else {
+            $stock = $this->safe_bool($market, 'stock', false);
+            if (!$stock) {
+                $request['symbol'] = $market['id'];
+            }
+        } elseif (!$stock) {
             $warnWithoutSymbol = $this->safe_bool($this->options['fetchOpenOrders'], 'warnWithoutSymbol');
             $optValue = $this->safe_bool($this->options, 'warnOnFetchOpenOrdersWithoutSymbol'); // for backward compatibility
             if ($optValue || ($optValue === null && $warnWithoutSymbol)) {
                 throw new ExchangeError($this->id . ' fetchOpenOrders() WARNING => fetching open orders without specifying a $symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with $symbol argument. To acknowledge this warning, set ' . $this->id . '.options["fetchOpenOrders"]["warnWithoutSymbol"] = false to suppress this warning message.');
-            } else {
-                $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
-                $type = $this->safe_string($params, 'type', $defaultType);
             }
         }
+        list($type, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params, 'spot');
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $params);
-        $params = $this->omit($params, array( 'type', 'stop', 'trigger', 'conditional' ));
+        $params = $this->omit($params, array( 'stop', 'trigger', 'conditional' ));
         $response = null;
         if ($type === 'option') {
             if ($since !== null) {
@@ -7578,6 +8015,8 @@ class binance extends Exchange {
                 }
                 $response = $this->sapiGetMarginOpenOrders($this->extend($request, $params));
             }
+        } elseif ($stock) {
+            $response = $this->sapiGetEquityOrderOpenOrders($this->extend($request, $params));
         } else {
             $response = $this->privateGetOpenOrders($this->extend($request, $params));
         }
@@ -7814,18 +8253,30 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
          *
-         * @param {string} $symbol unified market $symbol of the market $orders were made in
+         * @param {string} [$symbol] unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch $orders in a portfolio margin account
          * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account trigger or conditional $orders
+         * @param {boolean} [$params->stock] set to true if you would like to fetch tokenized $stock $orders
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        if ($symbol === null) {
+        $market = null;
+        $stock = null;
+        list($stock, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'stock', false);
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $stock = $this->safe_bool($market, 'stock', false);
+        } elseif (!$stock) {
             throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
+        }
+        if ($stock) {
+            $params['stock'] = true;
+            $params['orderStatus'] = 'FILLED';
         }
         $orders = $this->fetch_orders($symbol, $since, null, $params);
         $filteredOrders = $this->filter_by($orders, 'status', 'closed');
@@ -7845,18 +8296,30 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
          *
-         * @param {string} $symbol unified market $symbol of the market the $orders were made in
+         * @param {string} [$symbol] unified $market $symbol of the $market the $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch $orders in a portfolio margin account
          * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account trigger or conditional $orders
+         * @param {boolean} [$params->stock] set to true if you would like to fetch tokenized $stock $orders
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        if ($symbol === null) {
+        $market = null;
+        $stock = null;
+        list($stock, $params) = $this->handle_option_and_params($params, 'fetchCanceledOrders', 'stock', false);
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $stock = $this->safe_bool($market, 'stock', false);
+        } elseif (!$stock) {
             throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires a $symbol argument');
+        }
+        if ($stock) {
+            $params['stock'] = true;
+            $params['orderStatus'] = 'CANCELED';
         }
         $orders = $this->fetch_orders($symbol, $since, null, $params);
         $filteredOrders = $this->filter_by($orders, 'status', 'canceled');
@@ -7876,18 +8339,30 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
          *
-         * @param {string} $symbol unified market $symbol of the market the $orders were made in
+         * @param {string} [$symbol] unified $market $symbol of the $market the $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch $orders in a portfolio margin account
          * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account trigger or conditional $orders
+         * @param {boolean} [$params->stock] set to true if you would like to fetch tokenized $stock $orders
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        if ($symbol === null) {
+        $market = null;
+        $stock = null;
+        list($stock, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'stock', false);
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $stock = $this->safe_bool($market, 'stock', false);
+        } elseif (!$stock) {
             throw new ArgumentsRequired($this->id . ' fetchCanceledAndClosedOrders() requires a $symbol argument');
+        }
+        if ($stock) {
+            $params['stock'] = true;
+            $params['orderStatus'] = 'FILLED,CANCELED';
         }
         $orders = $this->fetch_orders($symbol, $since, null, $params);
         $canceledOrders = $this->filter_by($orders, 'status', 'canceled');
@@ -7912,36 +8387,50 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Algo-Order
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#cancel-equity-order
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to cancel an order in a portfolio margin account
          * @param {boolean} [$params->trigger] set to true if you would like to cancel a portfolio margin account conditional order
+         * @param {boolean} [$params->stock] set to true if you would like to cancel a tokenized $stock order
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-        }
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $market = $this->market($symbol);
-        $defaultType = $this->safe_string_2($this->options, 'cancelOrder', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
+        $request = array();
+        $market = null;
+        $stock = null;
+        list($stock, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'stock', false);
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $stock = $this->safe_bool($market, 'stock', false);
+            if (!$stock) {
+                $request['symbol'] = $market['id'];
+            }
+        } else {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params, 'spot');
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('cancelOrder', $market, $params);
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'cancelOrder', 'papi', 'portfolioMargin', false);
         $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
-        $request = array(
-            'symbol' => $market['id'],
-        );
+        $isOptionType = $type === 'option';
+        $isLinearType = $this->is_linear($type, $subType);
+        $isInverseType = $this->is_inverse($type, $subType);
+        $isSwapConditional = ($market !== null) && $market['swap'] && $isConditional && !$isPortfolioMargin;
         $clientOrderId = $this->safe_string_n($params, array( 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'clientAlgoId' ));
         if ($clientOrderId !== null) {
-            if ($market['option']) {
+            if ($isOptionType) {
                 $request['clientOrderId'] = $clientOrderId;
-            } elseif ($market['swap'] && $isConditional && !$isPortfolioMargin) {
+            } elseif ($isSwapConditional) {
                 $request['clientAlgoId'] = $clientOrderId;
             } else {
                 if ($isPortfolioMargin && $isConditional) {
@@ -7953,17 +8442,17 @@ class binance extends Exchange {
         } else {
             if ($isPortfolioMargin && $isConditional) {
                 $request['strategyId'] = $id;
-            } elseif ($market['swap'] && $isConditional && !$isPortfolioMargin) {
+            } elseif ($isSwapConditional) {
                 $request['algoId'] = $id;
             } else {
                 $request['orderId'] = $id;
             }
         }
-        $params = $this->omit($params, array( 'type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'trigger', 'conditional', 'clientAlgoId' ));
+        $params = $this->omit($params, array( 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'trigger', 'conditional', 'clientAlgoId' ));
         $response = null;
-        if ($market['option']) {
+        if ($isOptionType) {
             $response = $this->eapiPrivateDeleteOrder($this->extend($request, $params));
-        } elseif ($market['linear']) {
+        } elseif ($isLinearType) {
             if ($isPortfolioMargin) {
                 if ($isConditional) {
                     $response = $this->papiDeleteUmConditionalOrder($this->extend($request, $params));
@@ -7977,7 +8466,7 @@ class binance extends Exchange {
                     $response = $this->fapiPrivateDeleteOrder($this->extend($request, $params));
                 }
             }
-        } elseif ($market['inverse']) {
+        } elseif ($isInverseType) {
             if ($isPortfolioMargin) {
                 if ($isConditional) {
                     $response = $this->papiDeleteCmConditionalOrder($this->extend($request, $params));
@@ -8000,6 +8489,8 @@ class binance extends Exchange {
                 }
                 $response = $this->sapiDeleteMarginOrder($this->extend($request, $params));
             }
+        } elseif ($stock) {
+            $response = $this->sapiPostEquityOrderCancel($this->extend($request, $params));
         } else {
             $response = $this->privateDeleteOrder($this->extend($request, $params));
         }
@@ -8024,33 +8515,47 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Algo-Open-Orders
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#cancel-all-equity-orders
          *
          * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to cancel orders in a portfolio margin account
          * @param {boolean} [$params->trigger] set to true if you would like to cancel portfolio margin account conditional orders
+         * @param {boolean} [$params->stock] set to true if you would like to cancel tokenized $stock orders
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
-        }
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
+        $request = array();
+        $market = null;
+        $stock = null;
+        list($stock, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'stock', false);
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $stock = $this->safe_bool($market, 'stock', false);
+            if (!$stock) {
+                $request['symbol'] = $market['id'];
+            }
+        } else {
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+        }
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'cancelAllOrders', 'papi', 'portfolioMargin', false);
         $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
-        $type = $this->safe_string($params, 'type', $market['type']);
-        $params = $this->omit($params, array( 'type', 'stop', 'trigger', 'conditional' ));
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params, 'spot');
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('cancelAllOrders', $market, $params);
+        $isOptionType = $type === 'option';
+        $isLinearType = $this->is_linear($type, $subType);
+        $isInverseType = $this->is_inverse($type, $subType);
+        $params = $this->omit($params, array( 'stop', 'trigger', 'conditional' ));
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
         $response = null;
-        if ($market['option']) {
+        if ($isOptionType) {
             $response = $this->eapiPrivateDeleteAllOpenOrders($this->extend($request, $params));
             //
             //    {
@@ -8058,7 +8563,7 @@ class binance extends Exchange {
             //        "msg" => "success"
             //    }
             //
-        } elseif ($market['linear']) {
+        } elseif ($isLinearType) {
             if ($isPortfolioMargin) {
                 if ($isConditional) {
                     $response = $this->papiDeleteUmConditionalAllOpenOrders($this->extend($request, $params));
@@ -8096,7 +8601,7 @@ class binance extends Exchange {
                     //
                 }
             }
-        } elseif ($market['inverse']) {
+        } elseif ($isInverseType) {
             if ($isPortfolioMargin) {
                 if ($isConditional) {
                     $response = $this->papiDeleteCmConditionalAllOpenOrders($this->extend($request, $params));
@@ -8155,6 +8660,13 @@ class binance extends Exchange {
                 //    )
                 //
             }
+        } elseif ($stock) {
+            $response = $this->sapiPostEquityOrderCancelAll($this->extend($request, $params));
+            //
+            //     {
+            //         "success" => true
+            //     }
+            //
         } else {
             $response = $this->privateDeleteOpenOrders($this->extend($request, $params));
             //
@@ -8316,14 +8828,16 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Account-Trade-List
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-trade-history
          *
-         * @param {string} $symbol unified $market $symbol
+         * @param {string} [$symbol] unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch trades for a portfolio margin account
+         * @param {boolean} [$params->stock] set to true if you would like to fetch tokenized $stock trades
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($this->markets === null) {
@@ -8338,11 +8852,17 @@ class binance extends Exchange {
         $market = null;
         $type = null;
         $marginMode = null;
+        $stock = null;
+        list($stock, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'stock', false);
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $stock = $this->safe_bool($market, 'stock', false);
             $request['symbol'] = $market['id'];
         }
         list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+        if (!$stock && ($type !== 'option') && ($symbol === null)) {
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+        }
         $endTime = $this->safe_integer_2($params, 'until', 'endTime');
         if ($since !== null) {
             $startTime = $since;
@@ -8368,19 +8888,31 @@ class binance extends Exchange {
             if (($type === 'option') || $this->safe_bool($market, 'contract')) {
                 $limit = min($limit, 1000); // above 1000, returns error
             }
-            $request['limit'] = $limit;
+            if ($stock) {
+                $limit = min($limit, 100); // max 100
+                $request['size'] = $limit;
+            } else {
+                $request['limit'] = $limit;
+            }
         }
         $response = null;
         if ($type === 'option') {
             $response = $this->eapiPrivateGetUserTrades($this->extend($request, $params));
         } else {
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-            }
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchMyTrades', 'papi', 'portfolioMargin', false);
-            if ($type === 'spot' || $type === 'margin') {
+            if ($stock) {
+                if ($endTime === null) {
+                    $endTime = $this->milliseconds();
+                    $request['endTime'] = $endTime;
+                }
+                if ($since === null) {
+                    $oneWeek = 7 * 24 * 60 * 60 * 1000;
+                    $request['startTime'] = $endTime - $oneWeek;
+                }
+                $response = $this->sapiGetEquityTradeHistory($this->extend($request, $params));
+            } elseif ($type === 'spot' || $type === 'margin') {
                 if ($isPortfolioMargin) {
                     $response = $this->papiGetMarginMyTrades($this->extend($request, $params));
                 } elseif (($type === 'margin') || ($marginMode !== null)) {
@@ -8534,9 +9066,36 @@ class binance extends Exchange {
         //         }
         //     )
         //
+        // tokenized equities
+        //
+        //     {
+        //         "page" => 1,
+        //         "size" => 20,
+        //         "total" => 1,
+        //         "rows" => array(
+        //             {
+        //                 "executionId" => "cc942eb9-eaa0-47e7-8273-2a9bc10c5741",
+        //                 "orderId" => "ef66a86f-202b-4b41-b15c-e1c90f975f17",
+        //                 "symbol" => "AAPL",
+        //                 "quote" => "USDC",
+        //                 "side" => "BUY",
+        //                 "orderType" => "MARKET",
+        //                 "price" => "309.16",
+        //                 "qty" => "0.0576724",
+        //                 "total" => "17.83",
+        //                 "executionAt" => 1785936600545,
+        //                 "updatedAt" => 1785936601012
+        //             }
+        //         )
+        //     }
         $responseList = array();
         if ($response !== null) {
-            $responseList = $this->to_array($response);
+            if ($stock) {
+                $rows = $this->safe_list($response, 'rows', array());
+                $responseList = $rows;
+            } else {
+                $responseList = $this->to_array($response);
+            }
         }
         return $this->parse_trades($responseList, $market, $since, $limit);
     }

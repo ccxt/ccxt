@@ -1935,11 +1935,11 @@ func (this *BaseExchange) OnError(client any, err any) {
 }
 
 func (this *BaseExchange) OnClose(client any, err any) {
-	if client.(*Client).Error != nil {
+	if client.(ClientInterface).GetError() != nil {
 		// connection closed due to an error, do nothing
 	} else {
 		this.WsClientsMu.Lock()
-		delete(this.Clients, client.(*Client).Url)
+		delete(this.Clients, client.(ClientInterface).GetUrl())
 		this.WsClientsMu.Unlock()
 	}
 }
@@ -2216,18 +2216,18 @@ func (this *Exchange) LoadOrderBook(client any, messageHash any, symbol any, opt
 				this.DerivedExchange.HandleDeltas(stored, cache[int(index):])
 				orderBookInterface.SetCache(map[string]any{})
 				// this.SetProperty(cache, "length", 0)
-				client.(*Client).Resolve(stored, messageHash)
+				client.(ClientInterface).Resolve(stored, messageHash)
 				return nil
 			}
 			tries++
 		}
 		errorMsg := fmt.Sprintf("%s nonce is behind the cache after %v tries.", this.Id, maxRetries)
-		client.(*Client).Reject(ExchangeError(errorMsg), messageHash)
-		delete(this.Clients, client.(*Client).Url)
+		client.(ClientInterface).Reject(ExchangeError(errorMsg), messageHash)
+		delete(this.Clients, client.(ClientInterface).GetUrl())
 		// clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753 (parity with the other ports, see #29399)
 		this.Orderbooks.Store(symbol.(string), this.OrderBook())
 	} else {
-		client.(*Client).Reject(ExchangeError(this.Id+" loadOrderBook() orderbook is not initiated"), messageHash)
+		client.(ClientInterface).Reject(ExchangeError(this.Id+" loadOrderBook() orderbook is not initiated"), messageHash)
 		return nil
 	}
 	// TODO: don't know where this fits

@@ -149,7 +149,7 @@ public class WooCore extends WooApi
                     put( "private", "https://api.staging.woox.io" );
                 }} );
                 put( "www", "https://woox.io/" );
-                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://docs.woox.io/")) );
+                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://developer.woox.io/", "https://docs.woox.io/")) );
                 put( "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://support.woox.io/hc/en-001/articles/4404611795353--Trading-Fees")) );
                 put( "referral", new java.util.HashMap<String, Object>() {{
                     put( "url", "https://woox.io/register?ref=DIJT0CNL" );
@@ -336,15 +336,6 @@ public class WooCore extends WooApi
                             }} );
                             put( "asset/withdraw", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 120 );
-                            }} );
-                        }} );
-                    }} );
-                }} );
-                put( "v2", new java.util.HashMap<String, Object>() {{
-                    put( "private", new java.util.HashMap<String, Object>() {{
-                        put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "client/holding", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
                             }} );
                         }} );
                     }} );
@@ -613,22 +604,24 @@ public class WooCore extends WooApi
                 put( "adjustForTimeDifference", false );
                 put( "sandboxMode", false );
                 put( "createMarketBuyOrderRequiresPrice", true );
-                put( "network-aliases-for-tokens", new java.util.HashMap<String, Object>() {{
-                    put( "HT", "ERC20" );
-                    put( "OMG", "ERC20" );
-                    put( "UATOM", "ATOM" );
-                    put( "ZRX", "ZRX" );
-                }} );
                 put( "networks", new java.util.HashMap<String, Object>() {{
                     put( "TRX", "TRX" );
                     put( "TRC20", "TRX" );
                     put( "ERC20", "ETH" );
                     put( "BEP20", "BSC" );
                     put( "ARBITRUM", "Arbitrum" );
+                    put( "BASE", "BASE" );
+                    put( "AVAXC", "AVAXC" );
+                    put( "OP", "OP" );
+                    put( "OPTIMISM", "OP" );
+                    put( "MATIC", "MATIC" );
+                    put( "SONIC", "S" );
+                    put( "HYPEREVM", "HyperEVM" );
                 }} );
                 put( "networksById", new java.util.HashMap<String, Object>() {{
                     put( "TRX", "TRC20" );
                     put( "TRON", "TRC20" );
+                    put( "OP", "OP" );
                 }} );
                 put( "defaultNetworkCodeForCurrencies", new java.util.HashMap<String, Object>() {{}} );
                 put( "transfer", new java.util.HashMap<String, Object>() {{
@@ -2190,12 +2183,12 @@ public class WooCore extends WooApi
     /**
      * @method
      * @name woo#cancelAllOrders
-     * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_orders_by_symbol
      * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
      * @description cancel all open orders in a market
-     * @param {string} [symbol] unified market symbol
+     * @param {string} [symbol] unified market symbol, cancels orders in all markets when omitted
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
+     * @param {boolean} [params.trigger] set to true to cancel only trigger/algo orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
@@ -2223,7 +2216,8 @@ public class WooCore extends WooApi
                 response = (this.v3PrivateDeleteTradeAlgoOrders(parameters)).join();
             } else
             {
-                response = (this.v3PrivateDeleteTradeOrders(this.extend(request, parameters))).join();
+                // cancels both regular and algo orders
+                response = (this.v3PrivateDeleteTradeAllOrders(this.extend(request, parameters))).join();
             }
             //
             //     {
@@ -3796,21 +3790,9 @@ public class WooCore extends WooApi
             put( "amount", WooCore.this.safeNumber(transfer, "amount") );
             put( "fromAccount", WooCore.this.safeString(fromAccount, "applicationId") );
             put( "toAccount", WooCore.this.safeString(toAccount, "applicationId") );
-            put( "status", WooCore.this.parseTransferStatus(WooCore.this.safeString(transfer, "status", finalStatus)) );
+            put( "status", WooCore.this.parseTransactionStatus(WooCore.this.safeString(transfer, "status", finalStatus)) );
             put( "info", transfer );
         }};
-    }
-
-    public Object parseTransferStatus(Object status)
-    {
-        Object statuses = new java.util.HashMap<String, Object>() {{
-            put( "NEW", "pending" );
-            put( "CONFIRMING", "pending" );
-            put( "PROCESSING", "pending" );
-            put( "COMPLETED", "ok" );
-            put( "CANCELED", "canceled" );
-        }};
-        return this.safeString(statuses, ((String)status), status);
     }
 
     /**

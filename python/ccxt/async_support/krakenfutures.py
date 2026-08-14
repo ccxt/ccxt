@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.krakenfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, Int, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TransferEntry
+from ccxt.base.types import Any, Balances, Currency, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -78,6 +78,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
                 'fetchIsolatedPositions': False,
+                'fetchLedger': True,
                 'fetchLeverage': True,
                 'fetchLeverages': True,
                 'fetchLeverageTiers': True,
@@ -94,6 +95,8 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': 'emulated',
+                'fetchTradingFees': True,
                 'sandbox': True,
                 'setLeverage': True,
                 'setMarginMode': False,
@@ -715,6 +718,99 @@ class krakenfutures(Exchange, ImplicitAPI):
             'indexPrice': self.safe_string(ticker, 'indexPrice'),
             'info': ticker,
         })
+
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
+        """
+        fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
+
+        https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
+        https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        response = await self.publicGetFeeschedules(params)
+        #
+        #    {
+        #        "result": "success",
+        #        "serverTime": "2026-08-11T13:08:44Z",
+        #        "feeSchedules": [
+        #            {
+        #                "uid": "723888f7-0a8e-4183-8648-f920a22339e3",
+        #                "name": "MTF Linear Rebate Fees",
+        #                "tiers": [
+        #                    {"makerFee": 0.02, "takerFee": 0.05, "usdVolume": 0.0},
+        #                    {"makerFee": 0.0175, "takerFee": 0.045, "usdVolume": 5000000.0}
+        #                ]
+        #            }
+        #        ]
+        #    }
+        #
+        volumes = {}
+        if self.check_required_credentials(False):
+            volumesResponse = await self.privateGetFeeschedulesVolumes()
+            #
+            #    {
+            #        "result": "success",
+            #        "serverTime": "2026-08-11T13:08:44Z",
+            #        "volumesByFeeSchedule": {
+            #            "723888f7-0a8e-4183-8648-f920a22339e3": 217587.88
+            #        }
+            #    }
+            #
+            volumes = self.safe_dict(volumesResponse, 'volumesByFeeSchedule', {})
+        feeSchedules = self.safe_list(response, 'feeSchedules', [])
+        schedulesByUid = {}
+        for i in range(0, len(feeSchedules)):
+            schedule = feeSchedules[i]
+            uid = self.safe_string(schedule, 'uid')
+            if uid is not None:
+                schedulesByUid[uid] = schedule
+        result = {}
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            uid = self.safe_string(market['info'], 'feeScheduleUid')
+            schedule = self.safe_dict(schedulesByUid, uid)
+            if schedule is None:
+                continue
+            volume = self.safe_string(volumes, uid, '0')
+            result[symbol] = self.parse_trading_fee(schedule, market, volume)
+        return result
+
+    def parse_trading_fee(self, fee: dict, market: Market = None, volume: Str = None) -> TradingFeeInterface:
+        #
+        #    {
+        #        "uid": "723888f7-0a8e-4183-8648-f920a22339e3",
+        #        "name": "MTF Linear Rebate Fees",
+        #        "tiers": [
+        #            {"makerFee": 0.02, "takerFee": 0.05, "usdVolume": 0.0},
+        #            {"makerFee": 0.0175, "takerFee": 0.045, "usdVolume": 5000000.0}
+        #        ]
+        #    }
+        #
+        # fees are expressed in percent, tiers are sorted by ascending usdVolume
+        tiers = self.safe_list(fee, 'tiers', [])
+        makerFee = None
+        takerFee = None
+        for i in range(0, len(tiers)):
+            tier = tiers[i]
+            tierVolume = self.safe_string(tier, 'usdVolume')
+            if (volume is None) or Precise.string_ge(volume, tierVolume):
+                makerFee = self.safe_string(tier, 'makerFee')
+                takerFee = self.safe_string(tier, 'takerFee')
+                if volume is None:
+                    break
+        return {
+            'info': fee,
+            'symbol': self.safe_symbol(None, market),
+            'maker': self.parse_number(Precise.string_div(makerFee, '100')),
+            'taker': self.parse_number(Precise.string_div(takerFee, '100')),
+            'percentage': True,
+            'tierBased': True,
+        }
 
     async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
@@ -2207,6 +2303,163 @@ class krakenfutures(Exchange, ImplicitAPI):
         fills = self.safe_list(response, 'fills', [])
         return self.parse_trades(fills, market, since, limit)
 
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+        """
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
+
+        https://docs.kraken.com/api-reference/account-history/get-account-log
+
+        :param str [code]: unified currency code, default is None
+        :param int [since]: timestamp in ms of the earliest ledger entry, default is None
+        :param int [limit]: max number of ledger entries to return, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest ledger entry
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
+        """
+        await self.load_markets()
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        request = {}
+        if since is not None:
+            request['since'] = since
+            sort = self.safe_string(params, 'sort')
+            if sort is None:
+                request['sort'] = 'asc'
+        if limit is not None:
+            # each trade execution emits two rows and the position-size legs are
+            # filtered out below, so ask for twice the limit to compensate,
+            # parseLedger re-applies the limit on the filtered entries
+            request['count'] = limit * 2
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['before'] = until
+        response = await self.historyGetAccountLog(self.extend(request, params))
+        #
+        #    {
+        #        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        #        "logs": [
+        #            {
+        #                "asset": "usd",
+        #                "booking_uid": "10ca244e-1b73-4467-8c3c-74539c7ae677",
+        #                "contract": "pf_dogeusd",
+        #                "date": "2026-08-11T19:55:24.251Z",
+        #                "execution": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+        #                "fee": 0.0035,
+        #                "funding_rate": 0.000001129880786375,
+        #                "id": 9,
+        #                "info": "futures trade",
+        #                "margin_account": "flex",
+        #                "mark_price": 0.07091471613,
+        #                "new_balance": 0,
+        #                "old_balance": 0.0077,
+        #                "realized_funding": null,
+        #                "realized_pnl": -0.0042,
+        #                "trade_price": 0.070914
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        logs = self.safe_list(response, 'logs', [])
+        # each execution emits two rows: a cash leg(asset is a currency) and
+        # a position-size leg(asset equals the contract id) - keep the cash legs only
+        rows = []
+        for i in range(0, len(logs)):
+            row = logs[i]
+            asset = self.safe_string(row, 'asset')
+            contract = self.safe_string(row, 'contract')
+            if (asset is not None) and (asset != contract):
+                rows.append(row)
+        return self.parse_ledger(rows, currency, since, limit)
+
+    def parse_ledger_entry_type(self, type: Any):
+        types = {
+            'futures trade': 'trade',
+            'futures liquidation': 'trade',
+            'futures assignee': 'trade',
+            'futures assignor': 'trade',
+            'futures unwind counterparty': 'trade',
+            'futures unwind bankrupt': 'trade',
+            'covered liquidation': 'trade',
+            'settlement': 'trade',
+            'conversion': 'trade',
+            'funding rate change': 'fee',
+            'interest payment': 'fee',
+            'kfee applied': 'fee',
+            'tax withheld': 'fee',
+            'tax refund': 'rebate',
+            'transfer': 'transfer',
+            'subaccount transfer': 'transfer',
+            'cross-exchange transfer': 'transfer',
+            'admin transfer': 'transfer',
+        }
+        return self.safe_string(types, type, type)
+
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
+        #
+        #    {
+        #        "asset": "usd",
+        #        "booking_uid": "10ca244e-1b73-4467-8c3c-74539c7ae677",
+        #        "contract": "pf_dogeusd",
+        #        "date": "2026-08-11T19:55:24.251Z",
+        #        "execution": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+        #        "fee": 0.0035,
+        #        "funding_rate": 0.000001129880786375,
+        #        "id": 9,
+        #        "info": "futures trade",
+        #        "margin_account": "flex",
+        #        "mark_price": 0.07091471613,
+        #        "new_balance": 0,
+        #        "old_balance": 0.0077,
+        #        "realized_funding": null,
+        #        "realized_pnl": -0.0042,
+        #        "trade_price": 0.070914
+        #    }
+        #
+        timestamp = self.parse8601(self.safe_string(item, 'date'))
+        currencyId = self.safe_string(item, 'asset')
+        code = self.safe_currency_code(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
+        before = self.safe_string(item, 'old_balance')
+        after = self.safe_string(item, 'new_balance')
+        feeCost = self.safe_string(item, 'fee')
+        amount = None
+        direction = None
+        if (before is not None) and (after is not None):
+            amount = Precise.string_sub(after, before)
+            if feeCost is not None:
+                # the fee is already deducted from the balance delta, add it
+                # back so that amount does not include the fee, matching the
+                # unified ledger contract: after = before +/- amount - fee
+                amount = Precise.string_add(amount, feeCost)
+            if Precise.string_lt(amount, '0'):
+                direction = 'out'
+                amount = Precise.string_abs(amount)
+            else:
+                direction = 'in'
+        return self.safe_ledger_entry({
+            'info': item,
+            'id': self.safe_string(item, 'id'),
+            'direction': direction,
+            'account': self.safe_string(item, 'margin_account'),
+            'referenceId': self.safe_string_2(item, 'execution', 'booking_uid'),
+            'referenceAccount': None,
+            'type': self.parse_ledger_entry_type(self.safe_string(item, 'info')),
+            'currency': code,
+            'amount': self.parse_number(amount),
+            'before': self.parse_number(before),
+            'after': self.parse_number(after),
+            'status': 'ok',
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': {
+                'cost': self.parse_number(feeCost),
+                'currency': code,
+            },
+        }, currency)
+
     async def fetch_balance(self, params={}) -> Balances:
         """
 
@@ -2602,9 +2855,14 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     def parse_positions(self, response: Any, symbols: Strings = None, params={}):
         result = []
-        # a degraded response can omit openPositions entirely - default to an
-        # empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
-        positions = self.safe_list(response, 'openPositions', [])
+        # a degraded response missing openPositions must fail loudly - a flat
+        # account and "could not read positions" are not interchangeable for
+        # reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
+        # the crash guarded against in  #19896 is still avoided, since we no
+        # longer call .length on a non-list value
+        positions = self.safe_list(response, 'openPositions')
+        if positions is None:
+            raise ExchangeError(self.id + ' fetchPositions() returned a response without an "openPositions" list')
         for i in range(0, len(positions)):
             position = self.parse_position(positions[i])
             result.append(position)

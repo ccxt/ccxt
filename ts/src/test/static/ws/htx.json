@@ -1,0 +1,249 @@
+{
+    "exchange": "htx",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchTicker": [
+            {
+                "description": "spot ticker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://api.huobi.pro/ws",
+                "messages": [
+                    {
+                        "id": "1",
+                        "status": "ok",
+                        "subbed": "market.btcusdt.detail",
+                        "ts": 1786563067016
+                    },
+                    {
+                        "ch": "market.btcusdt.detail",
+                        "ts": 1786563060051,
+                        "tick": {
+                            "id": 385137365822,
+                            "low": 63292.05,
+                            "high": 64464,
+                            "open": 63434.17,
+                            "close": 63349.89,
+                            "vol": 132702866.2101613,
+                            "amount": 2080.0618953269045,
+                            "version": 385137365822,
+                            "count": 17826
+                        }
+                    },
+                    {
+                        "ping": 1786563068868
+                    },
+                    {
+                        "ping": 1786563073866
+                    },
+                    {
+                        "ch": "market.btcusdt.detail",
+                        "ts": 1786563074026,
+                        "tick": {
+                            "id": 385137377976,
+                            "low": 63292.05,
+                            "high": 64464,
+                            "open": 63434.17,
+                            "close": 63347.28,
+                            "vol": 132703139.04689625,
+                            "amount": 2080.066202326904,
+                            "version": 385137377976,
+                            "count": 17827
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1786563060051,
+                        "datetime": "2026-08-12T19:31:00.051Z",
+                        "high": 64464,
+                        "low": 63292.05,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 63797.55646132136,
+                        "open": 63434.17,
+                        "close": 63349.89,
+                        "last": 63349.89,
+                        "previousClose": null,
+                        "change": -84.28,
+                        "percentage": -0.1328621466947545,
+                        "average": 63392.03,
+                        "baseVolume": 2080.0618953269045,
+                        "quoteVolume": 132702866.2101613,
+                        "info": {
+                            "id": 385137365822,
+                            "low": 63292.05,
+                            "high": 64464,
+                            "open": 63434.17,
+                            "close": 63349.89,
+                            "vol": 132702866.2101613,
+                            "amount": 2080.0618953269045,
+                            "version": 385137365822,
+                            "count": 17826
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            }
+        ],
+        "watchOHLCV": [
+            {
+                "description": "spot ohlcv 1m",
+                "input": [
+                    "BTC/USDT",
+                    "1m"
+                ],
+                "url": "wss://api.huobi.pro/ws",
+                "messages": [
+                    {
+                        "id": "1",
+                        "status": "ok",
+                        "subbed": "market.btcusdt.kline.1min",
+                        "ts": 1786563048958
+                    },
+                    {
+                        "ch": "market.btcusdt.kline.1min",
+                        "ts": 1786563034187,
+                        "tick": {
+                            "id": 1786563000,
+                            "open": 63349.89,
+                            "close": 63349.89,
+                            "low": 63349.89,
+                            "high": 63349.89,
+                            "amount": 0.010242,
+                            "vol": 648.82957338,
+                            "count": 2
+                        }
+                    },
+                    {
+                        "ping": 1786563052864
+                    },
+                    {
+                        "ping": 1786563057861
+                    },
+                    {
+                        "ch": "market.btcusdt.kline.1min",
+                        "ts": 1786563060052,
+                        "tick": {
+                            "id": 1786563000,
+                            "open": 63349.89,
+                            "close": 63349.89,
+                            "low": 63349.89,
+                            "high": 63349.89,
+                            "amount": 0.925818,
+                            "vol": 58650.46846002,
+                            "count": 3
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1786563000000,
+                            63349.89,
+                            63349.89,
+                            63349.89,
+                            63349.89,
+                            0.010242
+                        ]
+                    ]
+                ]
+            }
+        ],
+        "watchTrades": [
+            {
+                "description": "spot trades",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://api.huobi.pro/ws",
+                "messages": [
+                    {
+                        "id": "1",
+                        "status": "ok",
+                        "subbed": "market.btcusdt.trade.detail",
+                        "ts": 1786563030969
+                    },
+                    {
+                        "ch": "market.btcusdt.trade.detail",
+                        "ts": 1786563016025,
+                        "tick": {
+                            "id": 192582254688,
+                            "ts": 1786563016023,
+                            "data": [
+                                {
+                                    "id": "1925822546881664607926422813",
+                                    "ts": 1786563016023,
+                                    "tradeId": 103627281663,
+                                    "amount": 0.00556,
+                                    "price": 63349.89,
+                                    "direction": "sell",
+                                    "isRpiTrade": false
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "ping": 1786563031344
+                    },
+                    {
+                        "ch": "market.btcusdt.trade.detail",
+                        "ts": 1786563034186,
+                        "tick": {
+                            "id": 192582259647,
+                            "ts": 1786563034185,
+                            "data": [
+                                {
+                                    "id": "1925822596471664607926422813",
+                                    "ts": 1786563034185,
+                                    "tradeId": 103627281664,
+                                    "amount": 0.004682,
+                                    "price": 63349.89,
+                                    "direction": "sell",
+                                    "isRpiTrade": false
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "1925822546881664607926422813",
+                            "info": {
+                                "id": "1925822546881664607926422813",
+                                "ts": 1786563016023,
+                                "tradeId": 103627281663,
+                                "amount": 0.00556,
+                                "price": 63349.89,
+                                "direction": "sell",
+                                "isRpiTrade": false
+                            },
+                            "order": null,
+                            "timestamp": 1786563016023,
+                            "datetime": "2026-08-12T19:30:16.023Z",
+                            "symbol": "BTC/USDT",
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 63349.89,
+                            "amount": 0.00556,
+                            "cost": 352.2253884,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
+            }
+        ]
+    }
+}

@@ -247,6 +247,7 @@ class whitebit(Exchange, ImplicitAPI):
                             'main-account/fee': {'cost': 1},
                             'main-account/smart/interest-payment-history': {'cost': 1},
                             'trade-account/balance': {'cost': 1},
+                            # answers with a list when a market is set and a dict of lists otherwise — no shape assertion
                             'trade-account/executed-history': {'cost': 1},
                             'trade-account/order/history': {'cost': 1},
                             'trade-account/order': {'cost': 1},
@@ -2624,22 +2625,31 @@ class whitebit(Exchange, ImplicitAPI):
         # Do not filter by transactionMethod to get all transactions(deposits and withdrawals)
         response = await self.v4PrivatePostMainAccountHistory(self.extend(request, params))
         #
-        #     [
-        #         {
-        #             "id": 123456789,                    # Transaction ID
-        #             "method": "1",                      # Method: 1=deposit, 2=withdrawal
-        #             "ticker": "BTC",                    # Currency ticker
-        #             "amount": "0.001",                  # Transaction amount
-        #             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",  # Transaction address
-        #             "memo": "",                         # Memo/tag(if required)
-        #             "network": "BTC",                   # Network name
-        #             "fee": "0.0005",                    # Transaction fee
-        #             "status": "1",                      # Status: 0=pending, 1=completed, 2=failed
-        #             "timestamp": 1641051917,            # Transaction timestamp
-        #             "txid": "abc123def456..."           # Transaction hash
-        #         },
-        #         {...}                                 # More transactions(deposits and withdrawals)
-        #     ]
+        #     {
+        #         "records": [
+        #             {
+        #                 "address": "TDepositAddressExample1111111111111",
+        #                 "uniqueId": null,
+        #                 "transactionId": "11111111-2222-3333-4444-555555555555",
+        #                 "createdAt": 1786182572,
+        #                 "currency": "Tether US",
+        #                 "ticker": "USDT",
+        #                 "method": 1,                    # 1 = deposit, 2 = withdraw
+        #                 "amount": "20.723117",
+        #                 "description": null,
+        #                 "memo": null,
+        #                 "fee": "0",
+        #                 "status": 3,
+        #                 "network": "TRC20",
+        #                 "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+        #                 "details": {"partial": null},
+        #                 "centralized": False
+        #             }
+        #         ],
+        #         "total": 1,
+        #         "limit": 100,
+        #         "offset": 0
+        #     }
         #
         records = self.safe_list(response, 'records', [])
         return self.parse_transactions(records, currency, since, limit)
@@ -2783,31 +2793,37 @@ class whitebit(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         accounts = []
-        # Fetch sub-accounts
+        response = await self.v4PrivatePostSubAccountList(params)
         #
-        #     [
-        #         {
-        #             "id": "12345",
-        #             "name": "SubAccount1",
-        #             "status": "active",
-        #             "permissions": ["trade", "withdraw"]
-        #         }
-        #     ]
+        #     {
+        #         "offset": 0,
+        #         "limit": 100,
+        #         "data": [
+        #             {
+        #                 "id": "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
+        #                 "alias": "trading_bot",
+        #                 "userId": "u-12345",
+        #                 "email": "s***@example.com",
+        #                 "status": "active",
+        #                 "color": "#FF5733",
+        #                 "kyc": {"shareKyc": False, "kycStatus": "verified"},
+        #                 "permissions": {"spotEnabled": True, "collateralEnabled": False}
+        #             }
+        #         ]
+        #     }
         #
-        subAccounts = await self.v4PrivatePostSubAccountList(params)
-        if subAccounts and isinstance(subAccounts, list):
-            for i in range(0, len(subAccounts)):
-                subAccount = self.safe_value(subAccounts, i)
-                accountId = self.safe_string(subAccount, 'id')
-                accountName = self.safe_string(subAccount, 'name')
-                if accountId:
-                    accounts.append({
-                        'id': accountId,
-                        'type': 'subaccount',
-                        'name': accountName or 'SubAccount ' + accountId,
-                        'code': None,
-                        'info': subAccount,
-                    })
+        subAccounts = self.safe_list(response, 'data', [])
+        for i in range(0, len(subAccounts)):
+            subAccount = self.safe_dict(subAccounts, i, {})
+            accountId = self.safe_string(subAccount, 'id')
+            accountName = self.safe_string(subAccount, 'alias')
+            accounts.append({
+                'id': accountId,
+                'type': 'subaccount',
+                'name': accountName,
+                'code': None,
+                'info': subAccount,
+            })
         return accounts
 
     async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
@@ -3384,9 +3400,9 @@ class whitebit(Exchange, ImplicitAPI):
         if since is not None:
             request['startDate'] = since
         if limit is not None:
-            request['limit'] = since
+            request['limit'] = limit
         request, params = self.handle_until_option('endDate', request, params)
-        response = await self.v4PrivatePostCollateralAccountFundingHistory(request)
+        response = await self.v4PrivatePostCollateralAccountFundingHistory(self.extend(request, params))
         #
         #     {
         #         "records": [

@@ -1438,6 +1438,11 @@ class toobit extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($ticker, 't');
         $last = $this->safe_string($ticker, 'c');
+        $baseVolume = $this->safe_string($ticker, 'v');
+        if ($market['contract'] && ($market['contractSize'] !== null)) {
+            // 'v' counts contracts, and a $ticker reports base volume
+            $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($market['contractSize']));
+        }
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
@@ -1456,7 +1461,7 @@ class toobit extends Exchange {
             'change' => $this->safe_string($ticker, 'pc'),
             'percentage' => $this->safe_string($ticker, 'pcp'),
             'average' => null,
-            'baseVolume' => $this->safe_string($ticker, 'v'),
+            'baseVolume' => $baseVolume,
             'quoteVolume' => $this->safe_string($ticker, 'qv'),
             'info' => $ticker,
         ), $market);

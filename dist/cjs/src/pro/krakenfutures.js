@@ -323,7 +323,10 @@ class krakenfutures extends krakenfutures$1["default"] {
         //    }
         //
         if (this.positions === undefined) {
-            this.positions = new Cache.ArrayCacheBySymbolById();
+            // krakenfutures positions carry no id (parseWsPosition always sets
+            // 'id': undefined), so key by symbol + side instead of by-id, see
+            // https://github.com/ccxt/ccxt/issues/29709
+            this.positions = new Cache.ArrayCacheBySymbolBySide();
         }
         const cache = this.positions;
         const rawPositions = this.safeValue(message, 'positions', []);

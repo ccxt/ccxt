@@ -371,7 +371,10 @@ public partial class krakenfutures : ccxt.krakenfutures
         //
         if (isTrue(isEqual(this.positions, null)))
         {
-            this.positions = new ArrayCacheBySymbolById();
+            // krakenfutures positions carry no id (parseWsPosition always sets
+            // 'id': undefined), so key by symbol + side instead of by-id, see
+            // https://github.com/ccxt/ccxt/issues/29709
+            this.positions = new ArrayCacheBySymbolBySide();
         }
         object cache = this.positions;
         object rawPositions = this.safeValue(message, "positions", new List<object>() {});

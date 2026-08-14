@@ -1020,6 +1020,7 @@ public class LighterCore extends LighterApi
         if (Helpers.isTrue(postOnly))
         {
             timeInForceNum = 2;
+            orderExpiry = Helpers.opNeg(1);
         } else
         {
             if (!Helpers.isTrue(isMarketOrder))
@@ -1170,27 +1171,7 @@ public class LighterCore extends LighterApi
 
     }
 
-    /**
-     * @method
-     * @name lighter#createOrder
-     * @description create a trade order
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.timeInForce] 'GTT' or 'IOC', default is 'GTT'
-     * @param {int} [params.clientOrderId] client order id, should be unique for each order, default is a random number
-     * @param {string} [params.triggerPrice] trigger price for stop loss or take profit orders, in units of the quote currency
-     * @param {boolean} [params.reduceOnly] whether the order is reduce only, default false
-     * @param {int} [params.nonce] nonce for the account
-     * @param {int} [params.apiKeyIndex] apiKeyIndex
-     * @param {int} [params.accountIndex] accountIndex
-     * @param {int} [params.orderExpiry] orderExpiry
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> signAndCreateOrder(Object method, Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1202,17 +1183,16 @@ public class LighterCore extends LighterApi
                 (this.loadMarkets()).join();
             }
             Object accountIndex = null;
-            var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "createOrder", "accountIndex", "account_index")).join();
+            var accountIndexparametersVariable = (this.handleAccountIndex(parameters, method, "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
             Helpers.addElementToObject(parameters, "accountIndex", accountIndex);
             Object market = this.market(symbol);
             Object groupingType = null;
-            var groupingTypeparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "groupingType", 3);
+            var groupingTypeparametersVariable = this.handleOptionAndParams(parameters, method, "groupingType", 3);
             groupingType = ((java.util.List<Object>) groupingTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) groupingTypeparametersVariable).get(1); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
             Object orderRequests = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-            // for php
             Object totalOrderRequests = Helpers.getArrayLength(orderRequests);
             Object apiKeyIndex = null;
             Object order = null;
@@ -1259,11 +1239,46 @@ public class LighterCore extends LighterApi
                 txType = ((java.util.List<Object>) txTypetxInfoVariable).get(0);
                 txInfo = ((java.util.List<Object>) txTypetxInfoVariable).get(1);
             }
-            final Object finalTxType = txType;
-            final Object finalTxInfo = txInfo;
+            return new java.util.ArrayList<Object>(java.util.Arrays.asList(txType, txInfo, order, market));
+        });
+
+    }
+
+    /**
+     * @method
+     * @name lighter#createOrder
+     * @description create a trade order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] 'GTT' or 'IOC', default is 'GTT'
+     * @param {int} [params.clientOrderId] client order id, should be unique for each order, default is a random number
+     * @param {string} [params.triggerPrice] trigger price for stop loss or take profit orders, in units of the quote currency
+     * @param {boolean} [params.reduceOnly] whether the order is reduce only, default false
+     * @param {int} [params.nonce] nonce for the account
+     * @param {int} [params.apiKeyIndex] apiKeyIndex
+     * @param {int} [params.accountIndex] accountIndex
+     * @param {int} [params.orderExpiry] orderExpiry
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object price = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            var txTypetxInfoordermarketVariable = (this.signAndCreateOrder("createOrder", symbol, type, side, amount, price, parameters)).join();
+            var txType = ((java.util.List<Object>) txTypetxInfoordermarketVariable).get(0);
+            var txInfo = ((java.util.List<Object>) txTypetxInfoordermarketVariable).get(1);
+            var order = ((java.util.List<Object>) txTypetxInfoordermarketVariable).get(2);
+            var market = ((java.util.List<Object>) txTypetxInfoordermarketVariable).get(3);
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "tx_type", finalTxType );
-                put( "tx_info", finalTxInfo );
+                put( "tx_type", txType );
+                put( "tx_info", txInfo );
             }};
             Object response = (this.publicPostSendTx(request)).join();
             //
@@ -3879,18 +3894,7 @@ public class LighterCore extends LighterApi
 
     }
 
-    /**
-     * @method
-     * @name lighter#cancelOrder
-     * @description cancels an open order
-     * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.accountIndex] account index
-     * @param {string} [params.apiKeyIndex] api key index
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> signAndCancelOrder(Object method, Object id2, Object... optionalArgs)
     {
         final Object id3 = id2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3901,21 +3905,21 @@ public class LighterCore extends LighterApi
             {
                 (this.loadMarkets()).join();
             }
-            Object apiKeyIndex = null;
-            var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "cancelOrder", "apiKeyIndex", "api_key_index");
-            apiKeyIndex = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), method), " requires a symbol argument")) ;
             }
+            Object apiKeyIndex = null;
+            var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, method, "apiKeyIndex", "api_key_index");
+            apiKeyIndex = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(1);
+            Object accountIndex = null;
+            var accountIndexparametersVariable = (this.handleAccountIndex(parameters, method, "accountIndex", "account_index")).join();
+            accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
             Object market = this.market(symbol);
             Object clientOrderId = this.safeString2(parameters, "client_order_index", "clientOrderId");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_index", "clientOrderId")));
-            Object accountIndex = null;
-            var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "cancelOrder", "accountIndex", "account_index")).join();
-            accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
             Object strAccountIndex = ((String)this.numberToString(accountIndex));
             Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             Object signer = (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
@@ -3936,17 +3940,84 @@ public class LighterCore extends LighterApi
                 Helpers.addElementToObject(signRaw, "order_index", this.parseToInt(id));
             } else
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder requires order id or client order id")) ;
+                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), method), " requires order id or client order id")) ;
             }
             var txTypetxInfoVariable = this.lighterSignCancelOrder(signer, this.extend(signRaw, parameters));
             var txType = ((java.util.List<Object>) txTypetxInfoVariable).get(0);
             var txInfo = ((java.util.List<Object>) txTypetxInfoVariable).get(1);
+            return new java.util.ArrayList<Object>(java.util.Arrays.asList(txType, txInfo, market));
+        });
+
+    }
+
+    /**
+     * @method
+     * @name lighter#cancelOrder
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            var txTypetxInfomarketVariable = (this.signAndCancelOrder("cancelOrder", id, symbol, parameters)).join();
+            var txType = ((java.util.List<Object>) txTypetxInfomarketVariable).get(0);
+            var txInfo = ((java.util.List<Object>) txTypetxInfomarketVariable).get(1);
+            var market = ((java.util.List<Object>) txTypetxInfomarketVariable).get(2);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "tx_type", txType );
                 put( "tx_info", txInfo );
             }};
             Object response = (this.publicPostSendTx(request)).join();
             return this.parseOrder(response, market);
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> signAndCancelAllOrders(Object method, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object apiKeyIndex = null;
+            var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, method, "apiKeyIndex", "api_key_index");
+            apiKeyIndex = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(1);
+            Object accountIndex = null;
+            var accountIndexparametersVariable = (this.handleAccountIndex(parameters, method, "accountIndex", "account_index")).join();
+            accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
+            Object strAccountIndex = ((String)this.numberToString(accountIndex));
+            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
+            Object signer = (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
+            Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
+            final Object finalApiKeyIndex = apiKeyIndex;
+            final Object finalAccountIndex = accountIndex;
+            Object signRaw = new java.util.HashMap<String, Object>() {{
+                put( "time_in_force", 0 );
+                put( "time", 0 );
+                put( "nonce", nonce );
+                put( "api_key_index", finalApiKeyIndex );
+                put( "account_index", finalAccountIndex );
+            }};
+            var txTypetxInfoVariable = this.lighterSignCancelAllOrders(signer, this.extend(signRaw, parameters));
+            var txType = ((java.util.List<Object>) txTypetxInfoVariable).get(0);
+            var txInfo = ((java.util.List<Object>) txTypetxInfoVariable).get(1);
+            return new java.util.ArrayList<Object>(java.util.Arrays.asList(txType, txInfo));
         });
 
     }
@@ -3968,32 +4039,7 @@ public class LighterCore extends LighterApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
-            {
-                (this.loadMarkets()).join();
-            }
-            Object apiKeyIndex = null;
-            var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "cancelAllOrders", "apiKeyIndex", "api_key_index");
-            apiKeyIndex = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(1);
-            Object accountIndex = null;
-            var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "cancelAllOrders", "accountIndex", "account_index")).join();
-            accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
-            Object strAccountIndex = ((String)this.numberToString(accountIndex));
-            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
-            Object signer = (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
-            Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
-            final Object finalApiKeyIndex = apiKeyIndex;
-            final Object finalAccountIndex = accountIndex;
-            Object signRaw = new java.util.HashMap<String, Object>() {{
-                put( "time_in_force", 0 );
-                put( "time", 0 );
-                put( "nonce", nonce );
-                put( "api_key_index", finalApiKeyIndex );
-                put( "account_index", finalAccountIndex );
-            }};
-            var txTypetxInfoVariable = this.lighterSignCancelAllOrders(signer, this.extend(signRaw, parameters));
+            var txTypetxInfoVariable = (this.signAndCancelAllOrders("cancelAllOrdersWs", symbol, parameters)).join();
             var txType = ((java.util.List<Object>) txTypetxInfoVariable).get(0);
             var txInfo = ((java.util.List<Object>) txTypetxInfoVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{

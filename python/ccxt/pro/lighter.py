@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Any, Balances, Int, Liquidation, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Liquidation, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.precise import Precise
@@ -46,6 +46,9 @@ class lighter(ccxt.async_support.lighter):
                 'unWatchMarkPrice': True,
                 'unWatchMarkPrices': True,
                 'unWatchOrders': True,
+                'createOrderWs': True,
+                'cancelOrderWs': True,
+                'cancelAllOrdersWs': True,
             },
             'urls': {
                 'api': {
@@ -55,7 +58,9 @@ class lighter(ccxt.async_support.lighter):
                     'ws': 'wss://testnet.zklighter.elliot.ai/stream',
                 },
             },
-            'options': {},
+            'options': {
+                'requestId': self.create_safe_dictionary(),
+            },
         })
 
     def get_message_hash(self, unifiedChannel: str, symbol: Str = None, extra: Str = None):
@@ -1069,6 +1074,124 @@ class lighter(ccxt.async_support.lighter):
             request['channel'] = 'account_all_orders/' + self.number_to_string(accountIndex)
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
+    def request_id(self, url: str) -> str:
+        options = self.safe_dict(self.options, 'requestId', self.create_safe_dictionary())
+        previousValue = self.safe_integer(options, url, 0)
+        newValue = self.sum(previousValue, 1)
+        self.options['requestId'][url] = newValue
+        return self.number_to_string(newValue)
+
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
+        """
+        create a trade order
+
+        https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.timeInForce]: 'GTT' or 'IOC', default is 'GTT'
+        :param int [params.clientOrderId]: client order id, should be unique for each order, default is a random number
+        :param str [params.triggerPrice]: trigger price for stop loss or take profit orders, in units of the quote currency
+        :param boolean [params.reduceOnly]: whether the order is reduce only, default False
+        :param int [params.nonce]: nonce for the account
+        :param int [params.apiKeyIndex]: apiKeyIndex
+        :param int [params.accountIndex]: accountIndex
+        :param int [params.orderExpiry]: orderExpiry
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        url = self.urls['api']['ws']
+        requestId = self.request_id(url)
+        messageHash = 'jsonapi/sendtx:' + requestId
+        txType, txInfo, order, market = await self.signAndCreateOrder('createOrderWs', symbol, type, side, amount, price, params)
+        parsedTx = self.parse_json(txInfo)
+        message = {
+            'type': 'jsonapi/sendtx',
+            'data': {
+                'id': requestId,
+                'tx_type': txType,
+                'tx_info': parsedTx,
+            },
+        }
+        subscription = {
+            'id': requestId,
+        }
+        rawMessage = await self.watch(url, messageHash, message, messageHash, subscription)
+        return self.parse_order(self.deep_extend(rawMessage, order), market)
+
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}) -> Order:
+        """
+        cancel multiple orders
+
+        https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+
+        :param str id: order id
+        :param str [symbol]: unified market symbol, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.accountIndex]: account index
+        :param str [params.apiKeyIndex]: api key index
+        :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        url = self.urls['api']['ws']
+        requestId = self.request_id(url)
+        messageHash = 'jsonapi/sendtx:' + requestId
+        txType, txInfo, market = await self.signAndCancelOrder('cancelOrderWs', id, symbol, params)
+        parsedTx = self.parse_json(txInfo)
+        message = {
+            'type': 'jsonapi/sendtx',
+            'data': {
+                'id': requestId,
+                'tx_type': txType,
+                'tx_info': parsedTx,
+            },
+        }
+        subscription = {
+            'id': requestId,
+        }
+        rawMessage = await self.watch(url, messageHash, message, messageHash, subscription)
+        return self.parse_order(rawMessage, market)
+
+    async def cancel_all_orders_ws(self, symbol: Str = None, params={}) -> List[Order]:
+        """
+        cancel all open orders in a market
+
+        https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+
+        :param str [symbol]: unified market symbol of the market to cancel orders in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.accountIndex]: account index
+        :param str [params.apiKeyIndex]: api key index
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        url = self.urls['api']['ws']
+        requestId = self.request_id(url)
+        messageHash = 'jsonapi/sendtx:' + requestId
+        txType, txInfo = await self.signAndCancelAllOrders('cancelAllOrdersWs', symbol, params)
+        parsedTx = self.parse_json(txInfo)
+        message = {
+            'type': 'jsonapi/sendtx',
+            'data': {
+                'id': requestId,
+                'tx_type': txType,
+                'tx_info': parsedTx,
+            },
+        }
+        subscription = {
+            'id': requestId,
+        }
+        rawMessage = await self.watch(url, messageHash, message, messageHash, subscription)
+        return self.parse_orders([rawMessage])
+
+    def handle_ws_sendtx_api(self, client: Client, message: Any):
+        #
+        #     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
+        #
+        id = self.safe_string(message, 'id')
+        client.resolve(message, 'jsonapi/sendtx:' + id)
+
     def handle_orders(self, client: Client, message: Any):
         #
         #    {
@@ -1130,6 +1253,17 @@ class lighter(ccxt.async_support.lighter):
                     feedback = self.id + ' ' + self.json(message)
                     self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
         except Exception as e:
+            id = self.safe_string(message, 'id')
+            if id is not None:
+                subscriptionKeys = list(client.subscriptions.keys())
+                for i in range(0, len(subscriptionKeys)):
+                    subscriptionHash = subscriptionKeys[i]
+                    subscriptionId = self.safe_string(client.subscriptions[subscriptionHash], 'id')
+                    subscription = self.safe_string(client.subscriptions[subscriptionHash], 'subscription')
+                    if id == subscriptionId:
+                        client.reject(e, subscriptionHash)
+                        if subscription is not None:
+                            del client.subscriptions[subscription]
             client.reject(e)
         return True
 
@@ -1139,6 +1273,9 @@ class lighter(ccxt.async_support.lighter):
         type = self.safe_string(message, 'type', '')
         if type == 'ping':
             self.handle_ping(client, message)
+            return
+        if type == 'jsonapi/sendtx':
+            self.handle_ws_sendtx_api(client, message)
             return
         channel = self.safe_string(message, 'channel', '')
         if channel.find('order_book:') >= 0:

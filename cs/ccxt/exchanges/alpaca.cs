@@ -1130,7 +1130,7 @@ public partial class alpaca : Exchange
                 { "percentage", null },
                 { "average", null },
                 { "baseVolume", this.safeString(dailyBar, "v") },
-                { "quoteVolume", this.safeString(dailyBar, "n") },
+                { "quoteVolume", Precise.stringMul(this.safeString(dailyBar, "v"), this.safeString(dailyBar, "vw")) },
             }, market);
             ((IList<object>)results).Add(ticker);
         }

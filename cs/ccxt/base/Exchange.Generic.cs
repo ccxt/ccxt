@@ -377,6 +377,11 @@ public partial class BaseExchange
 
     }
 
+    public virtual object isDictionary(object value)
+    {
+        return isTrue(isTrue((!isEqual(value, null))) && isTrue(((value is IDictionary<string, object>)))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
+    }
+
     public virtual object sum(params object[] args)
     {
         object res = 0;

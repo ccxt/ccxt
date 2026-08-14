@@ -1838,6 +1838,69 @@ public partial class binanceus : binance
         return await this.callAsync<Dictionary<string, object>> ("sapiGetAccumulatorProductSumHolding",parameters);
     }
 
+    /// <summary>Calls the sapiGetEquityMarketExchangeInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityMarketExchangeInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityMarketExchangeInfo",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityMarketTokenizedAssets endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityMarketTokenizedAssets (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityMarketTokenizedAssets",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityMarketQuote endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityMarketQuote (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityMarketQuote",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityOrderOpenOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetEquityOrderOpenOrders (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("sapiGetEquityOrderOpenOrders",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityOrderHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityOrderHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityOrderHistory",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityOrderDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityOrderDetail (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityOrderDetail",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityTradeHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityTradeHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityTradeHistory",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityTokenizedConvertStatus endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityTokenizedConvertStatus (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityTokenizedConvertStatus",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityTokenizedHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityTokenizedHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityTokenizedHistory",parameters);
+    }
+
     /// <summary>Calls the sapiGetAssetAssetDistributionHistory endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> sapiGetAssetAssetDistributionHistory (object parameters = null)
@@ -2923,6 +2986,55 @@ public partial class binanceus : binance
         return await this.callAsync<Dictionary<string, object>> ("sapiPostAccumulatorProductSubscribe",parameters);
     }
 
+    /// <summary>Calls the sapiPostEquityOrderPlace endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEquityOrderPlace (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityOrderPlace",parameters);
+    }
+
+    /// <summary>Calls the sapiPostEquityOrderCancel endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEquityOrderCancel (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityOrderCancel",parameters);
+    }
+
+    /// <summary>Calls the sapiPostEquityOrderCancelAll endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEquityOrderCancelAll (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityOrderCancelAll",parameters);
+    }
+
+    /// <summary>Calls the sapiPostEquityTokenizedMint endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEquityTokenizedMint (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityTokenizedMint",parameters);
+    }
+
+    /// <summary>Calls the sapiPostEquityTokenizedRedeem endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEquityTokenizedRedeem (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityTokenizedRedeem",parameters);
+    }
+
+    /// <summary>Calls the sapiPostEquityAccountDisclaimer endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEquityAccountDisclaimer (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityAccountDisclaimer",parameters);
+    }
+
+    /// <summary>Calls the sapiPostEquityListenKey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEquityListenKey (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityListenKey",parameters);
+    }
+
     /// <summary>Calls the sapiPostOtcQuotes endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> sapiPostOtcQuotes (object parameters = null)
@@ -3904,10 +4016,10 @@ public partial class binanceus : binance
     }
 
     /// <summary>Calls the fapiPublicGetTickerPrice endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> fapiPublicGetTickerPrice (object parameters = null)
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
+    public async Task<object> fapiPublicGetTickerPrice (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("fapiPublicGetTickerPrice",parameters);
+        return await this.callAsync<object> ("fapiPublicGetTickerPrice",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetTickerBookTicker endpoint.</summary>
@@ -4506,10 +4618,10 @@ public partial class binanceus : binance
     }
 
     /// <summary>Calls the fapiPublicV2GetTickerPrice endpoint.</summary>
-    /// <returns>a JSON array</returns>
-    public async Task<List<object>> fapiPublicV2GetTickerPrice (object parameters = null)
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
+    public async Task<object> fapiPublicV2GetTickerPrice (object parameters = null)
     {
-        return await this.callAsync<List<object>> ("fapiPublicV2GetTickerPrice",parameters);
+        return await this.callAsync<object> ("fapiPublicV2GetTickerPrice",parameters);
     }
 
     /// <summary>Calls the fapiPrivateV2GetAccount endpoint.</summary>
@@ -4961,10 +5073,10 @@ public partial class binanceus : binance
     }
 
     /// <summary>Calls the publicGetTickerPrice endpoint.</summary>
-    /// <returns>a JSON array</returns>
-    public async Task<List<object>> publicGetTickerPrice (object parameters = null)
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
+    public async Task<object> publicGetTickerPrice (object parameters = null)
     {
-        return await this.callAsync<List<object>> ("publicGetTickerPrice",parameters);
+        return await this.callAsync<object> ("publicGetTickerPrice",parameters);
     }
 
     /// <summary>Calls the publicGetTickerBookTicker endpoint.</summary>

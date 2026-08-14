@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import xtRest from '../xt.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { BadSymbol, NotSupported } from '../base/errors.js';
+import { NotSupported } from '../base/errors.js';
 //  ---------------------------------------------------------------------------
 export default class xt extends xtRest {
     describe() {
@@ -631,7 +631,7 @@ export default class xt extends xtRest {
         }
         const market = this.market(symbol);
         if (!market['swap']) {
-            throw new BadSymbol(this.id + ' watchFundingRate() supports swap contracts only');
+            throw new NotSupported(this.id + ' watchFundingRate() supports swap contracts only');
         }
         const name = 'fund_rate@' + market['id'];
         return await this.subscribe(name, 'public', 'watchFundingRate', market, undefined, params);
@@ -651,7 +651,7 @@ export default class xt extends xtRest {
         }
         const market = this.market(symbol);
         if (!market['swap']) {
-            throw new BadSymbol(this.id + ' unWatchFundingRate() supports swap contracts only');
+            throw new NotSupported(this.id + ' unWatchFundingRate() supports swap contracts only');
         }
         const name = 'fund_rate@' + market['id'];
         const messageHash = 'unsubscribe::' + name;

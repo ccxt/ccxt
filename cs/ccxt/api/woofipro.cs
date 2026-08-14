@@ -571,6 +571,13 @@ public partial class woofipro : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetKline",parameters);
     }
 
+    /// <summary>Calls the v1PrivateGetClientMarginModes endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetClientMarginModes (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetClientMarginModes",parameters);
+    }
+
     /// <summary>Calls the v1PrivatePostOrderlyKey endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v1PrivatePostOrderlyKey (object parameters = null)
@@ -660,6 +667,20 @@ public partial class woofipro : Exchange
     public async Task<Dictionary<string, object>> v1PrivatePostClientLeverage (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostClientLeverage",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostClientMarginMode endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostClientMarginMode (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostClientMarginMode",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostPositionMargin endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostPositionMargin (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostPositionMargin",parameters);
     }
 
     /// <summary>Calls the v1PrivatePostClientMaintenanceConfig endpoint.</summary>

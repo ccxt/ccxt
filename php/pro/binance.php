@@ -117,6 +117,7 @@ class binance extends \ccxt\async\binance {
                         'margin' => 'wss://stream.binance.com:9443/ws',
                         'future' => 'wss://fstream.binance.com/ws',
                         'delivery' => 'wss://dstream.binance.com/ws',
+                        'stock' => 'wss://nbstream.binance.com/equity/ws',
                         'option' => 'wss://fstream.binance.com/public/ws',
                         'optionMarket' => 'wss://fstream.binance.com/market/ws',
                         'optionPrivate' => 'wss://fstream.binance.com/private/ws',
@@ -140,6 +141,7 @@ class binance extends \ccxt\async\binance {
                     'margin' => 50, // max 1024
                     'future' => 50, // max 200
                     'delivery' => 50, // max 200
+                    'stock' => 50,
                     'option' => 50, // max 200
                     'optionMarket' => 50, // max 200
                 ),
@@ -148,6 +150,7 @@ class binance extends \ccxt\async\binance {
                     'margin' => 200,
                     'future' => 200,
                     'delivery' => 200,
+                    'stock' => 200,
                     'option' => 200,
                     'optionMarket' => 200,
                 ),
@@ -196,10 +199,13 @@ class binance extends \ccxt\async\binance {
                 ),
                 'wallet' => 'wb', // wb = wallet balance, cw = cross balance
                 'listenKeyRefreshRate' => 1200000, // 20 mins
+                'stockListenKeyRefreshRate' => 1200000, // 20 mins
                 'ws' => array(
                     'cost' => 5,
                 ),
                 'tickerChannelsMap' => array(
+                    'price' => 'price',
+                    'quote' => 'quote',
                     '24hrTicker' => 'ticker',
                     '24hrMiniTicker' => 'miniTicker',
                     'markPriceUpdate' => 'markPrice',
@@ -214,7 +220,7 @@ class binance extends \ccxt\async\binance {
         );
     }
 
-    public function request_id(mixed $url) {
+    public function request_id(string $url) {
         $options = $this->safe_dict($this->options, 'requestId', $this->create_safe_dictionary());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
@@ -284,18 +290,132 @@ class binance extends \ccxt\async\binance {
         return $baseUrl;
     }
 
-    public function get_future_ws_category(mixed $channel) {
+    public function get_future_ws_category(?string $channel) {
         if ($channel === 'depth' || $channel === 'rpiDepth' || $channel === 'bookTicker' || $channel === 'trade') {
             return 'public';
         }
         return 'market';
     }
 
-    public function get_private_ws_url(mixed $type, mixed $listenKey) {
+    public function get_private_ws_url(?string $type, ?string $listenKey) {
         if ($type === 'future') {
             return $this->get_ws_url($type, 'private') . '?$listenKey=' . $listenKey;
         }
         return $this->urls['api']['ws'][$type] . '/' . $listenKey;
+    }
+
+    public function get_stock_ws_url(?string $streamType = 'market') {
+        $baseUrl = $this->urls['api']['ws']['stock'];
+        if ($streamType === 'combined') {
+            return str_replace('/ws', '/stream', $baseUrl);
+        }
+        return $baseUrl;
+    }
+
+    public function get_stock_ticker_from_symbol(?string $symbol): ?string {
+        $market = $this->market($symbol);
+        $base = $this->safe_string_2($market, 'base', 'id');
+        return ($base === null) ? null : strtolower($base);
+    }
+
+    public function get_stock_unified_symbol(?string $stockSymbol, ?string $quote = null): ?string {
+        if ($stockSymbol === null) {
+            return null;
+        }
+        $safeQuote = ($quote === null) ? 'USDC' : $quote;
+        $parsed = $this->safe_symbol($stockSymbol, null, '/', 'spot');
+        if (($parsed !== null) && (mb_strpos($parsed, '/') !== false)) {
+            return $parsed;
+        }
+        return $stockSymbol . '/' . $safeQuote;
+    }
+
+    public function watch_stock_market_stream(array $streams, array $messageHashes, $params = array()) {
+        return Async\async(self::do_watch_stock_market_stream(...))($streams, $messageHashes, $params);
+    }
+
+    private function do_watch_stock_market_stream(array $streams, array $messageHashes, $params = array()) {
+        /**
+         * @ignore
+         * $subscribe to the tokenized stock market data stream
+         * @param {string[]} $streams stream names to $subscribe to
+         * @param {string[]} $messageHashes message hashes to listen to
+         * @param {array} $params extra parameters specific to the exchange API endpoint
+         * @return {array} the raw stream subscription response
+         */
+        $url = $this->get_stock_ws_url('market');
+        $requestId = $this->request_id($url);
+        $query = $this->omit($params, array( 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ));
+        $request = array(
+            'method' => 'SUBSCRIBE',
+            'params' => $streams,
+            'id' => $requestId,
+        );
+        $subscribe = array(
+            'id' => $requestId,
+        );
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $query), $messageHashes, $subscribe));
+    }
+
+    public function authenticate_stock($params = array()) {
+        return Async\async(self::do_authenticate_stock(...))($params);
+    }
+
+    private function do_authenticate_stock($params = array()) {
+        $options = $this->safe_dict($this->options, 'stock', array());
+        $lastAuthenticatedTime = $this->safe_integer($options, 'lastAuthenticatedTime', 0);
+        $listenKeyRefreshRate = $this->safe_integer($this->options, 'stockListenKeyRefreshRate', 1200000);
+        $now = $this->milliseconds();
+        $delay = $this->sum($listenKeyRefreshRate, 10000);
+        if (($now - $lastAuthenticatedTime) > $delay) {
+            $requestParams = $this->omit($params, array( 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ));
+            $response = Async\await($this->sapiPostEquityListenKey($requestParams));
+            $listenKey = $this->safe_string($response, 'listenKey');
+            $this->options['stock'] = $this->extend($options, array(
+                'listenKey' => $listenKey,
+                'lastAuthenticatedTime' => $now,
+            ));
+            $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_stock_listen_key'), $params);
+        }
+    }
+
+    public function keep_alive_stock_listen_key($params = array()) {
+        return Async\async(self::do_keep_alive_stock_listen_key(...))($params);
+    }
+
+    private function do_keep_alive_stock_listen_key($params = array()) {
+        try {
+            $options = $this->safe_dict($this->options, 'stock', array());
+            $requestParams = $this->omit($params, array( 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ));
+            $response = Async\await($this->sapiPostEquityListenKey($requestParams));
+            $listenKey = $this->safe_string($response, 'listenKey');
+            $now = $this->milliseconds();
+            $this->options['stock'] = $this->extend($options, array(
+                'listenKey' => $listenKey,
+                'lastAuthenticatedTime' => $now,
+            ));
+        } catch (Exception $error) {
+            $options = $this->safe_dict($this->options, 'stock', array());
+            $this->options['stock'] = $this->extend($options, array(
+                'listenKey' => null,
+                'lastAuthenticatedTime' => 0,
+            ));
+            return;
+        }
+        $clients = is_array($this->clients) ? array_values($this->clients) : array();
+        $listenKeyRefreshRate = $this->safe_integer($this->options, 'stockListenKeyRefreshRate', 1200000);
+        for ($i = 0; $i < count($clients); $i++) {
+            $client = $clients[$i];
+            $clientSubscriptions = $this->safe_dict($client, 'subscriptions', array());
+            $subscriptionKeys = is_array($clientSubscriptions) ? array_keys($clientSubscriptions) : array();
+            for ($j = 0; $j < count($subscriptionKeys); $j++) {
+                $subscribeType = $subscriptionKeys[$j];
+                if ($subscribeType === 'stock') {
+                    $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_stock_listen_key'), $params);
+                    return;
+                }
+            }
+        }
     }
 
     public function watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1077,11 +1197,13 @@ class binance extends \ccxt\async\binance {
         //     }
         //
         $marketId = $this->safe_string($message, 's');
-        $marketsByIdList = $this->safe_value($this->markets_by_id, $marketId);
-        $marketById = $this->safe_value($marketsByIdList, 0);
+        // the $client url is the authoritative source for the $market type — an
+        // ambiguous id like BTCUSDT maps to both the spot and the linear swap
+        // $market, and picking the first match drops the $message under the wrong
+        // $symbol and stalls the $orderbook future (delivery/option ids are
+        // unique, so the swap hint resolves those correctly too)
         $isSpot = $this->is_spot_url($client);
-        $fallbackType = $isSpot ? 'spot' : 'swap';
-        $marketType = ($marketById !== null) ? $marketById['type'] : $fallbackType;
+        $marketType = $isSpot ? 'spot' : 'swap';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $messageHash = 'orderbook::' . $symbol;
@@ -1568,11 +1690,9 @@ class binance extends \ccxt\async\binance {
             }
         }
         $marketId = $this->safe_string($trade, 's');
-        $marketsByIdList = $this->safe_value($this->markets_by_id, $marketId);
-        $marketById = $this->safe_value($marketsByIdList, 0);
         $fallbackType = (is_array($trade) && array_key_exists('ps' ?? '', $trade)) ? 'contract' : 'spot';
-        $marketType = ($marketById !== null) ? $marketById['type'] : $fallbackType;
-        $symbol = $this->safe_symbol($marketId, null, null, $marketType);
+        $marketType = ($market !== null) ? $market['type'] : $fallbackType;
+        $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
         $side = $this->safe_string_lower($trade, 'S');
         $takerOrMaker = null;
         $orderId = $this->safe_string($trade, 'i');
@@ -1614,11 +1734,10 @@ class binance extends \ccxt\async\binance {
         // the $trade streams push raw $trade information in real-time
         // each $trade has a unique buyer and seller
         $marketId = $this->safe_string($message, 's');
-        $marketsByIdList = $this->safe_value($this->markets_by_id, $marketId);
-        $marketById = $this->safe_value($marketsByIdList, 0);
+        // resolve the $market from the transport url — an ambiguous id like
+        // BTCUSDT maps to both the spot and the linear swap $market
         $isSpot = $this->is_spot_url($client);
-        $fallbackType = $isSpot ? 'spot' : 'contract';
-        $marketType = ($marketById !== null) ? $marketById['type'] : $fallbackType;
+        $marketType = $isSpot ? 'spot' : 'contract';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $messageHash = 'trade::' . $symbol;
@@ -1644,12 +1763,14 @@ class binance extends \ccxt\async\binance {
          * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#kline-stream
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] set to true to use stocks $market streams
          * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
@@ -1658,6 +1779,14 @@ class binance extends \ccxt\async\binance {
         }
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
+        $stock = $this->safe_bool($market, 'stock', false);
+        list($stock, $params) = $this->handle_option_and_params($params, 'watchOHLCV', 'stock');
+        if ($stock) {
+            if (($timeframe !== '5m') && ($timeframe !== '1h') && ($timeframe !== '1d') && ($timeframe !== '1w') && ($timeframe !== '1M')) {
+                throw new BadRequest($this->id . ' watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes');
+            }
+            $params['stock'] = true;
+        }
         $params['callerMethodName'] = 'watchOHLCV';
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
         return $result[$symbol][$timeframe];
@@ -1674,16 +1803,45 @@ class binance extends \ccxt\async\binance {
          * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#kline-stream
          *
          * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] set to true to use stocks $market streams
          * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that $timezone instead of UTC, example '+08:00'
          * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
+        }
+        $stock = false;
+        list($stock, $params) = $this->handle_option_and_params($params, 'watchOHLCVForSymbols', 'stock', false);
+        if ($stock) {
+            $stockStreams = array();
+            $stockMessageHashes = array();
+            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+                $stockSymAndTf = $symbolsAndTimeframes[$i];
+                $stockSymbolString = $this->symbol($stockSymAndTf[0]);
+                $stockMarket = $this->market($stockSymbolString);
+                $stockTicker = $this->safe_string_2($stockMarket, 'base', 'id');
+                $stockTickerString = ($stockTicker === null) ? '' : strtolower($stockTicker);
+                $stockTimeframeString = $stockSymAndTf[1];
+                $stockInterval = $this->safe_string($this->timeframes, $stockTimeframeString, $stockTimeframeString);
+                if (($stockInterval !== '5m') && ($stockInterval !== '1h') && ($stockInterval !== '1d') && ($stockInterval !== '1w') && ($stockInterval !== '1M')) {
+                    throw new BadRequest($this->id . ' watchOHLCVForSymbols only supports 5m, 1h, 1d, 1w, and 1M timeframes');
+                }
+                $stockStreams[] = $stockTickerString . '@kline_' . $stockInterval;
+                $stockMessageHashes[] = 'ohlcv::' . $stockMarket['symbol'] . '::' . $stockTimeframeString;
+            }
+            $stockRes = Async\await($this->watch_stock_market_stream($stockStreams, $stockMessageHashes, $params));
+            list($stockSymbol, $stockTimeframe, $stockCandles) = $stockRes;
+            if ($this->newUpdates) {
+                $limit = $stockCandles->getLimit($stockSymbol, $limit);
+            }
+            $stockFiltered = $this->filter_by_since_limit($stockCandles, $since, $limit, 0, true);
+            return $this->create_ohlcv_object($stockSymbol, $stockTimeframe, $stockFiltered);
         }
         $klineType = null;
         list($klineType, $params) = $this->handle_param_string_2($params, 'channel', 'name', 'kline');
@@ -1904,11 +2062,10 @@ class binance extends \ccxt\async\binance {
             $this->safe_float($kline, 'c'),
             $this->safe_float($kline, 'v'),
         );
-        $marketsByIdList = $this->safe_value($this->markets_by_id, $marketId);
-        $marketById = $this->safe_value($marketsByIdList, 0);
+        // resolve the market from the transport url — an ambiguous id like
+        // BTCUSDT maps to both the spot and the linear swap market
         $isSpot = $this->is_spot_url($client);
-        $fallbackType = $isSpot ? 'spot' : 'contract';
-        $marketType = ($marketById !== null) ? $marketById['type'] : $fallbackType;
+        $marketType = $isSpot ? 'spot' : 'contract';
         $symbol = $this->safe_symbol($marketId, null, null, $marketType);
         $messageHash = 'ohlcv::' . $symbol . '::' . $unifiedTimeframe;
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
@@ -2084,9 +2241,11 @@ class binance extends \ccxt\async\binance {
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#price-stream
          *
          * @param {string} $symbol unified $symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] set to true to use the stocks aggregated price stream
          * @param {string} [$params->name] stream to use can be ticker or miniTicker
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
@@ -2162,11 +2321,26 @@ class binance extends \ccxt\async\binance {
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#price-stream
          *
          * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] set to true to use the stocks price stream
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
+        $stock = false;
+        list($stock, $params) = $this->handle_option_and_params($params, 'watchTickers', 'stock', false);
+        if ($stock) {
+            if ($symbols === null) {
+                throw new ArgumentsRequired($this->id . ' watchTickers() with $stock stream requires symbols');
+            }
+            $symbols = $this->market_symbols($symbols, null, false, false, true);
+            $stockResult = Async\await($this->watch_stock_market_stream(array( 'price' ), array( 'stock:price' ), $params));
+            if ($this->newUpdates) {
+                return $stockResult;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        }
         $channelName = null;
         list($channelName, $params) = $this->handle_option_and_params($params, 'watchTickers', 'name', 'miniTicker');
         if ($channelName === 'bookTicker') {
@@ -2288,13 +2462,35 @@ class binance extends \ccxt\async\binance {
          * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#symbol-order-book-ticker
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#quote-stream
          *
          * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] set to true to use stocks quote streams
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
+        }
+        $stock = false;
+        list($stock, $params) = $this->handle_option_and_params($params, 'watchBidsAsks', 'stock', false);
+        if ($stock) {
+            if ($symbols === null) {
+                throw new ArgumentsRequired($this->id . ' watchBidsAsks() with $stock stream requires symbols');
+            }
+            $symbols = $this->market_symbols($symbols, null, false, false, true);
+            $stockStreams = array();
+            $stockMessageHashes = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $stockTicker = $this->get_stock_ticker_from_symbol($symbols[$i]);
+                $stockStreams[] = $stockTicker . '@quote';
+                $stockMessageHashes[] = 'stock:quote:' . $symbols[$i];
+            }
+            $stockResult = Async\await($this->watch_stock_market_stream($stockStreams, $stockMessageHashes, $params));
+            if ($this->newUpdates) {
+                return $stockResult;
+            }
+            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
         }
         $symbols = $this->market_symbols($symbols, null, true, false, true);
         $result = Async\await($this->watch_multi_ticker_helper('watchBidsAsks', 'bookTicker', $symbols, $params));
@@ -2724,7 +2920,11 @@ class binance extends \ccxt\async\binance {
             }
             $tickerMarketId = $this->safe_string($ticker, 's');
             $tickerMarketsByIdList = $this->safe_value($this->markets_by_id, $tickerMarketId);
-            $tickerMarketById = $this->safe_value($tickerMarketsByIdList, 0);
+            $numTickerMarkets = ($tickerMarketsByIdList === null) ? 0 : count($tickerMarketsByIdList);
+            // an ambiguous id, spot and swap share e.g. BTCUSDC, must not be resolved by
+            // blind first pick, the stream url decides; only a unique match, like an
+            // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
+            $tickerMarketById = ($numTickerMarkets === 1) ? $this->safe_value($tickerMarketsByIdList, 0) : null;
             $isSpot = $this->is_spot_url($client);
             $tickerFallbackType = $isSpot ? 'spot' : 'contract';
             $tickerMarketType = ($tickerMarketById !== null) ? $tickerMarketById['type'] : $tickerFallbackType;
@@ -3088,7 +3288,8 @@ class binance extends \ccxt\async\binance {
         $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
         for ($i = 0; $i < count($clients); $i++) {
             $client = $clients[$i];
-            $subscriptionKeys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+            $clientSubscriptions = $this->safe_dict($client, 'subscriptions', array());
+            $subscriptionKeys = is_array($clientSubscriptions) ? array_keys($clientSubscriptions) : array();
             for ($j = 0; $j < count($subscriptionKeys); $j++) {
                 $subscribeType = $subscriptionKeys[$j];
                 if ($subscribeType === $type) {
@@ -4214,17 +4415,50 @@ class binance extends \ccxt\async\binance {
          * @see https://developers.binance.com/docs/margin_trading/trade-data-stream/Event-Order-Update
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Algo-Order-Update
+         * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/user-streams#order-report-stream
          *
          * @param {string} $symbol unified $market $symbol of the $market the $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] set to true to use stocks user data streams
          * @param {string|null} [$params->marginMode] 'cross' or 'isolated', for spot margin
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to watch portfolio margin account $orders
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
+        }
+        $stock = false;
+        list($stock, $params) = $this->handle_option_and_params($params, 'watchOrders', 'stock', false);
+        if ($stock) {
+            Async\await($this->authenticate_stock($params));
+            $stockOptions = $this->safe_dict($this->options, 'stock', array());
+            $stockListenKey = $this->safe_string($stockOptions, 'listenKey');
+            if ($stockListenKey === null) {
+                throw new BadRequest($this->id . ' watchOrders() failed to initialize $stock listenKey');
+            }
+            $stockUrl = $this->get_stock_ws_url('user');
+            $stockStreamName = $stockListenKey . '@orderReport';
+            $stockRequestId = $this->request_id($stockUrl);
+            $stockMessageHash = 'orders';
+            if ($symbol !== null) {
+                $stockMessageHash = 'orders:' . $this->symbol($symbol);
+            }
+            $stockRequest = array(
+                'method' => 'SUBSCRIBE',
+                'params' => array( $stockStreamName ),
+                'id' => $stockRequestId,
+            );
+            $stockQuery = $this->omit($params, array( 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ));
+            $stockSubscribe = array(
+                'id' => $stockRequestId,
+            );
+            $stockOrders = Async\await($this->watch($stockUrl, $stockMessageHash, $this->extend($stockRequest, $stockQuery), $stockMessageHash, $stockSubscribe));
+            if ($this->newUpdates) {
+                $limit = $stockOrders->getLimit($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($stockOrders, $symbol, $since, $limit, true);
         }
         $messageHash = 'orders';
         $market = null;
@@ -4386,12 +4620,91 @@ class binance extends \ccxt\async\binance {
         //         "rm" => "Reduce Only reject"           // algo $order failed reason
         //     }
         //
+        // watchOrders => tokenized equities
+        //
+        //     {
+        //         "e" => "orderReport",
+        //         "E" => 1786010067484,
+        //         "x" => "ORDER_UPDATE",
+        //         "i" => "6c62d749-b1e5-4559-9747-d4237f55ff26",
+        //         "ai" => "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+        //         "b" => "EQ_AAPL",
+        //         "q" => "USDC",
+        //         "S" => "buy",
+        //         "o" => "limit",
+        //         "p" => 290,
+        //         "Q" => 0.02,
+        //         "N" => null,
+        //         "fq" => 0,
+        //         "FN" => 0,
+        //         "tc" => 5.97,
+        //         "Z" => 0,
+        //         "n" => "24H",
+        //         "s" => "new",
+        //         "T" => 1786010067361,
+        //         "U" => 1786010067366
+        //     }
+        //
+        $event = $this->safe_string($order, 'e');
+        if ($event === 'orderReport') {
+            $baseAssetCode = $this->safe_string($order, 'b');
+            $stockBaseSymbol = $baseAssetCode;
+            if (($stockBaseSymbol !== null) && (mb_strpos($stockBaseSymbol, 'EQ_') === 0)) {
+                $stockBaseSymbol = mb_substr($stockBaseSymbol, 3);
+            }
+            if ($stockBaseSymbol === null) {
+                $stockBaseSymbol = $this->safe_string($order, 'symbol');
+            }
+            $stockQuote = $this->safe_string($order, 'q', 'USDC');
+            $stockSymbol = $this->get_stock_unified_symbol($stockBaseSymbol, $stockQuote);
+            $stockRawStatus = $this->safe_string_lower($order, 's');
+            $statuses = array(
+                'accepted' => 'open',
+                'new' => 'open',
+                'partially_filled' => 'open',
+                'filled' => 'closed',
+                'canceled' => 'canceled',
+                'rejected' => 'rejected',
+                'expired' => 'expired',
+            );
+            $stockStatus = $this->safe_string($statuses, $stockRawStatus, $stockRawStatus);
+            $stockAmount = $this->safe_string($order, 'Q');
+            $stockFilled = $this->safe_string($order, 'fq');
+            $stockRemaining = null;
+            if (($stockAmount !== null) && ($stockFilled !== null)) {
+                $stockRemaining = Precise::string_sub($stockAmount, $stockFilled);
+            }
+            $stockTimestamp = $this->safe_integer($order, 'T');
+            $stockLastUpdateTimestamp = $this->safe_integer($order, 'U', $stockTimestamp);
+            return $this->safe_order(array(
+                'info' => $order,
+                'symbol' => $stockSymbol,
+                'id' => $this->safe_string($order, 'i'),
+                'timestamp' => $stockTimestamp,
+                'datetime' => $this->iso8601($stockTimestamp),
+                'lastUpdateTimestamp' => $stockLastUpdateTimestamp,
+                'type' => $this->parseOrderTypeByMarket($this->safe_string_lower($order, 'o'), 'spot'),
+                'timeInForce' => null,
+                'postOnly' => null,
+                'reduceOnly' => null,
+                'side' => $this->safe_string_lower($order, 'S'),
+                'price' => $this->safe_string($order, 'p'),
+                'stopPrice' => null,
+                'triggerPrice' => null,
+                'amount' => $stockAmount,
+                'cost' => $this->safe_string($order, 'FN'),
+                'average' => null,
+                'filled' => $stockFilled,
+                'remaining' => $stockRemaining,
+                'status' => $stockStatus,
+                'fee' => null,
+                'trades' => null,
+            ));
+        }
         $executionType = $this->safe_string($order, 'x');
         $marketId = $this->safe_string($order, 's');
-        $marketsByIdList = $this->safe_value($this->markets_by_id, $marketId);
-        $marketById = $this->safe_value($marketsByIdList, 0);
-        $fallbackType = (is_array($order) && array_key_exists('ps' ?? '', $order)) ? 'contract' : 'spot';
-        $marketType = ($marketById !== null) ? $marketById['type'] : $fallbackType;
+        // futures user-data events carry the position side field, spot ones do not
+        $marketType = (is_array($order) && array_key_exists('ps' ?? '', $order)) ? 'contract' : 'spot';
         $symbol = $this->safe_symbol($marketId, null, null, $marketType);
         $timestamp = $this->safe_integer($order, 'O');
         $T = $this->safe_integer($order, 'T');
@@ -4572,6 +4885,10 @@ class binance extends \ccxt\async\binance {
         //     }
         //
         $e = $this->safe_string($message, 'e');
+        if ($e === 'orderReport') {
+            $this->handle_order($client, $message);
+            return;
+        }
         if (($e === 'ORDER_TRADE_UPDATE') || ($e === 'ALGO_UPDATE')) {
             $oField = $this->safe_value($message, 'o');
             if ((gettype($oField) === 'array' && array_keys($oField) === array_keys(array_keys($oField)))) {
@@ -4584,6 +4901,69 @@ class binance extends \ccxt\async\binance {
         $this->handle_my_trade($client, $message);
         $this->handle_order($client, $message);
         $this->handle_my_liquidation($client, $message);
+    }
+
+    public function handle_stock_price(Client $client, array $message) {
+        //
+        //     {
+        //         "rates" => array(
+        //             array(
+        //                 "s" => "JAVA",
+        //                 "ac" => "EQ_JAVA",
+        //                 "p" => "83.26",
+        //                 "t" => 1785959875000,
+        //                 "pc" => "83.1800",
+        //                 "mp" => "ON"
+        //             ),
+        //         ),
+        //         "e" => "price"
+        //     }
+        //
+        $rates = $this->safe_list($message, 'rates', array());
+        $tickers = array();
+        for ($i = 0; $i < count($rates); $i++) {
+            $rate = $this->safe_dict($rates, $i, array());
+            $stockSymbol = $this->safe_string($rate, 's');
+            $symbol = $this->get_stock_unified_symbol($stockSymbol, 'USDC');
+            if ($symbol === null) {
+                continue;
+            }
+            $timestamp = $this->safe_integer($rate, 't');
+            $parsed = $this->safe_ticker(array(
+                'symbol' => $symbol,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'last' => $this->safe_string($rate, 'p'),
+                'close' => $this->safe_string($rate, 'p'),
+                'previousClose' => $this->safe_string($rate, 'pc'),
+                'info' => $rate,
+            ));
+            $this->tickers[$symbol] = $parsed;
+            $tickers[$symbol] = $parsed;
+            $client->resolve($parsed, 'stock:price:' . $symbol);
+        }
+        $client->resolve($tickers, 'stock:price');
+    }
+
+    public function handle_stock_quote(Client $client, array $message) {
+        $stockSymbol = $this->safe_string($message, 's');
+        $symbol = $this->get_stock_unified_symbol($stockSymbol, 'USDC');
+        if ($symbol === null) {
+            return;
+        }
+        $timestamp = $this->safe_integer_2($message, 'E', 'T');
+        $parsed = $this->safe_ticker(array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'bid' => $this->safe_string($message, 'bp'),
+            'ask' => $this->safe_string($message, 'ap'),
+            'bidVolume' => $this->safe_string($message, 'bs'),
+            'askVolume' => $this->safe_string($message, 'as'),
+            'info' => $message,
+        ));
+        $this->bidsasks[$symbol] = $parsed;
+        $client->resolve($parsed, 'stock:quote:' . $symbol);
     }
 
     public function handle_options_order_update(Client $client, mixed $message) {
@@ -5263,6 +5643,13 @@ class binance extends \ccxt\async\binance {
                         $orderTrades = $this->safe_list($order, 'trades', array());
                         $orderTrades[] = $trade;
                         $order['trades'] = $orderTrades;
+                        // write the updated $order back into the cache => php
+                        // arrays are value types, so the fee/trades mutations
+                        // above only touched a local copy there — the cache
+                        // hashmap rows are wired by reference, so this
+                        // assignment reaches the cached row (and is a no-op
+                        // in the reference-semantics runtimes)
+                        $orders[$orderId] = $order;
                         // don't append twice cause it breaks newUpdates mode
                         // this $order already exists in the cache
                     }
@@ -5475,6 +5862,11 @@ class binance extends \ccxt\async\binance {
         if ($eventMsg !== null) {
             $message = $eventMsg;
         }
+        // handle combined stream wrapper payloads
+        $eventData = $this->safe_dict($message, 'data');
+        if ($eventData !== null) {
+            $message = $eventData;
+        }
         $status = $this->safe_string($message, 'status');
         $error = $this->safe_value($message, 'error');
         if (($error !== null) || ($status !== null && $status !== '200')) {
@@ -5494,6 +5886,8 @@ class binance extends \ccxt\async\binance {
             'depthUpdate' => array($this, 'handle_order_book'),
             'trade' => array($this, 'handle_trade'),
             'aggTrade' => array($this, 'handle_trade'),
+            'price' => array($this, 'handle_stock_price'),
+            'quote' => array($this, 'handle_stock_quote'),
             'optionTrade' => array($this, 'handle_trade'),
             'markPrice' => array($this, 'handle_mark_prices'),
             'kline' => array($this, 'handle_ohlcv'),
@@ -5518,6 +5912,7 @@ class binance extends \ccxt\async\binance {
             'ACCOUNT_UPDATE' => array($this, 'handle_acount_update'),
             'BALANCE_POSITION_UPDATE' => array($this, 'handle_options_account_update'),
             'executionReport' => array($this, 'handle_order_update'),
+            'orderReport' => array($this, 'handle_order_update'),
             'ORDER_TRADE_UPDATE' => array($this, 'handle_order_update'),
             'ALGO_UPDATE' => array($this, 'handle_order_update'),
             'forceOrder' => array($this, 'handle_liquidation'),
@@ -5526,8 +5921,8 @@ class binance extends \ccxt\async\binance {
         );
         $event = $this->safe_string($message, 'e');
         if ((gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)))) {
-            $data = $message[0];
-            $event = $this->safe_string($data, 'e') . '@arr';
+            $arrayMessage = $message[0];
+            $event = $this->safe_string($arrayMessage, 'e') . '@arr';
         }
         $method = $this->safe_value($methods, $event);
         if ($method === null) {

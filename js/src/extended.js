@@ -3025,7 +3025,11 @@ export default class extended extends Exchange {
         const request = {
             'countdownTime': (timeout > 0) ? this.parseToInt(timeout / 1000) : 0,
         };
-        return await this.v1PrivatePostUserDeadmanswitch(this.extend(request, params));
+        const response = await this.v1PrivatePostUserDeadmanswitch(this.extend(request, params));
+        //
+        // the endpoint answers with an empty string body
+        //
+        return { 'info': response };
     }
     /**
      * @method

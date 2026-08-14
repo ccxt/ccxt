@@ -1414,7 +1414,7 @@ class kucoin(ccxt.async_support.kucoin):
         method = '/contractMarket/level2' if isFuturesMethod else '/market/level2'
         optionName = 'contractMethod' if isFuturesMethod else 'spotMethod'
         method, params = self.handle_option_and_params_2(params, 'watchOrderBook', optionName, 'method', method)
-        if method.find('Depth') == -1:
+        if method.find('Depth') < 0:
             if (limit == 5) or (limit == 50):
                 if not isFuturesMethod:
                     method = '/spotMarket/level2'
@@ -1465,7 +1465,7 @@ class kucoin(ccxt.async_support.kucoin):
         method = '/contractMarket/level2' if isFuturesMethod else '/market/level2'
         optionName = 'contractMethod' if isFuturesMethod else 'spotMethod'
         method, params = self.handle_option_and_params_2(params, 'watchOrderBook', optionName, 'method', method)
-        if method.find('Depth') == -1:
+        if method.find('Depth') < 0:
             if (limit == 5) or (limit == 50):
                 if not isFuturesMethod:
                     method = '/spotMarket/level2'

@@ -65,7 +65,7 @@ public class WeexCore extends WeexApi
                 put( "createTakeProfitOrder", true );
                 put( "createTrailingAmountOrder", false );
                 put( "createTrailingPercentOrder", false );
-                put( "createTriggerOrder", false );
+                put( "createTriggerOrder", true );
                 put( "deposit", false );
                 put( "editOrder", false );
                 put( "editOrders", false );
@@ -717,7 +717,7 @@ public class WeexCore extends WeexApi
                     put( "sandbox", true );
                     put( "createOrder", new java.util.HashMap<String, Object>() {{
                         put( "marginMode", true );
-                        put( "triggerPrice", false );
+                        put( "triggerPrice", true );
                         put( "triggerPriceType", null );
                         put( "triggerDirection", false );
                         put( "stopLossPrice", true );
@@ -2421,7 +2421,7 @@ public class WeexCore extends WeexApi
                 //
                 if (Helpers.isTrue(sandboxMode))
                 {
-                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "contractPrivateGetCapiV3SimBalance", new Object[] { parameters })).join();
+                    response = (this.contractPrivateGetCapiV3SimBalance(parameters)).join();
                 } else
                 {
                     response = (this.contractPrivateGetCapiV3AccountBalance(parameters)).join();
@@ -2707,17 +2707,20 @@ public class WeexCore extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
-     * @param {float} [params.takeProfit.triggerPrice] The price at which the take profit order will be triggered
+     * @param {float} [params.takeProfit.triggerPrice] The price at which the take profit order will be triggered, takeProfit.stopPrice is supported as an alias
      * @param {string} [params.takeProfit.triggerPriceType] The type of the trigger price for the take profit order, either 'last' or 'mark' (default is 'last')
+     * @param {float} [params.takeProfit.price] not supported, the attached take profit always executes at market price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
-     * @param {float} [params.stopLoss.triggerPrice] The price at which the stop loss order will be triggered
+     * @param {float} [params.stopLoss.triggerPrice] The price at which the stop loss order will be triggered, stopLoss.stopPrice is supported as an alias
      * @param {string} [params.stopLoss.triggerPriceType] The type of the trigger price for the stop loss order, either 'last' or 'mark' (default is 'last')
-     * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
+     * @param {float} [params.stopLoss.price] not supported, the attached stop loss always executes at market price
+     * @param {float} [params.stopLossPrice] price to trigger a standalone stop-loss order on an open position, the price argument is used as its execution price for limit orders
      * @param {string} [params.stopLossPriceType] The type of the trigger price for the stop loss order, either 'last' or 'mark' (default is 'last')
-     * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
+     * @param {float} [params.takeProfitPrice] price to trigger a standalone take-profit order on an open position, the price argument is used as its execution price for limit orders
      * @param {string} [params.takeProfitPriceType] The type of the trigger price for the take profit order, either 'last' or 'mark' (default is 'last')
+     * @param {float} [params.triggerPrice] the price at which a trigger (entry conditional) order is triggered, cannot be used together with stopLossPrice or takeProfitPrice
      * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
-     * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders)
+     * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> createContractOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
@@ -2745,7 +2748,7 @@ public class WeexCore extends WeexApi
                 response = (this.contractPrivatePostCapiV3AlgoOrder(request)).join();
             } else if (Helpers.isTrue(sandboxMode))
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "contractPrivatePostCapiV3SimOrder", new Object[] { request })).join();
+                response = (this.contractPrivatePostCapiV3SimOrder(request)).join();
             } else
             {
                 response = (this.contractPrivatePostCapiV3Order(request)).join();
@@ -2794,12 +2797,13 @@ public class WeexCore extends WeexApi
         var stopLossPrice = ((java.util.List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(1);
         var takeProfitPrice = ((java.util.List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(2);
         var query = ((java.util.List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(3);
-        if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
-        {
-            throw new NotSupported((String)Helpers.add(this.id, " createOrder() does not support the triggerPrice parameter")) ;
-        }
+        Object isTrigger = (!Helpers.isEqual(triggerPrice, null));
         Object isStopLoss = (!Helpers.isEqual(stopLossPrice, null));
         Object isTakeProfit = (!Helpers.isEqual(takeProfitPrice, null));
+        if (Helpers.isTrue(Helpers.isTrue(isTrigger) && Helpers.isTrue((Helpers.isTrue(isStopLoss) || Helpers.isTrue(isTakeProfit)))))
+        {
+            throw new BadRequest((String)Helpers.add(this.id, " createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters")) ;
+        }
         Object reduceOnly = this.safeBool(query, "reduceOnly");
         if (Helpers.isTrue(Helpers.isTrue(isStopLoss) || Helpers.isTrue(isTakeProfit)))
         {
@@ -2822,6 +2826,15 @@ public class WeexCore extends WeexApi
         Object hasTakeProfit = (!Helpers.isEqual(takeProfit, null));
         Object stopLoss = this.safeDict(parameters, "stopLoss");
         Object hasStopLoss = (!Helpers.isEqual(stopLoss, null));
+        // the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at market price
+        if (Helpers.isTrue(Helpers.isTrue(hasTakeProfit) && Helpers.isTrue((!Helpers.isEqual(this.safeNumber(takeProfit, "price"), null)))))
+        {
+            throw new NotSupported((String)Helpers.add(this.id, " createOrder() does not support the price field inside the takeProfit params, the attached take profit executes at market price")) ;
+        }
+        if (Helpers.isTrue(Helpers.isTrue(hasStopLoss) && Helpers.isTrue((!Helpers.isEqual(this.safeNumber(stopLoss, "price"), null)))))
+        {
+            throw new NotSupported((String)Helpers.add(this.id, " createOrder() does not support the price field inside the stopLoss params, the attached stop loss executes at market price")) ;
+        }
         Object timeInForce = this.safeString(parameters, "timeInForce");
         Object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
@@ -2830,7 +2843,48 @@ public class WeexCore extends WeexApi
             clientOrderId = Helpers.add(Helpers.add(partner, "-"), this.uuid22());
         }
         Object callerMethodName = this.safeString(parameters, "callerMethodName");
-        if (Helpers.isTrue(Helpers.isTrue(isStopLoss) || Helpers.isTrue(isTakeProfit)))
+        if (Helpers.isTrue(isTrigger))
+        {
+            // entry conditional order, triggers a regular order when the trigger price is reached
+            if (Helpers.isTrue(Helpers.isEqual(callerMethodName, "createOrders")))
+            {
+                throw new NotSupported((String)Helpers.add(this.id, " createOrders() does not support trigger orders")) ;
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
+            {
+                throw new BadRequest((String)Helpers.add(this.id, " createOrder() cannot use the timeInForce parameter with trigger orders")) ;
+            }
+            Helpers.addElementToObject(request, "clientAlgoId", clientOrderId);
+            Helpers.addElementToObject(parameters, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
+            if (Helpers.isTrue(isMarketOrder))
+            {
+                Helpers.addElementToObject(parameters, "type", "STOP_MARKET");
+            } else
+            {
+                Helpers.addElementToObject(parameters, "type", "STOP");
+            }
+            // conditional orders attach take profit / stop loss through the preset* fields instead of tpTriggerPrice/slTriggerPrice
+            if (Helpers.isTrue(hasStopLoss))
+            {
+                Object stopLossTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
+                Helpers.addElementToObject(request, "presetStopLossPrice", this.priceToPrecision(symbol, stopLossTriggerPrice));
+                Object stopLossPriceType = this.safeString(stopLoss, "triggerPriceType");
+                if (Helpers.isTrue(!Helpers.isEqual(stopLossPriceType, null)))
+                {
+                    Helpers.addElementToObject(parameters, "SlWorkingType", this.encodeTriggerPriceType(stopLossPriceType));
+                }
+            }
+            if (Helpers.isTrue(hasTakeProfit))
+            {
+                Object takeProfitTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
+                Helpers.addElementToObject(request, "presetTakeProfitPrice", this.priceToPrecision(symbol, takeProfitTriggerPrice));
+                Object takeProfitPriceType = this.safeString(takeProfit, "triggerPriceType");
+                if (Helpers.isTrue(!Helpers.isEqual(takeProfitPriceType, null)))
+                {
+                    Helpers.addElementToObject(parameters, "TpWorkingType", this.encodeTriggerPriceType(takeProfitPriceType));
+                }
+            }
+        } else if (Helpers.isTrue(Helpers.isTrue(isStopLoss) || Helpers.isTrue(isTakeProfit)))
         {
             if (Helpers.isTrue(Helpers.isEqual(callerMethodName, "createOrders")))
             {
@@ -2891,7 +2945,7 @@ public class WeexCore extends WeexApi
             Helpers.addElementToObject(request, "newClientOrderId", clientOrderId);
             if (Helpers.isTrue(hasStopLoss))
             {
-                Object stopLossTriggerPrice = this.safeNumber(stopLoss, "triggerPrice");
+                Object stopLossTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
                 Helpers.addElementToObject(request, "slTriggerPrice", this.priceToPrecision(symbol, stopLossTriggerPrice));
                 Object stopLossPriceType = this.safeString(stopLoss, "triggerPriceType");
                 if (Helpers.isTrue(!Helpers.isEqual(stopLossPriceType, null)))
@@ -2901,7 +2955,7 @@ public class WeexCore extends WeexApi
             }
             if (Helpers.isTrue(hasTakeProfit))
             {
-                Object takeProfitTriggerPrice = this.safeNumber(takeProfit, "triggerPrice");
+                Object takeProfitTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
                 Helpers.addElementToObject(request, "tpTriggerPrice", this.priceToPrecision(symbol, takeProfitTriggerPrice));
                 Object takeProfitPriceType = this.safeString(takeProfit, "triggerPriceType");
                 if (Helpers.isTrue(!Helpers.isEqual(takeProfitPriceType, null)))
@@ -3659,7 +3713,7 @@ public class WeexCore extends WeexApi
             Object response = null;
             if (Helpers.isTrue(sandboxMode))
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "contractPrivateGetCapiV3SimOrderHistory", new Object[] { this.extend(request, parameters) })).join();
+                response = (this.contractPrivateGetCapiV3SimOrderHistory(this.extend(request, parameters))).join();
             } else
             {
                 response = (this.contractPrivateGetCapiV3OrderHistory(this.extend(request, parameters))).join();
@@ -3810,17 +3864,32 @@ public class WeexCore extends WeexApi
             market = this.safeMarket(marketId, null, null, marketType);
         }
         Object timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("transactTime", "time", "createTime")));
-        Object rawStatus = this.safeStringLower(order, "status");
+        Object rawStatus = this.safeStringLower2(order, "status", "algoStatus"); // algo (trigger) order payloads carry algoStatus instead of status
         Object triggerPrice = this.omitZero(this.safeString2(order, "triggerPrice", "stopPrice"));
         Object rawType = this.safeStringUpper2(order, "type", "orderType");
+        Object isReduceOnly = this.safeBool(order, "reduceOnly");
+        // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
+        // a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
+        Object isEntryTrigger = !Helpers.isTrue((this.safeBool(order, "reduceOnly", true)));
         Object takeProfitPrice = null;
         Object stopLossPrice = null;
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(rawType, "TAKE_PROFIT_MARKET")) || Helpers.isTrue(Helpers.isEqual(rawType, "TAKE_PROFIT"))))
+        if (!Helpers.isTrue(isEntryTrigger))
         {
-            takeProfitPrice = triggerPrice;
-        } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(rawType, "STOP_LOSS")) || Helpers.isTrue(Helpers.isEqual(rawType, "STOP"))) || Helpers.isTrue(Helpers.isEqual(rawType, "STOP_MARKET"))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(rawType, "TAKE_PROFIT_MARKET")) || Helpers.isTrue(Helpers.isEqual(rawType, "TAKE_PROFIT"))))
+            {
+                takeProfitPrice = triggerPrice;
+            } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(rawType, "STOP_LOSS")) || Helpers.isTrue(Helpers.isEqual(rawType, "STOP"))) || Helpers.isTrue(Helpers.isEqual(rawType, "STOP_MARKET"))))
+            {
+                stopLossPrice = triggerPrice;
+            }
+        }
+        if (Helpers.isTrue(Helpers.isEqual(takeProfitPrice, null)))
         {
-            stopLossPrice = triggerPrice;
+            takeProfitPrice = this.omitZero(this.safeString(order, "tpTriggerPrice")); // attached take profit of a regular or conditional order
+        }
+        if (Helpers.isTrue(Helpers.isEqual(stopLossPrice, null)))
+        {
+            stopLossPrice = this.omitZero(this.safeString(order, "slTriggerPrice")); // attached stop loss of a regular or conditional order
         }
         final Object finalMarket = market;
         final Object finalRawType = rawType;
@@ -3833,7 +3902,7 @@ public class WeexCore extends WeexApi
             put( "type", WeexCore.this.parseOrderType(finalRawType) );
             put( "timeInForce", WeexCore.this.safeString(order, "timeInForce") );
             put( "postOnly", null );
-            put( "reduceOnly", WeexCore.this.safeBool(order, "reduceOnly") );
+            put( "reduceOnly", isReduceOnly );
             put( "side", WeexCore.this.safeStringLower(order, "side") );
             put( "amount", WeexCore.this.safeString2(order, "origQty", "quantity") );
             put( "price", WeexCore.this.safeString(order, "price") );
@@ -4309,7 +4378,7 @@ public class WeexCore extends WeexApi
             Object response = null;
             if (Helpers.isTrue(sandboxMode))
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "contractPrivateGetCapiV3SimPositionAllPosition", new Object[] { parameters })).join();
+                response = (this.contractPrivateGetCapiV3SimPositionAllPosition(parameters)).join();
             } else
             {
                 response = (this.contractPrivateGetCapiV3AccountPositionAllPosition(parameters)).join();

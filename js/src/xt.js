@@ -99,6 +99,7 @@ export default class xt extends Exchange {
                 'fetchOrderTrades': false,
                 'fetchPosition': true,
                 'fetchPositions': true,
+                'fetchPositionsHistory': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
                 'fetchStatus': false,
@@ -106,8 +107,8 @@ export default class xt extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
-                'fetchTradingFees': false,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'fetchTradingLimits': false,
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
@@ -252,9 +253,13 @@ export default class xt extends Exchange {
                             'future/trade/v1/entrust/plan-list-history': { 'cost': 1 },
                             'future/trade/v1/entrust/profit-detail': { 'cost': 1 },
                             'future/trade/v1/entrust/profit-list': { 'cost': 1 },
+                            'future/trade/v1/entrust/track-detail': { 'cost': 1 },
+                            'future/trade/v1/entrust/track-list': { 'cost': 1 },
+                            'future/trade/v1/entrust/track-list-history': { 'cost': 1 },
                             'future/trade/v1/order/detail': { 'cost': 1 },
                             'future/trade/v1/order/list': { 'cost': 1 },
                             'future/trade/v1/order/list-history': { 'cost': 1 },
+                            'future/trade/v1/position/list-history': { 'cost': 1 },
                             'future/trade/v1/order/trade-list': { 'cost': 1 },
                             'future/user/v1/account/info': { 'cost': 1 },
                             'future/user/v1/balance/bills': { 'cost': 1 },
@@ -264,16 +269,20 @@ export default class xt extends Exchange {
                             'future/user/v1/position/adl': { 'cost': 1 },
                             'future/user/v1/position/break-list': { 'cost': 1 },
                             'future/user/v1/position/list': { 'cost': 1 },
+                            'future/user/v1/user/step-rate': { 'cost': 1 },
                             'future/user/v1/user/collection/list': { 'cost': 1 },
                             'future/user/v1/user/listen-key': { 'cost': 1 },
                         },
                         'post': {
                             'future/trade/v1/entrust/cancel-all-plan': { 'cost': 1 },
                             'future/trade/v1/entrust/cancel-all-profit-stop': { 'cost': 1 },
+                            'future/trade/v1/entrust/cancel-all-track': { 'cost': 1 },
                             'future/trade/v1/entrust/cancel-plan': { 'cost': 1 },
                             'future/trade/v1/entrust/cancel-profit-stop': { 'cost': 1 },
                             'future/trade/v1/entrust/create-plan': { 'cost': 1 },
+                            'future/trade/v1/entrust/cancel-track': { 'cost': 1 },
                             'future/trade/v1/entrust/create-profit': { 'cost': 1 },
+                            'future/trade/v1/entrust/create-track': { 'cost': 1 },
                             'future/trade/v1/entrust/update-profit-stop': { 'cost': 1 },
                             'future/trade/v1/order/cancel': { 'cost': 1 },
                             'future/trade/v1/order/cancel-all': { 'cost': 1 },
@@ -297,9 +306,13 @@ export default class xt extends Exchange {
                             'future/trade/v1/entrust/plan-list-history': { 'cost': 1 },
                             'future/trade/v1/entrust/profit-detail': { 'cost': 1 },
                             'future/trade/v1/entrust/profit-list': { 'cost': 1 },
+                            'future/trade/v1/entrust/track-detail': { 'cost': 1 },
+                            'future/trade/v1/entrust/track-list': { 'cost': 1 },
+                            'future/trade/v1/entrust/track-list-history': { 'cost': 1 },
                             'future/trade/v1/order/detail': { 'cost': 1 },
                             'future/trade/v1/order/list': { 'cost': 1 },
                             'future/trade/v1/order/list-history': { 'cost': 1 },
+                            'future/trade/v1/position/list-history': { 'cost': 1 },
                             'future/trade/v1/order/trade-list': { 'cost': 1 },
                             'future/user/v1/account/info': { 'cost': 1 },
                             'future/user/v1/balance/bills': { 'cost': 1 },
@@ -309,16 +322,20 @@ export default class xt extends Exchange {
                             'future/user/v1/position/adl': { 'cost': 1 },
                             'future/user/v1/position/break-list': { 'cost': 1 },
                             'future/user/v1/position/list': { 'cost': 1 },
+                            'future/user/v1/user/step-rate': { 'cost': 1 },
                             'future/user/v1/user/collection/list': { 'cost': 1 },
                             'future/user/v1/user/listen-key': { 'cost': 1 },
                         },
                         'post': {
                             'future/trade/v1/entrust/cancel-all-plan': { 'cost': 1 },
                             'future/trade/v1/entrust/cancel-all-profit-stop': { 'cost': 1 },
+                            'future/trade/v1/entrust/cancel-all-track': { 'cost': 1 },
                             'future/trade/v1/entrust/cancel-plan': { 'cost': 1 },
                             'future/trade/v1/entrust/cancel-profit-stop': { 'cost': 1 },
                             'future/trade/v1/entrust/create-plan': { 'cost': 1 },
+                            'future/trade/v1/entrust/cancel-track': { 'cost': 1 },
                             'future/trade/v1/entrust/create-profit': { 'cost': 1 },
+                            'future/trade/v1/entrust/create-track': { 'cost': 1 },
                             'future/trade/v1/entrust/update-profit-stop': { 'cost': 1 },
                             'future/trade/v1/order/cancel': { 'cost': 1 },
                             'future/trade/v1/order/cancel-all': { 'cost': 1 },
@@ -793,13 +810,34 @@ export default class xt extends Exchange {
                         'daysBack': undefined,
                         'untilDays': undefined,
                     },
+                    'fetchOrder': {
+                        'trailing': true,
+                    },
+                    'fetchOpenOrders': {
+                        'trailing': true,
+                    },
+                    'fetchOrders': {
+                        'trailing': true,
+                    },
+                    'fetchClosedOrders': {
+                        'trailing': true,
+                    },
+                    'fetchCanceledOrders': {
+                        'trailing': true,
+                    },
                 },
                 'swap': {
                     'linear': {
                         'extends': 'forDerivatives',
+                        'createOrder': {
+                            'trailing': true,
+                        },
                     },
                     'inverse': {
                         'extends': 'forDerivatives',
+                        'createOrder': {
+                            'trailing': true,
+                        },
                     },
                 },
                 'future': {
@@ -836,7 +874,7 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result');
+        const data = this.safeDict(response, 'result');
         return this.safeInteger(data, 'serverTime');
     }
     /**
@@ -901,17 +939,17 @@ export default class xt extends Exchange {
         //
         // note: individual network's full data is available on per-currency endpoint: https://www.xt.com/sapi/v4/balance/public/currency/11
         //
-        const chainsData = this.safeValue(chainsResponse, 'result', []);
-        const currenciesResult = this.safeValue(currenciesResponse, 'result', []);
-        const currenciesData = this.safeValue(currenciesResult, 'currencies', []);
+        const chainsData = this.safeList(chainsResponse, 'result', []);
+        const currenciesResult = this.safeDict(currenciesResponse, 'result', {});
+        const currenciesData = this.safeList(currenciesResult, 'currencies', []);
         const chainsDataIndexed = this.indexBy(chainsData, 'currency');
         const result = {};
         for (let i = 0; i < currenciesData.length; i++) {
             const entry = currenciesData[i];
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            const networkEntry = this.safeValue(chainsDataIndexed, currencyId, {});
-            const rawNetworks = this.safeValue(networkEntry, 'supportChains', []);
+            const networkEntry = this.safeDict(chainsDataIndexed, currencyId, {});
+            const rawNetworks = this.safeList(networkEntry, 'supportChains', []);
             const networks = {};
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
@@ -1061,8 +1099,8 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
-        const symbols = this.safeValue(data, 'symbols', []);
+        const data = this.safeDict(response, 'result', {});
+        const symbols = this.safeList(data, 'symbols', []);
         return this.parseMarkets(symbols);
     }
     async fetchSwapAndFutureMarkets(params = {}) {
@@ -1129,7 +1167,7 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        const swapAndFutureMarkets = this.arrayConcat(this.safeValue(markets[0], 'result', []), this.safeValue(markets[1], 'result', []));
+        const swapAndFutureMarkets = this.arrayConcat(this.safeList(markets[0], 'result', []), this.safeList(markets[1], 'result', []));
         return this.parseMarkets(swapAndFutureMarkets);
     }
     parseMarkets(markets) {
@@ -1263,7 +1301,7 @@ export default class xt extends Exchange {
         const quote = this.safeCurrencyCode(quoteId);
         const state = this.safeString(market, 'state');
         let symbol = base + '/' + quote;
-        const filters = this.safeValue(market, 'filters', []);
+        const filters = this.safeList(market, 'filters', []);
         let minAmount = undefined;
         let maxAmount = undefined;
         let minCost = undefined;
@@ -1337,10 +1375,10 @@ export default class xt extends Exchange {
         }
         let isActive = false;
         if (contract) {
-            isActive = this.safeValue(market, 'isOpenApi', false);
+            isActive = this.safeBool(market, 'isOpenApi', false);
         }
         else {
-            if ((state === 'ONLINE') && (this.safeValue(market, 'tradingEnabled')) && (this.safeValue(market, 'openapiEnabled'))) {
+            if ((state === 'ONLINE') && (this.safeBool(market, 'tradingEnabled')) && (this.safeBool(market, 'openapiEnabled'))) {
                 isActive = true;
             }
         }
@@ -1501,7 +1539,7 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        const ohlcvs = this.safeValue(response, 'result', []);
+        const ohlcvs = this.safeList(response, 'result', []);
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1629,7 +1667,7 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const orderBook = this.safeValue(response, 'result', {});
+        const orderBook = this.safeDict(response, 'result', {});
         const timestamp = this.safeInteger2(orderBook, 'timestamp', 't');
         if (market['spot']) {
             const ob = this.parseOrderBook(orderBook, symbol, timestamp);
@@ -1802,7 +1840,7 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        const tickers = this.safeValue(response, 'result', []);
+        const tickers = this.safeList(response, 'result', []);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker(tickers[i], market);
@@ -2060,7 +2098,7 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        const trades = this.safeValue(response, 'result', []);
+        const trades = this.safeList(response, 'result', []);
         return this.parseTrades(trades, market);
     }
     /**
@@ -2172,8 +2210,8 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
-        const trades = this.safeValue(data, 'items', []);
+        const data = this.safeDict(response, 'result', {});
+        const trades = this.safeList(data, 'items', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -2427,11 +2465,11 @@ export default class xt extends Exchange {
         //
         let balances = undefined;
         if ((subType !== undefined) || isContractWallet) {
-            balances = this.safeValue(response, 'result', []);
+            balances = this.safeList(response, 'result', []);
         }
         else {
-            const data = this.safeValue(response, 'result', {});
-            balances = this.safeValue(data, 'assets', []);
+            const data = this.safeDict(response, 'result', {});
+            balances = this.safeList(data, 'assets', []);
         }
         return this.parseBalance(balances);
     }
@@ -2512,6 +2550,7 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/docs/futures/Order/Create%20Orders
      * @see https://doc.xt.com/docs/futures/Entrust/CreateTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/CreateStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/CreateTrack
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2525,6 +2564,10 @@ export default class xt extends Exchange {
      * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.stopLoss] price to set a stop-loss on an open position
      * @param {float} [params.takeProfit] price to set a take-profit on an open position
+     * @param {float} [params.trailingPercent] the percent to trail away from the current market price, swap markets only
+     * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price, swap markets only
+     * @param {float} [params.trailingTriggerPrice] the price to activate a trailing order, swap markets only
+     * @param {string} [params.marginMode] 'cross' or 'isolated', for trailing orders only, default is 'cross'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -2534,6 +2577,11 @@ export default class xt extends Exchange {
         const market = this.market(symbol);
         symbol = market['symbol'];
         if (market['spot']) {
+            const isTrailing = ('trailingPercent' in params) || ('trailingAmount' in params) || ('trailingTriggerPrice' in params);
+            if (isTrailing) {
+                // do not silently place a regular spot order when a trailing order was requested
+                throw new NotSupported(this.id + ' createOrder() trailing orders are only supported on swap markets');
+            }
             return await this.createSpotOrder(symbol, type, side, amount, price, params);
         }
         else {
@@ -2603,7 +2651,7 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const order = this.safeValue(response, 'result', {});
+        const order = this.safeDict(response, 'result', {});
         return this.parseOrder(order, market);
     }
     async createContractOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -2619,7 +2667,7 @@ export default class xt extends Exchange {
         if (timeInForce !== undefined) {
             request['timeInForce'] = timeInForce;
         }
-        const reduceOnly = this.safeValue(params, 'reduceOnly', false);
+        const reduceOnly = this.safeBool(params, 'reduceOnly', false);
         if (side === 'buy') {
             const requestType = (reduceOnly) ? 'SHORT' : 'LONG';
             request['positionSide'] = requestType;
@@ -2632,15 +2680,51 @@ export default class xt extends Exchange {
         const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeNumber2(params, 'stopLoss', 'triggerStopPrice');
         const takeProfit = this.safeNumber2(params, 'takeProfit', 'triggerProfitPrice');
+        const trailingPercent = this.safeString(params, 'trailingPercent');
+        const trailingAmount = this.safeString(params, 'trailingAmount');
+        const trailingTriggerPrice = this.safeNumber(params, 'trailingTriggerPrice');
         const isTrigger = (triggerPrice !== undefined);
         const isStopLoss = (stopLoss !== undefined);
         const isTakeProfit = (takeProfit !== undefined);
+        const isTrailing = (trailingPercent !== undefined) || (trailingAmount !== undefined);
+        if (isTrailing && !market['swap']) {
+            throw new NotSupported(this.id + ' createOrder() trailing orders are only supported on swap markets');
+        }
+        if ((trailingTriggerPrice !== undefined) && !isTrailing) {
+            // do not silently place a regular order when a trailing activation price was requested
+            throw new ArgumentsRequired(this.id + ' createOrder() trailingTriggerPrice requires trailingPercent or trailingAmount');
+        }
         if (price !== undefined) {
-            if (!(isStopLoss) && !(isTakeProfit)) {
+            if (!(isStopLoss) && !(isTakeProfit) && !(isTrailing)) {
                 request['price'] = this.priceToPrecision(symbol, price);
             }
         }
-        if (isTrigger) {
+        if (isTrailing) {
+            request['orderSide'] = side.toUpperCase();
+            request['triggerPriceType'] = this.safeString(params, 'triggerPriceType', 'LATEST_PRICE');
+            let marginMode = undefined;
+            [marginMode, params] = this.handleMarginModeAndParams('createOrder', params, 'cross');
+            request['positionType'] = (marginMode === 'isolated') ? 'ISOLATED' : 'CROSSED';
+            if (trailingPercent !== undefined) {
+                request['callback'] = 'PROPORTION';
+                request['callbackVal'] = this.parseToNumeric(Precise.stringDiv(trailingPercent, '100'));
+            }
+            else {
+                request['callback'] = 'FIXED';
+                request['callbackVal'] = this.parseToNumeric(trailingAmount);
+            }
+            if (trailingTriggerPrice !== undefined) {
+                request['activationPrice'] = this.priceToPrecision(symbol, trailingTriggerPrice);
+            }
+            params = this.omit(params, ['trailingPercent', 'trailingAmount', 'trailingTriggerPrice']);
+            if (market['linear']) {
+                response = await this.privateLinearPostFutureTradeV1EntrustCreateTrack(this.extend(request, params));
+            }
+            else if (market['inverse']) {
+                response = await this.privateInversePostFutureTradeV1EntrustCreateTrack(this.extend(request, params));
+            }
+        }
+        else if (isTrigger) {
             request['timeInForce'] = this.safeStringUpper(params, 'timeInForce', 'GTC');
             request['triggerPriceType'] = this.safeString(params, 'triggerPriceType', 'LATEST_PRICE');
             request['orderSide'] = side.toUpperCase();
@@ -2698,11 +2782,13 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/docs/futures/Order/see-orders-by-id
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersByEntrustId
      * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimitByProfitId
+     * @see https://doc.xt.com/docs/futures/Entrust/GetSingleTrackDetail
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the order is a trailing order or not
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -2719,19 +2805,29 @@ export default class xt extends Exchange {
         let response = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchOrder', market, params);
         [subType, params] = this.handleSubTypeAndParams('fetchOrder', market, params);
-        const trigger = this.safeValue(params, 'stop');
-        const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
+        const trigger = this.safeBool2(params, 'trigger', 'stop');
+        const stopLossTakeProfit = this.safeBool(params, 'stopLossTakeProfit');
+        const trailing = this.safeBool(params, 'trailing');
+        if (trailing) {
+            const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
+            if (!isContract) {
+                throw new NotSupported(this.id + ' fetchOrder() trailing orders are only supported on swap and future markets');
+            }
+        }
         if (trigger) {
             request['entrustId'] = id;
         }
         else if (stopLossTakeProfit) {
             request['profitId'] = id;
         }
+        else if (trailing) {
+            request['trackId'] = id;
+        }
         else {
             request['orderId'] = id;
         }
         if (trigger) {
-            params = this.omit(params, 'stop');
+            params = this.omit(params, ['trigger', 'stop']);
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustPlanDetail(this.extend(request, params));
             }
@@ -2746,6 +2842,15 @@ export default class xt extends Exchange {
             }
             else {
                 response = await this.privateLinearGetFutureTradeV1EntrustProfitDetail(this.extend(request, params));
+            }
+        }
+        else if (trailing) {
+            params = this.omit(params, 'trailing');
+            if (subType === 'inverse') {
+                response = await this.privateInverseGetFutureTradeV1EntrustTrackDetail(this.extend(request, params));
+            }
+            else {
+                response = await this.privateLinearGetFutureTradeV1EntrustTrackDetail(this.extend(request, params));
             }
         }
         else if (subType === 'inverse') {
@@ -2874,7 +2979,7 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const order = this.safeValue(response, 'result', {});
+        const order = this.safeDict(response, 'result', {});
         return this.parseOrder(order, market);
     }
     /**
@@ -2884,11 +2989,13 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
      * @see https://doc.xt.com/docs/futures/Order/see-order-history
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersHistory
+     * @see https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2912,7 +3019,14 @@ export default class xt extends Exchange {
         let response = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchOrders', market, params);
         [subType, params] = this.handleSubTypeAndParams('fetchOrders', market, params);
-        const trigger = this.safeValue2(params, 'trigger', 'stop');
+        const trigger = this.safeBool2(params, 'trigger', 'stop');
+        const trailing = this.safeBool(params, 'trailing');
+        if (trailing) {
+            const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
+            if (!isContract) {
+                throw new NotSupported(this.id + ' fetchOrders() trailing orders are only supported on swap and future markets');
+            }
+        }
         if (trigger) {
             params = this.omit(params, ['trigger', 'stop']);
             if (subType === 'inverse') {
@@ -2920,6 +3034,15 @@ export default class xt extends Exchange {
             }
             else {
                 response = await this.privateLinearGetFutureTradeV1EntrustPlanListHistory(this.extend(request, params));
+            }
+        }
+        else if (trailing) {
+            params = this.omit(params, 'trailing');
+            if (subType === 'inverse') {
+                response = await this.privateInverseGetFutureTradeV1EntrustTrackListHistory(this.extend(request, params));
+            }
+            else {
+                response = await this.privateLinearGetFutureTradeV1EntrustTrackListHistory(this.extend(request, params));
             }
         }
         else if (subType === 'inverse') {
@@ -3045,8 +3168,8 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
-        const orders = this.safeValue(data, 'items', []);
+        const data = this.safeDict(response, 'result', {});
+        const orders = this.safeList(data, 'items', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchOrdersByStatus(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3071,8 +3194,19 @@ export default class xt extends Exchange {
         [type, params] = this.handleMarketTypeAndParams('fetchOrdersByStatus', market, params);
         [subType, params] = this.handleSubTypeAndParams('fetchOrdersByStatus', market, params);
         const trigger = this.safeBool2(params, 'stop', 'trigger');
-        const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
-        if (status === 'open') {
+        const stopLossTakeProfit = this.safeBool(params, 'stopLossTakeProfit');
+        const trailing = this.safeBool(params, 'trailing');
+        if (trailing) {
+            const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
+            if (!isContract) {
+                throw new NotSupported(this.id + ' fetchOrdersByStatus() trailing orders are only supported on swap and future markets');
+            }
+            // the track endpoints do not accept a state filter, and a server-side
+            // size would truncate the mixed-state page before the local status
+            // filter runs, so the limit is only applied locally after filtering
+            request = this.omit(request, ['state', 'size']);
+        }
+        else if (status === 'open') {
             if (trigger || stopLossTakeProfit) {
                 request['state'] = 'NOT_TRIGGERED';
             }
@@ -3103,7 +3237,7 @@ export default class xt extends Exchange {
             if (since !== undefined) {
                 request['startTime'] = since;
             }
-            if (limit !== undefined) {
+            if ((limit !== undefined) && !trailing) {
                 request['size'] = limit;
             }
         }
@@ -3123,6 +3257,25 @@ export default class xt extends Exchange {
             }
             else {
                 response = await this.privateLinearGetFutureTradeV1EntrustProfitList(this.extend(request, params));
+            }
+        }
+        else if (trailing) {
+            params = this.omit(params, 'trailing');
+            if (status === 'open') {
+                if (subType === 'inverse') {
+                    response = await this.privateInverseGetFutureTradeV1EntrustTrackList(this.extend(request, params));
+                }
+                else {
+                    response = await this.privateLinearGetFutureTradeV1EntrustTrackList(this.extend(request, params));
+                }
+            }
+            else {
+                if (subType === 'inverse') {
+                    response = await this.privateInverseGetFutureTradeV1EntrustTrackListHistory(this.extend(request, params));
+                }
+                else {
+                    response = await this.privateLinearGetFutureTradeV1EntrustTrackListHistory(this.extend(request, params));
+                }
             }
         }
         else if ((subType !== undefined) || (type === 'swap') || (type === 'future')) {
@@ -3338,6 +3491,14 @@ export default class xt extends Exchange {
         else {
             orders = this.safeList(response, 'result', []);
         }
+        if (trailing) {
+            // the track endpoints do not support a server-side state filter
+            // and return entries in every state, so filter by status first,
+            // otherwise since/limit could cut off matching rows
+            const parsedOrders = this.parseOrders(orders, market);
+            const filteredOrders = this.filterBy(parsedOrders, 'status', status);
+            return this.filterBySinceLimit(filteredOrders, since, limit);
+        }
         return this.parseOrders(orders, market, since, limit);
     }
     /**
@@ -3348,12 +3509,14 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/docs/futures/Order/see-orders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/getTrackList
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3367,12 +3530,14 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/docs/futures/Order/see-orders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3386,12 +3551,14 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/docs/futures/Order/see-orders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3405,11 +3572,13 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/docs/futures/Order/cancel-orders
      * @see https://doc.xt.com/docs/futures/Entrust/CancelTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/CancelStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/CancelSingleTrack
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the order is a trailing order or not
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -3426,13 +3595,23 @@ export default class xt extends Exchange {
         let response = undefined;
         [type, params] = this.handleMarketTypeAndParams('cancelOrder', market, params);
         [subType, params] = this.handleSubTypeAndParams('cancelOrder', market, params);
-        const trigger = this.safeValue2(params, 'trigger', 'stop');
-        const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
+        const trigger = this.safeBool2(params, 'trigger', 'stop');
+        const stopLossTakeProfit = this.safeBool(params, 'stopLossTakeProfit');
+        const trailing = this.safeBool(params, 'trailing');
+        if (trailing) {
+            const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
+            if (!isContract) {
+                throw new NotSupported(this.id + ' cancelOrder() trailing orders are only supported on swap and future markets');
+            }
+        }
         if (trigger) {
             request['entrustId'] = id;
         }
         else if (stopLossTakeProfit) {
             request['profitId'] = id;
+        }
+        else if (trailing) {
+            request['trackId'] = id;
         }
         else {
             request['orderId'] = id;
@@ -3453,6 +3632,15 @@ export default class xt extends Exchange {
             }
             else {
                 response = await this.privateLinearPostFutureTradeV1EntrustCancelProfitStop(this.extend(request, params));
+            }
+        }
+        else if (trailing) {
+            params = this.omit(params, 'trailing');
+            if (subType === 'inverse') {
+                response = await this.privateInversePostFutureTradeV1EntrustCancelTrack(this.extend(request, params));
+            }
+            else {
+                response = await this.privateLinearPostFutureTradeV1EntrustCancelTrack(this.extend(request, params));
             }
         }
         else if (subType === 'inverse') {
@@ -3486,7 +3674,7 @@ export default class xt extends Exchange {
         //     }
         //
         const isContractResponse = ((subType !== undefined) || (type === 'swap') || (type === 'future'));
-        const order = isContractResponse ? response : this.safeValue(response, 'result', {});
+        const order = isContractResponse ? response : this.safeDict(response, 'result', {});
         return this.parseOrder(order, market);
     }
     /**
@@ -3497,10 +3685,12 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/docs/futures/Order/cancel-all-orders
      * @see https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/CancelAllTrack
      * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -3518,8 +3708,15 @@ export default class xt extends Exchange {
         let response = undefined;
         [type, params] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
         [subType, params] = this.handleSubTypeAndParams('cancelAllOrders', market, params);
-        const trigger = this.safeValue2(params, 'trigger', 'stop');
-        const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
+        const trigger = this.safeBool2(params, 'trigger', 'stop');
+        const stopLossTakeProfit = this.safeBool(params, 'stopLossTakeProfit');
+        const trailing = this.safeBool(params, 'trailing');
+        if (trailing) {
+            const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
+            if (!isContract) {
+                throw new NotSupported(this.id + ' cancelAllOrders() trailing orders are only supported on swap and future markets');
+            }
+        }
         if (trigger) {
             params = this.omit(params, ['trigger', 'stop']);
             if (subType === 'inverse') {
@@ -3536,6 +3733,15 @@ export default class xt extends Exchange {
             }
             else {
                 response = await this.privateLinearPostFutureTradeV1EntrustCancelAllProfitStop(this.extend(request, params));
+            }
+        }
+        else if (trailing) {
+            params = this.omit(params, 'trailing');
+            if (subType === 'inverse') {
+                response = await this.privateInversePostFutureTradeV1EntrustCancelAllTrack(this.extend(request, params));
+            }
+            else {
+                response = await this.privateLinearPostFutureTradeV1EntrustCancelAllTrack(this.extend(request, params));
             }
         }
         else if (subType === 'inverse') {
@@ -3770,7 +3976,7 @@ export default class xt extends Exchange {
         }
         return this.safeOrder({
             'info': order,
-            'id': this.safeStringN(order, ['orderId', 'result', 'cancelId', 'entrustId', 'profitId']),
+            'id': this.safeStringN(order, ['orderId', 'result', 'cancelId', 'entrustId', 'profitId', 'trackId']),
             'clientOrderId': this.safeString2(order, 'clientOrderId', 'clientModifyId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -3807,11 +4013,13 @@ export default class xt extends Exchange {
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
             'UNFINISHED': 'open',
+            'NOT_ACTIVATION': 'open',
             'NOT_TRIGGERED': 'open',
             'TRIGGERING': 'open',
             'TRIGGERED': 'closed',
             'USER_REVOCATION': 'canceled',
             'PLATFORM_REVOCATION': 'rejected',
+            'DELEGATION_FAILED': 'rejected',
             'HISTORY': 'expired',
         };
         return this.safeString(statuses, status, status);
@@ -3879,8 +4087,8 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
-        const ledger = this.safeValue(data, 'items', []);
+        const data = this.safeDict(response, 'result', {});
+        const ledger = this.safeList(data, 'items', []);
         return this.parseLedger(ledger, currency, since, limit);
     }
     parseLedgerEntry(item, currency = undefined) {
@@ -3970,7 +4178,7 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseDepositAddress(result, currency);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
@@ -4044,8 +4252,8 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
-        const deposits = this.safeValue(data, 'items', []);
+        const data = this.safeDict(response, 'result', {});
+        const deposits = this.safeList(data, 'items', []);
         return this.parseTransactions(deposits, currency, since, limit, params);
     }
     /**
@@ -4102,8 +4310,8 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
-        const withdrawals = this.safeValue(data, 'items', []);
+        const data = this.safeDict(response, 'result', {});
+        const withdrawals = this.safeList(data, 'items', []);
         return this.parseTransactions(withdrawals, currency, since, limit, params);
     }
     /**
@@ -4127,7 +4335,7 @@ export default class xt extends Exchange {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
-        const networkIdsByCodes = this.safeValue(this.options, 'networks', {});
+        const networkIdsByCodes = this.safeDict(this.options, 'networks', {});
         const networkId = this.safeString2(networkIdsByCodes, networkCode, code, code);
         const request = {
             'currency': currency['id'],
@@ -4149,7 +4357,7 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseTransaction(result, currency);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -4264,7 +4472,7 @@ export default class xt extends Exchange {
         }
         const market = this.market(symbol);
         if (!(market['contract'])) {
-            throw new BadSymbol(this.id + ' setLeverage() supports contract markets only');
+            throw new NotSupported(this.id + ' setLeverage() supports contract markets only');
         }
         const request = {
             'symbol': market['id'],
@@ -4411,7 +4619,7 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'result', []);
+        const data = this.safeList(response, 'result', []);
         symbols = this.marketSymbols(symbols);
         return this.parseLeverageTiers(data, symbols, 'symbol');
     }
@@ -4498,7 +4706,7 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
+        const data = this.safeDict(response, 'result', {});
         return this.parseMarketLeverageTiers(data, market);
     }
     parseMarketLeverageTiers(info, market = undefined) {
@@ -4520,7 +4728,7 @@ export default class xt extends Exchange {
         //     }
         //
         const tiers = [];
-        const brackets = this.safeValue(info, 'leverageBrackets', []);
+        const brackets = this.safeList(info, 'leverageBrackets', []);
         for (let i = 0; i < brackets.length; i++) {
             const tier = brackets[i];
             const marketId = this.safeString(info, 'symbol');
@@ -4565,7 +4773,7 @@ export default class xt extends Exchange {
         }
         const market = this.market(symbol);
         if (!market['swap']) {
-            throw new BadSymbol(this.id + ' fetchFundingRateHistory() supports swap contracts only');
+            throw new NotSupported(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request = {
             'symbol': market['id'],
@@ -4605,8 +4813,8 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const items = this.safeValue(result, 'items', []);
+        const result = this.safeDict(response, 'result', {});
+        const items = this.safeList(result, 'items', []);
         const rates = [];
         for (let i = 0; i < items.length; i++) {
             const entry = items[i];
@@ -4651,7 +4859,7 @@ export default class xt extends Exchange {
         }
         const market = this.market(symbol);
         if (!market['swap']) {
-            throw new BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
+            throw new NotSupported(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
             'symbol': market['id'],
@@ -4678,7 +4886,7 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseFundingRate(result, market);
     }
     parseFundingRate(contract, market = undefined) {
@@ -4784,6 +4992,103 @@ export default class xt extends Exchange {
     }
     /**
      * @method
+     * @name xt#fetchTradingFee
+     * @description fetch the trading fees for a contract market, the same account-level rate applies to all contract markets of the same subtype
+     * @see https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    async fetchTradingFee(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['contract']) {
+            throw new NotSupported(this.id + ' fetchTradingFee() supports contract markets only');
+        }
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchTradingFee', market, params);
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.privateInverseGetFutureUserV1UserStepRate(params);
+        }
+        else {
+            response = await this.privateLinearGetFutureUserV1UserStepRate(params);
+        }
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "specialType": false,
+        //             "vipProType": false,
+        //             "stepRateProName": null,
+        //             "discountLevel": 0,
+        //             "makerFee": "0.0002",
+        //             "takerFee": "0.0006",
+        //             "levelReturnDay": 90,
+        //             "totalTradeVolume": "78.708",
+        //             "walletBalance": "21.95",
+        //             "nextLvTradeVolume": "200000",
+        //             "nextLvMakerFee": "0.00018",
+        //             "nextLvTakerFee": "0.00054",
+        //             "feeSource": "step_rate"
+        //         }
+        //     }
+        //
+        const result = this.safeDict(response, 'result', {});
+        return this.parseTradingFee(result, market);
+    }
+    /**
+     * @method
+     * @name xt#fetchTradingFees
+     * @description fetch the trading fees for multiple markets, the same account-level rate applies to all contract markets of the requested subtype
+     * @see https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] 'linear' (default) or 'inverse'
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbol
+     */
+    async fetchTradingFees(params = {}) {
+        await this.loadMarkets();
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchTradingFees', undefined, params);
+        const isInverse = (subType === 'inverse');
+        let response = undefined;
+        if (isInverse) {
+            response = await this.privateInverseGetFutureUserV1UserStepRate(params);
+        }
+        else {
+            response = await this.privateLinearGetFutureUserV1UserStepRate(params);
+        }
+        //
+        // same response as fetchTradingFee
+        //
+        const fee = this.safeDict(response, 'result', {});
+        const result = {};
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market(symbol);
+            const matchesSubType = (isInverse) ? market['inverse'] : market['linear'];
+            if (market['contract'] && matchesSubType) {
+                result[symbol] = this.parseTradingFee(fee, market);
+            }
+        }
+        return result;
+    }
+    parseTradingFee(fee, market = undefined) {
+        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': this.safeNumber(fee, 'makerFee'),
+            'taker': this.safeNumber(fee, 'takerFee'),
+            'percentage': undefined,
+            'tierBased': true,
+        };
+    }
+    /**
+     * @method
      * @name xt#fetchFundingHistory
      * @description fetch the funding history
      * @see https://doc.xt.com/docs/futures/User/Get%20Fund%20Fee%20Information
@@ -4799,7 +5104,7 @@ export default class xt extends Exchange {
         }
         const market = this.market(symbol);
         if (!market['swap']) {
-            throw new BadSymbol(this.id + ' fetchFundingHistory() supports swap contracts only');
+            throw new NotSupported(this.id + ' fetchFundingHistory() supports swap contracts only');
         }
         const request = {
             'symbol': market['id'],
@@ -4840,8 +5145,8 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
-        const items = this.safeValue(data, 'items', []);
+        const data = this.safeDict(response, 'result', {});
+        const items = this.safeList(data, 'items', []);
         const result = [];
         for (let i = 0; i < items.length; i++) {
             const entry = items[i];
@@ -5078,6 +5383,85 @@ export default class xt extends Exchange {
         }
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
+    /**
+     * @method
+     * @name xt#fetchPositionsHistory
+     * @description fetches historical closed positions
+     * @see https://doc.xt.com/docs/futures/Entrust/GetPositionHistory
+     * @param {string[]} [symbols] unified market symbols, all closed positions are returned if not assigned
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum amount of records to fetch, default=10
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest position to fetch
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        let request = {};
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                market = this.market(symbols[0]);
+                request['symbol'] = market['id'];
+            }
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        [request, params] = this.handleUntilOption('endTime', request, params);
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchPositionsHistory', market, params);
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.privateInverseGetFutureTradeV1PositionListHistory(this.extend(request, params));
+        }
+        else {
+            response = await this.privateLinearGetFutureTradeV1PositionListHistory(this.extend(request, params));
+        }
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "hasPrev": false,
+        //             "hasNext": false,
+        //             "items": [
+        //                 {
+        //                     "id": "654559911738263296",
+        //                     "positionSide": "LONG",
+        //                     "contractType": "PERPETUAL",
+        //                     "symbol": "xrp_usdt",
+        //                     "positionType": 2,
+        //                     "closeProfit": "0.001",
+        //                     "closePositionSize": "1",
+        //                     "closeOpenPrice": "1.0651",
+        //                     "closePrice": "1.0652",
+        //                     "maxPositionSize": "1",
+        //                     "openTime": 1785761266645,
+        //                     "closeTime": 1785761266645,
+        //                     "startLeverage": 10,
+        //                     "endLeverage": 10,
+        //                     "working": false,
+        //                     "force": false,
+        //                     "forceMarkPrice": null,
+        //                     "totalFee": "0.0063",
+        //                     "totalFundFee": "0"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeDict(response, 'result', {});
+        const items = this.safeList(result, 'items', []);
+        const positions = this.parsePositions(items, symbols);
+        return this.filterBySinceLimit(positions, since, limit);
+    }
     parsePosition(position, market = undefined) {
         //
         // position/list
@@ -5109,33 +5493,63 @@ export default class xt extends Exchange {
         //         "calMarkPrice": "27050"
         //     }
         //
+        // position/list-history
+        //
+        //     {
+        //         "id": "654559911738263296",
+        //         "positionSide": "LONG",
+        //         "contractType": "PERPETUAL",
+        //         "symbol": "xrp_usdt",
+        //         "positionType": 2,
+        //         "closeProfit": "0.001",
+        //         "closePositionSize": "1",
+        //         "closeOpenPrice": "1.0651",
+        //         "closePrice": "1.0652",
+        //         "maxPositionSize": "1",
+        //         "openTime": 1785761266645,
+        //         "closeTime": 1785761266645,
+        //         "startLeverage": 10,
+        //         "endLeverage": 10,
+        //         "working": false,
+        //         "force": false,
+        //         "forceMarkPrice": null,
+        //         "totalFee": "0.0063",
+        //         "totalFundFee": "0"
+        //     }
+        //
         const marketId = this.safeString(position, 'symbol');
         market = this.safeMarket(marketId, market, undefined, 'contract');
         const symbol = this.safeSymbol(marketId, market, undefined, 'contract');
+        // "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
         const positionType = this.safeString(position, 'positionType');
-        const marginMode = (positionType === 'CROSSED') ? 'cross' : 'isolated';
+        const isCross = (positionType === 'CROSSED') || (positionType === '1');
+        const marginMode = (isCross) ? 'cross' : 'isolated';
         const collateral = this.safeNumber(position, 'isolatedMargin');
-        const liquidationPriceString = this.omitZero(this.safeString(position, 'breakPrice'));
+        // history entries carry the liquidation price in forceMarkPrice when force is true
+        const liquidationPriceString = this.omitZero(this.safeString2(position, 'breakPrice', 'forceMarkPrice'));
+        const timestamp = this.safeInteger(position, 'closeTime');
         return this.safePosition({
             'info': position,
-            'id': undefined,
+            'id': this.safeString(position, 'id'),
             'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
             'hedged': undefined,
             'side': this.safeStringLower(position, 'positionSide'),
-            'contracts': this.safeNumber(position, 'positionSize'),
+            'contracts': this.safeNumber2(position, 'positionSize', 'closePositionSize'),
             'contractSize': market['contractSize'],
-            'entryPrice': this.safeNumber(position, 'entryPrice'),
+            'entryPrice': this.safeNumber2(position, 'entryPrice', 'closeOpenPrice'),
             'markPrice': this.safeNumber2(position, 'markPrice', 'calMarkPrice'),
+            'lastPrice': this.safeNumber(position, 'closePrice'),
             'notional': undefined,
-            'leverage': this.safeInteger(position, 'leverage'),
+            'leverage': this.safeInteger2(position, 'leverage', 'endLeverage'),
             'collateral': collateral,
             'initialMargin': collateral,
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
             'unrealizedPnl': undefined,
+            'realizedPnl': this.safeNumber2(position, 'realizedProfit', 'closeProfit'),
             'liquidationPrice': this.parseNumber(liquidationPriceString),
             'marginMode': marginMode,
             'percentage': undefined,
@@ -5159,7 +5573,7 @@ export default class xt extends Exchange {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        const accountsByType = this.safeValue(this.options, 'accountsById');
+        const accountsByType = this.safeDict(this.options, 'accountsById');
         const fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toAccountId = this.safeString(accountsByType, toAccount, toAccount);
         const amountString = this.currencyToPrecision(code, amount);
@@ -5219,7 +5633,7 @@ export default class xt extends Exchange {
         }
         const market = this.market(symbol);
         if (market['spot']) {
-            throw new BadSymbol(this.id + ' setMarginMode() supports contract markets only');
+            throw new NotSupported(this.id + ' setMarginMode() supports contract markets only');
         }
         marginMode = marginMode.toLowerCase();
         if (marginMode !== 'isolated' && marginMode !== 'cross') {
@@ -5421,7 +5835,7 @@ export default class xt extends Exchange {
         const status = this.safeStringUpper2(response, 'msgInfo', 'mc');
         if (status !== undefined && status !== 'SUCCESS') {
             const feedback = this.id + ' ' + body;
-            const error = this.safeValue(response, 'error', {});
+            const error = this.safeDict(response, 'error', {});
             const spotErrorCode = this.safeString(response, 'mc');
             const errorCode = this.safeString(error, 'code', spotErrorCode);
             const spotMessage = this.safeString(response, 'msgInfo');

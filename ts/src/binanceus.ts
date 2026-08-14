@@ -127,7 +127,7 @@ export default class binanceus extends binance {
                         'aggTrades': { 'cost': 1 } as Endpoint<List>,
                         'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ] } as Endpoint<Dict>,
                         'klines': { 'cost': 1 } as Endpoint<List>,
-                        'ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
+                        'ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<Dict | List>,
                         'avgPrice': { 'cost': 1 } as Endpoint<Dict>,
                         'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
                         'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<Dict | List>,

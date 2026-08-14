@@ -1400,6 +1400,11 @@ export default class toobit extends Exchange {
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (ticker, 't');
         const last = this.safeString (ticker, 'c');
+        let baseVolume = this.safeString (ticker, 'v');
+        if (market['contract'] && (market['contractSize'] !== undefined)) {
+            // 'v' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.stringMul (baseVolume, this.numberToString (market['contractSize']));
+        }
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -1418,7 +1423,7 @@ export default class toobit extends Exchange {
             'change': this.safeString (ticker, 'pc'),
             'percentage': this.safeString (ticker, 'pcp'),
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'v'),
+            'baseVolume': baseVolume,
             'quoteVolume': this.safeString (ticker, 'qv'),
             'info': ticker,
         }, market);

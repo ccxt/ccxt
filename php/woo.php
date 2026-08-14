@@ -141,7 +141,8 @@ class woo extends Exchange {
                 ),
                 'www' => 'https://woox.io/',
                 'doc' => array(
-                    'https://docs.woox.io/',
+                    'https://developer.woox.io/',
+                    'https://docs.woox.io/', // legacy v1 api reference
                 ),
                 'fees' => array(
                     'https://support.woox.io/hc/en-001/articles/4404611795353--Trading-Fees',
@@ -221,14 +222,7 @@ class woo extends Exchange {
                             'order' => array( 'cost' => 1 ),
                             'client/order' => array( 'cost' => 1 ),
                             'orders' => array( 'cost' => 1 ),
-                            'asset/withdraw' => array( 'cost' => 120 ),  // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
-                        ),
-                    ),
-                ),
-                'v2' => array(
-                    'private' => array(
-                        'get' => array(
-                            'client/holding' => array( 'cost' => 1 ),
+                            'asset/withdraw' => array( 'cost' => 120 ), // cancel a pending withdrawal, undocumented but alive 2026-08
                         ),
                     ),
                 ),
@@ -340,23 +334,24 @@ class woo extends Exchange {
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'sandboxMode' => false,
                 'createMarketBuyOrderRequiresPrice' => true,
-                // these network aliases require manual mapping here
-                'network-aliases-for-tokens' => array(
-                    'HT' => 'ERC20',
-                    'OMG' => 'ERC20',
-                    'UATOM' => 'ATOM',
-                    'ZRX' => 'ZRX',
-                ),
                 'networks' => array(
                     'TRX' => 'TRX', // WOO X renamed the network id from TRON to TRX
                     'TRC20' => 'TRX',
                     'ERC20' => 'ETH',
                     'BEP20' => 'BSC',
                     'ARBITRUM' => 'Arbitrum',
+                    'BASE' => 'BASE',
+                    'AVAXC' => 'AVAXC',
+                    'OP' => 'OP',
+                    'OPTIMISM' => 'OP',
+                    'MATIC' => 'MATIC',
+                    'SONIC' => 'S',
+                    'HYPEREVM' => 'HyperEVM',
                 ),
                 'networksById' => array(
                     'TRX' => 'TRC20',
                     'TRON' => 'TRC20',
+                    'OP' => 'OP',
                 ),
                 // override defaultNetworkCodePriorities for a specific currency
                 'defaultNetworkCodeForCurrencies' => array(
@@ -1729,13 +1724,13 @@ class woo extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          *
-         * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
+         * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_orders_by_symbol
          * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
          *
          * cancel all open orders in a $market
-         * @param {string} [$symbol] unified $market $symbol
+         * @param {string} [$symbol] unified $market $symbol, cancels orders in all markets when omitted
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
+         * @param {boolean} [$params->trigger] set to true to cancel only trigger/algo orders
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($this->markets === null) {
@@ -1752,7 +1747,8 @@ class woo extends Exchange {
         if ($trigger) {
             $response = $this->v3PrivateDeleteTradeAlgoOrders($params);
         } else {
-            $response = $this->v3PrivateDeleteTradeOrders($this->extend($request, $params));
+            // cancels both regular and algo orders
+            $response = $this->v3PrivateDeleteTradeAllOrders($this->extend($request, $params));
         }
         //
         //     {
@@ -3019,7 +3015,7 @@ class woo extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'NEW' => 'pending',
             'CONFIRMING' => 'pending',
@@ -3200,20 +3196,9 @@ class woo extends Exchange {
             'amount' => $this->safe_number($transfer, 'amount'),
             'fromAccount' => $this->safe_string($fromAccount, 'applicationId'),
             'toAccount' => $this->safe_string($toAccount, 'applicationId'),
-            'status' => $this->parse_transfer_status($this->safe_string($transfer, 'status', $status)),
+            'status' => $this->parse_transaction_status($this->safe_string($transfer, 'status', $status)),
             'info' => $transfer,
         );
-    }
-
-    public function parse_transfer_status(?string $status): ?string {
-        $statuses = array(
-            'NEW' => 'pending',
-            'CONFIRMING' => 'pending',
-            'PROCESSING' => 'pending',
-            'COMPLETED' => 'ok',
-            'CANCELED' => 'canceled',
-        );
-        return $this->safe_string($statuses, $status, $status);
     }
 
     public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {

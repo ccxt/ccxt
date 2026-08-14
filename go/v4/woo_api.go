@@ -282,11 +282,6 @@ func (this *WooCore) V1PrivateDeleteAssetWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateDeleteAssetWithdraw", args...)
 }
 
-// V2PrivateGetClientHolding returns a channel that yields a JSON object.
-func (this *WooCore) V2PrivateGetClientHolding(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetClientHolding", args...)
-}
-
 // V3PublicGetSystemInfo returns a channel that yields a JSON object.
 func (this *WooCore) V3PublicGetSystemInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PublicGetSystemInfo", args...)

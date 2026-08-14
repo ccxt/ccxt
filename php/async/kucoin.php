@@ -10774,6 +10774,7 @@ class kucoin extends Exchange {
             //                 "mmr" => "0.007",
             //                 "maintenanceMargin" => "0.128086",
             //                 "creationTime" => 1774469753178000000
+            //                 "updateTime" => 1774469753178000000
             //             }
             //         )
             //     }
@@ -11125,6 +11126,7 @@ class kucoin extends Exchange {
         //         "mmr" => "0.007",
         //         "maintenanceMargin" => "0.128086",
         //         "creationTime" => 1774469753178000000
+        //         "updateTime" => 1774469753178000000
         //     }
         //
         // uta fetchPositionsHistory
@@ -11183,7 +11185,11 @@ class kucoin extends Exchange {
         }
         $lastUpdateTimestamp = $this->safe_integer($position, 'closeTime');
         if ($lastUpdateTimestamp === null) {
-            $lastUpdateTimestamp = $this->safe_integer_product($position, 'closingTime', 0.000001);
+            if (is_array($position) && array_key_exists('closingTime' ?? '', $position)) {
+                $lastUpdateTimestamp = $this->safe_integer_product($position, 'closingTime', 0.000001);
+            } elseif (is_array($position) && array_key_exists('updateTime' ?? '', $position)) {
+                $lastUpdateTimestamp = $this->safe_integer_product($position, 'updateTime', 0.000001);
+            }
         }
         return $this->safe_position(array(
             'info' => $position,

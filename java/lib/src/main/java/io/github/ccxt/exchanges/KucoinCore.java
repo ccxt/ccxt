@@ -12522,6 +12522,7 @@ public class KucoinCore extends KucoinApi
                 //                 "mmr": "0.007",
                 //                 "maintenanceMargin": "0.128086",
                 //                 "creationTime": 1774469753178000000
+                //                 "updateTime": 1774469753178000000
                 //             }
                 //         ]
                 //     }
@@ -12863,6 +12864,7 @@ public class KucoinCore extends KucoinApi
         //         "mmr": "0.007",
         //         "maintenanceMargin": "0.128086",
         //         "creationTime": 1774469753178000000
+        //         "updateTime": 1774469753178000000
         //     }
         //
         // uta fetchPositionsHistory
@@ -12932,7 +12934,13 @@ public class KucoinCore extends KucoinApi
         Object lastUpdateTimestamp = this.safeInteger(position, "closeTime");
         if (Helpers.isTrue(Helpers.isEqual(lastUpdateTimestamp, null)))
         {
-            lastUpdateTimestamp = this.safeIntegerProduct(position, "closingTime", 0.000001);
+            if (Helpers.isTrue(Helpers.inOp(position, "closingTime")))
+            {
+                lastUpdateTimestamp = this.safeIntegerProduct(position, "closingTime", 0.000001);
+            } else if (Helpers.isTrue(Helpers.inOp(position, "updateTime")))
+            {
+                lastUpdateTimestamp = this.safeIntegerProduct(position, "updateTime", 0.000001);
+            }
         }
         final Object finalMarket = market;
         final Object finalTimestamp = timestamp;

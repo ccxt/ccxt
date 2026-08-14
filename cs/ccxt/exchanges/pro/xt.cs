@@ -739,7 +739,7 @@ public partial class xt : ccxt.xt
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "swap")))
         {
-            throw new BadSymbol ((string)add(this.id, " watchFundingRate() supports swap contracts only")) ;
+            throw new NotSupported ((string)add(this.id, " watchFundingRate() supports swap contracts only")) ;
         }
         object name = add("fund_rate@", getValue(market, "id"));
         return await this.subscribe(name, "public", "watchFundingRate", market, null, parameters);
@@ -764,7 +764,7 @@ public partial class xt : ccxt.xt
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "swap")))
         {
-            throw new BadSymbol ((string)add(this.id, " unWatchFundingRate() supports swap contracts only")) ;
+            throw new NotSupported ((string)add(this.id, " unWatchFundingRate() supports swap contracts only")) ;
         }
         object name = add("fund_rate@", getValue(market, "id"));
         object messageHash = add("unsubscribe::", name);

@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.71';
+$version = '4.5.73';
 
 class BaseExchange extends \ccxt\BaseExchange {
 
-    const VERSION = '4.5.71';
+    const VERSION = '4.5.73';
 
     public $browser;
     public $marketsLoading = null;
@@ -920,10 +920,6 @@ class BaseExchange extends \ccxt\BaseExchange {
             return $value;
         }
         return $defaultValue;
-    }
-
-    public function is_dictionary(mixed $value) {
-        return ($value !== null) && (gettype($value) === 'array') && (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)));
     }
 
     public function safe_list_2(mixed $dictionaryOrList, int|string|null $key1, string $key2, ?array $defaultValue = null) {

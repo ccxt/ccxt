@@ -161,7 +161,8 @@ class woo(Exchange, ImplicitAPI):
                 },
                 'www': 'https://woox.io/',
                 'doc': [
-                    'https://docs.woox.io/',
+                    'https://developer.woox.io/',
+                    'https://docs.woox.io/',  # legacy v1 api reference
                 ],
                 'fees': [
                     'https://support.woox.io/hc/en-001/articles/4404611795353--Trading-Fees',
@@ -241,14 +242,7 @@ class woo(Exchange, ImplicitAPI):
                             'order': {'cost': 1},
                             'client/order': {'cost': 1},
                             'orders': {'cost': 1},
-                            'asset/withdraw': {'cost': 120},  # implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
-                        },
-                    },
-                },
-                'v2': {
-                    'private': {
-                        'get': {
-                            'client/holding': {'cost': 1},
+                            'asset/withdraw': {'cost': 120},  # cancel a pending withdrawal, undocumented but alive 2026-08
                         },
                     },
                 },
@@ -360,23 +354,24 @@ class woo(Exchange, ImplicitAPI):
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'sandboxMode': False,
                 'createMarketBuyOrderRequiresPrice': True,
-                # these network aliases require manual mapping here
-                'network-aliases-for-tokens': {
-                    'HT': 'ERC20',
-                    'OMG': 'ERC20',
-                    'UATOM': 'ATOM',
-                    'ZRX': 'ZRX',
-                },
                 'networks': {
                     'TRX': 'TRX',  # WOO X renamed the network id from TRON to TRX
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
                     'ARBITRUM': 'Arbitrum',
+                    'BASE': 'BASE',
+                    'AVAXC': 'AVAXC',
+                    'OP': 'OP',
+                    'OPTIMISM': 'OP',
+                    'MATIC': 'MATIC',
+                    'SONIC': 'S',
+                    'HYPEREVM': 'HyperEVM',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
                     'TRON': 'TRC20',
+                    'OP': 'OP',
                 },
                 # override defaultNetworkCodePriorities for a specific currency
                 'defaultNetworkCodeForCurrencies': {
@@ -1666,13 +1661,13 @@ class woo(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
 
-        https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
+        https://developer.woox.io/api-reference/endpoint/trading/cancel_orders_by_symbol
         https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
 
         cancel all open orders in a market
-        :param str [symbol]: unified market symbol
+        :param str [symbol]: unified market symbol, cancels orders in all markets when omitted
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.trigger]: whether the order is a trigger/algo order
+        :param boolean [params.trigger]: set to True to cancel only trigger/algo orders
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1687,7 +1682,8 @@ class woo(Exchange, ImplicitAPI):
         if trigger:
             response = self.v3PrivateDeleteTradeAlgoOrders(params)
         else:
-            response = self.v3PrivateDeleteTradeOrders(self.extend(request, params))
+            # cancels both regular and algo orders
+            response = self.v3PrivateDeleteTradeAllOrders(self.extend(request, params))
         #
         #     {
         #         "success": True,
@@ -2873,7 +2869,7 @@ class woo(Exchange, ImplicitAPI):
             'network': self.network_id_to_code(self.safe_string(transaction, 'network'), code),
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
@@ -3044,19 +3040,9 @@ class woo(Exchange, ImplicitAPI):
             'amount': self.safe_number(transfer, 'amount'),
             'fromAccount': self.safe_string(fromAccount, 'applicationId'),
             'toAccount': self.safe_string(toAccount, 'applicationId'),
-            'status': self.parse_transfer_status(self.safe_string(transfer, 'status', status)),
+            'status': self.parse_transaction_status(self.safe_string(transfer, 'status', status)),
             'info': transfer,
         }
-
-    def parse_transfer_status(self, status: Str) -> Str:
-        statuses = {
-            'NEW': 'pending',
-            'CONFIRMING': 'pending',
-            'PROCESSING': 'pending',
-            'COMPLETED': 'ok',
-            'CANCELED': 'canceled',
-        }
-        return self.safe_string(statuses, status, status)
 
     def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """

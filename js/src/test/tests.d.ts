@@ -4,8 +4,10 @@ declare class testMainClass {
     idTests: boolean;
     requestTestsFailed: boolean;
     responseTestsFailed: boolean;
+    staticWsTestsFailed: boolean;
     requestTests: boolean;
     wsTests: boolean;
+    staticWsTests: boolean;
     responseTests: boolean;
     predictionTests: boolean;
     info: boolean;
@@ -48,7 +50,7 @@ declare class testMainClass {
     assertPredictionEvent(exchange: any, event: any): boolean;
     testPredictionCreateCancelOrder(exchange: any, outcome: any): Promise<boolean>;
     cancelPredictionOrder(exchange: any, orderId: any, outcome: any): Promise<boolean>;
-    runPrivateTests(exchange: any, symbol: any): Promise<boolean>;
+    runPrivateTests(exchange: any, symbols: any): Promise<boolean>;
     testProxies(exchange: any): Promise<boolean>;
     checkConstructor(exchange: Exchange): void;
     testReturnResponseHeaders(exchange: Exchange): Promise<boolean>;
@@ -69,7 +71,12 @@ declare class testMainClass {
     sanitizeDataInput(input: any): List | undefined;
     testRequestStatically(exchange: any, method: string, data: Dict, type: Str, skipKeys: string[]): Promise<boolean>;
     testResponseStatically(exchange: any, method: string, skipKeys: string[], data: Dict): Promise<boolean>;
-    initOfflineExchange(exchangeName: string): Exchange;
+    injectWsMessages(exchange: any, url: string, messages: List, sequential?: boolean): Promise<boolean>;
+    watchAndAssertSequence(exchange: any, url: string, method: string, input: any, skipKeys: string[], expectedResults: List): Promise<boolean>;
+    assertWsSentMessages(exchange: any, url: string, data: Dict): void;
+    testWsStatically(exchange: any, method: string, skipKeys: string[], data: Dict): Promise<boolean>;
+    testExchangeWsStatically(exchangeName: string, exchangeData: Dict, testName?: Str): Promise<boolean>;
+    initOfflineExchange(exchangeName: string, isWs?: boolean): Exchange;
     testExchangeRequestStatically(exchangeName: string, exchangeData: object, testName?: Str): Promise<boolean>;
     testExchangeResponseStatically(exchangeName: string, exchangeData: object, testName?: Str): Promise<boolean>;
     getNumberOfTestsFromExchange(exchange: any, exchangeData: Dict, testName?: Str): number;
@@ -77,6 +84,7 @@ declare class testMainClass {
     runStaticRequestTests(targetExchange?: Str, testName?: Str): Promise<boolean>;
     runStaticTests(type: string, targetExchange?: Str, testName?: Str): Promise<boolean>;
     runStaticResponseTests(exchangeName?: undefined, test?: undefined): Promise<boolean>;
+    runStaticWsTests(exchangeName?: undefined, test?: undefined): Promise<boolean>;
     runBrokerIdTests(): Promise<boolean>;
     testBinance(): Promise<boolean>;
     testOkx(): Promise<boolean>;

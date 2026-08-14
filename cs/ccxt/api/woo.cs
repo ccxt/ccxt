@@ -396,13 +396,6 @@ public partial class woo : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v1PrivateDeleteAssetWithdraw",parameters);
     }
 
-    /// <summary>Calls the v2PrivateGetClientHolding endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> v2PrivateGetClientHolding (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("v2PrivateGetClientHolding",parameters);
-    }
-
     /// <summary>Calls the v3PublicGetSystemInfo endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v3PublicGetSystemInfo (object parameters = null)

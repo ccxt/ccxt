@@ -1258,9 +1258,16 @@ public class DeltaCore extends DeltaApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.001);
         Object marketId = this.safeString(ticker, "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
+        market = this.safeMarket(marketId, market);
+        Object symbol = Helpers.GetValue(market, "symbol");
         Object last = this.safeString(ticker, "close");
         Object quotes = this.safeDict(ticker, "quotes", new java.util.HashMap<String, Object>() {{}});
+        // turnover_symbol names the currency turnover is denominated in, and on
+        // spot markets that is the base currency rather than the quote
+        Object turnoverSymbol = this.safeStringUpper(ticker, "turnover_symbol");
+        Object quoteId = this.safeStringUpper(market, "quoteId");
+        Object baseDenominated = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(turnoverSymbol, null))) && Helpers.isTrue((!Helpers.isEqual(quoteId, null)))) && Helpers.isTrue((!Helpers.isEqual(turnoverSymbol, quoteId)));
+        Object quoteVolume = ((Helpers.isTrue(baseDenominated))) ? this.safeNumber(ticker, "turnover_usd") : this.safeNumber(ticker, "turnover");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -1280,7 +1287,7 @@ public class DeltaCore extends DeltaApi
             put( "percentage", null );
             put( "average", null );
             put( "baseVolume", DeltaCore.this.safeNumber(ticker, "volume") );
-            put( "quoteVolume", DeltaCore.this.safeNumber(ticker, "turnover") );
+            put( "quoteVolume", quoteVolume );
             put( "markPrice", DeltaCore.this.safeNumber(ticker, "mark_price") );
             put( "indexPrice", DeltaCore.this.safeNumber(ticker, "spot_price") );
             put( "info", ticker );

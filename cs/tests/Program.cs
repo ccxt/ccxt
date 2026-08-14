@@ -50,7 +50,7 @@ public class Tests
         isWs = args.Contains("--ws");
         isBaseTests = args.Contains("--baseTests");
         isExchangeTests = args.Contains("--exchangeTests");
-        isReqResTests = args.Contains("--requestTests") || args.Contains("--request") || args.Contains("--responseTests") || args.Contains("--response");
+        isReqResTests = args.Contains("--requestTests") || args.Contains("--request") || args.Contains("--responseTests") || args.Contains("--response") || args.Contains("--wsTests");
         isAllTest = !isReqResTests && !isBaseTests && !isExchangeTests; // if neither was chosen
 
         raceCondition = args.Contains("--race");
@@ -142,6 +142,9 @@ public class Tests
             {
                 WsCacheTests();
                 WsOrderBookTests();
+                WsOrderBookDefaultsTests();
+                await WsClientRetentionTests();
+                await WsClientKeepAliveLivenessTests();
                 Helper.Green("[C#] base WS tests passed");
             }
             else
@@ -175,6 +178,24 @@ public class Tests
     {
         baseTestInstance.testWsCache();
         Helper.Green(" [C#] ArrayCache tests passed");
+    }
+
+    static async Task WsClientRetentionTests()
+    {
+        await baseTestInstance.testWsClientRetention();
+        Helper.Green(" [C#] WebSocketClient retention tests passed");
+    }
+
+    static void WsOrderBookDefaultsTests()
+    {
+        baseTestInstance.testWsOrderBookNullSnapshotDefaults();
+        Helper.Green(" [C#] OrderBook null-snapshot defaults tests passed");
+    }
+
+    static async Task WsClientKeepAliveLivenessTests()
+    {
+        await baseTestInstance.testWsClientKeepAliveLiveness();
+        Helper.Green(" [C#] WebSocketClient keepalive liveness tests passed");
     }
 
     static void WsOrderBookTests()

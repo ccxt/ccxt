@@ -1736,7 +1736,9 @@ class hashkey(Exchange, ImplicitAPI):
             'symbol': market['symbol'],
             'timestamp': None,
             'datetime': None,
-            'price': self.safe_number(entry, 'p'),
+            # dormant listings carry a literal zero price meaning never traded,
+            # the zero is omitted so the structure reports no price instead
+            'price': self.safe_number_omit_zero(entry, 'p'),
             'side': None,
             'info': entry,
         }

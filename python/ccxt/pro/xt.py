@@ -8,7 +8,6 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById,
 from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NotSupported
 
 
@@ -588,7 +587,7 @@ class xt(ccxt.async_support.xt):
             await self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
-            raise BadSymbol(self.id + ' watchFundingRate() supports swap contracts only')
+            raise NotSupported(self.id + ' watchFundingRate() supports swap contracts only')
         name = 'fund_rate@' + market['id']
         return await self.subscribe(name, 'public', 'watchFundingRate', market, None, params)
 
@@ -606,7 +605,7 @@ class xt(ccxt.async_support.xt):
             await self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
-            raise BadSymbol(self.id + ' unWatchFundingRate() supports swap contracts only')
+            raise NotSupported(self.id + ' unWatchFundingRate() supports swap contracts only')
         name = 'fund_rate@' + market['id']
         messageHash = 'unsubscribe::' + name
         return await self.un_subscribe(messageHash, name, 'public', 'unWatchFundingRate', 'fund_rate', market, None, params)

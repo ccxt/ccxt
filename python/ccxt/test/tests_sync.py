@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from tests_helpers import AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, get_cli_arg_value, get_root_dir, is_sync, dump, json_parse, json_stringify, convert_ascii, io_file_exists, io_file_read, io_dir_read, call_method, call_method_sync, call_exchange_method_dynamically, call_exchange_method_dynamically_sync, get_root_exception, exception_message, exit_script, get_exchange_prop, set_exchange_prop, init_exchange, get_test_files_sync, get_test_files, set_fetch_response, is_null_value, close, get_env_vars, get_lang, get_ext, is_windows, is_linux, is_amd64  # noqa: F401
+from tests_helpers import AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, get_cli_arg_value, get_root_dir, is_sync, dump, json_parse, json_stringify, convert_ascii, io_file_exists, io_file_read, io_dir_read, call_method, call_method_sync, call_exchange_method_dynamically, call_exchange_method_dynamically_sync, get_root_exception, exception_message, exit_script, get_exchange_prop, set_exchange_prop, init_exchange, get_test_files_sync, get_test_files, set_fetch_response, setup_ws_mock_transport, inject_ws_message, reject_pending_ws_futures, ws_client_has_pending_futures, mark_ws_test_completed, is_ws_test_completed, get_ws_sent_messages, is_null_value, close, get_env_vars, get_lang, get_ext, is_windows, is_linux, is_amd64  # noqa: F401
 
 class testMainClass:
     id_tests = False
     request_tests_failed = False
     response_tests_failed = False
+    static_ws_tests_failed = False
     request_tests = False
     ws_tests = False
+    static_ws_tests = False
     response_tests = False
     prediction_tests = False
     info = False
@@ -39,6 +41,7 @@ class testMainClass:
         self.sandbox = get_cli_arg_value('--sandbox')
         self.load_keys = get_cli_arg_value('--loadKeys')
         self.ws_tests = get_cli_arg_value('--ws')
+        self.static_ws_tests = get_cli_arg_value('--wsTests')
         # when set, static request/response tests are read from the static/<type>/prediction/ subfolder
         self.prediction_tests = get_cli_arg_value('--prediction')
         self.lang = get_lang()
@@ -60,6 +63,9 @@ class testMainClass:
             return True
         if self.response_tests:
             self.run_static_response_tests(exchange_id, symbol_argv)
+            return True
+        if self.static_ws_tests:
+            self.run_static_ws_tests(exchange_id, symbol_argv)
             return True
         if self.request_tests:
             self.run_static_request_tests(exchange_id, symbol_argv)  # symbol here is the testname
@@ -846,7 +852,11 @@ class testMainClass:
             dump('[WARN] prediction order cancel failed', exchange.id, order_id, exception_message(e))
         return True
 
-    def run_private_tests(self, exchange, symbol):
+    def run_private_tests(self, exchange, symbols):
+        # mirrors runPublicTests: the caller always passes the selected symbols as an array
+        # (even a CLI-provided symbol arrives as a one-element array), and private tests run
+        # on the primary symbol per market type
+        symbol = symbols[0]
         if not exchange.check_required_credentials(False):
             dump('[INFO] Skipping private tests', 'Keys not found')
             return True
@@ -1312,7 +1322,163 @@ class testMainClass:
         set_fetch_response(exchange, None)  # reset state
         return True
 
-    def init_offline_exchange(self, exchange_name):
+    def inject_ws_messages(self, exchange, url, messages, sequential=False):
+        # before every frame, wait until the watch flow is actually awaiting
+        # something — a fixed head-start sleep is not enough on slow ci
+        # runners and the frame's resolution would be dropped
+        for i in range(0, len(messages)):
+            waited = 0
+            while not ws_client_has_pending_futures(exchange, url) and (waited < 5000):
+                exchange.sleep(50)
+                waited = waited + 50
+            inject_ws_message(exchange, url, messages[i])
+            # threaded runtimes resolve futures on another thread — wait for
+            # the consumed frame to settle so the pending check above does not
+            # observe a stale future and burn the next frame early; frames
+            # that resolve nothing (e.g. subscribe acks) fall through on the
+            # timeout
+            settled = 0
+            while ws_client_has_pending_futures(exchange, url) and (settled < 500):
+                exchange.sleep(20)
+                settled = settled + 20
+        exchange.sleep(50)
+        if sequential:
+            # a watch call of a sequence can register its future after every
+            # frame was already consumed — keep rejecting until the watch side
+            # reports completion (the rejections force it to finish). the time
+            # bound is a backstop for threaded runtimes where this task can be
+            # executed inline on a stack that blocks the watch side (forkjoin
+            # work stealing): give up eventually so the stack unwinds instead
+            # of deadlocking
+            waited_done = 0
+            while not is_ws_test_completed(exchange, url) and (waited_done < 30000):
+                reject_pending_ws_futures(exchange, url)
+                exchange.sleep(50)
+                waited_done = waited_done + 50
+        # reject anything still pending so a wrong fixture fails fast
+        # instead of hanging the test run forever
+        reject_pending_ws_futures(exchange, url)
+        return True   # c# methods used with promiseAll need to return something
+
+    def watch_and_assert_sequence(self, exchange, url, method, input, skip_keys, expected_results):
+        try:
+            for i in range(0, len(expected_results)):
+                result = call_exchange_method_dynamically(exchange, method, input)
+                # ws structures can be live typed objects (e.g. orderbooks) in some
+                # runtimes — roundtrip through json so the deep-compare sees plain
+                # dicts in every language
+                unified_result = json_parse(json_stringify(result))
+                self.assert_static_response_output(exchange, skip_keys, unified_result, expected_results[i])
+        except Exception as e:
+            # let the injector's rejection loop exit before the caller reports
+            # — the explicit try/catch also keeps the java transpilation
+            # compilable (checked exceptions)
+            mark_ws_test_completed(exchange, url)
+            raise e
+        mark_ws_test_completed(exchange, url)
+        return True   # c# methods used with promiseAll need to return something
+
+    def assert_ws_sent_messages(self, exchange, url, data):
+        # the ws analog of the static request tests: assert the frames the
+        # watch method sent over the mocked transport (subscribe requests etc)
+        expected_sent = exchange.safe_list(data, 'sentMessages')
+        if expected_sent is None:
+            return
+        # ids/signatures/timestamps inside outgoing frames can be volatile —
+        # exclude them per entry without touching the response skipKeys
+        sent_skip_keys = exchange.safe_list(data, 'sentSkipKeys', [])
+        sent_messages = get_ws_sent_messages(exchange, url)
+        sent_length = len(sent_messages)
+        expected_length = len(expected_sent)
+        assert sent_length == expected_length, 'sent ws messages count mismatch: sent ' + str(sent_length) + ', expected ' + str(expected_length) + ' ' + json_stringify(sent_messages)
+        for i in range(0, expected_length):
+            unified_sent = json_parse(json_stringify(sent_messages[i]))
+            self.assert_static_response_output(exchange, sent_skip_keys, unified_sent, expected_sent[i])
+
+    def test_ws_statically(self, exchange, method, skip_keys, data):
+        url = exchange.safe_string(data, 'url')
+        setup_ws_mock_transport(exchange, url)
+        http_response = exchange.safe_value(data, 'httpResponse')
+        if http_response is not None:
+            # some watch methods fetch a rest snapshot (e.g. watchOrderBook)
+            set_fetch_response(exchange, http_response)
+        if self.info:
+            dump('[INFO] STATIC WS TEST:', method, ':', data['description'])
+        try:
+            messages = exchange.safe_list(data, 'messages', [])
+            input = self.sanitize_data_input(data['input'])
+            expected_results = exchange.safe_list(data, 'parsedResponses')
+            if expected_results is not None:
+                # 'parsedResponses' asserts one result per successive watch
+                # resolution (e.g. an order going from open to closed)
+                # start the injector before the watch side: it must never sit
+                # queued while the watch chain blocks on a join — a forkjoin
+                # worker could execute it inline on the blocked stack and the
+                # rejection loop would then wait on the very watch side it is
+                # buried on top of
+                promises = [self.inject_ws_messages(exchange, url, messages, True), self.watch_and_assert_sequence(exchange, url, method, input, skip_keys, expected_results)]
+                (promises)
+                self.assert_ws_sent_messages(exchange, url, data)
+            else:
+                # 'parsedResponse' asserts the final state after every frame
+                # was replayed — live structures like orderbooks keep updating
+                # after the first resolution, so serialize only at the end
+                promises = [call_exchange_method_dynamically(exchange, method, input), self.inject_ws_messages(exchange, url, messages)]
+                results = (promises)
+                unified_result = json_parse(json_stringify(results[0]))
+                self.assert_static_response_output(exchange, skip_keys, unified_result, data['parsedResponse'])
+                self.assert_ws_sent_messages(exchange, url, data)
+        except Exception as e:
+            self.static_ws_tests_failed = True
+            error_message = '[' + self.lang + '][STATIC_WS]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + exception_message(e)
+            dump('[TEST_FAILURE]' + error_message)
+        set_fetch_response(exchange, None)  # reset state
+        return True
+
+    def test_exchange_ws_statically(self, exchange_name, exchange_data, test_name=None):
+        global_options = {} if exchange_data['options'] is None else exchange_data['options']
+        methods = {} if exchange_data['methods'] is None else exchange_data['methods']
+        methods_names = list(methods.keys())
+        for i in range(0, len(methods_names)):
+            method = methods_names[i]
+            results = methods[method]
+            for j in range(0, len(results)):
+                result = results[j]
+                description = result['description']
+                if (test_name is not None) and (test_name != description):
+                    continue
+                # a fresh exchange per entry: ws caches (trades, orderbooks,
+                # ohlcvs) and request-id counters survive between watch calls
+                # and would leak state across entries otherwise
+                exchange = self.init_offline_exchange(exchange_name, True)
+                is_disabled = exchange.safe_bool(result, 'disabled', False)
+                if is_disabled:
+                    continue
+                disabled_string = exchange.safe_string(result, 'disabled', '')
+                if disabled_string != '':
+                    continue
+                is_disabled_c_sharp = exchange.safe_string(result, 'disabledCS')
+                if (is_disabled_c_sharp is not None) and (self.lang == 'C#'):
+                    continue
+                is_disabled_go = exchange.safe_string(result, 'disabledGO')
+                if (is_disabled_go is not None) and (self.lang == 'GO'):
+                    continue
+                is_disabled_java = exchange.safe_string(result, 'disabledJava')
+                if (is_disabled_java is not None) and (self.lang == 'java'):
+                    continue
+                is_disabled_php = exchange.safe_string(result, 'disabledPHP')
+                if (is_disabled_php is not None) and (self.lang == 'PHP'):
+                    continue
+                exchange.extend_exchange_options(global_options)
+                test_exchange_options = exchange.safe_value(result, 'options', {})
+                exchange.extend_exchange_options(test_exchange_options)
+                skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
+                self.test_ws_statically(exchange, method, skip_keys, result)
+                if not is_sync():
+                    close(exchange)
+        return True   # in c# methods that will be used with promiseAll need to return something
+
+    def init_offline_exchange(self, exchange_name, is_ws=False):
         # prediction exchanges load their outcome markets from an event -> markets -> outcomes
         # fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
         # standard prediction path (kalshi/limitless/myriad/polymarket/hyperliquid all ship one) and
@@ -1386,7 +1552,7 @@ class testMainClass:
         if exchange_name == 'grvt':
             options['apiKey'] = ''
             options['secret'] = ''
-        exchange = init_exchange(exchange_name, options)
+        exchange = init_exchange(exchange_name, options, is_ws)
         if currencies is not None:
             exchange.currencies = currencies
         # rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
@@ -1598,6 +1764,8 @@ class testMainClass:
             sum = exchange.sum(sum, number_of_tests)
             if type == 'request':
                 promises.append(self.test_exchange_request_statically(exchange_name, exchange_data, test_name))
+            elif type == 'ws':
+                promises.append(self.test_exchange_ws_statically(exchange_name, exchange_data, test_name))
             else:
                 promises.append(self.test_exchange_response_statically(exchange_name, exchange_data, test_name))
         try:
@@ -1605,11 +1773,13 @@ class testMainClass:
         except Exception as e:
             if type == 'request':
                 self.request_tests_failed = True
+            elif type == 'ws':
+                self.static_ws_tests_failed = True
             else:
                 self.response_tests_failed = True
             error_message = '[' + self.lang + '][STATIC_REQUEST]' + exception_message(e)
             dump('[TEST_FAILURE]' + error_message)
-        if self.request_tests_failed or self.response_tests_failed:
+        if self.request_tests_failed or self.response_tests_failed or self.static_ws_tests_failed:
             exit_script(1)
         else:
             prefix = '[SYNC]' if (is_sync()) else ''
@@ -1621,6 +1791,17 @@ class testMainClass:
         #  --- Init of mockResponses tests functions------------------------------------
         #  -----------------------------------------------------------------------------
         self.run_static_tests('response', exchange_name, test)
+        return True
+
+    def run_static_ws_tests(self, exchange_name=None, test=None):
+        #  -----------------------------------------------------------------------------
+        #  --- static ws tests: replay canned frames into the ws message handlers ------
+        #  -----------------------------------------------------------------------------
+        if is_sync():
+            # watch methods are async-only, there is nothing to test in the
+            # synchronous python/php flavours
+            return True
+        self.run_static_tests('ws', exchange_name, test)
         return True
 
     def run_broker_id_tests(self):

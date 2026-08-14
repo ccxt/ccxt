@@ -103,6 +103,16 @@ jobs:
         for exchange in $cleaned_rest_files; do
           ./java/gradlew -p java :tests:run --args="--responseTests $exchange"
         done
+    - name: Ws Static tests
+      if: env.important_modified == 'true'
+      run: npm run ws-tests-java
+    - name: Ws Static tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          ./java/gradlew -p java :tests:run --args="--wsTests $exchange"
+        done
     - name: Prediction request tests
       if: env.prediction_modified == 'true'
       run: npm run request-java-prediction

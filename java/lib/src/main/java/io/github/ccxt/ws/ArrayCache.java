@@ -102,36 +102,42 @@ public class ArrayCache extends ArrayList<Object> {
         public ArrayCacheByTimestamp(int maxSize) { super(maxSize); }
         public ArrayCacheByTimestamp() { super(); }
 
+        // ohlcv rows are lists keyed by their first element (the timestamp),
+        // everything else is a map keyed by its "timestamp" entry
+        private static Object timestampKeyOf(Object item) {
+            if (item instanceof Map) {
+                return ((Map<?, ?>) item).get("timestamp");
+            }
+            if (item instanceof java.util.List && !((java.util.List<?>) item).isEmpty()) {
+                return ((java.util.List<?>) item).get(0);
+            }
+            return null;
+        }
+
         @Override
         @SuppressWarnings("unchecked")
         public synchronized void append(Object item) {
-            if (item instanceof Map) {
-                Map<String, Object> map = (Map<String, Object>) item;
-                Object ts = map.get("timestamp");
-                if (ts != null) {
-                    String key = ts.toString();
-                    Integer existingIdx = this.sizeIndex.get(key);
-                    if (existingIdx != null && existingIdx < this.size()) {
-                        // Update in place — O(1) lookup
-                        this.set(existingIdx, item);
-                        this.hashmap.put(key, item);
-                        this.newUpdates.incrementAndGet();
-                        return;
-                    }
+            Object ts = timestampKeyOf(item);
+            if (ts != null) {
+                String key = ts.toString();
+                Integer existingIdx = this.sizeIndex.get(key);
+                if (existingIdx != null && existingIdx < this.size()) {
+                    // Update in place — O(1) lookup
+                    this.set(existingIdx, item);
                     this.hashmap.put(key, item);
+                    this.newUpdates.incrementAndGet();
+                    return;
                 }
+                this.hashmap.put(key, item);
             }
             // On eviction, all indices shift down by 1
             boolean willEvict = this.size() >= this.maxSize;
             if (willEvict) {
                 // Remove the evicted item's key from sizeIndex
-                Object evicted = this.get(0);
-                if (evicted instanceof Map) {
-                    Object evictedTs = ((Map<String, Object>) evicted).get("timestamp");
-                    if (evictedTs != null) {
-                        this.sizeIndex.remove(evictedTs.toString());
-                        this.hashmap.remove(evictedTs.toString());
-                    }
+                Object evictedTs = timestampKeyOf(this.get(0));
+                if (evictedTs != null) {
+                    this.sizeIndex.remove(evictedTs.toString());
+                    this.hashmap.remove(evictedTs.toString());
                 }
                 // Shift all indices down by 1
                 for (var entry : this.sizeIndex.entrySet()) {
@@ -139,11 +145,8 @@ public class ArrayCache extends ArrayList<Object> {
                 }
             }
             // Record index for the new item before calling super.append
-            if (item instanceof Map) {
-                Object ts = ((Map<String, Object>) item).get("timestamp");
-                if (ts != null) {
-                    this.sizeIndex.put(ts.toString(), willEvict ? this.maxSize - 1 : this.size());
-                }
+            if (ts != null) {
+                this.sizeIndex.put(ts.toString(), willEvict ? this.maxSize - 1 : this.size());
             }
             super.append(item);
         }
