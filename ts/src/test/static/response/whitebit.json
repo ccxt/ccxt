@@ -2798,6 +2798,1326 @@
                     "leverage": 5
                 }
             }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "fetchTradingFees: per-symbol maker/taker from public assets (trimmed to snapshot markets)",
+                "method": "fetchTradingFees",
+                "input": [],
+                "httpResponse": {
+                    "BTC": {
+                        "name": "Bitcoin",
+                        "unified_cryptoasset_id": 1,
+                        "can_withdraw": true,
+                        "can_deposit": true,
+                        "min_withdraw": "0.0003",
+                        "max_withdraw": "0",
+                        "maker_fee": "0.1",
+                        "taker_fee": "0.1",
+                        "min_deposit": "0.0001",
+                        "max_deposit": "0",
+                        "networks": {
+                            "deposits": [
+                                "BTC"
+                            ],
+                            "withdraws": [
+                                "BTC"
+                            ],
+                            "default": "BTC"
+                        },
+                        "confirmations": {
+                            "BTC": 2
+                        },
+                        "limits": {
+                            "deposit": {
+                                "BTC": {
+                                    "min": "0.0001"
+                                }
+                            },
+                            "withdraw": {
+                                "BTC": {
+                                    "min": "0.0003"
+                                }
+                            }
+                        },
+                        "currency_precision": 8,
+                        "is_memo": false,
+                        "memo": {
+                            "deposit": false,
+                            "withdraw": false
+                        }
+                    },
+                    "ETH": {
+                        "name": "Ethereum",
+                        "unified_cryptoasset_id": 1027,
+                        "can_withdraw": true,
+                        "can_deposit": true,
+                        "min_withdraw": "0.0015",
+                        "max_withdraw": "0",
+                        "maker_fee": "0.1",
+                        "taker_fee": "0.1",
+                        "min_deposit": "0.001",
+                        "max_deposit": "0",
+                        "networks": {
+                            "deposits": [
+                                "SCROLL",
+                                "BASE",
+                                "STARKNET",
+                                "ZKSYNC",
+                                "ARBITRUM",
+                                "OPTIMISM",
+                                "BEP20",
+                                "ERC20"
+                            ],
+                            "withdraws": [
+                                "SCROLL",
+                                "BASE",
+                                "STARKNET",
+                                "ZKSYNC",
+                                "ARBITRUM",
+                                "OPTIMISM",
+                                "BEP20",
+                                "ERC20"
+                            ],
+                            "default": "ERC20"
+                        },
+                        "confirmations": {
+                            "ARBITRUM": 600,
+                            "BASE": 300,
+                            "BEP20": 20,
+                            "ERC20": 64,
+                            "OPTIMISM": 1400,
+                            "SCROLL": 900,
+                            "STARKNET": 5,
+                            "ZKSYNC": 1000
+                        },
+                        "limits": {
+                            "deposit": {
+                                "ARBITRUM": {
+                                    "min": "0.0019"
+                                },
+                                "BASE": {
+                                    "min": "0.0019"
+                                },
+                                "BEP20": {
+                                    "min": "0.0019"
+                                },
+                                "ERC20": {
+                                    "min": "0.0019"
+                                },
+                                "OPTIMISM": {
+                                    "min": "0.0019"
+                                },
+                                "SCROLL": {
+                                    "min": "0.0019"
+                                },
+                                "STARKNET": {
+                                    "min": "0.001"
+                                },
+                                "ZKSYNC": {
+                                    "min": "0.001"
+                                }
+                            },
+                            "withdraw": {
+                                "ARBITRUM": {
+                                    "min": "0.0038"
+                                },
+                                "BASE": {
+                                    "min": "0.0038"
+                                },
+                                "BEP20": {
+                                    "min": "0.0038"
+                                },
+                                "ERC20": {
+                                    "min": "0.0038"
+                                },
+                                "OPTIMISM": {
+                                    "min": "0.0038"
+                                },
+                                "SCROLL": {
+                                    "min": "0.0038"
+                                },
+                                "STARKNET": {
+                                    "min": "0.0015"
+                                },
+                                "ZKSYNC": {
+                                    "min": "0.0015"
+                                }
+                            }
+                        },
+                        "currency_precision": 18,
+                        "is_memo": false,
+                        "memo": {
+                            "deposit": false,
+                            "withdraw": false
+                        }
+                    },
+                    "ADA": {
+                        "name": "Cardano",
+                        "unified_cryptoasset_id": 2010,
+                        "can_withdraw": true,
+                        "can_deposit": true,
+                        "min_withdraw": "12.8",
+                        "max_withdraw": "0",
+                        "maker_fee": "0.1",
+                        "taker_fee": "0.1",
+                        "min_deposit": "6.39",
+                        "max_deposit": "0",
+                        "networks": {
+                            "deposits": [
+                                "ADA"
+                            ],
+                            "withdraws": [
+                                "ADA"
+                            ],
+                            "default": "ADA"
+                        },
+                        "confirmations": {
+                            "ADA": 40
+                        },
+                        "limits": {
+                            "deposit": {
+                                "ADA": {
+                                    "min": "6.39"
+                                }
+                            },
+                            "withdraw": {
+                                "ADA": {
+                                    "min": "12.8"
+                                }
+                            }
+                        },
+                        "currency_precision": 6,
+                        "is_memo": false,
+                        "memo": {
+                            "deposit": false,
+                            "withdraw": false
+                        }
+                    },
+                    "LTC": {
+                        "name": "Litecoin",
+                        "unified_cryptoasset_id": 2,
+                        "can_withdraw": true,
+                        "can_deposit": true,
+                        "min_withdraw": "0.105",
+                        "max_withdraw": "0",
+                        "maker_fee": "0.1",
+                        "taker_fee": "0.1",
+                        "min_deposit": "0.053",
+                        "max_deposit": "0",
+                        "networks": {
+                            "deposits": [
+                                "LTC"
+                            ],
+                            "withdraws": [
+                                "LTC"
+                            ],
+                            "default": "LTC"
+                        },
+                        "confirmations": {
+                            "LTC": 20
+                        },
+                        "limits": {
+                            "deposit": {
+                                "LTC": {
+                                    "min": "0.053"
+                                }
+                            },
+                            "withdraw": {
+                                "LTC": {
+                                    "min": "0.105"
+                                }
+                            }
+                        },
+                        "currency_precision": 8,
+                        "is_memo": false,
+                        "memo": {
+                            "deposit": false,
+                            "withdraw": false
+                        }
+                    },
+                    "XRP": {
+                        "name": "Ripple",
+                        "unified_cryptoasset_id": 52,
+                        "can_withdraw": true,
+                        "can_deposit": true,
+                        "min_withdraw": "3.8",
+                        "max_withdraw": "0",
+                        "maker_fee": "0.1",
+                        "taker_fee": "0.1",
+                        "min_deposit": "1",
+                        "max_deposit": "0",
+                        "networks": {
+                            "deposits": [
+                                "XRP"
+                            ],
+                            "withdraws": [
+                                "XRP"
+                            ],
+                            "default": "XRP"
+                        },
+                        "confirmations": {
+                            "XRP": 1
+                        },
+                        "limits": {
+                            "deposit": {
+                                "XRP": {
+                                    "min": "1"
+                                }
+                            },
+                            "withdraw": {
+                                "XRP": {
+                                    "min": "3.8"
+                                }
+                            }
+                        },
+                        "currency_precision": 6,
+                        "is_memo": true,
+                        "memo": {
+                            "deposit": true,
+                            "withdraw": true
+                        }
+                    },
+                    "DOGE": {
+                        "name": "Dogecoin",
+                        "unified_cryptoasset_id": 74,
+                        "can_withdraw": true,
+                        "can_deposit": true,
+                        "min_withdraw": "26",
+                        "max_withdraw": "0",
+                        "maker_fee": "0.1",
+                        "taker_fee": "0.1",
+                        "min_deposit": "13",
+                        "max_deposit": "0",
+                        "networks": {
+                            "deposits": [
+                                "DOGE"
+                            ],
+                            "withdraws": [
+                                "DOGE"
+                            ],
+                            "default": "DOGE"
+                        },
+                        "confirmations": {
+                            "DOGE": 36
+                        },
+                        "limits": {
+                            "deposit": {
+                                "DOGE": {
+                                    "min": "13"
+                                }
+                            },
+                            "withdraw": {
+                                "DOGE": {
+                                    "min": "26"
+                                }
+                            }
+                        },
+                        "currency_precision": 8,
+                        "is_memo": false,
+                        "memo": {
+                            "deposit": false,
+                            "withdraw": false
+                        }
+                    },
+                    "TRX": {
+                        "name": "Tron",
+                        "unified_cryptoasset_id": 1958,
+                        "can_withdraw": true,
+                        "can_deposit": true,
+                        "min_withdraw": "20",
+                        "max_withdraw": "0",
+                        "maker_fee": "0.1",
+                        "taker_fee": "0.1",
+                        "min_deposit": "10",
+                        "max_deposit": "0",
+                        "networks": {
+                            "deposits": [
+                                "TRC20"
+                            ],
+                            "withdraws": [
+                                "TRC20"
+                            ],
+                            "default": "TRC20"
+                        },
+                        "confirmations": {
+                            "TRC20": 20
+                        },
+                        "limits": {
+                            "deposit": {
+                                "TRC20": {
+                                    "min": "10"
+                                }
+                            },
+                            "withdraw": {
+                                "TRC20": {
+                                    "min": "20"
+                                }
+                            }
+                        },
+                        "currency_precision": 6,
+                        "is_memo": false,
+                        "memo": {
+                            "deposit": false,
+                            "withdraw": false
+                        }
+                    },
+                    "PEPE": {
+                        "name": "Pepe",
+                        "unified_cryptoasset_id": 0,
+                        "can_withdraw": true,
+                        "can_deposit": true,
+                        "min_withdraw": "10622",
+                        "max_withdraw": "0",
+                        "maker_fee": "0.1",
+                        "taker_fee": "0.1",
+                        "min_deposit": "292000",
+                        "max_deposit": "0",
+                        "networks": {
+                            "deposits": [
+                                "ERC20"
+                            ],
+                            "withdraws": [
+                                "ERC20"
+                            ],
+                            "default": "ERC20"
+                        },
+                        "confirmations": {
+                            "ERC20": 64
+                        },
+                        "limits": {
+                            "deposit": {
+                                "ERC20": {
+                                    "min": "292000"
+                                }
+                            },
+                            "withdraw": {
+                                "ERC20": {
+                                    "min": "10622"
+                                }
+                            }
+                        },
+                        "currency_precision": 18,
+                        "is_memo": false,
+                        "memo": {
+                            "deposit": false,
+                            "withdraw": false
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "ADA/USDT": {
+                        "info": {
+                            "name": "Cardano",
+                            "unified_cryptoasset_id": 2010,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "12.8",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "6.39",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "ADA"
+                                ],
+                                "withdraws": [
+                                    "ADA"
+                                ],
+                                "default": "ADA"
+                            },
+                            "confirmations": {
+                                "ADA": 40
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "ADA": {
+                                        "min": "6.39"
+                                    }
+                                },
+                                "withdraw": {
+                                    "ADA": {
+                                        "min": "12.8"
+                                    }
+                                }
+                            },
+                            "currency_precision": 6,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "ADA/USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "ADA/USDT:USDT": {
+                        "info": {
+                            "name": "Cardano",
+                            "unified_cryptoasset_id": 2010,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "12.8",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "6.39",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "ADA"
+                                ],
+                                "withdraws": [
+                                    "ADA"
+                                ],
+                                "default": "ADA"
+                            },
+                            "confirmations": {
+                                "ADA": 40
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "ADA": {
+                                        "min": "6.39"
+                                    }
+                                },
+                                "withdraw": {
+                                    "ADA": {
+                                        "min": "12.8"
+                                    }
+                                }
+                            },
+                            "currency_precision": 6,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "ADA/USDT:USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "BTC/USD": {
+                        "info": {
+                            "name": "Bitcoin",
+                            "unified_cryptoasset_id": 1,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "0.0003",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "0.0001",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "BTC"
+                                ],
+                                "withdraws": [
+                                    "BTC"
+                                ],
+                                "default": "BTC"
+                            },
+                            "confirmations": {
+                                "BTC": 2
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "BTC": {
+                                        "min": "0.0001"
+                                    }
+                                },
+                                "withdraw": {
+                                    "BTC": {
+                                        "min": "0.0003"
+                                    }
+                                }
+                            },
+                            "currency_precision": 8,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "BTC/USD",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "BTC/USDT": {
+                        "info": {
+                            "name": "Bitcoin",
+                            "unified_cryptoasset_id": 1,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "0.0003",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "0.0001",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "BTC"
+                                ],
+                                "withdraws": [
+                                    "BTC"
+                                ],
+                                "default": "BTC"
+                            },
+                            "confirmations": {
+                                "BTC": 2
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "BTC": {
+                                        "min": "0.0001"
+                                    }
+                                },
+                                "withdraw": {
+                                    "BTC": {
+                                        "min": "0.0003"
+                                    }
+                                }
+                            },
+                            "currency_precision": 8,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "BTC/USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "BTC/USDT:USDT": {
+                        "info": {
+                            "name": "Bitcoin",
+                            "unified_cryptoasset_id": 1,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "0.0003",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "0.0001",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "BTC"
+                                ],
+                                "withdraws": [
+                                    "BTC"
+                                ],
+                                "default": "BTC"
+                            },
+                            "confirmations": {
+                                "BTC": 2
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "BTC": {
+                                        "min": "0.0001"
+                                    }
+                                },
+                                "withdraw": {
+                                    "BTC": {
+                                        "min": "0.0003"
+                                    }
+                                }
+                            },
+                            "currency_precision": 8,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "DOGE/USDT": {
+                        "info": {
+                            "name": "Dogecoin",
+                            "unified_cryptoasset_id": 74,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "26",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "13",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "DOGE"
+                                ],
+                                "withdraws": [
+                                    "DOGE"
+                                ],
+                                "default": "DOGE"
+                            },
+                            "confirmations": {
+                                "DOGE": 36
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "DOGE": {
+                                        "min": "13"
+                                    }
+                                },
+                                "withdraw": {
+                                    "DOGE": {
+                                        "min": "26"
+                                    }
+                                }
+                            },
+                            "currency_precision": 8,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "DOGE/USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "DOGE/USDT:USDT": {
+                        "info": {
+                            "name": "Dogecoin",
+                            "unified_cryptoasset_id": 74,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "26",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "13",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "DOGE"
+                                ],
+                                "withdraws": [
+                                    "DOGE"
+                                ],
+                                "default": "DOGE"
+                            },
+                            "confirmations": {
+                                "DOGE": 36
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "DOGE": {
+                                        "min": "13"
+                                    }
+                                },
+                                "withdraw": {
+                                    "DOGE": {
+                                        "min": "26"
+                                    }
+                                }
+                            },
+                            "currency_precision": 8,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "DOGE/USDT:USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "ETH/USDT": {
+                        "info": {
+                            "name": "Ethereum",
+                            "unified_cryptoasset_id": 1027,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "0.0015",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "0.001",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "SCROLL",
+                                    "BASE",
+                                    "STARKNET",
+                                    "ZKSYNC",
+                                    "ARBITRUM",
+                                    "OPTIMISM",
+                                    "BEP20",
+                                    "ERC20"
+                                ],
+                                "withdraws": [
+                                    "SCROLL",
+                                    "BASE",
+                                    "STARKNET",
+                                    "ZKSYNC",
+                                    "ARBITRUM",
+                                    "OPTIMISM",
+                                    "BEP20",
+                                    "ERC20"
+                                ],
+                                "default": "ERC20"
+                            },
+                            "confirmations": {
+                                "ARBITRUM": 600,
+                                "BASE": 300,
+                                "BEP20": 20,
+                                "ERC20": 64,
+                                "OPTIMISM": 1400,
+                                "SCROLL": 900,
+                                "STARKNET": 5,
+                                "ZKSYNC": 1000
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "ARBITRUM": {
+                                        "min": "0.0019"
+                                    },
+                                    "BASE": {
+                                        "min": "0.0019"
+                                    },
+                                    "BEP20": {
+                                        "min": "0.0019"
+                                    },
+                                    "ERC20": {
+                                        "min": "0.0019"
+                                    },
+                                    "OPTIMISM": {
+                                        "min": "0.0019"
+                                    },
+                                    "SCROLL": {
+                                        "min": "0.0019"
+                                    },
+                                    "STARKNET": {
+                                        "min": "0.001"
+                                    },
+                                    "ZKSYNC": {
+                                        "min": "0.001"
+                                    }
+                                },
+                                "withdraw": {
+                                    "ARBITRUM": {
+                                        "min": "0.0038"
+                                    },
+                                    "BASE": {
+                                        "min": "0.0038"
+                                    },
+                                    "BEP20": {
+                                        "min": "0.0038"
+                                    },
+                                    "ERC20": {
+                                        "min": "0.0038"
+                                    },
+                                    "OPTIMISM": {
+                                        "min": "0.0038"
+                                    },
+                                    "SCROLL": {
+                                        "min": "0.0038"
+                                    },
+                                    "STARKNET": {
+                                        "min": "0.0015"
+                                    },
+                                    "ZKSYNC": {
+                                        "min": "0.0015"
+                                    }
+                                }
+                            },
+                            "currency_precision": 18,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "ETH/USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "ETH/USDT:USDT": {
+                        "info": {
+                            "name": "Ethereum",
+                            "unified_cryptoasset_id": 1027,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "0.0015",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "0.001",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "SCROLL",
+                                    "BASE",
+                                    "STARKNET",
+                                    "ZKSYNC",
+                                    "ARBITRUM",
+                                    "OPTIMISM",
+                                    "BEP20",
+                                    "ERC20"
+                                ],
+                                "withdraws": [
+                                    "SCROLL",
+                                    "BASE",
+                                    "STARKNET",
+                                    "ZKSYNC",
+                                    "ARBITRUM",
+                                    "OPTIMISM",
+                                    "BEP20",
+                                    "ERC20"
+                                ],
+                                "default": "ERC20"
+                            },
+                            "confirmations": {
+                                "ARBITRUM": 600,
+                                "BASE": 300,
+                                "BEP20": 20,
+                                "ERC20": 64,
+                                "OPTIMISM": 1400,
+                                "SCROLL": 900,
+                                "STARKNET": 5,
+                                "ZKSYNC": 1000
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "ARBITRUM": {
+                                        "min": "0.0019"
+                                    },
+                                    "BASE": {
+                                        "min": "0.0019"
+                                    },
+                                    "BEP20": {
+                                        "min": "0.0019"
+                                    },
+                                    "ERC20": {
+                                        "min": "0.0019"
+                                    },
+                                    "OPTIMISM": {
+                                        "min": "0.0019"
+                                    },
+                                    "SCROLL": {
+                                        "min": "0.0019"
+                                    },
+                                    "STARKNET": {
+                                        "min": "0.001"
+                                    },
+                                    "ZKSYNC": {
+                                        "min": "0.001"
+                                    }
+                                },
+                                "withdraw": {
+                                    "ARBITRUM": {
+                                        "min": "0.0038"
+                                    },
+                                    "BASE": {
+                                        "min": "0.0038"
+                                    },
+                                    "BEP20": {
+                                        "min": "0.0038"
+                                    },
+                                    "ERC20": {
+                                        "min": "0.0038"
+                                    },
+                                    "OPTIMISM": {
+                                        "min": "0.0038"
+                                    },
+                                    "SCROLL": {
+                                        "min": "0.0038"
+                                    },
+                                    "STARKNET": {
+                                        "min": "0.0015"
+                                    },
+                                    "ZKSYNC": {
+                                        "min": "0.0015"
+                                    }
+                                }
+                            },
+                            "currency_precision": 18,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "LTC/USDT": {
+                        "info": {
+                            "name": "Litecoin",
+                            "unified_cryptoasset_id": 2,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "0.105",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "0.053",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "LTC"
+                                ],
+                                "withdraws": [
+                                    "LTC"
+                                ],
+                                "default": "LTC"
+                            },
+                            "confirmations": {
+                                "LTC": 20
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "LTC": {
+                                        "min": "0.053"
+                                    }
+                                },
+                                "withdraw": {
+                                    "LTC": {
+                                        "min": "0.105"
+                                    }
+                                }
+                            },
+                            "currency_precision": 8,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "LTC/USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "LTC/USDT:USDT": {
+                        "info": {
+                            "name": "Litecoin",
+                            "unified_cryptoasset_id": 2,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "0.105",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "0.053",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "LTC"
+                                ],
+                                "withdraws": [
+                                    "LTC"
+                                ],
+                                "default": "LTC"
+                            },
+                            "confirmations": {
+                                "LTC": 20
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "LTC": {
+                                        "min": "0.053"
+                                    }
+                                },
+                                "withdraw": {
+                                    "LTC": {
+                                        "min": "0.105"
+                                    }
+                                }
+                            },
+                            "currency_precision": 8,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "LTC/USDT:USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "PEPE/USDT:USDT": {
+                        "info": {
+                            "name": "Pepe",
+                            "unified_cryptoasset_id": 0,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "10622",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "292000",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "ERC20"
+                                ],
+                                "withdraws": [
+                                    "ERC20"
+                                ],
+                                "default": "ERC20"
+                            },
+                            "confirmations": {
+                                "ERC20": 64
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "ERC20": {
+                                        "min": "292000"
+                                    }
+                                },
+                                "withdraw": {
+                                    "ERC20": {
+                                        "min": "10622"
+                                    }
+                                }
+                            },
+                            "currency_precision": 18,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "PEPE/USDT:USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "TRX/USDT": {
+                        "info": {
+                            "name": "Tron",
+                            "unified_cryptoasset_id": 1958,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "20",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "10",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "TRC20"
+                                ],
+                                "withdraws": [
+                                    "TRC20"
+                                ],
+                                "default": "TRC20"
+                            },
+                            "confirmations": {
+                                "TRC20": 20
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "TRC20": {
+                                        "min": "10"
+                                    }
+                                },
+                                "withdraw": {
+                                    "TRC20": {
+                                        "min": "20"
+                                    }
+                                }
+                            },
+                            "currency_precision": 6,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "TRX/USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "TRX/USDT:USDT": {
+                        "info": {
+                            "name": "Tron",
+                            "unified_cryptoasset_id": 1958,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "20",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "10",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "TRC20"
+                                ],
+                                "withdraws": [
+                                    "TRC20"
+                                ],
+                                "default": "TRC20"
+                            },
+                            "confirmations": {
+                                "TRC20": 20
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "TRC20": {
+                                        "min": "10"
+                                    }
+                                },
+                                "withdraw": {
+                                    "TRC20": {
+                                        "min": "20"
+                                    }
+                                }
+                            },
+                            "currency_precision": 6,
+                            "is_memo": false,
+                            "memo": {
+                                "deposit": false,
+                                "withdraw": false
+                            }
+                        },
+                        "symbol": "TRX/USDT:USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "XRP/USDT": {
+                        "info": {
+                            "name": "Ripple",
+                            "unified_cryptoasset_id": 52,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "3.8",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "1",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "XRP"
+                                ],
+                                "withdraws": [
+                                    "XRP"
+                                ],
+                                "default": "XRP"
+                            },
+                            "confirmations": {
+                                "XRP": 1
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "XRP": {
+                                        "min": "1"
+                                    }
+                                },
+                                "withdraw": {
+                                    "XRP": {
+                                        "min": "3.8"
+                                    }
+                                }
+                            },
+                            "currency_precision": 6,
+                            "is_memo": true,
+                            "memo": {
+                                "deposit": true,
+                                "withdraw": true
+                            }
+                        },
+                        "symbol": "XRP/USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "XRP/USDT:USDT": {
+                        "info": {
+                            "name": "Ripple",
+                            "unified_cryptoasset_id": 52,
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "3.8",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "1",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "XRP"
+                                ],
+                                "withdraws": [
+                                    "XRP"
+                                ],
+                                "default": "XRP"
+                            },
+                            "confirmations": {
+                                "XRP": 1
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "XRP": {
+                                        "min": "1"
+                                    }
+                                },
+                                "withdraw": {
+                                    "XRP": {
+                                        "min": "3.8"
+                                    }
+                                }
+                            },
+                            "currency_precision": 6,
+                            "is_memo": true,
+                            "memo": {
+                                "deposit": true,
+                                "withdraw": true
+                            }
+                        },
+                        "symbol": "XRP/USDT:USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": 0.001,
+                        "taker": 0.001
+                    }
+                }
+            }
         ]
     }
 }

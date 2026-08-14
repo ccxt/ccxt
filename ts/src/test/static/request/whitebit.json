@@ -928,6 +928,15 @@
                     "network": "TRC20"
                 }
             }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "fetchTradingFees public assets",
+                "method": "fetchTradingFees",
+                "url": "https://whitebit.com/api/v4/public/assets",
+                "input": [],
+                "output": null
+            }
         ]
     }
 }
