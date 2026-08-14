@@ -59,6 +59,13 @@ pub struct ClientState {
     connected: Mutex<bool>,
     closed: Mutex<bool>,
     last_pong_ms: Mutex<i64>,
+    /// Static-WS-test mock transport. When `mock` is set, `send_text` records the
+    /// (JSON-parsed) outgoing frame into `mock_sent` instead of relying on a
+    /// socket, and no real connection is ever opened. `ws_test_completed` is the
+    /// watch side's done-flag the frame injector's rejection loop polls.
+    mock: Mutex<bool>,
+    mock_sent: Mutex<Vec<Value>>,
+    ws_test_completed: Mutex<bool>,
 }
 
 static REGISTRY: Lazy<Mutex<HashMap<String, Arc<ClientState>>>> =
@@ -121,6 +128,7 @@ impl ClientState {
     /// the backlog is drained. Uses the create-future-before-check pattern so
     /// a resolve/push racing the await is never lost.
     pub async fn next_message(&self) -> Option<Value> {
+        let mock = *self.mock.lock().unwrap();
         loop {
             let notified = self.notify.notified();
             if let Some(v) = self.incoming.lock().unwrap().pop_front() {
@@ -129,7 +137,17 @@ impl ClientState {
             if *self.closed.lock().unwrap() {
                 return None;
             }
-            notified.await;
+            if mock {
+                // Static WS test: the mock queue is fed by the frame injector.
+                // If nothing arrives within a short window the fixture is
+                // finished (or under-feeds this watch) — stop instead of
+                // blocking the drive loop forever, so the test completes.
+                if tokio::time::timeout(std::time::Duration::from_millis(1500), notified).await.is_err() {
+                    return None;
+                }
+            } else {
+                notified.await;
+            }
         }
     }
 
@@ -206,7 +224,40 @@ impl ClientState {
 
     pub fn send_text(&self, s: String) -> bool {
         if std::env::var("CCXT_WS_DEBUG").is_ok() { eprintln!("[wssend] {}", s.chars().take(200).collect::<String>()); }
+        // Static-WS-test mock transport: record the frame (JSON-parsed, like the
+        // TS `client.connection.send` stub) instead of hitting a socket.
+        if *self.mock.lock().unwrap() {
+            self.mock_sent.lock().unwrap().push(parse_text(&s));
+            return true;
+        }
         self.outgoing.send(Message::Text(s)).is_ok()
+    }
+
+    /// Enable the mock transport: mark connected (so `ensure_client` never opens
+    /// a socket) and route `send_text` to the capture buffer.
+    pub fn mock_enable(&self) {
+        *self.mock.lock().unwrap() = true;
+        *self.connected.lock().unwrap() = true;
+    }
+    /// Injected inbound frame → the same queue the socket reader feeds.
+    pub fn mock_inject(&self, msg: Value) {
+        self.incoming.lock().unwrap().push_back(msg);
+        self.notify.notify_one();
+    }
+    /// The captured outgoing frames as a `Value::List`.
+    pub fn mock_sent_value(&self) -> Value {
+        Value::Array(self.mock_sent.lock().unwrap().clone())
+    }
+    pub fn has_pending_futures(&self) -> bool {
+        !self.futures.lock().unwrap().is_empty()
+    }
+    pub fn mark_ws_test_completed(&self) { *self.ws_test_completed.lock().unwrap() = true; }
+    pub fn is_ws_test_completed(&self) -> bool { *self.ws_test_completed.lock().unwrap() }
+    /// Reject every pending future so a fixture whose frames don't resolve the
+    /// watch fails (with a message) rather than hanging the drive loop.
+    pub fn reject_pending_futures(&self, err: Value) {
+        let hashes: Vec<String> = self.futures.lock().unwrap().iter().cloned().collect();
+        for h in hashes { self.reject(&h, err.clone()); }
     }
 
     pub fn is_closed(&self) -> bool {
@@ -411,6 +462,9 @@ fn ensure_slot(url: &str) -> Arc<ClientState> {
         connected: Mutex::new(false),
         closed: Mutex::new(false),
         last_pong_ms: Mutex::new(now_ms()),
+        mock: Mutex::new(false),
+        mock_sent: Mutex::new(Vec::new()),
+        ws_test_completed: Mutex::new(false),
     });
     reg.insert(url.to_string(), state.clone());
     state
@@ -431,6 +485,39 @@ pub fn drop_client(url: &str) {
 /// Build the client-handle `Value` passed to `handle_message`: the URL plus
 /// live snapshots of `subscriptions` / `futures` (the fields venues read via
 /// `get_value(&client, "subscriptions")`).
+// ── Static-WS-test mock transport (url-keyed façade over ClientState) ────────
+
+/// `setupWsMockTransport(url)` — register a connected, socket-less client whose
+/// sends are captured. Clears any prior state so each fixture starts fresh.
+pub fn mock_setup(url: &str) {
+    let c = ensure_slot(url);
+    c.reset();
+    c.mock_enable();
+    c.mock_sent.lock().unwrap().clear();
+    *c.ws_test_completed.lock().unwrap() = false;
+}
+pub fn mock_inject(url: &str, msg: Value) {
+    if let Some(c) = get_client(url) { c.mock_inject(msg); }
+}
+pub fn mock_sent_messages(url: &str) -> Value {
+    match get_client(url) { Some(c) => c.mock_sent_value(), None => Value::Array(vec![]) }
+}
+pub fn mock_has_pending_futures(url: &str) -> bool {
+    get_client(url).map(|c| c.has_pending_futures()).unwrap_or(false)
+}
+pub fn mock_mark_completed(url: &str) {
+    if let Some(c) = get_client(url) { c.mark_ws_test_completed(); }
+}
+pub fn mock_is_completed(url: &str) -> bool {
+    get_client(url).map(|c| c.is_ws_test_completed()).unwrap_or(true)
+}
+pub fn mock_reject_futures(url: &str) {
+    if let Some(c) = get_client(url) {
+        c.reject_pending_futures(Value::Str(
+            "[ExchangeError] static ws test: the injected messages did not resolve the watch future".to_string()));
+    }
+}
+
 pub fn client_value(url: &str) -> Value {
     // Pre-register the slot so subscriptions written on this handle (before the
     // socket connects) persist and read back — upbit-style subscribe building.

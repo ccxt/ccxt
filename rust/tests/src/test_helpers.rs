@@ -377,6 +377,61 @@ pub fn callExchangeMethodDynamicallySync(
     Value::Null
 }
 
+// ── static-WS-test mock transport helpers (mirror tests.helpers.ts) ──────────
+// `url` arrives as a Value::Str; route to the url-keyed ClientState mock façade.
+fn ws_url(url: &Value) -> String {
+    match url { Value::Str(s) => s.clone(), _ => String::new() }
+}
+
+/// Register a connected, socket-less client whose sends are captured.
+pub fn setupWsMockTransport(_exchange: Value, url: Value) -> Value {
+    ccxt::pro::ws_client::mock_setup(&ws_url(&url));
+    Value::Null
+}
+
+/// The captured outgoing frames (subscribe requests etc.).
+pub fn getWsSentMessages(_exchange: Value, url: Value) -> Value {
+    ccxt::pro::ws_client::mock_sent_messages(&ws_url(&url))
+}
+
+/// Feed one already-parsed frame into the client's inbound queue — the watch's
+/// own drive loop dispatches it to handle_message (so no concurrent &mut Core).
+pub fn injectWsMessage(_exchange: Value, url: Value, message: Value) -> Value {
+    ccxt::pro::ws_client::mock_inject(&ws_url(&url), message);
+    Value::Null
+}
+
+pub fn wsClientHasPendingFutures(_exchange: Value, url: Value) -> Value {
+    Value::Bool(ccxt::pro::ws_client::mock_has_pending_futures(&ws_url(&url)))
+}
+
+pub fn markWsTestCompleted(_exchange: Value, url: Value) -> Value {
+    ccxt::pro::ws_client::mock_mark_completed(&ws_url(&url));
+    Value::Null
+}
+
+pub fn isWsTestCompleted(_exchange: Value, url: Value) -> Value {
+    Value::Bool(ccxt::pro::ws_client::mock_is_completed(&ws_url(&url)))
+}
+
+pub fn rejectPendingWsFutures(_exchange: Value, url: Value) -> Value {
+    ccxt::pro::ws_client::mock_reject_futures(&ws_url(&url));
+    Value::Null
+}
+
+/// Enqueue every fixture frame up front (no pending-future polling). Used for
+/// the `parsedResponses` sequence case: the two sides (inject + watch loop) are
+/// both `&mut self` in Rust and can't run concurrently, so instead we pre-load
+/// the mock inbound queue and let `watch_and_assert_sequence` drain it one frame
+/// per watch call (next_message's mock timeout bounds any under-feed).
+pub fn preloadWsMessages(_exchange: Value, url: Value, messages: Value) -> Value {
+    let u = ws_url(&url);
+    if let Value::Arr(a) = &messages {
+        for m in a.iter() { ccxt::pro::ws_client::mock_inject(&u, m.clone()); }
+    }
+    Value::Null
+}
+
 #[cfg(feature = "exchange-tests")]
 pub async fn getTestFiles(_properties: Value, ws: Value) -> Value {
     if matches!(ws, Value::Bool(true)) {

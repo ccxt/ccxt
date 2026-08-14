@@ -222,6 +222,7 @@
     "ws-tests-cs": "npm run ti-cs  -- --wsTests",
     "ws-tests-go": "npm run ti-go  -- --wsTests",
     "ws-tests-java": "./java/gradlew -p java :tests:run -- --args=\"--wsTests\"",
+    "ws-tests-rust": "npm run ti-rust -- --wsTests",
     "response-js": "npm run ti-js  -- --responseTests",
     "response-py-sync": "npm run ti-py  -- --responseTests --sync",
     "response-py-async": "npm run ti-py  -- --responseTests",

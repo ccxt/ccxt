@@ -4234,7 +4234,7 @@ class RustTranspilerBuilder {
         // `testFetchTickersAmounts` → `fetchTickersAmountsTest`. The
         // pre-rename `test*` prefix is also kept for legacy helpers and any
         // tests we haven't synced yet.
-        const pattern = /(?:\bself\.[a-zA-Z_][a-zA-Z0-9_]*|\bexchange\d*\.[a-zA-Z_][a-zA-Z0-9_]*|\brsa|\beddsa|\becdsa|\bjwt|\btotp|\bhelper[A-Z][a-zA-Z0-9_]*|\bprecise[A-Z][a-zA-Z0-9_]*|\btest[A-Z][a-zA-Z0-9_]*|\b[a-z][a-zA-Z0-9_]*(?:Helper(?:Test)?|Test)|\bassert[A-Z][a-zA-Z0-9_]*|\b(?:equals|deepEqual|assert|dump|callMethod|callMethodSync|callExchangeMethodDynamically|callExchangeMethodDynamicallySync|getExchangeProp|setExchangeProp|setFetchResponse|initExchange|close|jsonStringify|jsonParse|exceptionMessage|convertAscii|isNullValue|ioFileExists|ioFileRead|ioDirRead))\(/;
+        const pattern = /(?:\bself\.[a-zA-Z_][a-zA-Z0-9_]*|\bexchange\d*\.[a-zA-Z_][a-zA-Z0-9_]*|\brsa|\beddsa|\becdsa|\bjwt|\btotp|\bhelper[A-Z][a-zA-Z0-9_]*|\bprecise[A-Z][a-zA-Z0-9_]*|\btest[A-Z][a-zA-Z0-9_]*|\b[a-z][a-zA-Z0-9_]*(?:Helper(?:Test)?|Test)|\bassert[A-Z][a-zA-Z0-9_]*|\b(?:equals|deepEqual|assert|dump|callMethod|callMethodSync|callExchangeMethodDynamically|callExchangeMethodDynamicallySync|getExchangeProp|setExchangeProp|setFetchResponse|initExchange|close|jsonStringify|jsonParse|exceptionMessage|convertAscii|isNullValue|ioFileExists|ioFileRead|ioDirRead|setupWsMockTransport|getWsSentMessages|injectWsMessage|wsClientHasPendingFutures|markWsTestCompleted|isWsTestCompleted|rejectPendingWsFutures|preloadWsMessages))\(/;
         while (i < content.length) {
             const rest = content.slice(i);
             const m = rest.match(pattern);
@@ -8734,6 +8734,23 @@ impl std::ops::DerefMut for ${coreName} {
             content = content.replace(
                 /\bsetFetchResponse\(\s*exchange\.clone\(\)/g,
                 'setFetchResponse(&mut exchange',
+            );
+            // Static-WS-test parsedResponse case: `Promise.all([watch, inject])`.
+            // The transpiler leaves `callExchangeMethodDynamically(...)` (the
+            // watch) un-awaited inside the vec (→ future-in-Vec<Value>), and the
+            // two sides must run concurrently: the watch drives its message loop
+            // while inject feeds the mock client's inbound queue. Inject only
+            // touches ClientState (no Core access), so a tokio::join! is sound.
+            content = content.replace(
+                /let mut promises: Value = Value::List\(vec!\[callExchangeMethodDynamically\(&mut exchange, (.+?)\), (self\.inject_ws_messages\(.+?\))\.await\]\);/,
+                'let __inj_fut = $2; let (__w, __inj) = tokio::join!(callExchangeMethodDynamically(&mut exchange, $1), __inj_fut); let mut promises: Value = Value::List(vec![__w, __inj]);',
+            );
+            // Static-WS-test parsedResponses (sequence) case: inject + watch-loop
+            // are both `&mut self` and can't join. Pre-load the mock queue, then
+            // run the sequence watcher which drains one frame per watch call.
+            content = content.replace(
+                /let mut promises: Value = Value::List\(vec!\[self\.inject_ws_messages\(.+?\)\.await, (self\.watch_and_assert_sequence\(.+?\))\.await\]\);/,
+                'preloadWsMessages(exchange.clone(), url.clone(), messages.clone()); let mut promises: Value = Value::List(vec![Value::Bool(true), $1.await]);',
             );
             // `extend_exchange_options` takes `&mut self` — hoist any arg
             // that also reads the receiver out of the call.
