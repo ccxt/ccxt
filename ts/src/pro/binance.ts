@@ -2918,6 +2918,11 @@ export default class binance extends binanceRest {
         try {
             await this.watch (url, messageHash, message, messageHash, subscription);
         } catch (e) {
+            // a transport-level failure must not leave the subscriptions flag
+            // set, otherwise the next caller would treat the stream as
+            // authenticated after a no-op singleFlightWait - mirrors the
+            // protocol-level cleanup in handleUserDataStreamSubscribe
+            delete client.subscriptions[marketType];
             this.singleFlightReject (flightHash, e);
             throw e;
         }
@@ -3010,6 +3015,11 @@ export default class binance extends binanceRest {
                     'method': this.handleUserDataStreamSubscribe,
                     'subscription': marketType,
                 };
+                await this.watch (url, messageHash, message, messageHash, subscription);
+                // the cache write must come after the subscribe confirms - a
+                // fresh lastAuthenticatedTime written earlier would let a
+                // late-entering caller pass the staleness check and bypass the
+                // in-progress flight entirely
                 this.options[marketType] = this.extend (options, {
                     'listenToken': listenToken,
                     'expirationTime': expirationTime,
@@ -3026,13 +3036,7 @@ export default class binance extends binanceRest {
                         this.delay (renewalTime, this.renewListenToken, extendedParams);
                     }
                 }
-                await this.watch (url, messageHash, message, messageHash, subscription);
             } catch (e) {
-                // a failed flight must not leave a fresh lastAuthenticatedTime
-                // behind, the next caller has to retry the token creation
-                this.options[marketType] = this.extend (options, {
-                    'lastAuthenticatedTime': 0,
-                });
                 this.singleFlightReject (flightHash, e);
                 throw e;
             }
