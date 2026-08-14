@@ -62,14 +62,14 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
     void storeArrayUnsafe(Object delta2) {
         List<Object> delta = (List<Object>) delta2;
         BigDecimal price = toBigDecimal(delta.get(0));
-        BigDecimal amount = toBigDecimal(delta.get(1));
+        int amount = classifyAmount(delta.get(1));
         if (price == null) {
             return;
         }
         // Bids store the negated price so a single ascending index list serves both sides.
         BigDecimal indexPrice = this.side ? price.negate() : price;
         int idx = bisectLeft(this.index, indexPrice);
-        if (amount != null && amount.compareTo(BigDecimal.ZERO) != 0) {
+        if (amount == AMOUNT_NONZERO) {
             if (idx < this.index.size() && this.index.get(idx).compareTo(indexPrice) == 0) {
                 // Replace the inner list whole-cloth: snapshot() shallow-copies, so an
                 // in-place set(1, amount) would still race with concurrent readers.
@@ -78,7 +78,7 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
                 this.index.add(idx, indexPrice);
                 this.add(idx, new ArrayList<>(delta));
             }
-        } else if (amount != null && idx < this.index.size() && this.index.get(idx).compareTo(indexPrice) == 0) {
+        } else if (amount == AMOUNT_ZERO && idx < this.index.size() && this.index.get(idx).compareTo(indexPrice) == 0) {
             this.index.remove(idx);
             this.remove(idx);
         }
@@ -148,6 +148,44 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
             try { return new BigDecimal(s); } catch (NumberFormatException e) { return null; }
         }
         return null;
+    }
+
+    // The amount is only ever tested for missing / zero / non-zero — it is never
+    // compared against another amount and never stored as a BigDecimal (the row
+    // keeps the caller's original object). Running it through toBigDecimal() cost
+    // a BigDecimal.valueOf(double), i.e. a Double.toString() plus a decimal parse,
+    // on every single delta. classifyAmount() answers the same three-way question
+    // straight off the primitive, so the allocation and the string round-trip are
+    // gone from the hot path. Kept deliberately equivalent to the old
+    // `toBigDecimal(x)` + `!= null` + `compareTo(ZERO)` chain, case for case:
+    //   BigDecimal -> signum() == 0 is exactly compareTo(ZERO) == 0
+    //   Number     -> the same doubleValue() the old code fed to valueOf, so any
+    //                 precision loss (and NaN/Inf -> no-op) behaves identically;
+    //                 `d == 0.0` is also true for -0.0, matching BigDecimal("-0.0")
+    //   String     -> still parsed, so "0.00" is a delete and garbage is a no-op
+    //                 (strings are not the hot path: safeFloat hands us a Double)
+    private static final int AMOUNT_NONE = 0;    // null/NaN/unparseable -> ignore the delta
+    private static final int AMOUNT_ZERO = 1;    // remove the level
+    private static final int AMOUNT_NONZERO = 2; // insert or update the level
+
+    private static int classifyAmount(Object val) {
+        if (val == null) return AMOUNT_NONE;
+        if (val instanceof Double d) {
+            double v = d.doubleValue();
+            if (Double.isNaN(v) || Double.isInfinite(v)) return AMOUNT_NONE;
+            return (v == 0.0) ? AMOUNT_ZERO : AMOUNT_NONZERO;
+        }
+        if (val instanceof BigDecimal bd) return (bd.signum() == 0) ? AMOUNT_ZERO : AMOUNT_NONZERO;
+        if (val instanceof Number n) {
+            double v = n.doubleValue();
+            if (Double.isNaN(v) || Double.isInfinite(v)) return AMOUNT_NONE;
+            return (v == 0.0) ? AMOUNT_ZERO : AMOUNT_NONZERO;
+        }
+        if (val instanceof String s) {
+            try { return (new BigDecimal(s).signum() == 0) ? AMOUNT_ZERO : AMOUNT_NONZERO; }
+            catch (NumberFormatException e) { return AMOUNT_NONE; }
+        }
+        return AMOUNT_NONE;
     }
 
     // ─── Subclasses ───
