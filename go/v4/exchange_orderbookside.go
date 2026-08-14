@@ -211,8 +211,10 @@ func (obs *OrderBookSide) StoreArray(delta any) {
 			obs.Data[index][1] = size
 		} else {
 			obs.Length++
-			// copyWithin equivalent
-			copy(obs.Index[index+1:], obs.Index[index:])
+			// copyWithin equivalent, bounded by the live prefix: everything
+			// from Length on is the MaxFloat64 seed sentinel, so shifting the
+			// whole capacity memmoved ~1000 sentinels on every insert
+			copy(obs.Index[index+1:obs.Length], obs.Index[index:obs.Length-1])
 			obs.Index[index] = indexPrice
 
 			// Insert into Data array - ensure it grows with Length
@@ -238,7 +240,7 @@ func (obs *OrderBookSide) StoreArray(delta any) {
 		}
 	} else if obs.Index[index] == indexPrice {
 		// Remove element
-		copy(obs.Index[index:], obs.Index[index+1:])
+		copy(obs.Index[index:obs.Length-1], obs.Index[index+1:obs.Length])
 		obs.Index[obs.Length-1] = math.MaxFloat64
 
 		copy(obs.Data[index:], obs.Data[index+1:])
@@ -359,8 +361,8 @@ func (obs *CountedOrderBookSide) StoreArray(delta any) {
 			obs.Data[index][2] = count
 		} else {
 			obs.Length++
-			// copyWithin equivalent
-			copy(obs.Index[index+1:], obs.Index[index:])
+			// copyWithin equivalent, bounded by the live prefix, see StoreArray
+			copy(obs.Index[index+1:obs.Length], obs.Index[index:obs.Length-1])
 			obs.Index[index] = indexPrice
 
 			// Insert into Data array - ensure it grows with Length
@@ -386,7 +388,7 @@ func (obs *CountedOrderBookSide) StoreArray(delta any) {
 		}
 	} else if obs.Index[index] == indexPrice {
 		// Remove element
-		copy(obs.Index[index:], obs.Index[index+1:])
+		copy(obs.Index[index:obs.Length-1], obs.Index[index+1:obs.Length])
 		obs.Index[obs.Length-1] = math.MaxFloat64
 
 		copy(obs.Data[index:], obs.Data[index+1:])
@@ -555,8 +557,7 @@ func (obs *IndexedOrderBookSide) StoreArray(delta any) {
 			} else {
 				oldIndex := obs.findRowById(bisectLeft(obs.Index, oldIdPrice), stringId)
 				if oldIndex >= 0 {
-					copy(obs.Index[oldIndex:], obs.Index[oldIndex+1:])
-					obs.Index = obs.Index[:len(obs.Index)-1]
+					copy(obs.Index[oldIndex:obs.Length-1], obs.Index[oldIndex+1:obs.Length])
 					obs.Index[obs.Length-1] = math.MaxFloat64
 					copy(obs.Data[oldIndex:], obs.Data[oldIndex+1:])
 					obs.Data = obs.Data[:obs.Length-1]
@@ -578,8 +579,12 @@ func (obs *IndexedOrderBookSide) StoreArray(delta any) {
 		}
 		// insert new price level into index
 		obs.Length++
-		obs.Index = append(obs.Index, 0) // append a dummy value to make space
-		copy(obs.Index[index+1:], obs.Index[index:len(obs.Index)-1])
+		// shift only the live prefix; slots from Length on are MaxFloat64
+		// sentinels, so no extra slot has to be appended to make space. The
+		// former append grew Index by one slot per insert while the delete
+		// branch below never shrank it back, so Index leaked one float64 per
+		// insert/delete cycle
+		copy(obs.Index[index+1:obs.Length], obs.Index[index:obs.Length-1])
 		obs.Index[index] = indexPrice
 		obs.Data = append(obs.Data, nil)
 		copy(obs.Data[index+1:], obs.Data[index:obs.Length-1])
@@ -616,7 +621,7 @@ func (obs *IndexedOrderBookSide) StoreArray(delta any) {
 	} else if idInHashmap {
 		index := obs.findRowById(bisectLeft(obs.Index, oldIdPrice), stringId)
 		if index >= 0 {
-			copy(obs.Index[index:], obs.Index[index+1:])
+			copy(obs.Index[index:obs.Length-1], obs.Index[index+1:obs.Length])
 			obs.Index[obs.Length-1] = math.MaxFloat64
 
 			copy(obs.Data[index:], obs.Data[index+1:])
