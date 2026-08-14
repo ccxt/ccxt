@@ -5108,7 +5108,7 @@ public partial class xt : Exchange
         object market = this.market(symbol);
         if (!isTrue((getValue(market, "contract"))))
         {
-            throw new BadSymbol ((string)add(this.id, " setLeverage() supports contract markets only")) ;
+            throw new NotSupported ((string)add(this.id, " setLeverage() supports contract markets only")) ;
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -5458,7 +5458,7 @@ public partial class xt : Exchange
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "swap")))
         {
-            throw new BadSymbol ((string)add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
+            throw new NotSupported ((string)add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -5557,7 +5557,7 @@ public partial class xt : Exchange
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "swap")))
         {
-            throw new BadSymbol ((string)add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+            throw new NotSupported ((string)add(this.id, " fetchFundingRate() supports swap contracts only")) ;
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -5839,7 +5839,7 @@ public partial class xt : Exchange
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "swap")))
         {
-            throw new BadSymbol ((string)add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
+            throw new NotSupported ((string)add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -6429,7 +6429,7 @@ public partial class xt : Exchange
         object market = this.market(symbol);
         if (isTrue(getValue(market, "spot")))
         {
-            throw new BadSymbol ((string)add(this.id, " setMarginMode() supports contract markets only")) ;
+            throw new NotSupported ((string)add(this.id, " setMarginMode() supports contract markets only")) ;
         }
         marginMode = ((string)marginMode).ToLower();
         if (isTrue(isTrue(!isEqual(marginMode, "isolated")) && isTrue(!isEqual(marginMode, "cross"))))
