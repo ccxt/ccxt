@@ -5,6 +5,69 @@
     "methods": {
         "fetchTicker": [
             {
+                "description": "fetchTicker spot emulated from the daily candle",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "rows": [
+                            {
+                                "open": "63495.33",
+                                "close": "63095.99",
+                                "low": "62944",
+                                "high": "63624.16",
+                                "volume": "3860.253023",
+                                "amount": "244755520.06943762",
+                                "symbol": "SPOT_BTC_USDT",
+                                "type": "1d",
+                                "startTimestamp": 1786665600000,
+                                "endTimestamp": 1786752000000
+                            }
+                        ]
+                    },
+                    "timestamp": 1786692041031
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1786692041031,
+                    "datetime": "2026-08-14T07:20:41.031Z",
+                    "high": 63624.16,
+                    "low": 62944,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 63404.00968826276,
+                    "open": 63495.33,
+                    "close": 63095.99,
+                    "last": 63095.99,
+                    "previousClose": null,
+                    "change": -399.34,
+                    "percentage": -0.6289281432193518,
+                    "average": 63295.66,
+                    "baseVolume": 3860.253023,
+                    "quoteVolume": 244755520.06943762,
+                    "indexPrice": null,
+                    "markPrice": null,
+                    "info": {
+                        "timestamp": 1786692041031,
+                        "open": "63495.33",
+                        "close": "63095.99",
+                        "low": "62944",
+                        "high": "63624.16",
+                        "volume": "3860.253023",
+                        "amount": "244755520.06943762",
+                        "symbol": "SPOT_BTC_USDT",
+                        "type": "1d",
+                        "startTimestamp": 1786665600000,
+                        "endTimestamp": 1786752000000
+                    }
+                }
+            },
+            {
                 "description": "fetchTicker swap",
                 "method": "fetchTicker",
                 "input": [

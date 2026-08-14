@@ -2356,22 +2356,22 @@ export default class woo extends Exchange {
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, '24hHigh'),
-            'low': this.safeString (ticker, '24hLow'),
+            'high': this.safeString2 (ticker, '24hHigh', 'high'),
+            'low': this.safeString2 (ticker, '24hLow', 'low'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString (ticker, '24hOpen'),
-            'close': this.safeString (ticker, '24hClose'),
-            'last': this.safeString (ticker, '24hClose'),
+            'open': this.safeString2 (ticker, '24hOpen', 'open'),
+            'close': this.safeString2 (ticker, '24hClose', 'close'),
+            'last': this.safeString2 (ticker, '24hClose', 'close'),
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, '24hVolume'),
-            'quoteVolume': this.safeString (ticker, '24hAmount'),
+            'baseVolume': this.safeString2 (ticker, '24hVolume', 'volume'),
+            'quoteVolume': this.safeString2 (ticker, '24hAmount', 'amount'),
             'indexPrice': this.safeString (ticker, 'indexPrice'),
             'markPrice': this.safeString (ticker, 'markPrice'),
             'info': ticker,
@@ -2381,8 +2381,9 @@ export default class woo extends Exchange {
     /**
      * @method
      * @name woo#fetchTicker
-     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market, only swap markets are supported
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market, for spot markets the ticker is emulated from the current daily candle and covers the current UTC day instead of a rolling 24h window
      * @see https://developer.woox.io/api-reference/endpoint/public_data/futures
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/kline
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2392,8 +2393,44 @@ export default class woo extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
-            throw new NotSupported (this.id + ' fetchTicker() supports swap markets only');
+        if (market['spot']) {
+            // spot markets have no REST 24h ticker endpoint, emulate it from the current daily candle
+            const klineRequest: Dict = {
+                'symbol': market['id'],
+                'type': '1d',
+                'limit': 1,
+            };
+            const klineResponse = await this.v3PublicGetKline (this.extend (klineRequest, params));
+            //
+            //     {
+            //         "success": true,
+            //         "data": {
+            //             "rows": [
+            //                 {
+            //                     "open": "63495.33",
+            //                     "close": "63097.81",
+            //                     "low": "62944",
+            //                     "high": "63624.16",
+            //                     "volume": "3847.728048",
+            //                     "amount": "243965247.911593",
+            //                     "symbol": "SPOT_BTC_USDT",
+            //                     "type": "1d",
+            //                     "startTimestamp": 1786665600000,
+            //                     "endTimestamp": 1786752000000
+            //                 }
+            //             ]
+            //         },
+            //         "timestamp": 1786691929041
+            //     }
+            //
+            const klineData = this.safeDict (klineResponse, 'data', {});
+            const klineRows = this.safeList (klineData, 'rows', []);
+            const firstCandle = this.safeDict (klineRows, 0);
+            if (firstCandle === undefined) {
+                throw new BadSymbol (this.id + ' fetchTicker() could not find ticker data for ' + symbol);
+            }
+            const spotTicker = this.extend ({ 'timestamp': this.safeInteger (klineResponse, 'timestamp') }, firstCandle);
+            return this.parseTicker (spotTicker, market);
         }
         const request: Dict = {
             'symbol': market['id'],
@@ -2426,7 +2463,10 @@ export default class woo extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const rows = this.safeList (data, 'rows', []);
-        const first = this.safeDict (rows, 0, {});
+        const first = this.safeDict (rows, 0);
+        if (first === undefined) {
+            throw new BadSymbol (this.id + ' fetchTicker() could not find ticker data for ' + symbol);
+        }
         const ticker = this.extend ({ 'timestamp': this.safeInteger (response, 'timestamp') }, first);
         return this.parseTicker (ticker, market);
     }
@@ -2436,7 +2476,7 @@ export default class woo extends Exchange {
      * @name woo#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market, only swap markets are supported
      * @see https://developer.woox.io/api-reference/endpoint/public_data/futures
-     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all swap market tickers are returned if not assigned
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all swap market tickers are returned if not assigned, spot symbols are ignored because the endpoint only covers swap markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
