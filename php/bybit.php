@@ -106,7 +106,7 @@ class bybit extends Exchange {
                 'fetchOptionChain' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => true,
+                'fetchOrders' => false, // spot & UTA accounts unconditionally throw $NotSupported; only reachable via fetchOrdersClassic on classic non-spot accounts
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositionADLRank' => true,

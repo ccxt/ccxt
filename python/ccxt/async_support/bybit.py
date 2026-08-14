@@ -130,7 +130,7 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchOptionChain': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': True,
+                'fetchOrders': False,  # spot & UTA accounts unconditionally raise NotSupported; only reachable via fetchOrdersClassic on classic non-spot accounts
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositionADLRank': True,
