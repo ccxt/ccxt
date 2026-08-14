@@ -8,6 +8,29 @@
         "loadAllOutcomes": true
     },
     "methods": {
+        "signIn": [
+            {
+                "description": "signIn stores and returns the JWT from wallet connect",
+                "method": "signIn",
+                "input": [
+                    {
+                        "reload": true,
+                        "network": "mantle_mainnet",
+                        "address": "0x1111111111111111111111111111111111111111",
+                        "tipInfo": "Sign this message...",
+                        "signature": "0x222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222221b"
+                    }
+                ],
+                "httpResponse": {
+                    "errno": 0,
+                    "errmsg": "no error",
+                    "data": {
+                        "token": "eyJhbGciOiJub25lIn0.eyJleHAiOjE4MDAwMDAwMDB9.fixture"
+                    }
+                },
+                "parsedResponse": "eyJhbGciOiJub25lIn0.eyJleHAiOjE4MDAwMDAwMDB9.fixture"
+            }
+        ],
         "fetchOutcome": [
             {
                 "description": "fetchOutcome direct lookup by raw outcome id",

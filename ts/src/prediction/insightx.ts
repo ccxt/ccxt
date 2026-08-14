@@ -1,6 +1,9 @@
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from '../abstract/prediction/insightx.js';
 import { AuthenticationError, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
+import { ecdsa } from '../base/functions/crypto.js';
 import type { Bool, Dict, Int, Market, Num, PredictionEvent, PredictionOrder, PredictionPosition, PredictionTicker, PredictionTickers, Str, Strings, fetchEventsParams, int } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -37,6 +40,7 @@ export default class insightx extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'prediction': true,
+                'signIn': true,
             },
             'urls': {
                 'api': {
@@ -73,8 +77,8 @@ export default class insightx extends Exchange {
                 'apiKey': false,
                 'secret': false,
                 'walletAddress': false,
-                'privateKey': false,
-                'token': true,
+                'privateKey': true,
+                'token': false,
             },
             'exceptions': {
                 'exact': {
@@ -99,8 +103,169 @@ export default class insightx extends Exchange {
                 'defaultMarketStatus': 1,
                 'marketsPageSize': 100,
                 'fetchMarketsLimit': 100,
+                'tokenExpires': undefined,
             },
         });
+    }
+
+    /**
+     * @method
+     * @name insightx#signIn
+     * @description obtains and caches an insightx JWT by signing the wallet login message
+     * @see https://insightx-2.gitbook.io/whitepaper/insightx-whitepaper/10.-developer-resources-and-api-integration#id-10.5-authentication
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {boolean} [params.reload] force a new JWT even when a cached token is available
+     * @param {string} [params.network] insightx network name, defaults to mantle_mainnet
+     * @param {string} [params.address] wallet address, derived from privateKey when omitted
+     * @param {string} [params.tipInfo] pre-fetched login message, normally fetched automatically
+     * @param {string} [params.signature] externally produced personal_sign signature, normally generated from privateKey
+     * @returns {string} the JWT used by private insightx endpoints
+     */
+    override async signIn (params = {}): Promise<string> {
+        const reload = this.safeBool (params, 'reload', false);
+        const now = this.milliseconds ();
+        const tokenExpires = this.safeInteger (this.options, 'tokenExpires');
+        const hasValidToken = (this.token !== undefined) && (this.token.length > 0) && ((tokenExpires === undefined) || (now < tokenExpires));
+        if (hasValidToken && !reload) {
+            return this.token as string;
+        }
+        const network = this.safeString (params, 'network', this.safeString (this.options, 'defaultNetwork', 'mantle_mainnet'));
+        let address = this.safeString (params, 'address', this.walletAddress);
+        if ((address === undefined) && !this.isEmptyString (this.privateKey)) {
+            address = this.ethGetAddressFromPrivateKey (this.privateKey);
+        }
+        if (address === undefined) {
+            throw new AuthenticationError (this.id + ' signIn() requires a privateKey or params.address with params.signature');
+        }
+        let tipInfo = this.safeString (params, 'tipInfo');
+        if (tipInfo === undefined) {
+            const tipResponse = await this.insightxPublicGetWalletTipInfo ({
+                'network': network,
+                'address': address,
+            });
+            const tipData = this.safeDict (tipResponse, 'data', {});
+            tipInfo = this.safeString (tipData, 'tip_info');
+        }
+        if (tipInfo === undefined) {
+            throw new AuthenticationError (this.id + ' signIn() failed to receive the wallet login message');
+        }
+        let signature = this.safeString (params, 'signature');
+        if (signature === undefined) {
+            if (this.isEmptyString (this.privateKey)) {
+                throw new AuthenticationError (this.id + ' signIn() requires params.signature when privateKey is not configured');
+            }
+            signature = this.signWalletMessage (tipInfo, this.privateKey);
+        }
+        const request: Dict = {
+            'network': network,
+            'address': address,
+            'signature': signature,
+        };
+        const rest = this.omit (params, [ 'reload', 'network', 'address', 'tipInfo', 'signature' ]);
+        const response = await this.insightxPublicPostWalletConnect (this.extend (request, rest));
+        const data = this.safeDict (response, 'data', {});
+        const token = this.safeString (data, 'token');
+        if (token === undefined) {
+            throw new AuthenticationError (this.id + ' signIn() failed to receive a JWT token');
+        }
+        this.token = token;
+        const expiresIn = this.safeInteger (data, 'expires_in');
+        if (expiresIn !== undefined) {
+            const expiresInString = this.numberToString (expiresIn);
+            const expiresInMillisecondsString = Precise.stringMul (expiresInString, '1000');
+            const expiresInMilliseconds = this.parseToInt (expiresInMillisecondsString);
+            this.options['tokenExpires'] = this.sum (now, expiresInMilliseconds);
+        } else {
+            this.options['tokenExpires'] = this.parseJwtExpiration (token);
+        }
+        return token;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name insightx#parseJwtExpiration
+     * @description extracts the expiration timestamp from an insightx JWT
+     * @param {string} token insightx JWT
+     * @returns {int} the expiration timestamp in milliseconds
+     */
+    parseJwtExpiration (token: string): Int {
+        const parts = token.split ('.');
+        const payloadPart = this.safeString (parts, 1);
+        const signaturePart = this.safeString (parts, 2);
+        if ((payloadPart === undefined) || (signaturePart === undefined)) {
+            return undefined;
+        }
+        let payload = payloadPart;
+        payload = payload.replaceAll ('-', '+');
+        payload = payload.replaceAll ('_', '/');
+        const payloadLength = this.binaryLength (this.encode (payload));
+        const remainder = this.numberToString (payloadLength % 4);
+        if (remainder === '2') {
+            payload = payload + '==';
+        } else if (remainder === '3') {
+            payload = payload + '=';
+        } else if (remainder === '1') {
+            return undefined;
+        }
+        const decoded = this.parseJson (this.base64ToString (payload));
+        const expires = this.safeInteger (decoded, 'exp');
+        if (expires === undefined) {
+            return undefined;
+        }
+        const expiresString = this.numberToString (expires);
+        const expiresMillisecondsString = Precise.stringMul (expiresString, '1000');
+        return this.parseToInt (expiresMillisecondsString);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name insightx#hashWalletMessage
+     * @description hashes an insightx wallet login message using the EIP-191 personal_sign prefix
+     * @param {string} message wallet login message
+     * @returns {string} the keccak256 message hash
+     */
+    hashWalletMessage (message: string): string {
+        const binaryMessage = this.encode (message);
+        const binaryMessageLength = this.binaryLength (binaryMessage);
+        const x19 = this.base16ToBinary ('19');
+        const newline = this.base16ToBinary ('0a');
+        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode (this.numberToString (binaryMessageLength)));
+        return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name insightx#signWalletMessage
+     * @description signs an insightx wallet login message with an EVM private key
+     * @param {string} message wallet login message
+     * @param {string} privateKey EVM private key
+     * @returns {string} a 65-byte personal_sign signature
+     */
+    signWalletMessage (message: string, privateKey: string): string {
+        const messageHash = this.hashWalletMessage (message);
+        const signature = ecdsa (messageHash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        const rRaw = signature['r'];
+        const sRaw = signature['s'];
+        const r = rRaw.padStart (64, '0');
+        const s = sRaw.padStart (64, '0');
+        const v = this.intToBase16 (this.sum (27, signature['v']));
+        return '0x' + r + s + v;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name insightx#handleToken
+     * @description returns a valid cached JWT or obtains a new one through wallet login
+     * @param {object} [params] extra parameters forwarded to signIn
+     * @returns {string} a valid insightx JWT
+     */
+    async handleToken (params = {}): Promise<string> {
+        const token = await this.signIn (params);
+        return token as string;
     }
 
     /**
@@ -606,6 +771,7 @@ export default class insightx extends Exchange {
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     override async fetchPosition (outcome: string, params = {}): Promise<PredictionPosition> {
+        await this.handleToken ();
         const outcomeObj = await this.loadOutcome (outcome);
         const marketId = this.safeString (outcomeObj, 'marketId');
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
@@ -643,6 +809,7 @@ export default class insightx extends Exchange {
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        await this.handleToken ();
         let outcomeObj: any = undefined;
         const request: Dict = {};
         if (outcome !== undefined) {

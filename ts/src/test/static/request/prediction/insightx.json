@@ -5,6 +5,23 @@
     "skipKeys": [],
     "outputType": "json",
     "methods": {
+        "signIn": [
+            {
+                "description": "signIn submits a wallet signature and replaces the configured token",
+                "method": "signIn",
+                "url": "https://mainnet-api.insightx.finance/wallet/connect",
+                "input": [
+                    {
+                        "reload": true,
+                        "network": "mantle_mainnet",
+                        "address": "0x1111111111111111111111111111111111111111",
+                        "tipInfo": "Sign this message...",
+                        "signature": "0x222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222221b"
+                    }
+                ],
+                "output": "{\"network\":\"mantle_mainnet\",\"address\":\"0x1111111111111111111111111111111111111111\",\"signature\":\"0x222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222221b\"}"
+            }
+        ],
         "fetchMarkets": [
             {
                 "description": "fetchMarkets active listing with a bounded result",
