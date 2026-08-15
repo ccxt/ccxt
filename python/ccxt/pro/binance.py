@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Any, Balances, Int, Liquidation, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
@@ -334,14 +335,28 @@ class binance(ccxt.async_support.binance):
         now = self.milliseconds()
         delay = self.sum(listenKeyRefreshRate, 10000)
         if (now - lastAuthenticatedTime) > delay:
-            requestParams = self.omit(params, ['stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe'])
-            response = await self.sapiPostEquityListenKey(requestParams)
-            listenKey = self.safe_string(response, 'listenKey')
-            self.options['stock'] = self.extend(options, {
-                'listenKey': listenKey,
-                'lastAuthenticatedTime': now,
-            })
-            self.delay(listenKeyRefreshRate, self.keep_alive_stock_listen_key, params)
+            # the stock user stream url embeds self listenKey, so the future is parked
+            # on the listenKey-free market url of the same host
+            client = self.client(self.get_stock_ws_url('market'))
+            messageHash = 'authenticate:stock'
+            if messageHash in client.futures:
+                # another caller is already fetching, wait for it instead of fetching again
+                await client.future(messageHash)
+                return
+            client.future(messageHash)  # created ahead of the request below, so concurrent callers can find it
+            try:
+                requestParams = self.omit(params, ['stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe'])
+                response = await self.sapiPostEquityListenKey(requestParams)
+                listenKey = self.safe_string(response, 'listenKey')
+                self.options['stock'] = self.extend(options, {
+                    'listenKey': listenKey,
+                    'lastAuthenticatedTime': now,
+                })
+                self.delay(listenKeyRefreshRate, self.keep_alive_stock_listen_key, params)
+                client.resolve(listenKey, messageHash)
+            except Exception as e:
+                client.reject(e, messageHash)
+                raise e
 
     async def keep_alive_stock_listen_key(self, params: dict = {}):
         try:
@@ -2634,20 +2649,34 @@ class binance(ccxt.async_support.binance):
         accountType = self.get_account_type_from_subscriptions(subscriptionsKeys)
         if accountType == marketType:
             return
+        # the subscriptions flag is raised before the subscribe request is confirmed,
+        # so a concurrent caller would otherwise return onto an unauthenticated stream
+        messageHash = 'authenticate:signature:' + marketType
+        if messageHash in client.futures:
+            # another caller is already subscribing, wait for it instead of subscribing again
+            await client.future(messageHash)
+            return
+        client.future(messageHash)  # created ahead of the request below, so concurrent callers can find it
         client.subscriptions[marketType] = True
         requestId = self.request_id(url)
-        messageHash = str(requestId)
+        requestHash = str(requestId)
         message = {
-            'id': messageHash,
+            'id': requestHash,
             'method': 'userDataStream.subscribe.signature',
             'params': self.sign_params({}),
         }
         subscription = {
-            'id': messageHash,
+            'id': requestHash,
             'method': self.handle_user_data_stream_subscribe,
             'subscription': marketType,
         }
-        await self.watch(url, messageHash, message, messageHash, subscription)
+        try:
+            await self.watch(url, requestHash, message, requestHash, subscription)
+            client.resolve(marketType, messageHash)
+        except Exception as e:
+            del client.subscriptions[marketType]
+            client.reject(e, messageHash)
+            raise e
 
     def handle_user_data_stream_subscribe(self, client: Client, message: Any):
         #
@@ -2668,6 +2697,8 @@ class binance(ccxt.async_support.binance):
         if subscriptionId is None:
             del client.subscriptions[accountType]
             client.reject(message, accountType)
+            client.reject(message, messageHash)
+            return
         client.resolve(message, messageHash)
 
     async def ensure_user_data_stream_ws_subscribe_listen_token(self, marketType: str = 'margin', params={}):
@@ -2690,52 +2721,72 @@ class binance(ccxt.async_support.binance):
         time = self.milliseconds()
         delay = self.sum(listenTokenRefreshRate, 10000)
         if time - lastAuthenticatedTime > delay:
-            # Step 1: Create listenToken via REST API
-            symbol = self.safe_string(params, 'symbol')
-            isIsolated = self.safe_bool(params, 'isIsolated', False)
-            validity = self.safe_integer(params, 'validity')
-            request = {}
-            if isIsolated:
-                if symbol is None:
-                    raise ArgumentsRequired(self.id + ' ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode')
-                marketId = self.market_id(symbol)
-                request['symbol'] = marketId
-                request['isIsolated'] = True
-            if validity is not None:
-                request['validity'] = validity
-            response = await self.sapiPostUserListenToken(request)
-            listenToken = self.safe_string(response, 'token')
-            expirationTime = self.safe_integer(response, 'expirationTime')
-            # Step 2: Subscribe to user data stream via WebSocket API
-            requestId = self.request_id(url)
-            messageHash = str(requestId)
-            message = {
-                'id': messageHash,
-                'method': 'userDataStream.subscribe.listenToken',
-                'params': {
+            # the future covers the REST create plus the ws subscribe, including the
+            # renewal timer re-entry through renewListenToken, so a concurrent caller
+            # waits for the leader rather than minting a second listenToken
+            client = self.client(url)
+            messageHash = 'authenticate:' + marketType + ':listenToken'
+            if messageHash in client.futures:
+                # another caller is already fetching, wait for it instead of fetching again
+                await client.future(messageHash)
+                return
+            client.future(messageHash)  # created ahead of the request below, so concurrent callers can find it
+            try:
+                # Step 1: Create listenToken via REST API
+                symbol = self.safe_string(params, 'symbol')
+                isIsolated = self.safe_bool(params, 'isIsolated', False)
+                validity = self.safe_integer(params, 'validity')
+                request = {}
+                if isIsolated:
+                    if symbol is None:
+                        raise ArgumentsRequired(self.id + ' ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode')
+                    marketId = self.market_id(symbol)
+                    request['symbol'] = marketId
+                    request['isIsolated'] = True
+                if validity is not None:
+                    request['validity'] = validity
+                response = await self.sapiPostUserListenToken(request)
+                listenToken = self.safe_string(response, 'token')
+                if listenToken is None:
+                    raise AuthenticationError(self.id + ' ensureUserDataStreamWsSubscribeListenToken() failed to obtain a listenToken')
+                expirationTime = self.safe_integer(response, 'expirationTime')
+                # Step 2: Subscribe to user data stream via WebSocket API
+                requestId = self.request_id(url)
+                requestHash = str(requestId)
+                message = {
+                    'id': requestHash,
+                    'method': 'userDataStream.subscribe.listenToken',
+                    'params': {
+                        'listenToken': listenToken,
+                    },
+                }
+                subscription = {
+                    'id': requestHash,
+                    'method': self.handle_user_data_stream_subscribe,
+                    'subscription': marketType,
+                }
+                await self.watch(url, requestHash, message, requestHash, subscription)
+                self.options[marketType] = self.extend(options, {
                     'listenToken': listenToken,
-                },
-            }
-            subscription = {
-                'id': messageHash,
-                'method': self.handle_user_data_stream_subscribe,
-                'subscription': marketType,
-            }
-            self.options[marketType] = self.extend(options, {
-                'listenToken': listenToken,
-                'expirationTime': expirationTime,
-                'lastAuthenticatedTime': time,
-                'symbol': symbol,
-                'isIsolated': isIsolated,
-                'validity': validity,
-            })
-            # Schedule token renewal before expiration
-            if expirationTime is not None:
-                renewalTime = expirationTime - time - 60000  # Renew 1 minute before expiration
-                if renewalTime > 0:
-                    extendedParams = self.extend(params, {'type': marketType})
-                    self.delay(renewalTime, self.renew_listen_token, extendedParams)
-            await self.watch(url, messageHash, message, messageHash, subscription)
+                    'expirationTime': expirationTime,
+                    'lastAuthenticatedTime': time,
+                    'symbol': symbol,
+                    'isIsolated': isIsolated,
+                    'validity': validity,
+                })
+                # Schedule token renewal before expiration
+                if expirationTime is not None:
+                    renewalTime = expirationTime - time - 60000  # Renew 1 minute before expiration
+                    if renewalTime > 0:
+                        extendedParams = self.extend(params, {'type': marketType})
+                        self.delay(renewalTime, self.renew_listen_token, extendedParams)
+                client.resolve(listenToken, messageHash)
+            except Exception as e:
+                self.options[marketType] = self.extend(options, {
+                    'lastAuthenticatedTime': 0,
+                })
+                client.reject(e, messageHash)
+                raise e
 
     async def renew_listen_token(self, params={}):
         type = self.safe_string(params, 'type', 'margin')
@@ -2787,23 +2838,40 @@ class binance(ccxt.async_support.binance):
         listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 1200000)
         delay = self.sum(listenKeyRefreshRate, 10000)
         if time - lastAuthenticatedTime > delay:
-            response: dict
-            if isPortfolioMargin:
-                response = await self.papiPostListenKey(params)
-                params = self.extend(params, {'portfolioMargin': True})
-            elif type == 'future':
-                response = await self.fapiPrivatePostListenKey(params)
-            elif type == 'delivery':
-                response = await self.dapiPrivatePostListenKey(params)
-            elif type == 'option':
-                response = await self.eapiPrivatePostListenKey(params)
-            else:
-                response = await self.publicPostUserDataStream(params)
-            self.options[type] = self.extend(options, {
-                'listenKey': self.safe_string(response, 'listenKey'),
-                'lastAuthenticatedTime': time,
-            })
-            self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
+            # the private url embeds the listenKey that self request produces, so the future
+            # is parked on the listenKey-free base url of that same stream - concurrent
+            # callers wait for the leader instead of fetching a second listenKey, which
+            # would split the user-data subscriptions across two connections
+            client = self.client(self.get_ws_url(type, 'private'))
+            messageHash = 'authenticate:' + type
+            if messageHash in client.futures:
+                # another caller is already fetching, wait for it instead of fetching again
+                await client.future(messageHash)
+                return
+            client.future(messageHash)  # created ahead of the request below, so concurrent callers can find it
+            try:
+                response = None
+                if isPortfolioMargin:
+                    response = await self.papiPostListenKey(params)
+                    params = self.extend(params, {'portfolioMargin': True})
+                elif type == 'future':
+                    response = await self.fapiPrivatePostListenKey(params)
+                elif type == 'delivery':
+                    response = await self.dapiPrivatePostListenKey(params)
+                elif type == 'option':
+                    response = await self.eapiPrivatePostListenKey(params)
+                else:
+                    response = await self.publicPostUserDataStream(params)
+                listenKey = self.safe_string(response, 'listenKey')
+                self.options[type] = self.extend(options, {
+                    'listenKey': listenKey,
+                    'lastAuthenticatedTime': time,
+                })
+                self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
+                client.resolve(listenKey, messageHash)
+            except Exception as e:
+                client.reject(e, messageHash)
+                raise e
 
     async def keep_alive_listen_key(self, params={}):
         # https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
