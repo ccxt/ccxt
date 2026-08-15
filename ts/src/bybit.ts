@@ -1139,7 +1139,7 @@ export default class bybit extends Exchange {
                 'enableUnifiedAccount': undefined,
                 'unifiedMarginStatus': undefined,
                 'createOrder': {
-                    'createMarketBuyOrderRequiresPrice': false, // only true for non-UTA accounts
+                    'createMarketBuyOrderRequiresPrice': false,
                 },
                 'createUnifiedMarginAccount': false,
                 'defaultType': 'swap',  // 'swap', 'future', 'option', 'spot'
@@ -4371,7 +4371,6 @@ export default class bybit extends Exchange {
         const isMarketBuyAndCostInferable = (lowerCaseType === 'market') && (side === 'buy') && ((price !== undefined) || (cost !== undefined));
         const isMarketOrder = lowerCaseType === 'market';
         if (market['spot'] && isMarketOrder && !isMarketBuyAndCostInferable) {
-            // UTA account can specify the cost of the order on both sides
             if ((cost !== undefined) || (price !== undefined)) {
                 request['marketUnit'] = 'quoteCoin';
                 let orderCost: Str = undefined;
@@ -4387,7 +4386,6 @@ export default class bybit extends Exchange {
                 request['qty'] = amountString;
             }
         } else if (market['spot'] && isMarketOrder && (side === 'buy')) {
-            // non-UTA accounts
             // for market buy it requires the amount of quote currency to spend
             let createMarketBuyOrderRequiresPrice = true;
             [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice');
