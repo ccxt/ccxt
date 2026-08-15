@@ -29,18 +29,12 @@ public interface IOrderBookSide : IList<object>
 
 public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
 {
-    protected readonly object _syncRoot = new object();
-
-    // A two-side snapshot (OrderBook.Copy) cannot be made atomic by the book's
-    // own _syncRoot: every mutator here guards the *side's* monitor instead, so
-    // the book lock excludes nothing and a ws delta can land between the two
-    // side copies. Expose the monitor to the rest of the assembly so Copy() can
-    // hold both sides for the whole snapshot, rather than widening the field
-    // itself or adding a second lock to the storeArray hot path.
-    internal object SyncRoot
-    {
-        get { return _syncRoot; }
-    }
+    // The monitor guarding this side. Every mutator here takes it, and the
+    // book's own _syncRoot is a different monitor that excludes none of them,
+    // so a two-side snapshot (OrderBook.Copy) locks this field on both sides —
+    // asks first, then bids — for the whole snapshot. A caller holding it copies
+    // through the CopyUnlocked helpers below, which never re-enter the monitor.
+    protected internal readonly object _syncRoot = new object();
 
     private bool _side = false;
 
@@ -274,11 +268,19 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
     {
         lock (_syncRoot)
         {
-
-            var copy = new OrderBookSide(this);
-            // return copy.ToList() as IOrderBookSide;
-            return copy;
+            return this.CopyUnlocked();
         }
+    }
+
+    // Copy without taking this side's monitor. Only for callers that already
+    // hold it: OrderBook.Copy() locks asks then bids and copies both sides from
+    // inside that pair, so entering the same monitor a second time here would
+    // be a pointless recursive acquisition. Single-side callers use Copy().
+    internal IOrderBookSide CopyUnlocked()
+    {
+        var copy = new OrderBookSide(this);
+        // return copy.ToList() as IOrderBookSide;
+        return copy;
     }
 }
 
@@ -305,10 +307,15 @@ public class NormalOrderBookSide : OrderBookSide, IOrderBookSide
     {
         lock (_syncRoot)
         {
-
-            var copy = new NormalOrderBookSide(this);
-            return copy;
+            return this.CopyUnlocked();
         }
+    }
+
+    // see OrderBookSide.CopyUnlocked
+    internal new IOrderBookSide CopyUnlocked()
+    {
+        var copy = new NormalOrderBookSide(this);
+        return copy;
     }
 }
 
@@ -333,10 +340,15 @@ public class CountedOrderBookSide : OrderBookSide, IOrderBookSide
     {
         lock (_syncRoot)
         {
-
-            var copy = new CountedOrderBookSide(this);
-            return copy;
+            return this.CopyUnlocked();
         }
+    }
+
+    // see OrderBookSide.CopyUnlocked
+    internal new IOrderBookSide CopyUnlocked()
+    {
+        var copy = new CountedOrderBookSide(this);
+        return copy;
     }
 
     public void store(object price, object size, object count)
@@ -426,10 +438,15 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
     {
         lock (_syncRoot)
         {
-
-            var copy = new IndexedOrderBookSide(this);
-            return copy;
+            return this.CopyUnlocked();
         }
+    }
+
+    // see OrderBookSide.CopyUnlocked
+    internal new IOrderBookSide CopyUnlocked()
+    {
+        var copy = new IndexedOrderBookSide(this);
+        return copy;
     }
 
     // ids arrive as freshly boxed references on every parsed ws message, so the
@@ -650,10 +667,15 @@ public class Asks : NormalOrderBookSide, IAsks
     {
         lock (_syncRoot)
         {
-
-            var copy = new Asks(this.ToList());
-            return copy;
+            return this.CopyUnlocked();
         }
+    }
+
+    // see OrderBookSide.CopyUnlocked
+    internal new IAsks CopyUnlocked()
+    {
+        var copy = new Asks(this.ToList());
+        return copy;
     }
 }
 
@@ -668,10 +690,15 @@ public class Bids : NormalOrderBookSide, IBids
     {
         lock (_syncRoot)
         {
-
-            var copy = new Bids(this);
-            return copy;
+            return this.CopyUnlocked();
         }
+    }
+
+    // see OrderBookSide.CopyUnlocked
+    internal new IBids CopyUnlocked()
+    {
+        var copy = new Bids(this);
+        return copy;
     }
 }
 
@@ -687,10 +714,15 @@ public class CountedAsks : CountedOrderBookSide, IAsks
     {
         lock (_syncRoot)
         {
-
-            var copy = new CountedAsks(this);
-            return copy;
+            return this.CopyUnlocked();
         }
+    }
+
+    // see OrderBookSide.CopyUnlocked
+    internal new IAsks CopyUnlocked()
+    {
+        var copy = new CountedAsks(this);
+        return copy;
     }
 }
 
@@ -705,10 +737,15 @@ public class CountedBids : CountedOrderBookSide, IBids
     {
         lock (_syncRoot)
         {
-
-            var copy = new CountedBids(this);
-            return copy;
+            return this.CopyUnlocked();
         }
+    }
+
+    // see OrderBookSide.CopyUnlocked
+    internal new IBids CopyUnlocked()
+    {
+        var copy = new CountedBids(this);
+        return copy;
     }
 }
 
@@ -724,10 +761,15 @@ public class IndexedAsks : IndexedOrderBookSide, IAsks
     {
         lock (_syncRoot)
         {
-
-            var copy = new IndexedAsks(this);
-            return copy;
+            return this.CopyUnlocked();
         }
+    }
+
+    // see OrderBookSide.CopyUnlocked
+    internal new IAsks CopyUnlocked()
+    {
+        var copy = new IndexedAsks(this);
+        return copy;
     }
 }
 
@@ -742,9 +784,14 @@ public class IndexedBids : IndexedOrderBookSide, IBids
     {
         lock (_syncRoot)
         {
-
-            var copy = new IndexedBids(this);
-            return copy;
+            return this.CopyUnlocked();
         }
+    }
+
+    // see OrderBookSide.CopyUnlocked
+    internal new IBids CopyUnlocked()
+    {
+        var copy = new IndexedBids(this);
+        return copy;
     }
 }

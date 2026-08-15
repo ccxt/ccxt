@@ -159,34 +159,6 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
         }
     }
 
-    // Copy() must observe asks and bids as of the SAME instant. Each side is
-    // guarded by its own monitor (OrderBookSide.SyncRoot), which this book's
-    // _syncRoot does not subsume: storeArray locks only the side, so a ws delta
-    // arriving on a threadpool thread could previously slip between the asks
-    // copy and the bids copy and yield a snapshot whose two halves came from
-    // different book states (live symptom: bids[0][0] >= asks[0][0] with the old
-    // ask level still listed). Hold both side monitors for the whole snapshot.
-    //
-    // Lock order is always asks-then-bids, and every writer takes at most one
-    // side monitor, so this cannot cycle. The hot path is untouched: no extra
-    // lock is added to storeArray, only the comparatively rare Copy() pays.
-    protected static T snapshotBothSides<T>(IOrderBookSide asksSide, IOrderBookSide bidsSide, Func<T> snapshot)
-    {
-        var asksRoot = (asksSide as OrderBookSide)?.SyncRoot;
-        var bidsRoot = (bidsSide as OrderBookSide)?.SyncRoot;
-        if (asksRoot == null || bidsRoot == null)
-        {
-            return snapshot();
-        }
-        lock (asksRoot)
-        {
-            lock (bidsRoot)
-            {
-                return snapshot();
-            }
-        }
-    }
-
     public IOrderBook update(object snapshot)
     {
         lock (_syncRoot)
@@ -258,33 +230,46 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
             //     {"datetime", this["datetime"]},
             //     {"symbol", this["symbol"]},
             // });
-            return snapshotBothSides<IOrderBook>(this.asks, this.bids, () =>
+            // Both sides must be observed as of the SAME instant: each side is
+            // guarded by its own monitor and storeArray takes only that one, so
+            // a ws delta arriving on a threadpool thread between the two side
+            // copies would yield a snapshot whose halves come from different
+            // book states (symptom: bids[0][0] >= asks[0][0], with the stale ask
+            // level still listed). Hold asks then bids across the whole
+            // snapshot; the order is fixed and every writer takes at most one
+            // side monitor, so the pair cannot cycle. Inside these locks the
+            // sides are copied through CopyUnlocked, so neither monitor is
+            // entered twice. storeArray is untouched — only Copy() pays.
+            lock (this._asks._syncRoot)
             {
-                var copy = new OrderBook(new Dictionary<string, object>());
-                var copiedAsks = this.asks.Copy();
-                copy["asks"] = copiedAsks;
-                copy.asks = copiedAsks;
-                var copiedBids = this.bids.Copy();
-                copy["bids"] = copiedBids;
-                copy.bids = copiedBids;
-                copy["nonce"] = this["nonce"];
-                copy["timestamp"] = this["timestamp"];
-                copy["datetime"] = this["datetime"];
-                copy["symbol"] = this["symbol"];
-                copy.symbol = (String)this["symbol"];
-                copy.nonce = (long?)this["nonce"];
-                copy.timestamp = (long?)this["timestamp"];
-                // prediction-market identity (only present on prediction books)
-                if (this.ContainsKey("outcome"))
+                lock (this._bids._syncRoot)
                 {
-                    copy["outcome"] = this["outcome"];
-                    copy["outcomeId"] = Exchange.SafeValue(this as dict, "outcomeId");
-                    copy["market"] = Exchange.SafeValue(this as dict, "market");
+                    var copy = new OrderBook(new Dictionary<string, object>());
+                    var copiedAsks = this._asks.CopyUnlocked();
+                    copy["asks"] = copiedAsks;
+                    copy.asks = copiedAsks;
+                    var copiedBids = this._bids.CopyUnlocked();
+                    copy["bids"] = copiedBids;
+                    copy.bids = copiedBids;
+                    copy["nonce"] = this["nonce"];
+                    copy["timestamp"] = this["timestamp"];
+                    copy["datetime"] = this["datetime"];
+                    copy["symbol"] = this["symbol"];
+                    copy.symbol = (String)this["symbol"];
+                    copy.nonce = (long?)this["nonce"];
+                    copy.timestamp = (long?)this["timestamp"];
+                    // prediction-market identity (only present on prediction books)
+                    if (this.ContainsKey("outcome"))
+                    {
+                        copy["outcome"] = this["outcome"];
+                        copy["outcomeId"] = Exchange.SafeValue(this as dict, "outcomeId");
+                        copy["market"] = Exchange.SafeValue(this as dict, "market");
+                    }
+                    // copy["asks"] = new Asks(this._asks.ToList());
+                    // copy["bids"] = new Bids(this._bids.ToList());
+                    return copy;
                 }
-                // copy["asks"] = new Asks(this._asks.ToList());
-                // copy["bids"] = new Bids(this._bids.ToList());
-                return copy;
-            });
+            }
         }
     }
 
@@ -388,18 +373,22 @@ public class CountedOrderBook : OrderBook, IOrderBook
     {
         lock (_syncRoot)
         {
-            // same torn-snapshot hazard as OrderBook.Copy, see snapshotBothSides
-            return snapshotBothSides<IOrderBook>(this.asks, this.bids, () =>
+            // same atomicity requirement and same asks-then-bids order as
+            // OrderBook.Copy
+            lock (this.asks._syncRoot)
             {
-                var copy = new CountedOrderBook(new Dictionary<string, object>());
-                copy["asks"] = this.asks.Copy();
-                copy["bids"] = this.bids.Copy();
-                copy["nonce"] = this["nonce"];
-                copy["timestamp"] = this["timestamp"];
-                copy["datetime"] = this["datetime"];
-                copy["symbol"] = this["symbol"];
-                return copy;
-            });
+                lock (this.bids._syncRoot)
+                {
+                    var copy = new CountedOrderBook(new Dictionary<string, object>());
+                    copy["asks"] = this.asks.CopyUnlocked();
+                    copy["bids"] = this.bids.CopyUnlocked();
+                    copy["nonce"] = this["nonce"];
+                    copy["timestamp"] = this["timestamp"];
+                    copy["datetime"] = this["datetime"];
+                    copy["symbol"] = this["symbol"];
+                    return copy;
+                }
+            }
         }
     }
 }
@@ -430,18 +419,22 @@ public class IndexedOrderBook : OrderBook, IOrderBook
     {
         lock (_syncRoot)
         {
-            // same torn-snapshot hazard as OrderBook.Copy, see snapshotBothSides
-            return snapshotBothSides<IOrderBook>(this.asks, this.bids, () =>
+            // same atomicity requirement and same asks-then-bids order as
+            // OrderBook.Copy
+            lock (this.asks._syncRoot)
             {
-                var copy = new IndexedOrderBook(new Dictionary<string, object>());
-                copy["asks"] = this.asks.Copy();
-                copy["bids"] = this.bids.Copy();
-                copy["nonce"] = this["nonce"];
-                copy["timestamp"] = this["timestamp"];
-                copy["datetime"] = this["datetime"];
-                copy["symbol"] = this["symbol"];
-                return copy;
-            });
+                lock (this.bids._syncRoot)
+                {
+                    var copy = new IndexedOrderBook(new Dictionary<string, object>());
+                    copy["asks"] = this.asks.CopyUnlocked();
+                    copy["bids"] = this.bids.CopyUnlocked();
+                    copy["nonce"] = this["nonce"];
+                    copy["timestamp"] = this["timestamp"];
+                    copy["datetime"] = this["datetime"];
+                    copy["symbol"] = this["symbol"];
+                    return copy;
+                }
+            }
         }
     }
 }
