@@ -107,9 +107,9 @@ public class ArrayCache extends ArrayList<Object> {
     }
 
     /**
-     * Field-wise merge of {@code source} onto {@code target}, mirroring
-     * {@code for (const prop in item) reference[prop] = item[prop]} (Cache.ts:147-149,188-190).
-     * Fields present on the target but absent from the source survive.
+     * Field-wise merge of {@code source} onto {@code target}.
+     * Maps keep keys present only on the target (order deltas). List rows (OHLCV)
+     * take the incoming length — a shorter candle must drop the previous tail.
      *
      * @return true when the merge landed, false when the target is immutable and the caller
      *         must fall back to replacing the row positionally.
@@ -122,7 +122,6 @@ public class ArrayCache extends ArrayList<Object> {
                 return true;
             }
             if (target instanceof List && source instanceof List) {
-                // OHLCV rows are lists; JS copies index-keyed props the same way
                 List<Object> to = (List<Object>) target;
                 List<Object> from = (List<Object>) source;
                 for (int i = 0, n = from.size(); i < n; i++) {
@@ -131,6 +130,9 @@ public class ArrayCache extends ArrayList<Object> {
                     } else {
                         to.add(from.get(i));
                     }
+                }
+                while (to.size() > from.size()) {
+                    to.remove(to.size() - 1);
                 }
                 return true;
             }

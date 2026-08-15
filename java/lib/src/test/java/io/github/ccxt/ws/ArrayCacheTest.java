@@ -330,19 +330,17 @@ class ArrayCacheTest {
     }
 
     @Test
-    @DisplayName("ByTimestamp: a shorter update overwrites field-wise and keeps the tail")
+    @DisplayName("ByTimestamp: a shorter update replaces the candle and drops the stale tail")
     void testArrayCacheByTimestampShorterUpdateKeepsTail() {
-        // TS merges with `for (const prop in item) reference[prop] = item[prop]`, which over an
-        // array enumerates only the indices PRESENT on the update. A 3-element update onto a
-        // 6-element row therefore rewrites indices 0..2 and leaves 3..5 intact — it does NOT
-        // truncate the row. Verified against js/src/base/ws/Cache.js: [100,9,9,3,4,5].
+        // Corrected TS contract: incoming row defines length. [100,1,2,3,4,5] then
+        // [100,9,9] used to leave [100,9,9,3,4,5]; it must become [100,9,9].
         var cache = new ArrayCache.ArrayCacheByTimestamp();
         cache.append(row(100L, 1.0, 2.0, 3.0, 4.0, 5.0));
         cache.append(row(100L, 9.0, 9.0));
 
         assertEquals(1, cache.size(), "same timestamp merges rather than appending");
-        assertEquals(List.of(100L, 9.0, 9.0, 3.0, 4.0, 5.0), cache.get(0),
-                "a short update must not truncate the stored row");
+        assertEquals(List.of(100L, 9.0, 9.0), cache.get(0),
+                "a short update must drop the previous tail");
         assertEquals(cache.get(0), cache.hashmap.get("100"), "hashmap holds the same row identity");
         assertEquals(1, cache.getLimit(null, null).intValue(), "one distinct timestamp");
 
