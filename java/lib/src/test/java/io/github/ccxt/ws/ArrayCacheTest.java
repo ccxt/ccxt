@@ -125,6 +125,22 @@ class ArrayCacheTest {
     // ─── getLimit: deferred reset, min semantics, nullability ───
 
     @Test
+    @DisplayName("plain ArrayCache does not dedupe: the same id appends twice (Cache.ts:87-92)")
+    void testPlainArrayCacheDoesNotDedupe() {
+        // Only the keyed variants dedupe. Base ArrayCache.append is push-with-eviction, so two
+        // items sharing an id are two FIFO rows — a variant that inherited the keyed append
+        // would collapse them and silently drop a trade.
+        var cache = new ArrayCache(10);
+        cache.append(item("symbol", "BTC/USDT", "id", "same", "i", 1));
+        cache.append(item("symbol", "BTC/USDT", "id", "same", "i", 2));
+
+        assertEquals(2, cache.size(), "plain ArrayCache must not collapse repeated ids");
+        assertEquals(List.of(1, 2), order(cache, "i"), "insertion order is preserved");
+        assertEquals(2, cache.getLimit("BTC/USDT", 5).intValue(), "both appends count");
+        assertTrue(cache.hashmap.isEmpty(), "plain ArrayCache never writes the hashmap index");
+    }
+
+    @Test
     @DisplayName("D3: getLimit defers the reset to the next append (Cache.ts:69,75,93-102)")
     void testNewUpdatesTracking() {
         var cache = new ArrayCache(100);
@@ -314,6 +330,31 @@ class ArrayCacheTest {
     }
 
     @Test
+    @DisplayName("ByTimestamp: a shorter update overwrites field-wise and keeps the tail")
+    void testArrayCacheByTimestampShorterUpdateKeepsTail() {
+        // TS merges with `for (const prop in item) reference[prop] = item[prop]`, which over an
+        // array enumerates only the indices PRESENT on the update. A 3-element update onto a
+        // 6-element row therefore rewrites indices 0..2 and leaves 3..5 intact — it does NOT
+        // truncate the row. Verified against js/src/base/ws/Cache.js: [100,9,9,3,4,5].
+        var cache = new ArrayCache.ArrayCacheByTimestamp();
+        cache.append(row(100L, 1.0, 2.0, 3.0, 4.0, 5.0));
+        cache.append(row(100L, 9.0, 9.0));
+
+        assertEquals(1, cache.size(), "same timestamp merges rather than appending");
+        assertEquals(List.of(100L, 9.0, 9.0, 3.0, 4.0, 5.0), cache.get(0),
+                "a short update must not truncate the stored row");
+        assertEquals(cache.get(0), cache.hashmap.get("100"), "hashmap holds the same row identity");
+        assertEquals(1, cache.getLimit(null, null).intValue(), "one distinct timestamp");
+
+        // the reverse case: a longer update extends the row rather than dropping the extra fields
+        var grow = new ArrayCache.ArrayCacheByTimestamp();
+        grow.append(row(200L, 1.0));
+        grow.append(row(200L, 2.0, 3.0, 4.0));
+        assertEquals(1, grow.size());
+        assertEquals(List.of(200L, 2.0, 3.0, 4.0), grow.get(0));
+    }
+
+    @Test
     @DisplayName("ByTimestamp: immutable rows fall back to positional replacement")
     void testArrayCacheByTimestampImmutableRow() {
         var cache = new ArrayCache.ArrayCacheByTimestamp();
@@ -431,6 +472,61 @@ class ArrayCacheTest {
         assertEquals(2, cache.size(), "per-symbol id sequences must not splice the wrong row");
         assertEquals(1, at(cache, 0, "i"));
         assertEquals(2, at(cache, 1, "i"));
+    }
+
+    @Test
+    @DisplayName("ById: concatenation-style key collisions stay distinct rows (Cache.ts:196)")
+    void testArrayCacheBySymbolByIdCollisionStyleKeys() {
+        // A port that keyed the index on symbol+id string concatenation would map both
+        // ("BTC/USDT1","2") and ("BTC/USDT","12") onto "BTC/USDT12" and collapse them.
+        var cache = new ArrayCache.ArrayCacheBySymbolById();
+        cache.append(item("symbol", "BTC/USDT1", "id", "2", "i", 1));
+        cache.append(item("symbol", "BTC/USDT", "id", "12", "i", 2));
+
+        assertEquals(2, cache.size(), "distinct (symbol,id) pairs must not collide");
+        assertEquals(1, at(cache, 0, "i"));
+        assertEquals(2, at(cache, 1, "i"));
+
+        assertEquals(2, cache.hashmap.size(), "two separate outer buckets");
+        assertEquals(1, asMap(asMap(cache.hashmap.get("BTC/USDT1")).get("2")).get("i"));
+        assertEquals(2, asMap(asMap(cache.hashmap.get("BTC/USDT")).get("12")).get("i"));
+
+        // updating one must leave the other untouched
+        cache.append(item("symbol", "BTC/USDT", "id", "12", "i", 22));
+        assertEquals(2, cache.size());
+        assertEquals(List.of("BTC/USDT1", "BTC/USDT"), order(cache, "symbol"));
+        assertEquals(1, at(cache, 0, "i"), "the near-collision row is unchanged");
+        assertEquals(22, at(cache, 1, "i"));
+    }
+
+    @Test
+    @DisplayName("ById: evicting a symbol's last id empties its bucket but keeps the key (Cache.ts:202-205)")
+    void testArrayCacheBySymbolByIdEmptyBucketAfterEviction() {
+        // TS does `delete this.hashmap[symbol][id]` and never prunes the outer key, so the
+        // bucket survives as {}. Generated code does `hashmap[symbol][id]` without a null
+        // guard, so removing the outer key here would turn a stale read into a NPE.
+        var cache = new ArrayCache.ArrayCacheBySymbolById(2);
+        cache.append(item("symbol", "BTC/USDT", "id", "1", "i", 1));
+        cache.append(item("symbol", "ETH/USDT", "id", "1", "i", 2));
+        cache.append(item("symbol", "XRP/USDT", "id", "1", "i", 3)); // evicts BTC/USDT
+
+        assertEquals(2, cache.size());
+        assertEquals(List.of("ETH/USDT", "XRP/USDT"), order(cache, "symbol"));
+
+        assertEquals(3, cache.hashmap.size(), "the outer key survives an emptied bucket");
+        var btc = asMap(cache.hashmap.get("BTC/USDT"));
+        assertNotNull(btc, "the outer bucket must not be dropped");
+        assertTrue(btc.isEmpty(), "the evicted id must be gone from its bucket");
+        assertNull(btc.get("1"));
+        assertEquals(1, asMap(cache.hashmap.get("ETH/USDT")).size());
+
+        // the evicted (symbol,id) must be treated as new again, not as an in-place update
+        cache.append(item("symbol", "BTC/USDT", "id", "1", "i", 4)); // evicts ETH/USDT
+        assertEquals(2, cache.size());
+        assertEquals(List.of("XRP/USDT", "BTC/USDT"), order(cache, "symbol"));
+        assertEquals(4, at(cache, 1, "i"));
+        assertEquals(4, asMap(asMap(cache.hashmap.get("BTC/USDT")).get("1")).get("i"));
+        assertTrue(asMap(cache.hashmap.get("ETH/USDT")).isEmpty(), "ETH/USDT is now the empty one");
     }
 
     @Test
