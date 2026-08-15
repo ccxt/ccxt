@@ -1278,12 +1278,28 @@ class Transpiler {
             'createStopMarketOrder',
             'createStopMarketOrderWs',
         ];
+        let errors: any[] = [];
         for (const methodName of Object.keys (defaultHas)) {
             // if code contains unified method definition, then it should be true
-            if (code.includes ('\n    async ' + methodName + ' (')) {
+            if (code.includes ('\n    async ' + methodName + ' (') || code.includes ('\n    override async ' + methodName + ' (')) {
                 if (!(methodName in features) || (!features[methodName].startsWith ('true,') && !features[methodName].startsWith ('\'emulated\','))) {
                     features[methodName] = 'true,';
                 }
+            } else if (!exclusions.includes (methodName) && !derivedMethods.includes (methodName)) {
+                // if code does not contain unified method definition, then we remove (unless false)
+                if ((methodName in features) && !features[methodName].startsWith ('false,')) {
+                    errors = errors.concat (methodName);
+                }
+            }
+        }
+        if (errors.length) {
+            if (process.argv.includes ('--autoremove-has-methods')) {
+                for (const methodName of errors) {
+                    delete features[methodName];
+                }
+            } else {
+                console.log ('These Methods need to be removed from ' + baseExchange.id + '.has: ' + errors.join(' | '));
+                process.exit (1);
             }
         }
     }
