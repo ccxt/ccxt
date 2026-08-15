@@ -5146,7 +5146,6 @@ fetches information on multiple orders made by the user
 * [btcmarkets](/exchanges/btcmarkets.md#fetchorders)
 * [btcturk](/exchanges/btcturk.md#fetchorders)
 * [bullish](/exchanges/bullish.md#fetchorders)
-* [bybit](/exchanges/bybit.md#fetchorders)
 * [cex](/exchanges/cex.md#fetchorders)
 * [coinbase](/exchanges/coinbase.md#fetchorders)
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#fetchorders)

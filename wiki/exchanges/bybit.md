@@ -34,7 +34,6 @@
 * [cancelAllOrders](#cancelallorders)
 * [fetchOrderClassic](#fetchorderclassic)
 * [fetchOrder](#fetchorder)
-* [fetchOrders](#fetchorders)
 * [fetchOrdersClassic](#fetchordersclassic)
 * [fetchClosedOrder](#fetchclosedorder)
 * [fetchOpenOrder](#fetchopenorder)
@@ -816,36 +815,6 @@ bybit.fetchOrderClassic (id, symbol, params?)
 
 ```javascript
 bybit.fetchOrder (id, symbol, params?)
-```
-
-
-<a name="fetchOrders" id="fetchorders"></a>
-
-### fetchOrders{docsify-ignore}
-*classic accounts only/ spot not supported* fetches information on multiple orders made by the user *classic accounts only/ spot not supported*
-
-**Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
-
-**See**: https://bybit-exchange.github.io/docs/v5/order/order-list  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.trigger | <code>boolean</code> | No | true if trigger order |
-| params.stop | <code>boolean</code> | No | alias for trigger |
-| params.type | <code>string</code> | No | market type, ['swap', 'option'] |
-| params.subType | <code>string</code> | No | market subType, ['linear', 'inverse'] |
-| params.orderFilter | <code>string</code> | No | 'Order' or 'StopOrder' or 'tpslOrder' |
-| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
-
-
-```javascript
-bybit.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
