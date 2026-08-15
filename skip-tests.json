@@ -2272,7 +2272,6 @@
         "wsProxy": "http://188.245.226.105:8911",
         "//skipWs": "requires auth",
         "skipMethods": {
-            "fetchTicker": "spot markets are not supported and the go test harness crashes on NotSupported instead of tolerating it",
             "fetchTickers": {
                 "checkActiveSymbols": "the v3 futures endpoint only covers swap markets, there is no bulk spot ticker source"
             },
