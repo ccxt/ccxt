@@ -5,6 +5,7 @@ namespace ccxt\pro;
 class ArrayCache extends BaseCache {
     public $hashmap;
     public $new_updates_by_symbol;
+    public $seen_updates_by_symbol;
     public $clear_updates_by_symbol;
     public $nested_new_updates_by_symbol;
     public $all_new_updates;
@@ -14,7 +15,13 @@ class ArrayCache extends BaseCache {
         parent::__construct($max_size);
         $this->hashmap = array();
         $this->nested_new_updates_by_symbol = false;
+        // $new_updates_by_symbol holds a plain integer count per key. The keyed
+        // subclasses count DISTINCT ids / sides, so they keep the membership set
+        // itself in $seen_updates_by_symbol and write its size back here - that
+        // way getLimit() never has to guess whether it is holding a number or a
+        // set, and never type-puns one for the other
         $this->new_updates_by_symbol = array();
+        $this->seen_updates_by_symbol = array();
         $this->clear_updates_by_symbol = array();
         $this->all_new_updates = 0;
         $this->clear_all_updates = false;
@@ -27,10 +34,8 @@ class ArrayCache extends BaseCache {
             $new_updates_value = $this->all_new_updates;
             $this->clear_all_updates = true;
         } else {
+            // always an int, for every cache flavour
             $new_updates_value = $this->new_updates_by_symbol[$symbol] ?? null;
-            if (($new_updates_value !== null) && $this->nested_new_updates_by_symbol) {
-                $new_updates_value = count($new_updates_value);
-            }
             $this->clear_updates_by_symbol[$symbol] = true;
         }
 
@@ -54,6 +59,7 @@ class ArrayCache extends BaseCache {
             $this->clear_updates_by_symbol = array();
             $this->all_new_updates = 0;
             $this->new_updates_by_symbol = array();
+            $this->seen_updates_by_symbol = array();
         }
         // prediction-market items carry an `outcome` handle instead of a `symbol`
         $symbol = $item['symbol'] ?? $item['outcome'] ?? '';
@@ -72,6 +78,7 @@ class ArrayCache extends BaseCache {
         parent::clear();
         $this->hashmap = array();
         $this->new_updates_by_symbol = array();
+        $this->seen_updates_by_symbol = array();
         $this->clear_updates_by_symbol = array();
         $this->all_new_updates = 0;
         $this->clear_all_updates = false;

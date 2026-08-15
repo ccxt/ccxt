@@ -309,6 +309,85 @@ function test_php_get_limit_unknown_symbol() {
     }, 'get_limit() on an unseen symbol must not warn about an undefined array key');
 }
 
+function test_php_new_updates_by_symbol_is_always_an_int() {
+    // `$new_updates_by_symbol` used to hold a plain int on ArrayCache but a
+    // membership ARRAY on the keyed subclasses, and `getLimit()` told the two
+    // apart with a `nested_new_updates_by_symbol` flag. That type punning is
+    // gone: the distinct ids / sides live in `$seen_updates_by_symbol` and only
+    // their count is written back, so `min()` in `getLimit()` can never be
+    // handed an array.
+    $caches = array(
+        'ById' => array( new ArrayCacheBySymbolById(), array( 'symbol' => 'BTC/USDT', 'id' => '1' ) ),
+        'BySide' => array( new ArrayCacheBySymbolBySide(), array( 'symbol' => 'BTC/USDT', 'side' => 'long' ) ),
+        'ByOutcome' => array( new ArrayCacheByOutcomeById(), array( 'outcome' => 'YES', 'id' => '1' ) ),
+        'plain' => array( new ArrayCache(), array( 'symbol' => 'BTC/USDT', 'data' => 1 ) ),
+    );
+    foreach ($caches as $name => $pair) {
+        list($cache, $item) = $pair;
+        $cache->append($item);
+        $key = $item['symbol'] ?? $item['outcome'];
+        check(is_int($cache->new_updates_by_symbol[$key]), $name . ': new_updates_by_symbol must hold an int, got ' . gettype($cache->new_updates_by_symbol[$key]));
+        // min() on an array returns the array in php, so a punned value would
+        // silently leak out of get_limit() as a non-int here
+        check($cache->get_limit($key, 10) === 1, $name . ': get_limit() must return the int count');
+    }
+
+    // distinct ids are still counted as distinct, repeats are not
+    $orders = new ArrayCacheBySymbolById();
+    $orders->append(array( 'symbol' => 'BTC/USDT', 'id' => '1', 'status' => 'open' ));
+    $orders->append(array( 'symbol' => 'BTC/USDT', 'id' => '2', 'status' => 'open' ));
+    $orders->append(array( 'symbol' => 'BTC/USDT', 'id' => '1', 'status' => 'closed' ));
+    $orders->append(array( 'symbol' => 'ETH/USDT', 'id' => '1', 'status' => 'open' ));
+    check($orders->new_updates_by_symbol['BTC/USDT'] === 2, 'two distinct ids updated three times must count as two');
+    check(count($orders->seen_updates_by_symbol['BTC/USDT']) === 2, 'the seen set must hold the two distinct ids');
+    check($orders->all_new_updates === 3, 'all_new_updates must count distinct (symbol, id) pairs, got ' . $orders->all_new_updates);
+    check($orders->get_limit(null, null) === 3, 'the symbol-less limit must be the running total');
+    check($orders->get_limit('BTC/USDT', 1) === 1, 'a smaller explicit limit must win');
+
+    // sides likewise
+    $positions = new ArrayCacheBySymbolBySide();
+    $positions->append(array( 'symbol' => 'BTC/USDT', 'side' => 'long', 'contracts' => 1 ));
+    $positions->append(array( 'symbol' => 'BTC/USDT', 'side' => 'short', 'contracts' => 2 ));
+    $positions->append(array( 'symbol' => 'BTC/USDT', 'side' => 'long', 'contracts' => 3 ));
+    check($positions->new_updates_by_symbol['BTC/USDT'] === 2, 'two distinct sides updated three times must count as two');
+    check($positions->get_limit('BTC/USDT', null) === 2, 'BySide get_limit() must report the distinct side count');
+}
+
+function test_php_consume_resets_the_seen_set() {
+    // Reading the limit ARMS a deferred reset; the next append is what actually
+    // performs it. The seen set has to be emptied together with the counter,
+    // otherwise the second batch keeps counting against the first batch's ids
+    // and the consumer is handed a limit that reaches back into rows it has
+    // already seen.
+    $cache = new ArrayCacheBySymbolById();
+    $cache->append(array( 'symbol' => 'BTC/USDT', 'id' => '1' ));
+    $cache->append(array( 'symbol' => 'BTC/USDT', 'id' => '2' ));
+    check($cache->get_limit('BTC/USDT', null) === 2, 'precondition: the first batch is two ids');
+    $cache->append(array( 'symbol' => 'BTC/USDT', 'id' => '3' ));
+    check($cache->new_updates_by_symbol['BTC/USDT'] === 1, 'the per-symbol reset must restart the count at one');
+    check(count($cache->seen_updates_by_symbol['BTC/USDT']) === 1, 'the per-symbol reset must empty the seen set too');
+    check($cache->get_limit('BTC/USDT', null) === 1, 'only the row appended after the read is new');
+
+    // and the symbol-less read wipes BOTH maps on the next append
+    $all = new ArrayCacheBySymbolById();
+    $all->append(array( 'symbol' => 'BTC/USDT', 'id' => '1' ));
+    $all->append(array( 'symbol' => 'ETH/USDT', 'id' => '1' ));
+    check($all->get_limit(null, null) === 2, 'precondition: two symbols, two new updates');
+    $all->append(array( 'symbol' => 'BTC/USDT', 'id' => '2' ));
+    check($all->all_new_updates === 1, 'the deferred all-clear must restart the running total');
+    check(array_keys($all->new_updates_by_symbol) === array( 'BTC/USDT' ), 'the deferred all-clear must drop the stale per-symbol counts');
+    check(array_keys($all->seen_updates_by_symbol) === array( 'BTC/USDT' ), 'the deferred all-clear must drop the stale seen sets');
+    check($all->new_updates_by_symbol['BTC/USDT'] === 1, 'the surviving symbol restarts at one, not at its pre-clear count');
+
+    // clear() wipes the seen sets with everything else
+    $wiped = new ArrayCacheBySymbolById();
+    $wiped->append(array( 'symbol' => 'BTC/USDT', 'id' => '1' ));
+    $wiped->clear();
+    check($wiped->seen_updates_by_symbol === array(), 'clear() must wipe the seen sets');
+    check($wiped->new_updates_by_symbol === array(), 'clear() must wipe the per-symbol counts');
+    check($wiped->get_limit('BTC/USDT', 5) === 5, 'after clear() an unseen symbol falls back to the requested limit');
+}
+
 // ----------------------------------------------------------------------------
 
 function test_ws_cache_php() {
@@ -321,5 +400,7 @@ function test_ws_cache_php() {
     test_php_by_side_never_evicts();
     test_php_keys_are_string_cast();
     test_php_get_limit_unknown_symbol();
+    test_php_new_updates_by_symbol_is_always_an_int();
+    test_php_consume_resets_the_seen_set();
     print('php ArrayCache regression probes passed: ' . $GLOBALS['cache_php_checks'] . " assertions\n");
 }

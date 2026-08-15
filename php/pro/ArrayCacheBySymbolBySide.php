@@ -56,18 +56,23 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
             $this->clear_updates_by_symbol = array();
             $this->all_new_updates = 0;
             $this->new_updates_by_symbol = array();
+            $this->seen_updates_by_symbol = array();
         }
-        if (!array_key_exists($symbol, $this->new_updates_by_symbol)) {
-            $this->new_updates_by_symbol[$symbol] = array();
+        # the DISTINCT sides seen for this symbol live in their own map - the
+        # count they produce is what $new_updates_by_symbol carries, so
+        # getLimit() only ever reads an integer
+        if (!array_key_exists($symbol, $this->seen_updates_by_symbol)) {
+            $this->seen_updates_by_symbol[$symbol] = array();
         }
         if ($this->clear_updates_by_symbol[$symbol] ?? false) {
             $this->clear_updates_by_symbol[$symbol] = false;
-            $this->new_updates_by_symbol[$symbol] = array();
+            $this->seen_updates_by_symbol[$symbol] = array();
         }
-        $side_set = &$this->new_updates_by_symbol[$symbol];
-        $before_length = count($side_set);
-        $side_set[$side] = 1;
-        $after_length = count($side_set);
+        # in case an exchange re-sends the same side twice
+        $before_length = count($this->seen_updates_by_symbol[$symbol]);
+        $this->seen_updates_by_symbol[$symbol][$side] = true;
+        $after_length = count($this->seen_updates_by_symbol[$symbol]);
+        $this->new_updates_by_symbol[$symbol] = $after_length;
         $this->all_new_updates = ($this->all_new_updates ?? 0) + ($after_length - $before_length);
     }
 

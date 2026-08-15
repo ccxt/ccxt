@@ -64,18 +64,23 @@ class ArrayCacheBySymbolById extends ArrayCache {
             $this->clear_updates_by_symbol = array();
             $this->all_new_updates = 0;
             $this->new_updates_by_symbol = array();
+            $this->seen_updates_by_symbol = array();
         }
-        if (!array_key_exists($key, $this->new_updates_by_symbol)) {
-            $this->new_updates_by_symbol[$key] = array();
+        # the DISTINCT ids seen for this key live in their own map - the count
+        # they produce is what $new_updates_by_symbol carries, so getLimit()
+        # only ever reads an integer
+        if (!array_key_exists($key, $this->seen_updates_by_symbol)) {
+            $this->seen_updates_by_symbol[$key] = array();
         }
         if ($this->clear_updates_by_symbol[$key] ?? false) {
             $this->clear_updates_by_symbol[$key] = false;
-            $this->new_updates_by_symbol[$key] = array();
+            $this->seen_updates_by_symbol[$key] = array();
         }
-        $id_set = &$this->new_updates_by_symbol[$key];
-        $before_length = count($id_set);
-        $id_set[$id] = 1;
-        $after_length = count($id_set);
+        # in case an exchange updates the same order id twice
+        $before_length = count($this->seen_updates_by_symbol[$key]);
+        $this->seen_updates_by_symbol[$key][$id] = true;
+        $after_length = count($this->seen_updates_by_symbol[$key]);
+        $this->new_updates_by_symbol[$key] = $after_length;
         $this->all_new_updates = ($this->all_new_updates ?? 0) + ($after_length - $before_length);
     }
 
