@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../../../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheByOutcomeById, ArrayCacheBySymbolBySide } from '../../../base/ws/Cache.js';
 
 function equals (a: any, b: any) {
     if (a.length !== b.length) {
@@ -568,6 +568,52 @@ function testWsCache () {
 
     assert (cacheShortOhlcv.length === 1);
     assert (equals (cacheShortOhlcv, [ [ 100, 9, 9 ] ]));
+
+    // ----------------------------------------------------------------------------
+    // test ArrayCacheByOutcomeById keys the first nesting level on the outcome and
+    // not on the symbol - prediction markets stream several outcomes of the same
+    // market, so a symbol-keyed lookup would merge two distinct outcomes that
+    // happen to share one order id into a single row
+
+    const cacheByOutcome = new ArrayCacheByOutcomeById ();
+    cacheByOutcome.append ({ 'symbol': 'TRUMP-2024', 'outcome': 'yes', 'id': 'o1', 'i': 1 });
+    cacheByOutcome.append ({ 'symbol': 'TRUMP-2024', 'outcome': 'no', 'id': 'o1', 'i': 2 });
+    cacheByOutcome.append ({ 'symbol': 'TRUMP-2024', 'outcome': 'yes', 'id': 'o1', 'i': 3 });
+
+    assert (equals (cacheByOutcome, [
+        { 'symbol': 'TRUMP-2024', 'outcome': 'no', 'id': 'o1', 'i': 2 },
+        { 'symbol': 'TRUMP-2024', 'outcome': 'yes', 'id': 'o1', 'i': 3 },
+    ]));
+
+    // ----------------------------------------------------------------------------
+    // test a numeric id is matched the same way a string one is - exchanges do send
+    // integer order ids, and the lookup must neither throw nor miss and append a
+    // duplicate row instead of merging the update in
+
+    const cacheNumericId = new ArrayCacheBySymbolById ();
+    cacheNumericId.append ({ 'symbol': 'BTC/USDT', 'id': 1, 'status': 'open', 'amount': 5 });
+    cacheNumericId.append ({ 'symbol': 'BTC/USDT', 'id': 1, 'status': 'closed' });
+
+    assert (cacheNumericId.length === 1);
+    assert (cacheNumericId[0]['status'] === 'closed');
+    assert (cacheNumericId[0]['amount'] === 5);
+
+    // ----------------------------------------------------------------------------
+    // test eviction removes the emptied outer bucket too - a stream of short-lived
+    // symbols used to leak one empty object per symbol into the hashmap forever,
+    // so the map grew without bound even though the array stayed at maxSize
+
+    const cacheEvictBuckets = new ArrayCacheBySymbolById (3);
+
+    for (let i = 0; i < 10; i++) {
+        cacheEvictBuckets.append ({ 'symbol': 'S' + i.toString () + '/USDT', 'id': 'x', 'i': i });
+    }
+
+    const evictedLength = cacheEvictBuckets.length;
+    assert (evictedLength === 3);
+    const bucketKeys = Object.keys (cacheEvictBuckets.hashmap);
+    const bucketCount = bucketKeys.length;
+    assert (bucketCount === 3); // no empty leftover buckets
 }
 
 export default testWsCache;
