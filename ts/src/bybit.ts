@@ -4118,11 +4118,6 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const types = await this.isUnifiedEnabled ();
-        const enableUnifiedAccount = types[1];
-        if (!enableUnifiedAccount) {
-            throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports UTA accounts only');
-        }
         const market = this.market (symbol);
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports spot orders only');
@@ -4173,12 +4168,10 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const parts = await this.isUnifiedEnabled ();
-        const enableUnifiedAccount = parts[1];
         const isTrailingOrder = this.safeString2 (params, 'trailingAmount', 'trailingStop') !== undefined;
         const isStopLossOrder = this.safeString (params, 'stopLossPrice') !== undefined;
         const isTakeProfitOrder = this.safeString (params, 'takeProfitPrice') !== undefined;
-        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params, enableUnifiedAccount);
+        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params, true);
         const switchToOco = (isStopLossOrder && isTakeProfitOrder) || this.safeBool (params, 'tradingStopEndpoint', false);
         let defaultMethod: Str = undefined;
         if ((isTrailingOrder || switchToOco) && !market['spot']) {
@@ -4210,7 +4203,7 @@ export default class bybit extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}, isUTA = true) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -4377,7 +4370,7 @@ export default class bybit extends Exchange {
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         const isMarketBuyAndCostInferable = (lowerCaseType === 'market') && (side === 'buy') && ((price !== undefined) || (cost !== undefined));
         const isMarketOrder = lowerCaseType === 'market';
-        if (market['spot'] && isMarketOrder && isUTA && !isMarketBuyAndCostInferable) {
+        if (market['spot'] && isMarketOrder && !isMarketBuyAndCostInferable) {
             // UTA account can specify the cost of the order on both sides
             if ((cost !== undefined) || (price !== undefined)) {
                 request['marketUnit'] = 'quoteCoin';
@@ -4514,8 +4507,6 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const accounts = await this.isUnifiedEnabled ();
-        const isUta = accounts[1];
         const ordersRequests: List = [];
         const orderSymbols: List = [];
         for (let i = 0; i < orders.length; i++) {
@@ -4527,7 +4518,7 @@ export default class bybit extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams, isUta);
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             delete orderRequest['category'];
             ordersRequests.push (orderRequest);
         }
@@ -4901,11 +4892,6 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const types = await this.isUnifiedEnabled ();
-        const enableUnifiedAccount = types[1];
-        if (!enableUnifiedAccount) {
-            throw new NotSupported (this.id + ' cancelOrders() supports UTA accounts only');
-        }
         let category: Str = undefined;
         [ category, params ] = this.getBybitType ('cancelOrders', market, params);
         if (category === 'inverse') {
@@ -5022,11 +5008,6 @@ export default class bybit extends Exchange {
     override async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
-        }
-        const types = await this.isUnifiedEnabled ();
-        const enableUnifiedAccount = types[1];
-        if (!enableUnifiedAccount) {
-            throw new NotSupported (this.id + ' cancelOrdersForSymbols() supports UTA accounts only');
         }
         const ordersRequests: List = [];
         let category: Str = undefined;
@@ -5271,122 +5252,6 @@ export default class bybit extends Exchange {
         }
         const order = this.safeDict (innerList, 0, {});
         return this.parseOrder (order, market);
-    }
-
-    /**
-     * @method
-     * @name bybit#fetchOrders
-     * @description fetches information on multiple orders made by the user, not supported for UTA accounts after the 5/02 update *spot not supported*
-     * @see https://bybit-exchange.github.io/docs/v5/order/order-list
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] true if trigger order
-     * @param {boolean} [params.stop] alias for trigger
-     * @param {string} [params.type] market type, ['swap', 'option', 'spot']
-     * @param {string} [params.subType] market subType, ['linear', 'inverse']
-     * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
-     * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        const res = await this.isUnifiedEnabled ();
-        const enableUnifiedAccount = this.safeBool (res, 1);
-        if (enableUnifiedAccount) {
-            throw new NotSupported (this.id + ' fetchOrders() is not supported after the 5/02 update for UTA accounts, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders');
-        }
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrdersClassic', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchOrdersClassic', symbol, since, limit, params, 'nextPageCursor', 'cursor', undefined, 50) as Order[];
-        }
-        const request: Dict = {};
-        let market: Market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
-        let type: Str = undefined;
-        [ type, params ] = this.getBybitType ('fetchOrdersClassic', market, params);
-        if (type === 'spot') {
-            throw new NotSupported (this.id + ' fetchOrdersClassic() is not supported for spot markets');
-        }
-        request['category'] = type;
-        const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
-        params = this.omit (params, [ 'trigger', 'stop' ]);
-        if (isTrigger) {
-            request['orderFilter'] = 'StopOrder';
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        const until = this.safeInteger (params, 'until'); // unified in milliseconds
-        const endTime = this.safeInteger (params, 'endTime', until); // exchange-specific in milliseconds
-        params = this.omit (params, [ 'endTime', 'until' ]);
-        if (endTime !== undefined) {
-            request['endTime'] = endTime;
-        }
-        const response = await this.privateGetV5OrderHistory (this.extend (request, params));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "nextPageCursor": "03234de9-1332-41eb-b805-4a9f42c136a3%3A1672220109387%2C03234de9-1332-41eb-b805-4a9f42c136a3%3A1672220109387",
-        //             "category": "linear",
-        //             "list": [
-        //                 {
-        //                     "symbol": "BTCUSDT",
-        //                     "orderType": "Limit",
-        //                     "orderLinkId": "test-001",
-        //                     "orderId": "03234de9-1332-41eb-b805-4a9f42c136a3",
-        //                     "cancelType": "CancelByUser",
-        //                     "avgPrice": "0",
-        //                     "stopOrderType": "UNKNOWN",
-        //                     "lastPriceOnCreated": "16656.5",
-        //                     "orderStatus": "Cancelled",
-        //                     "takeProfit": "",
-        //                     "cumExecValue": "0",
-        //                     "triggerDirection": 0,
-        //                     "blockTradeId": "",
-        //                     "rejectReason": "EC_PerCancelRequest",
-        //                     "isLeverage": "",
-        //                     "price": "18000",
-        //                     "orderIv": "",
-        //                     "createdTime": "1672220109387",
-        //                     "tpTriggerBy": "UNKNOWN",
-        //                     "positionIdx": 0,
-        //                     "timeInForce": "GoodTillCancel",
-        //                     "leavesValue": "0",
-        //                     "updatedTime": "1672220114123",
-        //                     "side": "Sell",
-        //                     "triggerPrice": "",
-        //                     "cumExecFee": "0",
-        //                     "slTriggerBy": "UNKNOWN",
-        //                     "leavesQty": "0",
-        //                     "closeOnTrigger": false,
-        //                     "cumExecQty": "0",
-        //                     "reduceOnly": false,
-        //                     "qty": "0.1",
-        //                     "stopLoss": "",
-        //                     "triggerBy": "UNKNOWN"
-        //                 }
-        //             ]
-        //         },
-        //         "retExtInfo": {},
-        //         "time": 1672221263862
-        //     }
-        //
-        const data = this.addPaginationCursorToResult (response);
-        return this.parseOrders (data, market, since, limit);
     }
 
     /**
@@ -6265,18 +6130,11 @@ export default class bybit extends Exchange {
             // 'limit': 0, Limit for data size per page. [1, 50]. Default: 20
             // 'cursor': '', Cursor. Used for pagination
         };
-        const enableUnified = await this.isUnifiedEnabled ();
         let currency: Currency = undefined;
         let currencyKey = 'coin';
-        if (enableUnified[1]) {
-            currencyKey = 'currency';
-            if (since !== undefined) {
-                request['startTime'] = since;
-            }
-        } else {
-            if (since !== undefined) {
-                request['start_date'] = this.yyyymmdd (since);
-            }
+        currencyKey = 'currency';
+        if (since !== undefined) {
+            request['startTime'] = since;
         }
         if (code !== undefined) {
             currency = this.currency (code);
@@ -6288,15 +6146,11 @@ export default class bybit extends Exchange {
         let subType: Str = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLedger', undefined, params);
         let response: Dict;
-        if (enableUnified[1]) {
-            const unifiedMarginStatus = this.safeInteger (this.options, 'unifiedMarginStatus', 5); // 3/4 uta 1.0, 5/6 uta 2.0
-            if (subType === 'inverse' && (unifiedMarginStatus < 5)) {
-                response = await this.privateGetV5AccountContractTransactionLog (this.extend (request, params));
-            } else {
-                response = await this.privateGetV5AccountTransactionLog (this.extend (request, params));
-            }
-        } else {
+        const unifiedMarginStatus = this.safeInteger (this.options, 'unifiedMarginStatus', 5); // 3/4 uta 1.0, 5/6 uta 2.0
+        if (subType === 'inverse' && (unifiedMarginStatus < 5)) {
             response = await this.privateGetV5AccountContractTransactionLog (this.extend (request, params));
+        } else {
+            response = await this.privateGetV5AccountTransactionLog (this.extend (request, params));
         }
         //
         //     {
@@ -6525,11 +6379,9 @@ export default class bybit extends Exchange {
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         let accountType: Str = undefined;
-        const accounts = await this.isUnifiedEnabled ();
-        const isUta = accounts[1];
         [ accountType, params ] = this.handleOptionAndParams (params, 'withdraw', 'accountType');
         if (accountType === undefined) {
-            accountType = isUta ? 'UTA' : 'SPOT';
+            accountType = 'UTA'; // default to 'UTA' if not specified
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
