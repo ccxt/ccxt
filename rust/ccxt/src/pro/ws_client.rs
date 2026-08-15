@@ -489,9 +489,6 @@ pub fn drop_client(url: &str) {
 // "subscriptions": <snapshot>, "futures": <snapshot> }`. The `Value` methods
 // `resolve`/`reject`/`send`/… (in value.rs) extract `url` and route here.
 
-/// Build the client-handle `Value` passed to `handle_message`: the URL plus
-/// live snapshots of `subscriptions` / `futures` (the fields venues read via
-/// `get_value(&client, "subscriptions")`).
 // ── Static-WS-test mock transport (url-keyed façade over ClientState) ────────
 
 /// `setupWsMockTransport(url)` — register a connected, socket-less client whose
@@ -532,6 +529,9 @@ pub fn mock_reject_futures(url: &str) {
     }
 }
 
+/// Build the client-handle `Value` passed to `handle_message`: the URL plus
+/// live snapshots of `subscriptions` / `futures` (the fields venues read via
+/// `get_value(&client, "subscriptions")`).
 pub fn client_value(url: &str) -> Value {
     // Pre-register the slot so subscriptions written on this handle (before the
     // socket connects) persist and read back — upbit-style subscribe building.
