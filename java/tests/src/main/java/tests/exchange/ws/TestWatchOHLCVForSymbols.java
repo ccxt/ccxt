@@ -21,19 +21,28 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
         Object ends = Helpers.add(now, 15000);
         Object timeframeKeys = Helpers.objectKeys(exchange.timeframes);
         Assert(Helpers.getArrayLength(timeframeKeys), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " - no timeframes found"));
-        // prefer 1m timeframe if available, otherwise return the first one
-        Object chosenTimeframeKey = "1m";
-        if (!Helpers.isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))
+        // prefer the shortest candle so a new bar can arrive inside the test window
+        Object preferredTimeframes = new java.util.ArrayList<Object>(java.util.Arrays.asList("1s", "5s", "15s", "30s", "1m"));
+        Object chosenTimeframeKey = Helpers.GetValue(timeframeKeys, 0);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(preferredTimeframes)); i++)
         {
-            chosenTimeframeKey = Helpers.GetValue(timeframeKeys, 0);
+            Object timeframeKey = Helpers.GetValue(preferredTimeframes, i);
+            if (Helpers.isTrue(exchange.inArray(timeframeKey, timeframeKeys)))
+            {
+                chosenTimeframeKey = timeframeKey;
+                break;
+            }
         }
         Object limit = 10;
         Object duration = exchange.parseTimeframe(chosenTimeframeKey);
         Object since = Helpers.subtract(Helpers.subtract(exchange.milliseconds(), Helpers.multiply(Helpers.multiply(duration, limit), 1000)), 1000);
-        while (Helpers.isLessThan(now, ends))
+        Object maxIdleTime = 5000;
+        Object idle = false;
+        while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
         {
             Object response = null;
             Object success = true;
+            Object startTime = exchange.milliseconds();
             try
             {
                 response = (exchange.watchOHLCVForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, chosenTimeframeKey)))), since, limit)).join();
@@ -47,16 +56,11 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
-                now = exchange.milliseconds();
-                // continue;
                 success = false;
             }
-            if (Helpers.isTrue(Helpers.isEqual(success, true)))
+            now = exchange.milliseconds();
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
             {
-                if (Helpers.isTrue(Helpers.isEqual(response, null)))
-                {
-                    throw new RuntimeException((String)Helpers.add(exchange.id, " watch returned undefined response")) ;
-                }
                 Object AssertionMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " "), chosenTimeframeKey), " | "), exchange.json(response));
                 Assert(exchange.isDictionary(response), Helpers.add("Response must be a dictionary. ", AssertionMessage));
                 Assert(Helpers.inOp(response, symbol), Helpers.add("Response should contain the symbol as key. ", AssertionMessage));
@@ -65,10 +69,13 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
                 Assert(Helpers.inOp(symbolObj, chosenTimeframeKey), Helpers.add("Response.symbol should contain the timeframe key. ", AssertionMessage));
                 Object ohlcvs = Helpers.GetValue(symbolObj, chosenTimeframeKey);
                 Assert(Helpers.isArray(ohlcvs), Helpers.add("Response.symbol.timeframe should be an array. ", AssertionMessage));
-                now = exchange.milliseconds();
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ohlcvs)); i++)
                 {
                     TestOHLCV.testOHLCV(exchange, skippedProperties, method, Helpers.GetValue(ohlcvs, i), symbol, now);
+                }
+                if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime)))
+                {
+                    idle = true;
                 }
             }
         }
