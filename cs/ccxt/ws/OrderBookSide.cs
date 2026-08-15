@@ -29,14 +29,10 @@ public interface IOrderBookSide : IList<object>
 
 public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
 {
-    // The monitor guarding this side, held for exclusive access by every mutator
-    // here. The book that owns this side has its own separate monitor, which
-    // excludes none of them, so a two-side snapshot (OrderBook.Copy) locks this
-    // field on both sides — asks first, then bids — for the whole snapshot. A
-    // caller holding it copies through the CopyUnlocked helpers below, which
-    // never re-enter the monitor. Named _sideLock because the SlimConcurrentList
-    // base already has a _lock (its ReaderWriterLockSlim), a different primitive.
-    protected internal readonly object _sideLock = new object();
+    // Exclusive access for this side: every mutator lock(this). OrderBook.Copy
+    // takes lock(asks) then lock(bids) so both halves of a snapshot are the
+    // same instant. CopyUnlocked runs only while that monitor is already held.
+    // SlimConcurrentList._lock is a different primitive (ReaderWriterLockSlim).
 
     private bool _side = false;
 
@@ -44,14 +40,14 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
     {
         get
         {
-            lock (_sideLock)
+            lock (this)
             {
                 return _side;
             }
         }
         set
         {
-            lock (_sideLock)
+            lock (this)
             {
                 _side = value;
             }
@@ -99,14 +95,14 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
     {
         get
         {
-            lock (_sideLock)
+            lock (this)
             {
                 return __index;
             }
         }
         set
         {
-            lock (_sideLock)
+            lock (this)
             {
                 __index = value;
             }
@@ -121,14 +117,14 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
     {
         get
         {
-            lock (_sideLock)
+            lock (this)
             {
                 return __depth;
             }
         }
         set
         {
-            lock (_sideLock)
+            lock (this)
             {
                 __depth = value;
             }
@@ -137,7 +133,7 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
 
     public OrderBookSide(object deltas2, object depth = null, bool side = false) : base()
     {
-        lock (_sideLock)
+        lock (this)
         {
 
             this.side = side;
@@ -153,17 +149,13 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
 
     public void storeArray(object delta2)
     {
-        lock (_sideLock)
+        lock (this)
         {
             var delta = (IList<object>)delta2;
             var price = Convert.ToDecimal(delta[0]);
             var amount = Convert.ToDecimal(delta[1]);
-            // perf: we already hold _sideLock, and both the `side` and `_index`
-            // property accessors lock that very same object, so each extra read below
-            // was a pure recursive Monitor re-entry returning an identical value
-            // (nothing can reassign either one without also holding _sideLock).
-            // Hoisting them into locals removes those re-entries without touching
-            // lock ordering or observable behaviour.
+            // Already holding this side; hoist `side` / `_index` so their
+            // accessors do not re-enter the same monitor.
             var sideLocal = this.side;
             var type = (sideLocal) ? "bid" : "ask";
             // if (amount == 0)
@@ -181,7 +173,7 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
             var indexList = this._index;
             // perf: `hit` is exactly `index < indexList.Count && indexList[index] == index_price`,
             // computed under the same single read lock as the bisect itself. Nothing can
-            // mutate _index in between anyway: every writer holds _sideLock, which we hold.
+            // mutate _index in between anyway: every writer holds this side, which we hold.
             var index = bisectLeft(indexList, index_price, out var hit);
             if (amount != 0)
             { // check this out does not make sense right now we have to consider null amounts?
@@ -236,7 +228,7 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
 
     public void store(object price, object amount)
     {
-        lock (_sideLock)
+        lock (this)
         {
             this.storeArray(new SlimConcurrentList<object> { price, amount });
         }
@@ -244,7 +236,7 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
 
     public void limit()
     {
-        lock (_sideLock)
+        lock (this)
         {
             var different = this.Count - this._depth;
             var indexList = this._index; // perf: hoist the recursive-lock property read out of the loop
@@ -259,7 +251,7 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
 
     public void store(object price, object size, object order_id)
     {
-        lock (_sideLock)
+        lock (this)
         {
             // default implementation, not used on this mode
             this.storeArray(new SlimConcurrentList<object> { price, size });
@@ -268,7 +260,7 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
 
     public IOrderBookSide Copy()
     {
-        lock (_sideLock)
+        lock (this)
         {
             return this.CopyUnlocked();
         }
@@ -292,7 +284,7 @@ public class NormalOrderBookSide : OrderBookSide, IOrderBookSide
     public NormalOrderBookSide(object deltas2, object depth = null, bool side = false) : base(deltas2, depth, side)
     {
 
-        lock (_sideLock)
+        lock (this)
         {
 
             var deltas = (IList<object>)deltas2;
@@ -307,7 +299,7 @@ public class NormalOrderBookSide : OrderBookSide, IOrderBookSide
 
     public IOrderBookSide Copy()
     {
-        lock (_sideLock)
+        lock (this)
         {
             return this.CopyUnlocked();
         }
@@ -327,7 +319,7 @@ public class CountedOrderBookSide : OrderBookSide, IOrderBookSide
     public CountedOrderBookSide(object deltas2, object depth = null, bool side = false) : base(deltas2, depth, side)
     {
 
-        lock (_sideLock)
+        lock (this)
         {
 
             var deltas = (IList<object>)deltas2;
@@ -340,7 +332,7 @@ public class CountedOrderBookSide : OrderBookSide, IOrderBookSide
 
     public IOrderBookSide Copy()
     {
-        lock (_sideLock)
+        lock (this)
         {
             return this.CopyUnlocked();
         }
@@ -355,7 +347,7 @@ public class CountedOrderBookSide : OrderBookSide, IOrderBookSide
 
     public void store(object price, object size, object count)
     {
-        lock (_sideLock)
+        lock (this)
         {
             this.storeArray(new SlimConcurrentList<object> { price, size, count }); // shouldn't be needed but I'm going crazy
         }
@@ -363,7 +355,7 @@ public class CountedOrderBookSide : OrderBookSide, IOrderBookSide
 
     public void storeArray(object deltaArra2)
     {
-        lock (_sideLock)
+        lock (this)
         {
             var deltaArray = (IList<object>)deltaArra2;
             var price = deltaArray[0];
@@ -385,8 +377,7 @@ public class CountedOrderBookSide : OrderBookSide, IOrderBookSide
             // }
             // int.TryParse(deltaArray[2].ToString(), out count);
             var decimalPrice = Convert.ToDecimal(price);
-            // perf: hoist the `side` / `_index` property reads (both re-enter the
-            // _sideLock Monitor we already hold) into locals, see OrderBookSide.storeArray
+            // hoist `side` / `_index` so their accessors do not re-enter this side
             var sideLocal = this.side;
             var indexList = this._index;
             var index_price = (sideLocal) ? -decimalPrice : decimalPrice;
@@ -423,7 +414,7 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
     public IndexedOrderBookSide(object deltas2, object depth = null, bool side = false) : base(deltas2, depth, side)
     {
 
-        lock (_sideLock)
+        lock (this)
         {
 
             var deltas = (IList<object>)deltas2;
@@ -438,7 +429,7 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
 
     public IOrderBookSide Copy()
     {
-        lock (_sideLock)
+        lock (this)
         {
             return this.CopyUnlocked();
         }
@@ -479,7 +470,7 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
     // caller, see https://github.com/ccxt/ccxt/pull/29745
     public new void limit()
     {
-        lock (_sideLock)
+        lock (this)
         {
             var different = this.Count - this._depth;
             var indexList = this._index; // perf: hoist the recursive-lock property read out of the loop
@@ -495,15 +486,14 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
 
     public void storeArray(object delta2)
     {
-        lock (_sideLock)
+        lock (this)
         {
 
             var delta = (IList<object>)delta2;
             var price = Convert.ToDecimal(delta[0]);
             var size = Convert.ToDecimal(delta[1]);
             var order_id = delta[2];
-            // perf: hoist the `side` / `_index` property reads (both re-enter the
-            // _sideLock Monitor we already hold) into locals, see OrderBookSide.storeArray
+            // hoist `side` / `_index` so their accessors do not re-enter this side
             var sideLocal = this.side;
             var indexList = this._index;
             decimal? index_price = -1;
@@ -618,7 +608,7 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
 
     public void remove_index(object order2)
     {
-        lock (_sideLock)
+        lock (this)
         {
 
             var order = (IList<object>)order2;
@@ -632,7 +622,7 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
 
     public void store(object price, object size, object order_id)
     {
-        lock (_sideLock)
+        lock (this)
         {
             this.storeArray(new SlimConcurrentList<object> { price, size, order_id });
         }
@@ -667,7 +657,7 @@ public class Asks : NormalOrderBookSide, IAsks
 
     public IAsks Copy()
     {
-        lock (_sideLock)
+        lock (this)
         {
             return this.CopyUnlocked();
         }
@@ -690,7 +680,7 @@ public class Bids : NormalOrderBookSide, IBids
 
     public IBids Copy()
     {
-        lock (_sideLock)
+        lock (this)
         {
             return this.CopyUnlocked();
         }
@@ -714,7 +704,7 @@ public class CountedAsks : CountedOrderBookSide, IAsks
 
     public IAsks Copy()
     {
-        lock (_sideLock)
+        lock (this)
         {
             return this.CopyUnlocked();
         }
@@ -737,7 +727,7 @@ public class CountedBids : CountedOrderBookSide, IBids
 
     public IBids Copy()
     {
-        lock (_sideLock)
+        lock (this)
         {
             return this.CopyUnlocked();
         }
@@ -761,7 +751,7 @@ public class IndexedAsks : IndexedOrderBookSide, IAsks
 
     public IAsks Copy()
     {
-        lock (_sideLock)
+        lock (this)
         {
             return this.CopyUnlocked();
         }
@@ -784,7 +774,7 @@ public class IndexedBids : IndexedOrderBookSide, IBids
 
     public IBids Copy()
     {
-        lock (_sideLock)
+        lock (this)
         {
             return this.CopyUnlocked();
         }

@@ -240,9 +240,9 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
             // side monitor, so the pair cannot cycle. Inside these locks the
             // sides are copied through CopyUnlocked, so neither monitor is
             // entered twice. storeArray is untouched — only Copy() pays.
-            lock (this._asks._sideLock)
+            lock (this._asks)
             {
-                lock (this._bids._sideLock)
+                lock (this._bids)
                 {
                     var copy = new OrderBook(new Dictionary<string, object>());
                     var copiedAsks = this._asks.CopyUnlocked();
@@ -375,9 +375,9 @@ public class CountedOrderBook : OrderBook, IOrderBook
         {
             // same atomicity requirement and same asks-then-bids order as
             // OrderBook.Copy
-            lock (this.asks._sideLock)
+            lock (this.asks)
             {
-                lock (this.bids._sideLock)
+                lock (this.bids)
                 {
                     var copy = new CountedOrderBook(new Dictionary<string, object>());
                     copy["asks"] = this.asks.CopyUnlocked();
@@ -421,9 +421,9 @@ public class IndexedOrderBook : OrderBook, IOrderBook
         {
             // same atomicity requirement and same asks-then-bids order as
             // OrderBook.Copy
-            lock (this.asks._sideLock)
+            lock (this.asks)
             {
-                lock (this.bids._sideLock)
+                lock (this.bids)
                 {
                     var copy = new IndexedOrderBook(new Dictionary<string, object>());
                     copy["asks"] = this.asks.CopyUnlocked();
