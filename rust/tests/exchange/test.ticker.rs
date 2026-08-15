@@ -114,12 +114,12 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
     //
     // base & quote volumes
     //
-    let mut baseVolume: Value = exchange.omit_zero(exchange.safeString(entry.clone(), Value::Str("baseVolume".to_string()), &[]));
-    let mut quoteVolume: Value = exchange.omit_zero(exchange.safeString(entry.clone(), Value::Str("quoteVolume".to_string()), &[]));
-    let mut high: Value = exchange.omit_zero(exchange.safeString(entry.clone(), Value::Str("high".to_string()), &[]));
-    let mut low: Value = exchange.omit_zero(exchange.safeString(entry.clone(), Value::Str("low".to_string()), &[]));
-    let mut open: Value = exchange.omit_zero(exchange.safeString(entry.clone(), Value::Str("open".to_string()), &[]));
-    let mut close: Value = exchange.omit_zero(exchange.safeString(entry.clone(), Value::Str("close".to_string()), &[]));
+    let mut baseVolume: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("baseVolume".to_string()), &[]));
+    let mut quoteVolume: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("quoteVolume".to_string()), &[]));
+    let mut high: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("high".to_string()), &[]));
+    let mut low: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("low".to_string()), &[]));
+    let mut open: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("open".to_string()), &[]));
+    let mut close: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("close".to_string()), &[]));
     if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("compareQuoteVolumeBaseVolume".to_string()))))) {
         // assert!(ccxt::runtime::is_true(&(baseVolumeDefined === quoteVolumeDefined))); // No, exchanges might not report both values
         // skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their

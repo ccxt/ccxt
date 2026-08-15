@@ -2366,7 +2366,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m
                 })]);
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
-                let __eeo0 = exchange.deepExtend(oldExchangeOptions.clone(), &[testExchangeOptions.clone()]);
+                let __eeo0 = exchange.deep_extend(oldExchangeOptions.clone(), &[testExchangeOptions.clone()]);
                 exchange.extend_exchange_options(__eeo0);
                 let mut description: Value = exchange.safe_value(result.clone(), Value::Str("description".to_string()), &[]);
                 if is_true(&(!is_equal(&testName, &Value::Null))) && is_true(&(!is_equal(&testName, &description))) {
@@ -2408,7 +2408,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
                 // reset options
-                { let __sv_tmp = exchange.convert_to_safe_dictionary(exchange.deepExtend(oldExchangeOptions.clone(), &[Value::Map({
+                { let __sv_tmp = exchange.convert_to_safe_dictionary(exchange.deep_extend(oldExchangeOptions.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })])); ccxt::set_value(&mut exchange, &Value::Str("options".to_string()), __sv_tmp); }
@@ -2477,7 +2477,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m
                 })]);
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
-                let __eeo1 = exchange.deepExtend(oldExchangeOptions.clone(), &[testExchangeOptions.clone()]);
+                let __eeo1 = exchange.deep_extend(oldExchangeOptions.clone(), &[testExchangeOptions.clone()]);
                 exchange.extend_exchange_options(__eeo1);
                 let mut isDisabled: Value = exchange.safe_bool(result.clone(), Value::Str("disabled".to_string()), &[Value::Bool(false)]);
                 if is_true(&isDisabled) {
@@ -2518,7 +2518,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
                 // reset options
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, {});
-                let __eeo2 = exchange.deepExtend(oldExchangeOptions.clone(), &[Value::Map({
+                let __eeo2 = exchange.deep_extend(oldExchangeOptions.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);

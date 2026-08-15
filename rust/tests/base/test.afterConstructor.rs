@@ -24,7 +24,7 @@ fn helperTestInitThrottler() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&tokenBucket, &Value::Str("refillRate".to_string())), &divide(&Value::Int(1), &rateLimit))))));
     // fix decimal/integer issues across langs
     assert!(ccxt::runtime::is_true(&(exchange.in_array(get_value(&tokenBucket, &Value::Str("capacity".to_string())), Value::List(vec![Value::Int(1), Value::Int(1)])))));
-    let mut cost: Value = exchange.parse_to_numeric(exchange.safeString2(tokenBucket.clone(), Value::Str("cost".to_string()), Value::Str("defaultCost".to_string()), &[])); // python sync, todo fix
+    let mut cost: Value = exchange.parse_to_numeric(exchange.safe_string2(tokenBucket.clone(), Value::Str("cost".to_string()), Value::Str("defaultCost".to_string()), &[])); // python sync, todo fix
     assert!(ccxt::runtime::is_true(&(exchange.in_array(cost.clone(), Value::List(vec![Value::Int(1), Value::Int(1)])))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(Value::Bool(in_op(&tokenBucket, &Value::Str("maxCapacity".to_string()))))) || is_true(&exchange.in_array(get_value(&tokenBucket, &Value::Str("maxCapacity".to_string())), Value::List(vec![Value::Int(1000), Value::Int(1000)])))))));
 }

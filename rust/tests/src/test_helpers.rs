@@ -518,6 +518,8 @@ pub trait ExchangeOps {
     fn index_by(&self, arr: Value, key: Value) -> Value;
     fn filter_by(&self, arr: Value, key: Value, value: Value, optional_args: &[Value]) -> Value;
     fn number_to_string(&self, n: Value) -> Value;
+    fn precision_from_string(&self, s: Value) -> Value;
+    fn parse_precision(&self, optional_args: &[Value]) -> Value;
     fn parse_to_int(&self, n: Value) -> Value;
     fn parse_to_numeric(&self, n: Value) -> Value;
     fn sum(&self, optional_args: &[Value]) -> Value;
@@ -563,6 +565,8 @@ impl ExchangeOps for Value {
     fn index_by(&self, arr: Value, key: Value) -> Value { with_base(|e| e.index_by(arr, key)) }
     fn filter_by(&self, arr: Value, key: Value, value: Value, o: &[Value]) -> Value { with_base(|e| e.filter_by(arr, key, value, o)) }
     fn number_to_string(&self, n: Value) -> Value { with_base(|e| e.number_to_string(n)) }
+    fn precision_from_string(&self, s: Value) -> Value { with_base(|e| e.precision_from_string(s)) }
+    fn parse_precision(&self, o: &[Value]) -> Value { with_base(|e| e.parse_precision(o)) }
     fn parse_to_int(&self, n: Value) -> Value { with_base(|e| e.parse_to_int(n)) }
     fn parse_to_numeric(&self, n: Value) -> Value { with_base(|e| e.parse_to_numeric(n)) }
     fn sum(&self, optional_args: &[Value]) -> Value { with_base(|e| e.sum(optional_args)) }

@@ -1174,10 +1174,14 @@ class RustTranspilerBuilder {
 
             // snake_case for method calls on `<ident>.<camelCase>(...)` — the
             // transpiler emits camelCase TS method names verbatim. Excludes
-            // `Value::X(` paths (which use `::` not `.`).
-            [/(\W)([a-z][a-zA-Z0-9_]*)\.([a-z][a-zA-Z0-9_]*[A-Z][a-zA-Z0-9_]*)\(/g,
-                (_: string, prefix: string, obj: string, name: string) =>
-                    `${prefix}${obj}.${toSnakeCase(name)}(`],
+            // `Value::X(` paths (which use `::` not `.`). The leading word
+            // boundary is a zero-width lookbehind (not a consumed `\W`) so a
+            // call nested immediately after another call's `(` — e.g.
+            // `parse_precision(&[exchange.numberToString(x)])` — still matches:
+            // a consuming prefix would eat the `(` the inner call needs.
+            [/(?<=\W)([a-z][a-zA-Z0-9_]*)\.([a-z][a-zA-Z0-9_]*[A-Z][a-zA-Z0-9_]*)\(/g,
+                (_: string, obj: string, name: string) =>
+                    `${obj}.${toSnakeCase(name)}(`],
 
             // Bare error references emitted by the transpiler. We only
             // rewrite when followed by `(` (function-call position); the

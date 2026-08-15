@@ -9,7 +9,7 @@ use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbol
 use ccxt::exchange_generated::ExchangeBase;
 
 fn helperStrToBinary(mut exchange: ccxt::exchange::Exchange, mut str_val: Value) -> Value {
-    return exchange.base64_to_binary(exchange.stringToBase64(str_val.clone(), &[]), &[]);
+    return exchange.base64_to_binary(exchange.string_to_base64(str_val.clone(), &[]), &[]);
 
     Value::Null
 }
