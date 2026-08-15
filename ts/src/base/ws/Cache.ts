@@ -38,6 +38,13 @@ class ArrayCache extends BaseCache implements CustomArray {
             value: {},
             writable: true,
         })
+        // the distinct ids/sides seen per key since the last getLimit (), kept by the
+        // keyed subclasses; newUpdatesBySymbol only ever holds the resulting count
+        Object.defineProperty (this, 'seenUpdatesBySymbol', {
+            __proto__: null, // make it invisible
+            value: {},
+            writable: true,
+        })
         Object.defineProperty (this, 'clearUpdatesBySymbol', {
             __proto__: null, // make it invisible
             value: {},
@@ -69,9 +76,6 @@ class ArrayCache extends BaseCache implements CustomArray {
             this.clearAllUpdates = true
         } else {
             newUpdatesValue = this.newUpdatesBySymbol[symbol];
-            if ((newUpdatesValue !== undefined) && this.nestedNewUpdatesBySymbol) {
-                newUpdatesValue = newUpdatesValue.size
-            }
             this.clearUpdatesBySymbol[symbol] = true
         }
 
@@ -82,6 +86,22 @@ class ArrayCache extends BaseCache implements CustomArray {
         } else {
             return newUpdatesValue;
         }
+    }
+
+    clear () {
+        super.clear ()
+        // the keyed subclasses find existing rows through the hashmap, so a clear ()
+        // that only truncates the array leaves the hashmap claiming rows that are
+        // gone - the next append then merges into an orphaned reference, and the
+        // findIndex below returns -1, so the row is silently lost. The update
+        // counters have to go too, or getLimit () keeps reporting updates for rows
+        // that no longer exist.
+        this.hashmap = {}
+        this.newUpdatesBySymbol = {}
+        this.seenUpdatesBySymbol = {}
+        this.clearUpdatesBySymbol = {}
+        this.allNewUpdates = 0
+        this.clearAllUpdates = false
     }
 
     append (item) {
@@ -95,6 +115,7 @@ class ArrayCache extends BaseCache implements CustomArray {
             this.clearUpdatesBySymbol = {}
             this.allNewUpdates = 0
             this.newUpdatesBySymbol = {}
+            this.seenUpdatesBySymbol = {}
         }
         if (this.clearUpdatesBySymbol[item.symbol]) {
             this.clearUpdatesBySymbol[item.symbol] = false
@@ -139,14 +160,30 @@ class ArrayCacheByTimestamp extends BaseCache {
         return Math.min (this.newUpdates, limit)
     }
 
+    clear () {
+        super.clear ()
+        // without this the hashmap still claims every timestamp it has ever seen,
+        // so re-appending a known timestamp merges into a reference that is no
+        // longer in the array and the candle is dropped
+        this.hashmap = {}
+        this.sizeTracker.clear ()
+        this.newUpdates = 0
+        this.clearUpdates = false
+    }
+
     append (item) {
         if (item[0] in this.hashmap) {
             const reference = this.hashmap[item[0]]
             if (reference !== item) {
-                // eslint-disable-next-line
-                for (const prop in item) {
-                    reference[prop] = item[prop]
+                // OHLCV rows are arrays, so a "for prop in item" merge only walks the
+                // indices the incoming row happens to have - a shorter update then
+                // leaves the previous row's trailing values in place, e.g.
+                // [100,1,2,3,4,5] followed by [100,9,9] used to yield [100,9,9,3,4,5].
+                // Iterate the incoming item and drop whatever it does not cover.
+                for (let i = 0; i < item.length; i++) {
+                    reference[i] = item[i]
                 }
+                reference.length = item.length
             }
         } else {
             this.hashmap[item[0]] = item
@@ -194,14 +231,24 @@ class ArrayCacheBySymbolById extends ArrayCache {
             // can share an order id (exchanges like binance use per-symbol id
             // sequences), and matching on id alone would splice out the wrong row
             const index = this.findIndex ((x) => (x.id === item.id) && (x[this.keyField] === item[this.keyField]))
-            // move the order to the end of the array
-            this.splice (index, 1)
+            // move the order to the end of the array. Guard the miss: splice (-1, 1)
+            // deletes the LAST row, so a hashmap entry with no matching row would
+            // destroy an unrelated order instead of doing nothing.
+            if (index >= 0) {
+                this.splice (index, 1)
+            }
         } else {
             byId[item.id] = item
         }
         if (this.maxSize && (this.length === this.maxSize)) {
             const deleteReference = this.shift ()
-            delete this.hashmap[deleteReference[this.keyField]][deleteReference.id]
+            const deleteKey = deleteReference[this.keyField]
+            delete this.hashmap[deleteKey][deleteReference.id]
+            // drop the outer bucket once its last id is gone, otherwise a stream with
+            // many short-lived symbols leaks one empty object per symbol forever
+            if (Object.keys (this.hashmap[deleteKey]).length === 0) {
+                delete this.hashmap[deleteKey]
+            }
         }
         this.push (item)
         if (this.clearAllUpdates) {
@@ -209,19 +256,21 @@ class ArrayCacheBySymbolById extends ArrayCache {
             this.clearUpdatesBySymbol = {}
             this.allNewUpdates = 0
             this.newUpdatesBySymbol = {}
+            this.seenUpdatesBySymbol = {}
         }
-        if (this.newUpdatesBySymbol[key] === undefined) {
-            this.newUpdatesBySymbol[key] = new Set ()
+        if (this.seenUpdatesBySymbol[key] === undefined) {
+            this.seenUpdatesBySymbol[key] = new Set ()
         }
         if (this.clearUpdatesBySymbol[key]) {
             this.clearUpdatesBySymbol[key] = false
-            this.newUpdatesBySymbol[key].clear ()
+            this.seenUpdatesBySymbol[key].clear ()
         }
-        // in case an exchange updates the same order id twice
-        const idSet = this.newUpdatesBySymbol[key]
+        // count distinct ids, in case an exchange updates the same order id twice
+        const idSet = this.seenUpdatesBySymbol[key]
         const beforeLength = idSet.size
         idSet.add (item.id)
         const afterLength = idSet.size
+        this.newUpdatesBySymbol[key] = afterLength
         this.allNewUpdates = (this.allNewUpdates || 0) + (afterLength - beforeLength)
     }
 }
@@ -257,8 +306,11 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
             }
             item = reference
             const index = this.findIndex ((x) => x.symbol === item.symbol && x.side === item.side)
-            // move the order to the end of the array
-            this.splice (index, 1)
+            // move the position to the end of the array, guarding the miss so a
+            // stale hashmap entry cannot splice (-1, 1) an unrelated row away
+            if (index >= 0) {
+                this.splice (index, 1)
+            }
         } else {
             bySide[item.side] = item
         }
@@ -268,19 +320,21 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
             this.clearUpdatesBySymbol = {}
             this.allNewUpdates = 0
             this.newUpdatesBySymbol = {}
+            this.seenUpdatesBySymbol = {}
         }
-        if (this.newUpdatesBySymbol[item.symbol] === undefined) {
-            this.newUpdatesBySymbol[item.symbol] = new Set ()
+        if (this.seenUpdatesBySymbol[item.symbol] === undefined) {
+            this.seenUpdatesBySymbol[item.symbol] = new Set ()
         }
         if (this.clearUpdatesBySymbol[item.symbol]) {
             this.clearUpdatesBySymbol[item.symbol] = false
-            this.newUpdatesBySymbol[item.symbol].clear ()
+            this.seenUpdatesBySymbol[item.symbol].clear ()
         }
-        // in case an exchange updates the same order id twice
-        const sideSet = this.newUpdatesBySymbol[item.symbol]
+        // count distinct sides, in case an exchange updates the same side twice
+        const sideSet = this.seenUpdatesBySymbol[item.symbol]
         const beforeLength = sideSet.size
         sideSet.add (item.side)
         const afterLength = sideSet.size
+        this.newUpdatesBySymbol[item.symbol] = afterLength
         this.allNewUpdates = (this.allNewUpdates || 0) + (afterLength - beforeLength)
     }
 }

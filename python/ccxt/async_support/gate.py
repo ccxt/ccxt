@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.gate import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Any, Balances, BorrowInterest, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, MarginLoan, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
-from typing import List
+from ccxt.base.types import Balances, BorrowInterest, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, MarginLoan, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -31,7 +30,7 @@ from ccxt.base.precise import Precise
 
 class gate(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(gate, self).describe(), {
             'id': 'gate',
             'name': 'Gate',
@@ -1312,7 +1311,7 @@ class gate(Exchange, ImplicitAPI):
             return self.create_expired_option_market(marketId)
         return super(gate, self).safe_market(marketId, market, delimiter, marketType)
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for gate
 
@@ -1348,7 +1347,7 @@ class gate(Exchange, ImplicitAPI):
         results = await asyncio.gather(*rawPromises)
         return self.arrays_concat(results)
 
-    async def fetch_spot_markets(self, params: Any = {}) -> List[Market]:
+    async def fetch_spot_markets(self, params: object = {}) -> list[Market]:
         marginPromise = self.publicMarginGetCurrencyPairs(params)
         spotMarketsPromise = self.publicSpotGetCurrencyPairs(params)
         marginResponse, spotMarketsResponse = await asyncio.gather(*[marginPromise, spotMarketsPromise])
@@ -1464,7 +1463,7 @@ class gate(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_swap_markets(self, params: Any = {}) -> List[Market]:
+    async def fetch_swap_markets(self, params: object = {}) -> list[Market]:
         result = []
         swapSettlementCurrencies = self.get_settlement_currencies('swap', 'fetchMarkets')
         if self.options['sandboxMode']:
@@ -1481,7 +1480,7 @@ class gate(Exchange, ImplicitAPI):
                 result.append(parsedMarket)
         return result
 
-    async def fetch_future_markets(self, params={}) -> List[Market]:
+    async def fetch_future_markets(self, params={}) -> list[Market]:
         if self.options['sandboxMode']:
             return []  # right now sandbox does not have inverse swaps
         result = []
@@ -1498,7 +1497,7 @@ class gate(Exchange, ImplicitAPI):
                 result.append(parsedMarket)
         return result
 
-    def parse_contract_market(self, market: Any, settleId: Any):
+    def parse_contract_market(self, market: object, settleId: object):
         #
         #  Perpetual swap
         #
@@ -1682,7 +1681,7 @@ class gate(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    async def fetch_option_markets(self, params: Any = {}) -> List[Market]:
+    async def fetch_option_markets(self, params: object = {}) -> list[Market]:
         result = []
         underlyings = await self.fetch_option_underlyings()
         for i in range(0, len(underlyings)):
@@ -1891,7 +1890,7 @@ class gate(Exchange, ImplicitAPI):
                 request['currency_pair'] = market['id']
         return [request, query]
 
-    def get_margin_mode(self, trigger: Any, params: Any):
+    def get_margin_mode(self, trigger: object, params: object):
         """
  @ignore
         Gets the margin type for self api call
@@ -1920,7 +1919,7 @@ class gate(Exchange, ImplicitAPI):
             marginMode = 'unified'
         return [marginMode, params]
 
-    def get_settlement_currencies(self, type: Any, method: Any):
+    def get_settlement_currencies(self, type: object, method: object):
         options = self.safe_value(self.options, type, {})  # ['BTC', 'USDT'] unified codes
         fetchMarketsContractOptions = self.safe_value(options, method, {})
         defaultSettle = ['usdt'] if (type == 'swap') else ['btc']
@@ -2154,7 +2153,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rates(response, symbols)
 
-    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         #    {
         #        "name": "BTC_USDT",
@@ -2227,7 +2226,7 @@ class gate(Exchange, ImplicitAPI):
             'interval': self.parse_funding_interval(fundingInterval),
         }
 
-    def parse_funding_interval(self, interval: Any):
+    def parse_funding_interval(self, interval: object):
         intervals = {
             '3600000': '1h',
             '14400000': '4h',
@@ -2275,7 +2274,7 @@ class gate(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> list[DepositAddress]:
         """
         fetch a dictionary of addresses for a currency, indexed by network
 
@@ -2318,7 +2317,7 @@ class gate(Exchange, ImplicitAPI):
         selectedNetworkIdOrCode = self.select_network_code_from_unified_networks(code, networkCode, chainsIndexedById)
         return chainsIndexedById[selectedNetworkIdOrCode]
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         chain: "BTC",
@@ -2400,7 +2399,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_trading_fees(response)
 
-    def parse_trading_fees(self, response: Any):
+    def parse_trading_fees(self, response: object):
         result = {}
         symbols = self.symbols
         for i in range(0, len(symbols)):
@@ -2409,7 +2408,7 @@ class gate(Exchange, ImplicitAPI):
             result[symbol] = self.parse_trading_fee(response, market)
         return result
 
-    def parse_trading_fee(self, info: Any, market: Market = None):
+    def parse_trading_fee(self, info: object, market: Market = None):
         #
         #    {
         #        "user_id": 1486602,
@@ -2530,7 +2529,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes, 'currency')
 
-    def parse_deposit_withdraw_fee(self, fee: Any, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
         #
         #    {
         #        "currency": "MTN",
@@ -2630,7 +2629,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_funding_histories(response, symbol, since, limit)
 
-    def parse_funding_histories(self, response: Any, symbol: Any, since: Int, limit: Int) -> List[FundingHistory]:
+    def parse_funding_histories(self, response: object, symbol: object, since: Int, limit: Int) -> list[FundingHistory]:
         result = []
         for i in range(0, len(response)):
             entry = response[i]
@@ -2639,7 +2638,7 @@ class gate(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_funding_history(self, info: Any, market: Market = None):
+    def parse_funding_history(self, info: object, market: Market = None):
         #
         #    {
         #        "time": 1646899200,
@@ -2978,7 +2977,7 @@ class gate(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchTickers() not support self market type, provide symbols or set params["defaultType"] to one from spot/margin/swap/future/option')
         return self.parse_tickers(response, symbols)
 
-    def parse_balance_helper(self, entry: Any):
+    def parse_balance_helper(self, entry: object):
         account = self.account()
         account['used'] = self.safe_string_2(entry, 'freeze', 'locked')
         account['free'] = self.safe_string(entry, 'available')
@@ -3272,7 +3271,7 @@ class gate(Exchange, ImplicitAPI):
         returnResult = result if isolated else self.safe_balance(result)
         return returnResult
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -3407,7 +3406,7 @@ class gate(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         # Spot market candles
         #
@@ -3452,7 +3451,7 @@ class gate(Exchange, ImplicitAPI):
                 self.safe_number(ohlcv, 'v'),    # trading volume, None for mark or index price
             ]
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -3895,7 +3894,7 @@ class gate(Exchange, ImplicitAPI):
             'fees': fees,
         }, market)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -3930,7 +3929,7 @@ class gate(Exchange, ImplicitAPI):
         response = await self.privateWalletGetDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -4024,7 +4023,7 @@ class gate(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction_type(self, type: Any):
+    def parse_transaction_type(self, type: object):
         types = {
             'd': 'deposit',
             'w': 'withdrawal',
@@ -4274,7 +4273,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def create_orders_request(self, orders: List[OrderRequest], params={}):
+    def create_orders_request(self, orders: list[OrderRequest], params={}):
         ordersRequests = []
         orderSymbols = []
         ordersLength = len(orders)
@@ -4304,7 +4303,7 @@ class gate(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' createOrders() does not support futures or options markets')
         return ordersRequests
 
-    async def create_orders(self, orders: List[OrderRequest], params={}):
+    async def create_orders(self, orders: list[OrderRequest], params={}):
         """
         create a list of trade orders
 
@@ -5081,7 +5080,7 @@ class gate(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchOrder() not support self market type')
         return self.parse_order(response, market)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -5099,7 +5098,7 @@ class gate(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_status('open', symbol, since, limit, params)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -5156,7 +5155,7 @@ class gate(Exchange, ImplicitAPI):
         response = await self.privateFuturesGetSettleOrdersTimerange(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    def prepare_orders_by_status_request(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def prepare_orders_by_status_request(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -5187,7 +5186,7 @@ class gate(Exchange, ImplicitAPI):
             request['last_id'] = lastId
         return [request, finalParams]
 
-    async def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         if self.markets is None:
             await self.load_markets()
         await self.load_unified_status()
@@ -5514,7 +5513,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -5559,7 +5558,7 @@ class gate(Exchange, ImplicitAPI):
         response = await self.privateFuturesPostSettleBatchCancelOrders(finalList)
         return self.parse_orders(response)
 
-    async def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
+    async def cancel_orders_for_symbols(self, orders: list[CancellationRequest], params={}):
         """
         cancel multiple orders for multiple symbols
 
@@ -6047,7 +6046,7 @@ class gate(Exchange, ImplicitAPI):
             raise NullResponse(self.id + ' fetchPosition() returned empty response')
         return self.parse_position(response, market)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -6271,7 +6270,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_leverage_tiers(response, symbols, 'name')
 
-    async def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
+    async def fetch_market_leverage_tiers(self, symbol: str, params={}) -> list[LeverageTier]:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
 
@@ -6307,7 +6306,7 @@ class gate(Exchange, ImplicitAPI):
             response = await self.publicDeliveryGetSettleRiskLimitTiers(self.extend(request, requestParams))
         return self.parse_market_leverage_tiers(response, market)
 
-    def parse_emulated_leverage_tiers(self, info: dict, market: Market = None) -> List[LeverageTier]:
+    def parse_emulated_leverage_tiers(self, info: dict, market: Market = None) -> list[LeverageTier]:
         marketId = self.safe_string(info, 'name')
         maintenanceMarginUnit = self.safe_string(info, 'maintenance_rate')  # '0.005',
         leverageMax = self.safe_string(info, 'leverage_max')  # '100',
@@ -6335,7 +6334,7 @@ class gate(Exchange, ImplicitAPI):
             floor = cap
         return tiers
 
-    def parse_market_leverage_tiers(self, info: Any, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: object, market: Market = None) -> list[LeverageTier]:
         #
         #     [
         #         {
@@ -6539,7 +6538,7 @@ class gate(Exchange, ImplicitAPI):
             #
         return self.parse_margin_loan(response, currency)
 
-    def parse_margin_loan(self, info: Any, currency: Currency = None) -> MarginLoan:
+    def parse_margin_loan(self, info: object, currency: Currency = None) -> MarginLoan:
         #
         # Cross
         #
@@ -6592,7 +6591,7 @@ class gate(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
+    async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
 
@@ -6660,7 +6659,7 @@ class gate(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path: Any, api: Any = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None):
         authentication = api[0]  # public, private
         type = api[1]  # spot, margin, future, delivery
         query = self.omit(params, self.extract_params(path))
@@ -6741,7 +6740,7 @@ class gate(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def modify_margin_helper(self, symbol: str, amount: Any, params={}):
+    async def modify_margin_helper(self, symbol: str, amount: object, params={}):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -6884,7 +6883,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_open_interests_history(response, market, since, limit)
 
-    def parse_open_interest(self, interest: Any, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
         #
         #    {
         #        "long_liq_size": "0",
@@ -6913,7 +6912,7 @@ class gate(Exchange, ImplicitAPI):
             'info': interest,
         }
 
-    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[dict]:
+    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         """
         fetches historical settlement records
 
@@ -7039,7 +7038,7 @@ class gate(Exchange, ImplicitAPI):
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_settlement(self, settlement: Any, market: Any):
+    def parse_settlement(self, settlement: object, market: object):
         #
         # fetchSettlementHistory
         #
@@ -7089,7 +7088,7 @@ class gate(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def parse_settlements(self, settlements: Any, market: Any):
+    def parse_settlements(self, settlements: object, market: object):
         #
         # fetchSettlementHistory
         #
@@ -7125,7 +7124,7 @@ class gate(Exchange, ImplicitAPI):
             result.append(self.parse_settlement(settlements[i], market))
         return result
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -7314,7 +7313,7 @@ class gate(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ledger_entry_type(self, type: Any):
+    def parse_ledger_entry_type(self, type: object):
         ledgerType = {
             'deposit': 'deposit',
             'withdraw': 'withdrawal',
@@ -7374,7 +7373,7 @@ class gate(Exchange, ImplicitAPI):
         request['dual_mode'] = hedged
         return await self.privateFuturesPostSettleDualMode(self.extend(request, query))
 
-    async def fetch_underlying_assets(self, params={}) -> List[str]:
+    async def fetch_underlying_assets(self, params={}) -> list[str]:
         """
         fetches the market ids of underlying assets for a specific contract market type
 
@@ -7526,7 +7525,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_liquidations(self.to_array(response), market, since, limit)
 
-    def parse_liquidation(self, liquidation: Any, market: Market = None):
+    def parse_liquidation(self, liquidation: object, market: Market = None):
         #
         # fetchLiquidations
         #
@@ -8070,7 +8069,7 @@ class gate(Exchange, ImplicitAPI):
             'quoteVolume': None,
         }
 
-    async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
         fetches historical positions
 
@@ -8140,7 +8139,7 @@ class gate(Exchange, ImplicitAPI):
             responseList = self.to_array(response)
         return self.parse_positions(responseList, symbols, params)
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         #

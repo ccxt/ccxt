@@ -21,14 +21,10 @@ async def test_watch_ohlcv_for_symbols(exchange, skipped_properties, symbol):
     ends = now + 15000
     timeframe_keys = list(exchange.timeframes.keys())
     assert len(timeframe_keys), exchange.id + ' ' + method + ' - no timeframes found'
-    # prefer the shortest candle so a new bar can arrive inside the test window
-    preferred_timeframes = ['1s', '5s', '15s', '30s', '1m']
-    chosen_timeframe_key = timeframe_keys[0]
-    for i in range(0, len(preferred_timeframes)):
-        timeframe_key = preferred_timeframes[i]
-        if exchange.in_array(timeframe_key, timeframe_keys):
-            chosen_timeframe_key = timeframe_key
-            break
+    # prefer 1m timeframe if available, otherwise return the first one
+    chosen_timeframe_key = '1m'
+    if not exchange.in_array(chosen_timeframe_key, timeframe_keys):
+        chosen_timeframe_key = timeframe_keys[0]
     limit = 10
     duration = exchange.parse_timeframe(chosen_timeframe_key)
     since = exchange.milliseconds() - duration * limit * 1000 - 1000

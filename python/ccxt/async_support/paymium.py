@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.paymium import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TransferEntry
-from typing import List
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -15,7 +14,7 @@ from ccxt.base.precise import Precise
 
 class paymium(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(paymium, self).describe(), {
             'id': 'paymium',
             'name': 'Paymium',
@@ -157,7 +156,7 @@ class paymium(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         currencies = list(self.currencies.keys())
         for i in range(0, len(currencies)):
@@ -316,7 +315,7 @@ class paymium(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -386,7 +385,7 @@ class paymium(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response)
 
-    async def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> List[DepositAddress]:
+    async def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> list[DepositAddress]:
         """
         fetch deposit addresses for multiple currencies and chain types
 
@@ -411,7 +410,7 @@ class paymium(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_addresses(response, codes)
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -599,7 +598,7 @@ class paymium(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -626,7 +625,7 @@ class paymium(Exchange, ImplicitAPI):
             headers['Api-Signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         errors = self.safe_value(response, 'errors')

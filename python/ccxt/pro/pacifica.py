@@ -5,16 +5,15 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
 
 
 class pacifica(ccxt.async_support.pacifica):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(pacifica, self).describe(), {
             'has': {
                 'ws': True,
@@ -219,7 +218,7 @@ class pacifica(ccxt.async_support.pacifica):
         clientOrderId = self.safe_string(order, 'I')
         return self.safe_order({'id': orderId, 'clientOrderId': clientOrderId, 'status': status, 'info': response, 'symbol': symbol})
 
-    async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
+    async def cancel_orders_ws(self, ids: list[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -421,7 +420,7 @@ class pacifica(ccxt.async_support.pacifica):
         orderbook = await self.watch(url, messageHash, message, messageHash)
         return orderbook.limit()
 
-    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+    async def un_watch_order_book(self, symbol: str, params={}) -> object:
         """
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -453,7 +452,7 @@ class pacifica(ccxt.async_support.pacifica):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_order_book(self, client: Any, message: Any):
+    def handle_order_book(self, client: object, message: object):
         #
         # {
         #   "channel": "book",
@@ -551,7 +550,7 @@ class pacifica(ccxt.async_support.pacifica):
             return self.filter_by_array_tickers(tickers, 'symbol', symbols)
         return self.tickers
 
-    async def un_watch_tickers(self, symbols: Strings = None, params={}) -> Any:
+    async def un_watch_tickers(self, symbols: Strings = None, params={}) -> object:
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -577,7 +576,7 @@ class pacifica(ccxt.async_support.pacifica):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
@@ -614,7 +613,7 @@ class pacifica(ccxt.async_support.pacifica):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    async def un_watch_my_trades(self, symbol: Str = None, params={}) -> Any:
+    async def un_watch_my_trades(self, symbol: Str = None, params={}) -> object:
         """
         unWatches information on multiple trades made by the user
 
@@ -645,7 +644,7 @@ class pacifica(ccxt.async_support.pacifica):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_ws_tickers(self, client: Client, message: Any):
+    def handle_ws_tickers(self, client: Client, message: object):
         #
         # {
         #     "channel": "prices",
@@ -680,10 +679,10 @@ class pacifica(ccxt.async_support.pacifica):
         client.resolve(tickers, 'tickers')
         return True
 
-    def parse_ws_ticker(self, rawTicker: Any, market: Market = None) -> Ticker:
+    def parse_ws_ticker(self, rawTicker: object, market: Market = None) -> Ticker:
         return self.parse_ticker(rawTicker, market)
 
-    def handle_my_trades(self, client: Client, message: Any):
+    def handle_my_trades(self, client: Client, message: object):
         #
         # {
         #   "channel": "account_trades",
@@ -732,7 +731,7 @@ class pacifica(ccxt.async_support.pacifica):
         messageHash = 'myTrades'
         client.resolve(trades, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         watches information on multiple trades made in a market
 
@@ -765,7 +764,7 @@ class pacifica(ccxt.async_support.pacifica):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+    async def un_watch_trades(self, symbol: str, params={}) -> object:
         """
         unWatches information on multiple trades made in a market
 
@@ -794,7 +793,7 @@ class pacifica(ccxt.async_support.pacifica):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_trades(self, client: Client, message: Any):
+    def handle_trades(self, client: Client, message: object):
         #
         # {
         #   "channel": "trades",
@@ -905,7 +904,7 @@ class pacifica(ccxt.async_support.pacifica):
             'fee': {'cost': fee, 'currency': 'USDC'},
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
 
@@ -941,7 +940,7 @@ class pacifica(ccxt.async_support.pacifica):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> object:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
 
@@ -972,7 +971,7 @@ class pacifica(ccxt.async_support.pacifica):
         message = self.extend(request, params)
         return await self.watch(url, messagehash, message, messagehash)
 
-    def handle_ohlcv(self, client: Client, message: Any):
+    def handle_ohlcv(self, client: Client, message: object):
         #
         # {
         #   "channel": "candle",
@@ -1010,7 +1009,7 @@ class pacifica(ccxt.async_support.pacifica):
         messageHash = 'candles:' + timeframe + ':' + symbol
         client.resolve(ohlcv, messageHash)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -1049,7 +1048,7 @@ class pacifica(ccxt.async_support.pacifica):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    async def un_watch_orders(self, symbol: Str = None, params={}) -> Any:
+    async def un_watch_orders(self, symbol: Str = None, params={}) -> object:
         """
         unWatches information on multiple orders made by the user
 
@@ -1080,7 +1079,7 @@ class pacifica(ccxt.async_support.pacifica):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_order(self, client: Client, message: Any):
+    def handle_order(self, client: Client, message: object):
         # not snapshot, only updates
         # {
         #   "channel": "account_order_updates",
@@ -1132,7 +1131,7 @@ class pacifica(ccxt.async_support.pacifica):
             client.resolve(stored, innerMessageHash)
         client.resolve(stored, messageHash)
 
-    def handle_error_message(self, client: Client, message: Any) -> Bool:
+    def handle_error_message(self, client: Client, message: object) -> Bool:
         #
         # 'rl' key is present only when a rate-limited API key is used
         # {"id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":{"r":1245,"q":1250,"t":56}}
@@ -1211,7 +1210,7 @@ class pacifica(ccxt.async_support.pacifica):
         }
         self.clean_cache(topicStructure)
 
-    def handle_subscription_response(self, client: Client, message: Any):
+    def handle_subscription_response(self, client: Client, message: object):
         #  {
         #      "channel": "subscribe",
         #      "data": {
@@ -1248,7 +1247,7 @@ class pacifica(ccxt.async_support.pacifica):
             elif type == 'account_trades':
                 self.handle_my_trades_unsubscription(client, subscription)
 
-    def handle_message(self, client: Client, message: Any):
+    def handle_message(self, client: Client, message: object):
         #
         # {
         #     "channel":"subscribe",
@@ -1298,7 +1297,7 @@ class pacifica(ccxt.async_support.pacifica):
             'method': 'ping',
         }
 
-    def handle_pong(self, client: Client, message: Any):
+    def handle_pong(self, client: Client, message: object):
         #
         #   {
         #       "channel": "pong"

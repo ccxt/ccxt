@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     v1_public_get_public_volume_stats = v1PublicGetPublicVolumeStats = Entry[_Dict]('public/volume/stats', ['v1', 'public'], 'GET', {'cost': 1})

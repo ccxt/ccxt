@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinsph import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -30,7 +29,7 @@ from ccxt.base.precise import Precise
 
 class coinsph(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(coinsph, self).describe(), {
             'id': 'coinsph',
             'name': 'Coins.ph',
@@ -689,7 +688,7 @@ class coinsph(Exchange, ImplicitAPI):
             'limits': {},
         })
 
-    def calculate_rate_limiter_cost(self, api: Any, method: Any, path: Any, params: Any, config={}):
+    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config={}):
         if ('noSymbol' in config) and not ('symbol' in params):
             return config['noSymbol']
         elif ('noSymbolAndNoSymbols' in config) and not ('symbol' in params) and not ('symbols' in params):
@@ -744,7 +743,7 @@ class coinsph(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for coinsph
 
@@ -1059,7 +1058,7 @@ class coinsph(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
         return orderbook
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1122,7 +1121,7 @@ class coinsph(Exchange, ImplicitAPI):
         ohlcvs = self.to_array(response)
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
@@ -1132,7 +1131,7 @@ class coinsph(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1338,7 +1337,7 @@ class coinsph(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         balances = self.safe_list(response, 'balances', [])
         result = {
             'info': response,
@@ -1486,7 +1485,7 @@ class coinsph(Exchange, ImplicitAPI):
         response = await self.privateGetOpenapiV1Order(self.extend(request, params))
         return self.parse_order(response)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1508,7 +1507,7 @@ class coinsph(Exchange, ImplicitAPI):
         response = await self.privateGetOpenapiV1OpenOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -1683,7 +1682,7 @@ class coinsph(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    def parse_order_side(self, status: Any):
+    def parse_order_side(self, status: object):
         statuses = {
             'BUY': 'buy',
             'SELL': 'sell',
@@ -1692,7 +1691,7 @@ class coinsph(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def encode_order_side(self, status: Any):
+    def encode_order_side(self, status: object):
         statuses = {
             'buy': 'BUY',
             'sell': 'SELL',
@@ -1701,7 +1700,7 @@ class coinsph(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, status: Any):
+    def parse_order_type(self, status: object):
         statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -1715,7 +1714,7 @@ class coinsph(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def encode_order_type(self, status: Any):
+    def encode_order_type(self, status: object):
         statuses = {
             'market': 'MARKET',
             'limit': 'LIMIT',
@@ -1742,7 +1741,7 @@ class coinsph(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def parse_order_time_in_force(self, status: Any):
+    def parse_order_time_in_force(self, status: object):
         statuses = {
             'GTC': 'GTC',
             'FOK': 'FOK',
@@ -1872,7 +1871,7 @@ class coinsph(Exchange, ImplicitAPI):
         response = await self.privatePostOpenapiWalletV1WithdrawApply(self.extend(request, params))
         return self.parse_transaction(response, currency)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -1927,7 +1926,7 @@ class coinsph(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2119,7 +2118,7 @@ class coinsph(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "coin": "ETH",
@@ -2155,14 +2154,14 @@ class coinsph(Exchange, ImplicitAPI):
         else:
             return encodedArrayParams
 
-    def parse_array_param(self, array: Any, key: Any):
+    def parse_array_param(self, array: object, key: object):
         stringifiedArray = self.json(array)
         stringifiedArray = stringifiedArray.replace('[', '%5B')
         stringifiedArray = stringifiedArray.replace(']', '%5D')
         urlEncodedParam = key + '=' + stringifiedArray
         return urlEncodedParam
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api]
         query = self.omit(params, self.extract_params(path))
         endpoint = self.implode_params(path, params)
@@ -2187,7 +2186,7 @@ class coinsph(Exchange, ImplicitAPI):
                 url += '?' + query
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         responseCode = self.safe_string(response, 'code')

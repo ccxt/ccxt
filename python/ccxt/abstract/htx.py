@@ -1,7 +1,6 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict
+_Dict = dict[str, object]
 
-_Dict = Dict[str, PythonAny]
 
 class ImplicitAPI:
     v2public_get_reference_currencies = v2PublicGetReferenceCurrencies = Entry[_Dict]('reference/currencies', 'v2Public', 'GET', {'cost': 1})

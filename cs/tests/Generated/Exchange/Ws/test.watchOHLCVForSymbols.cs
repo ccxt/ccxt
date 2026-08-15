@@ -15,17 +15,11 @@ public partial class testMainClass : BaseTest
         object ends = add(now, 15000);
         object timeframeKeys = new List<object>(((IDictionary<string,object>)exchange.timeframes).Keys);
         assert(getArrayLength(timeframeKeys), add(add(add(exchange.id, " "), method), " - no timeframes found"));
-        // prefer the shortest candle so a new bar can arrive inside the test window
-        object preferredTimeframes = new List<object>() {"1s", "5s", "15s", "30s", "1m"};
-        object chosenTimeframeKey = getValue(timeframeKeys, 0);
-        for (object i = 0; isLessThan(i, getArrayLength(preferredTimeframes)); postFixIncrement(ref i))
+        // prefer 1m timeframe if available, otherwise return the first one
+        object chosenTimeframeKey = "1m";
+        if (!isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))
         {
-            object timeframeKey = getValue(preferredTimeframes, i);
-            if (isTrue(exchange.inArray(timeframeKey, timeframeKeys)))
-            {
-                chosenTimeframeKey = timeframeKey;
-                break;
-            }
+            chosenTimeframeKey = getValue(timeframeKeys, 0);
         }
         object limit = 10;
         object duration = exchange.parseTimeframe(chosenTimeframeKey);

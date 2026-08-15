@@ -13,15 +13,10 @@ async function testWatchOHLCVForSymbols(exchange, skippedProperties, symbol) {
     const ends = now + 15000;
     const timeframeKeys = Object.keys(exchange.timeframes);
     assert(timeframeKeys.length, exchange.id + ' ' + method + ' - no timeframes found');
-    // prefer the shortest candle so a new bar can arrive inside the test window
-    const preferredTimeframes = ['1s', '5s', '15s', '30s', '1m'];
-    let chosenTimeframeKey = timeframeKeys[0];
-    for (let i = 0; i < preferredTimeframes.length; i++) {
-        const timeframeKey = preferredTimeframes[i];
-        if (exchange.inArray(timeframeKey, timeframeKeys)) {
-            chosenTimeframeKey = timeframeKey;
-            break;
-        }
+    // prefer 1m timeframe if available, otherwise return the first one
+    let chosenTimeframeKey = '1m';
+    if (!exchange.inArray(chosenTimeframeKey, timeframeKeys)) {
+        chosenTimeframeKey = timeframeKeys[0];
     }
     const limit = 10;
     const duration = exchange.parseTimeframe(chosenTimeframeKey);

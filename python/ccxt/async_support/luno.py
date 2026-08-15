@@ -5,8 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.luno import ImplicitAPI
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, DepositWithdrawFee
-from typing import List
+from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, DepositWithdrawFee
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -32,7 +31,7 @@ from ccxt.base.precise import Precise
 
 class luno(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(luno, self).describe(), {
             'id': 'luno',
             'name': 'Luno',
@@ -550,7 +549,7 @@ class luno(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for luno
 
@@ -666,7 +665,7 @@ class luno(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_accounts(self, params={}) -> List[Account]:
+    async def fetch_accounts(self, params={}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -691,7 +690,7 @@ class luno(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         wallets = self.safe_value(response, 'balance', [])
         result = {
             'info': response,
@@ -878,7 +877,7 @@ class luno(Exchange, ImplicitAPI):
         orders = self.safe_list(response, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -892,7 +891,7 @@ class luno(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_state(None, symbol, since, limit, params)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -906,7 +905,7 @@ class luno(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_state('PENDING', symbol, since, limit, params)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -1095,7 +1094,7 @@ class luno(Exchange, ImplicitAPI):
             },
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1177,7 +1176,7 @@ class luno(Exchange, ImplicitAPI):
         ohlcvs = self.safe_list(response, 'candles', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         # {
         #     "timestamp": 1664055240000,
         #     "open": "19612.65",
@@ -1347,7 +1346,7 @@ class luno(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    async def fetch_ledger_by_entries(self, code: Str = None, entry: Any = None, limit: Int = None, params={}):
+    async def fetch_ledger_by_entries(self, code: Str = None, entry: object = None, limit: Int = None, params={}):
         # by default without entry number or limit number, return most recent entry
         if entry is None:
             entry = -1
@@ -1360,7 +1359,7 @@ class luno(Exchange, ImplicitAPI):
         }
         return await self.fetch_ledger(code, since, limit, self.extend(request, params))
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -1409,7 +1408,7 @@ class luno(Exchange, ImplicitAPI):
         entries = self.safe_value(response, 'transactions', [])
         return self.parse_ledger(entries, currency, since, limit)
 
-    def parse_ledger_comment(self, comment: Any):
+    def parse_ledger_comment(self, comment: object):
         words = comment.split(' ')
         types = {
             'Withdrawal': 'fee',
@@ -1438,7 +1437,7 @@ class luno(Exchange, ImplicitAPI):
             'referenceId': referenceId,
         }
 
-    def parse_ledger_entry(self, entry: Any, currency: Currency = None) -> LedgerEntry:
+    def parse_ledger_entry(self, entry: object, currency: Currency = None) -> LedgerEntry:
         # details = self.safe_value(entry, 'details', {})
         id = self.safe_string(entry, 'row_index')
         account_id = self.safe_string(entry, 'account_id')
@@ -1572,7 +1571,7 @@ class luno(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "account_id": "string",
@@ -1634,7 +1633,7 @@ class luno(Exchange, ImplicitAPI):
         result['withdraw']['percentage'] = False
         return self.assign_default_deposit_withdraw_fees(result, currency)
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if query:
@@ -1647,7 +1646,7 @@ class luno(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         error = self.safe_value(response, 'error')

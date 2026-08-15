@@ -8,8 +8,7 @@ from ccxt.abstract.prediction.limitless import ImplicitAPI
 import asyncio
 import hashlib
 import math
-from ccxt.base.types import Account, Any, Bool, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
-from typing import List
+from ccxt.base.types import Account, Bool, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -21,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class limitless(PredictionExchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(limitless, self).describe(), {
             'id': 'limitless',
             'name': 'Limitless',
@@ -188,7 +187,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         fetches all active limitless markets paginated and returns one CCXT market per child market, each containing a list of outcome objects(YES/NO)
 
@@ -533,7 +532,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         self.index_event_outcomes(event)
         return event
 
-    def expand_group_rows(self, rawRows: List[Any]) -> List[Any]:
+    def expand_group_rows(self, rawRows: list[object]) -> list[object]:
         """
  @ignore
         flattens listing rows — a 'group' row carries no tradeable tokens itself and
@@ -560,7 +559,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 result.append(raw)
         return result
 
-    def parse_event(self, event: dict) -> Any:
+    def parse_event(self, event: dict) -> object:
         # {
         #    "groupId":"trump-out-as-president-before-2027-1768933068297",
         #    "title":"💎 Trump out before 2027?",
@@ -1130,7 +1129,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                     result[symbolKey] = ticker
         return result
 
-    async def fetch_trades(self, outcome: Str, since: Int = None, limit: Int = None, params={}) -> List[PredictionTrade]:
+    async def fetch_trades(self, outcome: Str, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
         """
         fetches recent public trades for a single outcome token from the market events feed
 
@@ -1261,7 +1260,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         }
         return self.safe_prediction_order_book(orderbook, outcomeObj)
 
-    async def fetch_ohlcv(self, outcome: Str, timeframe='1d', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, outcome: Str, timeframe='1d', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical prices for a single limitless market outcome and maps them to OHLCV format, uses the `interval` query parameter and selects the YES/NO series that matches the requested outcome
 
@@ -1384,7 +1383,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             result.append(candles[bucketOrder[i]])
         return self.filter_by_since_limit(result, since, limit, 0)
 
-    async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
+    async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
         """
         fetches orders for the authenticated user for a single outcome
 
@@ -1432,7 +1431,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         # endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
         return self.parse_prediction_orders(self.to_array(response), None, since, limit)
 
-    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
+    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
         """
         fetches open orders for the authenticated user for a single outcome
 
@@ -1452,7 +1451,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         })
         return await self.fetch_orders(outcome, since, limit, params)
 
-    async def fetch_closed_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
+    async def fetch_closed_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
         """
         fetches closed orders for the authenticated user for a single outcome
 
@@ -1472,7 +1471,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         })
         return await self.fetch_orders(outcome, since, limit, params)
 
-    async def fetch_orders_by_ids(self, ids: Any, outcome: Str = None, params={}) -> List[PredictionOrder]:
+    async def fetch_orders_by_ids(self, ids: object, outcome: Str = None, params={}) -> list[PredictionOrder]:
         """
         fetch orders by the list of order id
 
@@ -1873,7 +1872,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'info': account,
         }
 
-    async def fetch_accounts(self, params={}) -> List[Account]:
+    async def fetch_accounts(self, params={}) -> list[Account]:
         """
         query for account id and info
 
@@ -2026,7 +2025,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             parsedOrder['status'] = 'open'
         return parsedOrder
 
-    def sign_order_request(self, signRequest: dict, marketSymbol: Any):
+    def sign_order_request(self, signRequest: dict, marketSymbol: object):
         self.check_required_credentials()
         if self.privateKey is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a privateKey(the embedded/trading wallet key) to sign orders')
@@ -2059,10 +2058,10 @@ class limitless(PredictionExchange, ImplicitAPI):
         msg = self.eth_encode_structured_data(domain, messageTypes, signRequest)
         return self.sign_message(msg, self.privateKey)
 
-    def hash_message(self, message: Any):
+    def hash_message(self, message: object):
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash: Any, privateKey: Any):
+    def sign_hash(self, hash: object, privateKey: object):
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
@@ -2072,7 +2071,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         result = '0x' + rPadded + sPadded + v
         return result.lower()
 
-    def sign_message(self, message: Any, privateKey: Any):
+    def sign_message(self, message: object, privateKey: object):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def sign_evm_transaction(self, tx: dict, privateKey: str) -> str:
@@ -2105,7 +2104,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         signedFields.append(self.rlp_encode_bytes(sHex))
         return '0x02' + self.rlp_encode_list(signedFields)
 
-    async def approve(self, params={}) -> Any:
+    async def approve(self, params={}) -> object:
         """
         sets the on-chain ERC20 collateral(USDC) allowance for the limitless exchange contract on Base, which is required before an EOA maker can place orders("Insufficient collateral allowance" otherwise). Sends a real on-chain transaction signed with the privateKey and waits for the receipt
         :param dict [params]: extra parameters
@@ -2168,7 +2167,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             order['status'] = 'canceled'
         return order
 
-    async def redeem(self, outcome: Str = None, params={}) -> Any:
+    async def redeem(self, outcome: Str = None, params={}) -> object:
         """
         redeem a resolved winning position back to collateral(gasless — the operator settles on-chain)
 
@@ -2199,7 +2198,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'conditionId': conditionId,
         }
 
-    async def cancel_orders(self, ids: List[str], outcome: Str = None, params={}) -> List[PredictionOrder]:
+    async def cancel_orders(self, ids: list[str], outcome: Str = None, params={}) -> list[PredictionOrder]:
         """
         cancel multiple orders at the same time
 
@@ -2225,7 +2224,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             raise OrderNotFound(feedback)
         return self.parse_prediction_orders(canceled)
 
-    async def cancel_all_orders(self, outcome: Str = None, params={}) -> List[PredictionOrder]:
+    async def cancel_all_orders(self, outcome: Str = None, params={}) -> list[PredictionOrder]:
         """
         cancels all open orders for one market slug
 
@@ -2256,7 +2255,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         #
         return [self.safe_prediction_order({'info': response})]
 
-    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionTrade]:
+    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
         """
         fetch all trades made by the user
 
@@ -2480,7 +2479,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'fee': None,
         })
 
-    def get_outcome_by_slug_and_label(self, slug: Str, label: Str, market: Market = None) -> Any:
+    def get_outcome_by_slug_and_label(self, slug: Str, label: Str, market: Market = None) -> object:
         mkt = self.safe_market(slug, market)
         outcomes = self.safe_list(mkt, 'outcomes', [])
         for i in range(0, len(outcomes)):
@@ -2490,7 +2489,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 return outcome
         return None
 
-    async def fetch_positions(self, outcomes: Strings = None, params={}) -> List[PredictionPosition]:
+    async def fetch_positions(self, outcomes: Strings = None, params={}) -> list[PredictionPosition]:
         """
         fetches open positions for the authenticated limitless user from the portfolio endpoint
 
@@ -2676,7 +2675,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'info': position,
         }
 
-    async def fetch_events(self, params: fetchEventsParams = {}) -> List[PredictionEvent]:
+    async def fetch_events(self, params: fetchEventsParams = {}) -> list[PredictionEvent]:
         """
         fetches prediction-market events matching the given scope(query/queries/tags/eventId/slug — required) and caches their markets and outcomes on the instance
 
@@ -2778,7 +2777,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         postParams = self.omit(searchParams, ['tags'])
         return self.apply_event_fetch_params(result, postParams, queries)
 
-    async def fetch_raw_active_markets(self, params={}, categoryId: Str = None) -> List[Any]:
+    async def fetch_raw_active_markets(self, params={}, categoryId: Str = None) -> list[object]:
         """
  @ignore
         pages the active-markets listing(or a single category's listing), bounded by limit(or options.fetchMarketsLimit)
@@ -2814,7 +2813,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 break
         return allRaw
 
-    async def fetch_raw_markets_by_tags(self, tags: List[str], params={}) -> List[Any]:
+    async def fetch_raw_markets_by_tags(self, tags: list[str], params={}) -> list[object]:
         """
  @ignore
         resolves the requested tags to limitless categories via GET /categories, then pages only those categories' active listings server-side
@@ -2861,7 +2860,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                     allRaw.append(raw)
         return allRaw
 
-    def sign(self, path: Any, section: Any = 'limitless', method='GET', params={}, headers: Any = None, body: Any = None):
+    def sign(self, path: object, section: object = 'limitless', method='GET', params={}, headers: object = None, body: object = None):
         """
  @ignore
         builds the request URL and attaches the lmts authentication headers for private endpoints
@@ -2907,7 +2906,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         url = baseUrl + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody: str, response: object, requestHeaders: object, requestBody: object):
         """
  @ignore
         maps limitless error responses to ccxt exceptions
