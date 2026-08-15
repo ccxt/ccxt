@@ -4171,7 +4171,7 @@ export default class bybit extends Exchange {
         const isTrailingOrder = this.safeString2 (params, 'trailingAmount', 'trailingStop') !== undefined;
         const isStopLossOrder = this.safeString (params, 'stopLossPrice') !== undefined;
         const isTakeProfitOrder = this.safeString (params, 'takeProfitPrice') !== undefined;
-        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params, true);
+        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
         const switchToOco = (isStopLossOrder && isTakeProfitOrder) || this.safeBool (params, 'tradingStopEndpoint', false);
         let defaultMethod: Str = undefined;
         if ((isTrailingOrder || switchToOco) && !market['spot']) {
