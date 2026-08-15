@@ -1,0 +1,527 @@
+{
+    "exchange": "ax",
+    "skipKeys": ["average", "percentage", "fee", "fees"],
+    "options": {
+        "tokenExpires": 999999999999999
+    },
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "fetch public trades",
+                "method": "fetchTrades",
+                "input": [
+                    "TSLA/USD:USD",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "trades": [
+                        {
+                            "s": "TSLA-PERP",
+                            "p": "180.50",
+                            "q": 10,
+                            "d": "B",
+                            "ts": 1709900000,
+                            "tn": 0
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "timestamp": 1709900000000,
+                        "datetime": "2024-03-08T12:13:20.000Z",
+                        "symbol": "TSLA/USD:USD",
+                        "side": "buy",
+                        "price": 180.5,
+                        "amount": 10,
+                        "cost": 1805,
+                        "order": null,
+                        "takerOrMaker": null,
+                        "type": null,
+                        "fee": {},
+                        "info": {
+                            "s": "TSLA-PERP",
+                            "p": "180.50",
+                            "q": 10,
+                            "d": "B",
+                            "ts": 1709900000,
+                            "tn": 0
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetch ticker for TSLA/USD:USD with bid/ask",
+                "method": "fetchTicker",
+                "input": [
+                    "TSLA/USD:USD"
+                ],
+                "httpResponse": {
+                    "s": "TSLA-PERP",
+                    "p": "180.50",
+                    "q": 100,
+                    "o": "178.00",
+                    "h": "182.00",
+                    "l": "177.00",
+                    "v": 25000,
+                    "oi": 5000,
+                    "m": "180.60",
+                    "bp": "180.40",
+                    "ap": "180.60",
+                    "i": "OPEN",
+                    "ts": 1709900000,
+                    "tn": 0
+                },
+                "parsedResponse": {
+                    "symbol": "TSLA/USD:USD",
+                    "timestamp": 1709900000000,
+                    "datetime": "2024-03-08T12:13:20.000Z",
+                    "high": 182,
+                    "low": 177,
+                    "bid": 180.4,
+                    "bidVolume": null,
+                    "ask": 180.6,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 178,
+                    "close": 180.5,
+                    "last": 180.5,
+                    "previousClose": null,
+                    "change": 2.5,
+                    "percentage": 1.4,
+                    "average": 179.25,
+                    "baseVolume": 25000,
+                    "quoteVolume": null,
+                    "markPrice": 180.6,
+                    "openInterest": "5000",
+                    "info": {
+                        "s": "TSLA-PERP",
+                        "p": "180.50",
+                        "q": 100,
+                        "o": "178.00",
+                        "h": "182.00",
+                        "l": "177.00",
+                        "v": 25000,
+                        "oi": 5000,
+                        "m": "180.60",
+                        "bp": "180.40",
+                        "ap": "180.60",
+                        "i": "OPEN",
+                        "ts": 1709900000,
+                        "tn": 0
+                    },
+                    "indexPrice": null
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetch all tickers including FX and non-FX instruments",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": {
+                    "tickers": [
+                        {
+                            "s": "TSLA-PERP",
+                            "p": "180.50",
+                            "q": 100,
+                            "o": "178.00",
+                            "h": "182.00",
+                            "l": "177.00",
+                            "v": 25000,
+                            "oi": 5000,
+                            "m": "180.60",
+                            "bp": "180.40",
+                            "ap": "180.60",
+                            "i": "OPEN",
+                            "ts": 1709900000,
+                            "tn": 0
+                        },
+                        {
+                            "s": "XAU-PERP",
+                            "p": "5004.00",
+                            "q": 1,
+                            "o": "5062.50",
+                            "h": "5100.00",
+                            "l": "4950.00",
+                            "v": 47139,
+                            "oi": 216,
+                            "m": "5003.80",
+                            "bp": "5003.60",
+                            "ap": "5004.10",
+                            "i": "OPEN",
+                            "ts": 1709900000,
+                            "tn": 0
+                        },
+                        {
+                            "s": "EURUSD-PERP",
+                            "p": "1.08500",
+                            "q": 200,
+                            "o": "1.08200",
+                            "h": "1.08700",
+                            "l": "1.08100",
+                            "v": 100000,
+                            "oi": 30000,
+                            "m": "1.08510",
+                            "bp": "1.08490",
+                            "ap": "1.08510",
+                            "i": "OPEN",
+                            "ts": 1709900000,
+                            "tn": 0
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "TSLA/USD:USD": {
+                        "symbol": "TSLA/USD:USD",
+                        "timestamp": 1709900000000,
+                        "datetime": "2024-03-08T12:13:20.000Z",
+                        "high": 182,
+                        "low": 177,
+                        "bid": 180.4,
+                        "bidVolume": null,
+                        "ask": 180.6,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 178,
+                        "close": 180.5,
+                        "last": 180.5,
+                        "previousClose": null,
+                        "change": 2.5,
+                        "percentage": 1.4,
+                        "average": 179.25,
+                        "baseVolume": 25000,
+                        "quoteVolume": null,
+                        "markPrice": 180.6,
+                        "openInterest": "5000",
+                        "info": {
+                            "s": "TSLA-PERP",
+                            "p": "180.50",
+                            "q": 100,
+                            "o": "178.00",
+                            "h": "182.00",
+                            "l": "177.00",
+                            "v": 25000,
+                            "oi": 5000,
+                            "m": "180.60",
+                            "bp": "180.40",
+                            "ap": "180.60",
+                            "i": "OPEN",
+                            "ts": 1709900000,
+                            "tn": 0
+                        },
+                        "indexPrice": null
+                    },
+                    "XAU/USD:USD": {
+                        "symbol": "XAU/USD:USD",
+                        "timestamp": 1709900000000,
+                        "datetime": "2024-03-08T12:13:20.000Z",
+                        "high": 5100,
+                        "low": 4950,
+                        "bid": 5003.6,
+                        "bidVolume": null,
+                        "ask": 5004.1,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 5062.5,
+                        "close": 5004,
+                        "last": 5004,
+                        "previousClose": null,
+                        "change": -58.5,
+                        "percentage": -1.16,
+                        "average": 5033.25,
+                        "baseVolume": 47139,
+                        "quoteVolume": null,
+                        "markPrice": 5003.8,
+                        "openInterest": "216",
+                        "info": {
+                            "s": "XAU-PERP",
+                            "p": "5004.00",
+                            "q": 1,
+                            "o": "5062.50",
+                            "h": "5100.00",
+                            "l": "4950.00",
+                            "v": 47139,
+                            "oi": 216,
+                            "m": "5003.80",
+                            "bp": "5003.60",
+                            "ap": "5004.10",
+                            "i": "OPEN",
+                            "ts": 1709900000,
+                            "tn": 0
+                        },
+                        "indexPrice": null
+                    },
+                    "EUR/USD:USD": {
+                        "symbol": "EUR/USD:USD",
+                        "timestamp": 1709900000000,
+                        "datetime": "2024-03-08T12:13:20.000Z",
+                        "high": 1.087,
+                        "low": 1.081,
+                        "bid": 1.0849,
+                        "bidVolume": null,
+                        "ask": 1.0851,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 1.082,
+                        "close": 1.085,
+                        "last": 1.085,
+                        "previousClose": null,
+                        "change": 0.003,
+                        "percentage": 0.28,
+                        "average": 1.0835,
+                        "baseVolume": 100000,
+                        "quoteVolume": null,
+                        "markPrice": 1.0851,
+                        "openInterest": "30000",
+                        "info": {
+                            "s": "EURUSD-PERP",
+                            "p": "1.08500",
+                            "q": 200,
+                            "o": "1.08200",
+                            "h": "1.08700",
+                            "l": "1.08100",
+                            "v": 100000,
+                            "oi": 30000,
+                            "m": "1.08510",
+                            "bp": "1.08490",
+                            "ap": "1.08510",
+                            "i": "OPEN",
+                            "ts": 1709900000,
+                            "tn": 0
+                        },
+                        "indexPrice": null
+                    }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch order book for TSLA/USD:USD",
+                "method": "fetchOrderBook",
+                "input": [
+                    "TSLA/USD:USD"
+                ],
+                "httpResponse": {
+                    "book": {
+                        "s": "TSLA-PERP",
+                        "b": [
+                            {"p": "180.40", "q": 500},
+                            {"p": "180.30", "q": 200}
+                        ],
+                        "a": [
+                            {"p": "180.60", "q": 300},
+                            {"p": "180.70", "q": 150}
+                        ],
+                        "ts": 1709900000,
+                        "tn": 0
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "TSLA/USD:USD",
+                    "timestamp": 1709900000000,
+                    "datetime": "2024-03-08T12:13:20.000Z",
+                    "nonce": null,
+                    "bids": [
+                        [180.4, 500],
+                        [180.3, 200]
+                    ],
+                    "asks": [
+                        [180.6, 300],
+                        [180.7, 150]
+                    ]
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch OHLCV candles",
+                "method": "fetchOHLCV",
+                "input": [
+                    "TSLA/USD:USD",
+                    "1m",
+                    1709899200000
+                ],
+                "httpResponse": {
+                    "candles": [
+                        {
+                            "symbol": "TSLA-PERP",
+                            "ts": "2024-03-08T12:00:00Z",
+                            "open": "178.00",
+                            "high": "182.00",
+                            "low": "177.50",
+                            "close": "180.50",
+                            "volume": 1500,
+                            "buy_volume": 800,
+                            "sell_volume": 700,
+                            "width": "1m"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1709899200000,
+                        178,
+                        182,
+                        177.5,
+                        180.5,
+                        1500
+                    ]
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch account balances",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "balances": [
+                        {"symbol": "USD", "amount": "100000.00"}
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "balances": [
+                            {"symbol": "USD", "amount": "100000.00"}
+                        ]
+                    },
+                    "USD": {
+                        "free": null,
+                        "used": null,
+                        "total": 100000
+                    },
+                    "free": {
+                        "USD": null
+                    },
+                    "used": {
+                        "USD": null
+                    },
+                    "total": {
+                        "USD": 100000
+                    }
+                }
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch accepted order",
+                "method": "fetchOrder",
+                "input": [
+                    "O-01ARZ3NDEKTSV4RRFFQ69G5FAV"
+                ],
+                "httpResponse": {
+                    "oid": "O-01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                    "s": "TSLA-PERP",
+                    "d": "B",
+                    "q": 100,
+                    "p": "180.00",
+                    "xq": 0,
+                    "rq": 100,
+                    "o": "ACCEPTED",
+                    "tif": "GTC"
+                },
+                "parsedResponse": {
+                    "id": "O-01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                    "clientOrderId": null,
+                    "info": {
+                        "oid": "O-01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                        "s": "TSLA-PERP",
+                        "d": "B",
+                        "q": 100,
+                        "p": "180.00",
+                        "xq": 0,
+                        "rq": 100,
+                        "o": "ACCEPTED",
+                        "tif": "GTC"
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": "TSLA/USD:USD",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 180,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "amount": 100,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 100,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "fetch filled order",
+                "method": "fetchOrder",
+                "input": [
+                    "O-02BRZ4NDEKTSV4RRFFQ69G5FAV"
+                ],
+                "httpResponse": {
+                    "oid": "O-02BRZ4NDEKTSV4RRFFQ69G5FAV",
+                    "s": "XAU-PERP",
+                    "d": "S",
+                    "q": 50,
+                    "p": "5000.00",
+                    "xq": 50,
+                    "rq": 0,
+                    "o": "FILLED",
+                    "tif": "GTC"
+                },
+                "parsedResponse": {
+                    "id": "O-02BRZ4NDEKTSV4RRFFQ69G5FAV",
+                    "clientOrderId": null,
+                    "info": {
+                        "oid": "O-02BRZ4NDEKTSV4RRFFQ69G5FAV",
+                        "s": "XAU-PERP",
+                        "d": "S",
+                        "q": 50,
+                        "p": "5000.00",
+                        "xq": 50,
+                        "rq": 0,
+                        "o": "FILLED",
+                        "tif": "GTC"
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": "XAU/USD:USD",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "sell",
+                    "price": 5000,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "amount": 50,
+                    "cost": 250000,
+                    "average": null,
+                    "filled": 50,
+                    "remaining": 0,
+                    "status": "closed",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ]
+    }
+}
