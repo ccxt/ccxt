@@ -21,17 +21,11 @@ public class TestWatchOHLCV extends BaseTest {
         Object ends = Helpers.add(now, 15000);
         Object timeframeKeys = Helpers.objectKeys(exchange.timeframes);
         Assert(Helpers.getArrayLength(timeframeKeys), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " - no timeframes found"));
-        // prefer the shortest candle so a new bar can arrive inside the test window
-        Object preferredTimeframes = new java.util.ArrayList<Object>(java.util.Arrays.asList("1s", "5s", "15s", "30s", "1m"));
-        Object chosenTimeframeKey = Helpers.GetValue(timeframeKeys, 0);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(preferredTimeframes)); i++)
+        // prefer 1m timeframe if available, otherwise return the first one
+        Object chosenTimeframeKey = "1m";
+        if (!Helpers.isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))
         {
-            Object timeframeKey = Helpers.GetValue(preferredTimeframes, i);
-            if (Helpers.isTrue(exchange.inArray(timeframeKey, timeframeKeys)))
-            {
-                chosenTimeframeKey = timeframeKey;
-                break;
-            }
+            chosenTimeframeKey = Helpers.GetValue(timeframeKeys, 0);
         }
         Object limit = 10;
         Object duration = exchange.parseTimeframe(chosenTimeframeKey);
