@@ -211,9 +211,7 @@ func (obs *OrderBookSide) StoreArray(delta any) {
 			obs.Data[index][1] = size
 		} else {
 			obs.Length++
-			// copyWithin equivalent, bounded by the live prefix: everything
-			// from Length on is the MaxFloat64 seed sentinel, so shifting the
-			// whole capacity memmoved ~1000 sentinels on every insert
+			// Live prefix only: [Length:] is MaxFloat64 seed, not book data.
 			copy(obs.Index[index+1:obs.Length], obs.Index[index:obs.Length-1])
 			obs.Index[index] = indexPrice
 
@@ -361,7 +359,7 @@ func (obs *CountedOrderBookSide) StoreArray(delta any) {
 			obs.Data[index][2] = count
 		} else {
 			obs.Length++
-			// copyWithin equivalent, bounded by the live prefix, see StoreArray
+			// Live prefix only: [Length:] is MaxFloat64 seed, not book data.
 			copy(obs.Index[index+1:obs.Length], obs.Index[index:obs.Length-1])
 			obs.Index[index] = indexPrice
 
@@ -579,11 +577,7 @@ func (obs *IndexedOrderBookSide) StoreArray(delta any) {
 		}
 		// insert new price level into index
 		obs.Length++
-		// shift only the live prefix; slots from Length on are MaxFloat64
-		// sentinels, so no extra slot has to be appended to make space. The
-		// former append grew Index by one slot per insert while the delete
-		// branch below never shrank it back, so Index leaked one float64 per
-		// insert/delete cycle
+		// Live prefix only: [Length:] is MaxFloat64 seed, not book data.
 		copy(obs.Index[index+1:obs.Length], obs.Index[index:obs.Length-1])
 		obs.Index[index] = indexPrice
 		obs.Data = append(obs.Data, nil)

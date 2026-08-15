@@ -176,18 +176,8 @@ func TestIndexedBidsLifecycle(t *testing.T) {
 	}
 }
 
-// ---------------------------------------------------------------------------
-// Index-slice growth regression.
-//
-// The insert path used to make room with `Index = append(Index, 0)` while the
-// delete path never shrank Index back, so a plain insert/delete cycle grew the
-// slice by one float64 forever on a long-lived ws book. Growth is not only a
-// leak: bisectLeft is O(log len(Index)) and every unbounded shift is O(len),
-// so a book that had been up for a while got measurably slower over time.
-//
-// Insert now shifts within the existing SEED-sized buffer, which is already
-// sentinel-filled past Length, so len(Index) stays put.
-// ---------------------------------------------------------------------------
+// Index stays SIZE-long. Insert/delete shift inside the live prefix;
+// the tail is MaxFloat64 seed, so len(Index) is invariant.
 
 func TestIndexedIndexDoesNotGrowOnInsertDeleteCycles(t *testing.T) {
 	asks := NewIndexedOrderBookSide(false, [][]any{}, nil)
