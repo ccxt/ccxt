@@ -58,13 +58,15 @@ public class ArrayCache extends ArrayList<Object> {
      */
     public final ConcurrentHashMap<String, Object> hashmap = new ConcurrentHashMap<>();
 
-    /** symbol -> Integer count, or symbol -> Set of ids/sides when {@link #nestedNewUpdatesBySymbol}. */
-    protected final ConcurrentHashMap<String, Object> newUpdatesBySymbol = new ConcurrentHashMap<>();
+    /** symbol -> update count since the last read. */
+    protected final ConcurrentHashMap<String, Integer> newUpdatesBySymbol = new ConcurrentHashMap<String, Integer>();
+    /** Distinct ids/sides seen this window when {@link #nestedNewUpdatesBySymbol}. */
+    protected final ConcurrentHashMap<String, Set<String>> seenUpdatesBySymbol = new ConcurrentHashMap<String, Set<String>>();
     /** symbol -> "reset me on the next append". */
-    protected final ConcurrentHashMap<String, Boolean> clearUpdatesBySymbol = new ConcurrentHashMap<>();
+    protected final ConcurrentHashMap<String, Boolean> clearUpdatesBySymbol = new ConcurrentHashMap<String, Boolean>();
     protected volatile int allNewUpdates = 0;
     protected volatile boolean clearAllUpdates = false;
-    /** true when {@link #newUpdatesBySymbol} holds Sets rather than counts. */
+    /** true when {@link #seenUpdatesBySymbol} tracks distinct ids/sides per symbol. */
     protected boolean nestedNewUpdatesBySymbol = false;
 
     public ArrayCache(int maxSize) {
@@ -174,6 +176,7 @@ public class ArrayCache extends ArrayList<Object> {
         super.clear();
         this.hashmap.clear();
         this.newUpdatesBySymbol.clear();
+        this.seenUpdatesBySymbol.clear();
         this.clearUpdatesBySymbol.clear();
         this.allNewUpdates = 0;
         this.clearAllUpdates = false;
@@ -194,14 +197,7 @@ public class ArrayCache extends ArrayList<Object> {
             newUpdatesValue = this.allNewUpdates;
             this.clearAllUpdates = true;
         } else {
-            Object tracked = this.newUpdatesBySymbol.get(symbol);
-            if (tracked == null) {
-                newUpdatesValue = null;
-            } else if (this.nestedNewUpdatesBySymbol) {
-                newUpdatesValue = ((Set<?>) tracked).size();
-            } else {
-                newUpdatesValue = ((Number) tracked).intValue();
-            }
+            newUpdatesValue = this.newUpdatesBySymbol.get(symbol);
             this.clearUpdatesBySymbol.put(symbol, Boolean.TRUE);
         }
         if (newUpdatesValue == null) {
@@ -219,6 +215,7 @@ public class ArrayCache extends ArrayList<Object> {
             this.clearUpdatesBySymbol.clear();
             this.allNewUpdates = 0;
             this.newUpdatesBySymbol.clear();
+            this.seenUpdatesBySymbol.clear();
         }
     }
 
@@ -243,8 +240,8 @@ public class ArrayCache extends ArrayList<Object> {
             this.clearUpdatesBySymbol.put(key, Boolean.FALSE);
             this.newUpdatesBySymbol.put(key, 0);
         }
-        Object previous = this.newUpdatesBySymbol.get(key);
-        int count = (previous instanceof Number) ? ((Number) previous).intValue() : 0;
+        Integer previous = this.newUpdatesBySymbol.get(key);
+        int count = (previous == null) ? 0 : previous.intValue();
         this.newUpdatesBySymbol.put(key, count + 1);
         this.allNewUpdates = this.allNewUpdates + 1;
     }
@@ -412,13 +409,10 @@ public class ArrayCache extends ArrayList<Object> {
             this.add(toStore);
 
             this.applyDeferredResets();
-            Object tracked = this.newUpdatesBySymbol.get(key);
-            Set<Object> idSet;
-            if (tracked instanceof Set) {
-                idSet = (Set<Object>) tracked;
-            } else {
-                idSet = new LinkedHashSet<>();
-                this.newUpdatesBySymbol.put(key, idSet);
+            Set<String> idSet = this.seenUpdatesBySymbol.get(key);
+            if (idSet == null) {
+                idSet = new LinkedHashSet<String>();
+                this.seenUpdatesBySymbol.put(key, idSet);
             }
             if (Boolean.TRUE.equals(this.clearUpdatesBySymbol.get(key))) {
                 this.clearUpdatesBySymbol.put(key, Boolean.FALSE);
@@ -427,6 +421,7 @@ public class ArrayCache extends ArrayList<Object> {
             // an exchange may update the same id twice — count it once per window
             int before = idSet.size();
             idSet.add(subKey);
+            this.newUpdatesBySymbol.put(key, idSet.size());
             this.allNewUpdates = this.allNewUpdates + (idSet.size() - before);
         }
     }
