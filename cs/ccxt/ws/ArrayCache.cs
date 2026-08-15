@@ -55,11 +55,23 @@ public class BaseCache : SlimConcurrentList<object>
         {
             foreach (var pair in itemDict)
             {
-                referenceDict[pair.Key] = pair.Value;
+                object previous = null;
+                if (referenceDict.TryGetValue(pair.Key, out previous))
+                {
+                    referenceDict[pair.Key] = coerceNumeric(previous, pair.Value);
+                }
+                else
+                {
+                    referenceDict[pair.Key] = pair.Value;
+                }
             }
             return true;
         }
-        // OHLCV rows are lists, so "every prop of item" means every index of item
+        // OHLCV rows are lists, so "every prop of item" means every index of item.
+        // Incoming length wins (a shorter candle must drop the previous tail).
+        // Numeric slots keep the stored CLR type so later sortBy/OrderBy does
+        // not throw InvalidOperationException ("Failed to compare two elements"
+        // / Double.CompareTo) when one candle is Int64 and another is Double.
         var referenceList = reference as IList<object>;
         var itemList = item as IList<object>;
         if (referenceList != null && itemList != null && !referenceList.IsReadOnly)
@@ -69,12 +81,16 @@ public class BaseCache : SlimConcurrentList<object>
             {
                 if (i < referenceList.Count)
                 {
-                    referenceList[i] = itemList[i];
+                    referenceList[i] = coerceNumeric(referenceList[i], itemList[i]);
                 }
                 else
                 {
                     referenceList.Add(itemList[i]);
                 }
+            }
+            while (referenceList.Count > itemCount)
+            {
+                referenceList.RemoveAt(referenceList.Count - 1);
             }
             return true;
         }
@@ -86,6 +102,47 @@ public class BaseCache : SlimConcurrentList<object>
     // boolean false that append() itself writes back. Checking `!= null` on a
     // boxed bool would treat that stored false as truthy and wrongly re-zero the
     // per-symbol counters on every append following a getLimit().
+    // Keep the destination CLR numeric type when both sides are numbers.
+    // C# OrderBy uses Comparer<object>, and Double.CompareTo(object) requires
+    // the other value to also be Double — mixing Int64 timestamps with Double
+    // ones throws "Failed to compare two elements in the array" from live WS
+    // tests (filterBySinceLimit / sortBy on the cache).
+    protected static object coerceNumeric(object destination, object source)
+    {
+        if (destination == null || source == null)
+        {
+            return source;
+        }
+        if (destination.GetType() == source.GetType())
+        {
+            return source;
+        }
+        try
+        {
+            if (destination is double || destination is float)
+            {
+                return Convert.ToDouble(source);
+            }
+            if (destination is long)
+            {
+                return Convert.ToInt64(source);
+            }
+            if (destination is int)
+            {
+                return Convert.ToInt32(source);
+            }
+            if (destination is decimal)
+            {
+                return Convert.ToDecimal(source);
+            }
+        }
+        catch (Exception)
+        {
+            return source;
+        }
+        return source;
+    }
+
     protected static bool isTruthyFlag(object value)
     {
         if (value == null)
