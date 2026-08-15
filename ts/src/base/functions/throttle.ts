@@ -9,6 +9,7 @@ class Throttler {
 
     running: boolean;
     queue: { resolver: any; cost: number }[];
+    queueHead: number;              // index of the next item to process — avoids O(n) Array#shift on every dequeue
     config: {
         refillRate: number;         // leaky bucket refill rate in tokens per second
         delay: number;              // leaky bucket seconds before checking the queue after waiting
@@ -18,9 +19,10 @@ class Throttler {
         algorithm: string;
         rateLimit: number;
         windowSize: number;         // rolling window size in milliseconds
-        maxWeight: number;          // rolling window - rollingWindowSize / rateLimit   // ms_of_window / ms_of_rate_limit  
+        maxWeight: number;          // rolling window - rollingWindowSize / rateLimit   // ms_of_window / ms_of_rate_limit
     };
     timestamps: { timestamp: number; cost: number }[];
+    totalCost: number;              // running sum of timestamps[].cost, kept in sync incrementally
 
     constructor (config) {
         this.config = {
@@ -38,18 +40,34 @@ class Throttler {
             this.config['maxWeight'] = this.config.windowSize / this.config.rateLimit;
         }
         this.queue = [];
+        this.queueHead = 0;
         this.running = false;
         this.timestamps = [];
+        this.totalCost = 0;
+    }
+
+    // pops the front of the queue without the O(n) element shift that Array#shift performs;
+    // compacts back to an empty array once drained (or periodically under sustained load)
+    // so consumed entries don't pin memory
+    dequeue () {
+        this.queueHead += 1;
+        if (this.queueHead === this.queue.length) {
+            this.queue.length = 0;
+            this.queueHead = 0;
+        } else if (this.queueHead >= 1024 && this.queueHead >= (this.queue.length / 2)) {
+            this.queue = this.queue.slice (this.queueHead);
+            this.queueHead = 0;
+        }
     }
 
     async leakyBucketLoop () {
         let lastTimestamp = now ();
         while (this.running) {
-            const { resolver, cost } = this.queue[0];
+            const { resolver, cost } = this.queue[this.queueHead];
             if (this.config['tokens'] >= 0) {
                 this.config['tokens'] -= cost;
                 resolver ();
-                this.queue.shift ();
+                this.dequeue ();
                 // contextswitch
                 await Promise.resolve ();
                 if (this.queue.length === 0) {
@@ -68,26 +86,29 @@ class Throttler {
 
     async rollingWindowLoop() {
         while (this.running) {
-            const { resolver, cost } = this.queue[0];
+            const { resolver, cost } = this.queue[this.queueHead];
             const nowTime = now ();
             const cutOffTime = nowTime - this.config.windowSize;
-            let totalCost = 0;
-            // Remove expired timestamps & sum the remaining requests
-            const timestamps = [];
-            for (let i = 0; i < this.timestamps.length; i++) {
-                const element = this.timestamps[i];
-                if (element.timestamp > cutOffTime) {
-                    totalCost += element.cost;
-                    timestamps.push(element);
-                }
+            // timestamps are appended in non-decreasing (nowTime) order, so expired
+            // entries always form a prefix of the array — trim just that prefix and
+            // keep a running total instead of rescanning + rebuilding the whole
+            // array on every single iteration
+            let expiredCount = 0;
+            const timestampsLength = this.timestamps.length;
+            while (expiredCount < timestampsLength && this.timestamps[expiredCount].timestamp <= cutOffTime) {
+                this.totalCost -= this.timestamps[expiredCount].cost;
+                expiredCount += 1;
             }
-            this.timestamps = timestamps;
+            if (expiredCount > 0) {
+                this.timestamps.splice (0, expiredCount);
+            }
             // handle current request
-            if (totalCost + cost <= this.config.maxWeight) {
+            if (this.totalCost + cost <= this.config.maxWeight) {
                 // Enough capacity, proceed with request
                 this.timestamps.push ({ timestamp: nowTime, cost });
+                this.totalCost += cost;
                 resolver ();
-                this.queue.shift ();
+                this.dequeue ();
                 await Promise.resolve (); // Yield control to event loop
                 if (this.queue.length === 0) {
                     this.running = false;
