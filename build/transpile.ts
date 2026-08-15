@@ -450,8 +450,8 @@ class Transpiler {
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
             [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],
-            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/g, '$1List[List[$2]]' ],  // typed variables with double list type (must precede the single-list rule)
-            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/g, '$1List[$2]' ],  // typed variable with list type
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/g, '$1list[list[$2]]' ],  // typed variables with double list type (must precede the single-list rule)
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/g, '$1list[$2]' ],  // typed variable with list type
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
@@ -1148,12 +1148,7 @@ class Transpiler {
         if (bodyAsString.match (/: Client/)) {
             libraries.push ('from ccxt.async_support.base.ws.client import Client')
         }
-        if (bodyAsString.match (/[\s(]Optional\[/)) {
-            libraries.push ('from typing import Optional')
-        }
-        if (bodyAsString.match (/[\s\[(]List\[/)) {
-            libraries.push ('from typing import List')
-        }
+        // list[] / X | None are builtins on the Python 3.10 floor; do not import typing
 
         const errorImports: string[] = []
 
@@ -2138,16 +2133,16 @@ class Transpiler {
             const pythonTypes: dict = {
                 'string': 'str',
                 'number': 'float',
-                'any': 'Any',
-                'unknown': 'Any',
+                'any': 'object',
+                'unknown': 'object',
                 'boolean': 'bool',
                 'Int': 'Int',
                 'OHLCV': 'list',
                 'Dictionary<any>': 'dict',
                 'Dict': 'dict',
                 'NullableDict': 'dict',
-                'List': 'List[Any]',
-                'NullableList': 'List[Any]'
+                'List': 'list',
+                'NullableList': 'list'
             }
             const unwrapLists = (type: string) => {
                 // a union like `Dict | Dict[] | undefined` must be mapped member-by-member;
@@ -2161,7 +2156,7 @@ class Transpiler {
                     type = type.slice (0, -2)
                     count++
                 }
-                return 'List['.repeat (count) + (pythonTypes[type] ?? type) + ']'.repeat (count)
+                return 'list['.repeat (count) + (pythonTypes[type] ?? type) + ']'.repeat (count)
             }
 
             if (this.buildPHP) {
