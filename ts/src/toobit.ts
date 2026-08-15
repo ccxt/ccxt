@@ -1421,7 +1421,8 @@ export default class toobit extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': this.safeString (ticker, 'pc'),
-            'percentage': this.safeString (ticker, 'pcp'),
+            // 'pcp' is a ratio, and a ticker reports a percentage
+            'percentage': Precise.stringMul (this.safeString (ticker, 'pcp'), '100'),
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': this.safeString (ticker, 'qv'),
