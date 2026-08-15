@@ -58,6 +58,14 @@ class BaseCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, 
     public function getLimit($symbol, $limit) {
     }
 
+    // Builds a collision-free composite key for the positional index of the
+    // keyed caches. A plain concatenation is ambiguous - ('AB', 'C') and
+    // ('A', 'BC') both produce "ABC" - so the first part is length prefixed,
+    // which makes the encoding injective for every possible pair of strings.
+    protected function index_key($first, $second) {
+        return strlen($first) . ':' . $first . $second;
+    }
+
     // support transpiled snake_case calls
     public function get_limit($symbol, $limit) {
         return $this->getLimit($symbol, $limit);

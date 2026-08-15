@@ -27,7 +27,7 @@ class ArrayCache extends BaseCache {
             $new_updates_value = $this->all_new_updates;
             $this->clear_all_updates = true;
         } else {
-            $new_updates_value = $this->new_updates_by_symbol[$symbol];
+            $new_updates_value = $this->new_updates_by_symbol[$symbol] ?? null;
             if (($new_updates_value !== null) && $this->nested_new_updates_by_symbol) {
                 $new_updates_value = count($new_updates_value);
             }
@@ -63,5 +63,17 @@ class ArrayCache extends BaseCache {
         }
         $this->new_updates_by_symbol[$symbol] = ($this->new_updates_by_symbol[$symbol] ?? 0) + 1;
         $this->all_new_updates = ($this->all_new_updates ?? 0) + 1;
+    }
+
+    public function clear() {
+        # the keyed index and the new-updates bookkeeping have to be wiped
+        # together with the deque, otherwise a re-appended row is matched
+        # against a hashmap entry whose deque row no longer exists
+        parent::clear();
+        $this->hashmap = array();
+        $this->new_updates_by_symbol = array();
+        $this->clear_updates_by_symbol = array();
+        $this->all_new_updates = 0;
+        $this->clear_all_updates = false;
     }
 }
