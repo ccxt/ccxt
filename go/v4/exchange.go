@@ -266,9 +266,9 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	this.Orderbooks = &sync.Map{}
 	// this.Ohlcvs = make(map[string]map[string]*ArrayCacheByTimestamp)
 	this.Ohlcvs = &sync.Map{}
-	this.Orders = NewArrayCache(limit)
-	this.TriggerOrders = NewArrayCache(limit)
-	this.MyTrades = NewArrayCache(limit)
+	this.Orders = NewArrayCacheById(limit)
+	this.TriggerOrders = NewArrayCacheById(limit)
+	this.MyTrades = NewArrayCacheById(limit)
 	this.Transactions = &sync.Map{}
 	this.Liquidations = &sync.Map{}
 	this.MyLiquidations = &sync.Map{}

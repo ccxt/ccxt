@@ -73,6 +73,7 @@ type ArrayCache struct {
 	newUpdatesCountBySymbol  map[string]int            `json:"-"`
 	clearUpdatesBySymbol     map[string]bool           `json:"-"`
 	nestedNewUpdatesBySymbol bool                      `json:"-"`
+	byId                     bool                      `json:"-"`
 	keyField                 string                    `json:"-"`
 }
 
@@ -97,6 +98,26 @@ func NewArrayCache(MaxSize any) *ArrayCache {
 	}
 }
 
+// NewArrayCacheById builds an ArrayCache that upserts rows by (symbol, id) and
+// maintains the Hashmap index, i.e. the semantics of `ArrayCacheBySymbolById`
+// in ts/src/base/ws/Cache.ts.
+//
+// It deliberately returns the *concrete* *ArrayCache type instead of
+// *ArrayCacheBySymbolById: the transpiled pro exchanges hard-assert
+// `.(*ccxt.ArrayCache)` on this.Orders / this.MyTrades and then read `.Hashmap`
+// (14 files, e.g. go/v4/pro/binance.go:6576, kucoin.go:2783, kraken.go:1640).
+// Returning the subtype there would panic with an interface-conversion error.
+//
+// In JS those caches start out undefined and each exchange installs an
+// ArrayCacheBySymbolById itself (pro/binance.ts:5466); the Go port pre-creates
+// them in exchange.go, so the by-id behaviour has to be requested up front.
+func NewArrayCacheById(MaxSize any) *ArrayCache {
+	c := NewArrayCache(MaxSize)
+	c.byId = true
+	c.nestedNewUpdatesBySymbol = true
+	return c
+}
+
 // rollUpdatesLocked resets the update trackers once a getLimit(undefined, …)
 // call has consumed them.  Caller must hold Mu.
 func (c *ArrayCache) rollUpdatesLocked() {
@@ -112,15 +133,22 @@ func (c *ArrayCache) rollUpdatesLocked() {
 // Append pushes the item, evicting the oldest row when MaxSize is reached.
 // No by-id de-duplication happens here - see ArrayCacheBySymbolById.
 func (c *ArrayCache) Append(item any) {
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+
+	if c.byId {
+		// created via NewArrayCacheById - upsert by (keyField, id) and keep the
+		// Hashmap index populated, see the comment on NewArrayCacheById
+		c.appendByIdLocked(item)
+		return
+	}
+
 	var symbol string
 	if m, ok := item.(map[string]any); ok {
 		if s, ok := m["symbol"].(string); ok {
 			symbol = s
 		}
 	}
-
-	c.Mu.Lock()
-	defer c.Mu.Unlock()
 
 	c.AppendInternal(item)
 
@@ -524,6 +552,7 @@ type ArrayCacheBySymbolById struct{ *ArrayCache }
 func NewArrayCacheBySymbolById(optionalArgs ...any) *ArrayCacheBySymbolById {
 	maxSize := GetArg(optionalArgs, 0, nil)
 	cache := &ArrayCacheBySymbolById{NewArrayCache(maxSize)}
+	cache.byId = true
 	cache.nestedNewUpdatesBySymbol = true
 	return cache
 }
@@ -551,6 +580,7 @@ type ArrayCacheByOutcomeById struct{ *ArrayCache }
 func NewArrayCacheByOutcomeById(optionalArgs ...any) *ArrayCacheByOutcomeById {
 	maxSize := GetArg(optionalArgs, 0, nil)
 	cache := &ArrayCacheByOutcomeById{NewArrayCache(maxSize)}
+	cache.byId = true
 	cache.nestedNewUpdatesBySymbol = true
 	cache.keyField = "outcome"
 	return cache
