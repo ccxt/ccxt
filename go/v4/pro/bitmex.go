@@ -1075,7 +1075,7 @@ func (this *BitmexCore) HandlePositions(client any, message any) {
 			// the cached position for this symbol, otherwise appending would break
 			// the ccxt.ArrayCacheBySymbolBySide index (see issue #29001).
 			var symbol any = this.SafeString(position, "symbol")
-			var cachedBySide any = this.SafeDict(cache.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+			var cachedBySide any = this.SafeDict(ccxt.CacheHashmap(cache), symbol, map[string]any{})
 			var cachedSides any = ccxt.ObjectKeys(cachedBySide)
 			var sidesLength any = ccxt.GetArrayLength(cachedSides)
 			if ccxt.IsTrue(ccxt.IsEqual(sidesLength, 1)) {
@@ -1324,7 +1324,7 @@ func (this *BitmexCore) HandleOrders(client any, message any) {
 		for i := 0; ccxt.IsLessThan(i, dataLength); i++ {
 			var currentOrder any = ccxt.GetValue(data, i)
 			var orderId any = this.SafeString(currentOrder, "orderID")
-			var previousOrder any = this.SafeValue(stored.(*ccxt.ArrayCache).Hashmap, orderId)
+			var previousOrder any = this.SafeValue(ccxt.CacheHashmap(stored), orderId)
 			var rawOrder any = currentOrder
 			if ccxt.IsTrue(!ccxt.IsEqual(previousOrder, nil)) {
 				rawOrder = this.Extend(ccxt.GetValue(previousOrder, "info"), currentOrder)

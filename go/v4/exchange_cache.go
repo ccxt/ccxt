@@ -23,6 +23,32 @@ import (
 
 type Appender interface{ Append(any) }
 
+// HasHashmap is implemented by every cache type that keeps a secondary index.
+// The transpiled pro exchanges read that index off `any`-typed fields
+// (this.Orders, this.Positions, ...), so they need an interface rather than a
+// concrete type: `this.Orders.(*ArrayCache)` panics as soon as an exchange
+// installs an ArrayCacheBySymbolById / ArrayCacheBySymbolBySide of its own,
+// which is exactly what pro/bitmex.go and pro/kucoin.go do.
+//
+// This mirrors the Appender / GetsLimit pattern already used for .Append and
+// .GetLimit on the same fields.
+type HasHashmap interface{ GetHashmap() any }
+
+// CacheHashmap returns the secondary index of any cache value, mirroring the
+// `.hashmap` property read in ts/src/base/ws/Cache.ts.  Every cache class there
+// exposes a hashmap (Cache.ts:27 for ArrayCache, :112 for ArrayCacheByTimestamp,
+// :242 for ArrayCacheBySymbolBySide), so a nil return only happens when the
+// cache has not been created yet - JS yields `undefined` in that case too.
+//
+// The generated code calls this instead of asserting a concrete cache type; see
+// the `.Hashmap` rule in build/goTranspiler.ts getWsRegexes().
+func CacheHashmap(v any) any {
+	if c, ok := v.(HasHashmap); ok {
+		return c.GetHashmap()
+	}
+	return nil
+}
+
 type CacheType interface {
 	*ArrayCache | *ArrayCacheByTimestamp | *ArrayCacheBySymbolById | *ArrayCacheByOutcomeById | *ArrayCacheBySymbolBySide | map[string]any
 
@@ -98,24 +124,14 @@ func NewArrayCache(MaxSize any) *ArrayCache {
 	}
 }
 
-// NewArrayCacheById builds an ArrayCache that upserts rows by (symbol, id) and
-// maintains the Hashmap index, i.e. the semantics of `ArrayCacheBySymbolById`
-// in ts/src/base/ws/Cache.ts.
-//
-// It deliberately returns the *concrete* *ArrayCache type instead of
-// *ArrayCacheBySymbolById: the transpiled pro exchanges hard-assert
-// `.(*ccxt.ArrayCache)` on this.Orders / this.MyTrades and then read `.Hashmap`
-// (14 files, e.g. go/v4/pro/binance.go:6576, kucoin.go:2783, kraken.go:1640).
-// Returning the subtype there would panic with an interface-conversion error.
-//
-// In JS those caches start out undefined and each exchange installs an
-// ArrayCacheBySymbolById itself (pro/binance.ts:5466); the Go port pre-creates
-// them in exchange.go, so the by-id behaviour has to be requested up front.
-func NewArrayCacheById(MaxSize any) *ArrayCache {
-	c := NewArrayCache(MaxSize)
-	c.byId = true
-	c.nestedNewUpdatesBySymbol = true
-	return c
+// GetHashmap exposes the by-key index through the HasHashmap interface so that
+// callers holding an `any` do not have to assert a concrete cache type.  It is
+// promoted to ArrayCacheBySymbolById / ArrayCacheByOutcomeById /
+// ArrayCacheBySymbolBySide, which all embed *ArrayCache.
+func (c *ArrayCache) GetHashmap() any {
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+	return c.Hashmap
 }
 
 // rollUpdatesLocked resets the update trackers once a getLimit(undefined, …)
@@ -137,8 +153,8 @@ func (c *ArrayCache) Append(item any) {
 	defer c.Mu.Unlock()
 
 	if c.byId {
-		// created via NewArrayCacheById - upsert by (keyField, id) and keep the
-		// Hashmap index populated, see the comment on NewArrayCacheById
+		// created via NewArrayCacheBySymbolById / NewArrayCacheByOutcomeById -
+		// upsert by (keyField, id) and keep the Hashmap index populated
 		c.appendByIdLocked(item)
 		return
 	}

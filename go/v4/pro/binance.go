@@ -6725,7 +6725,7 @@ func (this *BinanceCore) HandleMyTrade(client any, message any) {
 		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(orderId, nil)) && ccxt.IsTrue(!ccxt.IsEqual(tradeFee, nil))) && ccxt.IsTrue(!ccxt.IsEqual(symbol, nil))) {
 			var cachedOrders any = this.Orders
 			if ccxt.IsTrue(!ccxt.IsEqual(cachedOrders, nil)) {
-				var orders any = this.SafeValue(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+				var orders any = this.SafeValue(ccxt.CacheHashmap(cachedOrders), symbol, map[string]any{})
 				var order any = this.SafeValue(orders, orderId)
 				if ccxt.IsTrue(!ccxt.IsEqual(order, nil)) {
 					// accumulate order fees
@@ -6802,7 +6802,7 @@ func (this *BinanceCore) HandleOrder(client any, message any) {
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
 		var cachedOrders any = this.Orders
-		var orders any = this.SafeValue(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+		var orders any = this.SafeValue(ccxt.CacheHashmap(cachedOrders), symbol, map[string]any{})
 		var order any = this.SafeValue(orders, orderId)
 		if ccxt.IsTrue(!ccxt.IsEqual(order, nil)) {
 			var fee any = this.SafeValue(order, "fee")

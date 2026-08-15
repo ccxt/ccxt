@@ -2780,7 +2780,7 @@ func (this *KucoinCore) HandleOrder(client any, message any) {
 		this.TriggerOrders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var cachedOrders any = ccxt.Ternary(ccxt.IsTrue(isTriggerOrder), this.TriggerOrders, this.Orders)
-	var orders any = this.SafeValue(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+	var orders any = this.SafeValue(ccxt.CacheHashmap(cachedOrders), symbol, map[string]any{})
 	var order any = this.SafeValue(orders, orderId)
 	if ccxt.IsTrue(!ccxt.IsEqual(order, nil)) {
 		if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(order, "status"), "closed")) {
@@ -3571,7 +3571,7 @@ func (this *KucoinCore) GetCurrentPosition(symbol any) any {
 	if ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil)) {
 		return nil
 	}
-	var cache any = this.Positions.(*ccxt.ArrayCache).Hashmap
+	var cache any = ccxt.CacheHashmap(this.Positions)
 	var symbolCache any = this.SafeValue(cache, symbol, map[string]any{})
 	var values any = ccxt.ObjectValues(symbolCache)
 	return this.SafeValue(values, 0)
