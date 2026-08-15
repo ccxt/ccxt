@@ -1,0 +1,146 @@
+{
+    "BTC": {
+        "info": {
+            "coin": "BTC",
+            "networkList": [
+                {
+                    "network": "BTC",
+                    "coin": "BTC",
+                    "withdrawFee": "0.0001",
+                    "withdrawMin": "0.001",
+                    "withdrawMax": "10.0",
+                    "depositEnable": true,
+                    "withdrawEnable": true,
+                    "addressRegex": "^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$"
+                }
+            ]
+        },
+        "id": "BTC",
+        "code": "BTC",
+        "name": "Bitcoin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0001,
+        "precision": 1e-08,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.001,
+                "max": 10.0
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        },
+        "networks": {
+            "BTC": {
+                "info": {
+                    "network": "BTC",
+                    "coin": "BTC",
+                    "withdrawFee": "0.0001",
+                    "withdrawMin": "0.001",
+                    "withdrawMax": "10.0",
+                    "depositEnable": true,
+                    "withdrawEnable": true,
+                    "addressRegex": "^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$"
+                },
+                "id": "BTC",
+                "network": "BTC",
+                "name": null,
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.0001,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.001,
+                        "max": 10.0
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "type": "crypto"
+    },
+    "USDT": {
+        "info": {
+            "coin": "USDT",
+            "networkList": [
+                {
+                    "network": "EVM",
+                    "coin": "USDT",
+                    "withdrawFee": "1.0",
+                    "withdrawMin": "10.0",
+                    "withdrawMax": "100000.0",
+                    "depositEnable": true,
+                    "withdrawEnable": true,
+                    "addressRegex": "^(0x)[0-9A-Fa-f]{40}$"
+                }
+            ]
+        },
+        "id": "USDT",
+        "code": "USDT",
+        "name": "Tether",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 1.0,
+        "precision": 1e-06,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 10.0,
+                "max": 100000.0
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        },
+        "networks": {
+            "EVM": {
+                "info": {
+                    "network": "EVM",
+                    "coin": "USDT",
+                    "withdrawFee": "1.0",
+                    "withdrawMin": "10.0",
+                    "withdrawMax": "100000.0",
+                    "depositEnable": true,
+                    "withdrawEnable": true,
+                    "addressRegex": "^(0x)[0-9A-Fa-f]{40}$"
+                },
+                "id": "EVM",
+                "network": "EVM",
+                "name": null,
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1.0,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": 10.0,
+                        "max": 100000.0
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "type": "crypto"
+    }
+}
