@@ -15,15 +15,10 @@ func TestWatchOHLCV(exchange ccxt.ICoreExchange, skippedProperties any, symbol a
 		var ends any = Add(now, 15000)
 		var timeframeKeys any = ObjectKeys(exchange.GetTimeframes())
 		Assert(GetArrayLength(timeframeKeys), Add(Add(Add(exchange.GetId(), " "), method), " - no timeframes found"))
-		// prefer the shortest candle so a new bar can arrive inside the test window
-		var preferredTimeframes any = []any{"1s", "5s", "15s", "30s", "1m"}
-		var chosenTimeframeKey any = GetValue(timeframeKeys, 0)
-		for i := 0; IsLessThan(i, GetArrayLength(preferredTimeframes)); i++ {
-			var timeframeKey any = GetValue(preferredTimeframes, i)
-			if IsTrue(exchange.InArray(timeframeKey, timeframeKeys)) {
-				chosenTimeframeKey = timeframeKey
-				break
-			}
+		// prefer 1m timeframe if available, otherwise return the first one
+		var chosenTimeframeKey any = "1m"
+		if !IsTrue(exchange.InArray(chosenTimeframeKey, timeframeKeys)) {
+			chosenTimeframeKey = GetValue(timeframeKeys, 0)
 		}
 		var limit any = 10
 		var duration any = exchange.ParseTimeframe(chosenTimeframeKey)
