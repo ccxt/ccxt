@@ -1,7 +1,5 @@
 import collections
-import logging
 
-logger = logging.getLogger(__name__)
 
 class Delegate:
     def __init__(self, name, delegated):
@@ -24,13 +22,16 @@ class BaseCache(list):
     __len__ = Delegate('__len__', '_deque')
     __contains__ = Delegate('__contains__', '_deque')
     __reversed__ = Delegate('__reversed__', '_deque')
-    clear = Delegate('clear', '_deque')
     pop = Delegate('pop', '_deque')
 
     def __init__(self, max_size=None):
         super(BaseCache, self).__init__()
         self.max_size = max_size
-        self._deque = collections.deque([], max_size)
+        # a falsy max_size means unbounded, mirroring the `this.maxSize && ...`
+        # truthiness guard in ts/src/base/ws/Cache.ts - a max_size of 0 arises
+        # from .filter() copy-construction, and deque(maxlen=0) would silently
+        # discard every appended row while getLimit still reports new updates
+        self._deque = collections.deque([], max_size or None)
 
     def __eq__(self, other):
         return list(self) == other
@@ -50,6 +51,12 @@ class BaseCache(list):
         else:
             return deque[item]
 
+    # subclasses extend this to also reset their own bookkeeping - clearing only
+    # the deque would leave the hashmap/index sidecars pointing at rows that no
+    # longer exist, so the next re-append of a known id raises IndexError
+    def clear(self):
+        self._deque.clear()
+
     # to be overriden
     def getLimit(self, symbol, limit):
         pass
@@ -66,6 +73,14 @@ class ArrayCache(BaseCache):
         self._nested_new_updates_by_symbol = False
         self._new_updates_by_symbol = {}
         self._clear_updates_by_symbol = {}
+        self._all_new_updates = 0
+        self._clear_all_updates = False
+
+    def clear(self):
+        super(ArrayCache, self).clear()
+        self.hashmap.clear()
+        self._new_updates_by_symbol.clear()
+        self._clear_updates_by_symbol.clear()
         self._all_new_updates = 0
         self._clear_all_updates = False
 
@@ -87,6 +102,7 @@ class ArrayCache(BaseCache):
             return new_updates_value
 
     def append(self, item):
+        # the deque evicts from the left on its own when max_size is truthy
         self._deque.append(item)
         if self._clear_all_updates:
             self._clear_all_updates = False
@@ -111,6 +127,13 @@ class ArrayCacheByTimestamp(BaseCache):
         self._new_updates = 0
         self._clear_updates = False
 
+    def clear(self):
+        super(ArrayCacheByTimestamp, self).clear()
+        self.hashmap.clear()
+        self._size_tracker.clear()
+        self._new_updates = 0
+        self._clear_updates = False
+
     def getLimit(self, symbol, limit):
         self._clear_updates = True
         if limit is None:
@@ -120,7 +143,11 @@ class ArrayCacheByTimestamp(BaseCache):
     def append(self, item):
         if item[0] in self.hashmap:
             reference = self.hashmap[item[0]]
-            if reference != item:
+            # identity check, matching the `!==` in ts/src/base/ws/Cache.ts - a deep
+            # value comparison would be O(k) on every update for no observable gain
+            if reference is not item:
+                # merge in place so the row keeps its position, and only over the
+                # incoming length so a longer cached row is not truncated
                 reference[0:len(item)] = item
         else:
             self.hashmap[item[0]] = item
@@ -141,33 +168,46 @@ class ArrayCacheBySymbolById(ArrayCache):
         self._nested_new_updates_by_symbol = True
         self._key_field = 'symbol'  # first nesting level (overridden by ArrayCacheByOutcomeById)
         self.hashmap = {}
-        self._index = collections.deque([], max_size)
+        self._index = collections.deque([], max_size or None)
+
+    def clear(self):
+        super(ArrayCacheBySymbolById, self).clear()
+        self._index.clear()
 
     def append(self, item):
         key = item[self._key_field]
+        item_id = item['id']
         by_id = self.hashmap.setdefault(key, {})
-        if item['id'] in by_id:
-            reference = by_id[item['id']]
-            if reference != item:
+        # index on the (key_field, id) pair kept as a tuple - different symbols can
+        # share an order id (binance uses per-symbol id sequences) and matching on id
+        # alone would remove the wrong row, see https://github.com/ccxt/ccxt/issues/26092.
+        # A tuple rather than a key + id string concatenation, because concatenation
+        # collides across the field boundary (('BTC/USDT1', '2') and ('BTC/USDT', '12')
+        # both yield 'BTC/USDT12') and raises TypeError on non-string ids
+        token = (key, item_id)
+        if item_id in by_id:
+            reference = by_id[item_id]
+            if reference is not item:
                 reference.update(item)
             item = reference
-            # index by key_field + id - different symbols can share an order id
-            # (binance uses per-symbol id sequences), and matching on id alone
-            # would remove the wrong row, see https://github.com/ccxt/ccxt/issues/26092
-            index = self._index.index(key + item['id'])
+            index = self._index.index(token)
+            # move the order to the end of the deque
             del self._deque[index]
             del self._index[index]
         else:
-            by_id[item['id']] = item
+            by_id[item_id] = item
         if len(self._deque) == self._deque.maxlen:
             delete_item = self._deque.popleft()
             self._index.popleft()
-            try:
-                del self.hashmap[delete_item[self._key_field]][delete_item['id']]
-            except Exception as e:
-                logger.error(f"Error deleting item from hashmap: {delete_item}. Error:{e}")
+            delete_key = delete_item[self._key_field]
+            delete_by_id = self.hashmap[delete_key]
+            del delete_by_id[delete_item['id']]
+            if not delete_by_id:
+                # drop the outer bucket once its last id is evicted, otherwise the
+                # hashmap grows one empty dict per symbol for the process lifetime
+                del self.hashmap[delete_key]
         self._deque.append(item)
-        self._index.append(key + item['id'])
+        self._index.append(token)
         if self._clear_all_updates:
             self._clear_all_updates = False
             self._clear_updates_by_symbol.clear()
@@ -178,9 +218,10 @@ class ArrayCacheBySymbolById(ArrayCache):
         if self._clear_updates_by_symbol.get(key):
             self._clear_updates_by_symbol[key] = False
             self._new_updates_by_symbol[key].clear()
+        # in case an exchange updates the same order id twice
         id_set = self._new_updates_by_symbol[key]
         before_length = len(id_set)
-        id_set.add(item['id'])
+        id_set.add(item_id)
         after_length = len(id_set)
         self._all_new_updates = (self._all_new_updates or 0) + (after_length - before_length)
 
@@ -193,41 +234,49 @@ class ArrayCacheByOutcomeById(ArrayCacheBySymbolById):
 
 class ArrayCacheBySymbolBySide(ArrayCache):
     def __init__(self, max_size=None):
-        super(ArrayCacheBySymbolBySide, self).__init__(max_size)
+        # positions are unbounded - the number of (symbol, side) pairs is naturally
+        # capped by the account, so max_size is accepted and ignored the way the
+        # zero-arity constructor in ts/src/base/ws/Cache.ts drops any argument
+        super(ArrayCacheBySymbolBySide, self).__init__()
         self._nested_new_updates_by_symbol = True
         self.hashmap = {}
-        self._index = collections.deque([], max_size)
+        self._index = collections.deque()
+
+    def clear(self):
+        super(ArrayCacheBySymbolBySide, self).clear()
+        self._index.clear()
 
     def append(self, item):
-        by_side = self.hashmap.setdefault(item['symbol'], {})
-        if item['side'] in by_side:
-            reference = by_side[item['side']]
-            if reference != item:
+        symbol = item['symbol']
+        side = item['side']
+        by_side = self.hashmap.setdefault(symbol, {})
+        token = (symbol, side)
+        if side in by_side:
+            reference = by_side[side]
+            if reference is not item:
                 reference.update(item)
             item = reference
-            index = self._index.index(item['symbol'] + item['side'])
+            index = self._index.index(token)
+            # move the position to the end of the deque
             del self._deque[index]
             del self._index[index]
         else:
-            by_side[item['side']] = item
-        if len(self._deque) == self._deque.maxlen:
-            delete_item = self._deque.popleft()
-            self._index.popleft()
-            del self.hashmap[delete_item['symbol']][delete_item['side']]
+            by_side[side] = item
         self._deque.append(item)
-        self._index.append(item['symbol'] + item['side'])
+        self._index.append(token)
         if self._clear_all_updates:
             self._clear_all_updates = False
             self._clear_updates_by_symbol.clear()
             self._all_new_updates = 0
             self._new_updates_by_symbol.clear()
-        if item['symbol'] not in self._new_updates_by_symbol:
-            self._new_updates_by_symbol[item['symbol']] = set()
-        if self._clear_updates_by_symbol.get(item['symbol']):
-            self._clear_updates_by_symbol[item['symbol']] = False
-            self._new_updates_by_symbol[item['symbol']].clear()
-        side_set = self._new_updates_by_symbol[item['symbol']]
+        if symbol not in self._new_updates_by_symbol:
+            self._new_updates_by_symbol[symbol] = set()
+        if self._clear_updates_by_symbol.get(symbol):
+            self._clear_updates_by_symbol[symbol] = False
+            self._new_updates_by_symbol[symbol].clear()
+        # in case an exchange updates the same position twice
+        side_set = self._new_updates_by_symbol[symbol]
         before_length = len(side_set)
-        side_set.add(item['side'])
+        side_set.add(side)
         after_length = len(side_set)
         self._all_new_updates = (self._all_new_updates or 0) + (after_length - before_length)
