@@ -1098,6 +1098,14 @@ class BaseExchange(object):
         return sorted(array)
 
     @staticmethod
+    def _fast_clone(obj):
+        if isinstance(obj, list):
+            return [Exchange._fast_clone(v) for v in obj]
+        if isinstance(obj, dict):
+            return {k: Exchange._fast_clone(v) for k, v in obj.items()}
+        return obj
+
+    @staticmethod
     def extend(*args):
         if not args:
             return {}
@@ -1131,7 +1139,7 @@ class BaseExchange(object):
                     if isinstance(current, dict) and isinstance(value, dict):
                         result[key] = Exchange.deep_extend(current, value, _all_dicts=True)
                     else:
-                        result[key] = value
+                        result[key] = Exchange._fast_clone(value)
             else:
                 # arg is None or other non-dict.
                 result = arg
