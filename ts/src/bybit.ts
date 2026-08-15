@@ -4505,6 +4505,7 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        await this.isUnifiedEnabled ();
         const ordersRequests: List = [];
         const orderSymbols: List = [];
         for (let i = 0; i < orders.length; i++) {
@@ -4729,6 +4730,7 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        await this.isUnifiedEnabled ();
         const ordersRequests: List = [];
         let orderSymbols: List = [];
         for (let i = 0; i < orders.length; i++) {
@@ -6128,6 +6130,7 @@ export default class bybit extends Exchange {
             // 'limit': 0, Limit for data size per page. [1, 50]. Default: 20
             // 'cursor': '', Cursor. Used for pagination
         };
+        await this.isUnifiedEnabled ();
         let currency: Currency = undefined;
         let currencyKey = 'coin';
         currencyKey = 'currency';
