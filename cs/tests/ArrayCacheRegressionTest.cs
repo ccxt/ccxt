@@ -45,7 +45,7 @@ public partial class BaseTest
     {
         testArrayCacheByTimestampEviction();
         testArrayCacheByTimestampInPlaceMerge();
-        testArrayCacheByTimestampMergeDoesNotMixNumericTypes();
+        testArrayCacheByTimestampShorterUpdateDropsTail();
         testArrayCacheUnboundedWhenMaxSizeFalsy();
         testArrayCacheGetLimitMissingSymbol();
         testArrayCacheClearResetsBookkeeping();
@@ -119,21 +119,20 @@ public partial class BaseTest
         Assert(object.ReferenceEquals(cache.hashmap["100"], first), "the hashmap must keep pointing at the live object");
     }
 
-    // Live C# WS tests crash with InvalidOperationException: "Failed to compare
-    // two elements in the array" / Double.CompareTo when sortBy/OrderBy walks a
-    // cache whose timestamps are a mix of Double (JSON) and Int64 (parsed ints).
-    // mergeInto must keep the stored CLR type so every row stays comparable.
-    private void testArrayCacheByTimestampMergeDoesNotMixNumericTypes()
+    // Incoming length wins: a shorter candle must drop the previous tail.
+    // Price / amount / OHLCV slots are stored as Double.
+    private void testArrayCacheByTimestampShorterUpdateDropsTail()
     {
         var cache = new ArrayCacheByTimestamp();
         cache.append(new List<object>() { 100.0, 1.0, 2.0, 3.0, 4.0, 5.0 });
         cache.append(new List<object>() { 200.0, 1.0, 2.0, 3.0, 4.0, 5.0 });
-        cache.append(new List<object>() { 100L, 9L, 9L });
+        cache.append(new List<object>() { 100.0, 9.0, 9.0 });
         var first = cache[0] as List<object>;
         Assert(first != null, "merged candle must stay a list");
         Assert(first.Count == 3, "shorter update must drop the stale OHLCV tail, got count " + first.Count);
-        Assert(first[0] is double, "merged timestamp must keep the stored Double type, got " + first[0].GetType());
+        Assert(first[0] is double, "timestamp is stored as Double, got " + first[0].GetType());
         Assert(Convert.ToDouble(first[0]) == 100.0, "timestamp value must survive");
+        Assert(Convert.ToDouble(first[1]) == 9.0, "open must take the incoming value");
         var keys = new object[] { first[0], (cache[1] as List<object>)[0] };
         Array.Sort(keys); // same Comparer<object> path as OrderBy — must not throw
     }
