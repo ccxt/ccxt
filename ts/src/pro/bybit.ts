@@ -253,7 +253,7 @@ export default class bybit extends bybitRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params, true);
+        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
         const url = this.urls['api']['ws']['private']['trade'];
         await this.authenticate (url);
         const requestId = this.requestId ().toString ();
