@@ -20,11 +20,14 @@ public partial class testMainClass : BaseTest
         object method = "watchBidsAsks";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
-        while (isLessThan(now, ends))
+        object maxIdleTime = 5000;
+        object idle = false;
+        while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             object success = true;
             object shouldReturn = false;
             object response = new Dictionary<string, object>() {};
+            object startTime = exchange.milliseconds();
             try
             {
                 response = await exchange.watchBidsAsks(argSymbols, argParams);
@@ -42,10 +45,9 @@ public partial class testMainClass : BaseTest
                 {
                     throw e;
                 }
-                now = exchange.milliseconds();
-                // continue;
                 success = false;
             }
+            now = exchange.milliseconds();
             if (isTrue(shouldReturn))
             {
                 return false;
@@ -65,7 +67,10 @@ public partial class testMainClass : BaseTest
                     object ticker = getValue(values, i);
                     testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
                 }
-                now = exchange.milliseconds();
+                if (isTrue(isGreaterThan((subtract(now, startTime)), maxIdleTime)))
+                {
+                    idle = true;
+                }
             }
         }
         return true;

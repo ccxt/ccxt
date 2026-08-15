@@ -15,19 +15,28 @@ public partial class testMainClass : BaseTest
         object ends = add(now, 15000);
         object timeframeKeys = new List<object>(((IDictionary<string,object>)exchange.timeframes).Keys);
         assert(getArrayLength(timeframeKeys), add(add(add(exchange.id, " "), method), " - no timeframes found"));
-        // prefer 1m timeframe if available, otherwise return the first one
-        object chosenTimeframeKey = "1m";
-        if (!isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))
+        // prefer the shortest candle so a new bar can arrive inside the test window
+        object preferredTimeframes = new List<object>() {"1s", "5s", "15s", "30s", "1m"};
+        object chosenTimeframeKey = getValue(timeframeKeys, 0);
+        for (object i = 0; isLessThan(i, getArrayLength(preferredTimeframes)); postFixIncrement(ref i))
         {
-            chosenTimeframeKey = getValue(timeframeKeys, 0);
+            object timeframeKey = getValue(preferredTimeframes, i);
+            if (isTrue(exchange.inArray(timeframeKey, timeframeKeys)))
+            {
+                chosenTimeframeKey = timeframeKey;
+                break;
+            }
         }
         object limit = 10;
         object duration = exchange.parseTimeframe(chosenTimeframeKey);
         object since = subtract(subtract(exchange.milliseconds(), multiply(multiply(duration, limit), 1000)), 1000);
-        while (isLessThan(now, ends))
+        object maxIdleTime = 5000;
+        object idle = false;
+        while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             object response = null;
             object success = true;
+            object startTime = exchange.milliseconds();
             try
             {
                 response = await exchange.watchOHLCV(symbol, chosenTimeframeKey, since, limit);
@@ -41,21 +50,19 @@ public partial class testMainClass : BaseTest
                 {
                     throw e;
                 }
-                now = exchange.milliseconds();
-                // continue;
                 success = false;
             }
-            if (isTrue(isEqual(success, true)))
+            now = exchange.milliseconds();
+            if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
             {
-                if (isTrue(isEqual(response, null)))
-                {
-                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
-                }
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
-                now = exchange.milliseconds();
                 for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
                 {
                     testOHLCV(exchange, skippedProperties, method, getValue(response, i), symbol, now);
+                }
+                if (isTrue(isGreaterThan((subtract(now, startTime)), maxIdleTime)))
+                {
+                    idle = true;
                 }
             }
         }
