@@ -378,14 +378,33 @@ public partial class binance : ccxt.binance
         object delay = this.sum(listenKeyRefreshRate, 10000);
         if (isTrue(isGreaterThan((subtract(now, lastAuthenticatedTime)), delay)))
         {
-            object requestParams = this.omit(parameters, new List<object>() {"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"});
-            object response = await this.sapiPostEquityListenKey(requestParams);
-            object listenKey = this.safeString(response, "listenKey");
-            ((IDictionary<string,object>)this.options)["stock"] = this.extend(options, new Dictionary<string, object>() {
-                { "listenKey", listenKey },
-                { "lastAuthenticatedTime", now },
-            });
-            this.delay(listenKeyRefreshRate,  this.keepAliveStockListenKey, new object[] { parameters});
+            // the stock user stream url embeds this listenKey, so the future is parked
+            // on the listenKey-free market url of the same host
+            var client = this.client(this.getStockWsUrl("market"));
+            object messageHash = "authenticate:stock";
+            if (isTrue(inOp(client.futures, messageHash)))
+            {
+                // another caller is already fetching, wait for it instead of fetching again
+                await client.future(messageHash);
+                return;
+            }
+            client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
+            try
+            {
+                object requestParams = this.omit(parameters, new List<object>() {"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"});
+                object response = await this.sapiPostEquityListenKey(requestParams);
+                object listenKey = this.safeString(response, "listenKey");
+                ((IDictionary<string,object>)this.options)["stock"] = this.extend(options, new Dictionary<string, object>() {
+                    { "listenKey", listenKey },
+                    { "lastAuthenticatedTime", now },
+                });
+                this.delay(listenKeyRefreshRate,  this.keepAliveStockListenKey, new object[] { parameters});
+                callDynamically(client as WebSocketClient, "resolve", new object[] {listenKey, messageHash});
+            } catch(Exception e)
+            {
+                ((WebSocketClient)client).reject(e, messageHash);
+                throw e;
+            }
         }
     }
 
@@ -3277,20 +3296,39 @@ public partial class binance : ccxt.binance
         {
             return;
         }
+        // the subscriptions flag is raised before the subscribe request is confirmed,
+        // so a concurrent caller would otherwise return onto an unauthenticated stream
+        object messageHash = add("authenticate:signature:", marketType);
+        if (isTrue(inOp(client.futures, messageHash)))
+        {
+            // another caller is already subscribing, wait for it instead of subscribing again
+            await client.future(messageHash);
+            return;
+        }
+        client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
         ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)marketType] = true;
         object requestId = this.requestId(url);
-        object messageHash = ((object)requestId).ToString();
+        object requestHash = ((object)requestId).ToString();
         object message = new Dictionary<string, object>() {
-            { "id", messageHash },
+            { "id", requestHash },
             { "method", "userDataStream.subscribe.signature" },
             { "params", this.signParams(new Dictionary<string, object>() {}) },
         };
         object subscription = new Dictionary<string, object>() {
-            { "id", messageHash },
+            { "id", requestHash },
             { "method", this.handleUserDataStreamSubscribe },
             { "subscription", marketType },
         };
-        await this.watch(url, messageHash, message, messageHash, subscription);
+        try
+        {
+            await this.watch(url, requestHash, message, requestHash, subscription);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {marketType, messageHash});
+        } catch(Exception e)
+        {
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)marketType);
+            ((WebSocketClient)client).reject(e, messageHash);
+            throw e;
+        }
     }
 
     public virtual void handleUserDataStreamSubscribe(WebSocketClient client, object message)
@@ -3314,6 +3352,8 @@ public partial class binance : ccxt.binance
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)accountType);
             ((WebSocketClient)client).reject(message, accountType);
+            ((WebSocketClient)client).reject(message, messageHash);
+            return;
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {message, messageHash});
     }
@@ -3341,64 +3381,91 @@ public partial class binance : ccxt.binance
         object delay = this.sum(listenTokenRefreshRate, 10000);
         if (isTrue(isGreaterThan(subtract(time, lastAuthenticatedTime), delay)))
         {
-            // Step 1: Create listenToken via REST API
-            object symbol = this.safeString(parameters, "symbol");
-            object isIsolated = this.safeBool(parameters, "isIsolated", false);
-            object validity = this.safeInteger(parameters, "validity");
-            object request = new Dictionary<string, object>() {};
-            if (isTrue(isIsolated))
+            // the future covers the REST create plus the ws subscribe, including the
+            // renewal timer re-entry through renewListenToken, so a concurrent caller
+            // waits for the leader rather than minting a second listenToken
+            var client = this.client(url);
+            object messageHash = add(add("authenticate:", marketType), ":listenToken");
+            if (isTrue(inOp(client.futures, messageHash)))
             {
-                if (isTrue(isEqual(symbol, null)))
+                // another caller is already fetching, wait for it instead of fetching again
+                await client.future(messageHash);
+                return;
+            }
+            client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
+            try
+            {
+                // Step 1: Create listenToken via REST API
+                object symbol = this.safeString(parameters, "symbol");
+                object isIsolated = this.safeBool(parameters, "isIsolated", false);
+                object validity = this.safeInteger(parameters, "validity");
+                object request = new Dictionary<string, object>() {};
+                if (isTrue(isIsolated))
                 {
-                    throw new ArgumentsRequired ((string)add(this.id, " ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode")) ;
+                    if (isTrue(isEqual(symbol, null)))
+                    {
+                        throw new ArgumentsRequired ((string)add(this.id, " ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode")) ;
+                    }
+                    object marketId = this.marketId(symbol);
+                    ((IDictionary<string,object>)request)["symbol"] = marketId;
+                    ((IDictionary<string,object>)request)["isIsolated"] = true;
                 }
-                object marketId = this.marketId(symbol);
-                ((IDictionary<string,object>)request)["symbol"] = marketId;
-                ((IDictionary<string,object>)request)["isIsolated"] = true;
-            }
-            if (isTrue(!isEqual(validity, null)))
-            {
-                ((IDictionary<string,object>)request)["validity"] = validity;
-            }
-            object response = await this.sapiPostUserListenToken(request);
-            object listenToken = this.safeString(response, "token");
-            object expirationTime = this.safeInteger(response, "expirationTime");
-            // Step 2: Subscribe to user data stream via WebSocket API
-            object requestId = this.requestId(url);
-            object messageHash = ((object)requestId).ToString();
-            object message = new Dictionary<string, object>() {
-                { "id", messageHash },
-                { "method", "userDataStream.subscribe.listenToken" },
-                { "params", new Dictionary<string, object>() {
+                if (isTrue(!isEqual(validity, null)))
+                {
+                    ((IDictionary<string,object>)request)["validity"] = validity;
+                }
+                object response = await this.sapiPostUserListenToken(request);
+                object listenToken = this.safeString(response, "token");
+                if (isTrue(isEqual(listenToken, null)))
+                {
+                    throw new AuthenticationError ((string)add(this.id, " ensureUserDataStreamWsSubscribeListenToken() failed to obtain a listenToken")) ;
+                }
+                object expirationTime = this.safeInteger(response, "expirationTime");
+                // Step 2: Subscribe to user data stream via WebSocket API
+                object requestId = this.requestId(url);
+                object requestHash = ((object)requestId).ToString();
+                object message = new Dictionary<string, object>() {
+                    { "id", requestHash },
+                    { "method", "userDataStream.subscribe.listenToken" },
+                    { "params", new Dictionary<string, object>() {
+                        { "listenToken", listenToken },
+                    } },
+                };
+                object subscription = new Dictionary<string, object>() {
+                    { "id", requestHash },
+                    { "method", this.handleUserDataStreamSubscribe },
+                    { "subscription", marketType },
+                };
+                await this.watch(url, requestHash, message, requestHash, subscription);
+                ((IDictionary<string,object>)this.options)[(string)marketType] = this.extend(options, new Dictionary<string, object>() {
                     { "listenToken", listenToken },
-                } },
-            };
-            object subscription = new Dictionary<string, object>() {
-                { "id", messageHash },
-                { "method", this.handleUserDataStreamSubscribe },
-                { "subscription", marketType },
-            };
-            ((IDictionary<string,object>)this.options)[(string)marketType] = this.extend(options, new Dictionary<string, object>() {
-                { "listenToken", listenToken },
-                { "expirationTime", expirationTime },
-                { "lastAuthenticatedTime", time },
-                { "symbol", symbol },
-                { "isIsolated", isIsolated },
-                { "validity", validity },
-            });
-            // Schedule token renewal before expiration
-            if (isTrue(!isEqual(expirationTime, null)))
-            {
-                object renewalTime = subtract(subtract(expirationTime, time), 60000); // Renew 1 minute before expiration
-                if (isTrue(isGreaterThan(renewalTime, 0)))
+                    { "expirationTime", expirationTime },
+                    { "lastAuthenticatedTime", time },
+                    { "symbol", symbol },
+                    { "isIsolated", isIsolated },
+                    { "validity", validity },
+                });
+                // Schedule token renewal before expiration
+                if (isTrue(!isEqual(expirationTime, null)))
                 {
-                    object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
-                        { "type", marketType },
-                    });
-                    this.delay(renewalTime,  this.renewListenToken, new object[] { extendedParams});
+                    object renewalTime = subtract(subtract(expirationTime, time), 60000); // Renew 1 minute before expiration
+                    if (isTrue(isGreaterThan(renewalTime, 0)))
+                    {
+                        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+                            { "type", marketType },
+                        });
+                        this.delay(renewalTime,  this.renewListenToken, new object[] { extendedParams});
+                    }
                 }
+                callDynamically(client as WebSocketClient, "resolve", new object[] {listenToken, messageHash});
+            } catch(Exception e)
+            {
+                ((IDictionary<string,object>)this.options)[(string)marketType] = this.extend(options, new Dictionary<string, object>() {
+                    { "lastAuthenticatedTime", 0 },
+                });
+                ((WebSocketClient)client).reject(e, messageHash);
+                throw e;
             }
-            await this.watch(url, messageHash, message, messageHash, subscription);
         }
     }
 
@@ -3483,31 +3550,53 @@ public partial class binance : ccxt.binance
         object delay = this.sum(listenKeyRefreshRate, 10000);
         if (isTrue(isGreaterThan(subtract(time, lastAuthenticatedTime), delay)))
         {
-            object response = null;
-            if (isTrue(isPortfolioMargin))
+            // the private url embeds the listenKey that this request produces, so the future
+            // is parked on the listenKey-free base url of that same stream - concurrent
+            // callers wait for the leader instead of fetching a second listenKey, which
+            // would split the user-data subscriptions across two connections
+            var client = this.client(this.getWsUrl(type, "private"));
+            object messageHash = add("authenticate:", type);
+            if (isTrue(inOp(client.futures, messageHash)))
             {
-                response = await this.papiPostListenKey(parameters);
-                parameters = this.extend(parameters, new Dictionary<string, object>() {
-                    { "portfolioMargin", true },
-                });
-            } else if (isTrue(isEqual(type, "future")))
-            {
-                response = await this.fapiPrivatePostListenKey(parameters);
-            } else if (isTrue(isEqual(type, "delivery")))
-            {
-                response = await this.dapiPrivatePostListenKey(parameters);
-            } else if (isTrue(isEqual(type, "option")))
-            {
-                response = await this.eapiPrivatePostListenKey(parameters);
-            } else
-            {
-                response = await this.publicPostUserDataStream(parameters);
+                // another caller is already fetching, wait for it instead of fetching again
+                await client.future(messageHash);
+                return;
             }
-            ((IDictionary<string,object>)this.options)[(string)type] = this.extend(options, new Dictionary<string, object>() {
-                { "listenKey", this.safeString(response, "listenKey") },
-                { "lastAuthenticatedTime", time },
-            });
-            this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
+            client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
+            try
+            {
+                object response = null;
+                if (isTrue(isPortfolioMargin))
+                {
+                    response = await this.papiPostListenKey(parameters);
+                    parameters = this.extend(parameters, new Dictionary<string, object>() {
+                        { "portfolioMargin", true },
+                    });
+                } else if (isTrue(isEqual(type, "future")))
+                {
+                    response = await this.fapiPrivatePostListenKey(parameters);
+                } else if (isTrue(isEqual(type, "delivery")))
+                {
+                    response = await this.dapiPrivatePostListenKey(parameters);
+                } else if (isTrue(isEqual(type, "option")))
+                {
+                    response = await this.eapiPrivatePostListenKey(parameters);
+                } else
+                {
+                    response = await this.publicPostUserDataStream(parameters);
+                }
+                object listenKey = this.safeString(response, "listenKey");
+                ((IDictionary<string,object>)this.options)[(string)type] = this.extend(options, new Dictionary<string, object>() {
+                    { "listenKey", listenKey },
+                    { "lastAuthenticatedTime", time },
+                });
+                this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
+                callDynamically(client as WebSocketClient, "resolve", new object[] {listenKey, messageHash});
+            } catch(Exception e)
+            {
+                ((WebSocketClient)client).reject(e, messageHash);
+                throw e;
+            }
         }
     }
 
