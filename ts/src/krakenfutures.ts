@@ -1166,9 +1166,12 @@ export default class krakenfutures extends Exchange {
         let fee: FeeString = undefined;
         if ((takerOrMaker !== undefined) && (cost !== undefined)) {
             const feeRate = this.safeString (market, takerOrMaker);
-            // for linear contracts the cost is in the quote currency, for
-            // inverse contracts it is in the base currency
-            const feeCurrency = linear ? this.safeString (market, 'quote') : this.safeString (market, 'base');
+            // fees are charged in the settlement currency: the quote currency
+            // for linear contracts, the base currency for inverse contracts
+            let feeCurrency = this.safeString (market, 'settle');
+            if (feeCurrency === undefined) {
+                feeCurrency = this.safeString (market, 'quote');
+            }
             fee = {
                 'cost': Precise.stringMul (cost, feeRate),
                 'currency': feeCurrency,
