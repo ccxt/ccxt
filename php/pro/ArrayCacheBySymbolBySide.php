@@ -18,10 +18,8 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
     }
 
     public function append($item) {
-        # cast before use as an array key - php truncates float keys and
-        # coerces numeric strings, which would collapse distinct rows
-        $symbol = (string) $item['symbol'];
-        $side = (string) $item['side'];
+        $symbol = $this->as_string($item['symbol']);
+        $side = $this->as_string($item['side']);
         if (array_key_exists($symbol, $this->hashmap)) {
             $by_side = &$this->hashmap[$symbol];
         } else {

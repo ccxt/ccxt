@@ -58,11 +58,18 @@ class BaseCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, 
     public function getLimit($symbol, $limit) {
     }
 
+    // Coerce a hashmap / index key to string via the return type (PHP will
+    // juggle int/float → string). Avoids `(string)` casts and keeps 1.5 / 1.9
+    // from collapsing the way raw PHP array keys would.
+    protected function as_string($value): string {
+        return $value;
+    }
+
     // Builds a collision-free composite key for the positional index of the
     // keyed caches. A plain concatenation is ambiguous - ('AB', 'C') and
     // ('A', 'BC') both produce "ABC" - so the first part is length prefixed,
     // which makes the encoding injective for every possible pair of strings.
-    protected function index_key($first, $second) {
+    protected function index_key(string $first, string $second): string {
         return strlen($first) . ':' . $first . $second;
     }
 

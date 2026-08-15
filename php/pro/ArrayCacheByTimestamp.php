@@ -25,9 +25,7 @@ class ArrayCacheByTimestamp extends BaseCache {
     }
 
     public function append($item) {
-        # cast the timestamp before it is used as an array key - php truncates
-        # float keys, so 1.5 and 1.9 would otherwise collapse into the same row
-        $key = (string) $item[0];
+        $key = $this->as_string($item[0]);
         if (array_key_exists($key, $this->hashmap)) {
             $prev_ref = &$this->hashmap[$key];
             # field-wise merge, mirroring `for (const prop in item)` in the
@@ -40,7 +38,7 @@ class ArrayCacheByTimestamp extends BaseCache {
             $this->hashmap[$key] = &$item;
             if ($this->max_size && (count($this->deque) === $this->max_size)) {
                 $delete_reference = array_shift($this->deque);
-                unset($this->hashmap[(string) $delete_reference[0]]);
+                unset($this->hashmap[$this->as_string($delete_reference[0])]);
             }
             # this allows us to effectively pass by reference
             //array_push($this->deque->push(null);

@@ -16,10 +16,8 @@ class ArrayCacheBySymbolById extends ArrayCache {
     }
 
     public function append($item) {
-        # cast before use as an array key - php truncates float keys, so the
-        # ids 1.5 and 1.9 would otherwise collapse into the same row
-        $key = (string) $item[$this->key_field];
-        $id = (string) $item['id'];
+        $key = $this->as_string($item[$this->key_field]);
+        $id = $this->as_string($item['id']);
         if (array_key_exists($key, $this->hashmap)) {
             $by_id = &$this->hashmap[$key];
         } else {
@@ -55,7 +53,7 @@ class ArrayCacheBySymbolById extends ArrayCache {
             if ($this->max_size && (count($this->deque) === $this->max_size)) {
                 $delete_item = array_shift($this->deque);
                 array_shift($this->index);
-                unset($this->hashmap[(string) $delete_item[$this->key_field]][(string) $delete_item['id']]);
+                unset($this->hashmap[$this->as_string($delete_item[$this->key_field])][$this->as_string($delete_item['id'])]);
             }
         }
         # this allows us to effectively pass by reference
