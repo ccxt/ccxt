@@ -4315,6 +4315,9 @@ export default class bitget extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        if (since !== undefined) {
+            since = this.parseToInt (since); // in case a numeric string is passed (would silently corrupt the endTime calculation below otherwise)
+        }
         const defaultLimit = 100; // default 100, max 1000
         const maxLimitForRecentEndpoint = 1000;
         const maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
