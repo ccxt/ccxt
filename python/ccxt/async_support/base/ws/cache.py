@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 import collections
 
 
 class Delegate:
-    def __init__(self, name, delegated):
+    def __init__(self, name: str, delegated: str) -> None:
         self.name = name
         self.delegated = delegated
 
-    def __get__(self, instance, owner):
+    def __get__(self, instance: BaseCache | None, owner: type):
         deque = getattr(instance, self.delegated)
         return getattr(deque, self.name)
 
@@ -24,7 +26,7 @@ class BaseCache(list):
     __reversed__ = Delegate('__reversed__', '_deque')
     pop = Delegate('pop', '_deque')
 
-    def __init__(self, max_size=None):
+    def __init__(self, max_size: int | None = None) -> None:
         super(BaseCache, self).__init__()
         self.max_size = max_size
         # a falsy max_size means unbounded, mirroring the `this.maxSize && ...`
@@ -33,13 +35,13 @@ class BaseCache(list):
         # discard every appended row while getLimit still reports new updates
         self._deque = collections.deque([], max_size or None)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return list(self) == other
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(list(self))
 
-    def __add__(self, other):
+    def __add__(self, other: list) -> list:
         return list(self) + other
 
     def __getitem__(self, item):
@@ -54,20 +56,20 @@ class BaseCache(list):
     # subclasses extend this to also reset their own bookkeeping - clearing only
     # the deque would leave the hashmap/index sidecars pointing at rows that no
     # longer exist, so the next re-append of a known id raises IndexError
-    def clear(self):
+    def clear(self) -> None:
         self._deque.clear()
 
     # to be overriden
-    def getLimit(self, symbol, limit):
+    def getLimit(self, symbol: str | None, limit: int | None) -> int | None:
         pass
 
     # support transpiled snake_case calls
-    def get_limit(self, symbol, limit):
+    def get_limit(self, symbol: str | None, limit: int | None) -> int | None:
         return self.getLimit(symbol, limit)
 
 
 class ArrayCache(BaseCache):
-    def __init__(self, max_size=None):
+    def __init__(self, max_size: int | None = None) -> None:
         super(ArrayCache, self).__init__(max_size)
         self.hashmap = {}
         self._nested_new_updates_by_symbol = False
@@ -76,7 +78,7 @@ class ArrayCache(BaseCache):
         self._all_new_updates = 0
         self._clear_all_updates = False
 
-    def clear(self):
+    def clear(self) -> None:
         super(ArrayCache, self).clear()
         self.hashmap.clear()
         self._new_updates_by_symbol.clear()
@@ -84,7 +86,7 @@ class ArrayCache(BaseCache):
         self._all_new_updates = 0
         self._clear_all_updates = False
 
-    def getLimit(self, symbol, limit):
+    def getLimit(self, symbol: str | None, limit: int | None) -> int | None:
         if symbol is None:
             new_updates_value = self._all_new_updates
             self._clear_all_updates = True
@@ -101,7 +103,7 @@ class ArrayCache(BaseCache):
         else:
             return new_updates_value
 
-    def append(self, item):
+    def append(self, item: dict) -> None:
         # the deque evicts from the left on its own when max_size is truthy
         self._deque.append(item)
         if self._clear_all_updates:
@@ -120,27 +122,27 @@ class ArrayCache(BaseCache):
 
 
 class ArrayCacheByTimestamp(BaseCache):
-    def __init__(self, max_size=None):
+    def __init__(self, max_size: int | None = None) -> None:
         super(ArrayCacheByTimestamp, self).__init__(max_size)
         self.hashmap = {}
         self._size_tracker = set()
         self._new_updates = 0
         self._clear_updates = False
 
-    def clear(self):
+    def clear(self) -> None:
         super(ArrayCacheByTimestamp, self).clear()
         self.hashmap.clear()
         self._size_tracker.clear()
         self._new_updates = 0
         self._clear_updates = False
 
-    def getLimit(self, symbol, limit):
+    def getLimit(self, symbol: str | None, limit: int | None) -> int | None:
         self._clear_updates = True
         if limit is None:
             return self._new_updates
         return min(self._new_updates, limit)
 
-    def append(self, item):
+    def append(self, item: list) -> None:
         if item[0] in self.hashmap:
             reference = self.hashmap[item[0]]
             # identity check, matching the `!==` in ts/src/base/ws/Cache.ts - a deep
@@ -163,18 +165,18 @@ class ArrayCacheByTimestamp(BaseCache):
 
 
 class ArrayCacheBySymbolById(ArrayCache):
-    def __init__(self, max_size=None):
+    def __init__(self, max_size: int | None = None) -> None:
         super(ArrayCacheBySymbolById, self).__init__(max_size)
         self._nested_new_updates_by_symbol = True
         self._key_field = 'symbol'  # first nesting level (overridden by ArrayCacheByOutcomeById)
         self.hashmap = {}
         self._index = collections.deque([], max_size or None)
 
-    def clear(self):
+    def clear(self) -> None:
         super(ArrayCacheBySymbolById, self).clear()
         self._index.clear()
 
-    def append(self, item):
+    def append(self, item: dict) -> None:
         key = item[self._key_field]
         item_id = item['id']
         by_id = self.hashmap.setdefault(key, {})
@@ -227,13 +229,13 @@ class ArrayCacheBySymbolById(ArrayCache):
 
 
 class ArrayCacheByOutcomeById(ArrayCacheBySymbolById):
-    def __init__(self, max_size=None):
+    def __init__(self, max_size: int | None = None) -> None:
         super(ArrayCacheByOutcomeById, self).__init__(max_size)
         self._key_field = 'outcome'
 
 
 class ArrayCacheBySymbolBySide(ArrayCache):
-    def __init__(self, max_size=None):
+    def __init__(self, max_size: int | None = None) -> None:
         # positions are unbounded - the number of (symbol, side) pairs is naturally
         # capped by the account, so max_size is accepted and ignored the way the
         # zero-arity constructor in ts/src/base/ws/Cache.ts drops any argument
@@ -242,11 +244,11 @@ class ArrayCacheBySymbolBySide(ArrayCache):
         self.hashmap = {}
         self._index = collections.deque()
 
-    def clear(self):
+    def clear(self) -> None:
         super(ArrayCacheBySymbolBySide, self).clear()
         self._index.clear()
 
-    def append(self, item):
+    def append(self, item: dict) -> None:
         symbol = item['symbol']
         side = item['side']
         by_side = self.hashmap.setdefault(symbol, {})
