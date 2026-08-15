@@ -617,15 +617,10 @@ class NewTranspiler {
             
             [/\.Append\(/g, '.(Appender).Append('],
             [/stored\.\(Appender\)\.Append\(this\.ParseOHLCV/g, "stored.Append(this.ParseOHLCV"],
-            // `.hashmap` reads go through the CacheHashmap helper instead of a
-            // concrete type assertion: the receiver is an `any`-typed field
-            // (this.Orders, this.Positions, ...) that may legitimately hold any
-            // cache subtype, so `.(*ArrayCache)` panics as soon as an exchange
-            // installs its own ArrayCacheBySymbolById / ArrayCacheBySymbolBySide.
-            // Same shape as the .Append -> .(Appender) and .GetLimit ->
-            // ToGetsLimit() rules above/below.  Idempotent: the replacement
-            // leaves no `.Hashmap` behind for a second pass to re-match.
-            [/((?:this\.)?[A-Za-z_]\w*)\.Hashmap/g, 'CacheHashmap($1)'],
+            // `.hashmap` reads assert ArrayCacheBySymbolById. That is the type
+            // of Orders / MyTrades / TriggerOrders. Positions that used BySide
+            // (BitMEX Pro) are delisted rather than kept behind CacheHashmap.
+            [/((?:this\.)?[A-Za-z_]\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCacheBySymbolById).Hashmap'],
             [/stored := NewArrayCache\(limit\)/g, 'var stored any = NewArrayCache(limit)'],  // needed for cex HandleTradesSnapshot
             // Futures
             [/future\.(Resolve|Reject)/g, 'future.(*Future).$1'],

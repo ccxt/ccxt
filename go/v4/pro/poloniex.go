@@ -1154,7 +1154,7 @@ func (this *PoloniexCore) HandleOrder(client any, message any) any {
 				var parsed any = this.ParseWsOrder(order)
 				orders.(ccxt.Appender).Append(parsed)
 			} else {
-				var previousOrders any = this.SafeValue(ccxt.CacheHashmap(orders), symbol, map[string]any{})
+				var previousOrders any = this.SafeValue(orders.(*ccxt.ArrayCacheBySymbolById).Hashmap, symbol, map[string]any{})
 				var previousOrder any = this.SafeValue2(previousOrders, orderId, clientOrderId)
 				var trade any = this.ParseWsTrade(order)
 				this.HandleMyTrades(client, trade)

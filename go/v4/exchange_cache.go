@@ -23,32 +23,6 @@ import (
 
 type Appender interface{ Append(any) }
 
-// HasHashmap is implemented by every cache type that keeps a secondary index.
-// The transpiled pro exchanges read that index off `any`-typed fields
-// (this.Orders, this.Positions, ...), so they need an interface rather than a
-// concrete type: `this.Orders.(*ArrayCache)` panics as soon as an exchange
-// installs an ArrayCacheBySymbolById / ArrayCacheBySymbolBySide of its own,
-// which is exactly what pro/bitmex.go and pro/kucoin.go do.
-//
-// This mirrors the Appender / GetsLimit pattern already used for .Append and
-// .GetLimit on the same fields.
-type HasHashmap interface{ GetHashmap() any }
-
-// CacheHashmap returns the secondary index of any cache value, mirroring the
-// `.hashmap` property read in ts/src/base/ws/Cache.ts.  Every cache class there
-// exposes a hashmap (Cache.ts:27 for ArrayCache, :112 for ArrayCacheByTimestamp,
-// :242 for ArrayCacheBySymbolBySide), so a nil return only happens when the
-// cache has not been created yet - JS yields `undefined` in that case too.
-//
-// The generated code calls this instead of asserting a concrete cache type; see
-// the `.Hashmap` rule in build/goTranspiler.ts getWsRegexes().
-func CacheHashmap(v any) any {
-	if c, ok := v.(HasHashmap); ok {
-		return c.GetHashmap()
-	}
-	return nil
-}
-
 type CacheType interface {
 	*ArrayCache | *ArrayCacheByTimestamp | *ArrayCacheBySymbolById | *ArrayCacheByOutcomeById | *ArrayCacheBySymbolBySide | map[string]any
 
@@ -122,16 +96,6 @@ func NewArrayCache(MaxSize any) *ArrayCache {
 		nestedNewUpdatesBySymbol: false,
 		keyField:                 "symbol",
 	}
-}
-
-// GetHashmap exposes the by-key index through the HasHashmap interface so that
-// callers holding an `any` do not have to assert a concrete cache type.  It is
-// promoted to ArrayCacheBySymbolById / ArrayCacheByOutcomeById /
-// ArrayCacheBySymbolBySide, which all embed *ArrayCache.
-func (c *ArrayCache) GetHashmap() any {
-	c.Mu.Lock()
-	defer c.Mu.Unlock()
-	return c.Hashmap
 }
 
 // rollUpdatesLocked resets the update trackers once a getLimit(undefined, …)

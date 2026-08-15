@@ -1570,7 +1570,7 @@ func (this *WooCore) HandleOrder(client any, message any, topic any) {
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
 		var cachedOrders any = this.Orders
-		var orders any = this.SafeValue(ccxt.CacheHashmap(cachedOrders), symbol, map[string]any{})
+		var orders any = this.SafeValue(cachedOrders.(*ccxt.ArrayCacheBySymbolById).Hashmap, symbol, map[string]any{})
 		var order any = this.SafeValue(orders, orderId)
 		if ccxt.IsTrue(!ccxt.IsEqual(order, nil)) {
 			var fee any = this.SafeValue(order, "fee")

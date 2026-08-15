@@ -1637,7 +1637,7 @@ func (this *KrakenCore) HandleOrders(client any, message any, optionalArgs ...an
 			var id any = this.SafeString(order, "order_id")
 			var parsed any = this.ParseWsOrder(order)
 			var symbol any = this.SafeString(order, "symbol")
-			var previousOrders any = this.SafeValue(ccxt.CacheHashmap(stored), symbol)
+			var previousOrders any = this.SafeValue(stored.(*ccxt.ArrayCacheBySymbolById).Hashmap, symbol)
 			var previousOrder any = this.SafeValue(previousOrders, id)
 			var newOrder any = parsed
 			if ccxt.IsTrue(!ccxt.IsEqual(previousOrder, nil)) {

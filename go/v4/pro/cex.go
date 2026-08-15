@@ -910,7 +910,7 @@ func (this *CexCore) HandleOrderUpdate(client any, message any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var storedOrders any = this.Orders
-	var ordersBySymbol any = this.SafeValue(ccxt.CacheHashmap(storedOrders), symbol, map[string]any{})
+	var ordersBySymbol any = this.SafeValue(storedOrders.(*ccxt.ArrayCacheBySymbolById).Hashmap, symbol, map[string]any{})
 	var order any = this.SafeValue(ordersBySymbol, orderId)
 	if ccxt.IsTrue(ccxt.IsEqual(order, nil)) {
 		order = this.ParseWsOrderUpdate(data, market)
