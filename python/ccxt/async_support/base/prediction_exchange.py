@@ -490,7 +490,7 @@ class PredictionExchange(BaseExchange):
         marketsList = self.to_array(markets)
         aliased = []
         for i in range(0, len(marketsList)):
-            row = marketslist[i]
+            row = marketsList[i]
             copy = self.extend({}, row)
             copy['symbol'] = self.safe_string_2(row, 'market', 'symbol')
             aliased.append(copy)
@@ -518,7 +518,7 @@ class PredictionExchange(BaseExchange):
             self.outcomes_by_id = {}
         outcomesList = self.safe_list(market, 'outcomes', [])
         for j in range(0, len(outcomesList)):
-            oc = outcomeslist[j]
+            oc = outcomesList[j]
             ocSymbol = self.safe_string_2(oc, 'outcome', 'symbol')
             ocId = self.safe_string_2(oc, 'outcomeId', 'id')
             # assign unconditionally — safeString2 keeps the canonical key when present

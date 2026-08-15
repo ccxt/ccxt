@@ -5,13 +5,13 @@
 
 from ccxt.kucoin import kucoin
 from ccxt.abstract.kucoinfutures import ImplicitAPI
-from ccxt.base.types import Any, Strings, TransferEntry
+from ccxt.base.types import Strings, TransferEntry
 from ccxt.base.errors import BadRequest
 
 
 class kucoinfutures(kucoin, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(kucoinfutures, self).describe(), {
             'id': 'kucoinfutures',
             'name': 'KuCoin Futures',
@@ -119,7 +119,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'toAccount': toAccount,
         })
 
-    def parse_transfer_type(self, transferType: Any):
+    def parse_transfer_type(self, transferType: object):
         transferTypes = {
             'spot': 'TRADE',
             'funding': 'MAIN',

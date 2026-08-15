@@ -7,8 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.indodax import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, DepositWithdrawFee, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, DepositWithdrawFee, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -22,7 +21,7 @@ from ccxt.base.precise import Precise
 
 class indodax(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(indodax, self).describe(), {
             'id': 'indodax',
             'name': 'INDODAX',
@@ -337,7 +336,7 @@ class indodax(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'server_time')
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for indodax
 
@@ -437,7 +436,7 @@ class indodax(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         balances = self.safe_value(response, 'return', {})
         free = self.safe_value(balances, 'balance', {})
         used = self.safe_value(balances, 'balance_hold', {})
@@ -656,7 +655,7 @@ class indodax(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -677,7 +676,7 @@ class indodax(Exchange, ImplicitAPI):
         response = self.publicGetApiTradesPair(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     {
         #         "Time": 1708416900,
@@ -697,7 +696,7 @@ class indodax(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'Volume'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -871,7 +870,7 @@ class indodax(Exchange, ImplicitAPI):
         order['info'] = response
         return order
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -910,7 +909,7 @@ class indodax(Exchange, ImplicitAPI):
             exchangeOrders = self.array_concat(exchangeOrders, parsedOrders)
         return exchangeOrders
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -1112,7 +1111,7 @@ class indodax(Exchange, ImplicitAPI):
         result['deposit']['percentage'] = False
         return self.assign_default_deposit_withdraw_fees(result, currency)
 
-    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -1343,7 +1342,7 @@ class indodax(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> List[DepositAddress]:
+    def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> list[DepositAddress]:
         """
         fetch deposit addresses for multiple currencies and chain types
 
@@ -1433,7 +1432,7 @@ class indodax(Exchange, ImplicitAPI):
                     }
         return result
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api]
         if api == 'public':
             query = self.omit(params, self.extract_params(path))
@@ -1455,7 +1454,7 @@ class indodax(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         # {success: 0, error: "invalid order."}

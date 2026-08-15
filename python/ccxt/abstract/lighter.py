@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     root_get = rootGet = Entry[_Dict]('', 'root', 'GET', {'cost': 1})

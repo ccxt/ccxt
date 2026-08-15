@@ -1,7 +1,6 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, List
+_List = list[object]
 
-_List = List[PythonAny]
 
 class ImplicitAPI:
     public_get_conf_config = publicGetConfConfig = Entry[_List]('conf/{config}', 'public', 'GET', {'cost': 2.7})

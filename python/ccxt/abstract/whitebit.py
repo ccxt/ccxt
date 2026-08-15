@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List, Union
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     web_get_v1_healthcheck = webGetV1Healthcheck = Entry[_Dict]('v1/healthcheck', 'web', 'GET', {'cost': 1})
@@ -67,7 +66,7 @@ class ImplicitAPI:
     v4_private_post_main_account_fee = v4PrivatePostMainAccountFee = Entry[_List]('main-account/fee', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_main_account_smart_interest_payment_history = v4PrivatePostMainAccountSmartInterestPaymentHistory = Entry[_Dict]('main-account/smart/interest-payment-history', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_trade_account_balance = v4PrivatePostTradeAccountBalance = Entry[_Dict]('trade-account/balance', ['v4', 'private'], 'POST', {'cost': 1})
-    v4_private_post_trade_account_executed_history = v4PrivatePostTradeAccountExecutedHistory = Entry[Union[_Dict, _List]]('trade-account/executed-history', ['v4', 'private'], 'POST', {'cost': 1})
+    v4_private_post_trade_account_executed_history = v4PrivatePostTradeAccountExecutedHistory = Entry[_Dict | _List]('trade-account/executed-history', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_trade_account_order_history = v4PrivatePostTradeAccountOrderHistory = Entry[_Dict]('trade-account/order/history', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_trade_account_order = v4PrivatePostTradeAccountOrder = Entry[_Dict]('trade-account/order', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_order_collateral_limit = v4PrivatePostOrderCollateralLimit = Entry[_Dict]('order/collateral/limit', ['v4', 'private'], 'POST', {'cost': 1})

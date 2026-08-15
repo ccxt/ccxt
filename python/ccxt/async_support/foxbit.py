@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.foxbit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -26,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class foxbit(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(foxbit, self).describe(), {
             'id': 'foxbit',
             'name': 'Foxbit',
@@ -457,7 +456,7 @@ class foxbit(Exchange, ImplicitAPI):
             'networks': parsedNetworks,
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         Retrieves data on all markets for foxbit.
 
@@ -730,7 +729,7 @@ class foxbit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, symbol, timestamp)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         Retrieve the trades of a specific market.
 
@@ -765,7 +764,7 @@ class foxbit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         Fetch historical candlestick data containing the open, high, low, and close price, and the volume of a market.
 
@@ -852,7 +851,7 @@ class foxbit(Exchange, ImplicitAPI):
                 result[currencyCode] = balanceObj
         return self.safe_balance(result)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         Fetch all unfilled currently open orders.
 
@@ -866,7 +865,7 @@ class foxbit(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_status('ACTIVE', symbol, since, limit, params)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         Fetch all currently closed orders.
 
@@ -880,10 +879,10 @@ class foxbit(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_status('FILLED', symbol, since, limit, params)
 
-    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         return await self.fetch_orders_by_status('CANCELED', symbol, since, limit, params)
 
-    async def fetch_orders_by_status(self, status: Str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders_by_status(self, status: Str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         if self.markets is None:
             await self.load_markets()
         market = None
@@ -967,7 +966,7 @@ class foxbit(Exchange, ImplicitAPI):
         # }
         return self.parse_order(response, market)
 
-    async def create_orders(self, orders: List[OrderRequest], params={}):
+    async def create_orders(self, orders: list[OrderRequest], params={}):
         """
         create a list of trade orders
 
@@ -1138,7 +1137,7 @@ class foxbit(Exchange, ImplicitAPI):
         # }
         return self.parse_order(response)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1192,7 +1191,7 @@ class foxbit(Exchange, ImplicitAPI):
         list = self.safe_list(response, 'data', [])
         return self.parse_orders(list, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         Trade history queries will only have data available for the last 3 months, in descending order(most recents trades first).
 
@@ -1269,7 +1268,7 @@ class foxbit(Exchange, ImplicitAPI):
         # }
         return self.parse_deposit_address(response, currency)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         Fetch all deposits made to an account.
 
@@ -1313,7 +1312,7 @@ class foxbit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         Fetch all withdrawals made from an account.
 
@@ -1372,7 +1371,7 @@ class foxbit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    async def fetch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         Fetch all transactions(deposits and withdrawals) made from an account.
 
@@ -1663,7 +1662,7 @@ class foxbit(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
@@ -1673,7 +1672,7 @@ class foxbit(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 6),
         ]
 
-    def parse_trade(self, trade: Any, market: Market = None) -> Trade:
+    def parse_trade(self, trade: object, market: Market = None) -> Trade:
         timestamp = self.parse_date(self.safe_string(trade, 'created_at'))
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'volume', self.safe_string(trade, 'quantity'))
@@ -1765,7 +1764,7 @@ class foxbit(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None):
         network = self.safe_dict(depositAddress, 'network')
         networkId = self.safe_string(network, 'code')
         currencyCode = self.safe_currency_code(None, currency)
@@ -1798,7 +1797,7 @@ class foxbit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction: Any, currency: Currency = None, since: Int = None, limit: Int = None) -> Transaction:
+    def parse_transaction(self, transaction: object, currency: Currency = None, since: Int = None, limit: Int = None) -> Transaction:
         cryptoDetails = self.safe_dict(transaction, 'details_crypto')
         address = self.safe_string_2(cryptoDetails, 'receiving_address', 'destination_address')
         sn = self.safe_string(transaction, 'sn')
@@ -1846,7 +1845,7 @@ class foxbit(Exchange, ImplicitAPI):
             'internal': None,
         }
 
-    def parse_ledger_entry_type(self, type: Any):
+    def parse_ledger_entry_type(self, type: object):
         types = {
             'DEPOSITING': 'transaction',
             'WITHDRAWING': 'transaction',
@@ -1912,7 +1911,7 @@ class foxbit(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def sign(self, path: Any, api: Any = [], method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = [], method='GET', params={}, headers: dict = None, body: Str = None):
         version = api[0]
         urlPath = api[1]
         fullPath = '/rest/' + version + '/' + self.implode_params(path, params)
@@ -1956,7 +1955,7 @@ class foxbit(Exchange, ImplicitAPI):
             headers['X-FB-ACCESS-SIGNATURE'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         error = self.safe_dict(response, 'error')
