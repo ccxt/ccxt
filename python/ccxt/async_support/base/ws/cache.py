@@ -74,6 +74,10 @@ class ArrayCache(BaseCache):
         self.hashmap = {}
         self._nested_new_updates_by_symbol = False
         self._new_updates_by_symbol = {}
+        # subclasses that count distinct ids/sides keep the identifiers seen since
+        # the last getLimit here, so _new_updates_by_symbol only ever holds the
+        # resulting integer count and getLimit never has to type-check its values
+        self._seen_updates_by_symbol = {}
         self._clear_updates_by_symbol = {}
         self._all_new_updates = 0
         self._clear_all_updates = False
@@ -82,6 +86,7 @@ class ArrayCache(BaseCache):
         super(ArrayCache, self).clear()
         self.hashmap.clear()
         self._new_updates_by_symbol.clear()
+        self._seen_updates_by_symbol.clear()
         self._clear_updates_by_symbol.clear()
         self._all_new_updates = 0
         self._clear_all_updates = False
@@ -91,9 +96,8 @@ class ArrayCache(BaseCache):
             new_updates_value = self._all_new_updates
             self._clear_all_updates = True
         else:
+            # always an integer - subclasses write len(seen set) back into this map
             new_updates_value = self._new_updates_by_symbol.get(symbol)
-            if new_updates_value is not None and self._nested_new_updates_by_symbol:
-                new_updates_value = len(new_updates_value)
             self._clear_updates_by_symbol[symbol] = True
 
         if new_updates_value is None:
@@ -111,6 +115,7 @@ class ArrayCache(BaseCache):
             self._clear_updates_by_symbol.clear()
             self._all_new_updates = 0
             self._new_updates_by_symbol.clear()
+            self._seen_updates_by_symbol.clear()
         # item.get('symbol') (not item['symbol']): prediction trades carry 'outcome' not 'symbol',
         # so a bare lookup raises KeyError in Python where JS just yields undefined
         symbol = item.get('symbol')
@@ -215,16 +220,18 @@ class ArrayCacheBySymbolById(ArrayCache):
             self._clear_updates_by_symbol.clear()
             self._all_new_updates = 0
             self._new_updates_by_symbol.clear()
-        if key not in self._new_updates_by_symbol:
-            self._new_updates_by_symbol[key] = set()
+            self._seen_updates_by_symbol.clear()
+        if key not in self._seen_updates_by_symbol:
+            self._seen_updates_by_symbol[key] = set()
         if self._clear_updates_by_symbol.get(key):
             self._clear_updates_by_symbol[key] = False
-            self._new_updates_by_symbol[key].clear()
+            self._seen_updates_by_symbol[key].clear()
         # in case an exchange updates the same order id twice
-        id_set = self._new_updates_by_symbol[key]
+        id_set = self._seen_updates_by_symbol[key]
         before_length = len(id_set)
         id_set.add(item_id)
         after_length = len(id_set)
+        self._new_updates_by_symbol[key] = after_length
         self._all_new_updates = (self._all_new_updates or 0) + (after_length - before_length)
 
 
@@ -271,14 +278,16 @@ class ArrayCacheBySymbolBySide(ArrayCache):
             self._clear_updates_by_symbol.clear()
             self._all_new_updates = 0
             self._new_updates_by_symbol.clear()
-        if symbol not in self._new_updates_by_symbol:
-            self._new_updates_by_symbol[symbol] = set()
+            self._seen_updates_by_symbol.clear()
+        if symbol not in self._seen_updates_by_symbol:
+            self._seen_updates_by_symbol[symbol] = set()
         if self._clear_updates_by_symbol.get(symbol):
             self._clear_updates_by_symbol[symbol] = False
-            self._new_updates_by_symbol[symbol].clear()
+            self._seen_updates_by_symbol[symbol].clear()
         # in case an exchange updates the same position twice
-        side_set = self._new_updates_by_symbol[symbol]
+        side_set = self._seen_updates_by_symbol[symbol]
         before_length = len(side_set)
         side_set.add(side)
         after_length = len(side_set)
+        self._new_updates_by_symbol[symbol] = after_length
         self._all_new_updates = (self._all_new_updates or 0) + (after_length - before_length)
