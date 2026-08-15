@@ -25,14 +25,6 @@ public class BaseCache : SlimConcurrentList<object>
         get { return (this.maxSize != null) && (this.maxSize != 0); }
     }
 
-    // TS indexes plain objects, where a missing field yields the string key
-    // "undefined" rather than throwing. A raw null into Dictionary<string, ...>
-    // throws ArgumentNullException, so normalize the key the same way TS does.
-    protected static string cacheKey(object value)
-    {
-        return (value == null) ? "undefined" : value.ToString();
-    }
-
     // Mirrors the TS `for (const prop in item) reference[prop] = item[prop]`
     // update path: the *stored* object is mutated in place so that any external
     // reference handed out earlier (and the hashmap entry pointing at it) stays
@@ -183,7 +175,7 @@ public class ArrayCache : BaseCache
         }
         else
         {
-            var symbol = cacheKey(symbol2);
+            var symbol = symbol2.ToString();
             // TS reads an absent key as undefined and falls through to `return limit`;
             // the raw Dictionary indexer would throw KeyNotFoundException instead
             int tempNewUpdates = 0;
@@ -234,7 +226,7 @@ public class ArrayCache : BaseCache
             this.seenUpdatesBySymbol = new Dictionary<string, HashSet<object>>();
         }
 
-        var itemSymbol = cacheKey(Exchange.SafeString(item, "symbol"));
+        var itemSymbol = Exchange.SafeString(item, "symbol");
         object clearUpdateBySymbol = null;
         this.clearUpdatesBySymbol.TryGetValue(itemSymbol, out clearUpdateBySymbol);
         if (isTruthyFlag(clearUpdateBySymbol))
@@ -311,9 +303,7 @@ public class ArrayCacheByTimestamp : BaseCache
     }
     private void _append(object item)
     {
-        // derive the insert key and the eviction key through the same helper so
-        // they can never disagree and strand an entry in the hashmap
-        var firstValue = cacheKey(Exchange.SafeString(item, 0));
+        var firstValue = Exchange.SafeString(item, 0);
         object reference = null;
         if (this.hashmap.TryGetValue(firstValue, out reference))
         {
@@ -345,7 +335,7 @@ public class ArrayCacheByTimestamp : BaseCache
             {
                 var deletedReference = this[0];
                 this.RemoveAt(0);
-                this.hashmap.Remove(cacheKey(Exchange.SafeString(deletedReference, 0)));
+                this.hashmap.Remove(Exchange.SafeString(deletedReference, 0));
             }
             this.Add(item);
         }
@@ -380,8 +370,8 @@ public class ArrayCacheBySymbolById : ArrayCache
 
     private void _append(object item)
     {
-        var itemSymbol = cacheKey(Exchange.SafeString(item, this.keyField));
-        var itemId = cacheKey(Exchange.SafeString(item, "id"));
+        var itemSymbol = Exchange.SafeString(item, this.keyField);
+        var itemId = Exchange.SafeString(item, "id");
         object byIdValue = null;
         var byId = (this.hashmap.TryGetValue(itemSymbol, out byIdValue)) ? byIdValue as Dictionary<string, object> : null;
         if (byId == null)
@@ -422,8 +412,8 @@ public class ArrayCacheBySymbolById : ArrayCache
         {
             var first = this[0];
             this.RemoveAt(0);
-            var deletedSymbol = cacheKey(Exchange.SafeString(first, this.keyField));
-            var deletedId = cacheKey(Exchange.SafeString(first, "id"));
+            var deletedSymbol = Exchange.SafeString(first, this.keyField);
+            var deletedId = Exchange.SafeString(first, "id");
             object deletedBucketValue = null;
             if (this.hashmap.TryGetValue(deletedSymbol, out deletedBucketValue))
             {
@@ -504,8 +494,8 @@ public class ArrayCacheBySymbolBySide : ArrayCache
 
     private void _append(object item)
     {
-        var itemSymbol = cacheKey(Exchange.SafeString(item, "symbol"));
-        var itemSide = cacheKey(Exchange.SafeString(item, "side"));
+        var itemSymbol = Exchange.SafeString(item, "symbol");
+        var itemSide = Exchange.SafeString(item, "side");
         object bySideValue = null;
         var bySide = (this.hashmap.TryGetValue(itemSymbol, out bySideValue)) ? bySideValue as Dictionary<string, object> : null;
         if (bySide == null)
