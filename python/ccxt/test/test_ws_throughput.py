@@ -22,7 +22,9 @@ from tests_helpers import (  # noqa: E402
 )
 from tests_async import testMainClass  # noqa: E402
 
-RATE = 100  # messages per second
+# messages per second, override with WS_THROUGHPUT_RATE=<n> (an env var
+# because the imported test harness argparses sys.argv on import)
+RATE = int(os.environ.get('WS_THROUGHPUT_RATE', '100'))
 DURATION = 3  # seconds per scenario
 TOTAL = RATE * DURATION
 SCENARIO_TIMEOUT = 30  # hard cap per scenario so a regression fails instead of hanging
@@ -221,7 +223,7 @@ async def main():
     await run_watch_ticker()
     await run_watch_order_book()
     await run_burst_benchmark()
-    print('[TEST_SUCCESS] all watch methods handled the 100 msg/s stream')
+    print(f'[TEST_SUCCESS] all watch methods handled the {RATE} msg/s stream')
 
 
 if __name__ == '__main__':
