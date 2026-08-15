@@ -1389,7 +1389,8 @@ class toobit(Exchange, ImplicitAPI):
             'last': last,
             'previousClose': None,
             'change': self.safe_string(ticker, 'pc'),
-            'percentage': self.safe_string(ticker, 'pcp'),
+            # 'pcp' is a ratio, and a ticker reports a percentage
+            'percentage': Precise.string_mul(self.safe_string(ticker, 'pcp'), '100'),
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': self.safe_string(ticker, 'qv'),
