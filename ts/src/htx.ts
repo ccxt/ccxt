@@ -1261,24 +1261,12 @@ export default class htx extends Exchange {
      * @method
      * @name htx#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://huobiapi.github.io/docs/spot/v1/en/#get-system-status
-     * @see https://huobiapi.github.io/docs/dm/v1/en/#get-system-status
-     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-system-status
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#get-system-status
+     * @see https://huobiapi.github.io/docs/spot/v1/en/#get-market-status
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available  // contractPublicGetHeartbeat
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     override async fetchStatus (params = {}): Promise<Status> {
-        /**
-         * @method
-         * @name htx#fetchStatus
-         * @description the latest known information on the availability of the exchange API
-         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-market-status
-         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-system-status
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
-         */
         // the former statuspage endpoints (status*.huobigroup.com) were
         // decommissioned after the huobi -> htx rebrand and no longer resolve,
         // so this method uses the live native endpoints instead
@@ -1305,6 +1293,8 @@ export default class htx extends Exchange {
             status = (marketStatus === 1) ? 'ok' : 'maintenance';
             eta = this.safeInteger (data, 'haltEndTime');
         } else {
+            let subType: Str = undefined;
+            [ subType, params ] = this.handleSubTypeAndParams ('fetchStatus', undefined, params);
             response = await this.contractPublicGetHeartbeat (params);
             //
             //     {
@@ -1323,8 +1313,6 @@ export default class htx extends Exchange {
             //     }
             //
             const data = this.safeDict (response, 'data', {});
-            let subType: Str = undefined;
-            [ subType, params ] = this.handleSubTypeAndParams ('fetchStatus', undefined, params);
             let heartbeatKey = 'heartbeat';
             let etaKey = 'estimated_recovery_time';
             if (subType === 'linear') {
