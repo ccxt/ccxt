@@ -1623,7 +1623,14 @@ public class ToobitCore extends ToobitApi
         market = this.safeMarket(marketId, market);
         Object timestamp = this.safeInteger(ticker, "t");
         Object last = this.safeString(ticker, "c");
+        Object baseVolume = this.safeString(ticker, "v");
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "contract")) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "contractSize"), null)))))
+        {
+            // 'v' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.stringMul(baseVolume, this.numberToString(Helpers.GetValue(market, "contractSize")));
+        }
         final Object finalMarket = market;
+        final Object finalBaseVolume = baseVolume;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
@@ -1640,9 +1647,9 @@ public class ToobitCore extends ToobitApi
             put( "last", last );
             put( "previousClose", null );
             put( "change", ToobitCore.this.safeString(ticker, "pc") );
-            put( "percentage", ToobitCore.this.safeString(ticker, "pcp") );
+            put( "percentage", Precise.stringMul(ToobitCore.this.safeString(ticker, "pcp"), "100") );
             put( "average", null );
-            put( "baseVolume", ToobitCore.this.safeString(ticker, "v") );
+            put( "baseVolume", finalBaseVolume );
             put( "quoteVolume", ToobitCore.this.safeString(ticker, "qv") );
             put( "info", ticker );
         }}, market);

@@ -1043,6 +1043,10 @@ class poloniex(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_2(ticker, 'ts', 'cT')
         marketId = self.safe_string_2(ticker, 'symbol', 's')
         market = self.safe_market(marketId)
+        baseVolume = self.safe_string_2(ticker, 'quantity', 'qty')
+        if market['contract'] and (market['contractSize'] is not None):
+            # 'quantity' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.string_mul(baseVolume, self.number_to_string(market['contractSize']))
         relativeChange = self.safe_string_2(ticker, 'dailyChange', 'dc')
         percentage = Precise.string_mul(relativeChange, '100')
         return self.safe_ticker({
@@ -1063,7 +1067,7 @@ class poloniex(Exchange, ImplicitAPI):
             'change': None,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_string_2(ticker, 'quantity', 'qty'),
+            'baseVolume': baseVolume,
             'quoteVolume': self.safe_string_2(ticker, 'amount', 'amt'),
             'markPrice': self.safe_string_2(ticker, 'markPrice', 'mPx'),
             'indexPrice': self.safe_string(ticker, 'iPx'),

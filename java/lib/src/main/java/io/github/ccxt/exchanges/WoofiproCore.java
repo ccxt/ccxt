@@ -35,7 +35,7 @@ public class WoofiproCore extends WoofiproApi
                 put( "swap", true );
                 put( "future", false );
                 put( "option", false );
-                put( "addMargin", false );
+                put( "addMargin", true );
                 put( "borrowCrossMargin", false );
                 put( "borrowIsolatedMargin", false );
                 put( "borrowMargin", false );
@@ -97,7 +97,8 @@ public class WoofiproCore extends WoofiproApi
                 put( "fetchLedger", true );
                 put( "fetchLeverage", true );
                 put( "fetchMarginAdjustmentHistory", false );
-                put( "fetchMarginMode", false );
+                put( "fetchMarginMode", true );
+                put( "fetchMarginModes", true );
                 put( "fetchMarkets", true );
                 put( "fetchMarkOHLCV", false );
                 put( "fetchMyTrades", true );
@@ -128,11 +129,12 @@ public class WoofiproCore extends WoofiproApi
                 put( "fetchTransfers", false );
                 put( "fetchVolatilityHistory", false );
                 put( "fetchWithdrawals", true );
-                put( "reduceMargin", false );
+                put( "reduceMargin", true );
                 put( "repayCrossMargin", false );
                 put( "repayIsolatedMargin", false );
                 put( "setLeverage", true );
                 put( "setMargin", false );
+                put( "setMarginMode", true );
                 put( "setPositionMode", false );
                 put( "transfer", false );
                 put( "withdraw", true );
@@ -418,6 +420,9 @@ public class WoofiproCore extends WoofiproApi
                             put( "kline", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "client/margin_modes", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
                             put( "orderly_key", new java.util.HashMap<String, Object>() {{
@@ -458,6 +463,12 @@ public class WoofiproCore extends WoofiproApi
                             }} );
                             put( "client/leverage", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 120 );
+                            }} );
+                            put( "client/margin_mode", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "position_margin", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
                             }} );
                             put( "client/maintenance_config", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 60 );
@@ -3738,6 +3749,255 @@ public class WoofiproCore extends WoofiproApi
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseTransaction(data, currency);
+        });
+
+    }
+
+    public Object parseMarginMode(Object marginMode, Object... optionalArgs)
+    {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "default_margin_mode": "CROSS"
+        //     }
+        //
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object marketId = this.safeString(marginMode, "symbol");
+        market = this.safeMarket(marketId, market);
+        final Object finalMarket = market;
+        return new java.util.HashMap<String, Object>() {{
+            put( "info", marginMode );
+            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "marginMode", WoofiproCore.this.safeStringLower(marginMode, "default_margin_mode") );
+        }};
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchMarginModes
+     * @description fetches the set margin mode of every contract market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchMarginModes(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            symbols = this.marketSymbols(symbols);
+            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "v1PrivateGetClientMarginModes", new Object[] { parameters })).join();
+            //
+            // {
+            //     "success": true,
+            //     "timestamp": 1702989203989,
+            //     "data": {
+            //         "rows": [{
+            //             "symbol": "PERP_BTC_USDC",
+            //             "default_margin_mode": "CROSS"
+            //         }]
+            //     }
+            // }
+            //
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            return this.parseMarginModes(rows, symbols, "symbol");
+        });
+
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchMarginMode
+     * @description fetches the set margin mode of a contract market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(Object symbol, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object market = this.market(symbol);
+            Object marginModes = (this.fetchMarginModes(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
+            Object marginMode = this.safeDict(marginModes, Helpers.GetValue(market, "symbol"));
+            if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
+            {
+                throw new BadSymbol((String)Helpers.add(Helpers.add(this.id, " fetchMarginMode() did not return a margin mode for "), Helpers.GetValue(market, "symbol"))) ;
+            }
+            return marginMode;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name woofipro#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated' for a market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-margin-mode
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    public java.util.concurrent.CompletableFuture<Object> setMarginMode(Object marginMode2, Object... optionalArgs)
+    {
+        final Object marginMode3 = marginMode2;
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            Object marginMode = marginMode3;
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+            }
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            marginMode = ((String)marginMode).toLowerCase();
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginMode, "cross")) && Helpers.isTrue(!Helpers.isEqual(marginMode, "isolated"))))
+            {
+                throw new BadRequest((String)Helpers.add(this.id, " setMarginMode() marginMode must be either cross or isolated")) ;
+            }
+            Object market = this.market(symbol);
+            final Object finalMarginMode = marginMode;
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "default_margin_mode", ((String)finalMarginMode).toUpperCase() );
+            }};
+            //
+            // {
+            //     "success": true,
+            //     "timestamp": 1702989203989
+            // }
+            //
+            return ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "v1PrivatePostClientMarginMode", new Object[] { this.extend(request, parameters) })).join();
+        });
+
+    }
+
+    public Object parseMarginModification(Object data, Object... optionalArgs)
+    {
+        //
+        //     {
+        //         "success": true,
+        //         "timestamp": 1702989203989
+        //     }
+        //
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object timestamp = this.safeInteger(data, "timestamp");
+        Object success = this.safeBool(data, "success", false);
+        return new java.util.HashMap<String, Object>() {{
+            put( "info", data );
+            put( "symbol", WoofiproCore.this.safeString(market, "symbol") );
+            put( "type", null );
+            put( "marginMode", "isolated" );
+            put( "amount", null );
+            put( "total", null );
+            put( "code", WoofiproCore.this.safeString(market, "settle") );
+            put( "status", ((Helpers.isTrue((success)))) ? "ok" : "failed" );
+            put( "timestamp", timestamp );
+            put( "datetime", WoofiproCore.this.iso8601(timestamp) );
+        }};
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name woofipro#modifyMarginHelper
+     * @description add or reduce isolated position margin
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add or reduce
+     * @param {string} type 'ADD' or 'REDUCE'
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(Object symbol, Object amount, Object type2, Object... optionalArgs)
+    {
+        final Object type3 = type2;
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            Object type = type3;
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object market = this.market(symbol);
+            final Object finalType = type;
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "amount", WoofiproCore.this.numberToString(amount) );
+                put( "type", finalType );
+            }};
+            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "v1PrivatePostPositionMargin", new Object[] { this.extend(request, parameters) })).join();
+            //
+            // {
+            //     "success": true,
+            //     "timestamp": 1702989203989
+            // }
+            //
+            Object modification = this.parseMarginModification(response, market);
+            Helpers.addElementToObject(modification, "type", ((Helpers.isTrue((Helpers.isEqual(type, "ADD"))))) ? "add" : "reduce");
+            Helpers.addElementToObject(modification, "amount", this.parseNumber(this.numberToString(amount)));
+            return modification;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name woofipro#addMargin
+     * @description add margin to an isolated position
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            return (this.modifyMarginHelper(symbol, amount, "ADD", parameters)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name woofipro#reduceMargin
+     * @description remove margin from an isolated position
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> reduceMargin(Object symbol, Object amount, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            return (this.modifyMarginHelper(symbol, amount, "REDUCE", parameters)).join();
         });
 
     }

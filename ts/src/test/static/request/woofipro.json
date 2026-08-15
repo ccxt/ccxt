@@ -320,6 +320,60 @@
                 "input": []
             }
         ],
+        "fetchMarginModes": [
+            {
+                "description": "fetch margin modes of all markets",
+                "method": "fetchMarginModes",
+                "url": "https://api-evm.orderly.org/v1/client/margin_modes",
+                "input": []
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "fetch margin mode of one market",
+                "method": "fetchMarginMode",
+                "url": "https://api-evm.orderly.org/v1/client/margin_modes",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set isolated margin mode",
+                "method": "setMarginMode",
+                "url": "https://api-evm.orderly.org/v1/client/margin_mode",
+                "input": [
+                    "isolated",
+                    "LTC/USDC:USDC"
+                ],
+                "output": "{\"symbol\":\"PERP_LTC_USDC\",\"default_margin_mode\":\"ISOLATED\"}"
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "add margin to isolated position",
+                "method": "addMargin",
+                "url": "https://api-evm.orderly.org/v1/position_margin",
+                "input": [
+                    "LTC/USDC:USDC",
+                    1
+                ],
+                "output": "{\"symbol\":\"PERP_LTC_USDC\",\"amount\":\"1\",\"type\":\"ADD\"}"
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "reduce margin of isolated position",
+                "method": "reduceMargin",
+                "url": "https://api-evm.orderly.org/v1/position_margin",
+                "input": [
+                    "LTC/USDC:USDC",
+                    0.5
+                ],
+                "output": "{\"symbol\":\"PERP_LTC_USDC\",\"amount\":\"0.5\",\"type\":\"REDUCE\"}"
+            }
+        ],
         "fetchPositions": [
             {
                 "description": "Fetch linear position",

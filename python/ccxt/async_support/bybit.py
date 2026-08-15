@@ -130,7 +130,6 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchOptionChain': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositionADLRank': True,
@@ -4942,7 +4941,7 @@ class bybit(Exchange, ImplicitAPI):
         request = {
             'orderId': id,
         }
-        result = await self.fetch_orders(symbol, None, None, self.extend(request, params))
+        result = await self.fetch_orders_classic(symbol, None, None, self.extend(request, params))
         length = len(result)
         if length == 0:
             isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
@@ -5047,29 +5046,6 @@ classic accounts only/ spot not supported*  fetches information on an order made
         order = self.safe_dict(innerList, 0, {})
         return self.parse_order(order, market)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
-        res = await self.is_unified_enabled()
-        """
-        *classic accounts only/ spot not supported* fetches information on multiple orders made by the user *classic accounts only/ spot not supported*
-        https://bybit-exchange.github.io/docs/v5/order/order-list
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of order structures to retrieve
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.trigger]: True if trigger order
-        :param boolean [params.stop]: alias for trigger
-        :param str [params.type]: market type, ['swap', 'option']
-        :param str [params.subType]: market subType, ['linear', 'inverse']
-        :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
-        :param int [params.until]: the latest time in ms to fetch entries for
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
-        """
-        enableUnifiedAccount = self.safe_bool(res, 1)
-        if enableUnifiedAccount:
-            raise NotSupported(self.id + ' fetchOrders() is not supported after the 5/02 update for UTA accounts, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders')
-        return await self.fetch_orders_classic(symbol, since, limit, params)
-
     async def fetch_orders_classic(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user *classic accounts only*
@@ -5092,18 +5068,18 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        paginate, params = self.handle_option_and_params(params, 'fetchOrdersClassic', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
+            return await self.fetch_paginated_call_cursor('fetchOrdersClassic', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
         request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         type = None
-        type, params = self.get_bybit_type('fetchOrders', market, params)
+        type, params = self.get_bybit_type('fetchOrdersClassic', market, params)
         if type == 'spot':
-            raise NotSupported(self.id + ' fetchOrders() is not supported for spot markets')
+            raise NotSupported(self.id + ' fetchOrdersClassic() is not supported for spot markets')
         request['category'] = type
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         params = self.omit(params, ['trigger', 'stop'])

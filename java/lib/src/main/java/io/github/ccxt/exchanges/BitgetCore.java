@@ -4899,14 +4899,9 @@ final Object finalMinNotional = minNotional;
         {
             marketType = "spot";
         }
-        Object percentage = this.safeString(ticker, "price24hPcnt");
-        if (Helpers.isTrue(Helpers.isEqual(percentage, null)))
-        {
-            Object change24h = this.safeString(ticker, "change24h");
-            percentage = Precise.stringMul(change24h, "100");
-        }
+        // both fields are ratios, and a ticker reports (change/open) * 100
+        Object percentage = Precise.stringMul(this.safeString2(ticker, "price24hPcnt", "change24h"), "100");
         final Object finalMarketType = marketType;
-        final Object finalPercentage = percentage;
         final Object finalMarkPrice = markPrice;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", BitgetCore.this.safeSymbol(marketId, market, null, finalMarketType) );
@@ -4924,7 +4919,7 @@ final Object finalMinNotional = minNotional;
             put( "last", close );
             put( "previousClose", null );
             put( "change", null );
-            put( "percentage", finalPercentage );
+            put( "percentage", percentage );
             put( "average", null );
             put( "baseVolume", BitgetCore.this.safeString2(ticker, "baseVolume", "volume24h") );
             put( "quoteVolume", BitgetCore.this.safeString2(ticker, "quoteVolume", "turnover24h") );

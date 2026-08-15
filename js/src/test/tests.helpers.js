@@ -211,6 +211,16 @@ function wsClientHasPendingFutures(exchange, url) {
     const messageHashes = Object.keys(client.futures);
     return messageHashes.length > 0;
 }
+function markWsTestCompleted(exchange, url) {
+    // the watch side of a static ws test flags completion here so the frame
+    // injector's rejection loop knows it can stop
+    const client = exchange.client(url);
+    client.wsTestCompleted = true;
+}
+function isWsTestCompleted(exchange, url) {
+    const client = exchange.client(url);
+    return client.wsTestCompleted === true;
+}
 function rejectPendingWsFutures(exchange, url) {
     // reject any futures the injected frames did not resolve, so a broken
     // fixture fails the test instead of hanging it; settled js promises
@@ -257,5 +267,5 @@ AuthenticationError, NotSupported, ExchangeError, InvalidProxySettings, Exchange
 // shared
 getCliArgValue, 
 //
-dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, setupWsMockTransport, injectWsMessage, rejectPendingWsFutures, wsClientHasPendingFutures, getWsSentMessages, isNullValue, close, getRootDir, argvExchange, argvSymbol, argvMethod, isSync, LANG, ENV_VARS, NEW_LINE, EXT, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, };
+dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, setupWsMockTransport, injectWsMessage, rejectPendingWsFutures, wsClientHasPendingFutures, markWsTestCompleted, isWsTestCompleted, getWsSentMessages, isNullValue, close, getRootDir, argvExchange, argvSymbol, argvMethod, isSync, LANG, ENV_VARS, NEW_LINE, EXT, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, };
 export default {};

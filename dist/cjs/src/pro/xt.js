@@ -630,7 +630,7 @@ class xt extends xt$1["default"] {
         }
         const market = this.market(symbol);
         if (!market['swap']) {
-            throw new errors.BadSymbol(this.id + ' watchFundingRate() supports swap contracts only');
+            throw new errors.NotSupported(this.id + ' watchFundingRate() supports swap contracts only');
         }
         const name = 'fund_rate@' + market['id'];
         return await this.subscribe(name, 'public', 'watchFundingRate', market, undefined, params);
@@ -650,7 +650,7 @@ class xt extends xt$1["default"] {
         }
         const market = this.market(symbol);
         if (!market['swap']) {
-            throw new errors.BadSymbol(this.id + ' unWatchFundingRate() supports swap contracts only');
+            throw new errors.NotSupported(this.id + ' unWatchFundingRate() supports swap contracts only');
         }
         const name = 'fund_rate@' + market['id'];
         const messageHash = 'unsubscribe::' + name;

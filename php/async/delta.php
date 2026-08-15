@@ -1111,9 +1111,16 @@ class delta extends Exchange {
         //
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.001);
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'close');
         $quotes = $this->safe_dict($ticker, 'quotes', array());
+        // turnover_symbol names the currency turnover is denominated in, and on
+        // spot markets that is the base currency rather than the quote
+        $turnoverSymbol = $this->safe_string_upper($ticker, 'turnover_symbol');
+        $quoteId = $this->safe_string_upper($market, 'quoteId');
+        $baseDenominated = ($turnoverSymbol !== null) && ($quoteId !== null) && ($turnoverSymbol !== $quoteId);
+        $quoteVolume = $baseDenominated ? $this->safe_number($ticker, 'turnover_usd') : $this->safe_number($ticker, 'turnover');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1133,7 +1140,7 @@ class delta extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_number($ticker, 'volume'),
-            'quoteVolume' => $this->safe_number($ticker, 'turnover'),
+            'quoteVolume' => $quoteVolume,
             'markPrice' => $this->safe_number($ticker, 'mark_price'),
             'indexPrice' => $this->safe_number($ticker, 'spot_price'),
             'info' => $ticker,

@@ -4202,7 +4202,7 @@ class xt(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         if not (market['contract']):
-            raise BadSymbol(self.id + ' setLeverage() supports contract markets only')
+            raise NotSupported(self.id + ' setLeverage() supports contract markets only')
         request = {
             'symbol': market['id'],
             'positionSide': positionSide,
@@ -4483,7 +4483,7 @@ class xt(Exchange, ImplicitAPI):
             return await self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'id', 'id', 1, 200)
         market = self.market(symbol)
         if not market['swap']:
-            raise BadSymbol(self.id + ' fetchFundingRateHistory() supports swap contracts only')
+            raise NotSupported(self.id + ' fetchFundingRateHistory() supports swap contracts only')
         request = {
             'symbol': market['id'],
         }
@@ -4562,7 +4562,7 @@ class xt(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
-            raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
+            raise NotSupported(self.id + ' fetchFundingRate() supports swap contracts only')
         request = {
             'symbol': market['id'],
         }
@@ -4792,7 +4792,7 @@ class xt(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
-            raise BadSymbol(self.id + ' fetchFundingHistory() supports swap contracts only')
+            raise NotSupported(self.id + ' fetchFundingHistory() supports swap contracts only')
         request = {
             'symbol': market['id'],
         }
@@ -5293,7 +5293,7 @@ class xt(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         if market['spot']:
-            raise BadSymbol(self.id + ' setMarginMode() supports contract markets only')
+            raise NotSupported(self.id + ' setMarginMode() supports contract markets only')
         marginMode = marginMode.lower()
         if marginMode != 'isolated' and marginMode != 'cross':
             raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')

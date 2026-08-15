@@ -333,6 +333,18 @@ def ws_client_has_pending_futures(exchange, url):
     return False
 
 
+def mark_ws_test_completed(exchange, url):
+    # the watch side of a static ws test flags completion here so the frame
+    # injector's rejection loop knows it can stop
+    client = exchange.client(url)
+    client.ws_test_completed = True
+
+
+def is_ws_test_completed(exchange, url):
+    client = exchange.client(url)
+    return getattr(client, 'ws_test_completed', False) is True
+
+
 def reject_pending_ws_futures(exchange, url):
     # reject any futures the injected frames did not resolve, so a broken
     # fixture fails the test instead of hanging it

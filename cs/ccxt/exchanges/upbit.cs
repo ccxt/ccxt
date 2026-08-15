@@ -906,7 +906,7 @@ public partial class upbit : Exchange
             { "last", last },
             { "previousClose", this.safeString(ticker, "prev_closing_price") },
             { "change", this.safeString(ticker, "signed_change_price") },
-            { "percentage", this.safeString(ticker, "signed_change_rate") },
+            { "percentage", Precise.stringMul(this.safeString(ticker, "signed_change_rate"), "100") },
             { "average", null },
             { "baseVolume", this.safeString(ticker, "acc_trade_volume_24h") },
             { "quoteVolume", this.safeString(ticker, "acc_trade_price_24h") },

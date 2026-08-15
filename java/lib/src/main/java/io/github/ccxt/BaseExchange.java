@@ -1295,6 +1295,15 @@ public class BaseExchange {
     //     return Misc.parseTimeframe(timeframe);
     // }
     // ----- END OF WRAPPERS ----- //
+    // when true, sleep() blocks the calling thread and returns an already
+    // completed future instead of a delayed one. joining an incomplete future
+    // inside a ForkJoinPool worker lets the pool "help" by stealing another
+    // queued task onto the same stack (helpAsyncBlocker) — in the static ws
+    // test harness that can bury the frame injector beneath a watch task that
+    // only the injector itself can release, deadlocking the run. the test
+    // runner flips this flag so injector sleeps can never be steal points.
+    public static volatile boolean syncSleep = false;
+
     public CompletableFuture<Object> sleep(Object milliseconds) {
         long ms;
         if (milliseconds instanceof Integer) {
@@ -1307,6 +1316,14 @@ public class BaseExchange {
             ms = ((Double) milliseconds).longValue();
         } else {
             throw new IllegalArgumentException("milliseconds must be Integer, Long, Double, or String");
+        }
+        if (syncSleep) {
+            try {
+                Thread.sleep(ms);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            return CompletableFuture.completedFuture(null);
         }
         return CompletableFuture.supplyAsync(() -> null,
                 CompletableFuture.delayedExecutor(ms, java.util.concurrent.TimeUnit.MILLISECONDS));

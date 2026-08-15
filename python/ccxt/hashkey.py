@@ -1679,6 +1679,10 @@ class hashkey(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         last = self.safe_string(ticker, 'c')
+        baseVolume = self.safe_string(ticker, 'v')
+        if market['contract'] and (market['contractSize'] is not None):
+            # 'v' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.string_mul(baseVolume, self.number_to_string(market['contractSize']))
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1697,7 +1701,7 @@ class hashkey(Exchange, ImplicitAPI):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_string(ticker, 'v'),
+            'baseVolume': baseVolume,
             'quoteVolume': self.safe_string(ticker, 'qv'),
             'info': ticker,
         }, market)

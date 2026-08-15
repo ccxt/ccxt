@@ -810,7 +810,8 @@ class upbit extends Exchange {
             'last' => $last,
             'previousClose' => $this->safe_string($ticker, 'prev_closing_price'),
             'change' => $this->safe_string($ticker, 'signed_change_price'),
-            'percentage' => $this->safe_string($ticker, 'signed_change_rate'),
+            // signed_change_rate is a ratio, and a $ticker reports a percentage
+            'percentage' => Precise::string_mul($this->safe_string($ticker, 'signed_change_rate'), '100'),
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'acc_trade_volume_24h'),
             'quoteVolume' => $this->safe_string($ticker, 'acc_trade_price_24h'),

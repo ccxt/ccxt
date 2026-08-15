@@ -1281,6 +1281,101 @@ func (this *Woofipro) Withdraw(code string, amount float64, address string, opti
 
 /**
  * @method
+ * @name woofipro#fetchMarginModes
+ * @description fetches the set margin mode of every contract market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+ * @param {string[]} [symbols] a list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+ */
+func (this *Woofipro) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
+
+	opts := FetchMarginModesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchMarginModes(symbols, params)
+	if IsError(res) {
+		return MarginModes{}, CreateReturnError(res)
+	}
+	return NewMarginModes(res), nil
+}
+
+/**
+ * @method
+ * @name woofipro#fetchMarginMode
+ * @description fetches the set margin mode of a contract market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+ * @param {string} symbol unified symbol of the market
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+ */
+func (this *Woofipro) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
+
+	opts := FetchMarginModeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchMarginMode(symbol, params)
+	if IsError(res) {
+		return MarginMode{}, CreateReturnError(res)
+	}
+	return NewMarginMode(res), nil
+}
+
+/**
+ * @method
+ * @name woofipro#setMarginMode
+ * @description set margin mode to 'cross' or 'isolated' for a market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-margin-mode
+ * @param {string} marginMode 'cross' or 'isolated'
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} response from the exchange
+ */
+func (this *Woofipro) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
+
+	opts := SetMarginModeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.SetMarginMode(marginMode, symbol, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+
+/**
+ * @method
  * @name woofipro#fetchLeverage
  * @description fetch the set leverage for a market
  * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
@@ -1593,12 +1688,6 @@ func (this *Woofipro) FetchLongShortRatioHistory(options ...FetchLongShortRatioH
 func (this *Woofipro) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {
 	return this.exchangeTyped.FetchMarginAdjustmentHistory(options...)
 }
-func (this *Woofipro) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
-	return this.exchangeTyped.FetchMarginMode(symbol, options...)
-}
-func (this *Woofipro) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
-	return this.exchangeTyped.FetchMarginModes(options...)
-}
 func (this *Woofipro) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
@@ -1676,9 +1765,6 @@ func (this *Woofipro) FetchTransfers(options ...FetchTransfersOptions) ([]Transf
 }
 func (this *Woofipro) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
-}
-func (this *Woofipro) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
-	return this.exchangeTyped.SetMarginMode(marginMode, options...)
 }
 func (this *Woofipro) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)

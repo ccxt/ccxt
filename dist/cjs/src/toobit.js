@@ -1395,6 +1395,11 @@ class toobit extends toobit$1["default"] {
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(ticker, 't');
         const last = this.safeString(ticker, 'c');
+        let baseVolume = this.safeString(ticker, 'v');
+        if (market['contract'] && (market['contractSize'] !== undefined)) {
+            // 'v' counts contracts, and a ticker reports base volume
+            baseVolume = Precise["default"].stringMul(baseVolume, this.numberToString(market['contractSize']));
+        }
         return this.safeTicker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -1411,9 +1416,10 @@ class toobit extends toobit$1["default"] {
             'last': last,
             'previousClose': undefined,
             'change': this.safeString(ticker, 'pc'),
-            'percentage': this.safeString(ticker, 'pcp'),
+            // 'pcp' is a ratio, and a ticker reports a percentage
+            'percentage': Precise["default"].stringMul(this.safeString(ticker, 'pcp'), '100'),
             'average': undefined,
-            'baseVolume': this.safeString(ticker, 'v'),
+            'baseVolume': baseVolume,
             'quoteVolume': this.safeString(ticker, 'qv'),
             'info': ticker,
         }, market);

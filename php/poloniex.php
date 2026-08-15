@@ -1046,6 +1046,11 @@ class poloniex extends Exchange {
         $timestamp = $this->safe_integer_2($ticker, 'ts', 'cT');
         $marketId = $this->safe_string_2($ticker, 'symbol', 's');
         $market = $this->safe_market($marketId);
+        $baseVolume = $this->safe_string_2($ticker, 'quantity', 'qty');
+        if ($market['contract'] && ($market['contractSize'] !== null)) {
+            // 'quantity' counts contracts, and a $ticker reports base volume
+            $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($market['contractSize']));
+        }
         $relativeChange = $this->safe_string_2($ticker, 'dailyChange', 'dc');
         $percentage = Precise::string_mul($relativeChange, '100');
         return $this->safe_ticker(array(
@@ -1066,7 +1071,7 @@ class poloniex extends Exchange {
             'change' => null,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_string_2($ticker, 'quantity', 'qty'),
+            'baseVolume' => $baseVolume,
             'quoteVolume' => $this->safe_string_2($ticker, 'amount', 'amt'),
             'markPrice' => $this->safe_string_2($ticker, 'markPrice', 'mPx'),
             'indexPrice' => $this->safe_string($ticker, 'iPx'),

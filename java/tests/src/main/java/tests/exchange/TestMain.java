@@ -2017,7 +2017,7 @@ public class TestMain extends BaseTest
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> injectWsMessages(BaseExchange exchange, Object url, Object messages)
+    public java.util.concurrent.CompletableFuture<Object> injectWsMessages(BaseExchange exchange, Object url, Object messages, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2025,6 +2025,12 @@ public class TestMain extends BaseTest
             // before every frame, wait until the watch flow is actually awaiting
             // something — a fixed head-start sleep is not enough on slow ci
             // runners and the frame's resolution would be dropped
+            // threaded runtimes resolve futures on another thread — wait for
+            // the consumed frame to settle so the pending check above does not
+            // observe a stale future and burn the next frame early; frames
+            // that resolve nothing (e.g. subscribe acks) fall through on the
+            // timeout
+            Object sequential = Helpers.getArg(optionalArgs, 0, false);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messages)); i++)
             {
                 Object waited = 0;
@@ -2034,10 +2040,31 @@ public class TestMain extends BaseTest
                     waited = Helpers.add(waited, 50);
                 }
                 injectWsMessage(exchange, url, Helpers.GetValue(messages, i));
-                // yield between frames so the handlers run in arrival order
-                (exchange.sleep(20)).join();
+                Object settled = 0;
+                while (Helpers.isTrue(wsClientHasPendingFutures(exchange, url)) && Helpers.isTrue((Helpers.isLessThan(settled, 500))))
+                {
+                    (exchange.sleep(20)).join();
+                    settled = Helpers.add(settled, 20);
+                }
             }
             (exchange.sleep(50)).join();
+            if (Helpers.isTrue(sequential))
+            {
+                // a watch call of a sequence can register its future after every
+                // frame was already consumed — keep rejecting until the watch side
+                // reports completion (the rejections force it to finish). the time
+                // bound is a backstop for threaded runtimes where this task can be
+                // executed inline on a stack that blocks the watch side (forkjoin
+                // work stealing): give up eventually so the stack unwinds instead
+                // of deadlocking
+                Object waitedDone = 0;
+                while (!Helpers.isTrue(isWsTestCompleted(exchange, url)) && Helpers.isTrue((Helpers.isLessThan(waitedDone, 30000))))
+                {
+                    rejectPendingWsFutures(exchange, url);
+                    (exchange.sleep(50)).join();
+                    waitedDone = Helpers.add(waitedDone, 50);
+                }
+            }
             // reject anything still pending so a wrong fixture fails fast
             // instead of hanging the test run forever
             rejectPendingWsFutures(exchange, url);
@@ -2046,7 +2073,7 @@ public class TestMain extends BaseTest
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchAndAssertSequence(BaseExchange exchange, Object method, Object input, Object skipKeys, Object expectedResults)
+    public java.util.concurrent.CompletableFuture<Object> watchAndAssertSequence(BaseExchange exchange, Object url, Object method, Object input, Object skipKeys, Object expectedResults)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2064,8 +2091,13 @@ public class TestMain extends BaseTest
                 }
             } catch(Exception e)
             {
+                // let the injector's rejection loop exit before the caller reports
+                // — the explicit try/catch also keeps the java transpilation
+                // compilable (checked exceptions)
+                markWsTestCompleted(exchange, url);
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
+            markWsTestCompleted(exchange, url);
             return true;  // c# methods used with promiseAll need to return something
         });
 
@@ -2120,7 +2152,12 @@ public class TestMain extends BaseTest
                 {
                     // 'parsedResponses' Asserts one result per successive watch
                     // resolution (e.g. an order going from open to closed)
-                    Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.watchAndAssertSequence(exchange, method, input, skipKeys, expectedResults), this.injectWsMessages(exchange, url, messages)));
+                    // start the injector before the watch side: it must never sit
+                    // queued while the watch chain blocks on a join — a forkjoin
+                    // worker could execute it inline on the blocked stack and the
+                    // rejection loop would then wait on the very watch side it is
+                    // buried on top of
+                    Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.injectWsMessages(exchange, url, messages, true), this.watchAndAssertSequence(exchange, url, method, input, skipKeys, expectedResults)));
                     (Helpers.promiseAll(promises)).join();
                     this.AssertWsSentMessages(exchange, url, data);
                 } else

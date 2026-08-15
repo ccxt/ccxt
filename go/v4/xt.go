@@ -5435,7 +5435,7 @@ func (this *XtCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue((GetValue(market, "contract"))) {
-			panic(BadSymbol(Add(this.Id, " setLeverage() supports contract markets only")))
+			panic(NotSupported(Add(this.Id, " setLeverage() supports contract markets only")))
 		}
 		var request any = map[string]any{
 			"symbol":       GetValue(market, "id"),
@@ -5860,7 +5860,7 @@ func (this *XtCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
-			panic(BadSymbol(Add(this.Id, " fetchFundingRateHistory() supports swap contracts only")))
+			panic(NotSupported(Add(this.Id, " fetchFundingRateHistory() supports swap contracts only")))
 		}
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -5978,7 +5978,7 @@ func (this *XtCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan any
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
-			panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
+			panic(NotSupported(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
 		}
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -6311,7 +6311,7 @@ func (this *XtCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
-			panic(BadSymbol(Add(this.Id, " fetchFundingHistory() supports swap contracts only")))
+			panic(NotSupported(Add(this.Id, " fetchFundingHistory() supports swap contracts only")))
 		}
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -6948,7 +6948,7 @@ func (this *XtCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan an
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(GetValue(market, "spot")) {
-			panic(BadSymbol(Add(this.Id, " setMarginMode() supports contract markets only")))
+			panic(NotSupported(Add(this.Id, " setMarginMode() supports contract markets only")))
 		}
 		marginMode = ToLower(marginMode)
 		if IsTrue(IsTrue(!IsEqual(marginMode, "isolated")) && IsTrue(!IsEqual(marginMode, "cross"))) {

@@ -1751,6 +1751,11 @@ class hashkey extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'c');
+        $baseVolume = $this->safe_string($ticker, 'v');
+        if ($market['contract'] && ($market['contractSize'] !== null)) {
+            // 'v' counts contracts, and a $ticker reports base volume
+            $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($market['contractSize']));
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1769,7 +1774,7 @@ class hashkey extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_string($ticker, 'v'),
+            'baseVolume' => $baseVolume,
             'quoteVolume' => $this->safe_string($ticker, 'qv'),
             'info' => $ticker,
         ), $market);

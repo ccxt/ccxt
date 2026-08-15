@@ -970,7 +970,7 @@ public class UpbitCore extends UpbitApi
             put( "last", last );
             put( "previousClose", UpbitCore.this.safeString(ticker, "prev_closing_price") );
             put( "change", UpbitCore.this.safeString(ticker, "signed_change_price") );
-            put( "percentage", UpbitCore.this.safeString(ticker, "signed_change_rate") );
+            put( "percentage", Precise.stringMul(UpbitCore.this.safeString(ticker, "signed_change_rate"), "100") );
             put( "average", null );
             put( "baseVolume", UpbitCore.this.safeString(ticker, "acc_trade_volume_24h") );
             put( "quoteVolume", UpbitCore.this.safeString(ticker, "acc_trade_price_24h") );

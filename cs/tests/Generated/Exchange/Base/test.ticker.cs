@@ -151,6 +151,19 @@ public partial class testMainClass : BaseTest
                 // because of exchange engines might not rounding numbers propertly, we add some tolerance of calculated 24hr high/low
                 baseLow = Precise.stringDiv(baseLow, tolerance);
                 baseHigh = Precise.stringMul(baseHigh, tolerance);
+                // some exchanges round quoteVolume before reporting it - aster,
+                // for example, returns 8.07 when the true traded value is 8.0651,
+                // which on micro-price contracts (1000WOJAK etc) is enough to
+                // break the quoteVolume <= baseVolume * high sanity check below.
+                // the reported string reveals its own rounding step (trailing
+                // zeros are padding, so 8.07000000 -> 2 real decimals -> step
+                // 0.01), so we widen the acceptance window by one such step on
+                // each side - big enough to forgive rounding, far too small to
+                // hide a real bug like mismatched units or a wrong-field parse
+                object quoteVolumeDecimals = exchange.precisionFromString(quoteVolume);
+                object quoteQuantum = exchange.parsePrecision(exchange.numberToString(quoteVolumeDecimals));
+                baseLow = Precise.stringSub(baseLow, quoteQuantum);
+                baseHigh = Precise.stringAdd(baseHigh, quoteQuantum);
                 assert(Precise.stringGe(quoteVolume, baseLow), add("quoteVolume should be => baseVolume * low", logText));
                 assert(Precise.stringLe(quoteVolume, baseHigh), add("quoteVolume should be <= baseVolume * high", logText));
             }

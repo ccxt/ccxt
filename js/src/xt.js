@@ -4472,7 +4472,7 @@ export default class xt extends Exchange {
         }
         const market = this.market(symbol);
         if (!(market['contract'])) {
-            throw new BadSymbol(this.id + ' setLeverage() supports contract markets only');
+            throw new NotSupported(this.id + ' setLeverage() supports contract markets only');
         }
         const request = {
             'symbol': market['id'],
@@ -4773,7 +4773,7 @@ export default class xt extends Exchange {
         }
         const market = this.market(symbol);
         if (!market['swap']) {
-            throw new BadSymbol(this.id + ' fetchFundingRateHistory() supports swap contracts only');
+            throw new NotSupported(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request = {
             'symbol': market['id'],
@@ -4859,7 +4859,7 @@ export default class xt extends Exchange {
         }
         const market = this.market(symbol);
         if (!market['swap']) {
-            throw new BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
+            throw new NotSupported(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
             'symbol': market['id'],
@@ -5104,7 +5104,7 @@ export default class xt extends Exchange {
         }
         const market = this.market(symbol);
         if (!market['swap']) {
-            throw new BadSymbol(this.id + ' fetchFundingHistory() supports swap contracts only');
+            throw new NotSupported(this.id + ' fetchFundingHistory() supports swap contracts only');
         }
         const request = {
             'symbol': market['id'],
@@ -5633,7 +5633,7 @@ export default class xt extends Exchange {
         }
         const market = this.market(symbol);
         if (market['spot']) {
-            throw new BadSymbol(this.id + ' setMarginMode() supports contract markets only');
+            throw new NotSupported(this.id + ' setMarginMode() supports contract markets only');
         }
         marginMode = marginMode.toLowerCase();
         if (marginMode !== 'isolated' && marginMode !== 'cross') {

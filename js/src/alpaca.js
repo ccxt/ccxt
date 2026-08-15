@@ -986,7 +986,8 @@ export default class alpaca extends Exchange {
                 'percentage': undefined,
                 'average': undefined,
                 'baseVolume': this.safeString(dailyBar, 'v'),
-                'quoteVolume': this.safeString(dailyBar, 'n'),
+                // 'n' is the trade count; the quote volume is the daily volume at the daily vwap
+                'quoteVolume': Precise.stringMul(this.safeString(dailyBar, 'v'), this.safeString(dailyBar, 'vw')),
             }, market);
             results.push(ticker);
         }

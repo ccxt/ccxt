@@ -984,7 +984,8 @@ class alpaca extends Exchange {
                 'percentage' => null,
                 'average' => null,
                 'baseVolume' => $this->safe_string($dailyBar, 'v'),
-                'quoteVolume' => $this->safe_string($dailyBar, 'n'),
+                // 'n' is the trade count; the quote volume is the daily volume at the daily vwap
+                'quoteVolume' => Precise::string_mul($this->safe_string($dailyBar, 'v'), $this->safe_string($dailyBar, 'vw')),
             ), $market);
             $results[] = $ticker;
         }
