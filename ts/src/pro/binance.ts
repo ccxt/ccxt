@@ -358,14 +358,33 @@ export default class binance extends binanceRest {
         const now = this.milliseconds ();
         const delay = this.sum (listenKeyRefreshRate, 10000);
         if ((now - lastAuthenticatedTime) > delay) {
+            // single-flight guard, same race as the main listenKey branch
+            // https://github.com/ccxt/ccxt/issues/29393
+            const flightHash = 'authenticate:listenKey:stock';
+            const isLeader = await this.singleFlightAcquire (flightHash);
+            if (!isLeader) {
+                return; // the flight settled, the leader cached a fresh listenKey
+            }
             const requestParams: Dict = this.omit (params, [ 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ]) as Dict;
-            const response = await this.sapiPostEquityListenKey (requestParams);
+            let response: Dict;
+            try {
+                response = await this.sapiPostEquityListenKey (requestParams);
+            } catch (e) {
+                this.singleFlightReject (flightHash, e);
+                throw e;
+            }
             const listenKey = this.safeString (response, 'listenKey');
+            if (listenKey === undefined) {
+                const error = new AuthenticationError (this.id + ' authenticateStock() failed to obtain a listenKey ' + this.json (response));
+                this.singleFlightReject (flightHash, error);
+                throw error;
+            }
             this.options['stock'] = this.extend (options, {
                 'listenKey': listenKey,
                 'lastAuthenticatedTime': now,
             });
             this.delay (listenKeyRefreshRate, this.keepAliveStockListenKey, params);
+            this.singleFlightResolve (flightHash);
         }
     }
 

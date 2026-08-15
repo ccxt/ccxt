@@ -35,8 +35,11 @@ async function testWsSingleFlight () {
     assert (!('auth:test' in exchange.authenticationFlights), 'a resolved flight must be cleared');
 
     // leader failure rejects all waiters and clears the flight so the
-    // next caller can retry - nothing deadlocks
+    // next caller can retry - nothing deadlocks, and NOTHING is written to
+    // the credential cache by a failed flight (regression guard for the
+    // cache-before-confirm staleness bypass found in review)
     exchange = new ccxt.Exchange ({ 'id': 'test' });
+    const cache = { 'credential': undefined, 'lastAuthenticatedTime': 0 };
     const error = new Error ('fetch failed');
     const failingFlow = async () => {
         const isLeader = await exchange.singleFlightAcquire ('auth:fail');
@@ -44,11 +47,14 @@ async function testWsSingleFlight () {
             return 'waiter-survived';
         }
         await sleep (50);
+        // a correct flow writes the cache only after success - the failing
+        // leader must reject without touching it
         exchange.singleFlightReject ('auth:fail', error);
         throw error;
     };
     const outcomes = await Promise.allSettled ([ failingFlow (), failingFlow () ]);
     assert (outcomes[0].status === 'rejected' && outcomes[1].status === 'rejected', 'leader failure must throw into all waiters');
+    assert (cache.credential === undefined && cache.lastAuthenticatedTime === 0, 'a failed flight must leave the credential cache untouched');
     assert (!('auth:fail' in exchange.authenticationFlights), 'a rejected flight must be cleared');
     const retryLeader = await exchange.singleFlightAcquire ('auth:fail');
     assert (retryLeader === true, 'the next caller after a rejected flight must become leader');
