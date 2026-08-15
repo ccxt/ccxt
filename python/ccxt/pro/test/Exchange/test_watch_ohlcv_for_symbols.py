@@ -21,16 +21,23 @@ async def test_watch_ohlcv_for_symbols(exchange, skipped_properties, symbol):
     ends = now + 15000
     timeframe_keys = list(exchange.timeframes.keys())
     assert len(timeframe_keys), exchange.id + ' ' + method + ' - no timeframes found'
-    # prefer 1m timeframe if available, otherwise return the first one
-    chosen_timeframe_key = '1m'
-    if not exchange.in_array(chosen_timeframe_key, timeframe_keys):
-        chosen_timeframe_key = timeframe_keys[0]
+    # prefer the shortest candle so a new bar can arrive inside the test window
+    preferred_timeframes = ['1s', '5s', '15s', '30s', '1m']
+    chosen_timeframe_key = timeframe_keys[0]
+    for i in range(0, len(preferred_timeframes)):
+        timeframe_key = preferred_timeframes[i]
+        if exchange.in_array(timeframe_key, timeframe_keys):
+            chosen_timeframe_key = timeframe_key
+            break
     limit = 10
     duration = exchange.parse_timeframe(chosen_timeframe_key)
     since = exchange.milliseconds() - duration * limit * 1000 - 1000
-    while now < ends:
+    max_idle_time = 5000
+    idle = False
+    while (now < ends) and not idle:
         response = None
         success = True
+        start_time = exchange.milliseconds()
         try:
             response = await exchange.watch_ohlcv_for_symbols([[symbol, chosen_timeframe_key]], since, limit)
             if response is None:
@@ -38,12 +45,9 @@ async def test_watch_ohlcv_for_symbols(exchange, skipped_properties, symbol):
         except Exception as e:
             if not test_shared_methods.is_temporary_failure(e):
                 raise e
-            now = exchange.milliseconds()
-            # continue;
             success = False
-        if success:
-            if response is None:
-                raise Error(exchange.id + ' watch returned undefined response')
+        now = exchange.milliseconds()
+        if (success) and (response is not None):
             assertion_message = exchange.id + ' ' + method + ' ' + symbol + ' ' + chosen_timeframe_key + ' | ' + exchange.json(response)
             assert exchange.is_dictionary(response), 'Response must be a dictionary. ' + assertion_message
             assert symbol in response, 'Response should contain the symbol as key. ' + assertion_message
@@ -52,7 +56,8 @@ async def test_watch_ohlcv_for_symbols(exchange, skipped_properties, symbol):
             assert chosen_timeframe_key in symbol_obj, 'Response.symbol should contain the timeframe key. ' + assertion_message
             ohlcvs = symbol_obj[chosen_timeframe_key]
             assert isinstance(ohlcvs, list), 'Response.symbol.timeframe should be an array. ' + assertion_message
-            now = exchange.milliseconds()
             for i in range(0, len(ohlcvs)):
                 test_ohlcv(exchange, skipped_properties, method, ohlcvs[i], symbol, now)
+            if (now - start_time) > max_idle_time:
+                idle = True
     return True

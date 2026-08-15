@@ -516,6 +516,86 @@ class testMainClass:
                     symbol = first['symbol']
         return symbol
 
+    def get_ticker_volume(self, exchange, ticker):
+        # all candidates compared with this helper share the same quote currency,
+        # so `quoteVolume` is directly comparable between them. fall back to the
+        # base volume converted with the last price, then to the raw base volume,
+        # because not every exchange populates `quoteVolume`.
+        quote_volume = exchange.safe_number(ticker, 'quoteVolume')
+        if quote_volume is not None:
+            return quote_volume
+        base_volume = exchange.safe_number(ticker, 'baseVolume')
+        if base_volume is None:
+            return 0
+        last = exchange.safe_number(ticker, 'last')
+        if last is not None:
+            return base_volume * last
+        return base_volume
+
+    def get_most_active_symbols(self, exchange, default_symbols):
+        # `watch*` methods only resolve when the exchange pushes an update, so a
+        # thinly traded market makes the ws tests hang until the harness timeout
+        # kills them. the 24h volume is our proxy for "how often does this book
+        # change", so rank the markets by it and watch the busiest ones instead.
+        # the ranking is restricted to markets sharing the type/quote/settle of
+        # the statically chosen symbol, which keeps the volumes comparable (quote
+        # volumes denominated in different quote currencies are not) and keeps a
+        # per-exchange `preferredSpotSymbol`/`preferredSwapSymbol` meaningful.
+        default_symbol = default_symbols[0]
+        default_market = exchange.safe_dict(exchange.markets, default_symbol)
+        if default_market is None:
+            return default_symbols
+        # an explicit per-exchange pin is a deliberate maintainer choice (it usually
+        # works around a venue-specific quirk), so never rank around it
+        is_spot = exchange.safe_bool(default_market, 'spot', False)
+        preferred_key = 'preferredSpotSymbol' if (is_spot) else 'preferredSwapSymbol'
+        preferred_symbol = exchange.safe_string(self.skipped_settings_for_exchange, preferred_key)
+        if preferred_symbol is not None:
+            return default_symbols
+        if not exchange.safe_bool(exchange.has, 'fetchTickers', False):
+            return default_symbols
+        tickers = None
+        try:
+            # dynamic dispatch: `fetchTickers` is not on the base exchange type in
+            # the statically typed ports (c#/go/java), same as the other call sites
+            tickers = call_exchange_method_dynamically(exchange, 'fetchTickers', [])
+        except Exception as e:
+            # choosing a symbol must never fail the run, keep the static choice
+            tickers = None
+        if tickers is None:
+            return default_symbols
+        market_type = exchange.safe_string(default_market, 'type')
+        quote = exchange.safe_string(default_market, 'quote')
+        settle = exchange.safe_string(default_market, 'settle')
+        candidates = []
+        ticker_symbols = list(tickers.keys())
+        for i in range(0, len(ticker_symbols)):
+            ticker_symbol = ticker_symbols[i]
+            market = exchange.safe_dict(exchange.markets, ticker_symbol)
+            if market is not None:
+                # exchanges keep returning tickers for delisted markets, and those
+                # never push a websocket update at all, so skip inactive markets
+                is_active = exchange.safe_bool(market, 'active', True)
+                same_type = exchange.safe_string(market, 'type') == market_type
+                same_quote = exchange.safe_string(market, 'quote') == quote
+                same_settle = exchange.safe_string(market, 'settle') == settle
+                if is_active and same_type and same_quote and same_settle:
+                    ticker = exchange.safe_dict(tickers, ticker_symbol, {})
+                    volume = self.get_ticker_volume(exchange, ticker)
+                    if volume > 0:
+                        entry = {}
+                        entry['symbol'] = ticker_symbol
+                        entry['volume'] = volume
+                        candidates.append(entry)
+        ranked = exchange.sort_by(candidates, 'volume', True)
+        ranked_length = len(ranked)
+        if ranked_length == 0:
+            return default_symbols
+        result = [exchange.safe_string(ranked[0], 'symbol')]
+        if ranked_length > 1:
+            result.append(exchange.safe_string(ranked[1], 'symbol'))
+        return result
+
     def test_exchange(self, exchange, provided_symbol=None):
         # prediction-market exchanges have no spot/swap markets and address methods by an
         # outcome handle (not a market symbol), so they take a dedicated test flow
@@ -546,6 +626,14 @@ class testMainClass:
                 if primary_symbol is not None:
                     secondary_symbol = primary_symbol.replace('BTC', 'ETH')  # this should work any exchange
                     swap_symbols = [primary_symbol, secondary_symbol]
+            # ws tests subscribe with `watch*`, which only resolves on an update,
+            # so re-target them at the most actively traded markets to avoid the
+            # harness timing out on a quiet book. rest tests keep the static choice.
+            if self.ws_tests:
+                if spot_symbols is not None:
+                    spot_symbols = self.get_most_active_symbols(exchange, spot_symbols)
+                if swap_symbols is not None:
+                    swap_symbols = self.get_most_active_symbols(exchange, swap_symbols)
         if spot_symbols is not None:
             dump('[INFO:MAIN] Selected SPOT SYMBOL:', exchange.json(spot_symbols))
         if swap_symbols is not None:
