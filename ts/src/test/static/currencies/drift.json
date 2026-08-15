@@ -1,0 +1,51 @@
+{
+    "USDC": {
+        "info": {
+            "symbol": "USDC",
+            "marketIndex": "0",
+            "marketType": "spot",
+            "status": "active",
+            "precision": "6",
+            "limits": {
+                "withdraw": {
+                    "max": "25000000"
+                },
+                "deposit": {
+                    "max": "500000000"
+                }
+            },
+            "oraclePrice": "0.999702",
+            "baseVolume": "0",
+            "quoteVolume": "0",
+            "deposits": "157563128",
+            "borrows": "107721630",
+            "price": "0.000000",
+            "priceChange24h": "",
+            "priceChange24hPercent": "",
+            "priceHigh": {
+                "oracle": "0.999778",
+                "fill": "0.000000"
+            },
+            "priceLow": {
+                "oracle": "0.999664",
+                "fill": "0.000000"
+            }
+        },
+        "id": "0",
+        "code": "USDC",
+        "precision": 6,
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "max": 500000000
+            },
+            "withdraw": {
+                "max": 25000000
+            }
+        }
+    }
+}
