@@ -38,6 +38,13 @@ class ArrayCache extends BaseCache implements CustomArray {
             value: {},
             writable: true,
         })
+        // the distinct ids/sides seen per key since the last getLimit (), kept by the
+        // keyed subclasses; newUpdatesBySymbol only ever holds the resulting count
+        Object.defineProperty (this, 'seenUpdatesBySymbol', {
+            __proto__: null, // make it invisible
+            value: {},
+            writable: true,
+        })
         Object.defineProperty (this, 'clearUpdatesBySymbol', {
             __proto__: null, // make it invisible
             value: {},
@@ -69,9 +76,6 @@ class ArrayCache extends BaseCache implements CustomArray {
             this.clearAllUpdates = true
         } else {
             newUpdatesValue = this.newUpdatesBySymbol[symbol];
-            if ((newUpdatesValue !== undefined) && this.nestedNewUpdatesBySymbol) {
-                newUpdatesValue = newUpdatesValue.size
-            }
             this.clearUpdatesBySymbol[symbol] = true
         }
 
@@ -94,6 +98,7 @@ class ArrayCache extends BaseCache implements CustomArray {
         // that no longer exist.
         this.hashmap = {}
         this.newUpdatesBySymbol = {}
+        this.seenUpdatesBySymbol = {}
         this.clearUpdatesBySymbol = {}
         this.allNewUpdates = 0
         this.clearAllUpdates = false
@@ -110,6 +115,7 @@ class ArrayCache extends BaseCache implements CustomArray {
             this.clearUpdatesBySymbol = {}
             this.allNewUpdates = 0
             this.newUpdatesBySymbol = {}
+            this.seenUpdatesBySymbol = {}
         }
         if (this.clearUpdatesBySymbol[item.symbol]) {
             this.clearUpdatesBySymbol[item.symbol] = false
@@ -250,19 +256,21 @@ class ArrayCacheBySymbolById extends ArrayCache {
             this.clearUpdatesBySymbol = {}
             this.allNewUpdates = 0
             this.newUpdatesBySymbol = {}
+            this.seenUpdatesBySymbol = {}
         }
-        if (this.newUpdatesBySymbol[key] === undefined) {
-            this.newUpdatesBySymbol[key] = new Set ()
+        if (this.seenUpdatesBySymbol[key] === undefined) {
+            this.seenUpdatesBySymbol[key] = new Set ()
         }
         if (this.clearUpdatesBySymbol[key]) {
             this.clearUpdatesBySymbol[key] = false
-            this.newUpdatesBySymbol[key].clear ()
+            this.seenUpdatesBySymbol[key].clear ()
         }
-        // in case an exchange updates the same order id twice
-        const idSet = this.newUpdatesBySymbol[key]
+        // count distinct ids, in case an exchange updates the same order id twice
+        const idSet = this.seenUpdatesBySymbol[key]
         const beforeLength = idSet.size
         idSet.add (item.id)
         const afterLength = idSet.size
+        this.newUpdatesBySymbol[key] = afterLength
         this.allNewUpdates = (this.allNewUpdates || 0) + (afterLength - beforeLength)
     }
 }
@@ -312,19 +320,21 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
             this.clearUpdatesBySymbol = {}
             this.allNewUpdates = 0
             this.newUpdatesBySymbol = {}
+            this.seenUpdatesBySymbol = {}
         }
-        if (this.newUpdatesBySymbol[item.symbol] === undefined) {
-            this.newUpdatesBySymbol[item.symbol] = new Set ()
+        if (this.seenUpdatesBySymbol[item.symbol] === undefined) {
+            this.seenUpdatesBySymbol[item.symbol] = new Set ()
         }
         if (this.clearUpdatesBySymbol[item.symbol]) {
             this.clearUpdatesBySymbol[item.symbol] = false
-            this.newUpdatesBySymbol[item.symbol].clear ()
+            this.seenUpdatesBySymbol[item.symbol].clear ()
         }
-        // in case an exchange updates the same order id twice
-        const sideSet = this.newUpdatesBySymbol[item.symbol]
+        // count distinct sides, in case an exchange updates the same side twice
+        const sideSet = this.seenUpdatesBySymbol[item.symbol]
         const beforeLength = sideSet.size
         sideSet.add (item.side)
         const afterLength = sideSet.size
+        this.newUpdatesBySymbol[item.symbol] = afterLength
         this.allNewUpdates = (this.allNewUpdates || 0) + (afterLength - beforeLength)
     }
 }
