@@ -78,6 +78,7 @@ export default class krakenfutures extends Exchange {
                 'fetchOrders': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchTicker': 'emulated',
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': 'emulated',
@@ -496,6 +497,8 @@ export default class krakenfutures extends Exchange {
                 'linear': linear,
                 'inverse': inverse,
                 'contractSize': this.safeNumber (market, 'contractSize'),
+                'taker': this.safeNumber (this.fees['trading'], 'taker'),
+                'maker': this.safeNumber (this.fees['trading'], 'maker'),
                 'maintenanceMarginRate': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
@@ -1163,9 +1166,12 @@ export default class krakenfutures extends Exchange {
         let fee: FeeString = undefined;
         if ((takerOrMaker !== undefined) && (cost !== undefined)) {
             const feeRate = this.safeString (market, takerOrMaker);
+            // for linear contracts the cost is in the quote currency, for
+            // inverse contracts it is in the base currency
+            const feeCurrency = linear ? this.safeString (market, 'quote') : this.safeString (market, 'base');
             fee = {
                 'cost': Precise.stringMul (cost, feeRate),
-                'currency': this.safeString (market, 'quote'),
+                'currency': feeCurrency,
                 'rate': feeRate,
             };
         }

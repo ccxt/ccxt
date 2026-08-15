@@ -1944,13 +1944,13 @@
                         "amount": null,
                         "cost": 0.003023203083667145,
                         "fee": {
-                            "currency": "USD",
+                            "currency": "BTC",
                             "cost": 0.0000022674023127503585,
                             "rate": 0.00075
                         },
                         "fees": [
                             {
-                                "currency": "USD",
+                                "currency": "BTC",
                                 "cost": 0.0000022674023127503585,
                                 "rate": 0.00075
                             }
