@@ -198,6 +198,20 @@ jobs:
           for exchange in $cleaned_rest_files; do
             npm run response-rust -- $exchange
           done
+      # WS static suite: replays recorded frames from ts/src/test/static/ws/
+      # through the pro Cores' handle_message over an offline mock transport and
+      # asserts the parsed structures / sent subscribe frames. Mirrors the
+      # request/response static steps above but for the watch* methods.
+      - name: WS static tests
+        if: env.important_modified == 'true'
+        run: npm run ws-tests-rust
+      - name: WS static tests (specific)
+        if: env.important_modified == 'false'
+        run: |
+          cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
+          for exchange in $cleaned_ws_files; do
+            npm run ws-tests-rust -- $exchange
+          done
       # Prediction-market static suites: read fixtures from
       # ts/src/test/static/{request,response}/prediction/ and run them through
       # the prediction Cores (kalshi/limitless/myriad/polymarket/hyperliquid).
