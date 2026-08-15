@@ -9,7 +9,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, BadSymbol, Exchange
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { ecdsa, eddsa } from './base/functions/crypto.js';
-import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, MarginMode, MarginModes, MarginModification, OpenInterest, OpenInterests, Position, NullableDict, FeeString, Status, Endpoint, List } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, Leverages, MarginMode, MarginModes, MarginModification, OpenInterest, OpenInterests, Position, NullableDict, FeeString, Status, Endpoint, List } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -96,6 +96,7 @@ export default class woofipro extends Exchange {
                 'fetchIsolatedBorrowRates': false,
                 'fetchLedger': true,
                 'fetchLeverage': true,
+                'fetchLeverages': true,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': true,
                 'fetchMarginModes': true,
@@ -265,6 +266,7 @@ export default class woofipro extends Exchange {
                             'orderbook/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                             'kline': { 'cost': 1 } as Endpoint<Dict>,
                             'client/margin_modes': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/leverages': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
                             'orderly_key': { 'cost': 1 } as Endpoint<Dict>,
@@ -280,6 +282,7 @@ export default class woofipro extends Exchange {
                             'notification/inbox/mark_read': { 'cost': 60 } as Endpoint<Dict>,
                             'notification/inbox/mark_read_all': { 'cost': 60 } as Endpoint<Dict>,
                             'client/leverage': { 'cost': 120 } as Endpoint<Dict>,
+                            'client/leverages': { 'cost': 120 } as Endpoint<Dict>,
                             'client/margin_mode': { 'cost': 1 } as Endpoint<Dict>,
                             'position_margin': { 'cost': 1 } as Endpoint<Dict>,
                             'client/maintenance_config': { 'cost': 60 } as Endpoint<Dict>,
@@ -3201,11 +3204,20 @@ export default class woofipro extends Exchange {
     }
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
-        const leverageValue = this.safeInteger (leverage, 'max_leverage');
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "margin_mode": "CROSS",
+        //         "leverage": 10
+        //     }
+        //
+        const marketId = this.safeString (leverage, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const leverageValue = this.safeInteger (leverage, 'leverage');
         return {
             'info': leverage,
-            'symbol': this.safeString (market, 'symbol'),
-            'marginMode': undefined,
+            'symbol': market['symbol'],
+            'marginMode': this.safeStringLower (leverage, 'margin_mode'),
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
         } as Leverage;
@@ -3213,9 +3225,42 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
+     * @name woofipro#fetchLeverages
+     * @description fetch the set leverage of all contract markets
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-leverage-settings
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
+     */
+    override async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        symbols = this.marketSymbols (symbols);
+        const response = await this.v1PrivateGetClientLeverages (params);
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "rows": [{
+        //             "symbol": "PERP_BTC_USDC",
+        //             "margin_mode": "CROSS",
+        //             "leverage": 10
+        //         }]
+        //     }
+        // }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
+        return this.parseLeverages (rows, symbols, 'symbol');
+    }
+
+    /**
+     * @method
      * @name woofipro#fetchLeverage
      * @description fetch the set leverage for a market
-     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-leverage-settings
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
@@ -3225,59 +3270,56 @@ export default class woofipro extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const response = await this.v1PrivateGetClientInfo (params);
-        //
-        // {
-        //     "success": true,
-        //     "timestamp": 1702989203989,
-        //     "data": {
-        //         "account_id": "<string>",
-        //         "email": "test@test.com",
-        //         "account_mode": "FUTURES",
-        //         "max_leverage": 20,
-        //         "taker_fee_rate": 123,
-        //         "maker_fee_rate": 123,
-        //         "futures_taker_fee_rate": 123,
-        //         "futures_maker_fee_rate": 123,
-        //         "maintenance_cancel_orders": true,
-        //         "imr_factor": {
-        //             "PERP_BTC_USDC": 123,
-        //             "PERP_ETH_USDC": 123,
-        //             "PERP_NEAR_USDC": 123
-        //         },
-        //         "max_notional": {
-        //             "PERP_BTC_USDC": 123,
-        //             "PERP_ETH_USDC": 123,
-        //             "PERP_NEAR_USDC": 123
-        //         }
-        //     }
-        // }
-        //
-        const data = this.safeDict (response, 'data', {});
-        return this.parseLeverage (data, market);
+        const leverages = await this.fetchLeverages ([ market['symbol'] ], params);
+        const leverage = this.safeDict (leverages, market['symbol']);
+        if (leverage === undefined) {
+            throw new BadSymbol (this.id + ' fetchLeverage() did not return a leverage for ' + market['symbol']);
+        }
+        return leverage as Leverage;
     }
 
     /**
      * @method
      * @name woofipro#setLeverage
-     * @description set the level of leverage for a market
+     * @description set the level of leverage for a market or, when the symbol is omitted, for the whole account
      * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-leverage-setting
-     * @param {int} [leverage] the rate of leverage
-     * @param {string} [symbol] unified market symbol
+     * @param {int} leverage the rate of leverage, between 1 and 100
+     * @param {string} [symbol] unified market symbol, applies the leverage to every market when omitted
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated', the exchange defaults to cross
      * @returns {object} response from the exchange
      */
     override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if ((leverage < 1) || (leverage > 50)) {
-            throw new BadRequest (this.id + ' leverage should be between 1 and 50');
+        if ((leverage < 1) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 100');
         }
         const request: Dict = {
             'leverage': leverage,
         };
-        return await this.v1PrivatePostClientLeverage (this.extend (request, params));
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let marginMode: Str = undefined;
+        [ marginMode, params ] = this.handleOptionAndParams (params, 'setLeverage', 'marginMode');
+        if (marginMode !== undefined) {
+            request['margin_mode'] = marginMode.toUpperCase ();
+        }
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "margin_mode": "CROSS",
+        //         "leverage": 10
+        //     }
+        // }
+        //
+        return await this.v1PrivatePostClientLeverages (this.extend (request, params));
     }
 
     override parsePosition (position: Dict, market: Market = undefined) {
