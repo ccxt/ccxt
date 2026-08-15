@@ -179,7 +179,14 @@ async fn async_main() {
     ));
     let mut binance = Box::new(ccxt::pro::binance::BinanceCore::new(Some(binance_cfg)));
     binance.bind();
-    let mut bybit = Box::new(ccxt::pro::bybit::BybitCore::new(None));
+    // bybit: same restriction, for two reasons — its option-instruments pagination
+    // (category=option per baseCoin) is slow/fragile and not needed here, and its
+    // WS depth stream also tags messages with the bare id "BTCUSDT", which would
+    // collide with spot if both were loaded.
+    let bybit_cfg = ccxt::runtime::json_parse(&Value::Str(
+        r#"{"options":{"fetchMarkets":{"types":["linear"]}}}"#.to_string(),
+    ));
+    let mut bybit = Box::new(ccxt::pro::bybit::BybitCore::new(Some(bybit_cfg)));
     bybit.bind();
     let mut okx = Box::new(ccxt::pro::okx::OkxCore::new(None));
     okx.bind();
