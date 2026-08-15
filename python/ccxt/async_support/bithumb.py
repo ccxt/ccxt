@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bithumb import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarketInterface
-from typing import List
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarketInterface
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -25,7 +24,7 @@ from ccxt.base.precise import Precise
 
 class bithumb(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bithumb, self).describe(), {
             'id': 'bithumb',
             'name': 'Bithumb',
@@ -293,11 +292,11 @@ class bithumb(Exchange, ImplicitAPI):
         # since they're the same we just need to return one
         return super(bithumb, self).safe_market(marketId, market, delimiter, 'spot')
 
-    def amount_to_precision(self, symbol: Str, amount: Any):
+    def amount_to_precision(self, symbol: Str, amount: object):
         market = self.market(symbol)
         return self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES)
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for bithumb
 
@@ -418,7 +417,7 @@ class bithumb(Exchange, ImplicitAPI):
                 result.append(entry)
         return result
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         balances = self.safe_dict(response, 'data')
         codes = list(self.currencies.keys())
@@ -643,7 +642,7 @@ class bithumb(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_ticker(data, market)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     [
         #         1576823400000,  # 기준 시간
@@ -663,7 +662,7 @@ class bithumb(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -783,7 +782,7 @@ class bithumb(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1017,7 +1016,7 @@ class bithumb(Exchange, ImplicitAPI):
             'trades': rawTrades,
         }, market)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1171,7 +1170,7 @@ class bithumb(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def fix_comma_number(self, numberStr: Any):
+    def fix_comma_number(self, numberStr: object):
         # some endpoints need self https://github.com/ccxt/ccxt/issues/11031
         if numberStr is None:
             return None
@@ -1183,7 +1182,7 @@ class bithumb(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = '/' + self.implode_params(path, params)
         url = self.implode_hostname(self.urls['api'][api]) + endpoint
         query = self.omit(params, self.extract_params(path))
@@ -1211,7 +1210,7 @@ class bithumb(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         if 'status' in response:

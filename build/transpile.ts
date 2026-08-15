@@ -450,8 +450,8 @@ class Transpiler {
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
             [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],
-            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/g, '$1List[List[$2]]' ],  // typed variables with double list type (must precede the single-list rule)
-            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/g, '$1List[$2]' ],  // typed variable with list type
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/g, '$1list[list[$2]]' ],  // typed variables with double list type (must precede the single-list rule)
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/g, '$1list[$2]' ],  // typed variable with list type
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
@@ -1052,25 +1052,25 @@ class Transpiler {
             libraries.push ('from ccxt' + wsAsyncString + '.base.ws.order_book_side import ' + uniqueSides.join (', '))
         }
         const matchObject = {
-            'Account': /-> (?:List\[)?Account/,
-            'Any': /(?:->|:) (?:List\[)?Any/,
+            'Account': /-> (?:[Ll]ist\[)?Account/,
+            'Any': /(?:->|:) (?:[Ll]ist\[)?Any/,
             'ADL': /-> ADL:/,
             'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
             'BorrowInterest': /-> BorrowInterest:/,
-            'Bool': /(: (?:List\[)?Bool =)|(-> Bool:)/,
+            'Bool': /(: (?:[Ll]ist\[)?Bool =)|(-> Bool:)/,
             'Conversion': /-> Conversion:/,
             'CrossBorrowRate': /-> CrossBorrowRate:/,
             'CrossBorrowRates': /-> CrossBorrowRates:/,
             'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
-            'CurrencyInterface': /(?:->|:) (?:List\[)?CurrencyInterface\b/,
-            'DepositAddress': /-> (?:List\[)?DepositAddress/,
+            'CurrencyInterface': /(?:->|:) (?:[Ll]ist\[)?CurrencyInterface\b/,
+            'DepositAddress': /-> (?:[Ll]ist\[)?DepositAddress/,
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
             'IndexType': /: IndexType/,
             'NullableIndexType': /: NullableIndexType/,
-            'Int': /(: (?:List\[)?Int\b)|(-> Int:)/,
+            'Int': /(: (?:[Ll]ist\[)?Int\b)|(-> Int:)/,
             'IsolatedBorrowRate': /-> IsolatedBorrowRate:/,
             'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
             'LastPrice': /-> LastPrice:/,
@@ -1078,10 +1078,10 @@ class Transpiler {
             'LedgerEntry': /-> LedgerEntry:/,
             'Leverage': /-> Leverage:/,
             'Leverages': /-> Leverages:/,
-            'LeverageTier': /-> (?:List\[)?LeverageTier/,
+            'LeverageTier': /-> (?:[Ll]ist\[)?LeverageTier/,
             'LeverageTiers': /-> LeverageTiers:/,
-            'Liquidation': /-> (?:List\[)?Liquidation/,
-            'LongShortRatio': /-> (?:List\[)?LongShortRatio/,
+            'Liquidation': /-> (?:[Ll]ist\[)?Liquidation/,
+            'LongShortRatio': /-> (?:[Ll]ist\[)?LongShortRatio/,
             'MarginMode': /-> MarginMode:/,
             'MarginModes': /-> MarginModes:/,
             'MarginModification': /-> MarginModification:/,
@@ -1090,20 +1090,20 @@ class Transpiler {
             // 'MarketInterface': /-> MarketInterface:/,
             'MarketMarginModes': /-> MarketMarginModes:/,
             'MarketType': /: MarketType/,
-            'Num': /(: (?:List\[)?Num\b)|(-> Num:)/,
+            'Num': /(: (?:[Ll]ist\[)?Num\b)|(-> Num:)/,
             'Option': /-> Option:/,
             'OptionChain': /-> OptionChain:/,
-            'Order': /-> (?:List\[)?Order\]?:/,
+            'Order': /-> (?:[Ll]ist\[)?Order\]?:/,
             'OrderBook': /-> OrderBook:/,
-            'OrderRequest': /: (?:List\[)?OrderRequest/,
-            'CancellationRequest': /: (?:List\[)?CancellationRequest/,
+            'OrderRequest': /: (?:[Ll]ist\[)?OrderRequest/,
+            'CancellationRequest': /: (?:[Ll]ist\[)?CancellationRequest/,
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
-            'Position': /-> (?:List\[)?Position/,
+            'Position': /-> (?:[Ll]ist\[)?Position/,
             'PositionModeInfo': /-> PositionModeInfo:/,
             'Status': /-> Status:/,
-            'Str': /(: (?:List\[)?Str\b)|(-> Str:)/,
-            'Strings': /: (?:List\[)?Strings =/,
+            'Str': /(: (?:[Ll]ist\[)?Str\b)|(-> Str:)/,
+            'Strings': /: (?:[Ll]ist\[)?Strings =/,
             'SubType': /: SubType/,
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
@@ -1112,28 +1112,28 @@ class Transpiler {
             'FundingRates': /-> FundingRates:/,
             'OrderBooks': /-> OrderBooks:/,
             'OpenInterests': /-> OpenInterests:/,
-            'Trade': /-> (?:List\[)?Trade/,
+            'Trade': /-> (?:[Ll]ist\[)?Trade/,
             'TradingFeeInterface': /-> TradingFeeInterface:/,
             'TradingFees': /-> TradingFees:/,
             'DepositWithdrawFee': /-> DepositWithdrawFee:/,
             'DepositWithdrawFees': /-> DepositWithdrawFees:/,
-            'Transaction': /-> (?:List\[)?Transaction/,
-            'FundingRateHistory': /-> (?:List\[)?FundingRateHistory/,
-            'MarketInterface': /-> (?:List\[)?MarketInterface/,
+            'Transaction': /-> (?:[Ll]ist\[)?Transaction/,
+            'FundingRateHistory': /-> (?:[Ll]ist\[)?FundingRateHistory/,
+            'MarketInterface': /-> (?:[Ll]ist\[)?MarketInterface/,
             'TransferEntry': /-> TransferEntry:/,
-            'PredictionEvent': /-> (?:List\[)?PredictionEvent/,
-            'PredictionOutcome': /: (?:List\[)?PredictionOutcome/,
-            'fetchEventsParams': /: (?:List\[)?fetchEventsParams\b/,
-            'PredictionTicker': /-> (?:List\[)?PredictionTicker\b/,
-            'PredictionTickers': /-> (?:List\[)?PredictionTickers\b/,
-            'PredictionOrder': /-> (?:List\[)?PredictionOrder\b/,
-            'PredictionOrderBook': /-> (?:List\[)?PredictionOrderBook\b/,
-            'PredictionTrade': /-> (?:List\[)?PredictionTrade\b/,
-            'PredictionPosition': /-> (?:List\[)?PredictionPosition\b/,
-            'PredictionOpenInterest': /-> (?:List\[)?PredictionOpenInterest\b/,
-            'PredictionTradingFee': /-> (?:List\[)?PredictionTradingFee\b/,
-            'PredictionSettlement': /-> (?:List\[)?PredictionSettlement\b/,
-            'PredictionOrderRequest': /: (?:List\[)?PredictionOrderRequest\b/,
+            'PredictionEvent': /-> (?:[Ll]ist\[)?PredictionEvent/,
+            'PredictionOutcome': /: (?:[Ll]ist\[)?PredictionOutcome/,
+            'fetchEventsParams': /: (?:[Ll]ist\[)?fetchEventsParams\b/,
+            'PredictionTicker': /-> (?:[Ll]ist\[)?PredictionTicker\b/,
+            'PredictionTickers': /-> (?:[Ll]ist\[)?PredictionTickers\b/,
+            'PredictionOrder': /-> (?:[Ll]ist\[)?PredictionOrder\b/,
+            'PredictionOrderBook': /-> (?:[Ll]ist\[)?PredictionOrderBook\b/,
+            'PredictionTrade': /-> (?:[Ll]ist\[)?PredictionTrade\b/,
+            'PredictionPosition': /-> (?:[Ll]ist\[)?PredictionPosition\b/,
+            'PredictionOpenInterest': /-> (?:[Ll]ist\[)?PredictionOpenInterest\b/,
+            'PredictionTradingFee': /-> (?:[Ll]ist\[)?PredictionTradingFee\b/,
+            'PredictionSettlement': /-> (?:[Ll]ist\[)?PredictionSettlement\b/,
+            'PredictionOrderRequest': /: (?:[Ll]ist\[)?PredictionOrderRequest\b/,
         }
         const matches: string[] = []
         let match
@@ -1148,12 +1148,7 @@ class Transpiler {
         if (bodyAsString.match (/: Client/)) {
             libraries.push ('from ccxt.async_support.base.ws.client import Client')
         }
-        if (bodyAsString.match (/[\s(]Optional\[/)) {
-            libraries.push ('from typing import Optional')
-        }
-        if (bodyAsString.match (/[\s\[(]List\[/)) {
-            libraries.push ('from typing import List')
-        }
+        // list[] / X | None are builtins on the Python 3.10 floor; do not import typing
 
         const errorImports: string[] = []
 
@@ -2138,16 +2133,16 @@ class Transpiler {
             const pythonTypes: dict = {
                 'string': 'str',
                 'number': 'float',
-                'any': 'Any',
-                'unknown': 'Any',
+                'any': 'object',
+                'unknown': 'object',
                 'boolean': 'bool',
                 'Int': 'Int',
                 'OHLCV': 'list',
                 'Dictionary<any>': 'dict',
                 'Dict': 'dict',
                 'NullableDict': 'dict',
-                'List': 'List[Any]',
-                'NullableList': 'List[Any]'
+                'List': 'list',
+                'NullableList': 'list'
             }
             const unwrapLists = (type: string) => {
                 // a union like `Dict | Dict[] | undefined` must be mapped member-by-member;
@@ -2161,7 +2156,7 @@ class Transpiler {
                     type = type.slice (0, -2)
                     count++
                 }
-                return 'List['.repeat (count) + (pythonTypes[type] ?? type) + ']'.repeat (count)
+                return 'list['.repeat (count) + (pythonTypes[type] ?? type) + ']'.repeat (count)
             }
 
             if (this.buildPHP) {

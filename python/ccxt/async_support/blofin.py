@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.blofin import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, ADL, Balances, Currency, Int, LedgerEntry, Leverage, Leverages, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import ADL, Balances, Currency, Int, LedgerEntry, Leverage, Leverages, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -23,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class blofin(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(blofin, self).describe(), {
             'id': 'blofin',
             'name': 'BloFin',
@@ -502,7 +501,7 @@ class blofin(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for blofin
 
@@ -867,7 +866,7 @@ class blofin(Exchange, ImplicitAPI):
                 'fee': fee,
             }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -900,7 +899,7 @@ class blofin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     [
         #         "1678928760000",  # timestamp
@@ -923,7 +922,7 @@ class blofin(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 6),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1010,7 +1009,7 @@ class blofin(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         #    {
         #        "fundingRate": "0.00027815",
@@ -1079,14 +1078,14 @@ class blofin(Exchange, ImplicitAPI):
         entry = self.safe_dict(data, 0, {})
         return self.parse_funding_rate(entry, market)
 
-    def parse_balance_by_type(self, response: Any):
+    def parse_balance_by_type(self, response: object):
         data = self.safe_list(response, 'data')
         if (data is not None) and isinstance(data, list):
             return self.parse_funding_balance(response)
         else:
             return self.parse_balance(response)
 
-    def parse_balance(self, response: Any):
+    def parse_balance(self, response: object):
         #
         # "data" similar for REST & WS
         #
@@ -1140,7 +1139,7 @@ class blofin(Exchange, ImplicitAPI):
         result['datetime'] = self.iso8601(timestamp)
         return self.safe_balance(result)
 
-    def parse_funding_balance(self, response: Any):
+    def parse_funding_balance(self, response: object):
         #
         #  {
         #      "code": "0",
@@ -1555,7 +1554,7 @@ class blofin(Exchange, ImplicitAPI):
         order = self.safe_dict(data, 0)
         return self.parse_order(order, market)
 
-    async def create_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
+    async def create_orders(self, orders: list[OrderRequest], params={}) -> list[Order]:
         """
         create a list of trade orders
 
@@ -1583,7 +1582,7 @@ class blofin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         Fetch orders that are still open
 
@@ -1629,7 +1628,7 @@ class blofin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -1692,7 +1691,7 @@ class blofin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -1727,7 +1726,7 @@ class blofin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -1762,7 +1761,7 @@ class blofin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -1902,7 +1901,7 @@ class blofin(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_ledger_entry_type(self, type: Any):
+    def parse_ledger_entry_type(self, type: object):
         types = {
             '1': 'transfer',  # transfer
             '2': 'trade',  # trade
@@ -1941,7 +1940,7 @@ class blofin(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ids(self, ids: Any):
+    def parse_ids(self, ids: object):
         """
  @ignore
         :param string[]|str ids: order ids
@@ -1952,7 +1951,7 @@ class blofin(Exchange, ImplicitAPI):
         else:
             return ids
 
-    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -2077,7 +2076,7 @@ class blofin(Exchange, ImplicitAPI):
             raise NullResponse(self.id + ' fetchPosition() returned empty position')
         return self.parse_position(position, market)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch data on a single open contract trade position
 
@@ -2096,7 +2095,7 @@ class blofin(Exchange, ImplicitAPI):
         result = self.parse_positions(data)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
         fetches historical positions
 
@@ -2459,7 +2458,7 @@ class blofin(Exchange, ImplicitAPI):
         response = await self.privatePostTradeClosePosition(self.extend(request, params))
         return self.safe_dict(response, 'data')
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -2620,7 +2619,7 @@ class blofin(Exchange, ImplicitAPI):
         #
         return await self.privatePostAccountSetPositionMode(self.extend(request, params))
 
-    async def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
+    async def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> list[ADL]:
         """
         fetches the auto deleveraging rank and risk percentage for a list of symbols
 
@@ -2704,7 +2703,7 @@ class blofin(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         #
@@ -2736,7 +2735,7 @@ class blofin(Exchange, ImplicitAPI):
             self.throw_broadly_matched_exception(self.exceptions['broad'], insideMsg, feedback)
         return None
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/api/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api']['rest'] + request

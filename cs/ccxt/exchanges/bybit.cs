@@ -103,7 +103,6 @@ public partial class bybit : Exchange
                 { "fetchOptionChain", true },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
-                { "fetchOrders", true },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
                 { "fetchPositionADLRank", true },
@@ -6352,7 +6351,7 @@ public partial class bybit : Exchange
         object request = new Dictionary<string, object>() {
             { "orderId", id },
         };
-        object result = await this.fetchOrders(symbol, null, null, this.extend(request, parameters));
+        object result = await this.fetchOrdersClassic(symbol, null, null, this.extend(request, parameters));
         object length = getArrayLength(result);
         if (isTrue(isEqual(length, 0)))
         {
@@ -6483,36 +6482,6 @@ public partial class bybit : Exchange
         return this.parseOrder(order, market);
     }
 
-    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        object res = await this.isUnifiedEnabled();
-        /**
-         * @method
-         * @name bybit#fetchOrders
-         * @description *classic accounts only/ spot not supported* fetches information on multiple orders made by the user *classic accounts only/ spot not supported*
-         * @see https://bybit-exchange.github.io/docs/v5/order/order-list
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.trigger] true if trigger order
-         * @param {boolean} [params.stop] alias for trigger
-         * @param {string} [params.type] market type, ['swap', 'option']
-         * @param {string} [params.subType] market subType, ['linear', 'inverse']
-         * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
-         * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        object enableUnifiedAccount = this.safeBool(res, 1);
-        if (isTrue(enableUnifiedAccount))
-        {
-            throw new NotSupported ((string)add(this.id, " fetchOrders() is not supported after the 5/02 update for UTA accounts, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders")) ;
-        }
-        return await this.fetchOrdersClassic(symbol, since, limit, parameters);
-    }
-
     /**
      * @method
      * @name bybit#fetchOrdersClassic
@@ -6539,12 +6508,12 @@ public partial class bybit : Exchange
             await this.loadMarkets();
         }
         object paginate = false;
-        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrdersClassic", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 50);
+            return await this.fetchPaginatedCallCursor("fetchOrdersClassic", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 50);
         }
         object request = new Dictionary<string, object>() {};
         object market = null;
@@ -6554,12 +6523,12 @@ public partial class bybit : Exchange
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
         object type = null;
-        var typeparametersVariable = this.getBybitType("fetchOrders", market, parameters);
+        var typeparametersVariable = this.getBybitType("fetchOrdersClassic", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         if (isTrue(isEqual(type, "spot")))
         {
-            throw new NotSupported ((string)add(this.id, " fetchOrders() is not supported for spot markets")) ;
+            throw new NotSupported ((string)add(this.id, " fetchOrdersClassic() is not supported for spot markets")) ;
         }
         ((IDictionary<string,object>)request)["category"] = type;
         object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);

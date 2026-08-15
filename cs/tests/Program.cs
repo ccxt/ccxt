@@ -141,6 +141,7 @@ public class Tests
             if (isWs)
             {
                 WsCacheTests();
+                WsCacheRegressionTests();
                 WsOrderBookTests();
                 WsOrderBookDefaultsTests();
                 WsOrderBookCopyAtomicityTests();
@@ -179,6 +180,12 @@ public class Tests
     {
         baseTestInstance.testWsCache();
         Helper.Green(" [C#] ArrayCache tests passed");
+    }
+
+    static void WsCacheRegressionTests()
+    {
+        baseTestInstance.testWsCacheRegressions();
+        Helper.Green(" [C#] ArrayCache regression tests passed");
     }
 
     static async Task WsClientRetentionTests()

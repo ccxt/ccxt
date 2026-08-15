@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bittrade import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
-from typing import List
+from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -29,7 +28,7 @@ from ccxt.base.precise import Precise
 
 class bittrade(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bittrade, self).describe(), {
             'id': 'bittrade',
             'name': 'BitTrade',
@@ -483,7 +482,7 @@ class bittrade(Exchange, ImplicitAPI):
         #
         return self.parse_trading_limits(self.safe_value(response, 'data', {}))
 
-    def parse_trading_limits(self, limits: Any, symbol: Str = None, params={}):
+    def parse_trading_limits(self, limits: object, symbol: Str = None, params={}):
         #
         #   {                                 symbol: "aidocbtc",
         #                  "buy-limit-must-less-than":  1.1,
@@ -509,10 +508,10 @@ class bittrade(Exchange, ImplicitAPI):
             },
         }
 
-    def cost_to_precision(self, symbol: Str, cost: Any):
+    def cost_to_precision(self, symbol: Str, cost: object):
         return self.decimal_to_precision(cost, TRUNCATE, self.market(symbol)['precision']['cost'], self.precisionMode)
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for huobijp
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -942,7 +941,7 @@ class bittrade(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = 1000, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = 1000, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -994,7 +993,7 @@ class bittrade(Exchange, ImplicitAPI):
         result = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     {
         #         "amount":1.2082,
@@ -1016,7 +1015,7 @@ class bittrade(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'amount'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = 1000, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = 1000, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1051,7 +1050,7 @@ class bittrade(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    async def fetch_accounts(self, params={}) -> List[Account]:
+    async def fetch_accounts(self, params={}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1157,7 +1156,7 @@ class bittrade(Exchange, ImplicitAPI):
             'info': currency,
         })
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         balances = self.safe_value(response['data'], 'list', [])
         result = {'info': response}
         for i in range(0, len(balances)):
@@ -1197,7 +1196,7 @@ class bittrade(Exchange, ImplicitAPI):
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_balance(response)
 
-    async def fetch_orders_by_states(self, states: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders_by_states(self, states: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         if self.markets is None:
             await self.load_markets()
         request = {
@@ -1245,7 +1244,7 @@ class bittrade(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 'data', {})
         return self.parse_order(order)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1256,7 +1255,7 @@ class bittrade(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1273,7 +1272,7 @@ class bittrade(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOpenOrdersV1() requires a symbol argument')
         return await self.fetch_orders_by_states('pre-submitted,submitted,partial-filled', symbol, since, limit, params)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1538,7 +1537,7 @@ class bittrade(Exchange, ImplicitAPI):
             'status': 'canceled',
         })
 
-    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
         :param str[] ids: order ids
@@ -1590,7 +1589,7 @@ class bittrade(Exchange, ImplicitAPI):
         #
         return self.parse_cancel_orders(response)
 
-    def parse_cancel_orders(self, orders: Any):
+    def parse_cancel_orders(self, orders: object):
         #
         #    {
         #        "success": [
@@ -1682,7 +1681,7 @@ class bittrade(Exchange, ImplicitAPI):
             }),
         ]
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None):
         #
         #     {
         #         "currency": "usdt",
@@ -1710,7 +1709,7 @@ class bittrade(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1739,7 +1738,7 @@ class bittrade(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1910,7 +1909,7 @@ class bittrade(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
         url = '/'
         if api == 'market':
             url += api
@@ -1957,7 +1956,7 @@ class bittrade(Exchange, ImplicitAPI):
         }) + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         if 'status' in response:

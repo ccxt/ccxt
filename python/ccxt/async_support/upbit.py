@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.upbit import ImplicitAPI
 import asyncio
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFeeInterface, TradingFees, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFeeInterface, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -23,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class upbit(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(upbit, self).describe(), {
             'id': 'upbit',
             'name': 'Upbit',
@@ -494,7 +493,7 @@ class upbit(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
 
         https://docs.upbit.com/kr/reference/list-trading-pairs
@@ -576,7 +575,7 @@ class upbit(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -758,7 +757,8 @@ class upbit(Exchange, ImplicitAPI):
             'last': last,
             'previousClose': self.safe_string(ticker, 'prev_closing_price'),
             'change': self.safe_string(ticker, 'signed_change_price'),
-            'percentage': self.safe_string(ticker, 'signed_change_rate'),
+            # signed_change_rate is a ratio, and a ticker reports a percentage
+            'percentage': Precise.string_mul(self.safe_string(ticker, 'signed_change_rate'), '100'),
             'average': None,
             'baseVolume': self.safe_string(ticker, 'acc_trade_volume_24h'),
             'quoteVolume': self.safe_string(ticker, 'acc_trade_price_24h'),
@@ -916,7 +916,7 @@ class upbit(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
 
         https://docs.upbit.com/kr/reference/list-pair-trades
@@ -1053,7 +1053,7 @@ class upbit(Exchange, ImplicitAPI):
                 response[feeSymbol] = element
         return response
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     {
         #         "market": "BTC-ETH",
@@ -1078,7 +1078,7 @@ class upbit(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'candle_acc_trade_volume'),  # base volume
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
 
         https://docs.upbit.com/kr/reference/list-candles-minutes
@@ -1430,7 +1430,7 @@ class upbit(Exchange, ImplicitAPI):
         result['market'] = self.safe_string(response, 'market')
         return self.parse_order(result)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
 
         https://docs.upbit.com/kr/reference/list-deposits
@@ -1514,7 +1514,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
 
         https://docs.upbit.com/kr/reference/list-withdrawals
@@ -1836,7 +1836,7 @@ class upbit(Exchange, ImplicitAPI):
             'trades': trades,
         })
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1884,7 +1884,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -2055,7 +2055,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    async def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> List[DepositAddress]:
+    async def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> list[DepositAddress]:
         """
 
         https://docs.upbit.com/kr/reference/list-deposit-addresses
@@ -2090,7 +2090,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_addresses(response, codes)
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #    {
         #        currency: 'XRP',
@@ -2242,7 +2242,7 @@ class upbit(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
         url = self.implode_params(self.urls['api'][api], {
             'hostname': self.hostname,
         })
@@ -2274,7 +2274,7 @@ class upbit(Exchange, ImplicitAPI):
             headers['Authorization'] = 'Bearer ' + token
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         #

@@ -1577,7 +1577,7 @@ public partial class toobit : Exchange
             { "last", last },
             { "previousClose", null },
             { "change", this.safeString(ticker, "pc") },
-            { "percentage", this.safeString(ticker, "pcp") },
+            { "percentage", Precise.stringMul(this.safeString(ticker, "pcp"), "100") },
             { "average", null },
             { "baseVolume", baseVolume },
             { "quoteVolume", this.safeString(ticker, "qv") },

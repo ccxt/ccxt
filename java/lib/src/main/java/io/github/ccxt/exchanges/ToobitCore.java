@@ -1647,7 +1647,7 @@ public class ToobitCore extends ToobitApi
             put( "last", last );
             put( "previousClose", null );
             put( "change", ToobitCore.this.safeString(ticker, "pc") );
-            put( "percentage", ToobitCore.this.safeString(ticker, "pcp") );
+            put( "percentage", Precise.stringMul(ToobitCore.this.safeString(ticker, "pcp"), "100") );
             put( "average", null );
             put( "baseVolume", finalBaseVolume );
             put( "quoteVolume", ToobitCore.this.safeString(ticker, "qv") );

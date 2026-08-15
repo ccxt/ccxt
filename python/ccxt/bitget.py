@@ -7,8 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitget import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, LedgerEntry, Leverage, LeverageTier, Liquidation, LongShortRatio, MarginMode, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, LedgerEntry, Leverage, LeverageTier, Liquidation, LongShortRatio, MarginMode, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -35,7 +34,7 @@ from ccxt.base.precise import Precise
 
 class bitget(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bitget, self).describe(), {
             'id': 'bitget',
             'name': 'Bitget',
@@ -1934,7 +1933,7 @@ class bitget(Exchange, ImplicitAPI):
         params = self.omit(params, ['productType', 'category'])
         return [productType, params]
 
-    def handle_uta_and_params(self, params: Any, methodName: Str, defaultValue: bool = False):
+    def handle_uta_and_params(self, params: object, methodName: Str, defaultValue: bool = False):
         uta = None
         uta, params = self.handle_option_and_params(params, methodName, 'uta')
         if uta is not None:
@@ -1974,7 +1973,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.safe_integer(data, 'serverTime')
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for bitget
 
@@ -1995,7 +1994,7 @@ class bitget(Exchange, ImplicitAPI):
             return self.fetch_uta_markets(params)
         return self.fetch_default_markets(params)
 
-    def fetch_default_markets(self, params: Any) -> List[Market]:
+    def fetch_default_markets(self, params: object) -> list[Market]:
         types = None
         fetchMarketsOptions = self.safe_dict(self.options, 'fetchMarkets')
         defaultMarkets = ['spot', 'swap']
@@ -2252,7 +2251,7 @@ class bitget(Exchange, ImplicitAPI):
             }))
         return result
 
-    def fetch_uta_markets(self, params: Any) -> List[Market]:
+    def fetch_uta_markets(self, params: object) -> list[Market]:
         subTypes = ['SPOT', 'USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES']
         promises = []
         for i in range(0, len(subTypes)):
@@ -2611,7 +2610,7 @@ class bitget(Exchange, ImplicitAPI):
             'created': None,
         })
 
-    def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
+    def fetch_market_leverage_tiers(self, symbol: str, params={}) -> list[LeverageTier]:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
 
@@ -2740,7 +2739,7 @@ class bitget(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'data', [])
         return self.parse_market_leverage_tiers(result, market)
 
-    def parse_market_leverage_tiers(self, info: Any, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: object, market: Market = None) -> list[LeverageTier]:
         #
         # swap and future
         #
@@ -2811,7 +2810,7 @@ class bitget(Exchange, ImplicitAPI):
             minNotional = maxNotional
         return tiers
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2930,7 +2929,7 @@ class bitget(Exchange, ImplicitAPI):
             result['network'] = networkCode
         return result
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -3120,7 +3119,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "coin": "BTC",
@@ -3324,10 +3323,8 @@ class bitget(Exchange, ImplicitAPI):
             marketType = 'contract'
         else:
             marketType = 'spot'
-        percentage = self.safe_string(ticker, 'price24hPcnt')
-        if percentage is None:
-            change24h = self.safe_string(ticker, 'change24h')
-            percentage = Precise.string_mul(change24h, '100')
+        # both fields are ratios, and a ticker reports(change/open) * 100
+        percentage = Precise.string_mul(self.safe_string_2(ticker, 'price24hPcnt', 'change24h'), '100')
         return self.safe_ticker({
             'symbol': self.safe_symbol(marketId, market, None, marketType),
             'timestamp': timestamp,
@@ -3854,7 +3851,7 @@ class bitget(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -4143,7 +4140,7 @@ class bitget(Exchange, ImplicitAPI):
             result[symbol] = fee
         return result
 
-    def parse_trading_fee(self, data: Any, market: Market = None):
+    def parse_trading_fee(self, data: object, market: Market = None):
         marketId = self.safe_string(data, 'symbol')
         return {
             'info': data,
@@ -4154,7 +4151,7 @@ class bitget(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     [
         #         "1645911960000",
@@ -4177,7 +4174,7 @@ class bitget(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, volumeIndex),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -4537,7 +4534,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_balance(data)
 
-    def parse_uta_balance(self, balance: Any) -> Balances:
+    def parse_uta_balance(self, balance: object) -> Balances:
         result = {'info': balance}
         #
         # uta
@@ -4574,7 +4571,7 @@ class bitget(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    def parse_balance(self, balance: Any) -> Balances:
+    def parse_balance(self, balance: object) -> Balances:
         result = {'info': balance}
         #
         # spot
@@ -5434,7 +5431,7 @@ class bitget(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' createOrder() does not support ' + marketType + ' orders')
         return self.extend(request, params)
 
-    def create_uta_orders(self, orders: List[OrderRequest], params={}):
+    def create_uta_orders(self, orders: list[OrderRequest], params={}):
         if self.markets is None:
             self.load_markets()
         ordersRequests = []
@@ -5481,7 +5478,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market)
 
-    def create_orders(self, orders: List[OrderRequest], params={}):
+    def create_orders(self, orders: list[OrderRequest], params={}):
         """
         create a list of trade orders(all orders should be of the same symbol)
 
@@ -5933,7 +5930,7 @@ class bitget(Exchange, ImplicitAPI):
                 order = data
         return self.parse_order(order, market)
 
-    def cancel_uta_orders(self, ids: Any, symbol: Str = None, params={}):
+    def cancel_uta_orders(self, ids: object, symbol: Str = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         if self.markets is None:
@@ -5967,7 +5964,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market)
 
-    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -6337,7 +6334,7 @@ class bitget(Exchange, ImplicitAPI):
         # first = self.safe_dict(data, 0, data)
         # return self.parse_order(first, market)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -6718,7 +6715,7 @@ class bitget(Exchange, ImplicitAPI):
             return self.parse_orders(result, market, since, limit)
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -7187,7 +7184,7 @@ class bitget(Exchange, ImplicitAPI):
         orders = self.safe_list(data, 'list', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -7350,7 +7347,7 @@ class bitget(Exchange, ImplicitAPI):
             },
         }, currency)
 
-    def parse_ledger_type(self, type: Any):
+    def parse_ledger_type(self, type: object):
         types = {
             'trans_to_cross': 'transfer',
             'trans_from_cross': 'transfer',
@@ -7395,7 +7392,7 @@ class bitget(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -7713,7 +7710,7 @@ class bitget(Exchange, ImplicitAPI):
         first = self.safe_dict(result, 0, {})
         return self.parse_position(first, market)
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -8391,7 +8388,7 @@ class bitget(Exchange, ImplicitAPI):
         params = self.extend({'method': 'publicMixGetV2MixMarketCurrentFundRate'}, params)
         return self.fetch_funding_rates(symbols, params)
 
-    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         # fetchFundingRate: publicMixGetV2MixMarketCurrentFundRate, publicUtaGetV3MarketCurrentFundRate
         #
@@ -8479,7 +8476,7 @@ class bitget(Exchange, ImplicitAPI):
             'interval': intervalString,
         }
 
-    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingHistory]:
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[FundingHistory]:
         """
         fetch the funding history
 
@@ -8578,7 +8575,7 @@ class bitget(Exchange, ImplicitAPI):
             bills = self.filter_by_array(bills, 'type', ['CONTRACT_MAIN_SETTLE_FEE_USER_IN', 'CONTRACT_MAIN_SETTLE_FEE_USER_OUT'], False)
         return self.parse_funding_histories(bills, market, since, limit)
 
-    def parse_funding_history(self, contract: Any, market: Market = None):
+    def parse_funding_history(self, contract: object, market: Market = None):
         #
         #     {
         #         "billId": "1111499428100472833",
@@ -8616,7 +8613,7 @@ class bitget(Exchange, ImplicitAPI):
             'id': self.safe_string_2(contract, 'billId', 'id'),
         }
 
-    def parse_funding_histories(self, contracts: Any, market: Market = None, since: Int = None, limit: Int = None) -> List[FundingHistory]:
+    def parse_funding_histories(self, contracts: object, market: Market = None, since: Int = None, limit: Int = None) -> list[FundingHistory]:
         result = []
         for i in range(0, len(contracts)):
             contract = contracts[i]
@@ -8632,7 +8629,7 @@ class bitget(Exchange, ImplicitAPI):
             symbol = market['symbol']
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def modify_margin_helper(self, symbol: str, amount: Any, type: Any, params={}) -> MarginModification:
+    def modify_margin_helper(self, symbol: str, amount: object, type: object, params={}) -> MarginModification:
         if self.markets is None:
             self.load_markets()
         holdSide = self.safe_string(params, 'holdSide')
@@ -9017,7 +9014,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_open_interest(data, market)
 
-    def parse_open_interest(self, interest: Any, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None):
         #
         # default
         #
@@ -9055,7 +9052,7 @@ class bitget(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -9221,7 +9218,7 @@ class bitget(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_deposit_withdraw_fee(self, fee: Any, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
         #
         #     {
         #         "chains": [
@@ -9464,7 +9461,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    def parse_margin_loan(self, info: Any, currency: Currency = None, market: Market = None) -> MarginLoan:
+    def parse_margin_loan(self, info: object, currency: Currency = None, market: Market = None) -> MarginLoan:
         #
         # isolated: borrowMargin
         #
@@ -9517,7 +9514,7 @@ class bitget(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
+    def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Liquidation]:
         """
         retrieves the users liquidated positions
 
@@ -9620,7 +9617,7 @@ class bitget(Exchange, ImplicitAPI):
         liquidations = self.safe_list(data, 'resultList', [])
         return self.parse_liquidations(liquidations, market, since, limit)
 
-    def parse_liquidation(self, liquidation: Any, market: Market = None):
+    def parse_liquidation(self, liquidation: object, market: Market = None):
         #
         # isolated
         #
@@ -9855,7 +9852,7 @@ class bitget(Exchange, ImplicitAPI):
         result['timestamp'] = timestamp
         return self.parse_borrow_rate(result, currency)
 
-    def parse_borrow_rate(self, info: Any, currency: Currency = None):
+    def parse_borrow_rate(self, info: object, currency: Currency = None):
         #
         # default
         #
@@ -9896,7 +9893,7 @@ class bitget(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
+    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
 
@@ -10111,7 +10108,7 @@ class bitget(Exchange, ImplicitAPI):
         order = self.safe_list_2(data, 'successList', 'list', [])
         return self.parse_order(order[0], market)
 
-    def close_all_positions(self, params={}) -> List[Position]:
+    def close_all_positions(self, params={}) -> list[Position]:
         """
         closes all open positions for a market type
 
@@ -10234,7 +10231,7 @@ class bitget(Exchange, ImplicitAPI):
             'marginMode': marginType,
         }
 
-    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
         fetches historical positions
 
@@ -10434,7 +10431,7 @@ class bitget(Exchange, ImplicitAPI):
         toCurrency = self.currency(toCurrencyId)
         return self.parse_conversion(data, None, toCurrency)
 
-    def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Conversion]:
+    def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Conversion]:
         """
         fetch the users history of conversion trades
 
@@ -10671,7 +10668,7 @@ class bitget(Exchange, ImplicitAPI):
         first = self.safe_dict(data, 0, {})
         return self.parse_funding_rate(first, market)
 
-    def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LongShortRatio]:
+    def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LongShortRatio]:
         """
         fetches the long short ratio history for a unified market symbol
 
@@ -10741,7 +10738,7 @@ class bitget(Exchange, ImplicitAPI):
             'longShortRatio': self.safe_number_2(info, 'longShortRatio', 'longShortAccountRatio'),
         }
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if not response:
             return None  # fallback to default error handler
         #
@@ -10787,7 +10784,7 @@ class bitget(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path: Any, api: Any = [], method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: object, api: object = [], method='GET', params={}, headers: dict = None, body: object = None):
         signed = api[0] == 'private'
         endpoint = api[1]
         pathPart = '/api'

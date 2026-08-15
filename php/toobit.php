@@ -1416,7 +1416,8 @@ class toobit extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => $this->safe_string($ticker, 'pc'),
-            'percentage' => $this->safe_string($ticker, 'pcp'),
+            // 'pcp' is a ratio, and a $ticker reports a percentage
+            'percentage' => Precise::string_mul($this->safe_string($ticker, 'pcp'), '100'),
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $this->safe_string($ticker, 'qv'),

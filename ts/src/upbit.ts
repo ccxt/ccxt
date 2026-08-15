@@ -775,7 +775,8 @@ export default class upbit extends Exchange {
             'last': last,
             'previousClose': this.safeString (ticker, 'prev_closing_price'),
             'change': this.safeString (ticker, 'signed_change_price'),
-            'percentage': this.safeString (ticker, 'signed_change_rate'),
+            // signed_change_rate is a ratio, and a ticker reports a percentage
+            'percentage': Precise.stringMul (this.safeString (ticker, 'signed_change_rate'), '100'),
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'acc_trade_volume_24h'),
             'quoteVolume': this.safeString (ticker, 'acc_trade_price_24h'),

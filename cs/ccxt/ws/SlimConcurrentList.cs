@@ -374,6 +374,29 @@ public class SlimConcurrentList<T> : IList<T>, ICollection<T>, IReadOnlyList<T>,
     }
 
     /// <summary>
+    /// Searches for an element that matches the given predicate and returns the
+    /// zero-based index of its first occurrence, or -1 if there is no match.
+    /// </summary>
+    /// <remarks>
+    /// Locates a row in a single locked pass, where <see cref="Find"/> followed by
+    /// <see cref="IndexOf"/> would traverse the list twice under two separate lock
+    /// acquisitions and would additionally re-match the located object by equality.
+    /// </remarks>
+    /// <param name="match">The predicate that defines the element to search for.</param>
+    public int FindIndex(Predicate<T> match)
+    {
+        try
+        {
+            _lock.EnterReadLock();
+            return _list.FindIndex(match);
+        }
+        finally
+        {
+            _lock.ExitReadLock();
+        }
+    }
+
+    /// <summary>
     /// Performs a bisect-left binary search over the list, taking the read lock
     /// ONCE for the whole probe sequence instead of one acquire/release pair per
     /// <see cref="Count"/> / indexer access.

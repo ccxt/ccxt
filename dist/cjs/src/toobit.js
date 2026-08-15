@@ -1416,7 +1416,8 @@ class toobit extends toobit$1["default"] {
             'last': last,
             'previousClose': undefined,
             'change': this.safeString(ticker, 'pc'),
-            'percentage': this.safeString(ticker, 'pcp'),
+            // 'pcp' is a ratio, and a ticker reports a percentage
+            'percentage': Precise["default"].stringMul(this.safeString(ticker, 'pcp'), '100'),
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': this.safeString(ticker, 'qv'),
