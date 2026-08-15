@@ -2,12 +2,12 @@ namespace Tests;
 
 // native cs test: OrderBook.Copy() must return an ATOMIC snapshot of both sides.
 //
-// Copy() used to lock the book's own _syncRoot (inherited from
-// CustomConcurrentDictionary) and then call asks.Copy() followed by bids.Copy().
-// Each side's Copy()/storeArray() locks the *side's* _syncRoot instead, a
-// different monitor, so the book lock excluded nothing: a WS delta running on a
-// threadpool thread could land in between the two side copies and produce a
-// snapshot whose asks are older than its bids.
+// The book's own monitor (inherited from CustomConcurrentDictionary) does not
+// guard the sides: each side's Copy()/storeArray() takes that side's own
+// _sideLock, a different monitor. So a Copy() holding only the book monitor and
+// then calling asks.Copy() followed by bids.Copy() excludes nothing -- a WS
+// delta running on a threadpool thread can land in between the two side copies
+// and produce a snapshot whose asks are older than its bids.
 //
 // That is what the live C# tests hit on binanceusdm:
 //
