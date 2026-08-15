@@ -3386,11 +3386,8 @@ class bitget extends Exchange {
         } else {
             $marketType = 'spot';
         }
-        $percentage = $this->safe_string($ticker, 'price24hPcnt');
-        if ($percentage === null) {
-            $change24h = $this->safe_string($ticker, 'change24h');
-            $percentage = Precise::string_mul($change24h, '100');
-        }
+        // both fields are ratios, and a $ticker reports (change/open) * 100
+        $percentage = Precise::string_mul($this->safe_string_2($ticker, 'price24hPcnt', 'change24h'), '100');
         return $this->safe_ticker(array(
             'symbol' => $this->safe_symbol($marketId, $market, null, $marketType),
             'timestamp' => $timestamp,
