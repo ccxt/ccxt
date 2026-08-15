@@ -40,9 +40,9 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
         $index = bisectLeft($this->index, $index_price);
         if ($size) {
             if ($index < count($this->index) && $this->index[$index] === $index_price) {
-                $tmp = $this->exchangeArray(tmp);
-                $tmp[$index][1] = $size;
-                $this->exchangeArray($tmp);
+                $row = $this[$index];
+                $row[1] = $size;
+                $this[$index] = $row;
             } else {
                 array_splice($this->index, $index, 0, $index_price);
                 $tmp = $this->exchangeArray(tmp);
@@ -126,10 +126,10 @@ class CountedOrderBookSide extends OrderBookSide {
         $index = bisectLeft($this->index, $index_price);
         if ($size && $count) {
             if ($index < count($this->index) && $this->index[$index] === $index_price) {
-                $tmp = $this->exchangeArray(tmp);
-                $tmp[$index][1] = $size;
-                $tmp[$index][2] = $count;
-                $this->exchangeArray($tmp);
+                $row = $this[$index];
+                $row[1] = $size;
+                $row[2] = $count;
+                $this[$index] = $row;
             } else {
                 array_splice($this->index, $index, 0, $index_price);
                 $tmp = $this->exchangeArray(tmp);
