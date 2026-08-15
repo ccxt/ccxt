@@ -175,8 +175,18 @@ public class ArrayCache : BaseCache
     // generated exchange code reads through `(stored as ArrayCache).hashmap`
     // (pro/kraken, pro/bitmex, pro/woofipro, pro/coinbaseexchange, pro/upbit).
     public Dictionary<string, object> hashmap = new Dictionary<string, object>();
+    // true when the subclass counts DISTINCT ids/sides per symbol through
+    // seenUpdatesBySymbol rather than every append. getLimit does not read it:
+    // newUpdatesBySymbol carries the resolved count either way.
     protected bool nestedNewUpdatesBySymbol;
-    protected Dictionary<string, object> newUpdatesBySymbol = new Dictionary<string, object>();
+    // symbol -> number of updates since the last getLimit() read, always an int.
+    // ArrayCacheBySymbolById / ...BySide keep their distinct id/side sets in
+    // seenUpdatesBySymbol and write the set size back here, so getLimit never has
+    // to type-pun a HashSet out of this map.
+    protected Dictionary<string, int> newUpdatesBySymbol = new Dictionary<string, int>();
+    // symbol -> the distinct ids (ById) or sides (BySide) seen in the current
+    // window; empty for the plain ArrayCache, which counts every append.
+    protected Dictionary<string, HashSet<object>> seenUpdatesBySymbol = new Dictionary<string, HashSet<object>>();
     protected Dictionary<string, object> clearUpdatesBySymbol = new Dictionary<string, object>();
     protected int allNewUpdates;
     protected bool clearAllUpdates;
@@ -196,6 +206,7 @@ public class ArrayCache : BaseCache
             this.Clear();
             this.hashmap.Clear();
             this.newUpdatesBySymbol.Clear();
+            this.seenUpdatesBySymbol.Clear();
             this.clearUpdatesBySymbol.Clear();
             this.allNewUpdates = 0;
             this.clearAllUpdates = false;
@@ -225,15 +236,10 @@ public class ArrayCache : BaseCache
             var symbol = cacheKey(symbol2);
             // TS reads an absent key as undefined and falls through to `return limit`;
             // the raw Dictionary indexer would throw KeyNotFoundException instead
-            object tempNewUpdates = null;
-            this.newUpdatesBySymbol.TryGetValue(symbol, out tempNewUpdates);
-            if (tempNewUpdates != null && !this.nestedNewUpdatesBySymbol)
+            int tempNewUpdates = 0;
+            if (this.newUpdatesBySymbol.TryGetValue(symbol, out tempNewUpdates))
             {
-                newUpdatesValue = Convert.ToInt32(tempNewUpdates);
-            }
-            if ((tempNewUpdates != null) && this.nestedNewUpdatesBySymbol)
-            {
-                newUpdatesValue = ((HashSet<object>)tempNewUpdates).Count;
+                newUpdatesValue = tempNewUpdates;
             }
             this.clearUpdatesBySymbol[symbol] = true;
         }
@@ -274,7 +280,8 @@ public class ArrayCache : BaseCache
             this.clearAllUpdates = false;
             this.clearUpdatesBySymbol = new Dictionary<string, object>();
             this.allNewUpdates = 0;
-            this.newUpdatesBySymbol = new Dictionary<string, object>();
+            this.newUpdatesBySymbol = new Dictionary<string, int>();
+            this.seenUpdatesBySymbol = new Dictionary<string, HashSet<object>>();
         }
 
         var itemSymbol = cacheKey(Exchange.SafeString(item, "symbol"));
@@ -285,8 +292,8 @@ public class ArrayCache : BaseCache
             this.clearUpdatesBySymbol[itemSymbol] = false;
             this.newUpdatesBySymbol[itemSymbol] = 0;
         }
-        object previousUpdates = null;
-        var defaultValue = (this.newUpdatesBySymbol.TryGetValue(itemSymbol, out previousUpdates)) ? Convert.ToInt32(previousUpdates) : 0;
+        int previousUpdates = 0;
+        var defaultValue = (this.newUpdatesBySymbol.TryGetValue(itemSymbol, out previousUpdates)) ? previousUpdates : 0;
         this.newUpdatesBySymbol[itemSymbol] = defaultValue + 1;
         this.allNewUpdates = this.allNewUpdates + 1;
     }
@@ -490,14 +497,15 @@ public class ArrayCacheBySymbolById : ArrayCache
             this.clearAllUpdates = false;
             this.clearUpdatesBySymbol = new Dictionary<string, object>();
             this.allNewUpdates = 0;
-            this.newUpdatesBySymbol = new Dictionary<string, object>();
+            this.newUpdatesBySymbol = new Dictionary<string, int>();
+            this.seenUpdatesBySymbol = new Dictionary<string, HashSet<object>>();
         }
 
-        object newUpdatesBySymbolValue = null;
-        this.newUpdatesBySymbol.TryGetValue(itemSymbol, out newUpdatesBySymbolValue);
-        if (newUpdatesBySymbolValue == null)
+        HashSet<object> idSet = null;
+        if (!this.seenUpdatesBySymbol.TryGetValue(itemSymbol, out idSet))
         {
-            this.newUpdatesBySymbol[itemSymbol] = new HashSet<object>();
+            idSet = new HashSet<object>();
+            this.seenUpdatesBySymbol[itemSymbol] = idSet;
         }
 
         object clearUpdatesBySymbolValue = null;
@@ -505,14 +513,14 @@ public class ArrayCacheBySymbolById : ArrayCache
         if (isTruthyFlag(clearUpdatesBySymbolValue))
         {
             this.clearUpdatesBySymbol[itemSymbol] = false;
-            (this.newUpdatesBySymbol[itemSymbol] as HashSet<object>).Clear();
+            idSet.Clear();
         }
 
         // in case an exchange updates the same order id twice
-        var idSet = this.newUpdatesBySymbol[itemSymbol] as HashSet<object>;
         var beforeLength = idSet.Count;
         idSet.Add(itemId);
         var afterLength = idSet.Count;
+        this.newUpdatesBySymbol[itemSymbol] = afterLength;
         var defaultAllNewUpdates = this.allNewUpdates;
         this.allNewUpdates = defaultAllNewUpdates + (afterLength - beforeLength);
     }
@@ -584,14 +592,15 @@ public class ArrayCacheBySymbolBySide : ArrayCache
             this.clearAllUpdates = false;
             this.clearUpdatesBySymbol = new Dictionary<string, object>();
             this.allNewUpdates = 0;
-            this.newUpdatesBySymbol = new Dictionary<string, object>();
+            this.newUpdatesBySymbol = new Dictionary<string, int>();
+            this.seenUpdatesBySymbol = new Dictionary<string, HashSet<object>>();
         }
 
-        object newUpdatesBySymbolValue = null;
-        this.newUpdatesBySymbol.TryGetValue(itemSymbol, out newUpdatesBySymbolValue);
-        if (newUpdatesBySymbolValue == null)
+        HashSet<object> sideSet = null;
+        if (!this.seenUpdatesBySymbol.TryGetValue(itemSymbol, out sideSet))
         {
-            this.newUpdatesBySymbol[itemSymbol] = new HashSet<object>();
+            sideSet = new HashSet<object>();
+            this.seenUpdatesBySymbol[itemSymbol] = sideSet;
         }
 
         object clearUpdatesBySymbolValue = null;
@@ -599,13 +608,13 @@ public class ArrayCacheBySymbolBySide : ArrayCache
         if (isTruthyFlag(clearUpdatesBySymbolValue))
         {
             this.clearUpdatesBySymbol[itemSymbol] = false;
-            (this.newUpdatesBySymbol[itemSymbol] as HashSet<object>).Clear();
+            sideSet.Clear();
         }
 
-        var sideSet = this.newUpdatesBySymbol[itemSymbol] as HashSet<object>;
         var beforeLength = sideSet.Count;
         sideSet.Add(itemSide);
         var afterLength = sideSet.Count;
+        this.newUpdatesBySymbol[itemSymbol] = afterLength;
         var defaultAllNewUpdates = this.allNewUpdates;
         this.allNewUpdates = defaultAllNewUpdates + (afterLength - beforeLength);
     }
