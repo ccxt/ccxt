@@ -78,6 +78,7 @@ class BaseExchange(SyncExchange):
         self.own_session = 'session' not in config
         self.cafile = config.get('cafile', certifi.where())
         self.throttler = None
+        self.authentication_flights = {}
         super(BaseExchange, self).__init__(config)
         self.markets_loading = None
         self.reloading_markets = False
@@ -465,7 +466,6 @@ class BaseExchange(SyncExchange):
         # case the call awaits the in-progress flight and the caller must
         # re-read the cached credential after it returns
         # a rejected flight throws into all waiters so nothing deadlocks
-        self.authentication_flights = getattr(self, 'authentication_flights', None) or {}
         if flight_hash in self.authentication_flights:
             await self.authentication_flights[flight_hash]
             return False
@@ -475,13 +475,11 @@ class BaseExchange(SyncExchange):
     async def single_flight_wait(self, flight_hash):
         # awaits an in-progress flight without electing a leader
         # returns immediately when no flight is in progress
-        self.authentication_flights = getattr(self, 'authentication_flights', None) or {}
         if flight_hash in self.authentication_flights:
             await self.authentication_flights[flight_hash]
 
     def single_flight_resolve(self, flight_hash, result=None):
         # settles a flight successfully and wakes all waiters
-        self.authentication_flights = getattr(self, 'authentication_flights', None) or {}
         if flight_hash in self.authentication_flights:
             future = self.authentication_flights[flight_hash]
             del self.authentication_flights[flight_hash]
@@ -489,7 +487,6 @@ class BaseExchange(SyncExchange):
 
     def single_flight_reject(self, flight_hash, error):
         # settles a flight with an error - all waiters throw
-        self.authentication_flights = getattr(self, 'authentication_flights', None) or {}
         if flight_hash in self.authentication_flights:
             future = self.authentication_flights[flight_hash]
             del self.authentication_flights[flight_hash]

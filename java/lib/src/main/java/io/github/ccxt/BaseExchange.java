@@ -2035,17 +2035,17 @@ public class BaseExchange {
      * flight throws into all waiters so nothing deadlocks.
      */
     public java.util.concurrent.CompletableFuture<Object> singleFlightAcquire(Object flightHash2) {
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-            String flightHash = (String) flightHash2;
-            io.github.ccxt.ws.Future created = new io.github.ccxt.ws.Future();
-            // putIfAbsent makes the check-then-create atomic under thread concurrency
-            io.github.ccxt.ws.Future existing = this.authenticationFlights.putIfAbsent(flightHash, created);
-            if (existing != null) {
-                existing.getFuture().join();
-                return false;
-            }
-            return true;
-        });
+        String flightHash = (String) flightHash2;
+        io.github.ccxt.ws.Future created = new io.github.ccxt.ws.Future();
+        // putIfAbsent makes the check-then-create atomic under thread concurrency
+        io.github.ccxt.ws.Future existing = this.authenticationFlights.putIfAbsent(flightHash, created);
+        if (existing != null) {
+            // non-blocking: waiters chain on the leader's future instead of
+            // pinning a common-pool thread with join(); a rejected flight
+            // propagates exceptionally with the original error type
+            return existing.getFuture().thenApply(v -> (Object) false);
+        }
+        return java.util.concurrent.CompletableFuture.completedFuture(true);
     }
 
     /**
@@ -2053,14 +2053,13 @@ public class BaseExchange {
      * Completes immediately when no flight is in progress.
      */
     public java.util.concurrent.CompletableFuture<Object> singleFlightWait(Object flightHash2) {
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-            String flightHash = (String) flightHash2;
-            io.github.ccxt.ws.Future existing = this.authenticationFlights.get(flightHash);
-            if (existing != null) {
-                existing.getFuture().join();
-            }
-            return null;
-        });
+        String flightHash = (String) flightHash2;
+        io.github.ccxt.ws.Future existing = this.authenticationFlights.get(flightHash);
+        if (existing != null) {
+            // non-blocking chain, see singleFlightAcquire
+            return existing.getFuture().thenApply(v -> (Object) null);
+        }
+        return java.util.concurrent.CompletableFuture.completedFuture(null);
     }
 
     /**

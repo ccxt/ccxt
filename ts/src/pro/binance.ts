@@ -3006,6 +3006,13 @@ export default class binance extends binanceRest {
                 }
                 const response = await this.sapiPostUserListenToken (request);
                 const listenToken = this.safeString (response, 'token');
+                if (listenToken === undefined) {
+                    // a token response without a token must fail the flight the
+                    // same way a failed fetch would, not subscribe with a
+                    // missing credential - the throw routes through the catch
+                    // below which rejects the flight for all waiters
+                    throw new AuthenticationError (this.id + ' ensureUserDataStreamWsSubscribeListenToken() failed to obtain a listenToken ' + this.json (response));
+                }
                 const expirationTime = this.safeInteger (response, 'expirationTime');
                 // Step 2: Subscribe to user data stream via WebSocket API
                 const requestId = this.requestId (url);
