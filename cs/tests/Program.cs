@@ -143,6 +143,7 @@ public class Tests
                 WsCacheTests();
                 WsOrderBookTests();
                 WsOrderBookDefaultsTests();
+                WsOrderBookCopyAtomicityTests();
                 await WsClientRetentionTests();
                 await WsClientKeepAliveLivenessTests();
                 Helper.Green("[C#] base WS tests passed");
@@ -190,6 +191,12 @@ public class Tests
     {
         baseTestInstance.testWsOrderBookNullSnapshotDefaults();
         Helper.Green(" [C#] OrderBook null-snapshot defaults tests passed");
+    }
+
+    static void WsOrderBookCopyAtomicityTests()
+    {
+        baseTestInstance.testWsOrderBookCopyAtomicity();
+        Helper.Green(" [C#] OrderBook Copy() atomicity tests passed");
     }
 
     static async Task WsClientKeepAliveLivenessTests()

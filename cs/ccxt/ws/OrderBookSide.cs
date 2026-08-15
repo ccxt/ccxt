@@ -31,6 +31,17 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
 {
     protected readonly object _syncRoot = new object();
 
+    // A two-side snapshot (OrderBook.Copy) cannot be made atomic by the book's
+    // own _syncRoot: every mutator here guards the *side's* monitor instead, so
+    // the book lock excludes nothing and a ws delta can land between the two
+    // side copies. Expose the monitor to the rest of the assembly so Copy() can
+    // hold both sides for the whole snapshot, rather than widening the field
+    // itself or adding a second lock to the storeArray hot path.
+    internal object SyncRoot
+    {
+        get { return _syncRoot; }
+    }
+
     private bool _side = false;
 
     protected bool side
