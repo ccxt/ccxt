@@ -63,6 +63,8 @@ pub use test_inArray::testInArray;
 pub use test_indexBy::testIndexBy;
 #[path = "test.io.rs"] pub mod test_io;
 pub use test_io::testIo;
+#[path = "test.isDictionary.rs"] pub mod test_isDictionary;
+pub use test_isDictionary::testIsDictionary;
 #[path = "test.isEmpty.rs"] pub mod test_isEmpty;
 pub use test_isEmpty::testIsEmpty;
 #[path = "test.isJsonEncodedObject.rs"] pub mod test_isJsonEncodedObject;

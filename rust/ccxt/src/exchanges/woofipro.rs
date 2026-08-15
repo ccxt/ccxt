@@ -59,12 +59,16 @@ impl WoofiproCore {
         // after_construct left an EMPTY networksById), which would
         // otherwise clobber the manual mappings like binance BSC to BEP20.
         let __described_networks_by_id = crate::get_value(&__described_options, &crate::Value::Str("networksById".to_string()));
-        if let (crate::Value::Dict(existing), crate::Value::Dict(defaults)) =
+        if let (crate::Value::Dict(_), crate::Value::Dict(_)) =
             (&self.options.clone(), &__described_options)
         {
-            let mut merged = (**defaults).clone();
-            for (k, v) in existing.iter() { merged.insert(k.clone(), v.clone()); }
-            self.options = crate::Value::Map(merged);
+            // Deep-extend (CCXT deepExtend): describe() defaults as the base,
+            // existing (config + parent REST describe) winning on leaf conflicts,
+            // nested dicts merged rather than replaced — so e.g. a pro Core's
+            // flat options.timeframes unions with the parent REST's nested one
+            // instead of one clobbering the other.
+            self.options = crate::runtime::deep_merge_dict(
+                &__described_options, &self.options.clone());
         } else if !matches!(self.options, crate::Value::Dict(_)) {
             self.options = __described_options;
         }
@@ -122,6 +126,22 @@ impl WoofiproCore {
         // the constructor config (test runners pass them in via
         // Exchange::new(Some(config-with-markets)) — same as CCXT TS).
         // Don't reset them here.
+        // Apply hardcoded describe().markets. Venues like coincheck ship a
+        // static markets block and never fetchMarkets — CCXT sets this.markets
+        // from describe() at construction, and its base fetchMarkets just
+        // returns Object.values(this.markets). Mirror that here so loadMarkets
+        // resolves without a network fetch. Guarded on a non-empty describe()
+        // markets and an as-yet-unloaded self.markets, so fetch-based venues
+        // (empty describe markets) and config-injected markets are untouched.
+        {
+            let __described_markets = crate::get_value(&described, &crate::Value::Str("markets".to_string()));
+            if matches!(&__described_markets, crate::Value::Dict(mm) if !mm.is_empty())
+                && matches!(self.markets, crate::Value::Null)
+            {
+                let __markets_list = crate::runtime::object_values(&__described_markets);
+                <Self as crate::exchange_generated::ExchangeBase>::set_markets(self, __markets_list, &[crate::Value::Null]);
+            }
+        }
         self.build_implicit_api();
     }
 
@@ -133,6 +153,10 @@ impl WoofiproCore {
 }
 
 impl crate::exchange::DerivedExchange for WoofiproCore {
+    fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on WoofiproCore.
+        WoofiproCore::parse_ticker(self, ticker, &[market.clone()])
+    }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WoofiproCore.
         WoofiproCore::parse_trade(self, trade, &[market.clone()])
@@ -169,6 +193,14 @@ impl crate::exchange::DerivedExchange for WoofiproCore {
         // Forward to the inherent method on WoofiproCore.
         WoofiproCore::parse_currency(self, currency)
     }
+    fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on WoofiproCore.
+        WoofiproCore::parse_open_interest(self, interest, &[market.clone()])
+    }
+    fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on WoofiproCore.
+        WoofiproCore::parse_margin_modification(self, data, &[market.clone()])
+    }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on WoofiproCore.
         WoofiproCore::parse_transaction(self, transaction, &[currency.clone()])
@@ -176,6 +208,10 @@ impl crate::exchange::DerivedExchange for WoofiproCore {
     fn parse_income(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WoofiproCore.
         WoofiproCore::parse_income(self, info, &[market.clone()])
+    }
+    fn parse_margin_mode(&self, margin_mode: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on WoofiproCore.
+        WoofiproCore::parse_margin_mode(self, margin_mode, &[market.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WoofiproCore.
@@ -197,6 +233,7 @@ impl crate::exchange_generated::ExchangeBase for WoofiproCore {
     {
         Box::pin(async move {
             match method {
+                "add_margin" => self.add_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]).await,
                 "cancel_all_orders" => self.cancel_all_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "cancel_order" => self.cancel_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
@@ -216,9 +253,13 @@ impl crate::exchange_generated::ExchangeBase for WoofiproCore {
                 "fetch_funding_rates" => self.fetch_funding_rates(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_ledger" => self.fetch_ledger(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_leverage" => self.fetch_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "fetch_margin_mode" => self.fetch_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "fetch_margin_modes" => self.fetch_margin_modes(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_markets" => self.fetch_markets(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_my_trades" => self.fetch_my_trades(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_ohlcv" => self.fetch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "fetch_open_interest" => self.fetch_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "fetch_open_interests" => self.fetch_open_interests(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_open_orders" => self.fetch_open_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_order" => self.fetch_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_order_book" => self.fetch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
@@ -227,6 +268,8 @@ impl crate::exchange_generated::ExchangeBase for WoofiproCore {
                 "fetch_position" => self.fetch_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_positions" => self.fetch_positions(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_status" => self.fetch_status(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "fetch_ticker" => self.fetch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "fetch_tickers" => self.fetch_tickers(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_time" => self.fetch_time(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_trades" => self.fetch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_trading_fees" => self.fetch_trading_fees(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
@@ -235,6 +278,7 @@ impl crate::exchange_generated::ExchangeBase for WoofiproCore {
                 "get_withdraw_nonce" => self.get_withdraw_nonce(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "hash_message" => self.hash_message(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "modify_margin_helper" => self.modify_margin_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args.get(3..).unwrap_or(&[]).to_vec()[..]).await,
                 "nonce" => self.nonce(),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -244,18 +288,24 @@ impl crate::exchange_generated::ExchangeBase for WoofiproCore {
                 "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "parse_ledger_entry_type" => self.parse_ledger_entry_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_leverage" => self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+                "parse_margin_mode" => self.parse_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+                "parse_margin_modification" => self.parse_margin_modification(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+                "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_order_type" => self.parse_order_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "parse_time_in_force" => self.parse_time_in_force(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_token_and_fee_temp" => self.parse_token_and_fee_temp(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "reduce_margin" => self.reduce_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]).await,
                 "set_leverage" => self.set_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "set_margin_mode" => self.set_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "sign_hash" => self.sign_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -296,7 +346,7 @@ impl WoofiproCore {
         m.insert("swap".to_string(), Value::Bool(true));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("addMargin".to_string(), Value::Bool(false));
+        m.insert("addMargin".to_string(), Value::Bool(true));
         m.insert("borrowCrossMargin".to_string(), Value::Bool(false));
         m.insert("borrowIsolatedMargin".to_string(), Value::Bool(false));
         m.insert("borrowMargin".to_string(), Value::Bool(false));
@@ -358,12 +408,15 @@ impl WoofiproCore {
         m.insert("fetchLedger".to_string(), Value::Bool(true));
         m.insert("fetchLeverage".to_string(), Value::Bool(true));
         m.insert("fetchMarginAdjustmentHistory".to_string(), Value::Bool(false));
-        m.insert("fetchMarginMode".to_string(), Value::Bool(false));
+        m.insert("fetchMarginMode".to_string(), Value::Bool(true));
+        m.insert("fetchMarginModes".to_string(), Value::Bool(true));
         m.insert("fetchMarkets".to_string(), Value::Bool(true));
         m.insert("fetchMarkOHLCV".to_string(), Value::Bool(false));
         m.insert("fetchMyTrades".to_string(), Value::Bool(true));
         m.insert("fetchOHLCV".to_string(), Value::Bool(true));
+        m.insert("fetchOpenInterest".to_string(), Value::Bool(true));
         m.insert("fetchOpenInterestHistory".to_string(), Value::Bool(false));
+        m.insert("fetchOpenInterests".to_string(), Value::Bool(true));
         m.insert("fetchOpenOrder".to_string(), Value::Bool(false));
         m.insert("fetchOpenOrders".to_string(), Value::Bool(true));
         m.insert("fetchOption".to_string(), Value::Bool(false));
@@ -377,8 +430,8 @@ impl WoofiproCore {
         m.insert("fetchPositions".to_string(), Value::Bool(true));
         m.insert("fetchPremiumIndexOHLCV".to_string(), Value::Bool(false));
         m.insert("fetchStatus".to_string(), Value::Bool(true));
-        m.insert("fetchTicker".to_string(), Value::Bool(false));
-        m.insert("fetchTickers".to_string(), Value::Bool(false));
+        m.insert("fetchTicker".to_string(), Value::Bool(true));
+        m.insert("fetchTickers".to_string(), Value::Bool(true));
         m.insert("fetchTime".to_string(), Value::Bool(true));
         m.insert("fetchTrades".to_string(), Value::Bool(true));
         m.insert("fetchTradingFee".to_string(), Value::Bool(false));
@@ -387,11 +440,12 @@ impl WoofiproCore {
         m.insert("fetchTransfers".to_string(), Value::Bool(false));
         m.insert("fetchVolatilityHistory".to_string(), Value::Bool(false));
         m.insert("fetchWithdrawals".to_string(), Value::Bool(true));
-        m.insert("reduceMargin".to_string(), Value::Bool(false));
+        m.insert("reduceMargin".to_string(), Value::Bool(true));
         m.insert("repayCrossMargin".to_string(), Value::Bool(false));
         m.insert("repayIsolatedMargin".to_string(), Value::Bool(false));
         m.insert("setLeverage".to_string(), Value::Bool(true));
         m.insert("setMargin".to_string(), Value::Bool(false));
+        m.insert("setMarginMode".to_string(), Value::Bool(true));
         m.insert("setPositionMode".to_string(), Value::Bool(false));
         m.insert("transfer".to_string(), Value::Bool(false));
         m.insert("withdraw".to_string(), Value::Bool(true));
@@ -858,6 +912,11 @@ impl WoofiproCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("client/margin_modes".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
@@ -925,6 +984,16 @@ impl WoofiproCore {
         m.insert("client/leverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(120));
+    m
+}));
+        m.insert("client/margin_mode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("position_margin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
     m
 }));
         m.insert("client/maintenance_config".to_string(), Value::Map({
@@ -1546,8 +1615,8 @@ impl WoofiproCore {
         let mut indexedChains: Value = self.index_by(chainRows.clone(), Value::Str("chain_id".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1087: bool = true;
-            while { if !__for_first_1087 { i = add(&i, &Value::Int(1)); } __for_first_1087 = false; is_less_than(&i, &get_array_length(&tokenRows)) } {
+            let mut __for_first_1077: bool = true;
+            while { if !__for_first_1077 { i = add(&i, &Value::Int(1)); } __for_first_1077 = false; is_less_than(&i, &get_array_length(&tokenRows)) } {
             let mut token: Value = get_value(&tokenRows, &i);
             let mut token: Value = get_value(&tokenRows, &i);
             let mut parsed: Value = self.parse_currency(Value::Map({
@@ -1585,8 +1654,8 @@ impl WoofiproCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1088: bool = true;
-            while { if !__for_first_1088 { j = add(&j, &Value::Int(1)); } __for_first_1088 = false; is_less_than(&j, &get_array_length(&networks)) } {
+            let mut __for_first_1078: bool = true;
+            while { if !__for_first_1078 { j = add(&j, &Value::Int(1)); } __for_first_1078 = false; is_less_than(&j, &get_array_length(&networks)) } {
             let mut networkEntry: Value = get_value(&networks, &j);
             let mut networkEntry: Value = get_value(&networks, &j);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "chain_id", &[]);
@@ -1987,6 +2056,339 @@ impl WoofiproCore {
     Value::Null
 }
 
+    pub fn parse_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
+        let mut market = get_arg(optional_args, 0, Value::Null);
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "sum_unitary_funding": 26522.3,
+        //         "est_funding_rate": 0.0001,
+        //         "last_funding_rate": 0.00010041,
+        //         "next_funding_time": 1786032000000,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        //
+        let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
+        market = self.safe_market(&[marketId.clone(), market.clone()]);
+        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
+        return self.safe_ticker(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+        m.insert("timestamp".to_string(), timestamp.clone());
+        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "24h_high", &[]));
+        m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "24h_low", &[]));
+        m.insert("bid".to_string(), Value::Null);
+        m.insert("bidVolume".to_string(), Value::Null);
+        m.insert("ask".to_string(), Value::Null);
+        m.insert("askVolume".to_string(), Value::Null);
+        m.insert("vwap".to_string(), Value::Null);
+        m.insert("open".to_string(), self.safe_string_k(ticker.clone(), "24h_open", &[]));
+        m.insert("close".to_string(), self.safe_string_k(ticker.clone(), "24h_close", &[]));
+        m.insert("last".to_string(), self.safe_string_k(ticker.clone(), "24h_close", &[]));
+        m.insert("previousClose".to_string(), Value::Null);
+        m.insert("change".to_string(), Value::Null);
+        m.insert("percentage".to_string(), Value::Null);
+        m.insert("average".to_string(), Value::Null);
+        m.insert("baseVolume".to_string(), self.safe_string_k(ticker.clone(), "24h_volume", &[]));
+        m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "24h_amount", &[]));
+        m.insert("indexPrice".to_string(), self.safe_string_k(ticker.clone(), "index_price", &[]));
+        m.insert("markPrice".to_string(), self.safe_string_k(ticker.clone(), "mark_price", &[]));
+        m.insert("info".to_string(), ticker.clone());
+    m
+}), &[market.clone()]);
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name woofipro#fetchTicker
+ * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+    pub async fn fetch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        let mut market: Value = self.market(symbol.clone());
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
+            m
+        });
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_public_get_public_futures_symbol(&[__ws_arg_2]).await;
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "sum_unitary_funding": 26522.3,
+        //         "est_funding_rate": 0.0001,
+        //         "last_funding_rate": 0.00010041,
+        //         "next_funding_time": 1786032000000,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        // }
+        //
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        add_element_to_object(&mut data, &Value::Str("timestamp".to_string()), self.safe_integer_k(response.clone(), "timestamp", &[]));
+        return self.parse_ticker(data.clone(), &[market.clone()]);
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name woofipro#fetchTickers
+ * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+    pub async fn fetch_tickers(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        symbols = self.market_symbols(&[symbols.clone()]);
+        let mut response: Value = self.v1_public_get_public_futures(&[params.clone()]).await;
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "rows": [{
+        //             "symbol": "PERP_BTC_USDC",
+        //             "index_price": 64185.4,
+        //             "mark_price": 64171.0,
+        //             "sum_unitary_funding": 26522.3,
+        //             "est_funding_rate": 0.0001,
+        //             "last_funding_rate": 0.00010041,
+        //             "next_funding_time": 1786032000000,
+        //             "open_interest": 110.64612,
+        //             "24h_open": 64105.6,
+        //             "24h_close": 64180.0,
+        //             "24h_high": 64941.0,
+        //             "24h_low": 63837.6,
+        //             "24h_volume": 102.2817,
+        //             "24h_amount": 6595662.199482
+        //         }]
+        //     }
+        // }
+        //
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut timestamp: Value = self.safe_integer_k(response.clone(), "timestamp", &[]);
+        let mut result: Value = Value::List(vec![]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_1079: bool = true;
+            while { if !__for_first_1079 { i = add(&i, &Value::Int(1)); } __for_first_1079 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut row: Value = get_value(&rows, &i);
+            let mut row: Value = get_value(&rows, &i);
+            let mut marketId: Value = self.safe_string_k(row.clone(), "symbol", &[Value::Str("".to_string())]);
+            if is_true(&(is_equal(&self.markets_by_id, &Value::Null))) || !is_true(&(Value::Bool(in_op(&self.markets_by_id, &marketId)))) {
+                continue;
+            }
+            let mut ticker: Value = self.extend(Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("timestamp".to_string(), timestamp.clone());
+                m
+            }), &[row.clone()]);
+            append_to_array(&mut result, self.parse_ticker(ticker.clone(), &[]));
+        }
+        }
+        return self.filter_by_array_tickers(result.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
+
+    Value::Null
+}
+
+    pub fn parse_open_interest(&self, mut interest: Value, optional_args: &[Value]) -> Value {
+        let mut market = get_arg(optional_args, 0, Value::Null);
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        //
+        let mut marketId: Value = self.safe_string_k(interest.clone(), "symbol", &[]);
+        market = self.safe_market(&[marketId.clone(), market.clone()]);
+        let mut timestamp: Value = self.safe_integer_k(interest.clone(), "timestamp", &[]);
+        let mut amount: Value = self.safe_number2(interest.clone(), Value::Str("open_interest".to_string()), Value::Str("openInterest".to_string()), &[]);
+        return self.safe_open_interest(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+        m.insert("openInterestAmount".to_string(), amount.clone());
+        m.insert("openInterestValue".to_string(), Value::Null);
+        m.insert("timestamp".to_string(), timestamp.clone());
+        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("info".to_string(), interest.clone());
+    m
+}), &[market.clone()]);
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name woofipro#fetchOpenInterest
+ * @description retrieves the open interest of a contract trading pair
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+ * @param {string} symbol unified CCXT market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+    pub async fn fetch_open_interest(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        let mut market: Value = self.market(symbol.clone());
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
+            m
+        });
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_public_get_public_futures_symbol(&[__ws_arg_3]).await;
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "open_interest": 110.64612,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        // }
+        //
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        add_element_to_object(&mut data, &Value::Str("timestamp".to_string()), self.safe_integer_k(response.clone(), "timestamp", &[]));
+        return self.parse_open_interest(data.clone(), &[market.clone()]);
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name woofipro#fetchOpenInterests
+ * @description retrieves the open interest for a list of contract trading pairs
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+ * @param {string[]} [symbols] a list of unified CCXT market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+    pub async fn fetch_open_interests(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        symbols = self.market_symbols(&[symbols.clone()]);
+        let mut response: Value = self.v1_public_get_public_futures(&[params.clone()]).await;
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "rows": [{
+        //             "symbol": "PERP_BTC_USDC",
+        //             "index_price": 64185.4,
+        //             "mark_price": 64171.0,
+        //             "open_interest": 110.64612,
+        //             "24h_volume": 102.2817,
+        //             "24h_amount": 6595662.199482
+        //         }]
+        //     }
+        // }
+        //
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut timestamp: Value = self.safe_integer_k(response.clone(), "timestamp", &[]);
+        let mut result: Value = Value::List(vec![]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_1080: bool = true;
+            while { if !__for_first_1080 { i = add(&i, &Value::Int(1)); } __for_first_1080 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut row: Value = get_value(&rows, &i);
+            let mut row: Value = get_value(&rows, &i);
+            let mut marketId: Value = self.safe_string_k(row.clone(), "symbol", &[Value::Str("".to_string())]);
+            if is_true(&(is_equal(&self.markets_by_id, &Value::Null))) || !is_true(&(Value::Bool(in_op(&self.markets_by_id, &marketId)))) {
+                continue;
+            }
+            let mut interest: Value = self.extend(Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("timestamp".to_string(), timestamp.clone());
+                m
+            }), &[row.clone()]);
+            append_to_array(&mut result, self.parse_open_interest(interest.clone(), &[]));
+        }
+        }
+        return self.filter_by_array(result.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
+
+    Value::Null
+}
+
 /*
  * @method
  * @name woofipro#fetchFundingRateHistory
@@ -2029,8 +2431,8 @@ impl WoofiproCore {
             add_element_to_object(&mut request, &Value::Str("start_t".to_string()), since.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("end_t".to_string()), request.clone(), params.clone(), &[Value::Float(0.001)]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.v1_public_get_public_funding_rate_history(&[__ws_arg_2]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_public_get_public_funding_rate_history(&[__ws_arg_4]).await;
         //
         // {
         //     "success": true,
@@ -2058,8 +2460,8 @@ impl WoofiproCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1089: bool = true;
-            while { if !__for_first_1089 { i = add(&i, &Value::Int(1)); } __for_first_1089 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_1081: bool = true;
+            while { if !__for_first_1081 { i = add(&i, &Value::Int(1)); } __for_first_1081 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut entry: Value = get_value(&result, &i);
             let mut entry: Value = get_value(&result, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -2167,8 +2569,8 @@ impl WoofiproCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("size".to_string()), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.v1_private_get_funding_fee_history(&[__ws_arg_3]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_get_funding_fee_history(&[__ws_arg_5]).await;
         //
         // {
         //     "success": true,
@@ -2259,8 +2661,8 @@ impl WoofiproCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1090: bool = true;
-            while { if !__for_first_1090 { i = add(&i, &Value::Int(1)); } __for_first_1090 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_1082: bool = true;
+            while { if !__for_first_1082 { i = add(&i, &Value::Int(1)); } __for_first_1082 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
@@ -2309,8 +2711,8 @@ impl WoofiproCore {
             limit = crate::runtime::Math::min(&limit, &Value::Int(1000));
             add_element_to_object(&mut request, &Value::Str("max_level".to_string()), limit.clone());
         }
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.v1_private_get_orderbook_symbol(&[__ws_arg_4]).await;
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_get_orderbook_symbol(&[__ws_arg_6]).await;
         //
         // {
         //     "success": true,
@@ -2378,8 +2780,8 @@ impl WoofiproCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.v1_private_get_kline(&[__ws_arg_5]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_get_kline(&[__ws_arg_7]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2781,8 +3183,8 @@ impl WoofiproCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1091: bool = true;
-            while { if !__for_first_1091 { i = add(&i, &Value::Int(1)); } __for_first_1091 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_1083: bool = true;
+            while { if !__for_first_1083 { i = add(&i, &Value::Int(1)); } __for_first_1083 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -2810,8 +3212,8 @@ impl WoofiproCore {
                 m.insert("orders".to_string(), ordersRequests.clone());
             m
         });
-        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.v1_private_post_batch_order(&[__ws_arg_6]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_post_batch_order(&[__ws_arg_8]).await;
         //
         //     {
         //         "success": true,
@@ -2892,8 +3294,8 @@ impl WoofiproCore {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" editOrder() requires a side argument".to_string()))));
         }
         if is_true(&isConditional) {
-            let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
-            response = self.v1_private_put_algo_order(&[__ws_arg_7]).await;
+            let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v1_private_put_algo_order(&[__ws_arg_9]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             add_element_to_object(&mut request, &Value::Str("side".to_string()), to_upper(&side));
@@ -2917,8 +3319,8 @@ impl WoofiproCore {
             }
             // request['side'] = side.toUpperCase ();
             // request['symbol'] = market['id'];
-            let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
-            response = self.v1_private_put_order(&[__ws_arg_8]).await;
+            let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v1_private_put_order(&[__ws_arg_10]).await;
         }
         //
         // {
@@ -2985,23 +3387,23 @@ impl WoofiproCore {
             if is_true(&isByClientOrder) {
                 add_element_to_object(&mut request, &Value::Str("client_order_id".to_string()), clientOrderIdExchangeSpecific.clone());
                 params = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
-                let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
-                response = self.v1_private_delete_algo_client_order(&[__ws_arg_9]).await;
+                let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+                response = self.v1_private_delete_algo_client_order(&[__ws_arg_11]).await;
             }  else {
                 add_element_to_object(&mut request, &Value::Str("order_id".to_string()), id.clone());
-                let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
-                response = self.v1_private_delete_algo_order(&[__ws_arg_10]).await;
+                let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+                response = self.v1_private_delete_algo_order(&[__ws_arg_12]).await;
             }
         }  else {
             if is_true(&isByClientOrder) {
                 add_element_to_object(&mut request, &Value::Str("client_order_id".to_string()), clientOrderIdExchangeSpecific.clone());
                 params = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
-                let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
-                response = self.v1_private_delete_client_order(&[__ws_arg_11]).await;
+                let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+                response = self.v1_private_delete_client_order(&[__ws_arg_13]).await;
             }  else {
                 add_element_to_object(&mut request, &Value::Str("order_id".to_string()), id.clone());
-                let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
-                response = self.v1_private_delete_order(&[__ws_arg_12]).await;
+                let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+                response = self.v1_private_delete_order(&[__ws_arg_14]).await;
             }
         }
         //
@@ -3034,15 +3436,15 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }), response.clone());
-            let __ws_arg_13 = self.parse_order(parsedResponse.clone(), &[]);
-            return self.extend(__ws_arg_13, &[extendParams.clone()]);
+            let __ws_arg_15 = self.parse_order(parsedResponse.clone(), &[]);
+            return self.extend(__ws_arg_15, &[extendParams.clone()]);
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let __ws_arg_14 = self.parse_order(data.clone(), &[]);
-        return self.extend(__ws_arg_14, &[extendParams.clone()]);
+        let __ws_arg_16 = self.parse_order(data.clone(), &[]);
+        return self.extend(__ws_arg_16, &[extendParams.clone()]);
 
     Value::Null
 }
@@ -3077,12 +3479,12 @@ impl WoofiproCore {
         let mut response: Value = Value::Null;
         if is_true(&clientOrderIds) {
             add_element_to_object(&mut request, &Value::Str("client_order_ids".to_string()), join(&clientOrderIds, &Value::Str(",".to_string())));
-            let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
-            response = self.v1_private_delete_client_batch_order(&[__ws_arg_15]).await;
+            let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v1_private_delete_client_batch_order(&[__ws_arg_17]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("order_ids".to_string()), join(&ids, &Value::Str(",".to_string())));
-            let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
-            response = self.v1_private_delete_batch_order(&[__ws_arg_16]).await;
+            let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v1_private_delete_batch_order(&[__ws_arg_18]).await;
         }
         return Value::List(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3125,11 +3527,11 @@ impl WoofiproCore {
         }
         let mut response: Value = Value::Null;
         if is_true(&trigger) {
-            let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
-            response = self.v1_private_delete_algo_orders(&[__ws_arg_17]).await;
+            let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v1_private_delete_algo_orders(&[__ws_arg_19]).await;
         }  else {
-            let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
-            response = self.v1_private_delete_orders(&[__ws_arg_18]).await;
+            let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v1_private_delete_orders(&[__ws_arg_20]).await;
         }
         return Value::List(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3179,22 +3581,22 @@ impl WoofiproCore {
         if is_true(&trigger) {
             if is_true(&clientOrderId) {
                 add_element_to_object(&mut request, &Value::Str("client_order_id".to_string()), clientOrderId.clone());
-                let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
-                response = self.v1_private_get_algo_client_order_client_order_id(&[__ws_arg_19]).await;
+                let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+                response = self.v1_private_get_algo_client_order_client_order_id(&[__ws_arg_21]).await;
             }  else {
                 add_element_to_object(&mut request, &Value::Str("oid".to_string()), id.clone());
-                let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
-                response = self.v1_private_get_algo_order_oid(&[__ws_arg_20]).await;
+                let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+                response = self.v1_private_get_algo_order_oid(&[__ws_arg_22]).await;
             }
         }  else {
             if is_true(&clientOrderId) {
                 add_element_to_object(&mut request, &Value::Str("client_order_id".to_string()), clientOrderId.clone());
-                let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
-                response = self.v1_private_get_client_order_client_order_id(&[__ws_arg_21]).await;
+                let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+                response = self.v1_private_get_client_order_client_order_id(&[__ws_arg_23]).await;
             }  else {
                 add_element_to_object(&mut request, &Value::Str("oid".to_string()), id.clone());
-                let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
-                response = self.v1_private_get_order_oid(&[__ws_arg_22]).await;
+                let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+                response = self.v1_private_get_order_oid(&[__ws_arg_24]).await;
             }
         }
         //
@@ -3293,11 +3695,11 @@ impl WoofiproCore {
         { let __destr_tmp = self.handle_until_option(Value::Str("end_t".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if is_true(&isTrigger) {
-            let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
-            response = self.v1_private_get_algo_orders(&[__ws_arg_23]).await;
+            let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v1_private_get_algo_orders(&[__ws_arg_25]).await;
         }  else {
-            let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
-            response = self.v1_private_get_orders(&[__ws_arg_24]).await;
+            let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v1_private_get_orders(&[__ws_arg_26]).await;
         }
         //
         //     {
@@ -3448,8 +3850,8 @@ impl WoofiproCore {
                 m.insert("oid".to_string(), id.clone());
             m
         });
-        let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.v1_private_get_order_oid_trades(&[__ws_arg_25]).await;
+        let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_get_order_oid_trades(&[__ws_arg_27]).await;
         //
         // {
         //     "success": true,
@@ -3528,8 +3930,8 @@ impl WoofiproCore {
             add_element_to_object(&mut request, &Value::Str("size".to_string()), Value::Int(500));
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("end_t".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.v1_private_get_trades(&[__ws_arg_26]).await;
+        let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_get_trades(&[__ws_arg_28]).await;
         //
         // {
         //     "success": true,
@@ -3575,8 +3977,8 @@ impl WoofiproCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "holding", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1092: bool = true;
-            while { if !__for_first_1092 { i = add(&i, &Value::Int(1)); } __for_first_1092 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1084: bool = true;
+            while { if !__for_first_1084 { i = add(&i, &Value::Int(1)); } __for_first_1084 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
@@ -3662,8 +4064,8 @@ impl WoofiproCore {
         if !is_equal(&transactionType, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("type".to_string()), transactionType.clone());
         }
-        let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.v1_private_get_asset_history(&[__ws_arg_27]).await;
+        let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_get_asset_history(&[__ws_arg_29]).await;
         //
         // {
         //     "success": true,
@@ -3849,8 +4251,8 @@ impl WoofiproCore {
                 m.insert("side".to_string(), Value::Str("DEPOSIT".to_string()));
             m
         });
-        let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
-        return self.fetch_deposits_withdrawals(&[code.clone(), since.clone(), limit.clone(), __ws_arg_28]).await;
+        let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+        return self.fetch_deposits_withdrawals(&[code.clone(), since.clone(), limit.clone(), __ws_arg_30]).await;
 
     Value::Null
 }
@@ -3879,8 +4281,8 @@ impl WoofiproCore {
                 m.insert("side".to_string(), Value::Str("WITHDRAW".to_string()));
             m
         });
-        let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
-        return self.fetch_deposits_withdrawals(&[code.clone(), since.clone(), limit.clone(), __ws_arg_29]).await;
+        let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
+        return self.fetch_deposits_withdrawals(&[code.clone(), since.clone(), limit.clone(), __ws_arg_31]).await;
 
     Value::Null
 }
@@ -3908,8 +4310,8 @@ impl WoofiproCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
-        let mut currencyRows: Value = self.get_asset_history_rows(&[code.clone(), since.clone(), limit.clone(), __ws_arg_30]).await;
+        let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
+        let mut currencyRows: Value = self.get_asset_history_rows(&[code.clone(), since.clone(), limit.clone(), __ws_arg_32]).await;
         let mut currency: Value = self.safe_value(currencyRows.clone(), Value::Int(0), &[]);
         let mut rows: Value = self.safe_list(currencyRows.clone(), Value::Int(1), &[]);
         //
@@ -4093,8 +4495,8 @@ impl WoofiproCore {
             m
         });
         params = self.omit(params.clone(), Value::Str("chainId".to_string()), &[]);
-        let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.v1_private_post_withdraw_request(&[__ws_arg_31]).await;
+        let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_post_withdraw_request(&[__ws_arg_33]).await;
         //
         //     {
         //         "success": true,
@@ -4109,6 +4511,248 @@ impl WoofiproCore {
     m
 })]);
         return self.parse_transaction(data.clone(), &[currency.clone()]);
+
+    Value::Null
+}
+
+    pub fn parse_margin_mode(&self, mut marginMode: Value, optional_args: &[Value]) -> Value {
+        let mut market = get_arg(optional_args, 0, Value::Null);
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "default_margin_mode": "CROSS"
+        //     }
+        //
+        let mut marketId: Value = self.safe_string_k(marginMode.clone(), "symbol", &[]);
+        market = self.safe_market(&[marketId.clone(), market.clone()]);
+        return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("info".to_string(), marginMode.clone());
+        m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+        m.insert("marginMode".to_string(), self.safe_string_lower(marginMode.clone(), Value::Str("default_margin_mode".to_string()), &[]));
+    m
+});
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name woofipro#fetchMarginModes
+ * @description fetches the set margin mode of every contract market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+ * @param {string[]} [symbols] a list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+ */
+    pub async fn fetch_margin_modes(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        symbols = self.market_symbols(&[symbols.clone()]);
+        let mut response: Value = self.v1_private_get_client_margin_modes(&[params.clone()]).await;
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "rows": [{
+        //             "symbol": "PERP_BTC_USDC",
+        //             "default_margin_mode": "CROSS"
+        //         }]
+        //     }
+        // }
+        //
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        return self.parse_margin_modes(rows.clone(), &[symbols.clone(), Value::Str("symbol".to_string())]);
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name woofipro#fetchMarginMode
+ * @description fetches the set margin mode of a contract market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+ * @param {string} symbol unified symbol of the market
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+ */
+    pub async fn fetch_margin_mode(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        let mut market: Value = self.market(symbol.clone());
+        let mut marginModes: Value = self.fetch_margin_modes(&[Value::List(vec![get_value(&market, &Value::Str("symbol".to_string()))]), params.clone()]).await;
+        let mut marginMode: Value = self.safe_dict(marginModes.clone(), get_value(&market, &Value::Str("symbol".to_string())), &[]);
+        if is_equal(&marginMode, &Value::Null) {
+            panic!("{}", crate::exchange_errors::bad_symbol(add(&add(&self.id, &Value::Str(" fetchMarginMode() did not return a margin mode for ".to_string())), &get_value(&market, &Value::Str("symbol".to_string())))));
+        }
+        return marginMode;
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name woofipro#setMarginMode
+ * @description set margin mode to 'cross' or 'isolated' for a market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-margin-mode
+ * @param {string} marginMode 'cross' or 'isolated'
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} response from the exchange
+ */
+    pub async fn set_margin_mode(&mut self, mut marginMode: Value, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_equal(&symbol, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setMarginMode() requires a symbol argument".to_string()))));
+        }
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        marginMode = to_lower(&marginMode);
+        if !is_equal(&marginMode, &Value::Str("cross".to_string())) && !is_equal(&marginMode, &Value::Str("isolated".to_string())) {
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" setMarginMode() marginMode must be either cross or isolated".to_string()))));
+        }
+        let mut market: Value = self.market(symbol.clone());
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
+                m.insert("default_margin_mode".to_string(), to_upper(&marginMode));
+            m
+        });
+        let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
+        return self.v1_private_post_client_margin_mode(&[__ws_arg_34]).await;
+
+    Value::Null
+}
+
+    pub fn parse_margin_modification(&self, mut data: Value, optional_args: &[Value]) -> Value {
+        let mut market = get_arg(optional_args, 0, Value::Null);
+        //
+        //     {
+        //         "success": true,
+        //         "timestamp": 1702989203989
+        //     }
+        //
+        let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
+        let mut success: Value = self.safe_bool_k(data.clone(), "success", &[Value::Bool(false)]);
+        return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("info".to_string(), data.clone());
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
+        m.insert("type".to_string(), Value::Null);
+        m.insert("marginMode".to_string(), Value::Str("isolated".to_string()));
+        m.insert("amount".to_string(), Value::Null);
+        m.insert("total".to_string(), Value::Null);
+        m.insert("code".to_string(), self.safe_string_k(market.clone(), "settle", &[]));
+        m.insert("status".to_string(), ternary(is_true(&(success)), Value::Str("ok".to_string()), Value::Str("failed".to_string())));
+        m.insert("timestamp".to_string(), timestamp.clone());
+        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+    m
+});
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @ignore
+ * @name woofipro#modifyMarginHelper
+ * @description add or reduce isolated position margin
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+ * @param {string} symbol unified market symbol
+ * @param {float} amount amount of margin to add or reduce
+ * @param {string} type 'ADD' or 'REDUCE'
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+ */
+    pub async fn modify_margin_helper(&mut self, mut symbol: Value, mut amount: Value, mut type_var: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        let mut market: Value = self.market(symbol.clone());
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
+                m.insert("amount".to_string(), self.number_to_string(amount.clone()));
+                m.insert("type".to_string(), type_var.clone());
+            m
+        });
+        let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_post_position_margin(&[__ws_arg_35]).await;
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989
+        // }
+        //
+        let mut modification: Value = self.parse_margin_modification(response.clone(), &[market.clone()]);
+        add_element_to_object(&mut modification, &Value::Str("type".to_string()), ternary(is_true(&(is_equal(&type_var, &Value::Str("ADD".to_string())))), Value::Str("add".to_string()), Value::Str("reduce".to_string())));
+        add_element_to_object(&mut modification, &Value::Str("amount".to_string()), self.parse_number(self.number_to_string(amount.clone()), &[]));
+        return modification;
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name woofipro#addMargin
+ * @description add margin to an isolated position
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+ * @param {string} symbol unified market symbol
+ * @param {float} amount amount of margin to add
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+ */
+    pub async fn add_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.modify_margin_helper(symbol.clone(), amount.clone(), Value::Str("ADD".to_string()), &[params.clone()]).await;
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name woofipro#reduceMargin
+ * @description remove margin from an isolated position
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+ * @param {string} symbol unified market symbol
+ * @param {float} amount amount of margin to remove
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+ */
+    pub async fn reduce_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.modify_margin_helper(symbol.clone(), amount.clone(), Value::Str("REDUCE".to_string()), &[params.clone()]).await;
 
     Value::Null
 }
@@ -4211,8 +4855,8 @@ impl WoofiproCore {
                 m.insert("leverage".to_string(), leverage.clone());
             m
         });
-        let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
-        return self.v1_private_post_client_leverage(&[__ws_arg_32]).await;
+        let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
+        return self.v1_private_post_client_leverage(&[__ws_arg_36]).await;
 
     Value::Null
 }
@@ -4316,8 +4960,8 @@ impl WoofiproCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.v1_private_get_position_symbol(&[__ws_arg_33]).await;
+        let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_get_position_symbol(&[__ws_arg_37]).await;
         //
         // {
         //     "success": true,
@@ -4456,8 +5100,8 @@ impl WoofiproCore {
                         let mut ordersList: Value = self.safe_list_k(params.clone(), "orders", &[Value::List(vec![])]);
                         {
                                                         let mut i: Value = Value::Int(0);
-                            let mut __for_first_1093: bool = true;
-                            while { if !__for_first_1093 { i = add(&i, &Value::Int(1)); } __for_first_1093 = false; is_less_than(&i, &get_array_length(&ordersList)) } {
+                            let mut __for_first_1085: bool = true;
+                            while { if !__for_first_1085 { i = add(&i, &Value::Int(1)); } __for_first_1085 = false; is_less_than(&i, &get_array_length(&ordersList)) } {
                             add_element_to_object(get_value_mut(get_value_mut(&mut params, &Value::Str("orders".to_string())), &i), &Value::Str("order_tag".to_string()), brokerId.clone());
                         }
                         }

@@ -287,11 +287,6 @@ impl WooCore {
         self.call_method(Value::Str("v1_private_delete_asset_withdraw".to_string()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `v2PrivateGetClientHolding` implicit endpoint.
-    pub async fn v2_private_get_client_holding(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v2_private_get_client_holding".to_string()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `v3PublicGetSystemInfo` implicit endpoint.
     pub async fn v3_public_get_system_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v3_public_get_system_info".to_string()), optional_args).await

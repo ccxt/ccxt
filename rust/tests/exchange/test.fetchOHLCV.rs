@@ -26,8 +26,8 @@ pub async fn testFetchOHLCV(mut exchange: Value, mut skippedProperties: Value, m
     let mut now: Value = exchange.milliseconds();
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1411: bool = true;
-        while { if !__for_first_1411 { i = add(&i, &Value::Int(1)); } __for_first_1411 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
+        let mut __for_first_1406: bool = true;
+        while { if !__for_first_1406 { i = add(&i, &Value::Int(1)); } __for_first_1406 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
         testOHLCV(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&ohlcvs, &i), symbol.clone(), now.clone());
     }
     }

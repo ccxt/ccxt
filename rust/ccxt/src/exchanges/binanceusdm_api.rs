@@ -1317,6 +1317,51 @@ impl BinanceusdmCore {
         self.call_method(Value::Str("sapi_get_accumulator_product_sum_holding".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `sapiGetEquityMarketExchangeInfo` implicit endpoint.
+    pub async fn sapi_get_equity_market_exchange_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_get_equity_market_exchange_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `sapiGetEquityMarketTokenizedAssets` implicit endpoint.
+    pub async fn sapi_get_equity_market_tokenized_assets(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_get_equity_market_tokenized_assets".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `sapiGetEquityMarketQuote` implicit endpoint.
+    pub async fn sapi_get_equity_market_quote(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_get_equity_market_quote".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `sapiGetEquityOrderOpenOrders` implicit endpoint.
+    pub async fn sapi_get_equity_order_open_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_get_equity_order_open_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `sapiGetEquityOrderHistory` implicit endpoint.
+    pub async fn sapi_get_equity_order_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_get_equity_order_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `sapiGetEquityOrderDetail` implicit endpoint.
+    pub async fn sapi_get_equity_order_detail(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_get_equity_order_detail".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `sapiGetEquityTradeHistory` implicit endpoint.
+    pub async fn sapi_get_equity_trade_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_get_equity_trade_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `sapiGetEquityTokenizedConvertStatus` implicit endpoint.
+    pub async fn sapi_get_equity_tokenized_convert_status(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_get_equity_tokenized_convert_status".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `sapiGetEquityTokenizedHistory` implicit endpoint.
+    pub async fn sapi_get_equity_tokenized_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_get_equity_tokenized_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `sapiPostAssetDust` implicit endpoint.
     pub async fn sapi_post_asset_dust(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_post_asset_dust".to_string()), optional_args).await
@@ -1935,6 +1980,41 @@ impl BinanceusdmCore {
     /// Auto-generated wrapper for the `sapiPostAccumulatorProductSubscribe` implicit endpoint.
     pub async fn sapi_post_accumulator_product_subscribe(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_post_accumulator_product_subscribe".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `sapiPostEquityOrderPlace` implicit endpoint.
+    pub async fn sapi_post_equity_order_place(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_post_equity_order_place".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `sapiPostEquityOrderCancel` implicit endpoint.
+    pub async fn sapi_post_equity_order_cancel(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_post_equity_order_cancel".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `sapiPostEquityOrderCancelAll` implicit endpoint.
+    pub async fn sapi_post_equity_order_cancel_all(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_post_equity_order_cancel_all".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `sapiPostEquityTokenizedMint` implicit endpoint.
+    pub async fn sapi_post_equity_tokenized_mint(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_post_equity_tokenized_mint".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `sapiPostEquityTokenizedRedeem` implicit endpoint.
+    pub async fn sapi_post_equity_tokenized_redeem(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_post_equity_tokenized_redeem".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `sapiPostEquityAccountDisclaimer` implicit endpoint.
+    pub async fn sapi_post_equity_account_disclaimer(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_post_equity_account_disclaimer".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `sapiPostEquityListenKey` implicit endpoint.
+    pub async fn sapi_post_equity_listen_key(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_post_equity_listen_key".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPutUserDataStream` implicit endpoint.

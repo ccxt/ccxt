@@ -94,6 +94,90 @@ pub fn testSortBy1() {
 })]).clone()]);
     let mut emptyArray: Value = exchange.sort_by(Value::List(vec![]), Value::Str("x".to_string()), &[]);
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".to_string()).clone(), emptyArray.clone(), Value::List(vec![]).clone()]);
+    // regression: keys crossing a digit-count boundary must sort numerically, a lexicographic comparison yields 1, 10, 2 .. 9
+    let mut arrTwoDigits: Value = Value::List(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(10));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(1));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(3));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(7));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(2));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(9));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(5));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(8));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(4));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(6));
+    m
+})]);
+    let mut sortedTwoDigits: Value = exchange.sort_by(arrTwoDigits.clone(), Value::Str("x".to_string()), &[]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sortBy".to_string()).clone(), sortedTwoDigits.clone(), Value::List(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(1));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(2));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(3));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(4));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(5));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(6));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(7));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(8));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(9));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("x".to_string(), Value::Int(10));
+    m
+})]).clone()]);
 }
 pub fn testSortBy2() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({

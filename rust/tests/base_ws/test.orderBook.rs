@@ -353,4 +353,90 @@ pub fn testWsOrderBook() {
     resetBook.reset(orderBookInput.clone());
     resetBook.limit();
     assert!(ccxt::runtime::is_true(&(equals(resetBook.clone(), orderBookTarget.clone()))));
+    // --------------------------------------------------------------------------------------------------------------------
+    // regression for the php phantom index desync under limit, the corruption
+    // sequence was a reset with a snapshot, a depth trim via limit, then
+    // deltas landing on and beyond the trimmed tail, which produced rows
+    // holding only an amount and stale levels in php before the fix, see
+    // https://github.com/ccxt/ccxt/pull/29603 and
+    // https://github.com/ccxt/ccxt/issues/26967
+    let mut desyncBook = OrderBook::new(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+        m
+    }), Value::Int(3));
+    desyncBook.reset(orderBookInput.clone());
+    desyncBook.limit();
+    // a delta beyond the trimmed tail must reinsert cleanly
+    desyncBook.store_array_to_bids(Value::List(vec![Value::Float(6.4), Value::Int(14)]));
+    // a delta on a surviving level must update that level in place
+    desyncBook.store_array_to_asks(Value::List(vec![Value::Float(11.1), Value::Int(7)]));
+    // a delete on a surviving level must remove exactly that level
+    desyncBook.store_array_to_bids(Value::List(vec![Value::Float(9.1), Value::Int(0)]));
+    desyncBook.limit();
+    let mut desyncTarget: Value = Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![Value::Int(10), Value::Int(10)]), Value::List(vec![Value::Float(8.2), Value::Int(12)]), Value::List(vec![Value::Float(6.4), Value::Int(14)])]));
+            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Float(11.1), Value::Int(7)]), Value::List(vec![Value::Float(12.2), Value::Int(14)]), Value::List(vec![Value::Float(13.3), Value::Int(13)])]));
+            m.insert("timestamp".to_string(), Value::Int(1574827239000));
+            m.insert("datetime".to_string(), Value::Str("2019-11-27T04:00:39.000Z".to_string()));
+            m.insert("nonce".to_string(), Value::Int(69));
+            m.insert("symbol".to_string(), Value::Null);
+        m
+    });
+    assert!(ccxt::runtime::is_true(&(equals(desyncBook.clone(), desyncTarget.clone()))));
+    // every row must be a well formed price and amount pair, the php
+    // corruption produced rows holding only an amount
+    let mut desyncSides: Value = Value::List(vec![get_value(&desyncBook, &Value::Str("bids".to_string())), get_value(&desyncBook, &Value::Str("asks".to_string()))]);
+    {
+                let mut i: Value = Value::Int(0);
+        let mut __for_first_1371: bool = true;
+        while { if !__for_first_1371 { i = add(&i, &Value::Int(1)); } __for_first_1371 = false; is_less_than(&i, &get_array_length(&desyncSides)) } {
+        let mut side: Value = get_value(&desyncSides, &i);
+        {
+                        let mut k: Value = Value::Int(0);
+            let mut __for_first_1370: bool = true;
+            while { if !__for_first_1370 { k = add(&k, &Value::Int(1)); } __for_first_1370 = false; is_less_than(&k, &get_array_length(&side)) } {
+            let mut row: Value = get_value(&side, &k);
+            assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than_or_equal(&get_array_length(&row), &Value::Int(2))))));
+            assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&get_value(&row, &Value::Int(0)), &Value::Null)))));
+        }
+        }
+    }
+    }
+    // --------------------------------------------------------------------------------------------------------------------
+    // indexed sides must clean their hashmap when limit trims rows away: a
+    // delta arriving later for a trimmed id previously threw in js and looped
+    // in php while python handled it, an update of a trimmed id must reinsert
+    // cleanly and a delete of a trimmed id must be a no op
+    let mut trimIndexedInput: Value = Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![Value::Int(10), Value::Int(1), Value::Str("x".to_string())]), Value::List(vec![Value::Int(9), Value::Int(1), Value::Str("y".to_string())]), Value::List(vec![Value::Int(8), Value::Int(1), Value::Str("z".to_string())]), Value::List(vec![Value::Int(7), Value::Int(1), Value::Str("w".to_string())]), Value::List(vec![Value::Int(6), Value::Int(1), Value::Str("v".to_string())])]));
+            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Int(11), Value::Int(1), Value::Str("a".to_string())]), Value::List(vec![Value::Int(12), Value::Int(1), Value::Str("b".to_string())]), Value::List(vec![Value::Int(13), Value::Int(1), Value::Str("c".to_string())]), Value::List(vec![Value::Int(14), Value::Int(1), Value::Str("d".to_string())]), Value::List(vec![Value::Int(15), Value::Int(1), Value::Str("e".to_string())])]));
+            m.insert("timestamp".to_string(), Value::Int(1574827239000));
+            m.insert("nonce".to_string(), Value::Int(70));
+            m.insert("symbol".to_string(), Value::Null);
+        m
+    });
+    let mut trimIndexedTarget: Value = Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![Value::Int(10), Value::Int(1), Value::Str("x".to_string())]), Value::List(vec![Value::Int(9), Value::Int(1), Value::Str("y".to_string())]), Value::List(vec![Value::Int(8), Value::Int(1), Value::Str("z".to_string())])]));
+            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Int(11), Value::Int(1), Value::Str("a".to_string())]), Value::List(vec![Value::Int(12), Value::Int(1), Value::Str("b".to_string())]), Value::List(vec![Value::Int(13), Value::Int(1), Value::Str("c".to_string())])]));
+            m.insert("timestamp".to_string(), Value::Int(1574827239000));
+            m.insert("datetime".to_string(), Value::Str("2019-11-27T04:00:39.000Z".to_string()));
+            m.insert("nonce".to_string(), Value::Int(70));
+            m.insert("symbol".to_string(), Value::Null);
+        m
+    });
+    let mut trimIndexedBook = IndexedOrderBook::new(trimIndexedInput.clone(), Value::Int(3));
+    trimIndexedBook.limit();
+    // update of a trimmed id reinserts cleanly
+    trimIndexedBook.store_array_to_asks(Value::List(vec![Value::Int(15), Value::Int(2), Value::Str("e".to_string())]));
+    trimIndexedBook.store_array_to_bids(Value::List(vec![Value::Int(7), Value::Int(2), Value::Str("w".to_string())]));
+    // delete of a trimmed id is a no op, on both sides via ids that were
+    // trimmed and never reinserted (d on asks, v on bids); the final limit
+    // below also re-trims the reinserted w, exercising the cleanup twice
+    trimIndexedBook.store_array_to_asks(Value::List(vec![Value::Int(14), Value::Int(0), Value::Str("d".to_string())]));
+    trimIndexedBook.store_array_to_bids(Value::List(vec![Value::Int(6), Value::Int(0), Value::Str("v".to_string())]));
+    trimIndexedBook.limit();
+    assert!(ccxt::runtime::is_true(&(equals(trimIndexedBook.clone(), trimIndexedTarget.clone()))));
 }

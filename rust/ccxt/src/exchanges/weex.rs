@@ -59,12 +59,16 @@ impl WeexCore {
         // after_construct left an EMPTY networksById), which would
         // otherwise clobber the manual mappings like binance BSC to BEP20.
         let __described_networks_by_id = crate::get_value(&__described_options, &crate::Value::Str("networksById".to_string()));
-        if let (crate::Value::Dict(existing), crate::Value::Dict(defaults)) =
+        if let (crate::Value::Dict(_), crate::Value::Dict(_)) =
             (&self.options.clone(), &__described_options)
         {
-            let mut merged = (**defaults).clone();
-            for (k, v) in existing.iter() { merged.insert(k.clone(), v.clone()); }
-            self.options = crate::Value::Map(merged);
+            // Deep-extend (CCXT deepExtend): describe() defaults as the base,
+            // existing (config + parent REST describe) winning on leaf conflicts,
+            // nested dicts merged rather than replaced — so e.g. a pro Core's
+            // flat options.timeframes unions with the parent REST's nested one
+            // instead of one clobbering the other.
+            self.options = crate::runtime::deep_merge_dict(
+                &__described_options, &self.options.clone());
         } else if !matches!(self.options, crate::Value::Dict(_)) {
             self.options = __described_options;
         }
@@ -122,6 +126,22 @@ impl WeexCore {
         // the constructor config (test runners pass them in via
         // Exchange::new(Some(config-with-markets)) — same as CCXT TS).
         // Don't reset them here.
+        // Apply hardcoded describe().markets. Venues like coincheck ship a
+        // static markets block and never fetchMarkets — CCXT sets this.markets
+        // from describe() at construction, and its base fetchMarkets just
+        // returns Object.values(this.markets). Mirror that here so loadMarkets
+        // resolves without a network fetch. Guarded on a non-empty describe()
+        // markets and an as-yet-unloaded self.markets, so fetch-based venues
+        // (empty describe markets) and config-injected markets are untouched.
+        {
+            let __described_markets = crate::get_value(&described, &crate::Value::Str("markets".to_string()));
+            if matches!(&__described_markets, crate::Value::Dict(mm) if !mm.is_empty())
+                && matches!(self.markets, crate::Value::Null)
+            {
+                let __markets_list = crate::runtime::object_values(&__described_markets);
+                <Self as crate::exchange_generated::ExchangeBase>::set_markets(self, __markets_list, &[crate::Value::Null]);
+            }
+        }
         self.build_implicit_api();
     }
 
@@ -366,7 +386,7 @@ impl WeexCore {
         m.insert("createTakeProfitOrder".to_string(), Value::Bool(true));
         m.insert("createTrailingAmountOrder".to_string(), Value::Bool(false));
         m.insert("createTrailingPercentOrder".to_string(), Value::Bool(false));
-        m.insert("createTriggerOrder".to_string(), Value::Bool(false));
+        m.insert("createTriggerOrder".to_string(), Value::Bool(true));
         m.insert("deposit".to_string(), Value::Bool(false));
         m.insert("editOrder".to_string(), Value::Bool(false));
         m.insert("editOrders".to_string(), Value::Bool(false));
@@ -1272,7 +1292,7 @@ impl WeexCore {
         m.insert("createOrder".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
-        m.insert("triggerPrice".to_string(), Value::Bool(false));
+        m.insert("triggerPrice".to_string(), Value::Bool(true));
         m.insert("triggerPriceType".to_string(), Value::Null);
         m.insert("triggerDirection".to_string(), Value::Bool(false));
         m.insert("stopLossPrice".to_string(), Value::Bool(true));
@@ -1466,8 +1486,8 @@ impl WeexCore {
         let mut chains: Value = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1056: bool = true;
-            while { if !__for_first_1056 { j = add(&j, &Value::Int(1)); } __for_first_1056 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_1046: bool = true;
+            while { if !__for_first_1046 { j = add(&j, &Value::Int(1)); } __for_first_1046 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chain: Value = self.safe_dict(chains.clone(), j.clone(), &[]);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "network", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
@@ -1878,8 +1898,8 @@ impl WeexCore {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1057: bool = true;
-            while { if !__for_first_1057 { i = add(&i, &Value::Int(1)); } __for_first_1057 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_1047: bool = true;
+            while { if !__for_first_1047 { i = add(&i, &Value::Int(1)); } __for_first_1047 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut rawTicker: Value = get_value(&response, &i);
             let mut rawTicker: Value = get_value(&response, &i);
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
@@ -2849,8 +2869,8 @@ impl WeexCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[response.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1058: bool = true;
-            while { if !__for_first_1058 { i = add(&i, &Value::Int(1)); } __for_first_1058 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1048: bool = true;
+            while { if !__for_first_1048 { i = add(&i, &Value::Int(1)); } __for_first_1048 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut entry: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
             if is_true(&sandboxMode) && is_true(&(is_equal(&currencyId, &Value::Str("SUSDT".to_string())))) {
@@ -3094,17 +3114,20 @@ impl WeexCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] client order id
  * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
- * @param {float} [params.takeProfit.triggerPrice] The price at which the take profit order will be triggered
+ * @param {float} [params.takeProfit.triggerPrice] The price at which the take profit order will be triggered, takeProfit.stopPrice is supported as an alias
  * @param {string} [params.takeProfit.triggerPriceType] The type of the trigger price for the take profit order, either 'last' or 'mark' (default is 'last')
+ * @param {float} [params.takeProfit.price] not supported, the attached take profit always executes at market price
  * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
- * @param {float} [params.stopLoss.triggerPrice] The price at which the stop loss order will be triggered
+ * @param {float} [params.stopLoss.triggerPrice] The price at which the stop loss order will be triggered, stopLoss.stopPrice is supported as an alias
  * @param {string} [params.stopLoss.triggerPriceType] The type of the trigger price for the stop loss order, either 'last' or 'mark' (default is 'last')
- * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
+ * @param {float} [params.stopLoss.price] not supported, the attached stop loss always executes at market price
+ * @param {float} [params.stopLossPrice] price to trigger a standalone stop-loss order on an open position, the price argument is used as its execution price for limit orders
  * @param {string} [params.stopLossPriceType] The type of the trigger price for the stop loss order, either 'last' or 'mark' (default is 'last')
- * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
+ * @param {float} [params.takeProfitPrice] price to trigger a standalone take-profit order on an open position, the price argument is used as its execution price for limit orders
  * @param {string} [params.takeProfitPriceType] The type of the trigger price for the take profit order, either 'last' or 'mark' (default is 'last')
+ * @param {float} [params.triggerPrice] the price at which a trigger (entry conditional) order is triggered, cannot be used together with stopLossPrice or takeProfitPrice
  * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
- * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders)
+ * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_contract_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
@@ -3172,11 +3195,12 @@ impl WeexCore {
         let mut stopLossPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPricequeryVariable, &Value::Int(1));
         let mut takeProfitPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPricequeryVariable, &Value::Int(2));
         let mut query: Value = get_value(&triggerPricestopLossPricetakeProfitPricequeryVariable, &Value::Int(3));
-        if !is_equal(&triggerPrice, &Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder() does not support the triggerPrice parameter".to_string()))));
-        }
+        let mut isTrigger: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
         let mut isStopLoss: Value = Value::Bool(!is_equal(&stopLossPrice, &Value::Null));
         let mut isTakeProfit: Value = Value::Bool(!is_equal(&takeProfitPrice, &Value::Null));
+        if is_true(&isTrigger) && is_true(&(is_true(&isStopLoss) || is_true(&isTakeProfit))) {
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters".to_string()))));
+        }
         let mut reduceOnly: Value = self.safe_bool_k(query.clone(), "reduceOnly", &[]);
         if is_true(&isStopLoss) || is_true(&isTakeProfit) {
             reduceOnly = Value::Bool(true);
@@ -3195,6 +3219,13 @@ impl WeexCore {
         let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
         let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
         let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
+        // the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at market price
+        if is_true(&hasTakeProfit) && is_true(&(!is_equal(&self.safe_number_k(takeProfit.clone(), "price", &[]), &Value::Null))) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder() does not support the price field inside the takeProfit params, the attached take profit executes at market price".to_string()))));
+        }
+        if is_true(&hasStopLoss) && is_true(&(!is_equal(&self.safe_number_k(stopLoss.clone(), "price", &[]), &Value::Null))) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder() does not support the price field inside the stopLoss params, the attached stop loss executes at market price".to_string()))));
+        }
         let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[]);
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
         if is_equal(&clientOrderId, &Value::Null) {
@@ -3202,7 +3233,39 @@ impl WeexCore {
             clientOrderId = add(&add(&partner, &Value::Str("-".to_string())), &self.uuid22(&[]));
         }
         let mut callerMethodName: Value = self.safe_string_k(params.clone(), "callerMethodName", &[]);
-        if is_true(&isStopLoss) || is_true(&isTakeProfit) {
+        if is_true(&isTrigger) {
+            // entry conditional order, triggers a regular order when the trigger price is reached
+            if is_equal(&callerMethodName, &Value::Str("createOrders".to_string())) {
+                panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrders() does not support trigger orders".to_string()))));
+            }
+            if !is_equal(&timeInForce, &Value::Null) {
+                panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrder() cannot use the timeInForce parameter with trigger orders".to_string()))));
+            }
+            add_element_to_object(&mut request, &Value::Str("clientAlgoId".to_string()), clientOrderId.clone());
+            add_element_to_object(&mut params, &Value::Str("triggerPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
+            if is_true(&isMarketOrder) {
+                add_element_to_object(&mut params, &Value::Str("type".to_string()), Value::Str("STOP_MARKET".to_string()));
+            }  else {
+                add_element_to_object(&mut params, &Value::Str("type".to_string()), Value::Str("STOP".to_string()));
+            }
+            // conditional orders attach take profit / stop loss through the preset* fields instead of tpTriggerPrice/slTriggerPrice
+            if is_true(&hasStopLoss) {
+                let mut stopLossTriggerPrice: Value = self.safe_number2(stopLoss.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
+                add_element_to_object(&mut request, &Value::Str("presetStopLossPrice".to_string()), self.price_to_precision(symbol.clone(), stopLossTriggerPrice.clone()));
+                let mut stopLossPriceType: Value = self.safe_string_k(stopLoss.clone(), "triggerPriceType", &[]);
+                if !is_equal(&stopLossPriceType, &Value::Null) {
+                    add_element_to_object(&mut params, &Value::Str("SlWorkingType".to_string()), self.encode_trigger_price_type(stopLossPriceType.clone()));
+                }
+            }
+            if is_true(&hasTakeProfit) {
+                let mut takeProfitTriggerPrice: Value = self.safe_number2(takeProfit.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
+                add_element_to_object(&mut request, &Value::Str("presetTakeProfitPrice".to_string()), self.price_to_precision(symbol.clone(), takeProfitTriggerPrice.clone()));
+                let mut takeProfitPriceType: Value = self.safe_string_k(takeProfit.clone(), "triggerPriceType", &[]);
+                if !is_equal(&takeProfitPriceType, &Value::Null) {
+                    add_element_to_object(&mut params, &Value::Str("TpWorkingType".to_string()), self.encode_trigger_price_type(takeProfitPriceType.clone()));
+                }
+            }
+        }  else if is_true(&isStopLoss) || is_true(&isTakeProfit) {
             if is_equal(&callerMethodName, &Value::Str("createOrders".to_string())) {
                 panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrders() does not support stop loss and take profit orders".to_string()))));
             }
@@ -3247,7 +3310,7 @@ impl WeexCore {
             }
             add_element_to_object(&mut request, &Value::Str("newClientOrderId".to_string()), clientOrderId.clone());
             if is_true(&hasStopLoss) {
-                let mut stopLossTriggerPrice: Value = self.safe_number_k(stopLoss.clone(), "triggerPrice", &[]);
+                let mut stopLossTriggerPrice: Value = self.safe_number2(stopLoss.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
                 add_element_to_object(&mut request, &Value::Str("slTriggerPrice".to_string()), self.price_to_precision(symbol.clone(), stopLossTriggerPrice.clone()));
                 let mut stopLossPriceType: Value = self.safe_string_k(stopLoss.clone(), "triggerPriceType", &[]);
                 if !is_equal(&stopLossPriceType, &Value::Null) {
@@ -3255,7 +3318,7 @@ impl WeexCore {
                 }
             }
             if is_true(&hasTakeProfit) {
-                let mut takeProfitTriggerPrice: Value = self.safe_number_k(takeProfit.clone(), "triggerPrice", &[]);
+                let mut takeProfitTriggerPrice: Value = self.safe_number2(takeProfit.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
                 add_element_to_object(&mut request, &Value::Str("tpTriggerPrice".to_string()), self.price_to_precision(symbol.clone(), takeProfitTriggerPrice.clone()));
                 let mut takeProfitPriceType: Value = self.safe_string_k(takeProfit.clone(), "triggerPriceType", &[]);
                 if !is_equal(&takeProfitPriceType, &Value::Null) {
@@ -4054,15 +4117,27 @@ impl WeexCore {
             market = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
         }
         let mut timestamp: Value = self.safe_integer_n(order.clone(), Value::List(vec![Value::Str("transactTime".to_string()), Value::Str("time".to_string()), Value::Str("createTime".to_string())]), &[]);
-        let mut rawStatus: Value = self.safe_string_lower(order.clone(), Value::Str("status".to_string()), &[]);
+        let mut rawStatus: Value = self.safe_string_lower2(order.clone(), Value::Str("status".to_string()), Value::Str("algoStatus".to_string()), &[]); // algo (trigger) order payloads carry algoStatus instead of status
         let mut triggerPrice: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]));
         let mut rawType: Value = self.safe_string_upper2(order.clone(), Value::Str("type".to_string()), Value::Str("orderType".to_string()), &[]);
+        let mut isReduceOnly: Value = self.safe_bool_k(order.clone(), "reduceOnly", &[]);
+        // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
+        // a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
+        let mut isEntryTrigger: Value = Value::Bool(!is_true(&(self.safe_bool_k(order.clone(), "reduceOnly", &[Value::Bool(true)]))));
         let mut takeProfitPrice: Value = Value::Null;
         let mut stopLossPrice: Value = Value::Null;
-        if is_equal(&rawType, &Value::Str("TAKE_PROFIT_MARKET".to_string())) || is_equal(&rawType, &Value::Str("TAKE_PROFIT".to_string())) {
-            takeProfitPrice = triggerPrice.clone();
-        }  else if is_equal(&rawType, &Value::Str("STOP_LOSS".to_string())) || is_equal(&rawType, &Value::Str("STOP".to_string())) || is_equal(&rawType, &Value::Str("STOP_MARKET".to_string())) {
-            stopLossPrice = triggerPrice.clone();
+        if !is_true(&isEntryTrigger) {
+            if is_equal(&rawType, &Value::Str("TAKE_PROFIT_MARKET".to_string())) || is_equal(&rawType, &Value::Str("TAKE_PROFIT".to_string())) {
+                takeProfitPrice = triggerPrice.clone();
+            }  else if is_equal(&rawType, &Value::Str("STOP_LOSS".to_string())) || is_equal(&rawType, &Value::Str("STOP".to_string())) || is_equal(&rawType, &Value::Str("STOP_MARKET".to_string())) {
+                stopLossPrice = triggerPrice.clone();
+            }
+        }
+        if is_equal(&takeProfitPrice, &Value::Null) {
+            takeProfitPrice = self.omit_zero(self.safe_string_k(order.clone(), "tpTriggerPrice", &[])); // attached take profit of a regular or conditional order
+        }
+        if is_equal(&stopLossPrice, &Value::Null) {
+            stopLossPrice = self.omit_zero(self.safe_string_k(order.clone(), "slTriggerPrice", &[])); // attached stop loss of a regular or conditional order
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4072,7 +4147,7 @@ impl WeexCore {
         m.insert("type".to_string(), self.parse_order_type(rawType.clone()));
         m.insert("timeInForce".to_string(), self.safe_string_k(order.clone(), "timeInForce", &[]));
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduceOnly", &[]));
+        m.insert("reduceOnly".to_string(), isReduceOnly.clone());
         m.insert("side".to_string(), self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]));
         m.insert("amount".to_string(), self.safe_string2(order.clone(), Value::Str("origQty".to_string()), Value::Str("quantity".to_string()), &[]));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "price", &[]));

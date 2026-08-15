@@ -59,12 +59,16 @@ impl KrakenfuturesCore {
         // after_construct left an EMPTY networksById), which would
         // otherwise clobber the manual mappings like binance BSC to BEP20.
         let __described_networks_by_id = crate::get_value(&__described_options, &crate::Value::Str("networksById".to_string()));
-        if let (crate::Value::Dict(existing), crate::Value::Dict(defaults)) =
+        if let (crate::Value::Dict(_), crate::Value::Dict(_)) =
             (&self.options.clone(), &__described_options)
         {
-            let mut merged = (**defaults).clone();
-            for (k, v) in existing.iter() { merged.insert(k.clone(), v.clone()); }
-            self.options = crate::Value::Map(merged);
+            // Deep-extend (CCXT deepExtend): describe() defaults as the base,
+            // existing (config + parent REST describe) winning on leaf conflicts,
+            // nested dicts merged rather than replaced — so e.g. a pro Core's
+            // flat options.timeframes unions with the parent REST's nested one
+            // instead of one clobbering the other.
+            self.options = crate::runtime::deep_merge_dict(
+                &__described_options, &self.options.clone());
         } else if !matches!(self.options, crate::Value::Dict(_)) {
             self.options = __described_options;
         }
@@ -122,6 +126,22 @@ impl KrakenfuturesCore {
         // the constructor config (test runners pass them in via
         // Exchange::new(Some(config-with-markets)) — same as CCXT TS).
         // Don't reset them here.
+        // Apply hardcoded describe().markets. Venues like coincheck ship a
+        // static markets block and never fetchMarkets — CCXT sets this.markets
+        // from describe() at construction, and its base fetchMarkets just
+        // returns Object.values(this.markets). Mirror that here so loadMarkets
+        // resolves without a network fetch. Guarded on a non-empty describe()
+        // markets and an as-yet-unloaded self.markets, so fetch-based venues
+        // (empty describe markets) and config-injected markets are untouched.
+        {
+            let __described_markets = crate::get_value(&described, &crate::Value::Str("markets".to_string()));
+            if matches!(&__described_markets, crate::Value::Dict(mm) if !mm.is_empty())
+                && matches!(self.markets, crate::Value::Null)
+            {
+                let __markets_list = crate::runtime::object_values(&__described_markets);
+                <Self as crate::exchange_generated::ExchangeBase>::set_markets(self, __markets_list, &[crate::Value::Null]);
+            }
+        }
         self.build_implicit_api();
     }
 
@@ -160,6 +180,10 @@ impl crate::exchange::DerivedExchange for KrakenfuturesCore {
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KrakenfuturesCore.
         KrakenfuturesCore::parse_funding_rate(self, rate, &[market.clone()])
+    }
+    fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on KrakenfuturesCore.
+        KrakenfuturesCore::parse_ledger_entry(self, entry, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on KrakenfuturesCore.
@@ -206,6 +230,7 @@ impl crate::exchange_generated::ExchangeBase for KrakenfuturesCore {
                 "fetch_closed_orders" => self.fetch_closed_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_funding_rate_history" => self.fetch_funding_rate_history(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_funding_rates" => self.fetch_funding_rates(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "fetch_ledger" => self.fetch_ledger(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_leverage" => self.fetch_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_leverage_tiers" => self.fetch_leverage_tiers(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_leverages" => self.fetch_leverages(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
@@ -219,10 +244,13 @@ impl crate::exchange_generated::ExchangeBase for KrakenfuturesCore {
                 "fetch_positions" => self.fetch_positions(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_tickers" => self.fetch_tickers(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_trades" => self.fetch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "fetch_trading_fees" => self.fetch_trading_fees(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "parse_account" => self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+                "parse_ledger_entry_type" => self.parse_ledger_entry_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_leverage" => self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "parse_market_leverage_tiers" => self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -233,6 +261,7 @@ impl crate::exchange_generated::ExchangeBase for KrakenfuturesCore {
                 "parse_positions" => self.parse_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+                "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "set_leverage" => self.set_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -306,6 +335,7 @@ impl KrakenfuturesCore {
         m.insert("fetchIsolatedBorrowRate".to_string(), Value::Bool(false));
         m.insert("fetchIsolatedBorrowRates".to_string(), Value::Bool(false));
         m.insert("fetchIsolatedPositions".to_string(), Value::Bool(false));
+        m.insert("fetchLedger".to_string(), Value::Bool(true));
         m.insert("fetchLeverage".to_string(), Value::Bool(true));
         m.insert("fetchLeverages".to_string(), Value::Bool(true));
         m.insert("fetchLeverageTiers".to_string(), Value::Bool(true));
@@ -322,6 +352,8 @@ impl KrakenfuturesCore {
         m.insert("fetchPremiumIndexOHLCV".to_string(), Value::Bool(false));
         m.insert("fetchTickers".to_string(), Value::Bool(true));
         m.insert("fetchTrades".to_string(), Value::Bool(true));
+        m.insert("fetchTradingFee".to_string(), Value::Str("emulated".to_string()));
+        m.insert("fetchTradingFees".to_string(), Value::Bool(true));
         m.insert("sandbox".to_string(), Value::Bool(true));
         m.insert("setLeverage".to_string(), Value::Bool(true));
         m.insert("setMarginMode".to_string(), Value::Bool(false));
@@ -911,8 +943,8 @@ impl KrakenfuturesCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_837: bool = true;
-            while { if !__for_first_837 { i = add(&i, &Value::Int(1)); } __for_first_837 = false; is_less_than(&i, &get_array_length(&instruments)) } {
+            let mut __for_first_823: bool = true;
+            while { if !__for_first_823 { i = add(&i, &Value::Int(1)); } __for_first_823 = false; is_less_than(&i, &get_array_length(&instruments)) } {
             let mut market: Value = get_value(&instruments, &i);
             let mut market: Value = get_value(&instruments, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -1036,8 +1068,8 @@ impl KrakenfuturesCore {
         let mut currencies: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_838: bool = true;
-            while { if !__for_first_838 { i = add(&i, &Value::Int(1)); } __for_first_838 = false; is_less_than(&i, &get_array_length(&settlementCurrencies)) } {
+            let mut __for_first_824: bool = true;
+            while { if !__for_first_824 { i = add(&i, &Value::Int(1)); } __for_first_824 = false; is_less_than(&i, &get_array_length(&settlementCurrencies)) } {
             let mut code: Value = get_value(&settlementCurrencies, &i);
             let mut code: Value = get_value(&settlementCurrencies, &i);
             append_to_array(&mut currencies, Value::Map({
@@ -1260,6 +1292,148 @@ impl KrakenfuturesCore {
 
 /*
  * @method
+ * @name krakenfutures#fetchTradingFees
+ * @description fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+ */
+    pub async fn fetch_trading_fees(&mut self, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        self.load_markets(&[]).await;
+        let mut response: Value = self.public_get_feeschedules(&[params.clone()]).await;
+        //
+        //    {
+        //        "result": "success",
+        //        "serverTime": "2026-08-11T13:08:44Z",
+        //        "feeSchedules": [
+        //            {
+        //                "uid": "723888f7-0a8e-4183-8648-f920a22339e3",
+        //                "name": "MTF Linear Rebate Fees",
+        //                "tiers": [
+        //                    { "makerFee": 0.02, "takerFee": 0.05, "usdVolume": 0.0 },
+        //                    { "makerFee": 0.0175, "takerFee": 0.045, "usdVolume": 5000000.0 }
+        //                ]
+        //            }
+        //        ]
+        //    }
+        //
+        let mut volumes: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        if is_true(&self.check_required_credentials(&[Value::Bool(false)])) {
+            let mut volumesResponse: Value = self.private_get_feeschedules_volumes(&[]).await;
+            //
+            //    {
+            //        "result": "success",
+            //        "serverTime": "2026-08-11T13:08:44Z",
+            //        "volumesByFeeSchedule": {
+            //            "723888f7-0a8e-4183-8648-f920a22339e3": 217587.88
+            //        }
+            //    }
+            //
+            volumes = self.safe_dict_k(volumesResponse.clone(), "volumesByFeeSchedule", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        }
+        let mut feeSchedules: Value = self.safe_list_k(response.clone(), "feeSchedules", &[Value::List(vec![])]);
+        let mut schedulesByUid: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_825: bool = true;
+            while { if !__for_first_825 { i = add(&i, &Value::Int(1)); } __for_first_825 = false; is_less_than(&i, &get_array_length(&feeSchedules)) } {
+            let mut schedule: Value = get_value(&feeSchedules, &i);
+            let mut schedule: Value = get_value(&feeSchedules, &i);
+            let mut uid: Value = self.safe_string_k(schedule.clone(), "uid", &[]);
+            if !is_equal(&uid, &Value::Null) {
+                add_element_to_object(&mut schedulesByUid, &uid, schedule.clone());
+            }
+        }
+        }
+        let mut result: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let mut symbols: Value = self.symbols.clone();
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_826: bool = true;
+            while { if !__for_first_826 { i = add(&i, &Value::Int(1)); } __for_first_826 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut symbol: Value = get_value(&symbols, &i);
+            let mut symbol: Value = get_value(&symbols, &i);
+            let mut market: Value = self.market(symbol.clone());
+            let mut uid: Value = self.safe_string(get_value(&market, &Value::Str("info".to_string())), Value::Str("feeScheduleUid".to_string()), &[]);
+            let mut schedule: Value = self.safe_dict(schedulesByUid.clone(), uid.clone(), &[]);
+            if is_equal(&schedule, &Value::Null) {
+                continue;
+            }
+            let mut volume: Value = self.safe_string(volumes.clone(), uid.clone(), &[Value::Str("0".to_string())]);
+            add_element_to_object(&mut result, &symbol, self.parse_trading_fee(schedule.clone(), &[market.clone(), volume.clone()]));
+        }
+        }
+        return result;
+
+    Value::Null
+}
+
+    pub fn parse_trading_fee(&self, mut fee: Value, optional_args: &[Value]) -> Value {
+        let mut market = get_arg(optional_args, 0, Value::Null);
+        let mut volume = get_arg(optional_args, 1, Value::Null);
+        //
+        //    {
+        //        "uid": "723888f7-0a8e-4183-8648-f920a22339e3",
+        //        "name": "MTF Linear Rebate Fees",
+        //        "tiers": [
+        //            { "makerFee": 0.02, "takerFee": 0.05, "usdVolume": 0.0 },
+        //            { "makerFee": 0.0175, "takerFee": 0.045, "usdVolume": 5000000.0 }
+        //        ]
+        //    }
+        //
+        // fees are expressed in percent, tiers are sorted by ascending usdVolume
+        let mut tiers: Value = self.safe_list_k(fee.clone(), "tiers", &[Value::List(vec![])]);
+        let mut makerFee: Value = Value::Null;
+        let mut takerFee: Value = Value::Null;
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_827: bool = true;
+            while { if !__for_first_827 { i = add(&i, &Value::Int(1)); } __for_first_827 = false; is_less_than(&i, &get_array_length(&tiers)) } {
+            let mut tier: Value = get_value(&tiers, &i);
+            let mut tier: Value = get_value(&tiers, &i);
+            let mut tierVolume: Value = self.safe_string_k(tier.clone(), "usdVolume", &[]);
+            if is_true(&(is_equal(&volume, &Value::Null))) || is_true(&crate::precise::Precise::stringGe(&volume, &tierVolume)) {
+                makerFee = self.safe_string_k(tier.clone(), "makerFee", &[]);
+                takerFee = self.safe_string_k(tier.clone(), "takerFee", &[]);
+                if is_equal(&volume, &Value::Null) {
+                    break;
+                }
+            }
+        }
+        }
+        return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("info".to_string(), fee.clone());
+        m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));
+        m.insert("maker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&makerFee, &Value::Str("100".to_string())), &[]));
+        m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&takerFee, &Value::Str("100".to_string())), &[]));
+        m.insert("percentage".to_string(), Value::Bool(true));
+        m.insert("tierBased".to_string(), Value::Bool(true));
+    m
+});
+
+    Value::Null
+}
+
+/*
+ * @method
  * @name krakenfutures#fetchOHLCV
  * @see https://docs.kraken.com/api/docs/futures-api/charts/candles
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -1448,8 +1622,8 @@ impl KrakenfuturesCore {
             let mut length: Value = get_array_length(&elements);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_839: bool = true;
-                while { if !__for_first_839 { i = add(&i, &Value::Int(1)); } __for_first_839 = false; is_less_than(&i, &length) } {
+                let mut __for_first_828: bool = true;
+                while { if !__for_first_828 { i = add(&i, &Value::Int(1)); } __for_first_828 = false; is_less_than(&i, &length) } {
                 let mut index: Value = subtract(&subtract(&length, &Value::Int(1)), &i);
                 let mut element: Value = get_value(&elements, &index);
                 let mut element: Value = get_value(&elements, &index);
@@ -1857,8 +2031,8 @@ impl KrakenfuturesCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_840: bool = true;
-            while { if !__for_first_840 { i = add(&i, &Value::Int(1)); } __for_first_840 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_829: bool = true;
+            while { if !__for_first_829 { i = add(&i, &Value::Int(1)); } __for_first_829 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -2033,8 +2207,8 @@ impl KrakenfuturesCore {
         if is_greater_than(&clientOrderIdsLength, &Value::Int(0)) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_841: bool = true;
-                while { if !__for_first_841 { i = add(&i, &Value::Int(1)); } __for_first_841 = false; is_less_than(&i, &get_array_length(&clientOrderIds)) } {
+                let mut __for_first_830: bool = true;
+                while { if !__for_first_830 { i = add(&i, &Value::Int(1)); } __for_first_830 = false; is_less_than(&i, &get_array_length(&clientOrderIds)) } {
                 append_to_array(&mut orders, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("order".to_string(), Value::Str("cancel".to_string()));
@@ -2046,8 +2220,8 @@ impl KrakenfuturesCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_842: bool = true;
-                while { if !__for_first_842 { i = add(&i, &Value::Int(1)); } __for_first_842 = false; is_less_than(&i, &get_array_length(&ids)) } {
+                let mut __for_first_831: bool = true;
+                while { if !__for_first_831 { i = add(&i, &Value::Int(1)); } __for_first_831 = false; is_less_than(&i, &get_array_length(&ids)) } {
                 append_to_array(&mut orders, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("order".to_string(), Value::Str("cancel".to_string()));
@@ -2159,8 +2333,8 @@ impl KrakenfuturesCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_843: bool = true;
-            while { if !__for_first_843 { i = add(&i, &Value::Int(1)); } __for_first_843 = false; is_less_than(&i, &get_array_length(&orderEvents)) } {
+            let mut __for_first_832: bool = true;
+            while { if !__for_first_832 { i = add(&i, &Value::Int(1)); } __for_first_832 = false; is_less_than(&i, &get_array_length(&orderEvents)) } {
             let mut orderEvent: Value = self.safe_dict(orderEvents.clone(), Value::Int(0), &[]);
             let mut order: Value = self.safe_dict_k(orderEvent.clone(), "order", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2356,8 +2530,8 @@ impl KrakenfuturesCore {
         let mut closedOrders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_844: bool = true;
-            while { if !__for_first_844 { i = add(&i, &Value::Int(1)); } __for_first_844 = false; is_less_than(&i, &get_array_length(&allOrders)) } {
+            let mut __for_first_833: bool = true;
+            while { if !__for_first_833 { i = add(&i, &Value::Int(1)); } __for_first_833 = false; is_less_than(&i, &get_array_length(&allOrders)) } {
             let mut order: Value = get_value(&allOrders, &i);
             let mut order: Value = get_value(&allOrders, &i);
             let mut event: Value = self.safe_dict_k(order.clone(), "event", &[Value::Map({
@@ -2445,8 +2619,8 @@ impl KrakenfuturesCore {
         let mut canceledAndRejected: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_845: bool = true;
-            while { if !__for_first_845 { i = add(&i, &Value::Int(1)); } __for_first_845 = false; is_less_than(&i, &get_array_length(&allOrders)) } {
+            let mut __for_first_834: bool = true;
+            while { if !__for_first_834 { i = add(&i, &Value::Int(1)); } __for_first_834 = false; is_less_than(&i, &get_array_length(&allOrders)) } {
             let mut order: Value = get_value(&allOrders, &i);
             let mut order: Value = get_value(&allOrders, &i);
             let mut event: Value = self.safe_dict_k(order.clone(), "event", &[Value::Map({
@@ -2940,8 +3114,8 @@ impl KrakenfuturesCore {
             let mut executions: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_846: bool = true;
-                while { if !__for_first_846 { i = add(&i, &Value::Int(1)); } __for_first_846 = false; is_less_than(&i, &get_array_length(&orderEvents)) } {
+                let mut __for_first_835: bool = true;
+                while { if !__for_first_835 { i = add(&i, &Value::Int(1)); } __for_first_835 = false; is_less_than(&i, &get_array_length(&orderEvents)) } {
                 let mut item: Value = get_value(&orderEvents, &i);
                 let mut item: Value = get_value(&orderEvents, &i);
                 if is_equal(&self.safe_string_k(item.clone(), "type", &[]), &Value::Str("EXECUTION".to_string())) {
@@ -2998,8 +3172,8 @@ impl KrakenfuturesCore {
             let mut vwapSum: Value = Value::Str("0.0".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_847: bool = true;
-                while { if !__for_first_847 { i = add(&i, &Value::Int(1)); } __for_first_847 = false; is_less_than(&i, &get_array_length(&trades)) } {
+                let mut __for_first_836: bool = true;
+                while { if !__for_first_836 { i = add(&i, &Value::Int(1)); } __for_first_836 = false; is_less_than(&i, &get_array_length(&trades)) } {
                 let mut trade: Value = get_value(&trades, &i);
                 let mut trade: Value = get_value(&trades, &i);
                 let mut tradeAmount: Value = self.safe_string_k(trade.clone(), "amount", &[]);
@@ -3146,6 +3320,205 @@ impl KrakenfuturesCore {
         //
         let mut fills: Value = self.safe_list_k(response.clone(), "fills", &[Value::List(vec![])]);
         return self.parse_trades(fills.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name krakenfutures#fetchLedger
+ * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+ * @see https://docs.kraken.com/api-reference/account-history/get-account-log
+ * @param {string} [code] unified currency code, default is undefined
+ * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+ * @param {int} [limit] max number of ledger entries to return, default is undefined
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest ledger entry
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+ */
+    pub async fn fetch_ledger(&mut self, optional_args: &[Value]) -> Value {
+        let mut code = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        self.load_markets(&[]).await;
+        let mut currency: Value = Value::Null;
+        if !is_equal(&code, &Value::Null) {
+            currency = self.currency(code.clone());
+        }
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        if !is_equal(&since, &Value::Null) {
+            add_element_to_object(&mut request, &Value::Str("since".to_string()), since.clone());
+            let mut sort: Value = self.safe_string_k(params.clone(), "sort", &[]);
+            if is_equal(&sort, &Value::Null) {
+                add_element_to_object(&mut request, &Value::Str("sort".to_string()), Value::Str("asc".to_string()));
+            }
+        }
+        if !is_equal(&limit, &Value::Null) {
+            // each trade execution emits two rows and the position-size legs are
+            // filtered out below, so ask for twice the limit to compensate,
+            // parseLedger re-applies the limit on the filtered entries
+            add_element_to_object(&mut request, &Value::Str("count".to_string()), multiply(&limit, &Value::Int(2)));
+        }
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
+        if !is_equal(&until, &Value::Null) {
+            params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
+            add_element_to_object(&mut request, &Value::Str("before".to_string()), until.clone());
+        }
+        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.history_get_account_log(&[__ws_arg_15]).await;
+        //
+        //    {
+        //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        //        "logs": [
+        //            {
+        //                "asset": "usd",
+        //                "booking_uid": "10ca244e-1b73-4467-8c3c-74539c7ae677",
+        //                "contract": "pf_dogeusd",
+        //                "date": "2026-08-11T19:55:24.251Z",
+        //                "execution": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+        //                "fee": 0.0035,
+        //                "funding_rate": 0.000001129880786375,
+        //                "id": 9,
+        //                "info": "futures trade",
+        //                "margin_account": "flex",
+        //                "mark_price": 0.07091471613,
+        //                "new_balance": 0,
+        //                "old_balance": 0.0077,
+        //                "realized_funding": null,
+        //                "realized_pnl": -0.0042,
+        //                "trade_price": 0.070914
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        let mut logs: Value = self.safe_list_k(response.clone(), "logs", &[Value::List(vec![])]);
+        // each execution emits two rows: a cash leg(asset is a currency) and
+        // a position-size leg(asset equals the contract id) - keep the cash legs only
+        let mut rows: Value = Value::List(vec![]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_837: bool = true;
+            while { if !__for_first_837 { i = add(&i, &Value::Int(1)); } __for_first_837 = false; is_less_than(&i, &get_array_length(&logs)) } {
+            let mut row: Value = get_value(&logs, &i);
+            let mut row: Value = get_value(&logs, &i);
+            let mut asset: Value = self.safe_string_k(row.clone(), "asset", &[]);
+            let mut contract: Value = self.safe_string_k(row.clone(), "contract", &[]);
+            if is_true(&(!is_equal(&asset, &Value::Null))) && is_true(&(!is_equal(&asset, &contract))) {
+                append_to_array(&mut rows, row.clone());
+            }
+        }
+        }
+        return self.parse_ledger(rows.clone(), &[currency.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
+}
+
+    pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Value {
+        let mut types: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("futures trade".to_string(), Value::Str("trade".to_string()));
+                m.insert("futures liquidation".to_string(), Value::Str("trade".to_string()));
+                m.insert("futures assignee".to_string(), Value::Str("trade".to_string()));
+                m.insert("futures assignor".to_string(), Value::Str("trade".to_string()));
+                m.insert("futures unwind counterparty".to_string(), Value::Str("trade".to_string()));
+                m.insert("futures unwind bankrupt".to_string(), Value::Str("trade".to_string()));
+                m.insert("covered liquidation".to_string(), Value::Str("trade".to_string()));
+                m.insert("settlement".to_string(), Value::Str("trade".to_string()));
+                m.insert("conversion".to_string(), Value::Str("trade".to_string()));
+                m.insert("funding rate change".to_string(), Value::Str("fee".to_string()));
+                m.insert("interest payment".to_string(), Value::Str("fee".to_string()));
+                m.insert("kfee applied".to_string(), Value::Str("fee".to_string()));
+                m.insert("tax withheld".to_string(), Value::Str("fee".to_string()));
+                m.insert("tax refund".to_string(), Value::Str("rebate".to_string()));
+                m.insert("transfer".to_string(), Value::Str("transfer".to_string()));
+                m.insert("subaccount transfer".to_string(), Value::Str("transfer".to_string()));
+                m.insert("cross-exchange transfer".to_string(), Value::Str("transfer".to_string()));
+                m.insert("admin transfer".to_string(), Value::Str("transfer".to_string()));
+            m
+        });
+        return self.safe_string(types.clone(), type_var.clone(), &[type_var.clone()]);
+
+    Value::Null
+}
+
+    pub fn parse_ledger_entry(&self, mut item: Value, optional_args: &[Value]) -> Value {
+        let mut currency = get_arg(optional_args, 0, Value::Null);
+        //
+        //    {
+        //        "asset": "usd",
+        //        "booking_uid": "10ca244e-1b73-4467-8c3c-74539c7ae677",
+        //        "contract": "pf_dogeusd",
+        //        "date": "2026-08-11T19:55:24.251Z",
+        //        "execution": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+        //        "fee": 0.0035,
+        //        "funding_rate": 0.000001129880786375,
+        //        "id": 9,
+        //        "info": "futures trade",
+        //        "margin_account": "flex",
+        //        "mark_price": 0.07091471613,
+        //        "new_balance": 0,
+        //        "old_balance": 0.0077,
+        //        "realized_funding": null,
+        //        "realized_pnl": -0.0042,
+        //        "trade_price": 0.070914
+        //    }
+        //
+        let mut timestamp: Value = self.parse8601(self.safe_string_k(item.clone(), "date", &[]));
+        let mut currencyId: Value = self.safe_string_k(item.clone(), "asset", &[]);
+        let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
+        currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
+        let mut before: Value = self.safe_string_k(item.clone(), "old_balance", &[]);
+        let mut after: Value = self.safe_string_k(item.clone(), "new_balance", &[]);
+        let mut feeCost: Value = self.safe_string_k(item.clone(), "fee", &[]);
+        let mut amount: Value = Value::Null;
+        let mut direction: Value = Value::Null;
+        if is_true(&(!is_equal(&before, &Value::Null))) && is_true(&(!is_equal(&after, &Value::Null))) {
+            amount = crate::precise::Precise::stringSub(&after, &before);
+            if !is_equal(&feeCost, &Value::Null) {
+                // the fee is already deducted from the balance delta, add it
+                // back so that amount does not include the fee, matching the
+                // unified ledger contract: after = before +/- amount - fee
+                amount = crate::precise::Precise::stringAdd(&amount, &feeCost);
+            }
+            if is_true(&crate::precise::Precise::stringLt(&amount, &Value::Str("0".to_string()))) {
+                direction = Value::Str("out".to_string());
+                amount = crate::precise::Precise::stringAbs(&amount);
+            }  else {
+                direction = Value::Str("in".to_string());
+            }
+        }
+        return self.safe_ledger_entry(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("info".to_string(), item.clone());
+        m.insert("id".to_string(), self.safe_string_k(item.clone(), "id", &[]));
+        m.insert("direction".to_string(), direction.clone());
+        m.insert("account".to_string(), self.safe_string_k(item.clone(), "margin_account", &[]));
+        m.insert("referenceId".to_string(), self.safe_string2(item.clone(), Value::Str("execution".to_string()), Value::Str("booking_uid".to_string()), &[]));
+        m.insert("referenceAccount".to_string(), Value::Null);
+        m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string_k(item.clone(), "info", &[])));
+        m.insert("currency".to_string(), code.clone());
+        m.insert("amount".to_string(), self.parse_number(amount.clone(), &[]));
+        m.insert("before".to_string(), self.parse_number(before.clone(), &[]));
+        m.insert("after".to_string(), self.parse_number(after.clone(), &[]));
+        m.insert("status".to_string(), Value::Str("ok".to_string()));
+        m.insert("timestamp".to_string(), timestamp.clone());
+        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("fee".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), self.parse_number(feeCost.clone(), &[]));
+        m.insert("currency".to_string(), code.clone());
+    m
+}));
+    m
+}), &[currency.clone()]);
 
     Value::Null
 }
@@ -3363,8 +3736,8 @@ impl KrakenfuturesCore {
         let mut currencyIds: Value = object_keys(&balances);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_848: bool = true;
-            while { if !__for_first_848 { i = add(&i, &Value::Int(1)); } __for_first_848 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_838: bool = true;
+            while { if !__for_first_838 { i = add(&i, &Value::Int(1)); } __for_first_838 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut balance: Value = get_value(&balances, &currencyId);
@@ -3424,8 +3797,8 @@ impl KrakenfuturesCore {
         let mut fundingRates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_849: bool = true;
-            while { if !__for_first_849 { i = add(&i, &Value::Int(1)); } __for_first_849 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_839: bool = true;
+            while { if !__for_first_839 { i = add(&i, &Value::Int(1)); } __for_first_839 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut entry: Value = get_value(&tickers, &i);
             let mut entry: Value = get_value(&tickers, &i);
             let mut entry_symbol: Value = self.safe_value_k(entry.clone(), "symbol", &[]);
@@ -3551,8 +3924,8 @@ impl KrakenfuturesCore {
                 m.insert("symbol".to_string(), self.safe_string_upper(market.clone(), Value::Str("id".to_string()), &[]));
             m
         });
-        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.public_get_historicalfundingrates(&[__ws_arg_15]).await;
+        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_historicalfundingrates(&[__ws_arg_16]).await;
         //
         //    {
         //        "rates": [
@@ -3569,8 +3942,8 @@ impl KrakenfuturesCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_850: bool = true;
-            while { if !__for_first_850 { i = add(&i, &Value::Int(1)); } __for_first_850 = false; is_less_than(&i, &get_array_length(&rates)) } {
+            let mut __for_first_840: bool = true;
+            while { if !__for_first_840 { i = add(&i, &Value::Int(1)); } __for_first_840 = false; is_less_than(&i, &get_array_length(&rates)) } {
             let mut item: Value = get_value(&rates, &i);
             let mut item: Value = get_value(&rates, &i);
             let mut datetime: Value = self.safe_string_k(item.clone(), "timestamp", &[]);
@@ -3643,13 +4016,19 @@ impl KrakenfuturesCore {
     m
 }));
         let mut result: Value = Value::List(vec![]);
-        // a degraded response can omit openPositions entirely - default to an
-        // empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
-        let mut positions: Value = self.safe_list_k(response.clone(), "openPositions", &[Value::List(vec![])]);
+        // a degraded response missing openPositions must fail loudly - a flat
+        // account and "could not read positions" are not interchangeable for
+        // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
+        // the crash guarded against in #19896 is still avoided, since we no
+        // longer call .length on a non-list value
+        let mut positions: Value = self.safe_list_k(response.clone(), "openPositions", &[]);
+        if is_equal(&positions, &Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchPositions() returned a response without an \"openPositions\" list".to_string()))));
+        }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_851: bool = true;
-            while { if !__for_first_851 { i = add(&i, &Value::Int(1)); } __for_first_851 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_841: bool = true;
+            while { if !__for_first_841 { i = add(&i, &Value::Int(1)); } __for_first_841 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut position: Value = self.parse_position(get_value(&positions, &i), &[]);
             append_to_array(&mut result, position.clone());
         }
@@ -3839,8 +4218,8 @@ impl KrakenfuturesCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_852: bool = true;
-            while { if !__for_first_852 { i = add(&i, &Value::Int(1)); } __for_first_852 = false; is_less_than(&i, &get_array_length(&marginLevels)) } {
+            let mut __for_first_842: bool = true;
+            while { if !__for_first_842 { i = add(&i, &Value::Int(1)); } __for_first_842 = false; is_less_than(&i, &get_array_length(&marginLevels)) } {
             let mut tier: Value = get_value(&marginLevels, &i);
             let mut tier: Value = get_value(&marginLevels, &i);
             let mut initialMargin: Value = self.safe_string_k(tier.clone(), "initialMargin", &[]);
@@ -3983,14 +4362,14 @@ impl KrakenfuturesCore {
                 panic!("{}", crate::exchange_errors::bad_request(add(&add(&add(&add(&self.id, &Value::Str(" transfer cannot transfer from ".to_string())), &fromAccount), &Value::Str(" to ".to_string())), &toAccount)));
             }
             add_element_to_object(&mut request, &Value::Str("currency".to_string()), get_value(&currency, &Value::Str("id".to_string())));
-            let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_post_withdrawal(&[__ws_arg_16]).await;
+            let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_withdrawal(&[__ws_arg_17]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("fromAccount".to_string()), self.parse_account(fromAccount.clone()));
             add_element_to_object(&mut request, &Value::Str("toAccount".to_string()), self.parse_account(toAccount.clone()));
             add_element_to_object(&mut request, &Value::Str("unit".to_string()), get_value(&currency, &Value::Str("id".to_string())));
-            let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_post_transfer(&[__ws_arg_17]).await;
+            let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_transfer(&[__ws_arg_18]).await;
         }
         //
         //    {
@@ -4042,8 +4421,8 @@ impl KrakenfuturesCore {
                 m.insert("symbol".to_string(), to_upper(&marketIdUpper));
             m
         });
-        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
-        return self.private_put_leveragepreferences(&[__ws_arg_18]).await;
+        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+        return self.private_put_leveragepreferences(&[__ws_arg_19]).await;
 
     Value::Null
 }
@@ -4115,8 +4494,8 @@ impl KrakenfuturesCore {
                 m.insert("symbol".to_string(), to_upper(&marketIdUpper));
             m
         });
-        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_get_leveragepreferences(&[__ws_arg_19]).await;
+        let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_leveragepreferences(&[__ws_arg_20]).await;
         //
         //     {
         //         "result": "success",

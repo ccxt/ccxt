@@ -48,6 +48,18 @@ pub trait ExchangeBase:
         })
     }
 
+    /// `isDictionary(value)` — hand-provided base method. The ast-transpiler
+    /// drops `Exchange.ts`'s `typeof value === 'object'` body, so supply it here
+    /// as a trait default reachable by every Core (used across the base +
+    /// derived exchanges).
+    fn is_dictionary(&self, value: crate::Value) -> crate::Value {
+        crate::Value::Bool(
+            !crate::runtime::is_equal(&value, &crate::Value::Null)
+            && crate::runtime::is_object(&value)
+            && !crate::runtime::is_array(&value)
+        )
+    }
+
 
     fn describe(&self) -> Value {
         return Value::Map({
@@ -610,12 +622,6 @@ pub trait ExchangeBase:
             return value;
         }
         return defaultValue;
-
-    Value::Null
-}
-
-    fn is_dictionary(&self, mut value: Value) -> Value {
-        return Value::Bool(is_true(&(!is_equal(&value, &Value::Null))) && is_true(&(is_object(&value))) && !is_true(&Value::Bool(is_array(&value))));
 
     Value::Null
 }
@@ -11638,7 +11644,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "integer_precision_to_amount" => self.integer_precision_to_amount(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "invert_flat_string_dictionary" => self.invert_flat_string_dictionary(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "is_decimal_precision" => self.is_decimal_precision(),
-            "is_dictionary" => self.is_dictionary(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "is_empty_string" => self.is_empty_string(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "is_leveraged_currency" => self.is_leveraged_currency(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "is_post_only" => self.is_post_only(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]),

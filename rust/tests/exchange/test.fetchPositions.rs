@@ -17,8 +17,8 @@ pub async fn testFetchPositions(mut exchange: Value, mut skippedProperties: Valu
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), positions.clone(), symbol.clone()]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1416: bool = true;
-        while { if !__for_first_1416 { i = add(&i, &Value::Int(1)); } __for_first_1416 = false; is_less_than(&i, &get_array_length(&positions)) } {
+        let mut __for_first_1411: bool = true;
+        while { if !__for_first_1411 { i = add(&i, &Value::Int(1)); } __for_first_1411 = false; is_less_than(&i, &get_array_length(&positions)) } {
         testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&positions, &i), Value::Null, now.clone());
     }
     }
@@ -30,8 +30,8 @@ pub async fn testFetchPositions(mut exchange: Value, mut skippedProperties: Valu
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_less_than_or_equal(&positionsForSymbolLength, &Value::Int(4))))));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1417: bool = true;
-        while { if !__for_first_1417 { i = add(&i, &Value::Int(1)); } __for_first_1417 = false; is_less_than(&i, &get_array_length(&positionsForSymbol)) } {
+        let mut __for_first_1412: bool = true;
+        while { if !__for_first_1412 { i = add(&i, &Value::Int(1)); } __for_first_1412 = false; is_less_than(&i, &get_array_length(&positionsForSymbol)) } {
         testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&positionsForSymbol, &i), symbol.clone(), now.clone());
     }
     }

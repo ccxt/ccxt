@@ -79,8 +79,6 @@ pub mod derive;
 #[cfg(feature = "transpiled-ws")]
 pub mod dydx;
 #[cfg(feature = "transpiled-ws")]
-pub mod exmo;
-#[cfg(feature = "transpiled-ws")]
 pub mod extended;
 #[cfg(feature = "transpiled-ws")]
 pub mod gate;

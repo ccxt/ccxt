@@ -401,6 +401,10 @@ pub fn add_element_to_object(obj: &mut Value, key: &Value, val: Value) {
             // set_value) so a read-back of client.subscriptions is coherent.
             crate::value::try_ws_subs_write(m, k, &val);
             crate::value::try_ws_sub_field_write(m, k, &val);
+            // A write onto a tagged cache-hashmap bucket (`cache.hashmap[sym][id]
+            // = order`) must reach the shared CACHE_STORE, not just this local
+            // COW clone — mirrors the JS reference write.
+            crate::value::try_cache_hashmap_write(m, k, &val);
             Arc::make_mut(m).insert(k.clone(), val);
         }
         (Value::Dict(m), other) => { Arc::make_mut(m).insert(stringify_simple(other), val); }

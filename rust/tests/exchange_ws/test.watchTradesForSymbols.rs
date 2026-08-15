@@ -32,8 +32,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut symbol: Value = Value::Null;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_73: bool = true;
-                while { if !__for_first_73 { i = add(&i, &Value::Int(1)); } __for_first_73 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut __for_first_1431: bool = true;
+                while { if !__for_first_1431 { i = add(&i, &Value::Int(1)); } __for_first_1431 = false; is_less_than(&i, &get_array_length(&response)) } {
                 let mut trade: Value = get_value(&response, &i);
                 symbol = get_value(&trade, &Value::Str("symbol".to_string()));
                 if is_equal(&symbol, &Value::Null) {

@@ -153,9 +153,6 @@ impl ClientState {
 
     /// Store a resolved value for `hash` (TS `client.resolve`).
     pub fn resolve(&self, hash: &str, value: Value) {
-        if std::env::var("CCXT_WS_DEBUG").is_ok() {
-            eprintln!("[wsresolve] {}", hash);
-        }
         self.resolved.lock().unwrap().insert(hash.to_string(), value);
         self.notify.notify_waiters();
     }
@@ -251,6 +248,10 @@ impl ClientState {
     pub fn has_pending_futures(&self) -> bool {
         !self.futures.lock().unwrap().is_empty()
     }
+    /// Whether the mock inbound queue still holds un-consumed frames.
+    pub fn has_queued_messages(&self) -> bool {
+        !self.incoming.lock().unwrap().is_empty()
+    }
     pub fn mark_ws_test_completed(&self) { *self.ws_test_completed.lock().unwrap() = true; }
     pub fn is_ws_test_completed(&self) -> bool { *self.ws_test_completed.lock().unwrap() }
     /// Reject every pending future so a fixture whose frames don't resolve the
@@ -324,7 +325,13 @@ impl ClientState {
         let f = self.futures.lock().unwrap();
         let mut m = indexmap::IndexMap::new();
         for h in f.iter() {
-            m.insert(h.clone(), Value::Bool(true));
+            // Each entry is a future *handle* carrying the url + its own hash, so
+            // transpiled `client.futures[hash].resolve(x)` (bitget/cryptocom auth)
+            // routes back to this ClientState — see value_resolve/value_reject.
+            let mut fh = indexmap::IndexMap::new();
+            fh.insert("url".to_string(), Value::Str(self.url.clone()));
+            fh.insert("__ws_future_hash".to_string(), Value::Str(h.clone()));
+            m.insert(h.clone(), Value::Map(fh));
         }
         Value::Map(m)
     }
@@ -494,6 +501,10 @@ pub fn mock_setup(url: &str) {
     c.reset();
     c.mock_enable();
     c.mock_sent.lock().unwrap().clear();
+    // Discard any messages left unconsumed by a prior test on the same URL (e.g.
+    // a heartbeat a watchTrades drive loop returned past before reading) so they
+    // don't leak an extra handler dispatch / sent frame into the next test.
+    c.incoming.lock().unwrap().clear();
     *c.ws_test_completed.lock().unwrap() = false;
 }
 pub fn mock_inject(url: &str, msg: Value) {
@@ -504,6 +515,9 @@ pub fn mock_sent_messages(url: &str) -> Value {
 }
 pub fn mock_has_pending_futures(url: &str) -> bool {
     get_client(url).map(|c| c.has_pending_futures()).unwrap_or(false)
+}
+pub fn mock_has_queued_messages(url: &str) -> bool {
+    get_client(url).map(|c| c.has_queued_messages()).unwrap_or(false)
 }
 pub fn mock_mark_completed(url: &str) {
     if let Some(c) = get_client(url) { c.mark_ws_test_completed(); }
@@ -547,6 +561,14 @@ fn hash_str(v: &Value) -> Option<String> {
 /// `client.resolve(value, messageHash)` routed by URL. Returns `value`.
 pub fn value_resolve(client: &Value, args: &[Value]) -> Value {
     let value = args.get(0).cloned().unwrap_or(Value::Null);
+    // `client.futures[hash].resolve(value)` — the future handle carries its own
+    // hash, so there is no second arg. Resolve that hash.
+    if let Some(hash) = future_hash_of(client) {
+        if let Some(url) = url_of(client) {
+            if let Some(c) = get_client(&url) { c.resolve(&hash, value.clone()); }
+        }
+        return value;
+    }
     if let (Some(url), Some(hash)) = (url_of(client), args.get(1).and_then(hash_str)) {
         if let Some(c) = get_client(&url) {
             c.resolve(&hash, value.clone());
@@ -555,9 +577,24 @@ pub fn value_resolve(client: &Value, args: &[Value]) -> Value {
     value
 }
 
+/// Extract the hash a future handle (`client.futures[hash]`) resolves/rejects.
+fn future_hash_of(client: &Value) -> Option<String> {
+    match crate::get_value(client, &Value::Str("__ws_future_hash".to_string())) {
+        Value::Str(s) => Some(s),
+        _ => None,
+    }
+}
+
 /// `client.reject(error, messageHash)` routed by URL.
 pub fn value_reject(client: &Value, args: &[Value]) -> Value {
     let err = args.get(0).cloned().unwrap_or(Value::Null);
+    // `client.futures[hash].reject(error)` — future handle carries its own hash.
+    if let Some(hash) = future_hash_of(client) {
+        if let Some(url) = url_of(client) {
+            if let Some(c) = get_client(&url) { c.reject(&hash, err.clone()); }
+        }
+        return err;
+    }
     if let Some(url) = url_of(client) {
         if let Some(c) = get_client(&url) {
             match args.get(1).and_then(hash_str) {

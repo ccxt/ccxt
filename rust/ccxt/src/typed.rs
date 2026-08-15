@@ -62,7 +62,6 @@ pub use crate::exchanges::deribit_typed::Deribit;
 pub use crate::exchanges::derive_typed::Derive;
 pub use crate::exchanges::digifinex_typed::Digifinex;
 pub use crate::exchanges::dydx_typed::Dydx;
-pub use crate::exchanges::exmo_typed::Exmo;
 pub use crate::exchanges::extended_typed::Extended;
 pub use crate::exchanges::fmfwio_typed::Fmfwio;
 pub use crate::exchanges::foxbit_typed::Foxbit;

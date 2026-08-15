@@ -432,6 +432,13 @@ pub fn preloadWsMessages(_exchange: Value, url: Value, messages: Value) -> Value
     Value::Null
 }
 
+/// Whether the mock inbound queue still has frames to drain — the
+/// parsedResponse loop keeps re-watching until every frame is consumed so the
+/// asserted structure reflects the final state after all deltas.
+pub fn wsHasQueuedMessages(_exchange: Value, url: Value) -> Value {
+    Value::Bool(ccxt::pro::ws_client::mock_has_queued_messages(&ws_url(&url)))
+}
+
 #[cfg(feature = "exchange-tests")]
 pub async fn getTestFiles(_properties: Value, ws: Value) -> Value {
     if matches!(ws, Value::Bool(true)) {

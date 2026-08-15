@@ -24,8 +24,8 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
     let mut marketValues: Value = object_values(&markets);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1423: bool = true;
-        while { if !__for_first_1423 { i = add(&i, &Value::Int(1)); } __for_first_1423 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
+        let mut __for_first_1418: bool = true;
+        while { if !__for_first_1418 { i = add(&i, &Value::Int(1)); } __for_first_1418 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
         testMarket(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&marketValues, &i));
     }
     }
@@ -35,8 +35,8 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
     let mut allMarkets: Value = object_values(&get_value(&exchange, &Value::Str("markets".to_string())));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1424: bool = true;
-        while { if !__for_first_1424 { i = add(&i, &Value::Int(1)); } __for_first_1424 = false; is_less_than(&i, &get_array_length(&allMarkets)) } {
+        let mut __for_first_1419: bool = true;
+        while { if !__for_first_1419 { i = add(&i, &Value::Int(1)); } __for_first_1419 = false; is_less_than(&i, &get_array_length(&allMarkets)) } {
         let mut market: Value = get_value(&allMarkets, &i);
         if !is_true(&exchange.in_array(get_value(&market, &Value::Str("type".to_string())), collectedTypes.clone())) {
             append_to_array(&mut collectedTypes, get_value(&market, &Value::Str("type".to_string())));
@@ -45,8 +45,8 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
     }
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1425: bool = true;
-        while { if !__for_first_1425 { i = add(&i, &Value::Int(1)); } __for_first_1425 = false; is_less_than(&i, &get_array_length(&marketTypes)) } {
+        let mut __for_first_1420: bool = true;
+        while { if !__for_first_1420 { i = add(&i, &Value::Int(1)); } __for_first_1420 = false; is_less_than(&i, &get_array_length(&marketTypes)) } {
         let mut mType: Value = get_value(&marketTypes, &i);
         if is_true(&get_value(&get_value(&exchange, &Value::Str("has".to_string())), &mType)) {
             let mut skipMarketTypes: Value = Value::Bool(is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("optionsNotLoadedByDefault".to_string()))))) && is_equal(&mType, &Value::Str("option".to_string())));

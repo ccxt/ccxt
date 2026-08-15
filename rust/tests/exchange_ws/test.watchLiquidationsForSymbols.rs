@@ -36,8 +36,8 @@ pub async fn testWatchLiquidationsForSymbols(mut exchange: Value, mut skippedPro
             println_val(&m3);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_64: bool = true;
-                while { if !__for_first_64 { i = add(&i, &Value::Int(1)); } __for_first_64 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut __for_first_1422: bool = true;
+                while { if !__for_first_1422 { i = add(&i, &Value::Int(1)); } __for_first_1422 = false; is_less_than(&i, &get_array_length(&response)) } {
                 testLiquidation(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&response, &i), symbol.clone());
             }
             }

@@ -59,12 +59,16 @@ impl WooCore {
         // after_construct left an EMPTY networksById), which would
         // otherwise clobber the manual mappings like binance BSC to BEP20.
         let __described_networks_by_id = crate::get_value(&__described_options, &crate::Value::Str("networksById".to_string()));
-        if let (crate::Value::Dict(existing), crate::Value::Dict(defaults)) =
+        if let (crate::Value::Dict(_), crate::Value::Dict(_)) =
             (&self.options.clone(), &__described_options)
         {
-            let mut merged = (**defaults).clone();
-            for (k, v) in existing.iter() { merged.insert(k.clone(), v.clone()); }
-            self.options = crate::Value::Map(merged);
+            // Deep-extend (CCXT deepExtend): describe() defaults as the base,
+            // existing (config + parent REST describe) winning on leaf conflicts,
+            // nested dicts merged rather than replaced — so e.g. a pro Core's
+            // flat options.timeframes unions with the parent REST's nested one
+            // instead of one clobbering the other.
+            self.options = crate::runtime::deep_merge_dict(
+                &__described_options, &self.options.clone());
         } else if !matches!(self.options, crate::Value::Dict(_)) {
             self.options = __described_options;
         }
@@ -122,6 +126,22 @@ impl WooCore {
         // the constructor config (test runners pass them in via
         // Exchange::new(Some(config-with-markets)) — same as CCXT TS).
         // Don't reset them here.
+        // Apply hardcoded describe().markets. Venues like coincheck ship a
+        // static markets block and never fetchMarkets — CCXT sets this.markets
+        // from describe() at construction, and its base fetchMarkets just
+        // returns Object.values(this.markets). Mirror that here so loadMarkets
+        // resolves without a network fetch. Guarded on a non-empty describe()
+        // markets and an as-yet-unloaded self.markets, so fetch-based venues
+        // (empty describe markets) and config-injected markets are untouched.
+        {
+            let __described_markets = crate::get_value(&described, &crate::Value::Str("markets".to_string()));
+            if matches!(&__described_markets, crate::Value::Dict(mm) if !mm.is_empty())
+                && matches!(self.markets, crate::Value::Null)
+            {
+                let __markets_list = crate::runtime::object_values(&__described_markets);
+                <Self as crate::exchange_generated::ExchangeBase>::set_markets(self, __markets_list, &[crate::Value::Null]);
+            }
+        }
         self.build_implicit_api();
     }
 
@@ -296,7 +316,6 @@ impl crate::exchange_generated::ExchangeBase for WooCore {
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-                "parse_transfer_status" => self.parse_transfer_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "reduce_margin" => self.reduce_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]).await,
                 "repay_margin" => self.repay_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]).await,
                 "set_leverage" => self.set_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
@@ -462,7 +481,7 @@ impl WooCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://woox.io/".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://docs.woox.io/".to_string())]));
+        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://developer.woox.io/".to_string()), Value::Str("https://docs.woox.io/".to_string())]));
         m.insert("fees".to_string(), Value::List(vec![Value::Str("https://support.woox.io/hc/en-001/articles/4404611795353--Trading-Fees".to_string())]));
         m.insert("referral".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -777,23 +796,6 @@ impl WooCore {
         m.insert("asset/withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(120));
-    m
-}));
-    m
-}));
-    m
-}));
-    m
-}));
-        m.insert("v2".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("private".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("get".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("client/holding".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
     m
 }));
     m
@@ -1244,14 +1246,6 @@ impl WooCore {
         m.insert("adjustForTimeDifference".to_string(), Value::Bool(false));
         m.insert("sandboxMode".to_string(), Value::Bool(false));
         m.insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(true));
-        m.insert("network-aliases-for-tokens".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("HT".to_string(), Value::Str("ERC20".to_string()));
-        m.insert("OMG".to_string(), Value::Str("ERC20".to_string()));
-        m.insert("UATOM".to_string(), Value::Str("ATOM".to_string()));
-        m.insert("ZRX".to_string(), Value::Str("ZRX".to_string()));
-    m
-}));
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("TRX".to_string(), Value::Str("TRX".to_string()));
@@ -1259,12 +1253,20 @@ impl WooCore {
         m.insert("ERC20".to_string(), Value::Str("ETH".to_string()));
         m.insert("BEP20".to_string(), Value::Str("BSC".to_string()));
         m.insert("ARBITRUM".to_string(), Value::Str("Arbitrum".to_string()));
+        m.insert("BASE".to_string(), Value::Str("BASE".to_string()));
+        m.insert("AVAXC".to_string(), Value::Str("AVAXC".to_string()));
+        m.insert("OP".to_string(), Value::Str("OP".to_string()));
+        m.insert("OPTIMISM".to_string(), Value::Str("OP".to_string()));
+        m.insert("MATIC".to_string(), Value::Str("MATIC".to_string()));
+        m.insert("SONIC".to_string(), Value::Str("S".to_string()));
+        m.insert("HYPEREVM".to_string(), Value::Str("HyperEVM".to_string()));
     m
 }));
         m.insert("networksById".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("TRX".to_string(), Value::Str("TRC20".to_string()));
         m.insert("TRON".to_string(), Value::Str("TRC20".to_string()));
+        m.insert("OP".to_string(), Value::Str("OP".to_string()));
     m
 }));
         m.insert("defaultNetworkCodeForCurrencies".to_string(), Value::Map({
@@ -2115,8 +2117,8 @@ impl WooCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1079: bool = true;
-            while { if !__for_first_1079 { i = add(&i, &Value::Int(1)); } __for_first_1079 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_1069: bool = true;
+            while { if !__for_first_1069 { i = add(&i, &Value::Int(1)); } __for_first_1069 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
@@ -2238,8 +2240,8 @@ impl WooCore {
         let mut currencyIds: Value = object_keys(&tokensById);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1080: bool = true;
-            while { if !__for_first_1080 { i = add(&i, &Value::Int(1)); } __for_first_1080 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_1070: bool = true;
+            while { if !__for_first_1070 { i = add(&i, &Value::Int(1)); } __for_first_1070 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut id: Value = get_value(&currencyIds, &i);
             let mut id: Value = get_value(&currencyIds, &i);
             let mut customCurrency: Value = Value::Map({
@@ -2273,8 +2275,8 @@ impl WooCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1081: bool = true;
-            while { if !__for_first_1081 { j = add(&j, &Value::Int(1)); } __for_first_1081 = false; is_less_than(&j, &get_array_length(&keys)) } {
+            let mut __for_first_1071: bool = true;
+            while { if !__for_first_1071 { j = add(&j, &Value::Int(1)); } __for_first_1071 = false; is_less_than(&j, &get_array_length(&keys)) } {
             let mut networkId: Value = get_value(&keys, &j);
             let mut networkId: Value = get_value(&keys, &j);
             let mut tokenEntry: Value = self.safe_dict(tokensByNetworkId.clone(), networkId.clone(), &[Value::Map({
@@ -2882,12 +2884,12 @@ impl WooCore {
 /*
  * @method
  * @name woo#cancelAllOrders
- * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
+ * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_orders_by_symbol
  * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
  * @description cancel all open orders in a market
- * @param {string} [symbol] unified market symbol
+ * @param {string} [symbol] unified market symbol, cancels orders in all markets when omitted
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.trigger] whether the order is a trigger/algo order
+ * @param {boolean} [params.trigger] set to true to cancel only trigger/algo orders
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_all_orders(&mut self, optional_args: &[Value]) -> Value {
@@ -2913,8 +2915,9 @@ impl WooCore {
         if is_true(&trigger) {
             response = self.v3_private_delete_trade_algo_orders(&[params.clone()]).await;
         }  else {
+            // cancels both regular and algo orders
             let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
-            response = self.v3_private_delete_trade_orders(&[__ws_arg_8]).await;
+            response = self.v3_private_delete_trade_all_orders(&[__ws_arg_8]).await;
         }
         //
         //     {
@@ -3812,8 +3815,8 @@ impl WooCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "holding", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1082: bool = true;
-            while { if !__for_first_1082 { i = add(&i, &Value::Int(1)); } __for_first_1082 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1072: bool = true;
+            while { if !__for_first_1072 { i = add(&i, &Value::Int(1)); } __for_first_1072 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
@@ -4494,25 +4497,10 @@ impl WooCore {
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
         m.insert("fromAccount".to_string(), self.safe_string_k(fromAccount.clone(), "applicationId", &[]));
         m.insert("toAccount".to_string(), self.safe_string_k(toAccount.clone(), "applicationId", &[]));
-        m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_k(transfer.clone(), "status", &[status.clone()])));
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transfer.clone(), "status", &[status.clone()])));
         m.insert("info".to_string(), transfer.clone());
     m
 });
-
-    Value::Null
-}
-
-    pub fn parse_transfer_status(&self, mut status: Value) -> Value {
-        let mut statuses: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("NEW".to_string(), Value::Str("pending".to_string()));
-                m.insert("CONFIRMING".to_string(), Value::Str("pending".to_string()));
-                m.insert("PROCESSING".to_string(), Value::Str("pending".to_string()));
-                m.insert("COMPLETED".to_string(), Value::Str("ok".to_string()));
-                m.insert("CANCELED".to_string(), Value::Str("canceled".to_string()));
-            m
-        });
-        return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
 
     Value::Null
 }
@@ -5161,8 +5149,8 @@ impl WooCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1083: bool = true;
-            while { if !__for_first_1083 { i = add(&i, &Value::Int(1)); } __for_first_1083 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_1073: bool = true;
+            while { if !__for_first_1073 { i = add(&i, &Value::Int(1)); } __for_first_1073 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut entry: Value = get_value(&rows, &i);
             let mut entry: Value = get_value(&rows, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -5279,8 +5267,8 @@ impl WooCore {
         let mut details: Value = self.safe_list_k(leverage.clone(), "details", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1084: bool = true;
-            while { if !__for_first_1084 { i = add(&i, &Value::Int(1)); } __for_first_1084 = false; is_less_than(&i, &get_array_length(&details)) } {
+            let mut __for_first_1074: bool = true;
+            while { if !__for_first_1074 { i = add(&i, &Value::Int(1)); } __for_first_1074 = false; is_less_than(&i, &get_array_length(&details)) } {
             let mut position: Value = self.safe_dict(details.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6005,8 +5993,8 @@ impl WooCore {
         let mut data: Value = self.safe_list_k(response.clone(), "rows", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1085: bool = true;
-            while { if !__for_first_1085 { i = add(&i, &Value::Int(1)); } __for_first_1085 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_1075: bool = true;
+            while { if !__for_first_1075 { i = add(&i, &Value::Int(1)); } __for_first_1075 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut id: Value = self.safe_string_k(entry.clone(), "token", &[]);
@@ -6181,8 +6169,8 @@ impl WooCore {
         let mut networkKeys: Value = object_keys(&networks);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1086: bool = true;
-            while { if !__for_first_1086 { i = add(&i, &Value::Int(1)); } __for_first_1086 = false; is_less_than(&i, &get_array_length(&networkKeys)) } {
+            let mut __for_first_1076: bool = true;
+            while { if !__for_first_1076 { i = add(&i, &Value::Int(1)); } __for_first_1076 = false; is_less_than(&i, &get_array_length(&networkKeys)) } {
             let mut network: Value = get_value(&networkKeys, &i);
             let mut network: Value = get_value(&networkKeys, &i);
             if is_equal(&network, &Value::Str("ETH".to_string())) {

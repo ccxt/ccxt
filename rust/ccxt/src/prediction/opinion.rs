@@ -62,12 +62,16 @@ impl OpinionCore {
         // after_construct left an EMPTY networksById), which would
         // otherwise clobber the manual mappings like binance BSC to BEP20.
         let __described_networks_by_id = crate::get_value(&__described_options, &crate::Value::Str("networksById".to_string()));
-        if let (crate::Value::Dict(existing), crate::Value::Dict(defaults)) =
+        if let (crate::Value::Dict(_), crate::Value::Dict(_)) =
             (&self.options.clone(), &__described_options)
         {
-            let mut merged = (**defaults).clone();
-            for (k, v) in existing.iter() { merged.insert(k.clone(), v.clone()); }
-            self.options = crate::Value::Map(merged);
+            // Deep-extend (CCXT deepExtend): describe() defaults as the base,
+            // existing (config + parent REST describe) winning on leaf conflicts,
+            // nested dicts merged rather than replaced — so e.g. a pro Core's
+            // flat options.timeframes unions with the parent REST's nested one
+            // instead of one clobbering the other.
+            self.options = crate::runtime::deep_merge_dict(
+                &__described_options, &self.options.clone());
         } else if !matches!(self.options, crate::Value::Dict(_)) {
             self.options = __described_options;
         }
@@ -125,6 +129,22 @@ impl OpinionCore {
         // the constructor config (test runners pass them in via
         // Exchange::new(Some(config-with-markets)) — same as CCXT TS).
         // Don't reset them here.
+        // Apply hardcoded describe().markets. Venues like coincheck ship a
+        // static markets block and never fetchMarkets — CCXT sets this.markets
+        // from describe() at construction, and its base fetchMarkets just
+        // returns Object.values(this.markets). Mirror that here so loadMarkets
+        // resolves without a network fetch. Guarded on a non-empty describe()
+        // markets and an as-yet-unloaded self.markets, so fetch-based venues
+        // (empty describe markets) and config-injected markets are untouched.
+        {
+            let __described_markets = crate::get_value(&described, &crate::Value::Str("markets".to_string()));
+            if matches!(&__described_markets, crate::Value::Dict(mm) if !mm.is_empty())
+                && matches!(self.markets, crate::Value::Null)
+            {
+                let __markets_list = crate::runtime::object_values(&__described_markets);
+                <Self as crate::exchange_generated::ExchangeBase>::set_markets(self, __markets_list, &[crate::Value::Null]);
+            }
+        }
         self.build_implicit_api();
     }
 
@@ -297,7 +317,7 @@ impl OpinionCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/f633496f-8d3d-4bc2-a59c-612dbbf23b11".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/9905d9d4-3eb3-48d2-bdb3-551a9ddc7559".to_string()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("opinion".to_string(), Value::Str("https://openapi.opinion.trade/openapi".to_string()));
@@ -484,8 +504,8 @@ impl OpinionCore {
             let mut total: Value = self.safe_integer_k(result.clone(), "total", &[]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1294: bool = true;
-                while { if !__for_first_1294 { i = add(&i, &Value::Int(1)); } __for_first_1294 = false; is_less_than(&i, &rawMarketsLength) } {
+                let mut __for_first_1287: bool = true;
+                while { if !__for_first_1287 { i = add(&i, &Value::Int(1)); } __for_first_1287 = false; is_less_than(&i, &rawMarketsLength) } {
                 let mut raw: Value = get_value(&rawMarkets, &i);
                 let mut raw: Value = get_value(&rawMarkets, &i);
                 let mut marketType: Value = self.safe_integer_k(raw.clone(), "marketType", &[]);
@@ -495,8 +515,8 @@ impl OpinionCore {
                     let mut childMarketsLength: Value = get_array_length(&childMarkets);
                     {
                                                 let mut ci: Value = Value::Int(0);
-                        let mut __for_first_1293: bool = true;
-                        while { if !__for_first_1293 { ci = add(&ci, &Value::Int(1)); } __for_first_1293 = false; is_less_than(&ci, &childMarketsLength) } {
+                        let mut __for_first_1286: bool = true;
+                        while { if !__for_first_1286 { ci = add(&ci, &Value::Int(1)); } __for_first_1286 = false; is_less_than(&ci, &childMarketsLength) } {
                         append_to_array(&mut flatMarkets, get_value(&childMarkets, &ci));
                     }
                     }
@@ -602,8 +622,8 @@ impl OpinionCore {
         let mut resolvedOutcome: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1295: bool = true;
-            while { if !__for_first_1295 { i = add(&i, &Value::Int(1)); } __for_first_1295 = false; is_less_than(&i, &get_array_length(&outcomeLabels)) } {
+            let mut __for_first_1288: bool = true;
+            while { if !__for_first_1288 { i = add(&i, &Value::Int(1)); } __for_first_1288 = false; is_less_than(&i, &get_array_length(&outcomeLabels)) } {
             let mut label: Value = get_value(&outcomeLabels, &i);
             let mut label: Value = get_value(&outcomeLabels, &i);
             let mut tokenId: Value = get_value(&outcomeTokenIds, &i);
@@ -809,8 +829,8 @@ impl OpinionCore {
             fetchedRawCount = self.sum(&[fetchedRawCount.clone(), pageEventsLength.clone()]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1296: bool = true;
-                while { if !__for_first_1296 { i = add(&i, &Value::Int(1)); } __for_first_1296 = false; is_less_than(&i, &pageEventsLength) } {
+                let mut __for_first_1289: bool = true;
+                while { if !__for_first_1289 { i = add(&i, &Value::Int(1)); } __for_first_1289 = false; is_less_than(&i, &pageEventsLength) } {
                 append_to_array(&mut rawEvents, get_value(&pageEvents, &i));
             }
             }
@@ -827,8 +847,8 @@ impl OpinionCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1298: bool = true;
-            while { if !__for_first_1298 { i = add(&i, &Value::Int(1)); } __for_first_1298 = false; is_less_than(&i, &rawEventsLength) } {
+            let mut __for_first_1291: bool = true;
+            while { if !__for_first_1291 { i = add(&i, &Value::Int(1)); } __for_first_1291 = false; is_less_than(&i, &rawEventsLength) } {
             let mut event: Value = self.parse_event(get_value(&rawEvents, &i));
             append_to_array(&mut parsedEvents, event.clone());
             // register the parsed markets so populateOutcomes can index their outcomes
@@ -836,8 +856,8 @@ impl OpinionCore {
             let mut eventMarketsLength: Value = get_array_length(&eventMarkets);
             {
                                 let mut mi: Value = Value::Int(0);
-                let mut __for_first_1297: bool = true;
-                while { if !__for_first_1297 { mi = add(&mi, &Value::Int(1)); } __for_first_1297 = false; is_less_than(&mi, &eventMarketsLength) } {
+                let mut __for_first_1290: bool = true;
+                while { if !__for_first_1290 { mi = add(&mi, &Value::Int(1)); } __for_first_1290 = false; is_less_than(&mi, &eventMarketsLength) } {
                 let mut m: Value = get_value(&eventMarkets, &mi);
                 let mut m: Value = get_value(&eventMarkets, &mi);
                 add_element_to_object(&mut self.markets, &get_value(&m, &Value::Str("market".to_string())), m.clone());
@@ -1003,8 +1023,8 @@ impl OpinionCore {
         let mut marketsList: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1299: bool = true;
-            while { if !__for_first_1299 { i = add(&i, &Value::Int(1)); } __for_first_1299 = false; is_less_than(&i, &rawChildrenLength) } {
+            let mut __for_first_1292: bool = true;
+            while { if !__for_first_1292 { i = add(&i, &Value::Int(1)); } __for_first_1292 = false; is_less_than(&i, &rawChildrenLength) } {
             append_to_array(&mut marketsList, self.parse_opinion_market(get_value(&rawChildren, &i), &[slug.clone()]));
         }
         }
@@ -1194,8 +1214,8 @@ impl OpinionCore {
         let mut promises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1300: bool = true;
-            while { if !__for_first_1300 { i = add(&i, &Value::Int(1)); } __for_first_1300 = false; is_less_than(&i, &outcomesLength) } {
+            let mut __for_first_1293: bool = true;
+            while { if !__for_first_1293 { i = add(&i, &Value::Int(1)); } __for_first_1293 = false; is_less_than(&i, &outcomesLength) } {
             let mut outcomeObj: Value = self.outcome(get_value(&outcomes, &i));
             let mut tokenId: Value = get_value(&outcomeObj, &Value::Str("outcomeId".to_string()));
             let __ws_arg_13 = self.extend(Value::Map({
@@ -1219,8 +1239,8 @@ impl OpinionCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1301: bool = true;
-            while { if !__for_first_1301 { i = add(&i, &Value::Int(1)); } __for_first_1301 = false; is_less_than(&i, &outcomesLength) } {
+            let mut __for_first_1294: bool = true;
+            while { if !__for_first_1294 { i = add(&i, &Value::Int(1)); } __for_first_1294 = false; is_less_than(&i, &outcomesLength) } {
             let mut outcomeObj: Value = self.outcome(get_value(&outcomes, &i));
             let mut priceIndex: Value = multiply(&i, &Value::Int(2));
             let mut priceResponse: Value = get_value(&responses, &priceIndex);
@@ -1349,8 +1369,8 @@ impl OpinionCore {
         let mut historyLength: Value = get_array_length(&history);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1302: bool = true;
-            while { if !__for_first_1302 { i = add(&i, &Value::Int(1)); } __for_first_1302 = false; is_less_than(&i, &historyLength) } {
+            let mut __for_first_1295: bool = true;
+            while { if !__for_first_1295 { i = add(&i, &Value::Int(1)); } __for_first_1295 = false; is_less_than(&i, &historyLength) } {
             let mut point: Value = get_value(&history, &i);
             let mut point: Value = get_value(&history, &i);
             let mut price: Value = self.safe_number_k(point.clone(), "p", &[]);
@@ -1423,8 +1443,8 @@ impl OpinionCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1303: bool = true;
-            while { if !__for_first_1303 { i = add(&i, &Value::Int(1)); } __for_first_1303 = false; is_less_than(&i, &listLength) } {
+            let mut __for_first_1296: bool = true;
+            while { if !__for_first_1296 { i = add(&i, &Value::Int(1)); } __for_first_1296 = false; is_less_than(&i, &listLength) } {
             let mut entry: Value = get_value(&list, &i);
             let mut entry: Value = get_value(&list, &i);
             let mut address: Value = self.safe_string_lower(entry.clone(), Value::Str("quoteTokenAddress".to_string()), &[]);
@@ -1559,8 +1579,8 @@ impl OpinionCore {
         let mut decimalsStr: Value = Value::Str("1".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1304: bool = true;
-            while { if !__for_first_1304 { i = add(&i, &Value::Int(1)); } __for_first_1304 = false; is_less_than(&i, &decimals) } {
+            let mut __for_first_1297: bool = true;
+            while { if !__for_first_1297 { i = add(&i, &Value::Int(1)); } __for_first_1297 = false; is_less_than(&i, &decimals) } {
             decimalsStr = add(&decimalsStr, &Value::Str("0".to_string()));
         }
         }
@@ -2057,8 +2077,8 @@ impl OpinionCore {
         let mut tradesLength: Value = get_array_length(&trades);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1305: bool = true;
-            while { if !__for_first_1305 { i = add(&i, &Value::Int(1)); } __for_first_1305 = false; is_less_than(&i, &tradesLength) } {
+            let mut __for_first_1298: bool = true;
+            while { if !__for_first_1298 { i = add(&i, &Value::Int(1)); } __for_first_1298 = false; is_less_than(&i, &tradesLength) } {
             let mut trade: Value = get_value(&trades, &i);
             let mut trade: Value = get_value(&trades, &i);
             let mut tokenId: Value = self.safe_string_k(trade.clone(), "tokenId", &[]);
@@ -2199,8 +2219,8 @@ impl OpinionCore {
         let mut rawBalancesLength: Value = get_array_length(&rawBalances);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1306: bool = true;
-            while { if !__for_first_1306 { i = add(&i, &Value::Int(1)); } __for_first_1306 = false; is_less_than(&i, &rawBalancesLength) } {
+            let mut __for_first_1299: bool = true;
+            while { if !__for_first_1299 { i = add(&i, &Value::Int(1)); } __for_first_1299 = false; is_less_than(&i, &rawBalancesLength) } {
             let mut rawBalance: Value = get_value(&rawBalances, &i);
             let mut rawBalance: Value = get_value(&rawBalances, &i);
             let mut quoteTokenAddress: Value = self.safe_string_k(rawBalance.clone(), "quoteToken", &[]);
@@ -2235,8 +2255,8 @@ impl OpinionCore {
         let mut balancesLength: Value = get_array_length(&balances);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1307: bool = true;
-            while { if !__for_first_1307 { i = add(&i, &Value::Int(1)); } __for_first_1307 = false; is_less_than(&i, &balancesLength) } {
+            let mut __for_first_1300: bool = true;
+            while { if !__for_first_1300 { i = add(&i, &Value::Int(1)); } __for_first_1300 = false; is_less_than(&i, &balancesLength) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_string_k(balance.clone(), "symbol", &[Value::Str("USDT".to_string())]);
@@ -2302,8 +2322,8 @@ impl OpinionCore {
         let mut outcomesList: Value = ternary(is_true(&(is_equal(&outcomes, &Value::Null))), Value::List(vec![]), outcomes.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1308: bool = true;
-            while { if !__for_first_1308 { i = add(&i, &Value::Int(1)); } __for_first_1308 = false; is_less_than(&i, &get_array_length(&outcomesList)) } {
+            let mut __for_first_1301: bool = true;
+            while { if !__for_first_1301 { i = add(&i, &Value::Int(1)); } __for_first_1301 = false; is_less_than(&i, &get_array_length(&outcomesList)) } {
             let mut outcomeObj: Value = self.outcome(get_value(&outcomesList, &i));
             let mut tokenId: Value = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]);
             if !is_equal(&tokenId, &Value::Null) {
@@ -2314,8 +2334,8 @@ impl OpinionCore {
         let mut filtered: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1309: bool = true;
-            while { if !__for_first_1309 { i = add(&i, &Value::Int(1)); } __for_first_1309 = false; is_less_than(&i, &get_array_length(&parsed)) } {
+            let mut __for_first_1302: bool = true;
+            while { if !__for_first_1302 { i = add(&i, &Value::Int(1)); } __for_first_1302 = false; is_less_than(&i, &get_array_length(&parsed)) } {
             let mut position: Value = get_value(&parsed, &i);
             let mut position: Value = get_value(&parsed, &i);
             let mut info: Value = self.safe_dict_k(position.clone(), "info", &[Value::Map({
@@ -2656,8 +2676,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketKeysLength: Value = get_array_length(&marketKeys);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1310: bool = true;
-            while { if !__for_first_1310 { i = add(&i, &Value::Int(1)); } __for_first_1310 = false; is_less_than(&i, &marketKeysLength) } {
+            let mut __for_first_1303: bool = true;
+            while { if !__for_first_1303 { i = add(&i, &Value::Int(1)); } __for_first_1303 = false; is_less_than(&i, &marketKeysLength) } {
             let mut market: Value = get_value(&self.markets, &get_value(&marketKeys, &i));
             let mut info: Value = self.safe_dict_k(market.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();

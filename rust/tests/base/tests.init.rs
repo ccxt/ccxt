@@ -20,6 +20,7 @@ pub async fn baseTestsInit() {
     testNumberToBE();
     testDecimalToPrecision();
     testCapitalize();
+    testIsDictionary();
     testNumberToString();
     testPrecise();
     testSafeMethods();

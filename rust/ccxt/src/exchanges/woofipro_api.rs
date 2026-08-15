@@ -412,6 +412,11 @@ impl WoofiproCore {
         self.call_method(Value::Str("v1_private_get_kline".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v1PrivateGetClientMarginModes` implicit endpoint.
+    pub async fn v1_private_get_client_margin_modes(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_client_margin_modes".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v1PrivatePostOrderlyKey` implicit endpoint.
     pub async fn v1_private_post_orderly_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_post_orderly_key".to_string()), optional_args).await
@@ -475,6 +480,16 @@ impl WoofiproCore {
     /// Auto-generated wrapper for the `v1PrivatePostClientLeverage` implicit endpoint.
     pub async fn v1_private_post_client_leverage(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_post_client_leverage".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostClientMarginMode` implicit endpoint.
+    pub async fn v1_private_post_client_margin_mode(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_client_margin_mode".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostPositionMargin` implicit endpoint.
+    pub async fn v1_private_post_position_margin(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_position_margin".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PrivatePostClientMaintenanceConfig` implicit endpoint.

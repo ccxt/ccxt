@@ -272,6 +272,16 @@ impl Value {
     /// `get_value`.
     pub fn hashmap(&self) -> Value {
         if let Value::Dict(d) = self {
+            // Cache marker: the live hashmap lives in the shared CACHE_STORE
+            // (keyed by __cache_id), not on the marker Dict. Return a copy with
+            // each symbol bucket tagged with a `__cache_backref` so that a
+            // transpiled write-back like `cache.hashmap[symbol][id] = order`
+            // (the JS reference write) persists through to the store — see
+            // try_cache_hashmap_write.
+            if let Some(id) = cache_id_of(self) {
+                let hm = with_cache_cell(id, |m| m.get("hashmap").cloned().unwrap_or(Value::Null));
+                return tag_cache_hashmap_buckets(hm, id);
+            }
             if let Some(v) = d.get("hashmap") { return v.clone(); }
         }
         Value::Null
@@ -820,6 +830,68 @@ fn cache_str_field(item: &Value, key: &str) -> Option<String> {
         },
         _ => None,
     }
+}
+
+/// Tag every symbol bucket of a cache hashmap copy with a `__cache_backref`
+/// = [cache_id, symbol] so a later `bucket[id] = order` write can be routed
+/// back into the shared CACHE_STORE (see `try_cache_hashmap_write`). Mirrors
+/// the JS reference semantics where `cache.hashmap[symbol]` is the live row.
+fn tag_cache_hashmap_buckets(hm: Value, id: i64) -> Value {
+    if let Value::Dict(d) = &hm {
+        let mut out: HashMap<String, Value> = HashMap::new();
+        for (sym, bucket) in d.iter() {
+            if let Value::Dict(bd) = bucket {
+                let mut nb: HashMap<String, Value> = (**bd).clone();
+                nb.insert(
+                    "__cache_backref".to_string(),
+                    Value::Arr(std::sync::Arc::new(vec![Value::Int(id), Value::Str(sym.clone())])),
+                );
+                out.insert(sym.clone(), Value::Dict(std::sync::Arc::new(nb)));
+            } else {
+                out.insert(sym.clone(), bucket.clone());
+            }
+        }
+        return Value::Dict(std::sync::Arc::new(out));
+    }
+    hm
+}
+
+/// When a transpiled `bucket[key] = item` write lands on a cache-hashmap bucket
+/// tagged by `tag_cache_hashmap_buckets`, persist `item` into the shared
+/// CACHE_STORE: update `hashmap[symbol][key]` and the matching `_data` row.
+/// This is how cross-handler mutations of a cached order (fee/trades
+/// accumulation in handleMyTrade, later read by handleOrder) survive Rust's
+/// copy-on-write `Value` semantics. Returns true if a write-through happened.
+pub(crate) fn try_cache_hashmap_write(bucket: &HashMap<String, Value>, key: &str, item: &Value) -> bool {
+    let (id, sym) = match bucket.get("__cache_backref") {
+        Some(Value::Arr(a)) => match (a.first(), a.get(1)) {
+            (Some(Value::Int(id)), Some(Value::Str(s))) => (*id, s.clone()),
+            _ => return false,
+        },
+        _ => return false,
+    };
+    with_cache_cell(id, |m| {
+        // hashmap[sym][key] = item
+        {
+            let hm = cache_dict_field_mut(m, "hashmap");
+            let b = hm.entry(sym.clone()).or_insert_with(|| Value::Map(HashMap::new()));
+            if let Value::Dict(bd) = b {
+                Arc::make_mut(bd).insert(key.to_string(), item.clone());
+            }
+        }
+        // update the matching _data row (matched by symbol + id/side == key)
+        let data = cache_data_mut(m);
+        for x in data.iter_mut() {
+            if cache_str_field(x, "symbol").as_deref() == Some(&sym)
+                && (cache_str_field(x, "id").as_deref() == Some(key)
+                    || cache_str_field(x, "side").as_deref() == Some(key))
+            {
+                *x = item.clone();
+                break;
+            }
+        }
+    });
+    true
 }
 
 fn cache_kind(v: &Value) -> Option<String> {

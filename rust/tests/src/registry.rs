@@ -28,7 +28,7 @@ use ccxt::exchanges::{
     coinspot::CoinspotCore, cryptocom::CryptocomCore,
     cryptomus::CryptomusCore, deepcoin::DeepcoinCore, delta::DeltaCore,
     deribit::DeribitCore, derive::DeriveCore, digifinex::DigifinexCore,
-    dydx::DydxCore, exmo::ExmoCore, fmfwio::FmfwioCore, foxbit::FoxbitCore,
+    dydx::DydxCore, fmfwio::FmfwioCore, foxbit::FoxbitCore,
     gate::GateCore, gemini::GeminiCore, grvt::GrvtCore,
     hashkey::HashkeyCore, hibachi::HibachiCore, hitbtc::HitbtcCore,
     hollaex::HollaexCore, htx::HtxCore,
@@ -128,7 +128,6 @@ macro_rules! for_each_core {
         $cb!(derive, DeriveCore);
         $cb!(digifinex, DigifinexCore);
         $cb!(dydx, DydxCore);
-        $cb!(exmo, ExmoCore);
         $cb!(fmfwio, FmfwioCore);
         $cb!(foxbit, FoxbitCore);
         $cb!(gate, GateCore);
@@ -234,7 +233,6 @@ macro_rules! for_each_ws_core {
         $cb!(deribit, WsDeribitCore);
         $cb!(derive, WsDeriveCore);
         $cb!(dydx, WsDydxCore);
-        $cb!(exmo, WsExmoCore);
         $cb!(extended, WsExtendedCore);
         $cb!(gate, WsGateCore);
         $cb!(gateeu, WsGateeuCore);

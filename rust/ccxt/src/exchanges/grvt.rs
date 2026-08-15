@@ -59,12 +59,16 @@ impl GrvtCore {
         // after_construct left an EMPTY networksById), which would
         // otherwise clobber the manual mappings like binance BSC to BEP20.
         let __described_networks_by_id = crate::get_value(&__described_options, &crate::Value::Str("networksById".to_string()));
-        if let (crate::Value::Dict(existing), crate::Value::Dict(defaults)) =
+        if let (crate::Value::Dict(_), crate::Value::Dict(_)) =
             (&self.options.clone(), &__described_options)
         {
-            let mut merged = (**defaults).clone();
-            for (k, v) in existing.iter() { merged.insert(k.clone(), v.clone()); }
-            self.options = crate::Value::Map(merged);
+            // Deep-extend (CCXT deepExtend): describe() defaults as the base,
+            // existing (config + parent REST describe) winning on leaf conflicts,
+            // nested dicts merged rather than replaced — so e.g. a pro Core's
+            // flat options.timeframes unions with the parent REST's nested one
+            // instead of one clobbering the other.
+            self.options = crate::runtime::deep_merge_dict(
+                &__described_options, &self.options.clone());
         } else if !matches!(self.options, crate::Value::Dict(_)) {
             self.options = __described_options;
         }
@@ -122,6 +126,22 @@ impl GrvtCore {
         // the constructor config (test runners pass them in via
         // Exchange::new(Some(config-with-markets)) — same as CCXT TS).
         // Don't reset them here.
+        // Apply hardcoded describe().markets. Venues like coincheck ship a
+        // static markets block and never fetchMarkets — CCXT sets this.markets
+        // from describe() at construction, and its base fetchMarkets just
+        // returns Object.values(this.markets). Mirror that here so loadMarkets
+        // resolves without a network fetch. Guarded on a non-empty describe()
+        // markets and an as-yet-unloaded self.markets, so fetch-based venues
+        // (empty describe markets) and config-injected markets are untouched.
+        {
+            let __described_markets = crate::get_value(&described, &crate::Value::Str("markets".to_string()));
+            if matches!(&__described_markets, crate::Value::Dict(mm) if !mm.is_empty())
+                && matches!(self.markets, crate::Value::Null)
+            {
+                let __markets_list = crate::runtime::object_values(&__described_markets);
+                <Self as crate::exchange_generated::ExchangeBase>::set_markets(self, __markets_list, &[crate::Value::Null]);
+            }
+        }
         self.build_implicit_api();
     }
 
@@ -1350,8 +1370,8 @@ impl GrvtCore {
         let mut found: Value = Value::Bool(false);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_696: bool = true;
-            while { if !__for_first_696 { i = add(&i, &Value::Int(1)); } __for_first_696 = false; is_less_than(&i, &length) } {
+            let mut __for_first_682: bool = true;
+            while { if !__for_first_682 { i = add(&i, &Value::Int(1)); } __for_first_682 = false; is_less_than(&i, &length) } {
             let mut builderInfo: Value = self.safe_dict(approvedBuilder.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2290,8 +2310,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut availableBalance: Value = self.safe_string_k(response.clone(), "available_balance", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_697: bool = true;
-            while { if !__for_first_697 { i = add(&i, &Value::Int(1)); } __for_first_697 = false; is_less_than(&i, &get_array_length(&spotBalances)) } {
+            let mut __for_first_683: bool = true;
+            while { if !__for_first_683 { i = add(&i, &Value::Int(1)); } __for_first_683 = false; is_less_than(&i, &get_array_length(&spotBalances)) } {
             let mut balance: Value = get_value(&spotBalances, &i);
             let mut balance: Value = get_value(&spotBalances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -2705,8 +2725,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut nonMatchedResults: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_698: bool = true;
-            while { if !__for_first_698 { i = add(&i, &Value::Int(1)); } __for_first_698 = false; is_less_than(&i, &get_array_length(&transfers)) } {
+            let mut __for_first_684: bool = true;
+            while { if !__for_first_684 { i = add(&i, &Value::Int(1)); } __for_first_684 = false; is_less_than(&i, &get_array_length(&transfers)) } {
             let mut transfer: Value = get_value(&transfers, &i);
             let mut transfer: Value = get_value(&transfers, &i);
             if is_true(&(is_true(&onlyMainAccount) && is_equal(&get_value(&transfer, &Value::Str("fromAccount".to_string())), &Value::Str("0".to_string())) && is_equal(&get_value(&transfer, &Value::Str("toAccount".to_string())), &Value::Str("0".to_string())))) || is_true(&(!is_true(&onlyMainAccount) && is_true(&(!is_equal(&get_value(&transfer, &Value::Str("fromAccount".to_string())), &Value::Str("0".to_string())) || !is_equal(&get_value(&transfer, &Value::Str("toAccount".to_string())), &Value::Str("0".to_string())))))) {
@@ -3221,8 +3241,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut legs: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_699: bool = true;
-            while { if !__for_first_699 { i = add(&i, &Value::Int(1)); } __for_first_699 = false; is_less_than(&i, &get_array_length(&orderLegs)) } {
+            let mut __for_first_685: bool = true;
+            while { if !__for_first_685 { i = add(&i, &Value::Int(1)); } __for_first_685 = false; is_less_than(&i, &get_array_length(&orderLegs)) } {
             let mut leg: Value = get_value(&orderLegs, &i);
             let mut leg: Value = get_value(&orderLegs, &i);
             let mut market: Value = self.market(get_value(&leg, &Value::Str("instrument".to_string())));
@@ -3316,9 +3336,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("base".to_string()), Value::List(vec![]));
-            append_to_array(&mut get_value(&request, &Value::Str("base".to_string())), get_value(&market, &Value::Str("baseId".to_string())));
+            crate::runtime::append_to_object_array(&mut request, &Value::Str("base".to_string()), get_value(&market, &Value::Str("baseId".to_string())));
             add_element_to_object(&mut request, &Value::Str("quote".to_string()), Value::List(vec![]));
-            append_to_array(&mut get_value(&request, &Value::Str("quote".to_string())), get_value(&market, &Value::Str("quoteId".to_string())));
+            crate::runtime::append_to_object_array(&mut request, &Value::Str("quote".to_string()), get_value(&market, &Value::Str("quoteId".to_string())));
         }
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1000)));
@@ -3393,16 +3413,16 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             add_element_to_object(&mut request, &Value::Str("quote".to_string()), Value::List(vec![]));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_700: bool = true;
-                while { if !__for_first_700 { i = add(&i, &Value::Int(1)); } __for_first_700 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_686: bool = true;
+                while { if !__for_first_686 { i = add(&i, &Value::Int(1)); } __for_first_686 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(symbol.clone());
                 if !is_equal(&get_value(&market, &Value::Str("contract".to_string())), &Value::Bool(true)) {
                     panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchPositions() supports contract markets only".to_string()))));
                 }
-                append_to_array(&mut get_value(&request, &Value::Str("base".to_string())), get_value(&market, &Value::Str("baseId".to_string())));
-                append_to_array(&mut get_value(&request, &Value::Str("quote".to_string())), get_value(&market, &Value::Str("quoteId".to_string())));
+                crate::runtime::append_to_object_array(&mut request, &Value::Str("base".to_string()), get_value(&market, &Value::Str("baseId".to_string())));
+                crate::runtime::append_to_object_array(&mut request, &Value::Str("quote".to_string()), get_value(&market, &Value::Str("quoteId".to_string())));
             }
             }
         }
@@ -3713,9 +3733,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("base".to_string()), Value::List(vec![]));
-            append_to_array(&mut get_value(&request, &Value::Str("base".to_string())), get_value(&market, &Value::Str("baseId".to_string())));
+            crate::runtime::append_to_object_array(&mut request, &Value::Str("base".to_string()), get_value(&market, &Value::Str("baseId".to_string())));
             add_element_to_object(&mut request, &Value::Str("quote".to_string()), Value::List(vec![]));
-            append_to_array(&mut get_value(&request, &Value::Str("quote".to_string())), get_value(&market, &Value::Str("quoteId".to_string())));
+            crate::runtime::append_to_object_array(&mut request, &Value::Str("quote".to_string()), get_value(&market, &Value::Str("quoteId".to_string())));
         }
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1000)));
@@ -3809,9 +3829,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("base".to_string()), Value::List(vec![]));
-            append_to_array(&mut get_value(&request, &Value::Str("base".to_string())), get_value(&market, &Value::Str("baseId".to_string())));
+            crate::runtime::append_to_object_array(&mut request, &Value::Str("base".to_string()), get_value(&market, &Value::Str("baseId".to_string())));
             add_element_to_object(&mut request, &Value::Str("quote".to_string()), Value::List(vec![]));
-            append_to_array(&mut get_value(&request, &Value::Str("quote".to_string())), get_value(&market, &Value::Str("quoteId".to_string())));
+            crate::runtime::append_to_object_array(&mut request, &Value::Str("quote".to_string()), get_value(&market, &Value::Str("quoteId".to_string())));
         }
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1000)));
@@ -4296,9 +4316,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if !is_equal(&symbol, &Value::Null) {
             let mut market: Value = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("base".to_string()), Value::List(vec![]));
-            append_to_array(&mut get_value(&request, &Value::Str("base".to_string())), get_value(&market, &Value::Str("baseId".to_string())));
+            crate::runtime::append_to_object_array(&mut request, &Value::Str("base".to_string()), get_value(&market, &Value::Str("baseId".to_string())));
             add_element_to_object(&mut request, &Value::Str("quote".to_string()), Value::List(vec![]));
-            append_to_array(&mut get_value(&request, &Value::Str("quote".to_string())), get_value(&market, &Value::Str("quoteId".to_string())));
+            crate::runtime::append_to_object_array(&mut request, &Value::Str("quote".to_string()), get_value(&market, &Value::Str("quoteId".to_string())));
         }
         let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_trading_post_full_v1_cancel_all_orders(&[__ws_arg_26]).await;

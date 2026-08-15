@@ -742,6 +742,51 @@ impl OkxCore {
         self.call_method(Value::Str("private_get_asset_convert_history".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetFiatDepositPaymentMethods` implicit endpoint.
+    pub async fn private_get_fiat_deposit_payment_methods(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_fiat_deposit_payment_methods".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetFiatWithdrawalPaymentMethods` implicit endpoint.
+    pub async fn private_get_fiat_withdrawal_payment_methods(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_fiat_withdrawal_payment_methods".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetFiatDepositOrderHistory` implicit endpoint.
+    pub async fn private_get_fiat_deposit_order_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_fiat_deposit_order_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetFiatDeposit` implicit endpoint.
+    pub async fn private_get_fiat_deposit(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_fiat_deposit".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetFiatWithdrawalOrderHistory` implicit endpoint.
+    pub async fn private_get_fiat_withdrawal_order_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_fiat_withdrawal_order_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetFiatWithdrawal` implicit endpoint.
+    pub async fn private_get_fiat_withdrawal(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_fiat_withdrawal".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetFiatBuySellCurrencies` implicit endpoint.
+    pub async fn private_get_fiat_buy_sell_currencies(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_fiat_buy_sell_currencies".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetFiatBuySellCurrencyPair` implicit endpoint.
+    pub async fn private_get_fiat_buy_sell_currency_pair(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_fiat_buy_sell_currency_pair".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetFiatBuySellHistory` implicit endpoint.
+    pub async fn private_get_fiat_buy_sell_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_fiat_buy_sell_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetAccountInstruments` implicit endpoint.
     pub async fn private_get_account_instruments(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_account_instruments".to_string()), optional_args).await
@@ -1575,6 +1620,26 @@ impl OkxCore {
     /// Auto-generated wrapper for the `privatePostAssetConvertTrade` implicit endpoint.
     pub async fn private_post_asset_convert_trade(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_asset_convert_trade".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostFiatCreateWithdrawal` implicit endpoint.
+    pub async fn private_post_fiat_create_withdrawal(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_fiat_create_withdrawal".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostFiatCancelWithdrawal` implicit endpoint.
+    pub async fn private_post_fiat_cancel_withdrawal(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_fiat_cancel_withdrawal".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostFiatBuySellQuote` implicit endpoint.
+    pub async fn private_post_fiat_buy_sell_quote(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_fiat_buy_sell_quote".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostFiatBuySellTrade` implicit endpoint.
+    pub async fn private_post_fiat_buy_sell_trade(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_fiat_buy_sell_trade".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAccountBillsHistoryArchive` implicit endpoint.

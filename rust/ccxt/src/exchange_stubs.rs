@@ -1882,6 +1882,10 @@ impl Exchange {
     /// summing volume and dropping zero-volume rows. Preserves the
     /// first-occurrence order of prices. Mirrors `functions/misc.ts`.
     pub fn aggregate(&self, arr: Value) -> Value {
+        // An order-book side is a marker Dict backed by the shared side store,
+        // not a plain array (in JS `OrderBookSide` extends Array). Snapshot its
+        // `[[price, size], …]` rows so aggregate iterates the levels.
+        let arr = crate::value::side_entries_as_value(&arr).unwrap_or(arr);
         let items = match arr {
             Value::Arr(a) => Arc::try_unwrap(a).unwrap_or_else(|x| (*x).clone()),
             _ => return Value::Array(vec![]),
