@@ -1249,6 +1249,12 @@ public partial class poloniex : Exchange
         object timestamp = this.safeInteger2(ticker, "ts", "cT");
         object marketId = this.safeString2(ticker, "symbol", "s");
         market = this.safeMarket(marketId);
+        object baseVolume = this.safeString2(ticker, "quantity", "qty");
+        if (isTrue(isTrue(getValue(market, "contract")) && isTrue((!isEqual(getValue(market, "contractSize"), null)))))
+        {
+            // 'quantity' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.stringMul(baseVolume, this.numberToString(getValue(market, "contractSize")));
+        }
         object relativeChange = this.safeString2(ticker, "dailyChange", "dc");
         object percentage = Precise.stringMul(relativeChange, "100");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -1269,7 +1275,7 @@ public partial class poloniex : Exchange
             { "change", null },
             { "percentage", percentage },
             { "average", null },
-            { "baseVolume", this.safeString2(ticker, "quantity", "qty") },
+            { "baseVolume", baseVolume },
             { "quoteVolume", this.safeString2(ticker, "amount", "amt") },
             { "markPrice", this.safeString2(ticker, "markPrice", "mPx") },
             { "indexPrice", this.safeString(ticker, "iPx") },

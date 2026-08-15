@@ -33,6 +33,7 @@ add margin
 * [poloniex](/exchanges/poloniex.md#addmargin)
 * [weex](/exchanges/weex.md#addmargin)
 * [woo](/exchanges/woo.md#addmargin)
+* [woofipro](/exchanges/woofipro.md#addmargin)
 * [xt](/exchanges/xt.md#addmargin)
 * [zebpay](/exchanges/zebpay.md#addmargin)
 
@@ -3782,6 +3783,7 @@ fetches the margin mode of a specific symbol
 * [pacifica](/exchanges/pacifica.md#fetchmarginmode)
 * [paradex](/exchanges/paradex.md#fetchmarginmode)
 * [weex](/exchanges/weex.md#fetchmarginmode)
+* [woofipro](/exchanges/woofipro.md#fetchmarginmode)
 
 ---
 
@@ -3805,6 +3807,7 @@ fetches margin mode of the user
 * [grvt](/exchanges/grvt.md#fetchmarginmodes)
 * [hitbtc](/exchanges/hitbtc.md#fetchmarginmodes)
 * [weex](/exchanges/weex.md#fetchmarginmodes)
+* [woofipro](/exchanges/woofipro.md#fetchmarginmodes)
 
 ---
 
@@ -5143,7 +5146,6 @@ fetches information on multiple orders made by the user
 * [btcmarkets](/exchanges/btcmarkets.md#fetchorders)
 * [btcturk](/exchanges/btcturk.md#fetchorders)
 * [bullish](/exchanges/bullish.md#fetchorders)
-* [bybit](/exchanges/bybit.md#fetchorders)
 * [cex](/exchanges/cex.md#fetchorders)
 * [coinbase](/exchanges/coinbase.md#fetchorders)
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#fetchorders)
@@ -6931,6 +6933,7 @@ remove margin from a position
 * [poloniex](/exchanges/poloniex.md#reducemargin)
 * [weex](/exchanges/weex.md#reducemargin)
 * [woo](/exchanges/woo.md#reducemargin)
+* [woofipro](/exchanges/woofipro.md#reducemargin)
 * [xt](/exchanges/xt.md#reducemargin)
 * [zebpay](/exchanges/zebpay.md#reducemargin)
 
@@ -7192,6 +7195,7 @@ set margin mode to 'cross' or 'isolated'
 * [phemex](/exchanges/phemex.md#setmarginmode)
 * [toobit](/exchanges/toobit.md#setmarginmode)
 * [weex](/exchanges/weex.md#setmarginmode)
+* [woofipro](/exchanges/woofipro.md#setmarginmode)
 * [xt](/exchanges/xt.md#setmarginmode)
 
 ---

@@ -340,15 +340,6 @@ public class WooCore extends WooApi
                         }} );
                     }} );
                 }} );
-                put( "v2", new java.util.HashMap<String, Object>() {{
-                    put( "private", new java.util.HashMap<String, Object>() {{
-                        put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "client/holding", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                        }} );
-                    }} );
-                }} );
                 put( "v3", new java.util.HashMap<String, Object>() {{
                     put( "public", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
@@ -613,22 +604,24 @@ public class WooCore extends WooApi
                 put( "adjustForTimeDifference", false );
                 put( "sandboxMode", false );
                 put( "createMarketBuyOrderRequiresPrice", true );
-                put( "network-aliases-for-tokens", new java.util.HashMap<String, Object>() {{
-                    put( "HT", "ERC20" );
-                    put( "OMG", "ERC20" );
-                    put( "UATOM", "ATOM" );
-                    put( "ZRX", "ZRX" );
-                }} );
                 put( "networks", new java.util.HashMap<String, Object>() {{
                     put( "TRX", "TRX" );
                     put( "TRC20", "TRX" );
                     put( "ERC20", "ETH" );
                     put( "BEP20", "BSC" );
                     put( "ARBITRUM", "Arbitrum" );
+                    put( "BASE", "BASE" );
+                    put( "AVAXC", "AVAXC" );
+                    put( "OP", "OP" );
+                    put( "OPTIMISM", "OP" );
+                    put( "MATIC", "MATIC" );
+                    put( "SONIC", "S" );
+                    put( "HYPEREVM", "HyperEVM" );
                 }} );
                 put( "networksById", new java.util.HashMap<String, Object>() {{
                     put( "TRX", "TRC20" );
                     put( "TRON", "TRC20" );
+                    put( "OP", "OP" );
                 }} );
                 put( "defaultNetworkCodeForCurrencies", new java.util.HashMap<String, Object>() {{}} );
                 put( "transfer", new java.util.HashMap<String, Object>() {{

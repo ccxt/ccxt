@@ -1,0 +1,705 @@
+{
+    "exchange": "kraken",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchTicker": [
+            {
+                "description": "spot ticker",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://ws.kraken.com/v2",
+                "messages": [
+                    {
+                        "channel": "status",
+                        "type": "update",
+                        "data": [
+                            {
+                                "version": "2.0.10",
+                                "system": "online",
+                                "api_version": "v2",
+                                "connection_id": 8423536080466635000
+                            }
+                        ]
+                    },
+                    {
+                        "method": "subscribe",
+                        "req_id": 1,
+                        "result": {
+                            "channel": "ticker",
+                            "event_trigger": "trades",
+                            "snapshot": true,
+                            "symbol": "BTC/USD"
+                        },
+                        "success": true,
+                        "time_in": "2026-08-12T19:29:00.962486Z",
+                        "time_out": "2026-08-12T19:29:00.962534Z"
+                    },
+                    {
+                        "channel": "ticker",
+                        "type": "snapshot",
+                        "data": [
+                            {
+                                "symbol": "BTC/USD",
+                                "bid": 63297.7,
+                                "bid_qty": 5.75119051,
+                                "ask": 63297.8,
+                                "ask_qty": 0.36977971,
+                                "last": 63297.8,
+                                "volume": 1020.88387727,
+                                "vwap": 63685.7,
+                                "low": 63250,
+                                "high": 64409.2,
+                                "change": 0.7,
+                                "change_pct": 0,
+                                "trades": 47535,
+                                "timestamp": "2026-08-12T19:29:00.921195Z"
+                            }
+                        ]
+                    },
+                    {
+                        "channel": "heartbeat"
+                    },
+                    {
+                        "channel": "ticker",
+                        "type": "update",
+                        "data": [
+                            {
+                                "symbol": "BTC/USD",
+                                "bid": 63297.7,
+                                "bid_qty": 5.45673101,
+                                "ask": 63297.8,
+                                "ask_qty": 0.36974422,
+                                "last": 63297.8,
+                                "volume": 1020.88391276,
+                                "vwap": 63685.7,
+                                "low": 63250,
+                                "high": 64409.2,
+                                "change": 0.7,
+                                "change_pct": 0,
+                                "trades": 47536,
+                                "timestamp": "2026-08-12T19:29:02.066592Z"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "ticker",
+                            "symbol": [
+                                "BTC/USD"
+                            ]
+                        },
+                        "req_id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USD",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 64409.2,
+                        "low": 63250,
+                        "bid": 63297.7,
+                        "bidVolume": 5.75119051,
+                        "ask": 63297.8,
+                        "askVolume": 0.36977971,
+                        "vwap": 63685.7,
+                        "open": 63297.1,
+                        "close": 63297.8,
+                        "last": 63297.8,
+                        "previousClose": null,
+                        "change": 0.7,
+                        "percentage": 0.0011058958467291,
+                        "average": 63297.45,
+                        "baseVolume": 1020.88387727,
+                        "quoteVolume": 65015704.34265404,
+                        "info": {
+                            "symbol": "BTC/USD",
+                            "bid": 63297.7,
+                            "bid_qty": 5.75119051,
+                            "ask": 63297.8,
+                            "ask_qty": 0.36977971,
+                            "last": 63297.8,
+                            "volume": 1020.88387727,
+                            "vwap": 63685.7,
+                            "low": 63250,
+                            "high": 64409.2,
+                            "change": 0.7,
+                            "change_pct": 0,
+                            "trades": 47535,
+                            "timestamp": "2026-08-12T19:29:00.921195Z"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ],
+                "sentSkipKeys": [
+                    "req_id"
+                ]
+            }
+        ],
+        "watchOHLCV": [
+            {
+                "description": "spot ohlcv 1m",
+                "input": [
+                    "BTC/USD",
+                    "1m"
+                ],
+                "url": "wss://ws.kraken.com/v2",
+                "messages": [
+                    {
+                        "channel": "status",
+                        "type": "update",
+                        "data": [
+                            {
+                                "version": "2.0.10",
+                                "system": "online",
+                                "api_version": "v2",
+                                "connection_id": 9028458593339017000
+                            }
+                        ]
+                    },
+                    {
+                        "method": "subscribe",
+                        "req_id": 1,
+                        "result": {
+                            "channel": "ohlc",
+                            "interval": 1,
+                            "snapshot": true,
+                            "symbol": "BTC/USD",
+                            "warnings": [
+                                "timestamp is deprecated, use interval_begin"
+                            ]
+                        },
+                        "success": true,
+                        "time_in": "2026-08-12T19:28:43.952561Z",
+                        "time_out": "2026-08-12T19:28:43.952595Z"
+                    },
+                    {
+                        "channel": "ohlc",
+                        "type": "snapshot",
+                        "timestamp": "2026-08-12T19:28:43.952985558Z",
+                        "data": [
+                            {
+                                "symbol": "BTC/USD",
+                                "open": 63376,
+                                "high": 63376,
+                                "low": 63364.8,
+                                "close": 63364.8,
+                                "trades": 30,
+                                "volume": 0.14059436,
+                                "vwap": 63367.1,
+                                "interval_begin": "2026-08-12T19:19:00.000000000Z",
+                                "interval": 1,
+                                "timestamp": "2026-08-12T19:20:00.000000Z"
+                            },
+                            {
+                                "symbol": "BTC/USD",
+                                "open": 63364.9,
+                                "high": 63364.9,
+                                "low": 63345.1,
+                                "close": 63345.1,
+                                "trades": 44,
+                                "volume": 0.60431785,
+                                "vwap": 63361.3,
+                                "interval_begin": "2026-08-12T19:20:00.000000000Z",
+                                "interval": 1,
+                                "timestamp": "2026-08-12T19:21:00.000000Z"
+                            },
+                            {
+                                "symbol": "BTC/USD",
+                                "open": 63345.2,
+                                "high": 63345.2,
+                                "low": 63341.6,
+                                "close": 63341.6,
+                                "trades": 34,
+                                "volume": 0.17092183,
+                                "vwap": 63345,
+                                "interval_begin": "2026-08-12T19:21:00.000000000Z",
+                                "interval": 1,
+                                "timestamp": "2026-08-12T19:22:00.000000Z"
+                            },
+                            {
+                                "symbol": "BTC/USD",
+                                "open": 63339.4,
+                                "high": 63339.9,
+                                "low": 63339.4,
+                                "close": 63339.7,
+                                "trades": 20,
+                                "volume": 0.07267549,
+                                "vwap": 63339.7,
+                                "interval_begin": "2026-08-12T19:22:00.000000000Z",
+                                "interval": 1,
+                                "timestamp": "2026-08-12T19:23:00.000000Z"
+                            },
+                            {
+                                "symbol": "BTC/USD",
+                                "open": 63339.8,
+                                "high": 63343.4,
+                                "low": 63333.8,
+                                "close": 63333.9,
+                                "trades": 35,
+                                "volume": 0.39221996,
+                                "vwap": 63339.6,
+                                "interval_begin": "2026-08-12T19:23:00.000000000Z",
+                                "interval": 1,
+                                "timestamp": "2026-08-12T19:24:00.000000Z"
+                            },
+                            {
+                                "symbol": "BTC/USD",
+                                "open": 63333.8,
+                                "high": 63333.8,
+                                "low": 63301.1,
+                                "close": 63301.1,
+                                "trades": 66,
+                                "volume": 5.71019475,
+                                "vwap": 63301.7,
+                                "interval_begin": "2026-08-12T19:24:00.000000000Z",
+                                "interval": 1,
+                                "timestamp": "2026-08-12T19:25:00.000000Z"
+                            },
+                            {
+                                "symbol": "BTC/USD",
+                                "open": 63301,
+                                "high": 63301.1,
+                                "low": 63268.7,
+                                "close": 63268.8,
+                                "trades": 101,
+                                "volume": 1.92169501,
+                                "vwap": 63285.3,
+                                "interval_begin": "2026-08-12T19:25:00.000000000Z",
+                                "interval": 1,
+                                "timestamp": "2026-08-12T19:26:00.000000Z"
+                            },
+                            {
+                                "symbol": "BTC/USD",
+                                "open": 63268.7,
+                                "high": 63281.6,
+                                "low": 63250,
+                                "close": 63281.5,
+                                "trades": 95,
+                                "volume": 1.26776089,
+                                "vwap": 63257.5,
+                                "interval_begin": "2026-08-12T19:26:00.000000000Z",
+                                "interval": 1,
+                                "timestamp": "2026-08-12T19:27:00.000000Z"
+                            },
+                            {
+                                "symbol": "BTC/USD",
+                                "open": 63281.5,
+                                "high": 63321.5,
+                                "low": 63281.5,
+                                "close": 63301.9,
+                                "trades": 61,
+                                "volume": 1.99463308,
+                                "vwap": 63300.9,
+                                "interval_begin": "2026-08-12T19:27:00.000000000Z",
+                                "interval": 1,
+                                "timestamp": "2026-08-12T19:28:00.000000Z"
+                            },
+                            {
+                                "symbol": "BTC/USD",
+                                "open": 63301.6,
+                                "high": 63301.6,
+                                "low": 63297.7,
+                                "close": 63297.8,
+                                "trades": 26,
+                                "volume": 0.04006479,
+                                "vwap": 63298.2,
+                                "interval_begin": "2026-08-12T19:28:00.000000000Z",
+                                "interval": 1,
+                                "timestamp": "2026-08-12T19:29:00.000000Z"
+                            }
+                        ]
+                    },
+                    {
+                        "channel": "ohlc",
+                        "type": "update",
+                        "timestamp": "2026-08-12T19:28:44.084233010Z",
+                        "data": [
+                            {
+                                "symbol": "BTC/USD",
+                                "open": 63301.6,
+                                "high": 63301.6,
+                                "low": 63297.7,
+                                "close": 63297.7,
+                                "trades": 27,
+                                "volume": 0.04121249,
+                                "vwap": 63298.2,
+                                "interval_begin": "2026-08-12T19:28:00.000000000Z",
+                                "interval": 1,
+                                "timestamp": "2026-08-12T19:29:00.000000Z"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "ohlc",
+                            "symbol": [
+                                "BTC/USD"
+                            ],
+                            "interval": 1
+                        },
+                        "req_id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1786562880000,
+                            "63301.6",
+                            "63301.6",
+                            "63297.7",
+                            "63297.8",
+                            "0.04006479"
+                        ],
+                        [
+                            1786562820000,
+                            "63281.5",
+                            "63321.5",
+                            "63281.5",
+                            "63301.9",
+                            "1.99463308"
+                        ],
+                        [
+                            1786562760000,
+                            "63268.7",
+                            "63281.6",
+                            "63250",
+                            "63281.5",
+                            "1.26776089"
+                        ],
+                        [
+                            1786562700000,
+                            "63301",
+                            "63301.1",
+                            "63268.7",
+                            "63268.8",
+                            "1.92169501"
+                        ],
+                        [
+                            1786562640000,
+                            "63333.8",
+                            "63333.8",
+                            "63301.1",
+                            "63301.1",
+                            "5.71019475"
+                        ],
+                        [
+                            1786562580000,
+                            "63339.8",
+                            "63343.4",
+                            "63333.8",
+                            "63333.9",
+                            "0.39221996"
+                        ],
+                        [
+                            1786562520000,
+                            "63339.4",
+                            "63339.9",
+                            "63339.4",
+                            "63339.7",
+                            "0.07267549"
+                        ],
+                        [
+                            1786562460000,
+                            "63345.2",
+                            "63345.2",
+                            "63341.6",
+                            "63341.6",
+                            "0.17092183"
+                        ],
+                        [
+                            1786562400000,
+                            "63364.9",
+                            "63364.9",
+                            "63345.1",
+                            "63345.1",
+                            "0.60431785"
+                        ],
+                        [
+                            1786562340000,
+                            "63376",
+                            "63376",
+                            "63364.8",
+                            "63364.8",
+                            "0.14059436"
+                        ]
+                    ]
+                ],
+                "sentSkipKeys": [
+                    "req_id"
+                ]
+            }
+        ],
+        "watchOrderBook": [
+            {
+                "description": "spot orderbook depth 10",
+                "input": [
+                    "BTC/USD",
+                    10
+                ],
+                "url": "wss://ws.kraken.com/v2",
+                "messages": [
+                    {
+                        "channel": "status",
+                        "type": "update",
+                        "data": [
+                            {
+                                "version": "2.0.10",
+                                "system": "online",
+                                "api_version": "v2",
+                                "connection_id": 3492421222689903000
+                            }
+                        ]
+                    },
+                    {
+                        "method": "subscribe",
+                        "req_id": 1,
+                        "result": {
+                            "channel": "book",
+                            "depth": 10,
+                            "snapshot": true,
+                            "symbol": "BTC/USD"
+                        },
+                        "success": true,
+                        "time_in": "2026-08-12T19:28:08.287297Z",
+                        "time_out": "2026-08-12T19:28:08.287347Z"
+                    },
+                    {
+                        "channel": "book",
+                        "type": "snapshot",
+                        "data": [
+                            {
+                                "symbol": "BTC/USD",
+                                "bids": [
+                                    {
+                                        "price": 63299.4,
+                                        "qty": 0.00209987
+                                    },
+                                    {
+                                        "price": 63298.7,
+                                        "qty": 5.1e-05
+                                    },
+                                    {
+                                        "price": 63298.1,
+                                        "qty": 0.05742569
+                                    },
+                                    {
+                                        "price": 63298,
+                                        "qty": 0.01534518
+                                    },
+                                    {
+                                        "price": 63297.8,
+                                        "qty": 0.504238
+                                    },
+                                    {
+                                        "price": 63297.7,
+                                        "qty": 0.78991808
+                                    },
+                                    {
+                                        "price": 63296.7,
+                                        "qty": 1.27336513
+                                    },
+                                    {
+                                        "price": 63295.8,
+                                        "qty": 0.56593064
+                                    },
+                                    {
+                                        "price": 63295.7,
+                                        "qty": 0.78994295
+                                    },
+                                    {
+                                        "price": 63295.5,
+                                        "qty": 5.1e-05
+                                    }
+                                ],
+                                "asks": [
+                                    {
+                                        "price": 63299.5,
+                                        "qty": 0.4388201
+                                    },
+                                    {
+                                        "price": 63303.3,
+                                        "qty": 0.05742569
+                                    },
+                                    {
+                                        "price": 63303.4,
+                                        "qty": 0.78984756
+                                    },
+                                    {
+                                        "price": 63305,
+                                        "qty": 5.1e-05
+                                    },
+                                    {
+                                        "price": 63305.4,
+                                        "qty": 0.03159716
+                                    },
+                                    {
+                                        "price": 63305.5,
+                                        "qty": 0.789821
+                                    },
+                                    {
+                                        "price": 63306,
+                                        "qty": 0.0789929
+                                    },
+                                    {
+                                        "price": 63307,
+                                        "qty": 0.31581476
+                                    },
+                                    {
+                                        "price": 63307.8,
+                                        "qty": 0.06
+                                    },
+                                    {
+                                        "price": 63308,
+                                        "qty": 0.00650419
+                                    }
+                                ],
+                                "checksum": 1490766955,
+                                "timestamp": "2026-08-12T19:28:08.631028Z"
+                            }
+                        ]
+                    },
+                    {
+                        "channel": "book",
+                        "type": "update",
+                        "data": [
+                            {
+                                "symbol": "BTC/USD",
+                                "bids": [
+                                    {
+                                        "price": 63296.7,
+                                        "qty": 0
+                                    },
+                                    {
+                                        "price": 63294.6,
+                                        "qty": 0.31581476
+                                    }
+                                ],
+                                "asks": [],
+                                "checksum": 1153589921,
+                                "timestamp": "2026-08-12T19:28:09.140448Z"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "book",
+                            "symbol": [
+                                "BTC/USD"
+                            ],
+                            "depth": 10
+                        },
+                        "req_id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                63299.4,
+                                0.00209987
+                            ],
+                            [
+                                63298.7,
+                                5.1e-05
+                            ],
+                            [
+                                63298.1,
+                                0.05742569
+                            ],
+                            [
+                                63298,
+                                0.01534518
+                            ],
+                            [
+                                63297.8,
+                                0.504238
+                            ],
+                            [
+                                63297.7,
+                                0.78991808
+                            ],
+                            [
+                                63296.7,
+                                1.27336513
+                            ],
+                            [
+                                63295.8,
+                                0.56593064
+                            ],
+                            [
+                                63295.7,
+                                0.78994295
+                            ],
+                            [
+                                63295.5,
+                                5.1e-05
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                63299.5,
+                                0.4388201
+                            ],
+                            [
+                                63303.3,
+                                0.05742569
+                            ],
+                            [
+                                63303.4,
+                                0.78984756
+                            ],
+                            [
+                                63305,
+                                5.1e-05
+                            ],
+                            [
+                                63305.4,
+                                0.03159716
+                            ],
+                            [
+                                63305.5,
+                                0.789821
+                            ],
+                            [
+                                63306,
+                                0.0789929
+                            ],
+                            [
+                                63307,
+                                0.31581476
+                            ],
+                            [
+                                63307.8,
+                                0.06
+                            ],
+                            [
+                                63308,
+                                0.00650419
+                            ]
+                        ],
+                        "timestamp": null,
+                        "datetime": null,
+                        "nonce": null,
+                        "symbol": "BTC/USD"
+                    }
+                ],
+                "sentSkipKeys": [
+                    "req_id"
+                ]
+            }
+        ]
+    }
+}

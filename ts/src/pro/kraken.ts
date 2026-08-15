@@ -963,7 +963,8 @@ export default class kraken extends krakenRest {
                 const key = keys[i];
                 const bookside = (orderbook as Dict)[key];
                 const deltas = this.safeValue (first, key, []);
-                if (deltas.length > 0) {
+                const deltasLength = deltas.length;
+                if (deltasLength > 0) {
                     this.customHandleDeltas (bookside, deltas);
                 }
             }

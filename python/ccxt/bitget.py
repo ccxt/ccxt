@@ -3324,10 +3324,8 @@ class bitget(Exchange, ImplicitAPI):
             marketType = 'contract'
         else:
             marketType = 'spot'
-        percentage = self.safe_string(ticker, 'price24hPcnt')
-        if percentage is None:
-            change24h = self.safe_string(ticker, 'change24h')
-            percentage = Precise.string_mul(change24h, '100')
+        # both fields are ratios, and a ticker reports(change/open) * 100
+        percentage = Precise.string_mul(self.safe_string_2(ticker, 'price24hPcnt', 'change24h'), '100')
         return self.safe_ticker({
             'symbol': self.safe_symbol(marketId, market, None, marketType),
             'timestamp': timestamp,

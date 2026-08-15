@@ -378,6 +378,30 @@ public partial class testMainClass : BaseTest
         return client.futures.Count > 0;
     }
 
+    private static readonly HashSet<object> wsCompletedClients = new HashSet<object>();
+
+    public void markWsTestCompleted(object exchange2, object url)
+    {
+        // the watch side of a static ws test flags completion here so the
+        // frame injector's rejection loop knows it can stop
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        lock (wsCompletedClients)
+        {
+            wsCompletedClients.Add(client);
+        }
+    }
+
+    public bool isWsTestCompleted(object exchange2, object url)
+    {
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        lock (wsCompletedClients)
+        {
+            return wsCompletedClients.Contains(client);
+        }
+    }
+
     public void rejectPendingWsFutures(object exchange2, object url)
     {
         // reject any futures the injected frames did not resolve, so a broken

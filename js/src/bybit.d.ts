@@ -397,7 +397,6 @@ export default class bybit extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name bybit#fetchOrdersClassic

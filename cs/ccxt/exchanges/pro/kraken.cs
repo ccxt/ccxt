@@ -1067,7 +1067,8 @@ public partial class kraken : ccxt.kraken
                 object key = getValue(keys, i);
                 object bookside = getValue(orderbook, key);
                 object deltas = this.safeValue(first, key, new List<object>() {});
-                if (isTrue(isGreaterThan(getArrayLength(deltas), 0)))
+                object deltasLength = getArrayLength(deltas);
+                if (isTrue(isGreaterThan(deltasLength, 0)))
                 {
                     this.customHandleDeltas(bookside, deltas);
                 }

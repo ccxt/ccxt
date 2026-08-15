@@ -1185,7 +1185,7 @@ public class AlpacaCore extends AlpacaApi
                     put( "percentage", null );
                     put( "average", null );
                     put( "baseVolume", AlpacaCore.this.safeString(dailyBar, "v") );
-                    put( "quoteVolume", AlpacaCore.this.safeString(dailyBar, "n") );
+                    put( "quoteVolume", Precise.stringMul(AlpacaCore.this.safeString(dailyBar, "v"), AlpacaCore.this.safeString(dailyBar, "vw")) );
                 }}, market);
                 ((java.util.List<Object>)results).add(ticker);
             }

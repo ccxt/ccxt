@@ -3,7 +3,7 @@
 import asyncio
 
 
-from tests_helpers import AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, get_cli_arg_value, get_root_dir, is_sync, dump, json_parse, json_stringify, convert_ascii, io_file_exists, io_file_read, io_dir_read, call_method, call_method_sync, call_exchange_method_dynamically, call_exchange_method_dynamically_sync, get_root_exception, exception_message, exit_script, get_exchange_prop, set_exchange_prop, init_exchange, get_test_files_sync, get_test_files, set_fetch_response, setup_ws_mock_transport, inject_ws_message, reject_pending_ws_futures, ws_client_has_pending_futures, get_ws_sent_messages, is_null_value, close, get_env_vars, get_lang, get_ext, is_windows, is_linux, is_amd64  # noqa: F401
+from tests_helpers import AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, get_cli_arg_value, get_root_dir, is_sync, dump, json_parse, json_stringify, convert_ascii, io_file_exists, io_file_read, io_dir_read, call_method, call_method_sync, call_exchange_method_dynamically, call_exchange_method_dynamically_sync, get_root_exception, exception_message, exit_script, get_exchange_prop, set_exchange_prop, init_exchange, get_test_files_sync, get_test_files, set_fetch_response, setup_ws_mock_transport, inject_ws_message, reject_pending_ws_futures, ws_client_has_pending_futures, mark_ws_test_completed, is_ws_test_completed, get_ws_sent_messages, is_null_value, close, get_env_vars, get_lang, get_ext, is_windows, is_linux, is_amd64  # noqa: F401
 
 class testMainClass:
     id_tests = False
@@ -1325,7 +1325,7 @@ class testMainClass:
         set_fetch_response(exchange, None)  # reset state
         return True
 
-    async def inject_ws_messages(self, exchange, url, messages):
+    async def inject_ws_messages(self, exchange, url, messages, sequential=False):
         # before every frame, wait until the watch flow is actually awaiting
         # something — a fixed head-start sleep is not enough on slow ci
         # runners and the frame's resolution would be dropped
@@ -1335,15 +1335,35 @@ class testMainClass:
                 await exchange.sleep(50)
                 waited = waited + 50
             inject_ws_message(exchange, url, messages[i])
-            # yield between frames so the handlers run in arrival order
-            await exchange.sleep(20)
+            # threaded runtimes resolve futures on another thread — wait for
+            # the consumed frame to settle so the pending check above does not
+            # observe a stale future and burn the next frame early; frames
+            # that resolve nothing (e.g. subscribe acks) fall through on the
+            # timeout
+            settled = 0
+            while ws_client_has_pending_futures(exchange, url) and (settled < 500):
+                await exchange.sleep(20)
+                settled = settled + 20
         await exchange.sleep(50)
+        if sequential:
+            # a watch call of a sequence can register its future after every
+            # frame was already consumed — keep rejecting until the watch side
+            # reports completion (the rejections force it to finish). the time
+            # bound is a backstop for threaded runtimes where this task can be
+            # executed inline on a stack that blocks the watch side (forkjoin
+            # work stealing): give up eventually so the stack unwinds instead
+            # of deadlocking
+            waited_done = 0
+            while not is_ws_test_completed(exchange, url) and (waited_done < 30000):
+                reject_pending_ws_futures(exchange, url)
+                await exchange.sleep(50)
+                waited_done = waited_done + 50
         # reject anything still pending so a wrong fixture fails fast
         # instead of hanging the test run forever
         reject_pending_ws_futures(exchange, url)
         return True   # c# methods used with promiseAll need to return something
 
-    async def watch_and_assert_sequence(self, exchange, method, input, skip_keys, expected_results):
+    async def watch_and_assert_sequence(self, exchange, url, method, input, skip_keys, expected_results):
         try:
             for i in range(0, len(expected_results)):
                 result = await call_exchange_method_dynamically(exchange, method, input)
@@ -1353,7 +1373,12 @@ class testMainClass:
                 unified_result = json_parse(json_stringify(result))
                 self.assert_static_response_output(exchange, skip_keys, unified_result, expected_results[i])
         except Exception as e:
+            # let the injector's rejection loop exit before the caller reports
+            # — the explicit try/catch also keeps the java transpilation
+            # compilable (checked exceptions)
+            mark_ws_test_completed(exchange, url)
             raise e
+        mark_ws_test_completed(exchange, url)
         return True   # c# methods used with promiseAll need to return something
 
     def assert_ws_sent_messages(self, exchange, url, data):
@@ -1389,7 +1414,12 @@ class testMainClass:
             if expected_results is not None:
                 # 'parsedResponses' asserts one result per successive watch
                 # resolution (e.g. an order going from open to closed)
-                promises = [self.watch_and_assert_sequence(exchange, method, input, skip_keys, expected_results), self.inject_ws_messages(exchange, url, messages)]
+                # start the injector before the watch side: it must never sit
+                # queued while the watch chain blocks on a join — a forkjoin
+                # worker could execute it inline on the blocked stack and the
+                # rejection loop would then wait on the very watch side it is
+                # buried on top of
+                promises = [self.inject_ws_messages(exchange, url, messages, True), self.watch_and_assert_sequence(exchange, url, method, input, skip_keys, expected_results)]
                 await asyncio.gather(*promises)
                 self.assert_ws_sent_messages(exchange, url, data)
             else:

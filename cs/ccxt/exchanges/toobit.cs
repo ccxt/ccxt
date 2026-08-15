@@ -1555,6 +1555,12 @@ public partial class toobit : Exchange
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeInteger(ticker, "t");
         object last = this.safeString(ticker, "c");
+        object baseVolume = this.safeString(ticker, "v");
+        if (isTrue(isTrue(getValue(market, "contract")) && isTrue((!isEqual(getValue(market, "contractSize"), null)))))
+        {
+            // 'v' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.stringMul(baseVolume, this.numberToString(getValue(market, "contractSize")));
+        }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
             { "timestamp", timestamp },
@@ -1571,9 +1577,9 @@ public partial class toobit : Exchange
             { "last", last },
             { "previousClose", null },
             { "change", this.safeString(ticker, "pc") },
-            { "percentage", this.safeString(ticker, "pcp") },
+            { "percentage", Precise.stringMul(this.safeString(ticker, "pcp"), "100") },
             { "average", null },
-            { "baseVolume", this.safeString(ticker, "v") },
+            { "baseVolume", baseVolume },
             { "quoteVolume", this.safeString(ticker, "qv") },
             { "info", ticker },
         }, market);
