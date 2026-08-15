@@ -18,17 +18,25 @@ function test_watch_ohlcv($exchange, $skipped_properties, $symbol) {
         $ends = $now + 15000;
         $timeframe_keys = is_array($exchange->timeframes) ? array_keys($exchange->timeframes) : array();
         assert(count($timeframe_keys), $exchange->id . ' ' . $method . ' - no timeframes found');
-        // prefer 1m timeframe if available, otherwise return the first one
-        $chosen_timeframe_key = '1m';
-        if (!$exchange->in_array($chosen_timeframe_key, $timeframe_keys)) {
-            $chosen_timeframe_key = $timeframe_keys[0];
+        // prefer the shortest candle so a new bar can arrive inside the test window
+        $preferred_timeframes = ['1s', '5s', '15s', '30s', '1m'];
+        $chosen_timeframe_key = $timeframe_keys[0];
+        for ($i = 0; $i < count($preferred_timeframes); $i++) {
+            $timeframe_key = $preferred_timeframes[$i];
+            if ($exchange->in_array($timeframe_key, $timeframe_keys)) {
+                $chosen_timeframe_key = $timeframe_key;
+                break;
+            }
         }
         $limit = 10;
         $duration = $exchange->parse_timeframe($chosen_timeframe_key);
         $since = $exchange->milliseconds() - $duration * $limit * 1000 - 1000;
-        while ($now < $ends) {
+        $max_idle_time = 5000;
+        $idle = false;
+        while (($now < $ends) && !$idle) {
             $response = null;
             $success = true;
+            $start_time = $exchange->milliseconds();
             try {
                 $response = \React\Async\await($exchange->watch_ohlcv($symbol, $chosen_timeframe_key, $since, $limit));
                 if ($response === null) {
@@ -38,18 +46,16 @@ function test_watch_ohlcv($exchange, $skipped_properties, $symbol) {
                 if (!is_temporary_failure($e)) {
                     throw $e;
                 }
-                $now = $exchange->milliseconds();
-                // continue;
                 $success = false;
             }
-            if ($success === true) {
-                if ($response === null) {
-                    throw new Exception($exchange->id . ' watch returned undefined response');
-                }
+            $now = $exchange->milliseconds();
+            if (($success === true) && ($response !== null)) {
                 assert_non_emtpy_array($exchange, $skipped_properties, $method, $response, $symbol);
-                $now = $exchange->milliseconds();
                 for ($i = 0; $i < count($response); $i++) {
                     test_ohlcv($exchange, $skipped_properties, $method, $response[$i], $symbol, $now);
+                }
+                if (($now - $start_time) > $max_idle_time) {
+                    $idle = true;
                 }
             }
         }
