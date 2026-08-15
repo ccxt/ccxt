@@ -118,7 +118,6 @@ class bybit extends Exchange {
                 'fetchOptionChain' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositionADLRank' => true,
@@ -5333,7 +5332,7 @@ class bybit extends Exchange {
         $request = array(
             'orderId' => $id,
         );
-        $result = Async\await($this->fetch_orders($symbol, null, null, $this->extend($request, $params)));
+        $result = Async\await($this->fetch_orders_classic($symbol, null, null, $this->extend($request, $params)));
         $length = count($result);
         if ($length === 0) {
             $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
@@ -5451,35 +5450,6 @@ class bybit extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_fetch_orders(...))($symbol, $since, $limit, $params);
-    }
-
-    private function do_fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        $res = Async\await($this->is_unified_enabled());
-        /**
-         * *classic accounts only/ spot not supported* fetches information on multiple orders made by the user *classic accounts only/ spot not supported*
-         * @see https://bybit-exchange.github.io/docs/v5/order/order-list
-         * @param {string} $symbol unified market $symbol of the market orders were made in
-         * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of order structures to retrieve
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->trigger] true if trigger order
-         * @param {boolean} [$params->stop] alias for trigger
-         * @param {string} [$params->type] market type, ['swap', 'option']
-         * @param {string} [$params->subType] market subType, ['linear', 'inverse']
-         * @param {string} [$params->orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
-         * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-         */
-        $enableUnifiedAccount = $this->safe_bool($res, 1);
-        if ($enableUnifiedAccount) {
-            throw new NotSupported($this->id . ' fetchOrders() is not supported after the 5/02 update for UTA accounts, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders');
-        }
-        return Async\await($this->fetch_orders_classic($symbol, $since, $limit, $params));
-    }
-
     public function fetch_orders_classic(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_orders_classic(...))($symbol, $since, $limit, $params);
     }
@@ -5507,9 +5477,9 @@ class bybit extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrdersClassic', 'paginate');
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $params, 'nextPageCursor', 'cursor', null, 50));
+            return Async\await($this->fetch_paginated_call_cursor('fetchOrdersClassic', $symbol, $since, $limit, $params, 'nextPageCursor', 'cursor', null, 50));
         }
         $request = array();
         $market = null;
@@ -5518,9 +5488,9 @@ class bybit extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $type = null;
-        list($type, $params) = $this->get_bybit_type('fetchOrders', $market, $params);
+        list($type, $params) = $this->get_bybit_type('fetchOrdersClassic', $market, $params);
         if ($type === 'spot') {
-            throw new NotSupported($this->id . ' fetchOrders() is not supported for spot markets');
+            throw new NotSupported($this->id . ' fetchOrdersClassic() is not supported for spot markets');
         }
         $request['category'] = $type;
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
