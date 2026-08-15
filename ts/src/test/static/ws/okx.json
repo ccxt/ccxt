@@ -1,7 +1,11 @@
 {
     "exchange": "okx",
     "skipKeys": [],
-    "options": {},
+    "options": {
+        "watchOrderBook": {
+            "depth": "books-rpi"
+        }
+    },
     "methods": {
         "watchBidsAsks": [
             {
@@ -905,6 +909,168 @@
             }
         ],
         "watchOrderBook": [
+            {
+                "description": "linear swap rpi orderbook",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://ws.okx.com:8443/ws/v5/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "channel": "books-rpi",
+                            "instId": "BTC-USDT-SWAP"
+                        },
+                        "connId": "f21e6c1a"
+                    },
+                    {
+                        "arg": {
+                            "channel": "books-rpi",
+                            "instId": "BTC-USDT-SWAP"
+                        },
+                        "action": "snapshot",
+                        "data": [
+                            {
+                                "asks": [
+                                    [
+                                        "64001",
+                                        "1.5",
+                                        "0",
+                                        "2"
+                                    ],
+                                    [
+                                        "64002",
+                                        "2",
+                                        "0",
+                                        "1"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "64000",
+                                        "2",
+                                        "0",
+                                        "3"
+                                    ],
+                                    [
+                                        "63999",
+                                        "1",
+                                        "0",
+                                        "1"
+                                    ]
+                                ],
+                                "ts": "1786541300000",
+                                "checksum": 1300677031,
+                                "prevSeqId": -1,
+                                "seqId": 100
+                            }
+                        ]
+                    },
+                    {
+                        "arg": {
+                            "channel": "books-rpi",
+                            "instId": "BTC-USDT-SWAP"
+                        },
+                        "action": "update",
+                        "data": [
+                            {
+                                "asks": [
+                                    [
+                                        "64001",
+                                        "1.25",
+                                        "0",
+                                        "2"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "63999",
+                                        "0",
+                                        "0",
+                                        "0"
+                                    ],
+                                    [
+                                        "63998",
+                                        "0.75",
+                                        "0",
+                                        "1"
+                                    ]
+                                ],
+                                "ts": "1786541300100",
+                                "checksum": 1639734359,
+                                "prevSeqId": 100,
+                                "seqId": 101
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "channel": "books-rpi",
+                                "instId": "BTC-USDT-SWAP"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                64000,
+                                2
+                            ],
+                            [
+                                63999,
+                                1
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                64001,
+                                1.5
+                            ],
+                            [
+                                64002,
+                                2
+                            ]
+                        ],
+                        "timestamp": 1786541300000,
+                        "datetime": "2026-08-12T13:28:20.000Z",
+                        "nonce": 100,
+                        "symbol": "BTC/USDT:USDT"
+                    },
+                    {
+                        "bids": [
+                            [
+                                64000,
+                                2
+                            ],
+                            [
+                                63998,
+                                0.75
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                64001,
+                                1.25
+                            ],
+                            [
+                                64002,
+                                2
+                            ]
+                        ],
+                        "timestamp": 1786541300100,
+                        "datetime": "2026-08-12T13:28:20.100Z",
+                        "nonce": 101,
+                        "symbol": "BTC/USDT:USDT"
+                    }
+                ]
+            },
             {
                 "description": "linear swap orderbook depth 5",
                 "input": [
