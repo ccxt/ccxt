@@ -429,16 +429,14 @@ func (c *ArrayCacheByTimestamp) Append(item any) {
 		newArr, okNew := item.([]any)
 		switch {
 		case okRef && okNew:
-			n := len(newArr)
-			if len(refArr) < n {
-				n = len(refArr)
-			}
-			for i := 0; i < n; i++ {
-				refArr[i] = newArr[i]
-			}
-			if len(newArr) > len(refArr) {
-				// the incoming row is longer and a Go slice cannot grow through
-				// an alias - swap the stored row for the merged one
+			if len(newArr) == len(refArr) {
+				for i := 0; i < len(newArr); i++ {
+					refArr[i] = newArr[i]
+				}
+			} else {
+				// incoming row defines the candle: a shorter update must drop
+				// the previous tail ([100,1,2,3,4,5] then [100,9,9] → [100,9,9]),
+				// and a longer update cannot grow through a slice alias
 				merged := make([]any, len(newArr))
 				copy(merged, newArr)
 				c.Hashmap[ts] = merged
