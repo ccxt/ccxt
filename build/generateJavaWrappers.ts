@@ -52,7 +52,18 @@ function isStringType(t: string) { return t === 'Str' || t === 'string' || t ===
 function isNumberType(t: string) { return t === 'Num' || t === 'number' || t === 'NumericLiteral'; }
 function isIntegerType(t: string) { return t !== undefined && t.toLowerCase() === 'int'; }
 function isBooleanType(t: string) { return t === 'boolean' || t === 'Bool'; }
-function isObjectType(t: string) { return t === 'any' || t === 'unknown' || t === 'Dict' || t === 'Object' || t === 'Dictionary<any>' || (t?.startsWith('{') && t?.endsWith('}')); }
+// Key/value bags: Dict, Dictionary<...>, Object and inline `{ ... }` literals. Same
+// shape as `params`, so they get the same Java type in every position.
+function isDictType(t: string) { return t === 'Dict' || t === 'Object' || t?.startsWith('Dictionary<') || (t?.startsWith('{') && t?.endsWith('}')); }
+// Genuinely free-form annotations. NOT dict-shaped: `fetchPartialBalance (part: any)`
+// takes a string key, so narrowing `any` to Map would break real call sites.
+function isFreeFormType(t: string) { return t === 'any' || t === 'unknown'; }
+function isObjectType(t: string) { return isFreeFormType(t) || isDictType(t); }
+
+// Request bags passed INTO the exchange as arrays of plain dicts on the wire. The
+// same-named Java KNOWN_TYPES are parse-result POJOs built from a response, so inputs
+// stay Map-shaped rather than reusing them.
+const REQUEST_BAG_TYPES = new Set([ 'OrderRequest', 'CancellationRequest', 'PredictionOrderRequest' ]);
 
 // TS type aliases (`export type X = Y | undefined`) whose Java class carries
 // the non-null name. Kept out of KNOWN_TYPES because emitting `new X(res)`
@@ -62,6 +73,8 @@ const KNOWN_TYPE_ALIASES: Record<string, string> = {
     'Currency': 'CurrencyInterface',
 };
 
+// Scalars map to BOXED reference types — Int→Long (64-bit, ms timestamps), Num→Double,
+// Str→String, Bool→Boolean — never primitives, so every optional slot accepts a typed null.
 function tsTypeToJavaType(tsType: string | undefined, isReturn = false): string {
     if (!tsType) return 'Object';
     if (isStringType(tsType)) return 'String';
@@ -69,7 +82,9 @@ function tsTypeToJavaType(tsType: string | undefined, isReturn = false): string 
     if (isNumberType(tsType)) return 'Double';
     if (isBooleanType(tsType)) return 'Boolean';
     if (tsType === 'Strings' || tsType === 'string[]') return 'List<String>';
-    if (isObjectType(tsType)) return isReturn ? 'Map<String, Object>' : 'Object';
+    if (tsType.endsWith('[]') && REQUEST_BAG_TYPES.has(tsType.slice(0, -2))) return 'List<Map<String, Object>>';
+    if (isDictType(tsType)) return 'Map<String, Object>';
+    if (isFreeFormType(tsType)) return isReturn ? 'Map<String, Object>' : 'Object';
     if (KNOWN_TYPES.has(tsType)) return tsType;
     return 'Object';
 }
