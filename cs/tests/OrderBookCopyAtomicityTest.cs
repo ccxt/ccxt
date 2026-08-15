@@ -179,4 +179,26 @@ public partial class BaseTest
         // actually overlapped
         Assert(Interlocked.Read(ref copies) > 0, "copy loop observed no snapshots, the race was never exercised");
     }
+
+    public void testWsOrderBookSingleStore()
+    {
+        var book = buildUncrossedBook(CopyRaceDepth);
+        Assert(object.ReferenceEquals(book.asks, book["asks"]), "book.asks and book[\"asks\"] must be the same object");
+        Assert(object.ReferenceEquals(book.bids, book["bids"]), "book.bids and book[\"bids\"] must be the same object");
+        Assert(object.Equals(book.nonce, book["nonce"]), "book.nonce and book[\"nonce\"] must be the same value");
+        Assert(object.Equals(book.timestamp, book["timestamp"] == null ? null : Convert.ToInt64(book["timestamp"])), "book.timestamp and book[\"timestamp\"] must be the same value");
+        Assert(object.Equals(book.symbol, book["symbol"]), "book.symbol and book[\"symbol\"] must be the same value");
+
+        var snapshot = book.Copy();
+        Assert(object.ReferenceEquals(snapshot.asks, snapshot["asks"]), "Copy().asks and Copy()[\"asks\"] must be the same object");
+        Assert(object.ReferenceEquals(snapshot.bids, snapshot["bids"]), "Copy().bids and Copy()[\"bids\"] must be the same object");
+        Assert(object.Equals(snapshot.nonce, snapshot["nonce"]), "Copy().nonce and Copy()[\"nonce\"] must be the same value");
+
+        var replacement = new ccxt.pro.Asks(new List<object>() { new List<object>() { 1m, 1m } });
+        book.asks = replacement;
+        Assert(object.ReferenceEquals(book["asks"], replacement), "setting book.asks must update book[\"asks\"]");
+        var other = new ccxt.pro.Asks(new List<object>() { new List<object>() { 2m, 2m } });
+        book["asks"] = other;
+        Assert(object.ReferenceEquals(book.asks, other), "setting book[\"asks\"] must update book.asks");
+    }
 }

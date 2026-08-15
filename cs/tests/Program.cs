@@ -196,6 +196,7 @@ public class Tests
     static void WsOrderBookCopyAtomicityTests()
     {
         baseTestInstance.testWsOrderBookCopyAtomicity();
+        baseTestInstance.testWsOrderBookSingleStore();
         Helper.Green(" [C#] OrderBook Copy() atomicity tests passed");
     }
 
