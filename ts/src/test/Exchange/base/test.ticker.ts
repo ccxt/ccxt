@@ -134,15 +134,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
             // 0.01), so we widen the acceptance window by one such step on
             // each side - big enough to forgive rounding, far too small to
             // hide a real bug like mismatched units or a wrong-field parse
-            let quoteVolumeDecimals = 0;
-            const dotIndex = quoteVolume.indexOf ('.');
-            if (dotIndex >= 0) {
-                let fraction = quoteVolume.slice (dotIndex + 1);
-                while ((fraction.length > 0) && (fraction[fraction.length - 1] === '0')) {
-                    fraction = fraction.slice (0, fraction.length - 1);
-                }
-                quoteVolumeDecimals = fraction.length;
-            }
+            const quoteVolumeDecimals = exchange.precisionFromString (quoteVolume);
             const quoteQuantum = exchange.parsePrecision (exchange.numberToString (quoteVolumeDecimals));
             baseLow = Precise.stringSub (baseLow, quoteQuantum);
             baseHigh = Precise.stringAdd (baseHigh, quoteQuantum);
