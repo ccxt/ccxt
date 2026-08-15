@@ -5,14 +5,6 @@
     "methods": {
         "fetchTicker": [
             {
-                "description": "Spot ticker emulated from the daily candle",
-                "method": "fetchTicker",
-                "url": "https://api.woox.io/v3/public/kline?symbol=SPOT_BTC_USDT&type=1d&limit=1",
-                "input": [
-                    "BTC/USDT"
-                ]
-            },
-            {
                 "description": "Swap ticker",
                 "method": "fetchTicker",
                 "url": "https://api.woox.io/v3/public/futures?symbol=PERP_BTC_USDT",
