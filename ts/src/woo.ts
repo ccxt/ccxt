@@ -2439,8 +2439,9 @@ export default class woo extends Exchange {
      * @name woo#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market, only swap markets are supported
      * @see https://developer.woox.io/api-reference/endpoint/public_data/futures
-     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all swap market tickers are returned if not assigned, spot symbols are ignored because the endpoint only covers swap markets
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, all swap tickers are returned when not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] market type, must be 'swap' when no symbols are provided
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -2448,6 +2449,20 @@ export default class woo extends Exchange {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols);
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market (symbols[i]);
+                if (!market['swap']) {
+                    throw new NotSupported (this.id + ' fetchTickers() supports swap markets only');
+                }
+            }
+        } else {
+            let marketType: Str = undefined;
+            [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params, 'swap');
+            if (marketType !== 'swap') {
+                throw new NotSupported (this.id + ' fetchTickers() supports swap markets only');
+            }
+        }
         const response = await this.v3PublicGetFutures (params);
         //
         // same as fetchTicker, with multiple rows
