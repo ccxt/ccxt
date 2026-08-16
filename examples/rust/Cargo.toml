@@ -52,6 +52,11 @@ name = "ws_health_probe"
 path = "src/ws_health_probe.rs"
 required-features = ["ws"]
 
+[[bin]]
+name = "watch_trades_count"
+path = "src/watch_trades_count.rs"
+required-features = ["ws"]
+
 # Keep debug symbols in release so `sample`/Instruments can attribute
 # hot frames. Negligible perf impact, larger binary.
 [profile.release]
@@ -65,3 +70,7 @@ debug = true
 # under the job timeout.
 [profile.dev]
 debug = 0
+
+[[bin]]
+name = "iexchange_demo"
+path = "src/iexchange_demo.rs"

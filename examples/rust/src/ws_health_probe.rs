@@ -232,7 +232,6 @@ async fn async_main() {
         probe!(v, "deribit", ccxt::pro::deribit::DeribitCore);
         probe!(v, "derive", ccxt::pro::derive::DeriveCore);
         probe!(v, "dydx", ccxt::pro::dydx::DydxCore);
-        probe!(v, "exmo", ccxt::pro::exmo::ExmoCore);
         probe!(v, "extended", ccxt::pro::extended::ExtendedCore);
         probe!(v, "gate", ccxt::pro::gate::GateCore);
         probe!(v, "gemini", ccxt::pro::gemini::GeminiCore);

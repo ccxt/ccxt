@@ -767,3 +767,10 @@ impl Bitteam {
         Ok(TradingFee::from_value(v))
     }
 }
+
+#[async_trait::async_trait]
+impl crate::typed::TypedExchange for Bitteam {
+    async fn call_raw(&mut self, method: &str, args: Vec<Value>) -> crate::Result<Value> {
+        crate::runtime::call_typed(self.core_mut().call_dynamic(method, args)).await
+    }
+}
