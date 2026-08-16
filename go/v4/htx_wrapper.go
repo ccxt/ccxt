@@ -30,10 +30,7 @@ func NewHtxFromCore(core *HtxCore) *Htx {
  * @method
  * @name htx#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://huobiapi.github.io/docs/spot/v1/en/#get-system-status
- * @see https://huobiapi.github.io/docs/dm/v1/en/#get-system-status
- * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-system-status
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#get-system-status
+ * @see https://huobiapi.github.io/docs/spot/v1/en/#get-market-status
  * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available  // contractPublicGetHeartbeat
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
