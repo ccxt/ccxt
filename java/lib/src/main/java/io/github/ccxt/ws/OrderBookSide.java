@@ -129,6 +129,41 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
         return new ArrayList<>(this);
     }
 
+    // ─── Read safety ───
+    // Mutators hold synchronized(this), but the inherited ArrayList readers
+    // were unsynchronized: a reader thread racing a monitor-held remove() or
+    // grow-copy can observe null slots at valid indices and has no visibility
+    // guarantee at all. Point reads now take the same monitor (happens-before
+    // with every mutation), and iteration walks a snapshot so a live update
+    // can never shift rows mid-walk. See the binance watchOrderBookForSymbols
+    // null<null failure: the serialized book was perfectly ordered while two
+    // consecutive reads returned null.
+
+    @Override
+    public synchronized Object get(int index) {
+        return super.get(index);
+    }
+
+    @Override
+    public synchronized int size() {
+        return super.size();
+    }
+
+    @Override
+    public synchronized boolean isEmpty() {
+        return super.isEmpty();
+    }
+
+    @Override
+    public synchronized java.util.Iterator<Object> iterator() {
+        return this.snapshot().iterator();
+    }
+
+    @Override
+    public synchronized Object[] toArray() {
+        return super.toArray();
+    }
+
     public synchronized OrderBookSide copy() {
         if (this instanceof Asks) {
             return new Asks(this.snapshot(), this.depth);
