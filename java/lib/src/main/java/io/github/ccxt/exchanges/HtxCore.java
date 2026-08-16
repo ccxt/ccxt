@@ -161,17 +161,6 @@ public class HtxCore extends HtxApi
                 put( "hostnames", new java.util.HashMap<String, Object>() {{
                     put( "contract", "api.hbdm.vn" );
                     put( "spot", "api.huobi.pro" );
-                    put( "status", new java.util.HashMap<String, Object>() {{
-                        put( "spot", "status.huobigroup.com" );
-                        put( "future", new java.util.HashMap<String, Object>() {{
-                            put( "inverse", "status-dm.huobigroup.com" );
-                            put( "linear", "status-linear-swap.huobigroup.com" );
-                        }} );
-                        put( "swap", new java.util.HashMap<String, Object>() {{
-                            put( "inverse", "status-swap.huobigroup.com" );
-                            put( "linear", "status-linear-swap.huobigroup.com" );
-                        }} );
-                    }} );
                 }} );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "status", "https://{hostname}" );
@@ -514,49 +503,6 @@ public class HtxCore extends HtxApi
                         }} );
                         put( "subuser/transfer", new java.util.HashMap<String, Object>() {{
                             put( "cost", 10 );
-                        }} );
-                    }} );
-                }} );
-                put( "status", new java.util.HashMap<String, Object>() {{
-                    put( "public", new java.util.HashMap<String, Object>() {{
-                        put( "spot", new java.util.HashMap<String, Object>() {{
-                            put( "get", new java.util.HashMap<String, Object>() {{
-                                put( "api/v2/summary.json", new java.util.HashMap<String, Object>() {{
-                                    put( "cost", 1 );
-                                }} );
-                            }} );
-                        }} );
-                        put( "future", new java.util.HashMap<String, Object>() {{
-                            put( "inverse", new java.util.HashMap<String, Object>() {{
-                                put( "get", new java.util.HashMap<String, Object>() {{
-                                    put( "api/v2/summary.json", new java.util.HashMap<String, Object>() {{
-                                        put( "cost", 1 );
-                                    }} );
-                                }} );
-                            }} );
-                            put( "linear", new java.util.HashMap<String, Object>() {{
-                                put( "get", new java.util.HashMap<String, Object>() {{
-                                    put( "api/v2/summary.json", new java.util.HashMap<String, Object>() {{
-                                        put( "cost", 1 );
-                                    }} );
-                                }} );
-                            }} );
-                        }} );
-                        put( "swap", new java.util.HashMap<String, Object>() {{
-                            put( "inverse", new java.util.HashMap<String, Object>() {{
-                                put( "get", new java.util.HashMap<String, Object>() {{
-                                    put( "api/v2/summary.json", new java.util.HashMap<String, Object>() {{
-                                        put( "cost", 1 );
-                                    }} );
-                                }} );
-                            }} );
-                            put( "linear", new java.util.HashMap<String, Object>() {{
-                                put( "get", new java.util.HashMap<String, Object>() {{
-                                    put( "api/v2/summary.json", new java.util.HashMap<String, Object>() {{
-                                        put( "cost", 1 );
-                                    }} );
-                                }} );
-                            }} );
                         }} );
                     }} );
                 }} );
@@ -2152,10 +2098,7 @@ public class HtxCore extends HtxApi
      * @method
      * @name htx#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://huobiapi.github.io/docs/spot/v1/en/#get-system-status
-     * @see https://huobiapi.github.io/docs/dm/v1/en/#get-system-status
-     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-system-status
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#get-system-status
+     * @see https://huobiapi.github.io/docs/spot/v1/en/#get-market-status
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available  // contractPublicGetHeartbeat
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
@@ -2165,240 +2108,82 @@ public class HtxCore extends HtxApi
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
+            // the former statuspage endpoints (status*.huobigroup.com) were
+            // decommissioned after the huobi -> htx rebrand and no longer resolve,
+            // so this method uses the live native endpoints instead
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
-            {
-                (this.loadMarkets()).join();
-            }
             Object marketType = null;
             var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchStatus", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object enabledForContracts = this.handleOption("fetchStatus", "enableForContracts", false); // temp fix for: https://status-linear-swap.huobigroup.com/api/v2/summary.json
-            Object response = null;
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marketType, "spot")) && Helpers.isTrue(enabledForContracts)))
-            {
-                Object subType = this.safeString(parameters, "subType", Helpers.GetValue(this.options, "defaultSubType"));
-                if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
-                {
-                    if (Helpers.isTrue(Helpers.isEqual(subType, "linear")))
-                    {
-                        response = (this.statusPublicSwapLinearGetApiV2SummaryJson()).join();
-                    } else if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
-                    {
-                        response = (this.statusPublicSwapInverseGetApiV2SummaryJson()).join();
-                    }
-                } else if (Helpers.isTrue(Helpers.isEqual(marketType, "future")))
-                {
-                    if (Helpers.isTrue(Helpers.isEqual(subType, "linear")))
-                    {
-                        response = (this.statusPublicFutureLinearGetApiV2SummaryJson()).join();
-                    } else if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
-                    {
-                        response = (this.statusPublicFutureInverseGetApiV2SummaryJson()).join();
-                    }
-                } else if (Helpers.isTrue(Helpers.isEqual(marketType, "contract")))
-                {
-                    response = (this.contractPublicGetHeartbeat()).join();
-                }
-            } else if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
-            {
-                response = (this.statusPublicSpotGetApiV2SummaryJson()).join();
-            }
-            //
-            // statusPublicSpotGetApiV2SummaryJson, statusPublicSwapInverseGetApiV2SummaryJson, statusPublicFutureLinearGetApiV2SummaryJson, statusPublicFutureInverseGetApiV2SummaryJson
-            //
-            //      {
-            //          "page": {
-            //              "id":"mn7l2lw8pz4p",
-            //              "name":"Huobi Futures-USDT-margined Swaps",
-            //              "url":"https://status-linear-swap.huobigroup.com",
-            //              "time_zone":"Asia/Singapore",
-            //              "updated_at":"2022-04-29T12:47:21.319+08:00"},
-            //              "components": [
-            //                  {
-            //                      "id":"lrv093qk3yp5",
-            //                      "name":"market data",
-            //                      "status":"operational",
-            //                      "created_at":"2020-10-29T14:08:59.427+08:00",
-            //                      "updated_at":"2020-10-29T14:08:59.427+08:00",
-            //                      "position":1,"description":null,
-            //                      "showcase":false,
-            //                      "start_date":null,
-            //                      "group_id":null,
-            //                      "page_id":"mn7l2lw8pz4p",
-            //                      "group":true,
-            //                      "only_show_if_degraded":false,
-            //                      "components": [
-            //                          "82k5jxg7ltxd" // list of related components
-            //                      ]
-            //                  },
-            //              ],
-            //              "incidents": [ // empty array if there are no issues
-            //                  {
-            //                      "id": "rclfxz2g21ly",  // incident id
-            //                      "name": "Market data is delayed",  // incident name
-            //                      "status": "investigating",  // incident status
-            //                      "created_at": "2020-02-11T03:15:01.913Z",  // incident create time
-            //                      "updated_at": "2020-02-11T03:15:02.003Z",   // incident update time
-            //                      "monitoring_at": null,
-            //                      "resolved_at": null,
-            //                      "impact": "minor",  // incident impact
-            //                      "shortlink": "http://stspg.io/pkvbwp8jppf9",
-            //                      "started_at": "2020-02-11T03:15:01.906Z",
-            //                      "page_id": "p0qjfl24znv5",
-            //                      "incident_updates": [
-            //                          {
-            //                              "id": "dwfsk5ttyvtb",
-            //                              "status": "investigating",
-            //                              "body": "Market data is delayed",
-            //                              "incident_id": "rclfxz2g21ly",
-            //                              "created_at": "2020-02-11T03:15:02.000Z",
-            //                              "updated_at": "2020-02-11T03:15:02.000Z",
-            //                              "display_at": "2020-02-11T03:15:02.000Z",
-            //                              "affected_components": [
-            //                                  {
-            //                                      "code": "nctwm9tghxh6",
-            //                                      "name": "Market data",
-            //                                      "old_status": "operational",
-            //                                      "new_status": "degraded_performance"
-            //                                  }
-            //                              ],
-            //                              "deliver_notifications": true,
-            //                              "custom_tweet": null,
-            //                              "tweet_id": null
-            //                          }
-            //                      ],
-            //                      "components": [
-            //                          {
-            //                              "id": "nctwm9tghxh6",
-            //                              "name": "Market data",
-            //                              "status": "degraded_performance",
-            //                              "created_at": "2020-01-13T09:34:48.284Z",
-            //                              "updated_at": "2020-02-11T03:15:01.951Z",
-            //                              "position": 8,
-            //                              "description": null,
-            //                              "showcase": false,
-            //                              "group_id": null,
-            //                              "page_id": "p0qjfl24znv5",
-            //                              "group": false,
-            //                              "only_show_if_degraded": false
-            //                          }
-            //                      ]
-            //                  }, ...
-            //              ],
-            //              "scheduled_maintenances":[ // empty array if there are no scheduled maintenances
-            //                  {
-            //                      "id": "k7g299zl765l", // incident id
-            //                      "name": "Schedule maintenance", // incident name
-            //                      "status": "scheduled", // incident status
-            //                      "created_at": "2020-02-11T03:16:31.481Z",  // incident create time
-            //                      "updated_at": "2020-02-11T03:16:31.530Z",  // incident update time
-            //                      "monitoring_at": null,
-            //                      "resolved_at": null,
-            //                      "impact": "maintenance",  // incident impact
-            //                      "shortlink": "http://stspg.io/md4t4ym7nytd",
-            //                      "started_at": "2020-02-11T03:16:31.474Z",
-            //                      "page_id": "p0qjfl24znv5",
-            //                      "incident_updates": [
-            //                          {
-            //                              "id": "8whgr3rlbld8",
-            //                              "status": "scheduled",
-            //                              "body": "We will be undergoing scheduled maintenance during this time.",
-            //                              "incident_id": "k7g299zl765l",
-            //                              "created_at": "2020-02-11T03:16:31.527Z",
-            //                              "updated_at": "2020-02-11T03:16:31.527Z",
-            //                              "display_at": "2020-02-11T03:16:31.527Z",
-            //                              "affected_components": [
-            //                                  {
-            //                                      "code": "h028tnzw1n5l",
-            //                                      "name": "Deposit And Withdraw - Deposit",
-            //                                      "old_status": "operational",
-            //                                      "new_status": "operational"
-            //                                  }
-            //                              ],
-            //                              "deliver_notifications": true,
-            //                              "custom_tweet": null,
-            //                              "tweet_id": null
-            //                          }
-            //                      ],
-            //                      "components": [
-            //                          {
-            //                              "id": "h028tnzw1n5l",
-            //                              "name": "Deposit",
-            //                              "status": "operational",
-            //                              "created_at": "2019-12-05T02:07:12.372Z",
-            //                              "updated_at": "2020-02-10T12:34:52.970Z",
-            //                              "position": 1,
-            //                              "description": null,
-            //                              "showcase": false,
-            //                              "group_id": "gtd0nyr3pf0k",
-            //                              "page_id": "p0qjfl24znv5",
-            //                              "group": false,
-            //                              "only_show_if_degraded": false
-            //                          }
-            //                      ],
-            //                      "scheduled_for": "2020-02-15T00:00:00.000Z",  // scheduled maintenance start time
-            //                      "scheduled_until": "2020-02-15T01:00:00.000Z"  // scheduled maintenance end time
-            //                  }
-            //              ],
-            //              "status": {
-            //                  "indicator":"none", // none, minor, major, critical, maintenance
-            //                  "description":"all systems operational" // All Systems Operational, Minor Service Outage, Partial System Outage, Partially Degraded Service, Service Under Maintenance
-            //              }
-            //          }
-            //
-            //
-            // contractPublicGetHeartbeat
-            //
-            //      {
-            //          "status": "ok", // 'ok', 'error'
-            //          "data": {
-            //              "heartbeat": 1, // future 1: available, 0: maintenance with service suspended
-            //              "estimated_recovery_time": null, // estimated recovery time in milliseconds
-            //              "swap_heartbeat": 1,
-            //              "swap_estimated_recovery_time": null,
-            //              "option_heartbeat": 1,
-            //              "option_estimated_recovery_time": null,
-            //              "linear_swap_heartbeat": 1,
-            //              "linear_swap_estimated_recovery_time": null
-            //          },
-            //          "ts": 1557714418033
-            //      }
-            //
             Object status = null;
-            Object updated = null;
-            Object url = null;
-            if (Helpers.isTrue(Helpers.isEqual(marketType, "contract")))
+            Object eta = null;
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
-                Object statusRaw = this.safeString(response, "status");
-                if (Helpers.isTrue(Helpers.isEqual(statusRaw, null)))
-                {
-                    status = null;
-                } else
-                {
-                    status = ((Helpers.isTrue((Helpers.isEqual(statusRaw, "ok"))))) ? "ok" : "maintenance"; // 'ok', 'error'
-                }
-                updated = this.safeInteger(response, "ts");
+                response = (this.spotPublicGetV2MarketStatus(parameters)).join();
+                //
+                //     {
+                //         "code": 200,
+                //         "message": "success",
+                //         "data": {
+                //             "marketStatus": 1, // 1 normal, 2 halted, 3 cancel-only
+                //             "haltStartTime": 1614852011000, // only when halted
+                //             "haltEndTime": 1614852400000 // only when the end time is estimable
+                //         }
+                //     }
+                //
+                Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                Object marketStatus = this.safeInteger(data, "marketStatus");
+                status = ((Helpers.isTrue((Helpers.isEqual(marketStatus, 1))))) ? "ok" : "maintenance";
+                eta = this.safeInteger(data, "haltEndTime");
             } else
             {
-                Object statusData = this.safeValue(response, "status", new java.util.HashMap<String, Object>() {{}});
-                Object statusRaw = this.safeString(statusData, "indicator");
-                status = ((Helpers.isTrue((Helpers.isEqual(statusRaw, "none"))))) ? "ok" : "maintenance"; // none, minor, major, critical, maintenance
-                Object pageData = this.safeValue(response, "page", new java.util.HashMap<String, Object>() {{}});
-                Object datetime = this.safeString(pageData, "updated_at");
-                updated = this.parse8601(datetime);
-                url = this.safeString(pageData, "url");
+                Object subType = null;
+                var subTypeparametersVariable = this.handleSubTypeAndParams("fetchStatus", null, parameters);
+                subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
+                parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
+                response = (this.contractPublicGetHeartbeat(parameters)).join();
+                //
+                //     {
+                //         "status": "ok",
+                //         "data": {
+                //             "heartbeat": 1, // 1 available, 0 unavailable
+                //             "estimated_recovery_time": null,
+                //             "swap_heartbeat": 1,
+                //             "swap_estimated_recovery_time": null,
+                //             "option_heartbeat": 1,
+                //             "option_estimated_recovery_time": null,
+                //             "linear_swap_heartbeat": 1,
+                //             "linear_swap_estimated_recovery_time": null
+                //         },
+                //         "ts": 1557714418033 // stale on the exchange side, do not trust as an update time
+                //     }
+                //
+                Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                Object heartbeatKey = "heartbeat";
+                Object etaKey = "estimated_recovery_time";
+                if (Helpers.isTrue(Helpers.isEqual(subType, "linear")))
+                {
+                    heartbeatKey = "linear_swap_heartbeat";
+                    etaKey = "linear_swap_estimated_recovery_time";
+                } else if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
+                {
+                    heartbeatKey = "swap_heartbeat";
+                    etaKey = "swap_estimated_recovery_time";
+                }
+                Object heartbeat = this.safeInteger(data, heartbeatKey);
+                status = ((Helpers.isTrue((Helpers.isEqual(heartbeat, 1))))) ? "ok" : "maintenance";
+                eta = this.safeInteger(data, etaKey);
             }
             final Object finalStatus = status;
-            final Object finalUpdated = updated;
-            final Object finalUrl = url;
+            final Object finalEta = eta;
             final Object finalResponse = response;
             return new java.util.HashMap<String, Object>() {{
                 put( "status", finalStatus );
-                put( "updated", finalUpdated );
-                put( "eta", null );
-                put( "url", finalUrl );
+                put( "updated", null );
+                put( "eta", finalEta );
+                put( "url", null );
                 put( "info", finalResponse );
             }};
         });
