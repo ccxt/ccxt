@@ -73,6 +73,7 @@ class krakenfutures extends Exchange {
                 'fetchOrders' => true,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchTicker' => 'emulated',
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => 'emulated',
@@ -491,6 +492,8 @@ class krakenfutures extends Exchange {
                 'linear' => $linear,
                 'inverse' => $inverse,
                 'contractSize' => $this->safe_number($market, 'contractSize'),
+                'taker' => $this->safe_number($this->fees['trading'], 'taker'),
+                'maker' => $this->safe_number($this->fees['trading'], 'maker'),
                 'maintenanceMarginRate' => null,
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
@@ -1158,9 +1161,15 @@ class krakenfutures extends Exchange {
         $fee = null;
         if (($takerOrMaker !== null) && ($cost !== null)) {
             $feeRate = $this->safe_string($market, $takerOrMaker);
+            // fees are charged in the settlement currency => the quote currency
+            // for $linear contracts, the base currency for inverse contracts
+            $feeCurrency = $this->safe_string($market, 'settle');
+            if ($feeCurrency === null) {
+                $feeCurrency = $this->safe_string($market, 'quote');
+            }
             $fee = array(
                 'cost' => Precise::string_mul($cost, $feeRate),
-                'currency' => $this->safe_string($market, 'quote'),
+                'currency' => $feeCurrency,
                 'rate' => $feeRate,
             );
         }

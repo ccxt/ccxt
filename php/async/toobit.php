@@ -1804,6 +1804,7 @@ class toobit extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->markets === null) {
@@ -1863,12 +1864,11 @@ class toobit extends Exchange {
         }
         $cost = null;
         list($cost, $params) = $this->handle_param_string($params, 'cost');
-        if ($type === 'market') {
-            if ($cost === null && $side === 'buy') {
+        if ($type === 'market' && $side === 'buy') {
+            if ($cost === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires $params["cost"] for $market buy order');
-            } else {
-                $request['quantity'] = $this->cost_to_precision($symbol, $cost);
             }
+            $request['quantity'] = $this->cost_to_precision($symbol, $cost);
         } else {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         }
@@ -3242,21 +3242,21 @@ class toobit extends Exchange {
         //
         // array(
         //     {
-        //         "symbol":"BTC-SWAP-USDT", //symbol
-        //         "leverage":"20",  // leverage
+        //         "symbolId":"ETH-SWAP-USDT",
+        //         "leverage":"50",
         //         "marginType":"CROSS" // CROSS;ISOLATED
         //     }
         // )
         //
-        $data = $this->safe_dict($response, 'data', array());
+        $data = $this->safe_dict($response, 0, array());
         return $this->parse_leverage($data, $market);
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
-        $marketId = $this->safe_string($leverage, 'symbol');
+        $marketId = $this->safe_string_2($leverage, 'symbolId', 'symbol');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
-        $marginType = $this->safe_string($leverage, 'marginType');
-        $marginMode = ($marginType === 'crossed') ? 'cross' : 'isolated';
+        $marginType = $this->safe_string_lower($leverage, 'marginType');
+        $marginMode = ($marginType === 'cross') ? 'cross' : 'isolated';
         return array(
             'info' => $leverage,
             'symbol' => $this->safe_symbol($marketId, $market),
