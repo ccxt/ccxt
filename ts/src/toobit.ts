@@ -146,7 +146,7 @@ export default class toobit extends Exchange {
                         'api/v1/subAccount': { 'cost': 5 } as Endpoint<List>,
                         'api/v1/account/subAccount': { 'cost': 5 } as Endpoint<List>,
                         'api/v1/subAccount/list': { 'cost': 5 } as Endpoint<List>,
-                        'api/v1/futures/accountLeverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/futures/accountLeverage': { 'cost': 1 } as Endpoint<List>,
                         'api/v1/futures/order': { 'cost': 1 * 1.67 } as Endpoint<Dict>,
                         'api/v1/futures/positions': { 'cost': 5 * 1.67 } as Endpoint<List>,
                         'api/v1/futures/historyPositions': { 'cost': 5 } as Endpoint<List>,
@@ -3104,21 +3104,21 @@ export default class toobit extends Exchange {
         //
         // [
         //     {
-        //         "symbol":"BTC-SWAP-USDT", //symbol
-        //         "leverage":"20",  // leverage
+        //         "symbolId":"ETH-SWAP-USDT",
+        //         "leverage":"50",
         //         "marginType":"CROSS" // CROSS;ISOLATED
         //     }
         // ]
         //
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 0, {});
         return this.parseLeverage (data, market);
     }
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
-        const marketId = this.safeString (leverage, 'symbol');
+        const marketId = this.safeString2 (leverage, 'symbolId', 'symbol');
         const leverageValue = this.safeInteger (leverage, 'leverage');
-        const marginType = this.safeString (leverage, 'marginType');
-        const marginMode = (marginType === 'crossed') ? 'cross' : 'isolated';
+        const marginType = this.safeStringLower (leverage, 'marginType');
+        const marginMode = (marginType === 'cross') ? 'cross' : 'isolated';
         return {
             'info': leverage,
             'symbol': this.safeSymbol (marketId, market),

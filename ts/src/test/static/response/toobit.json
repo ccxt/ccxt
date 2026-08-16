@@ -3,6 +3,58 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchLeverage": [
+            {
+                "description": "fetchLeverage swap cross",
+                "method": "fetchLeverage",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "symbolId": "ETH-SWAP-USDT",
+                        "leverage": "50",
+                        "marginType": "CROSS"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "symbolId": "ETH-SWAP-USDT",
+                        "leverage": "50",
+                        "marginType": "CROSS"
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "marginMode": "cross",
+                    "longLeverage": 50,
+                    "shortLeverage": 50
+                }
+            },
+            {
+                "description": "fetchLeverage swap isolated",
+                "method": "fetchLeverage",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "symbolId": "BTC-SWAP-USDT",
+                        "leverage": "20",
+                        "marginType": "ISOLATED"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "symbolId": "BTC-SWAP-USDT",
+                        "leverage": "20",
+                        "marginType": "ISOLATED"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": "isolated",
+                    "longLeverage": 20,
+                    "shortLeverage": 20
+                }
+            }
+        ],
         "withdraw": [
             {
                 "description": "withdraw USDT on SOL",
