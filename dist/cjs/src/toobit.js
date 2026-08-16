@@ -3073,20 +3073,20 @@ class toobit extends toobit$1["default"] {
         //
         // [
         //     {
-        //         "symbol":"BTC-SWAP-USDT", //symbol
-        //         "leverage":"20",  // leverage
+        //         "symbolId":"ETH-SWAP-USDT",
+        //         "leverage":"50",
         //         "marginType":"CROSS" // CROSS;ISOLATED
         //     }
         // ]
         //
-        const data = this.safeDict(response, 'data', {});
+        const data = this.safeDict(response, 0, {});
         return this.parseLeverage(data, market);
     }
     parseLeverage(leverage, market = undefined) {
-        const marketId = this.safeString(leverage, 'symbol');
+        const marketId = this.safeString2(leverage, 'symbolId', 'symbol');
         const leverageValue = this.safeInteger(leverage, 'leverage');
-        const marginType = this.safeString(leverage, 'marginType');
-        const marginMode = (marginType === 'crossed') ? 'cross' : 'isolated';
+        const marginType = this.safeStringLower(leverage, 'marginType');
+        const marginMode = (marginType === 'cross') ? 'cross' : 'isolated';
         return {
             'info': leverage,
             'symbol': this.safeSymbol(marketId, market),

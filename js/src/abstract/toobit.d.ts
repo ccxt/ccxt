@@ -37,7 +37,7 @@ interface Exchange {
     privateGetApiV1SubAccount(params?: {}): Promise<List>;
     privateGetApiV1AccountSubAccount(params?: {}): Promise<List>;
     privateGetApiV1SubAccountList(params?: {}): Promise<List>;
-    privateGetApiV1FuturesAccountLeverage(params?: {}): Promise<Dict>;
+    privateGetApiV1FuturesAccountLeverage(params?: {}): Promise<List>;
     privateGetApiV1FuturesOrder(params?: {}): Promise<Dict>;
     privateGetApiV1FuturesPositions(params?: {}): Promise<List>;
     privateGetApiV1FuturesHistoryPositions(params?: {}): Promise<List>;
