@@ -45,6 +45,13 @@ class ArrayCache extends BaseCache implements CustomArray {
             value: {},
             writable: true,
         })
+        // the same, but cleared only by the GLOBAL getLimit () scope - the two poll
+        // scopes are independent, so each needs its own memory of what it has seen
+        Object.defineProperty (this, 'seenUpdatesAll', {
+            __proto__: null, // make it invisible
+            value: {},
+            writable: true,
+        })
         Object.defineProperty (this, 'clearUpdatesBySymbol', {
             __proto__: null, // make it invisible
             value: {},
@@ -99,6 +106,7 @@ class ArrayCache extends BaseCache implements CustomArray {
         this.hashmap = {}
         this.newUpdatesBySymbol = {}
         this.seenUpdatesBySymbol = {}
+        this.seenUpdatesAll = {}
         this.clearUpdatesBySymbol = {}
         this.allNewUpdates = 0
         this.clearAllUpdates = false
@@ -112,10 +120,11 @@ class ArrayCache extends BaseCache implements CustomArray {
         this.push (item)
         if (this.clearAllUpdates) {
             this.clearAllUpdates = false
-            this.clearUpdatesBySymbol = {}
+            // the global poll consumes only the global scope: the symbol-scoped
+            // seen sets, counts and pending flags belong to the symbol consumers
+            // and survive until their own polls clear them
             this.allNewUpdates = 0
-            this.newUpdatesBySymbol = {}
-            this.seenUpdatesBySymbol = {}
+            this.seenUpdatesAll = {}
         }
         if (this.clearUpdatesBySymbol[item.symbol]) {
             this.clearUpdatesBySymbol[item.symbol] = false
@@ -253,10 +262,11 @@ class ArrayCacheBySymbolById extends ArrayCache {
         this.push (item)
         if (this.clearAllUpdates) {
             this.clearAllUpdates = false
-            this.clearUpdatesBySymbol = {}
+            // the global poll consumes only the global scope: the symbol-scoped
+            // seen sets, counts and pending flags belong to the symbol consumers
+            // and survive until their own polls clear them
             this.allNewUpdates = 0
-            this.newUpdatesBySymbol = {}
-            this.seenUpdatesBySymbol = {}
+            this.seenUpdatesAll = {}
         }
         if (this.seenUpdatesBySymbol[key] === undefined) {
             this.seenUpdatesBySymbol[key] = new Set ()
@@ -267,11 +277,18 @@ class ArrayCacheBySymbolById extends ArrayCache {
         }
         // count distinct ids, in case an exchange updates the same order id twice
         const idSet = this.seenUpdatesBySymbol[key]
-        const beforeLength = idSet.size
         idSet.add (item.id)
-        const afterLength = idSet.size
-        this.newUpdatesBySymbol[key] = afterLength
-        this.allNewUpdates = (this.allNewUpdates || 0) + (afterLength - beforeLength)
+        this.newUpdatesBySymbol[key] = idSet.size
+        // the global scope keeps its own seen sets: the symbol-scoped poll clears
+        // the symbol set, and deriving the global count from that set double-counts
+        // an id that updates again after a symbol poll
+        if (this.seenUpdatesAll[key] === undefined) {
+            this.seenUpdatesAll[key] = new Set ()
+        }
+        const allIdSet = this.seenUpdatesAll[key]
+        const beforeAllLength = allIdSet.size
+        allIdSet.add (item.id)
+        this.allNewUpdates = (this.allNewUpdates || 0) + (allIdSet.size - beforeAllLength)
     }
 }
 
@@ -317,10 +334,11 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
         this.push (item)
         if (this.clearAllUpdates) {
             this.clearAllUpdates = false
-            this.clearUpdatesBySymbol = {}
+            // the global poll consumes only the global scope: the symbol-scoped
+            // seen sets, counts and pending flags belong to the symbol consumers
+            // and survive until their own polls clear them
             this.allNewUpdates = 0
-            this.newUpdatesBySymbol = {}
-            this.seenUpdatesBySymbol = {}
+            this.seenUpdatesAll = {}
         }
         if (this.seenUpdatesBySymbol[item.symbol] === undefined) {
             this.seenUpdatesBySymbol[item.symbol] = new Set ()
@@ -331,11 +349,16 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
         }
         // count distinct sides, in case an exchange updates the same side twice
         const sideSet = this.seenUpdatesBySymbol[item.symbol]
-        const beforeLength = sideSet.size
         sideSet.add (item.side)
-        const afterLength = sideSet.size
-        this.newUpdatesBySymbol[item.symbol] = afterLength
-        this.allNewUpdates = (this.allNewUpdates || 0) + (afterLength - beforeLength)
+        this.newUpdatesBySymbol[item.symbol] = sideSet.size
+        // independent global-scope memory, see ArrayCacheBySymbolById.append
+        if (this.seenUpdatesAll[item.symbol] === undefined) {
+            this.seenUpdatesAll[item.symbol] = new Set ()
+        }
+        const allSideSet = this.seenUpdatesAll[item.symbol]
+        const beforeAllLength = allSideSet.size
+        allSideSet.add (item.side)
+        this.allNewUpdates = (this.allNewUpdates || 0) + (allSideSet.size - beforeAllLength)
     }
 }
 

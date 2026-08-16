@@ -129,6 +129,9 @@ public class ArrayCache : BaseCache
     // symbol -> the distinct ids (ById) or sides (BySide) seen in the current
     // window; empty for the plain ArrayCache, which counts every append.
     protected Dictionary<string, HashSet<object>> seenUpdatesBySymbol = new Dictionary<string, HashSet<object>>();
+    // the same, but cleared only by the GLOBAL getLimit scope - the two poll
+    // scopes are independent, so each needs its own memory of what it has seen
+    protected Dictionary<string, HashSet<object>> seenUpdatesAll = new Dictionary<string, HashSet<object>>();
     protected Dictionary<string, object> clearUpdatesBySymbol = new Dictionary<string, object>();
     protected int allNewUpdates;
     protected bool clearAllUpdates;
@@ -149,6 +152,7 @@ public class ArrayCache : BaseCache
             this.hashmap.Clear();
             this.newUpdatesBySymbol.Clear();
             this.seenUpdatesBySymbol.Clear();
+            this.seenUpdatesAll.Clear();
             this.clearUpdatesBySymbol.Clear();
             this.allNewUpdates = 0;
             this.clearAllUpdates = false;
@@ -220,10 +224,10 @@ public class ArrayCache : BaseCache
         if (this.clearAllUpdates)
         {
             this.clearAllUpdates = false;
-            this.clearUpdatesBySymbol = new Dictionary<string, object>();
+            // the global poll consumes only the global scope: the symbol-scoped
+            // seen sets, counts and pending flags belong to the symbol consumers
             this.allNewUpdates = 0;
-            this.newUpdatesBySymbol = new Dictionary<string, int>();
-            this.seenUpdatesBySymbol = new Dictionary<string, HashSet<object>>();
+            this.seenUpdatesAll = new Dictionary<string, HashSet<object>>();
         }
 
         var itemSymbol = Exchange.SafeString(item, "symbol");
@@ -435,10 +439,10 @@ public class ArrayCacheBySymbolById : ArrayCache
         if (this.clearAllUpdates)
         {
             this.clearAllUpdates = false;
-            this.clearUpdatesBySymbol = new Dictionary<string, object>();
+            // the global poll consumes only the global scope: the symbol-scoped
+            // seen sets, counts and pending flags belong to the symbol consumers
             this.allNewUpdates = 0;
-            this.newUpdatesBySymbol = new Dictionary<string, int>();
-            this.seenUpdatesBySymbol = new Dictionary<string, HashSet<object>>();
+            this.seenUpdatesAll = new Dictionary<string, HashSet<object>>();
         }
 
         HashSet<object> idSet = null;
@@ -457,12 +461,22 @@ public class ArrayCacheBySymbolById : ArrayCache
         }
 
         // in case an exchange updates the same order id twice
-        var beforeLength = idSet.Count;
         idSet.Add(itemId);
-        var afterLength = idSet.Count;
-        this.newUpdatesBySymbol[itemSymbol] = afterLength;
+        this.newUpdatesBySymbol[itemSymbol] = idSet.Count;
+        // the global scope keeps its own seen sets: the symbol-scoped poll clears
+        // the symbol set, and deriving the global count from that set double-counts
+        // an id that updates again after a symbol poll
+        HashSet<object> allIdSet = null;
+        if (!this.seenUpdatesAll.TryGetValue(itemSymbol, out allIdSet))
+        {
+            allIdSet = new HashSet<object>();
+            this.seenUpdatesAll[itemSymbol] = allIdSet;
+        }
+        var beforeAllLength = allIdSet.Count;
+        allIdSet.Add(itemId);
+        var afterAllLength = allIdSet.Count;
         var defaultAllNewUpdates = this.allNewUpdates;
-        this.allNewUpdates = defaultAllNewUpdates + (afterLength - beforeLength);
+        this.allNewUpdates = defaultAllNewUpdates + (afterAllLength - beforeAllLength);
     }
 }
 
@@ -530,10 +544,10 @@ public class ArrayCacheBySymbolBySide : ArrayCache
         if (this.clearAllUpdates)
         {
             this.clearAllUpdates = false;
-            this.clearUpdatesBySymbol = new Dictionary<string, object>();
+            // the global poll consumes only the global scope: the symbol-scoped
+            // seen sets, counts and pending flags belong to the symbol consumers
             this.allNewUpdates = 0;
-            this.newUpdatesBySymbol = new Dictionary<string, int>();
-            this.seenUpdatesBySymbol = new Dictionary<string, HashSet<object>>();
+            this.seenUpdatesAll = new Dictionary<string, HashSet<object>>();
         }
 
         HashSet<object> sideSet = null;
@@ -551,12 +565,20 @@ public class ArrayCacheBySymbolBySide : ArrayCache
             sideSet.Clear();
         }
 
-        var beforeLength = sideSet.Count;
         sideSet.Add(itemSide);
-        var afterLength = sideSet.Count;
-        this.newUpdatesBySymbol[itemSymbol] = afterLength;
+        this.newUpdatesBySymbol[itemSymbol] = sideSet.Count;
+        // independent global-scope memory, see ArrayCacheBySymbolById.append
+        HashSet<object> allSideSet = null;
+        if (!this.seenUpdatesAll.TryGetValue(itemSymbol, out allSideSet))
+        {
+            allSideSet = new HashSet<object>();
+            this.seenUpdatesAll[itemSymbol] = allSideSet;
+        }
+        var beforeAllLength = allSideSet.Count;
+        allSideSet.Add(itemSide);
+        var afterAllLength = allSideSet.Count;
         var defaultAllNewUpdates = this.allNewUpdates;
-        this.allNewUpdates = defaultAllNewUpdates + (afterLength - beforeLength);
+        this.allNewUpdates = defaultAllNewUpdates + (afterAllLength - beforeAllLength);
     }
 }
 // }

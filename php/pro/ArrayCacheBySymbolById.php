@@ -67,10 +67,10 @@ class ArrayCacheBySymbolById extends ArrayCache {
         $this->index[] = $this->index_key($key, $id);
         if ($this->clear_all_updates) {
             $this->clear_all_updates = false;
-            $this->clear_updates_by_symbol = array();
+            # the global poll consumes only the global scope: the symbol-scoped
+            # seen sets, counts and pending flags belong to the symbol consumers
             $this->all_new_updates = 0;
-            $this->new_updates_by_symbol = array();
-            $this->seen_updates_by_symbol = array();
+            $this->seen_updates_all = array();
         }
         # the DISTINCT ids seen for this key live in their own map - the count
         # they produce is what $new_updates_by_symbol carries, so getLimit()
@@ -83,11 +83,18 @@ class ArrayCacheBySymbolById extends ArrayCache {
             $this->seen_updates_by_symbol[$key] = array();
         }
         # in case an exchange updates the same order id twice
-        $before_length = count($this->seen_updates_by_symbol[$key]);
         $this->seen_updates_by_symbol[$key][$id] = true;
-        $after_length = count($this->seen_updates_by_symbol[$key]);
-        $this->new_updates_by_symbol[$key] = $after_length;
-        $this->all_new_updates = ($this->all_new_updates ?? 0) + ($after_length - $before_length);
+        $this->new_updates_by_symbol[$key] = count($this->seen_updates_by_symbol[$key]);
+        # the global scope keeps its own seen sets: the symbol-scoped poll clears
+        # the symbol set, and deriving the global count from that set double-counts
+        # an entry that updates again after a symbol poll
+        if (!array_key_exists($key, $this->seen_updates_all)) {
+            $this->seen_updates_all[$key] = array();
+        }
+        $before_all_length = count($this->seen_updates_all[$key]);
+        $this->seen_updates_all[$key][$id] = true;
+        $after_all_length = count($this->seen_updates_all[$key]);
+        $this->all_new_updates = ($this->all_new_updates ?? 0) + ($after_all_length - $before_all_length);
     }
 
     public function clear() {

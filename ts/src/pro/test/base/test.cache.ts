@@ -614,6 +614,51 @@ function testWsCache () {
     const bucketKeys = Object.keys (cacheEvictBuckets.hashmap);
     const bucketCount = bucketKeys.length;
     assert (bucketCount === 3); // no empty leftover buckets
+
+    // ----------------------------------------------------------------------------
+    // test the symbol-scoped and the global getLimit scopes count independently -
+    // deriving the global count from the symbol-scoped seen set double-counts an
+    // id that updates again after a symbol poll
+
+    const cacheTwoScopes = new ArrayCacheBySymbolById ();
+    cacheTwoScopes.append ({ 'symbol': 'BTC/USDT', 'id': 'a', 'i': 1 });
+    cacheTwoScopes.append ({ 'symbol': 'BTC/USDT', 'id': 'b', 'i': 2 });
+
+    const symbolScopeFirst = cacheTwoScopes.getLimit ('BTC/USDT', 100);
+    assert (symbolScopeFirst === 2);
+
+    cacheTwoScopes.append ({ 'symbol': 'BTC/USDT', 'id': 'a', 'i': 3 });
+
+    const globalScope = cacheTwoScopes.getLimit (undefined, 100);
+    assert (globalScope === 2); // distinct ids a and b since no global poll happened - id a must not double-count
+
+    const symbolScopeSecond = cacheTwoScopes.getLimit ('BTC/USDT', 100);
+    assert (symbolScopeSecond === 1); // id a since the last symbol-scoped poll
+
+    // the inverse direction: a global poll (and the append that fires its
+    // deferred reset) must not erase the symbol scope's window
+    cacheTwoScopes.append ({ 'symbol': 'BTC/USDT', 'id': 'd', 'i': 4 });
+    cacheTwoScopes.append ({ 'symbol': 'BTC/USDT', 'id': 'e', 'i': 5 });
+    const globalScopeSecond = cacheTwoScopes.getLimit (undefined, 100);
+    assert (globalScopeSecond === 2); // ids d and e since the first global poll - id a was consumed by it
+    cacheTwoScopes.append ({ 'symbol': 'BTC/USDT', 'id': 'd', 'i': 6 });
+    const symbolScopeThird = cacheTwoScopes.getLimit ('BTC/USDT', 100);
+    assert (symbolScopeThird === 2); // ids d, e since the last symbol poll - the global poll in between must not reset this window
+
+    // ----------------------------------------------------------------------------
+    // the BySide twin of the two-scope case, covering both directions
+
+    const sideTwoScopes = new ArrayCacheBySymbolBySide ();
+    sideTwoScopes.append ({ 'symbol': 'BTC/USDT:USDT', 'side': 'long', 'contracts': 1 });
+    sideTwoScopes.append ({ 'symbol': 'BTC/USDT:USDT', 'side': 'short', 'contracts': 1 });
+    const sideSymbolFirst = sideTwoScopes.getLimit ('BTC/USDT:USDT', 100);
+    assert (sideSymbolFirst === 2);
+    sideTwoScopes.append ({ 'symbol': 'BTC/USDT:USDT', 'side': 'long', 'contracts': 2 });
+    const sideGlobal = sideTwoScopes.getLimit (undefined, 100);
+    assert (sideGlobal === 2); // long and short distinct since no global poll - the re-updated long must not double-count
+    sideTwoScopes.append ({ 'symbol': 'BTC/USDT:USDT', 'side': 'short', 'contracts': 2 });
+    const sideSymbolSecond = sideTwoScopes.getLimit ('BTC/USDT:USDT', 100);
+    assert (sideSymbolSecond === 2); // long and short since the last symbol poll - the global poll must not reset this window
 }
 
 export default testWsCache;
