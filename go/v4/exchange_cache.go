@@ -41,6 +41,41 @@ func (c *BaseCache) Clear() {
 	c.Data = c.Data[:0]
 }
 
+// cacheKeyOf reads a nesting key (symbol / outcome / id) off an item and
+// normalises it to a string. Exchanges do send integer order ids, so a bare
+// `m[field].(string)` assertion silently misses them and the update is appended
+// as a duplicate row instead of being merged in.
+func cacheKeyOf(m map[string]any, field string) string {
+	v, ok := m[field]
+	if !ok || v == nil {
+		return ""
+	}
+	return ToString(v)
+}
+
+// cacheTimestampOf extracts the leading timestamp of an OHLCV-like row.
+// The bool reports whether the row actually carries one, so a genuine timestamp
+// of 0 is not confused with "no timestamp".
+func cacheTimestampOf(item any) (int64, bool) {
+	arr, ok := item.([]any)
+	if !ok || len(arr) == 0 {
+		return 0, false
+	}
+	switch v := arr[0].(type) {
+	case int:
+		return int64(v), true
+	case int32:
+		return int64(v), true
+	case int64:
+		return v, true
+	case float32:
+		return int64(v), true
+	case float64:
+		return int64(v), true
+	}
+	return 0, false
+}
+
 func (c *BaseCache) AppendInternal(item any) {
 	// helper (no lock)
 	if c.MaxSize > 0 && len(c.Data) >= c.MaxSize {
@@ -95,13 +130,11 @@ func (c *ArrayCache) Append(item any) {
 	}
 	var symbol, id string
 	if m, ok := item.(map[string]any); ok {
-		if s, ok := m[keyField].(string); ok {
-			symbol = s
-		}
-		// optional id field
-		if ident, ok := m["id"].(string); ok {
-			id = ident
-		}
+		// stringify instead of type-asserting: exchanges do send integer order ids,
+		// and a failed `.(string)` assertion left id == "" so the update was appended
+		// as a duplicate row instead of merging into the existing one
+		symbol = cacheKeyOf(m, keyField)
+		id = cacheKeyOf(m, "id")
 	}
 
 	// Basic ring-buffer semantics
@@ -137,9 +170,9 @@ func (c *ArrayCache) Append(item any) {
 		removed := c.Data[0]
 		removedMap, ok := removed.(map[string]any)
 		if ok {
-			removedSymbol, okSym := removedMap[keyField].(string)
-			removedId, okId := removedMap["id"].(string)
-			if okSym && okId {
+			removedSymbol := cacheKeyOf(removedMap, keyField)
+			removedId := cacheKeyOf(removedMap, "id")
+			if removedSymbol != "" && removedId != "" {
 				byId := c.Hashmap[removedSymbol]
 				if byId != nil {
 					delete(byId, removedId)
@@ -215,6 +248,23 @@ func (c *ArrayCache) Append(item any) {
 // 	}
 // 	return true
 // }
+
+// Clear resets the nesting index along with the array. The keyed subclasses find
+// existing rows through the hashmap, so a clear () that only truncates c.Data
+// leaves the hashmap claiming rows that are gone - the next append then merges
+// into an orphaned reference and the row is silently lost. The update counters
+// have to go too, or GetLimit keeps reporting updates for rows that no longer
+// exist.
+func (c *ArrayCache) Clear() {
+	c.BaseCache.Clear()
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+	c.Hashmap = make(map[string]map[string]any)
+	c.newUpdatesBySymbol = make(map[string]Set)
+	c.clearUpdatesBySymbol = make(map[string]bool)
+	c.allNewUpdates = 0
+	c.clearAllUpdates = false
+}
 
 // ToArray implements the ArrayCache interface (defined in exchange.go).
 func (c *ArrayCache) ToArray() []any {
@@ -316,59 +366,95 @@ func NewArrayCacheByTimestamp(MaxSize any) *ArrayCacheByTimestamp {
 }
 
 func (c *ArrayCacheByTimestamp) Append(item any) {
-	var ts int64
-	if arr, ok := item.([]any); ok && len(arr) > 0 {
-		if v, okCast := arr[0].(int64); okCast {
-			ts = v
-		} else if vI, okI := arr[0].(int); okI {
-			ts = int64(vI)
-		} else if vF, okF := arr[0].(float64); okF {
-			ts = int64(vF)
-		}
-	}
+	// a genuine timestamp of 0 is a valid key, so the presence flag is carried
+	// separately instead of being inferred from `ts != 0`
+	ts, hasTs := cacheTimestampOf(item)
 
 	c.Mu.Lock()
 	defer c.Mu.Unlock()
-	if ts != 0 {
-		if _, exists := c.Hashmap[ts]; exists {
-			// c.Hashmap[ts] = item // update existing
-			// locate and update in Data as well
-			// to do use the reference in hashmap instead of searching
-			currItem := c.Hashmap[ts].([]any)
-			for i := range currItem {
-				if arr, ok := item.([]any); ok && len(arr) > 0 {
-					currItem[i] = arr[i]
-				}
-			}
-			// c.Hashmap[ts] = item
-			// for i, v := range c.Data {
-			// 	if arr, ok := v.([]any); ok && len(arr) > 0 {
-			// 		var ets int64
-			// 		if v2, okCast := arr[0].(int64); okCast {
-			// 			ets = v2
-			// 		} else if vI, okI := arr[0].(int); okI {
-			// 			ets = int64(vI)
-			// 		}
-			// 		if ets == ts {
-			// 			c.Data[i] = item
-			// 			break
-			// 		}
-			// 	}
-			// }
-			return
-		} else {
-			c.Hashmap[ts] = item
-		}
+
+	var existing any
+	exists := false
+	if hasTs {
+		existing, exists = c.Hashmap[ts]
 	}
 
+	if exists {
+		c.mergeRow(ts, existing, item)
+	} else {
+		if hasTs {
+			c.Hashmap[ts] = item
+			if c.MaxSize > 0 && len(c.Data) >= c.MaxSize {
+				// the evicted candle must take its hashmap entry with it, otherwise
+				// the timestamp keeps claiming a row that is no longer in the array
+				// and a later update of it merges into an orphaned reference
+				evicted := c.Data[0]
+				c.Data = c.Data[1:]
+				if ets, okEvicted := cacheTimestampOf(evicted); okEvicted && ets != ts {
+					delete(c.Hashmap, ets)
+				}
+			}
+		}
+		c.AppendInternal(item)
+	}
+
+	// the update bookkeeping runs on BOTH paths (mirrors Cache.ts): a re-sent
+	// candle is still an update of that timestamp
 	if c.clearUpdates {
 		c.clearUpdates = false
 		c.sizeTracker = NewSet()
 	}
-
-	c.AppendInternal(item)
 	c.sizeTracker.Add(ToString(ts))
 	c.newUpdates = c.sizeTracker.Size()
+}
+
+// mergeRow updates the stored row for `ts` in place so it ends up EQUAL to the
+// incoming row, length included, while keeping its position in c.Data.
+//
+// The previous implementation iterated the OLD row's indices and read the NEW
+// one, so appending [100,9,9] onto [100,1,2,3,4,5] indexed arr[3] and panicked
+// with index out of range; when the lengths happened to line up it still left a
+// stale tail behind ([100,9,9,3,4,5]). Callers must hold c.Mu.
+func (c *ArrayCacheByTimestamp) mergeRow(ts int64, existing any, item any) {
+	oldArr, okOld := existing.([]any)
+	newArr, okNew := item.([]any)
+	if okOld && okNew && len(oldArr) == len(newArr) {
+		// same shape: c.Data and c.Hashmap share this backing array, so writing
+		// through it is enough and no slice header has to be republished
+		copy(oldArr, newArr)
+		return
+	}
+
+	merged := item
+	if okNew {
+		// a shorter update must drop the tail, a longer one must grow: either way
+		// the slice header changes, so it has to be published to both views
+		row := make([]any, len(newArr))
+		copy(row, newArr)
+		merged = row
+	}
+	c.Hashmap[ts] = merged
+	// the freshest candle is the one exchanges keep updating, so scan from the end
+	for i := len(c.Data) - 1; i >= 0; i-- {
+		if ets, ok := cacheTimestampOf(c.Data[i]); ok && ets == ts {
+			c.Data[i] = merged
+			return
+		}
+	}
+}
+
+// Clear resets the timestamp index along with the array. Truncating only c.Data
+// left the hashmap claiming every timestamp it had ever seen, so re-appending a
+// known timestamp merged into a reference that was no longer in the array and
+// the candle was silently dropped.
+func (c *ArrayCacheByTimestamp) Clear() {
+	c.BaseCache.Clear()
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+	c.Hashmap = make(map[int64]any)
+	c.sizeTracker = NewSet()
+	c.newUpdates = 0
+	c.clearUpdates = false
 }
 
 func (c *ArrayCacheByTimestamp) ToArray() []any {

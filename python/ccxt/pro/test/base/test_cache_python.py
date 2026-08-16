@@ -361,13 +361,13 @@ def test_partial_update_merges_into_the_cached_row():
     assert positions[0]['contracts'] == 3
     assert positions[0]['entryPrice'] == 100
 
-    # ArrayCacheByTimestamp merges over the incoming length only, a shorter
-    # update must not truncate the cached candle
+    # ArrayCacheByTimestamp replaces the whole row, a shorter update must not
+    # leave the previous candle's trailing values behind as a stale tail
     by_timestamp = ArrayCacheByTimestamp()
     by_timestamp.append([1000, 1, 2, 0.5, 1.5, 100])
     by_timestamp.append([1000, 9, 8])
     assert len(by_timestamp) == 1
-    assert by_timestamp[0] == [1000, 9, 8, 0.5, 1.5, 100]
+    assert by_timestamp[0] == [1000, 9, 8]
 
 
 def test_eviction_drops_the_empty_outer_bucket():

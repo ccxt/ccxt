@@ -153,9 +153,12 @@ class ArrayCacheByTimestamp(BaseCache):
             # identity check, matching the `!==` in ts/src/base/ws/Cache.ts - a deep
             # value comparison would be O(k) on every update for no observable gain
             if reference is not item:
-                # merge in place so the row keeps its position, and only over the
-                # incoming length so a longer cached row is not truncated
-                reference[0:len(item)] = item
+                # OHLCV rows are lists, so a merge that only walks the incoming
+                # indices leaves the previous row's trailing values in place, e.g.
+                # [100,1,2,3,4,5] followed by [100,9,9] used to yield [100,9,9,3,4,5].
+                # Replace the whole contents in place - the row keeps its identity
+                # and its position, and whatever the update does not cover is dropped
+                reference[:] = item
         else:
             self.hashmap[item[0]] = item
             if len(self._deque) == self._deque.maxlen:
