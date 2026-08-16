@@ -146,7 +146,7 @@ export default class toobit extends Exchange {
                         'api/v1/subAccount': { 'cost': 5 } as Endpoint<List>,
                         'api/v1/account/subAccount': { 'cost': 5 } as Endpoint<List>,
                         'api/v1/subAccount/list': { 'cost': 5 } as Endpoint<List>,
-                        'api/v1/futures/accountLeverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/futures/accountLeverage': { 'cost': 1 } as Endpoint<List>,
                         'api/v1/futures/order': { 'cost': 1 * 1.67 } as Endpoint<Dict>,
                         'api/v1/futures/positions': { 'cost': 5 * 1.67 } as Endpoint<List>,
                         'api/v1/futures/historyPositions': { 'cost': 5 } as Endpoint<List>,
