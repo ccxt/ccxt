@@ -28,11 +28,13 @@ class ArrayCacheByTimestamp extends BaseCache {
         $key = $this->as_string($item[0]);
         if (array_key_exists($key, $this->hashmap)) {
             $prev_ref = &$this->hashmap[$key];
-            # field-wise merge, mirroring `for (const prop in item)` in the
-            # typescript source - fields the update omits must survive
-            foreach ($item as $prop => $value) {
-                $prev_ref[$prop] = $value;
-            }
+            # OHLCV rows are lists, so a field-wise merge only walks the indices
+            # the incoming row happens to have - a shorter update then leaves the
+            # previous row's trailing values in place, e.g. [100,1,2,3,4,5]
+            # followed by [100,9,9] used to yield [100,9,9,3,4,5]. Replace the
+            # whole row through the reference: the hashmap entry and the deque
+            # row alias the same zval, so both see the truncation
+            $prev_ref = $item;
             unset($prev_ref);
         } else {
             $this->hashmap[$key] = &$item;
