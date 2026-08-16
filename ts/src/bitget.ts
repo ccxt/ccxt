@@ -2332,7 +2332,11 @@ export default class bitget extends Exchange {
         //         "maxSymbolOrderNum": "400",
         //         "maxProductOrderNum": "400",
         //         "status": "online",
-        //         "maintainTime": ""
+        //         "maintainTime": "",
+        //         "areaSymbol": "yes",
+        //         "maxPositionNum": "200",
+        //         "isReality": "yes",
+        //         "launchTime": "1786698824814"
         //     }
         //
         // margin uta
@@ -2411,6 +2415,8 @@ export default class bitget extends Exchange {
             const baseId = this.safeString (market, 'baseCoin');
             const quote = this.safeCurrencyCode (quoteId);
             const base = this.safeCurrencyCode (baseId);
+            const isRealityValue = this.safeStringLower (market, 'isReality', '');
+            const isReality = (isRealityValue === 'yes');
             let settleId: Str = undefined;
             let settle: Str = undefined;
             if (category === 'USDT-FUTURES') {
@@ -2427,6 +2433,7 @@ export default class bitget extends Exchange {
             let type: Str = undefined;
             let swap = false;
             let spot = false;
+            let stock: Bool = false;
             let future = false;
             let contract = false;
             let pricePrecision: Num = undefined;
@@ -2439,9 +2446,10 @@ export default class bitget extends Exchange {
             let marginModes: NullableDict = undefined;
             let isMarginTradingAllowed = false;
             const isUtaMargin = (category === 'MARGIN');
-            if (isUtaMargin || (category === 'SPOT')) {
+            if (isReality || isUtaMargin || (category === 'SPOT')) {
                 type = 'spot';
                 spot = true;
+                stock = isReality;
                 if (isUtaMargin) {
                     const isolatedBase = this.safeString (market, 'isIsolatedBaseBorrowable');
                     const isolatedQuote = this.safeString (market, 'isIsolatedQuotedBorrowable');
@@ -2505,6 +2513,7 @@ export default class bitget extends Exchange {
                 'swap': swap,
                 'future': future,
                 'option': false,
+                'stock': stock,
                 'active': active,
                 'contract': contract,
                 'linear': linear,

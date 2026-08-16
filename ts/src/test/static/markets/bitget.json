@@ -1341,5 +1341,66 @@
         },
         "tierBased": null,
         "percentage": null
+    },
+    "RGOOGL/USDT": {
+        "id": "RGOOGLUSDT",
+        "symbol": "RGOOGL/USDT",
+        "base": "RGOOGL",
+        "quote": "USDT",
+        "baseId": "rGOOGL",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0,
+                "max": 900000000000000000000
+            },
+            "price": {},
+            "cost": {
+                "min": 10
+            }
+        },
+        "marginModes": {
+            "cross": false,
+            "isolated": false
+        },
+        "stock": true,
+        "info": {
+            "symbol": "RGOOGLUSDT",
+            "baseCoin": "rGOOGL",
+            "quoteCoin": "USDT",
+            "minTradeAmount": "0",
+            "maxTradeAmount": "900000000000000000000",
+            "takerFeeRate": "0.001",
+            "makerFeeRate": "0.001",
+            "pricePrecision": "2",
+            "quantityPrecision": "4",
+            "quotePrecision": "6",
+            "status": "online",
+            "minTradeUSDT": "10",
+            "buyLimitPriceRatio": "0.1",
+            "sellLimitPriceRatio": "0.1",
+            "areaSymbol": "yes",
+            "orderQuantity": "200",
+            "openTime": "1780322400000",
+            "offTime": "",
+            "maxLimitOrderValue": "20000000",
+            "maxMarketOrderValue": "1000000"
+        }
     }
 }
