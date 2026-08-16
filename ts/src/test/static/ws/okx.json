@@ -1,6 +1,7 @@
 {
     "exchange": "okx",
     "skipKeys": [],
+    "options": {},
     "methods": {
         "watchBidsAsks": [
             {
