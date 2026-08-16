@@ -369,6 +369,7 @@
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
+                    "comparePercentage": "change24h disagrees with open: open 72170.63 and lastPr 73369.13 is +1.66% while change24h 0.0232 becomes 2.32, and openUtc with changeUtc24h agrees with itself",
                 "compareOHLC": "broken from API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:318"
             },
             "fetchTickers": {
