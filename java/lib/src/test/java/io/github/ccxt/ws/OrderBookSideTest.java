@@ -61,6 +61,11 @@ class OrderBookSideTest {
         writer.join(5000);
         r1.join(5000);
         r2.join(5000);
+        // join(timeout) returning does not mean the thread stopped - a deadlocked
+        // reader must fail the test rather than time out green
+        org.junit.jupiter.api.Assertions.assertFalse(writer.isAlive(), "writer thread did not stop");
+        org.junit.jupiter.api.Assertions.assertFalse(r1.isAlive(), "reader 1 did not stop");
+        org.junit.jupiter.api.Assertions.assertFalse(r2.isAlive(), "reader 2 did not stop");
         org.junit.jupiter.api.Assertions.assertNull(failure.get(), failure.get());
     }
 

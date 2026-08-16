@@ -164,6 +164,11 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
         return super.toArray();
     }
 
+    @Override
+    public synchronized <T> T[] toArray(T[] a) {
+        return super.toArray(a);
+    }
+
     public synchronized OrderBookSide copy() {
         if (this instanceof Asks) {
             return new Asks(this.snapshot(), this.depth);
