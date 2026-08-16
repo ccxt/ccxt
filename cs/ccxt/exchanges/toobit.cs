@@ -1909,6 +1909,7 @@ public partial class toobit : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1985,15 +1986,13 @@ public partial class toobit : Exchange
         var costparametersVariable = this.handleParamString(parameters, "cost");
         cost = ((IList<object>)costparametersVariable)[0];
         parameters = ((IList<object>)costparametersVariable)[1];
-        if (isTrue(isEqual(type, "market")))
+        if (isTrue(isTrue(isEqual(type, "market")) && isTrue(isEqual(side, "buy"))))
         {
-            if (isTrue(isTrue(isEqual(cost, null)) && isTrue(isEqual(side, "buy"))))
+            if (isTrue(isEqual(cost, null)))
             {
                 throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires params[\"cost\"] for market buy order")) ;
-            } else
-            {
-                ((IDictionary<string,object>)request)["quantity"] = this.costToPrecision(symbol, cost);
             }
+            ((IDictionary<string,object>)request)["quantity"] = this.costToPrecision(symbol, cost);
         } else
         {
             ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
