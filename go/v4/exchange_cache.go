@@ -92,12 +92,15 @@ func (c *BaseCache) AppendInternal(item any) {
 type ArrayCache struct {
 	*BaseCache
 
-	Hashmap                  map[string]map[string]any `json:"-"`
-	nestedNewUpdates         bool                      `json:"-"`
-	newUpdatesBySymbol       map[string]Set            `json:"-"`
-	clearUpdatesBySymbol     map[string]bool           `json:"-"`
-	nestedNewUpdatesBySymbol bool                      `json:"-"`
-	keyField                 string                    `json:"-"`
+	Hashmap          map[string]map[string]any `json:"-"`
+	nestedNewUpdates bool                      `json:"-"`
+	// newUpdatesBySymbol holds the resolved count per key (mirrors Cache.ts).
+	// Distinct ids/sides live in seenUpdatesBySymbol; getLimit never reads a Set.
+	newUpdatesBySymbol       map[string]int  `json:"-"`
+	seenUpdatesBySymbol      map[string]*Set `json:"-"`
+	clearUpdatesBySymbol     map[string]bool `json:"-"`
+	nestedNewUpdatesBySymbol bool            `json:"-"`
+	keyField                 string          `json:"-"`
 }
 
 func NewArrayCache(MaxSize any) *ArrayCache {
@@ -113,11 +116,54 @@ func NewArrayCache(MaxSize any) *ArrayCache {
 	return &ArrayCache{
 		BaseCache:                NewBaseCache(size),
 		Hashmap:                  make(map[string]map[string]any),
-		newUpdatesBySymbol:       make(map[string]Set),
+		newUpdatesBySymbol:       make(map[string]int),
+		seenUpdatesBySymbol:      make(map[string]*Set),
 		clearUpdatesBySymbol:     make(map[string]bool),
 		nestedNewUpdatesBySymbol: false,
 		keyField:                 "symbol",
 	}
+}
+
+// resetUpdateTrackersLocked clears the getLimit counters. Caller must hold Mu.
+func (c *ArrayCache) resetUpdateTrackersLocked() {
+	c.clearUpdatesBySymbol = make(map[string]bool)
+	c.allNewUpdates = 0
+	c.newUpdatesBySymbol = make(map[string]int)
+	c.seenUpdatesBySymbol = make(map[string]*Set)
+}
+
+// trackAppendLocked records one append against the getLimit counters.
+// When nestedNewUpdatesBySymbol is set (ById / BySide), distinctId is stored in
+// seenUpdatesBySymbol and newUpdatesBySymbol gets the set size — same as Cache.ts.
+// Plain ArrayCache just increments the int. Caller must hold Mu.
+func (c *ArrayCache) trackAppendLocked(key string, distinctId string) {
+	if c.clearAllUpdates {
+		c.clearAllUpdates = false
+		c.resetUpdateTrackersLocked()
+	}
+	if c.nestedNewUpdatesBySymbol {
+		idSet := c.seenUpdatesBySymbol[key]
+		if idSet == nil {
+			idSet = NewSet()
+			c.seenUpdatesBySymbol[key] = idSet
+		}
+		if c.clearUpdatesBySymbol[key] {
+			c.clearUpdatesBySymbol[key] = false
+			idSet.Clear()
+		}
+		beforeSize := idSet.Size()
+		idSet.Add(distinctId)
+		afterSize := idSet.Size()
+		c.newUpdatesBySymbol[key] = afterSize
+		c.allNewUpdates += afterSize - beforeSize
+		return
+	}
+	if c.clearUpdatesBySymbol[key] {
+		c.clearUpdatesBySymbol[key] = false
+		c.newUpdatesBySymbol[key] = 0
+	}
+	c.newUpdatesBySymbol[key]++
+	c.allNewUpdates++
 }
 
 func (c *ArrayCache) Append(item any) {
@@ -205,27 +251,7 @@ func (c *ArrayCache) Append(item any) {
 		}
 	}
 
-	if c.clearAllUpdates {
-		c.clearAllUpdates = false
-		c.clearUpdatesBySymbol = make(map[string]bool)
-		c.allNewUpdates = 0
-		c.newUpdatesBySymbol = make(map[string]Set)
-	}
-
-	if _, exists := c.newUpdatesBySymbol[symbol]; !exists {
-		c.newUpdatesBySymbol[symbol] = *NewSet()
-	}
-
-	if _, exists := c.clearUpdatesBySymbol[symbol]; exists {
-		c.clearUpdatesBySymbol[symbol] = false
-		c.newUpdatesBySymbol[symbol] = *NewSet()
-	}
-
-	idSet := c.newUpdatesBySymbol[symbol]
-	beforeSize := idSet.Size()
-	idSet.Add(id)
-	afterSize := idSet.Size()
-	c.allNewUpdates += (afterSize - beforeSize)
+	c.trackAppendLocked(symbol, id)
 }
 
 // func areArraysEqual(a any, b any) bool {
@@ -260,7 +286,8 @@ func (c *ArrayCache) Clear() {
 	c.Mu.Lock()
 	defer c.Mu.Unlock()
 	c.Hashmap = make(map[string]map[string]any)
-	c.newUpdatesBySymbol = make(map[string]Set)
+	c.newUpdatesBySymbol = make(map[string]int)
+	c.seenUpdatesBySymbol = make(map[string]*Set)
 	c.clearUpdatesBySymbol = make(map[string]bool)
 	c.allNewUpdates = 0
 	c.clearAllUpdates = false
@@ -294,11 +321,11 @@ func (c *ArrayCache) GetLimit(symbol any, limit any) any {
 		newUpdatesValue = c.allNewUpdates
 		c.clearAllUpdates = true
 	} else {
-		tempNewUpdates, found := c.newUpdatesBySymbol[ToString(symbol)]
-		if found && c.nestedNewUpdatesBySymbol {
-			newUpdatesValue = tempNewUpdates.Size()
+		sym := ToString(symbol)
+		if count, found := c.newUpdatesBySymbol[sym]; found {
+			newUpdatesValue = count
 		}
-		c.clearUpdatesBySymbol[ToString(symbol)] = true
+		c.clearUpdatesBySymbol[sym] = true
 	}
 
 	if newUpdatesValue == nil {
@@ -318,10 +345,8 @@ func (c *ArrayCache) Remove(symbol string) {
 	// Remove from hashmap
 	delete(c.Hashmap, symbol)
 
-	// Remove from newUpdatesBySymbol
 	delete(c.newUpdatesBySymbol, symbol)
-
-	// Remove from clearUpdatesBySymbol
+	delete(c.seenUpdatesBySymbol, symbol)
 	delete(c.clearUpdatesBySymbol, symbol)
 
 	// Filter out items with this symbol from Data
@@ -604,27 +629,7 @@ func (c *ArrayCacheBySymbolBySide) Append(item any) {
 		}
 	}
 
-	if c.clearAllUpdates {
-		c.clearAllUpdates = false
-		c.clearUpdatesBySymbol = make(map[string]bool)
-		c.allNewUpdates = 0
-		c.newUpdatesBySymbol = make(map[string]Set)
-	}
-
-	if _, exists := c.newUpdatesBySymbol[symbol]; !exists {
-		c.newUpdatesBySymbol[symbol] = *NewSet()
-	}
-
-	if _, exists := c.clearUpdatesBySymbol[symbol]; exists {
-		c.clearUpdatesBySymbol[symbol] = false
-		c.newUpdatesBySymbol[symbol] = *NewSet()
-	}
-
-	sideSet := c.newUpdatesBySymbol[symbol]
-	beforeSize := sideSet.Size()
-	sideSet.Add(side)
-	afterSize := sideSet.Size()
-	c.allNewUpdates += (afterSize - beforeSize)
+	c.trackAppendLocked(symbol, side)
 }
 
 func (c *ArrayCacheBySymbolBySide) GetLimit(symbol any, limit any) any {
@@ -662,5 +667,15 @@ func (s *Set) Contains(value string) bool {
 }
 
 func (s *Set) Size() int {
+	if s == nil {
+		return 0
+	}
 	return len(s.elements)
+}
+
+func (s *Set) Clear() {
+	if s == nil {
+		return
+	}
+	s.elements = make(map[string]struct{})
 }
