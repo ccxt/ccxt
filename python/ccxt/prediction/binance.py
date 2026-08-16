@@ -6,8 +6,7 @@
 from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.binance import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
-from typing import List
+from ccxt.base.types import Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -28,7 +27,7 @@ from ccxt.base.precise import Precise
 
 class binance(PredictionExchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(binance, self).describe(), {
             'id': 'binance',
             'name': 'Binance',
@@ -151,7 +150,7 @@ class binance(PredictionExchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         fetches binance prediction markets; with a query it resolves the query via the search endpoint and returns the matched topics' markets, otherwise it pages the market listing
 
@@ -194,7 +193,7 @@ class binance(PredictionExchange, ImplicitAPI):
         self.set_events(parsedEvents)
         return flatMarkets
 
-    async def fetch_raw_topics(self, maxTopics: Int, rest={}) -> List[Any]:
+    async def fetch_raw_topics(self, maxTopics: Int, rest={}) -> list[object]:
         """
  @ignore
         pages the market/list endpoint and returns up to `maxTopics` raw market topics
@@ -267,7 +266,7 @@ class binance(PredictionExchange, ImplicitAPI):
             offset = self.sum(offset, pageTopicsLength)
         return collected
 
-    async def fetch_raw_topic_detail(self, topicId: str, params={}) -> Any:
+    async def fetch_raw_topic_detail(self, topicId: str, params={}) -> object:
         """
  @ignore
         fetches a single raw market topic(with nested markets and outcome tokens) by its id
@@ -280,7 +279,7 @@ class binance(PredictionExchange, ImplicitAPI):
         }
         return await self.sapiPrivateGetMarketDetail(self.extend(request, params))
 
-    async def complete_raw_topics(self, rawTopics: List[Any]) -> List[Any]:
+    async def complete_raw_topics(self, rawTopics: list[object]) -> list[object]:
         """
  @ignore
         ensures each raw topic carries fully-populated nested markets(with outcome token ids), fetching the topic detail when the listing/search payload omitted them
@@ -308,7 +307,7 @@ class binance(PredictionExchange, ImplicitAPI):
                     result.append(detail)
         return result
 
-    async def fetch_events(self, params: fetchEventsParams = {}) -> List[PredictionEvent]:
+    async def fetch_events(self, params: fetchEventsParams = {}) -> list[PredictionEvent]:
         """
         fetches prediction-market events(market topics); the call must be scoped by query/queries/tags, eventId, or an l1Category/l2Category listing filter
 
@@ -399,7 +398,7 @@ class binance(PredictionExchange, ImplicitAPI):
         postParams = self.omit(params, ['tags', 'l1Category', 'l2Category'])
         return self.apply_event_fetch_params(result, postParams, [])
 
-    async def fetch_events_by_query(self, queries: List[str], limit: Int, rest={}) -> List[Any]:
+    async def fetch_events_by_query(self, queries: list[str], limit: Int, rest={}) -> list[object]:
         """
  @ignore
         resolves free-text queries through the semantic market search endpoint, then completes the matched topics with their outcome tokens
@@ -464,7 +463,7 @@ class binance(PredictionExchange, ImplicitAPI):
         events = await self.fetch_events(self.extend({'eventId': id}, params))
         return self.safe_dict(events, 0)
 
-    def parse_event(self, rawTopic: dict) -> Any:
+    def parse_event(self, rawTopic: dict) -> object:
         """
  @ignore
         parses a raw binance market topic(with nested markets) into the unified event shape
@@ -969,7 +968,7 @@ class binance(PredictionExchange, ImplicitAPI):
             return 'canceled'
         return self.safe_string(statuses, status, status)
 
-    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
+    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
         """
         fetches currently open orders for the user
 
@@ -1045,7 +1044,7 @@ class binance(PredictionExchange, ImplicitAPI):
         parsedOrders = self.parse_prediction_orders(orders, outcomeObj, since)
         return self.filter_by_outcome_since_limit(parsedOrders, outcome, since, limit)
 
-    async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
+    async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
         """
         fetches all historical orders for the user
 
@@ -1128,7 +1127,7 @@ class binance(PredictionExchange, ImplicitAPI):
         parsedOrders = self.parse_prediction_orders(orders, outcomeObj, since)
         return self.filter_by_outcome_since_limit(parsedOrders, outcome, since, limit)
 
-    async def fetch_positions(self, outcomes: Strings = None, params={}) -> List[PredictionPosition]:
+    async def fetch_positions(self, outcomes: Strings = None, params={}) -> list[PredictionPosition]:
         """
         fetches the user's outcome positions; outcome positions are spot token balances under the "+<encoding>" coin form(size and entry notional), the value/entry/mark price/pnl are computed from the current mid prices
 
@@ -1290,7 +1289,7 @@ class binance(PredictionExchange, ImplicitAPI):
             'info': position,
         })
 
-    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionTrade]:
+    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
         """
         fetch all trades made by the user
 
@@ -1454,7 +1453,7 @@ class binance(PredictionExchange, ImplicitAPI):
             'fee': fee,
         }, outcomeObj)
 
-    async def fetch_wallet(self, methodName: str, params={}) -> Any:
+    async def fetch_wallet(self, methodName: str, params={}) -> object:
         """
         fetch wallet for user and save the one match the walletAddress user provided
 
@@ -1497,7 +1496,7 @@ class binance(PredictionExchange, ImplicitAPI):
         self.options['wallet'] = cachedWallet
         return cachedWallet
 
-    async def fetch_quote(self, request: dict, params={}) -> Any:
+    async def fetch_quote(self, request: dict, params={}) -> object:
         """
         request for quote from binance server
 
@@ -1543,7 +1542,7 @@ class binance(PredictionExchange, ImplicitAPI):
         #
         return response
 
-    def price_to_precision(self, outcome: Str, price: Any) -> str:
+    def price_to_precision(self, outcome: Str, price: object) -> str:
         market = self.market(outcome)
         prec = self.safe_number(self.safe_dict(market, 'precision', {}), 'price', 0.0001)
         decimals = 4
@@ -1551,7 +1550,7 @@ class binance(PredictionExchange, ImplicitAPI):
             decimals = self.precision_from_string(self.number_to_string(prec))
         return self.decimal_to_precision(price, ROUND, decimals, DECIMAL_PLACES, self.paddingMode)
 
-    def amount_to_precision(self, outcome: Str, amount: Any) -> str:
+    def amount_to_precision(self, outcome: Str, amount: object) -> str:
         market = self.market(outcome)
         prec = self.safe_number(self.safe_dict(market, 'precision', {}), 'amount', 0.01)
         decimals = 2
@@ -1694,7 +1693,7 @@ class binance(PredictionExchange, ImplicitAPI):
         orders = await self.cancel_orders([id], outcome, params)
         return self.safe_dict(orders, 0, {})
 
-    async def cancel_orders(self, ids: List[str], outcome: Str = None, params={}) -> List[PredictionOrder]:
+    async def cancel_orders(self, ids: list[str], outcome: Str = None, params={}) -> list[PredictionOrder]:
         """
         cancels multiple open orders
 
@@ -1765,7 +1764,7 @@ class binance(PredictionExchange, ImplicitAPI):
             orders.append(self.safe_prediction_order(order))
         return orders
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         errorCode = self.safe_string(response, 'code')
@@ -1777,7 +1776,7 @@ class binance(PredictionExchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: Any, api: Any = 'sapi', method='GET', params={}, headers: Any = None, body: Any = None):
+    def sign(self, path: object, api: object = 'sapi', method='GET', params={}, headers: object = None, body: object = None):
         """
  @ignore
         builds the request URL and attaches the standard binance SAPI HMAC-SHA256 signature — every prediction endpoint is signed

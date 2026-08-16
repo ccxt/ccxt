@@ -6,14 +6,13 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
 import json
-from ccxt.base.types import Any, Int, OrderBook, Ticker, Trade
+from ccxt.base.types import Int, OrderBook, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 
 
 class ndax(ccxt.async_support.ndax):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(ndax, self).describe(), {
             'has': {
                 'ws': True,
@@ -75,7 +74,7 @@ class ndax(ccxt.async_support.ndax):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_ticker(self, client: Client, message: Any):
+    def handle_ticker(self, client: Client, message: object):
         payload = self.safe_value(message, 'o', {})
         #
         #     {
@@ -111,7 +110,7 @@ class ndax(ccxt.async_support.ndax):
         messageHash = name + ':' + market['id']
         client.resolve(ticker, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -149,7 +148,7 @@ class ndax(ccxt.async_support.ndax):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message: Any):
+    def handle_trades(self, client: Client, message: object):
         payload = self.safe_value(message, 'o', [])
         #
         # initial snapshot
@@ -192,7 +191,7 @@ class ndax(ccxt.async_support.ndax):
             tradesArray = self.safe_value(self.trades, symbol)
             client.resolve(tradesArray, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -232,7 +231,7 @@ class ndax(ccxt.async_support.ndax):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client: Client, message: Any):
+    def handle_ohlcv(self, client: Client, message: object):
         #
         #     {
         #         "m": 1,
@@ -378,7 +377,7 @@ class ndax(ccxt.async_support.ndax):
         orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message: Any):
+    def handle_order_book(self, client: Client, message: object):
         #
         #     {
         #         "m": 3,
@@ -451,7 +450,7 @@ class ndax(ccxt.async_support.ndax):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    def handle_order_book_subscription(self, client: Client, message: Any, subscription: Any):
+    def handle_order_book_subscription(self, client: Client, message: object, subscription: object):
         #
         #     {
         #         "m": 1,
@@ -486,7 +485,7 @@ class ndax(ccxt.async_support.ndax):
         messageHash = self.safe_string(subscription, 'messageHash')
         client.resolve(orderbook, messageHash)
 
-    def handle_subscription_status(self, client: Client, message: Any):
+    def handle_subscription_status(self, client: Client, message: object):
         #
         #     {
         #         "m": 1,
@@ -503,7 +502,7 @@ class ndax(ccxt.async_support.ndax):
             if method is not None:
                 method(client, message, subscription)
 
-    def handle_message(self, client: Client, message: Any):
+    def handle_message(self, client: Client, message: object):
         #
         #     {
         #         "m": 0,  # message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error

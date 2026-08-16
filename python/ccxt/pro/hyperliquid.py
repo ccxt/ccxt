@@ -5,9 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Bool, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Bool, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
@@ -15,7 +14,7 @@ from ccxt.base.errors import NotSupported
 
 class hyperliquid(ccxt.async_support.hyperliquid):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(hyperliquid, self).describe(), {
             'has': {
                 'ws': True,
@@ -71,7 +70,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             },
         })
 
-    async def create_orders_ws(self, orders: List[OrderRequest], params={}):
+    async def create_orders_ws(self, orders: list[OrderRequest], params={}):
         """
         create a list of trade orders using WebSocket post request
 
@@ -165,7 +164,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         parsedOrder = self.parse_order(first, market)
         return parsedOrder
 
-    async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
+    async def cancel_orders_ws(self, ids: list[str], symbol: Str = None, params={}):
         """
         cancel multiple orders using WebSocket post request
 
@@ -243,7 +242,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         orderbook = await self.watch(url, messageHash, message, messageHash)
         return orderbook.limit()
 
-    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+    async def un_watch_order_book(self, symbol: str, params={}) -> object:
         """
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -272,7 +271,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_order_book(self, client: Any, message: Any):
+    def handle_order_book(self, client: object, message: object):
         #
         #     {
         #         "channel": "l2Book",
@@ -350,7 +349,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    async def un_watch_ticker(self, symbol: str, params={}) -> Any:
+    async def un_watch_ticker(self, symbol: str, params={}) -> object:
         """
         unWatches the price ticker stream of a specific market
 
@@ -415,7 +414,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             return self.filter_by_array_tickers(tickers, 'symbol', symbols)
         return self.tickers
 
-    async def un_watch_tickers(self, symbols: Strings = None, params={}) -> Any:
+    async def un_watch_tickers(self, symbols: Strings = None, params={}) -> object:
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -439,7 +438,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
@@ -479,7 +478,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    async def un_watch_my_trades(self, symbol: Str = None, params={}) -> Any:
+    async def un_watch_my_trades(self, symbol: Str = None, params={}) -> object:
         """
         unWatches information on multiple trades made by the user
 
@@ -510,7 +509,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_ws_tickers(self, client: Client, message: Any):
+    def handle_ws_tickers(self, client: Client, message: object):
         # hip3 mids
         # {
         #     channel: 'allMids',
@@ -546,7 +545,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             client.resolve(self.tickers, messageHash)
         return True
 
-    def handle_active_asset_ctx(self, client: Client, message: Any):
+    def handle_active_asset_ctx(self, client: Client, message: object):
         #
         #     {
         #         "channel": "activeAssetCtx",
@@ -581,10 +580,10 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         client.resolve(ticker, messageHash)
         return True
 
-    def parse_ws_ticker(self, rawTicker: Any, market: Market = None) -> Ticker:
+    def parse_ws_ticker(self, rawTicker: object, market: Market = None) -> Ticker:
         return self.parse_ticker(rawTicker, market)
 
-    def handle_my_trades(self, client: Client, message: Any):
+    def handle_my_trades(self, client: Client, message: object):
         #
         #     {
         #         "channel": "userFills",
@@ -637,7 +636,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         messageHash = 'myTrades'
         client.resolve(trades, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         watches information on multiple trades made in a market
 
@@ -668,7 +667,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+    async def un_watch_trades(self, symbol: str, params={}) -> object:
         """
         unWatches information on multiple trades made in a market
 
@@ -695,7 +694,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_trades(self, client: Client, message: Any):
+    def handle_trades(self, client: Client, message: object):
         #
         #     {
         #         "channel": "trades",
@@ -795,7 +794,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'fee': {'cost': fee, 'currency': 'USDC'},
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
 
@@ -828,7 +827,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> object:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
 
@@ -857,7 +856,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messagehash, message, messagehash)
 
-    def handle_ohlcv(self, client: Client, message: Any):
+    def handle_ohlcv(self, client: Client, message: object):
         #
         #     {
         #         channel: 'candle',
@@ -952,7 +951,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, topic)
 
-    async def un_watch_balance(self, params={}) -> Any:
+    async def un_watch_balance(self, params={}) -> object:
         """
         unWatches balance
 
@@ -988,7 +987,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_balance(self, client: Client, message: Any):
+    def handle_balance(self, client: Client, message: object):
         #
         # spot
         # {
@@ -1072,7 +1071,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         self.balance[account] = self.safe_balance(self.balance[account])
         client.resolve(self.balance[account], messageHash)
 
-    def parse_ws_balance(self, balance: Any, accountType: Str = None):
+    def parse_ws_balance(self, balance: object, accountType: Str = None):
         #
         # spot
         #     {
@@ -1124,7 +1123,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             if code is not None:
                 self.balance[code] = account
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
 
         https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
@@ -1174,7 +1173,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             return
         self.positions = ArrayCacheBySymbolBySide()
 
-    def handle_positions(self, client: Any, message: Any):
+    def handle_positions(self, client: object, message: object):
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
@@ -1201,7 +1200,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, baseMessageHash)
 
-    async def un_watch_positions(self, symbols: Strings = None, params={}) -> Any:
+    async def un_watch_positions(self, symbols: Strings = None, params={}) -> object:
         """
         unWatches all open positions
 
@@ -1231,7 +1230,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -1279,7 +1278,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    async def un_watch_orders(self, symbol: Str = None, params={}) -> Any:
+    async def un_watch_orders(self, symbol: Str = None, params={}) -> object:
         """
         unWatches information on multiple orders made by the user
 
@@ -1310,7 +1309,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_order(self, client: Client, message: Any):
+    def handle_order(self, client: Client, message: object):
         #
         #     {
         #         channel: 'orderUpdates',
@@ -1354,7 +1353,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             client.resolve(stored, innerMessageHash)
         client.resolve(stored, messageHash)
 
-    def handle_error_message(self, client: Client, message: Any) -> Bool:
+    def handle_error_message(self, client: Client, message: object) -> Bool:
         #
         #    {
         #      "channel": "post",
@@ -1531,7 +1530,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         if 'spot' in self.balance:
             del self.balance['spot']
 
-    def handle_subscription_response(self, client: Client, message: Any):
+    def handle_subscription_response(self, client: Client, message: object):
         # {
         #     "channel":"subscriptionResponse",
         #     "data":{
@@ -1580,7 +1579,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             elif type == 'allMids':
                 self.handle_tickers_unsubscription(client, subscription)
 
-    def handle_message(self, client: Client, message: Any):
+    def handle_message(self, client: Client, message: object):
         #
         # {
         #     "channel":"subscriptionResponse",
@@ -1630,7 +1629,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'ping',
         }
 
-    def handle_pong(self, client: Client, message: Any):
+    def handle_pong(self, client: Client, message: object):
         #
         #   {
         #       "channel": "pong"

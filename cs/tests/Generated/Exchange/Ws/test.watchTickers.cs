@@ -20,11 +20,14 @@ public partial class testMainClass : BaseTest
         object method = "watchTickers";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
-        while (isLessThan(now, ends))
+        object maxIdleTime = 5000;
+        object idle = false;
+        while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             object response = new Dictionary<string, object>() {};
             object success = true;
             object shouldReturn = false;
+            object startTime = exchange.milliseconds();
             try
             {
                 response = await exchange.watchTickers(argSymbols, argParams);
@@ -44,10 +47,9 @@ public partial class testMainClass : BaseTest
                 {
                     throw e;
                 }
-                now = exchange.milliseconds();
-                // continue;
                 success = false;
             }
+            now = exchange.milliseconds();
             if (isTrue(shouldReturn))
             {
                 return false;
@@ -79,7 +81,10 @@ public partial class testMainClass : BaseTest
                         testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
                     }
                 }
-                now = exchange.milliseconds();
+                if (isTrue(isGreaterThan((subtract(now, startTime)), maxIdleTime)))
+                {
+                    idle = true;
+                }
             }
         }
         return true;

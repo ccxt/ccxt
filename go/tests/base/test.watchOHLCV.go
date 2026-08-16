@@ -23,9 +23,12 @@ func TestWatchOHLCV(exchange ccxt.ICoreExchange, skippedProperties any, symbol a
 		var limit any = 10
 		var duration any = exchange.ParseTimeframe(chosenTimeframeKey)
 		var since any = Subtract(Subtract(exchange.Milliseconds(), Multiply(Multiply(duration, limit), 1000)), 1000)
-		for IsLessThan(now, ends) {
+		var maxIdleTime any = 5000
+		var idle any = false
+		for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
 			var response any = nil
 			var success any = true
+			var startTime any = exchange.Milliseconds()
 
 			{
 				func() (ret_ any) {
@@ -39,8 +42,6 @@ func TestWatchOHLCV(exchange ccxt.ICoreExchange, skippedProperties any, symbol a
 								if !IsTrue(IsTemporaryFailure(e)) {
 									panic(e)
 								}
-								now = exchange.Milliseconds()
-								// continue;
 								success = false
 								return nil
 							}()
@@ -57,14 +58,14 @@ func TestWatchOHLCV(exchange ccxt.ICoreExchange, skippedProperties any, symbol a
 				}()
 
 			}
-			if IsTrue(IsEqual(success, true)) {
-				if IsTrue(IsEqual(response, nil)) {
-					panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
-				}
+			now = exchange.Milliseconds()
+			if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
 				AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol)
-				now = exchange.Milliseconds()
 				for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 					TestOHLCV(exchange, skippedProperties, method, GetValue(response, i), symbol, now)
+				}
+				if IsTrue(IsGreaterThan((Subtract(now, startTime)), maxIdleTime)) {
+					idle = true
 				}
 			}
 		}

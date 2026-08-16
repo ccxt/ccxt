@@ -1,14 +1,14 @@
-import collections
-import logging
+from __future__ import annotations
 
-logger = logging.getLogger(__name__)
+import collections
+
 
 class Delegate:
-    def __init__(self, name, delegated):
+    def __init__(self, name: str, delegated: str) -> None:
         self.name = name
         self.delegated = delegated
 
-    def __get__(self, instance, owner):
+    def __get__(self, instance: BaseCache | None, owner: type):
         deque = getattr(instance, self.delegated)
         return getattr(deque, self.name)
 
@@ -24,21 +24,24 @@ class BaseCache(list):
     __len__ = Delegate('__len__', '_deque')
     __contains__ = Delegate('__contains__', '_deque')
     __reversed__ = Delegate('__reversed__', '_deque')
-    clear = Delegate('clear', '_deque')
     pop = Delegate('pop', '_deque')
 
-    def __init__(self, max_size=None):
+    def __init__(self, max_size: int | None = None) -> None:
         super(BaseCache, self).__init__()
         self.max_size = max_size
-        self._deque = collections.deque([], max_size)
+        # a falsy max_size means unbounded, mirroring the `this.maxSize && ...`
+        # truthiness guard in ts/src/base/ws/Cache.ts - a max_size of 0 arises
+        # from .filter() copy-construction, and deque(maxlen=0) would silently
+        # discard every appended row while getLimit still reports new updates
+        self._deque = collections.deque([], max_size or None)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return list(self) == other
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(list(self))
 
-    def __add__(self, other):
+    def __add__(self, other: list) -> list:
         return list(self) + other
 
     def __getitem__(self, item):
@@ -50,33 +53,51 @@ class BaseCache(list):
         else:
             return deque[item]
 
+    # subclasses extend this to also reset their own bookkeeping - clearing only
+    # the deque would leave the hashmap/index sidecars pointing at rows that no
+    # longer exist, so the next re-append of a known id raises IndexError
+    def clear(self) -> None:
+        self._deque.clear()
+
     # to be overriden
-    def getLimit(self, symbol, limit):
+    def getLimit(self, symbol: str | None, limit: int | None) -> int | None:
         pass
 
     # support transpiled snake_case calls
-    def get_limit(self, symbol, limit):
+    def get_limit(self, symbol: str | None, limit: int | None) -> int | None:
         return self.getLimit(symbol, limit)
 
 
 class ArrayCache(BaseCache):
-    def __init__(self, max_size=None):
+    def __init__(self, max_size: int | None = None) -> None:
         super(ArrayCache, self).__init__(max_size)
         self.hashmap = {}
         self._nested_new_updates_by_symbol = False
         self._new_updates_by_symbol = {}
+        # subclasses that count distinct ids/sides keep the identifiers seen since
+        # the last getLimit here, so _new_updates_by_symbol only ever holds the
+        # resulting integer count and getLimit never has to type-check its values
+        self._seen_updates_by_symbol = {}
         self._clear_updates_by_symbol = {}
         self._all_new_updates = 0
         self._clear_all_updates = False
 
-    def getLimit(self, symbol, limit):
+    def clear(self) -> None:
+        super(ArrayCache, self).clear()
+        self.hashmap.clear()
+        self._new_updates_by_symbol.clear()
+        self._seen_updates_by_symbol.clear()
+        self._clear_updates_by_symbol.clear()
+        self._all_new_updates = 0
+        self._clear_all_updates = False
+
+    def getLimit(self, symbol: str | None, limit: int | None) -> int | None:
         if symbol is None:
             new_updates_value = self._all_new_updates
             self._clear_all_updates = True
         else:
+            # always an integer - subclasses write len(seen set) back into this map
             new_updates_value = self._new_updates_by_symbol.get(symbol)
-            if new_updates_value is not None and self._nested_new_updates_by_symbol:
-                new_updates_value = len(new_updates_value)
             self._clear_updates_by_symbol[symbol] = True
 
         if new_updates_value is None:
@@ -86,13 +107,15 @@ class ArrayCache(BaseCache):
         else:
             return new_updates_value
 
-    def append(self, item):
+    def append(self, item: dict) -> None:
+        # the deque evicts from the left on its own when max_size is truthy
         self._deque.append(item)
         if self._clear_all_updates:
             self._clear_all_updates = False
             self._clear_updates_by_symbol.clear()
             self._all_new_updates = 0
             self._new_updates_by_symbol.clear()
+            self._seen_updates_by_symbol.clear()
         # item.get('symbol') (not item['symbol']): prediction trades carry 'outcome' not 'symbol',
         # so a bare lookup raises KeyError in Python where JS just yields undefined
         symbol = item.get('symbol')
@@ -104,23 +127,34 @@ class ArrayCache(BaseCache):
 
 
 class ArrayCacheByTimestamp(BaseCache):
-    def __init__(self, max_size=None):
+    def __init__(self, max_size: int | None = None) -> None:
         super(ArrayCacheByTimestamp, self).__init__(max_size)
         self.hashmap = {}
         self._size_tracker = set()
         self._new_updates = 0
         self._clear_updates = False
 
-    def getLimit(self, symbol, limit):
+    def clear(self) -> None:
+        super(ArrayCacheByTimestamp, self).clear()
+        self.hashmap.clear()
+        self._size_tracker.clear()
+        self._new_updates = 0
+        self._clear_updates = False
+
+    def getLimit(self, symbol: str | None, limit: int | None) -> int | None:
         self._clear_updates = True
         if limit is None:
             return self._new_updates
         return min(self._new_updates, limit)
 
-    def append(self, item):
+    def append(self, item: list) -> None:
         if item[0] in self.hashmap:
             reference = self.hashmap[item[0]]
-            if reference != item:
+            # identity check, matching the `!==` in ts/src/base/ws/Cache.ts - a deep
+            # value comparison would be O(k) on every update for no observable gain
+            if reference is not item:
+                # merge in place so the row keeps its position, and only over the
+                # incoming length so a longer cached row is not truncated
                 reference[0:len(item)] = item
         else:
             self.hashmap[item[0]] = item
@@ -136,98 +170,124 @@ class ArrayCacheByTimestamp(BaseCache):
 
 
 class ArrayCacheBySymbolById(ArrayCache):
-    def __init__(self, max_size=None):
+    def __init__(self, max_size: int | None = None) -> None:
         super(ArrayCacheBySymbolById, self).__init__(max_size)
         self._nested_new_updates_by_symbol = True
         self._key_field = 'symbol'  # first nesting level (overridden by ArrayCacheByOutcomeById)
         self.hashmap = {}
-        self._index = collections.deque([], max_size)
+        self._index = collections.deque([], max_size or None)
 
-    def append(self, item):
+    def clear(self) -> None:
+        super(ArrayCacheBySymbolById, self).clear()
+        self._index.clear()
+
+    def append(self, item: dict) -> None:
         key = item[self._key_field]
+        item_id = item['id']
         by_id = self.hashmap.setdefault(key, {})
-        if item['id'] in by_id:
-            reference = by_id[item['id']]
-            if reference != item:
+        # index on the (key_field, id) pair kept as a tuple - different symbols can
+        # share an order id (binance uses per-symbol id sequences) and matching on id
+        # alone would remove the wrong row, see https://github.com/ccxt/ccxt/issues/26092.
+        # A tuple rather than a key + id string concatenation, because concatenation
+        # collides across the field boundary (('BTC/USDT1', '2') and ('BTC/USDT', '12')
+        # both yield 'BTC/USDT12') and raises TypeError on non-string ids
+        token = (key, item_id)
+        if item_id in by_id:
+            reference = by_id[item_id]
+            if reference is not item:
                 reference.update(item)
             item = reference
-            # index by key_field + id - different symbols can share an order id
-            # (binance uses per-symbol id sequences), and matching on id alone
-            # would remove the wrong row, see https://github.com/ccxt/ccxt/issues/26092
-            index = self._index.index(key + item['id'])
+            index = self._index.index(token)
+            # move the order to the end of the deque
             del self._deque[index]
             del self._index[index]
         else:
-            by_id[item['id']] = item
+            by_id[item_id] = item
         if len(self._deque) == self._deque.maxlen:
             delete_item = self._deque.popleft()
             self._index.popleft()
-            try:
-                del self.hashmap[delete_item[self._key_field]][delete_item['id']]
-            except Exception as e:
-                logger.error(f"Error deleting item from hashmap: {delete_item}. Error:{e}")
+            delete_key = delete_item[self._key_field]
+            delete_by_id = self.hashmap[delete_key]
+            del delete_by_id[delete_item['id']]
+            if not delete_by_id:
+                # drop the outer bucket once its last id is evicted, otherwise the
+                # hashmap grows one empty dict per symbol for the process lifetime
+                del self.hashmap[delete_key]
         self._deque.append(item)
-        self._index.append(key + item['id'])
+        self._index.append(token)
         if self._clear_all_updates:
             self._clear_all_updates = False
             self._clear_updates_by_symbol.clear()
             self._all_new_updates = 0
             self._new_updates_by_symbol.clear()
-        if key not in self._new_updates_by_symbol:
-            self._new_updates_by_symbol[key] = set()
+            self._seen_updates_by_symbol.clear()
+        if key not in self._seen_updates_by_symbol:
+            self._seen_updates_by_symbol[key] = set()
         if self._clear_updates_by_symbol.get(key):
             self._clear_updates_by_symbol[key] = False
-            self._new_updates_by_symbol[key].clear()
-        id_set = self._new_updates_by_symbol[key]
+            self._seen_updates_by_symbol[key].clear()
+        # in case an exchange updates the same order id twice
+        id_set = self._seen_updates_by_symbol[key]
         before_length = len(id_set)
-        id_set.add(item['id'])
+        id_set.add(item_id)
         after_length = len(id_set)
+        self._new_updates_by_symbol[key] = after_length
         self._all_new_updates = (self._all_new_updates or 0) + (after_length - before_length)
 
 
 class ArrayCacheByOutcomeById(ArrayCacheBySymbolById):
-    def __init__(self, max_size=None):
+    def __init__(self, max_size: int | None = None) -> None:
         super(ArrayCacheByOutcomeById, self).__init__(max_size)
         self._key_field = 'outcome'
 
 
 class ArrayCacheBySymbolBySide(ArrayCache):
-    def __init__(self, max_size=None):
-        super(ArrayCacheBySymbolBySide, self).__init__(max_size)
+    def __init__(self, max_size: int | None = None) -> None:
+        # positions are unbounded - the number of (symbol, side) pairs is naturally
+        # capped by the account, so max_size is accepted and ignored the way the
+        # zero-arity constructor in ts/src/base/ws/Cache.ts drops any argument
+        super(ArrayCacheBySymbolBySide, self).__init__()
         self._nested_new_updates_by_symbol = True
         self.hashmap = {}
-        self._index = collections.deque([], max_size)
+        self._index = collections.deque()
 
-    def append(self, item):
-        by_side = self.hashmap.setdefault(item['symbol'], {})
-        if item['side'] in by_side:
-            reference = by_side[item['side']]
-            if reference != item:
+    def clear(self) -> None:
+        super(ArrayCacheBySymbolBySide, self).clear()
+        self._index.clear()
+
+    def append(self, item: dict) -> None:
+        symbol = item['symbol']
+        side = item['side']
+        by_side = self.hashmap.setdefault(symbol, {})
+        token = (symbol, side)
+        if side in by_side:
+            reference = by_side[side]
+            if reference is not item:
                 reference.update(item)
             item = reference
-            index = self._index.index(item['symbol'] + item['side'])
+            index = self._index.index(token)
+            # move the position to the end of the deque
             del self._deque[index]
             del self._index[index]
         else:
-            by_side[item['side']] = item
-        if len(self._deque) == self._deque.maxlen:
-            delete_item = self._deque.popleft()
-            self._index.popleft()
-            del self.hashmap[delete_item['symbol']][delete_item['side']]
+            by_side[side] = item
         self._deque.append(item)
-        self._index.append(item['symbol'] + item['side'])
+        self._index.append(token)
         if self._clear_all_updates:
             self._clear_all_updates = False
             self._clear_updates_by_symbol.clear()
             self._all_new_updates = 0
             self._new_updates_by_symbol.clear()
-        if item['symbol'] not in self._new_updates_by_symbol:
-            self._new_updates_by_symbol[item['symbol']] = set()
-        if self._clear_updates_by_symbol.get(item['symbol']):
-            self._clear_updates_by_symbol[item['symbol']] = False
-            self._new_updates_by_symbol[item['symbol']].clear()
-        side_set = self._new_updates_by_symbol[item['symbol']]
+            self._seen_updates_by_symbol.clear()
+        if symbol not in self._seen_updates_by_symbol:
+            self._seen_updates_by_symbol[symbol] = set()
+        if self._clear_updates_by_symbol.get(symbol):
+            self._clear_updates_by_symbol[symbol] = False
+            self._seen_updates_by_symbol[symbol].clear()
+        # in case an exchange updates the same position twice
+        side_set = self._seen_updates_by_symbol[symbol]
         before_length = len(side_set)
-        side_set.add(item['side'])
+        side_set.add(side)
         after_length = len(side_set)
+        self._new_updates_by_symbol[symbol] = after_length
         self._all_new_updates = (self._all_new_updates or 0) + (after_length - before_length)

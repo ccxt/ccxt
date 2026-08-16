@@ -1,6 +1,7 @@
 {
     "exchange": "toobit",
-    "skipKeys": [],
+    "skipKeys": [ "timestamp", "signature", "newClientOrderId" ],
+    "outputType": "urlencoded",
     "methods": {
         "withdraw": [
             {
@@ -431,7 +432,6 @@
         ],
         "createOrder": [
             {
-                "disabled": true,
                 "description": "createOrder perp sell limit",
                 "method": "createOrder",
                 "url": "https://api.toobit.com/api/v1/futures/order",
@@ -445,7 +445,6 @@
                 "output": "symbol=ETH-SWAP-USDT&quantity=1&price=7234&side=SELL_OPEN&type=LIMIT&newClientOrderId=177e1c59-2dc9-4287-86be-f86264c6c76c&recvWindow=5000&timestamp=1757622368443&signature=eb246a10f4578910202c11412d32aded4a324f02c4572748c8f951bc323bea8a"
             },
             {
-                "disabled": true,
                 "description": "createOrder perp buy market",
                 "method": "createOrder",
                 "url": "https://api.toobit.com/api/v1/futures/order",
@@ -458,7 +457,6 @@
                 "output": "symbol=ETH-SWAP-USDT&quantity=1&side=BUY_OPEN&type=LIMIT&priceType=MARKET&newClientOrderId=95304ae6-10a6-4b60-81f2-48f94dcb290c&recvWindow=5000&timestamp=1757621429647&signature=9c6dfed6ed946cba87344f89439569db3890311ec440bbe4d28797dd01cdc3bb"
             },
             {
-                "disabled": true,
                 "description": "createOrder spot buy market",
                 "method": "createOrder",
                 "url": "https://api.toobit.com/api/v1/spot/order",
@@ -466,7 +464,7 @@
                     "ETH/USDT",
                     "market",
                     "buy",
-                    null,
+                    1,
                     null,
                     {
                         "cost": 5
@@ -475,7 +473,6 @@
                 "output": "symbol=ETHUSDT&side=BUY&quantity=5&type=MARKET&recvWindow=5000&timestamp=1757621240280&signature=5d36bc9820868372f18e7f1aca35c56faa3d4fdec28e5a60ec7cd632013821d1"
             },
             {
-                "disabled": true,
                 "description": "createOrder perp buy limit with triggerPrice",
                 "method": "createOrder",
                 "url": "https://api.toobit.com/api/v1/futures/order",
@@ -492,7 +489,6 @@
                 "output": "symbol=ETH-SWAP-USDT&quantity=1&price=1234&side=BUY_OPEN&type=LIMIT&stopPrice=1434&newClientOrderId=2ed3f1ad-ed45-43c5-8c85-1a23c574f4a5&recvWindow=5000&timestamp=1757620041611&signature=0af4cd4c75da5f646d31c9af6172a4e9fe7c669c0fed992efd62395fc5f3c5d9"
             },
             {
-                "disabled": true,
                 "description": "createOrder perp buy limit",
                 "method": "createOrder",
                 "url": "https://api.toobit.com/api/v1/futures/order",
@@ -506,7 +502,6 @@
                 "output": "symbol=ETH-SWAP-USDT&quantity=1&price=1234&side=BUY_OPEN&type=LIMIT&newClientOrderId=2487475c-1f0b-4543-be20-643cfe28eae6&recvWindow=5000&timestamp=1757620003849&signature=8c9d2e52380e4b2a0955c0ecc1c2814d8d5d47c0551d859424a0b379a6dfebd5"
             },
             {
-                "disabled": true,
                 "description": "createOrder spot sell limit",
                 "method": "createOrder",
                 "url": "https://api.toobit.com/api/v1/spot/order",
@@ -520,7 +515,6 @@
                 "output": "symbol=ETHUSDT&side=SELL&quantity=0.01&price=8234&type=LIMIT&recvWindow=5000&timestamp=1757619794776&signature=c7010788706313dc1cd15298db718cc147d48115bed9880f9f31a540c5e4c213"
             },
             {
-                "disabled": true,
                 "description": "createOrder spot buy limit",
                 "method": "createOrder",
                 "url": "https://api.toobit.com/api/v1/spot/order",
@@ -534,7 +528,6 @@
                 "output": "symbol=ETHUSDT&side=BUY&quantity=0.005&price=1234&type=LIMIT&recvWindow=5000&timestamp=1757588577501&signature=b0ea6a396ba5afcc050ca6a5b0efa650c6f8fd1937bef5dfd7abb9419ca8f4b8"
             },
             {
-                "disabled": true,
                 "description": "createOrder spot sell market",
                 "method": "createOrder",
                 "url": "https://api.toobit.com/api/v1/spot/order",

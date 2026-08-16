@@ -2015,6 +2015,7 @@ public class ToobitCore extends ToobitApi
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
@@ -2099,15 +2100,13 @@ public class ToobitCore extends ToobitApi
         var costparametersVariable = this.handleParamString(parameters, "cost");
         cost = ((java.util.List<Object>) costparametersVariable).get(0);
         parameters = ((java.util.List<Object>) costparametersVariable).get(1);
-        if (Helpers.isTrue(Helpers.isEqual(type, "market")))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "market")) && Helpers.isTrue(Helpers.isEqual(side, "buy"))))
         {
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(cost, null)) && Helpers.isTrue(Helpers.isEqual(side, "buy"))))
+            if (Helpers.isTrue(Helpers.isEqual(cost, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires params[\"cost\"] for market buy order")) ;
-            } else
-            {
-                Helpers.addElementToObject(request, "quantity", this.costToPrecision(symbol, cost));
             }
+            Helpers.addElementToObject(request, "quantity", this.costToPrecision(symbol, cost));
         } else
         {
             Helpers.addElementToObject(request, "quantity", this.amountToPrecision(symbol, amount));

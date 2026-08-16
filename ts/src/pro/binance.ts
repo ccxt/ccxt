@@ -358,33 +358,30 @@ export default class binance extends binanceRest {
         const now = this.milliseconds ();
         const delay = this.sum (listenKeyRefreshRate, 10000);
         if ((now - lastAuthenticatedTime) > delay) {
-            // single-flight guard, same race as the main listenKey branch
-            // https://github.com/ccxt/ccxt/issues/29393
-            const flightHash = 'authenticate:listenKey:stock';
-            const isLeader = await this.singleFlightAcquire (flightHash);
-            if (!isLeader) {
-                return; // the flight settled, the leader cached a fresh listenKey
+            // the stock user stream url embeds this listenKey, so the future is parked
+            // on the listenKey-free market url of the same host
+            const client = this.client (this.getStockWsUrl ('market'));
+            const messageHash = 'authenticate:stock';
+            if (messageHash in client.futures) {
+                // another caller is already fetching, wait for it instead of fetching again
+                await client.future (messageHash);
+                return;
             }
-            const requestParams: Dict = this.omit (params, [ 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ]) as Dict;
-            let response: Dict;
+            client.future (messageHash); // created ahead of the request below, so concurrent callers can find it
             try {
-                response = await this.sapiPostEquityListenKey (requestParams);
+                const requestParams: Dict = this.omit (params, [ 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ]) as Dict;
+                const response = await this.sapiPostEquityListenKey (requestParams);
+                const listenKey = this.safeString (response, 'listenKey');
+                this.options['stock'] = this.extend (options, {
+                    'listenKey': listenKey,
+                    'lastAuthenticatedTime': now,
+                });
+                this.delay (listenKeyRefreshRate, this.keepAliveStockListenKey, params);
+                client.resolve (listenKey, messageHash);
             } catch (e) {
-                this.singleFlightReject (flightHash, e);
+                client.reject (e, messageHash);
                 throw e;
             }
-            const listenKey = this.safeString (response, 'listenKey');
-            if (listenKey === undefined) {
-                const error = new AuthenticationError (this.id + ' authenticateStock() failed to obtain a listenKey ' + this.json (response));
-                this.singleFlightReject (flightHash, error);
-                throw error;
-            }
-            this.options['stock'] = this.extend (options, {
-                'listenKey': listenKey,
-                'lastAuthenticatedTime': now,
-            });
-            this.delay (listenKeyRefreshRate, this.keepAliveStockListenKey, params);
-            this.singleFlightResolve (flightHash);
         }
     }
 
@@ -2908,44 +2905,39 @@ export default class binance extends binanceRest {
         const subscriptions = client.subscriptions;
         const subscriptionsKeys = Object.keys (subscriptions);
         const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
-        // https://github.com/ccxt/ccxt/issues/29393 - the subscriptions flag is
-        // set before the subscribe request resolves, so a concurrent caller
-        // would previously return early and start watching an unauthenticated
-        // stream - waiters must block until the leader's subscribe confirms
-        const flightHash = 'authenticate:signature:' + marketType;
         if (accountType === marketType) {
-            await this.singleFlightWait (flightHash);
             return;
         }
-        const isLeader = await this.singleFlightAcquire (flightHash);
-        if (!isLeader) {
-            return; // the flight settled, the leader's subscribe confirmed
+        // the subscriptions flag is raised before the subscribe request is confirmed,
+        // so a concurrent caller would otherwise return onto an unauthenticated stream
+        const messageHash = 'authenticate:signature:' + marketType;
+        if (messageHash in client.futures) {
+            // another caller is already subscribing, wait for it instead of subscribing again
+            await client.future (messageHash);
+            return;
         }
+        client.future (messageHash); // created ahead of the request below, so concurrent callers can find it
         client.subscriptions[marketType] = true;
         const requestId = this.requestId (url);
-        const messageHash = requestId.toString ();
+        const requestHash = requestId.toString ();
         const message: Dict = {
-            'id': messageHash,
+            'id': requestHash,
             'method': 'userDataStream.subscribe.signature',
             'params': this.signParams ({}),
         };
         const subscription: Dict = {
-            'id': messageHash,
+            'id': requestHash,
             'method': this.handleUserDataStreamSubscribe,
             'subscription': marketType,
         };
         try {
-            await this.watch (url, messageHash, message, messageHash, subscription);
+            await this.watch (url, requestHash, message, requestHash, subscription);
+            client.resolve (marketType, messageHash);
         } catch (e) {
-            // a transport-level failure must not leave the subscriptions flag
-            // set, otherwise the next caller would treat the stream as
-            // authenticated after a no-op singleFlightWait - mirrors the
-            // protocol-level cleanup in handleUserDataStreamSubscribe
             delete client.subscriptions[marketType];
-            this.singleFlightReject (flightHash, e);
+            client.reject (e, messageHash);
             throw e;
         }
-        this.singleFlightResolve (flightHash);
     }
 
     handleUserDataStreamSubscribe (client: Client, message: any) {
@@ -2966,13 +2958,8 @@ export default class binance extends binanceRest {
         const subscriptionId = this.safeInteger (result, 'subscriptionId');
         if (subscriptionId === undefined) {
             delete client.subscriptions[accountType];
-            const error = new AuthenticationError (this.id + ' user data stream subscribe failed ' + this.json (message));
-            client.reject (error, accountType);
-            // the request messageHash is what the subscribing watch call is
-            // awaiting - it must reject too, otherwise the watch fulfills, the
-            // leader resolves the auth flight, and waiters proceed onto an
-            // unauthenticated stream, see https://github.com/ccxt/ccxt/issues/29393
-            client.reject (error, messageHash);
+            client.reject (message, accountType);
+            client.reject (message, messageHash);
             return;
         }
         client.resolve (message, messageHash);
@@ -2997,15 +2984,17 @@ export default class binance extends binanceRest {
         const time = this.milliseconds ();
         const delay = this.sum (listenTokenRefreshRate, 10000);
         if (time - lastAuthenticatedTime > delay) {
-            // single-flight guard - the staleness check alone lets concurrent
-            // callers create two different listenTokens; the renewal timer can
-            // also re-enter here through renewListenToken
-            // https://github.com/ccxt/ccxt/issues/29393
-            const flightHash = 'authenticate:listenToken:' + marketType;
-            const isLeader = await this.singleFlightAcquire (flightHash);
-            if (!isLeader) {
-                return; // the flight settled, the leader's subscribe confirmed
+            // the future covers the REST create plus the ws subscribe, including the
+            // renewal timer re-entry through renewListenToken, so a concurrent caller
+            // waits for the leader rather than minting a second listenToken
+            const client = this.client (url);
+            const messageHash = 'authenticate:' + marketType + ':listenToken';
+            if (messageHash in client.futures) {
+                // another caller is already fetching, wait for it instead of fetching again
+                await client.future (messageHash);
+                return;
             }
+            client.future (messageHash); // created ahead of the request below, so concurrent callers can find it
             try {
                 // Step 1: Create listenToken via REST API
                 const symbol = this.safeString (params, 'symbol');
@@ -3026,33 +3015,25 @@ export default class binance extends binanceRest {
                 const response = await this.sapiPostUserListenToken (request);
                 const listenToken = this.safeString (response, 'token');
                 if (listenToken === undefined) {
-                    // a token response without a token must fail the flight the
-                    // same way a failed fetch would, not subscribe with a
-                    // missing credential - the throw routes through the catch
-                    // below which rejects the flight for all waiters
-                    throw new AuthenticationError (this.id + ' ensureUserDataStreamWsSubscribeListenToken() failed to obtain a listenToken ' + this.json (response));
+                    throw new AuthenticationError (this.id + ' ensureUserDataStreamWsSubscribeListenToken() failed to obtain a listenToken');
                 }
                 const expirationTime = this.safeInteger (response, 'expirationTime');
                 // Step 2: Subscribe to user data stream via WebSocket API
                 const requestId = this.requestId (url);
-                const messageHash = requestId.toString ();
+                const requestHash = requestId.toString ();
                 const message: Dict = {
-                    'id': messageHash,
+                    'id': requestHash,
                     'method': 'userDataStream.subscribe.listenToken',
                     'params': {
                         'listenToken': listenToken,
                     },
                 };
                 const subscription: Dict = {
-                    'id': messageHash,
+                    'id': requestHash,
                     'method': this.handleUserDataStreamSubscribe,
                     'subscription': marketType,
                 };
-                await this.watch (url, messageHash, message, messageHash, subscription);
-                // the cache write must come after the subscribe confirms - a
-                // fresh lastAuthenticatedTime written earlier would let a
-                // late-entering caller pass the staleness check and bypass the
-                // in-progress flight entirely
+                await this.watch (url, requestHash, message, requestHash, subscription);
                 this.options[marketType] = this.extend (options, {
                     'listenToken': listenToken,
                     'expirationTime': expirationTime,
@@ -3069,11 +3050,14 @@ export default class binance extends binanceRest {
                         this.delay (renewalTime, this.renewListenToken, extendedParams);
                     }
                 }
+                client.resolve (listenToken, messageHash);
             } catch (e) {
-                this.singleFlightReject (flightHash, e);
+                this.options[marketType] = this.extend (options, {
+                    'lastAuthenticatedTime': 0,
+                });
+                client.reject (e, messageHash);
                 throw e;
             }
-            this.singleFlightResolve (flightHash);
         }
     }
 
@@ -3136,17 +3120,20 @@ export default class binance extends binanceRest {
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
         const delay = this.sum (listenKeyRefreshRate, 10000);
         if (time - lastAuthenticatedTime > delay) {
-            // single-flight guard - two concurrent private watch calls would
-            // both pass the staleness check and fetch two different listenKeys,
-            // splitting user-data subscriptions across two connections
-            // https://github.com/ccxt/ccxt/issues/29393
-            const flightHash = 'authenticate:listenKey:' + type;
-            const isLeader = await this.singleFlightAcquire (flightHash);
-            if (!isLeader) {
-                return; // the flight settled, the leader cached a fresh listenKey
+            // the private url embeds the listenKey that this request produces, so the future
+            // is parked on the listenKey-free base url of that same stream - concurrent
+            // callers wait for the leader instead of fetching a second listenKey, which
+            // would split the user-data subscriptions across two connections
+            const client = this.client (this.getWsUrl (type, 'private'));
+            const messageHash = 'authenticate:' + type;
+            if (messageHash in client.futures) {
+                // another caller is already fetching, wait for it instead of fetching again
+                await client.future (messageHash);
+                return;
             }
-            let response: Dict;
+            client.future (messageHash); // created ahead of the request below, so concurrent callers can find it
             try {
+                let response = undefined;
                 if (isPortfolioMargin) {
                     response = await this.papiPostListenKey (params);
                     params = this.extend (params, { 'portfolioMargin': true });
@@ -3159,25 +3146,17 @@ export default class binance extends binanceRest {
                 } else {
                     response = await this.publicPostUserDataStream (params);
                 }
+                const listenKey = this.safeString (response, 'listenKey');
+                this.options[type] = this.extend (options, {
+                    'listenKey': listenKey,
+                    'lastAuthenticatedTime': time,
+                });
+                this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+                client.resolve (listenKey, messageHash);
             } catch (e) {
-                this.singleFlightReject (flightHash, e);
+                client.reject (e, messageHash);
                 throw e;
             }
-            const listenKey = this.safeString (response, 'listenKey');
-            if (listenKey === undefined) {
-                // caching an empty key and resolving waiters would look like
-                // success from every caller's point of view - fail the flight
-                // the same way a failed fetch would
-                const error = new AuthenticationError (this.id + ' authenticate() failed to obtain a listenKey ' + this.json (response));
-                this.singleFlightReject (flightHash, error);
-                throw error;
-            }
-            this.options[type] = this.extend (options, {
-                'listenKey': listenKey,
-                'lastAuthenticatedTime': time,
-            });
-            this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
-            this.singleFlightResolve (flightHash);
         }
     }
 

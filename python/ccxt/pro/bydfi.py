@@ -6,9 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.precise import Precise
@@ -16,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class bydfi(ccxt.async_support.bydfi):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bydfi, self).describe(), {
             'has': {
                 'ws': True,
@@ -97,7 +96,7 @@ class bydfi(ccxt.async_support.bydfi):
         self.unlock_id()
         return reqid
 
-    async def watch_public(self, messageHashes: Any, channels: Any, params={}, subscription={}):
+    async def watch_public(self, messageHashes: object, channels: object, params={}, subscription={}):
         url = self.urls['api']['ws']
         id = self.request_id()
         subscriptionParams = {
@@ -117,7 +116,7 @@ class bydfi(ccxt.async_support.bydfi):
         }
         return await self.watch_multiple(url, messageHashes, self.deep_extend(message, params), messageHashes, self.extend(subscriptionParams, subscription))
 
-    async def watch_private(self, messageHashes: Any, params={}):
+    async def watch_private(self, messageHashes: object, params={}):
         self.check_required_credentials()
         url = self.urls['api']['ws']
         subHash = 'private'
@@ -160,7 +159,7 @@ class bydfi(ccxt.async_support.bydfi):
         channel = marketId + '@ticker'
         return await self.watch_public([messageHash], [channel], params)
 
-    def un_watch_ticker(self, symbol: str, params={}) -> Any:
+    def un_watch_ticker(self, symbol: str, params={}) -> object:
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -202,7 +201,7 @@ class bydfi(ccxt.async_support.bydfi):
         await self.watch_public(messageHashes, channels, params)
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def un_watch_tickers(self, symbols: Strings = None, params={}) -> Any:
+    async def un_watch_tickers(self, symbols: Strings = None, params={}) -> object:
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -259,7 +258,7 @@ class bydfi(ccxt.async_support.bydfi):
                 messageHashes.append(key)
         return messageHashes
 
-    def handle_ticker(self, client: Client, message: Any):
+    def handle_ticker(self, client: Client, message: object):
         #
         #     {
         #         "s": "KAS-USDT",
@@ -279,7 +278,7 @@ class bydfi(ccxt.async_support.bydfi):
         client.resolve(self.tickers[symbol], messageHash)
         client.resolve(self.tickers, 'ticker::all')
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
 
@@ -295,7 +294,7 @@ class bydfi(ccxt.async_support.bydfi):
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
         return result[symbol][timeframe]
 
-    def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
+    def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> object:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -308,7 +307,7 @@ class bydfi(ccxt.async_support.bydfi):
         """
         return self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
 
-    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
+    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
 
@@ -341,7 +340,7 @@ class bydfi(ccxt.async_support.bydfi):
         filtered = self.filter_by_since_limit(candles, since, limit, 0, True)
         return self.create_ohlcv_object(symbol, timeframe, filtered)
 
-    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], params={}) -> Any:
+    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], params={}) -> object:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -372,7 +371,7 @@ class bydfi(ccxt.async_support.bydfi):
         }
         return await self.watch_public(messageHashes, channels, params, subscription)
 
-    def handle_ohlcv(self, client: Client, message: Any):
+    def handle_ohlcv(self, client: Client, message: object):
         #
         #     {
         #         "s": "ETH-USDC",
@@ -418,7 +417,7 @@ class bydfi(ccxt.async_support.bydfi):
         """
         return self.watch_order_book_for_symbols([symbol], limit, params)
 
-    def un_watch_order_book(self, symbol: str, params={}) -> Any:
+    def un_watch_order_book(self, symbol: str, params={}) -> object:
         """
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -430,7 +429,7 @@ class bydfi(ccxt.async_support.bydfi):
         """
         return self.un_watch_order_book_for_symbols([symbol], params)
 
-    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -461,7 +460,7 @@ class bydfi(ccxt.async_support.bydfi):
         orderbook = await self.watch_public(messageHashes, channels, params)
         return orderbook.limit()
 
-    async def un_watch_order_book_for_symbols(self, symbols: List[str], params={}) -> Any:
+    async def un_watch_order_book_for_symbols(self, symbols: list[str], params={}) -> object:
         """
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -496,7 +495,7 @@ class bydfi(ccxt.async_support.bydfi):
         params = self.extend(params, {'unsubscribe': True})
         return await self.watch_public(messageHashes, channels, params, subscription)
 
-    def handle_order_book(self, client: Client, message: Any):
+    def handle_order_book(self, client: Client, message: object):
         #
         #     {
         #         "a": [[150000, 15], ...],
@@ -518,7 +517,7 @@ class bydfi(ccxt.async_support.bydfi):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -535,7 +534,7 @@ class bydfi(ccxt.async_support.bydfi):
             symbols = [symbol]
         return await self.watch_orders_for_symbols(symbols, since, limit, params)
 
-    async def watch_orders_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -564,7 +563,7 @@ class bydfi(ccxt.async_support.bydfi):
             limit = orders.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    def handle_order(self, client: Client, message: Any):
+    def handle_order(self, client: Client, message: object):
         #
         #     {
         #         "T": 1766588450558,
@@ -673,7 +672,7 @@ class bydfi(ccxt.async_support.bydfi):
             'average': self.omit_zero(self.safe_string(order, 'ap')),
         }, market)
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
         watch all open positions
 
@@ -701,7 +700,7 @@ class bydfi(ccxt.async_support.bydfi):
             return positions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
-    def handle_positions(self, client: Any, message: Any):
+    def handle_positions(self, client: object, message: object):
         #
         #     {
         #         "a": {
@@ -761,7 +760,7 @@ class bydfi(ccxt.async_support.bydfi):
         client.resolve([parsedPosition], messageHash)
         client.resolve([parsedPosition], symbolMessageHash)
 
-    def parse_ws_position(self, position: Any, market: Market = None):
+    def parse_ws_position(self, position: object, market: Market = None):
         #
         #     {
         #         "S": "1",
@@ -853,7 +852,7 @@ class bydfi(ccxt.async_support.bydfi):
                 client.future(messageHash)
                 self.spawn(self.load_balance_snapshot, client, messageHash)
 
-    async def load_balance_snapshot(self, client: Client, messageHash: Any):
+    async def load_balance_snapshot(self, client: Client, messageHash: object):
         params = {
             'type': 'swap',
         }
@@ -864,7 +863,7 @@ class bydfi(ccxt.async_support.bydfi):
         future.resolve()
         client.resolve(self.balance, 'balance')
 
-    def handle_balance(self, client: Client, message: Any):
+    def handle_balance(self, client: Client, message: object):
         #
         #     {
         #         "a": {
@@ -928,7 +927,7 @@ class bydfi(ccxt.async_support.bydfi):
             self.balance = self.extend(self.balance, parsedBalance)
             client.resolve(self.balance, messageHash)
 
-    def handle_subscription_status(self, client: Client, message: Any):
+    def handle_subscription_status(self, client: Client, message: object):
         #
         #     {
         #         "result": True,
@@ -952,7 +951,7 @@ class bydfi(ccxt.async_support.bydfi):
             self.clean_unsubscription(client, subHash, unsubHash, subHashIsPrefix)
         self.clean_cache(subscription)
 
-    def handle_pong(self, client: Client, message: Any):
+    def handle_pong(self, client: Client, message: object):
         #
         #     {
         #         "id": 1,
@@ -962,7 +961,7 @@ class bydfi(ccxt.async_support.bydfi):
         client.lastPong = self.milliseconds()
         return message
 
-    def handle_error_message(self, client: Client, message: Any):
+    def handle_error_message(self, client: Client, message: object):
         #
         #     {
         #         "msg": "Service error",
@@ -977,7 +976,7 @@ class bydfi(ccxt.async_support.bydfi):
         self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
         raise ExchangeError(feedback)
 
-    def handle_message(self, client: Client, message: Any):
+    def handle_message(self, client: Client, message: object):
         code = self.safe_string(message, 'code')
         if code is not None and (code != '0'):
             self.handle_error_message(client, message)

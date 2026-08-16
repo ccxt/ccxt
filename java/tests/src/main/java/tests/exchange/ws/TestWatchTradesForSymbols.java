@@ -19,11 +19,14 @@ public class TestWatchTradesForSymbols extends BaseTest {
         Object method = "watchTradesForSymbols";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
+        Object maxIdleTime = 5000;
+        Object idle = false;
         Object returnedSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        while (Helpers.isTrue(Helpers.isLessThan(now, ends)) || Helpers.isTrue(Helpers.isLessThan(Helpers.getArrayLength(returnedSymbols), Helpers.getArrayLength(symbols))))
+        while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
         {
             Object response = null;
             Object success = true;
+            Object startTime = exchange.milliseconds();
             try
             {
                 response = (exchange.watchTradesForSymbols(symbols)).join();
@@ -33,12 +36,12 @@ public class TestWatchTradesForSymbols extends BaseTest {
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
-                now = exchange.milliseconds();
+                success = false;
             }
+            now = exchange.milliseconds();
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
             {
                 Assert(Helpers.isArray(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an array. "), exchange.json(response)));
-                now = exchange.milliseconds();
                 Object symbol = null;
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {
@@ -54,6 +57,10 @@ public class TestWatchTradesForSymbols extends BaseTest {
                     {
                         ((java.util.List<Object>)returnedSymbols).add(symbol);
                     }
+                }
+                if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime)))
+                {
+                    idle = true;
                 }
             }
         }

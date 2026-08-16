@@ -8,8 +8,7 @@ from ccxt.abstract.zebpay import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Any, Balances, Currencies, CurrencyInterface, Int, Leverage, Leverages, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees
-from typing import List
+from ccxt.base.types import Balances, Currencies, CurrencyInterface, Int, Leverage, Leverages, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -26,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class zebpay(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(zebpay, self).describe(), {
             'id': 'zebpay',
             'name': 'Zebpay',
@@ -306,7 +305,7 @@ class zebpay(Exchange, ImplicitAPI):
         time = self.safe_integer(data, 'timestamp')
         return time
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for zebpay
 
@@ -673,7 +672,7 @@ class zebpay(Exchange, ImplicitAPI):
         tickerList = self.safe_list(response, 'data', [])
         return self.parse_tickers(tickerList, symbols)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -752,7 +751,7 @@ class zebpay(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -793,7 +792,7 @@ class zebpay(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1031,7 +1030,7 @@ class zebpay(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def order_request(self, symbol: Any, type: Any, amount: Any, request: Any, price: Num = None, params={}):
+    def order_request(self, symbol: object, type: object, amount: object, request: object, price: Num = None, params={}):
         upperCaseType = type.upper()
         triggerPrice = self.safe_string(params, 'stopLossPrice')
         quoteOrderQty = self.safe_string_2(params, 'quoteOrderQty', 'cost', None)
@@ -1120,7 +1119,7 @@ class zebpay(Exchange, ImplicitAPI):
         parsedOrder = self.parse_order(data)
         return [parsedOrder]
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple open orders made by the user
 
@@ -1512,7 +1511,7 @@ class zebpay(Exchange, ImplicitAPI):
             'direction': 'out',
         })
 
-    async def fetch_spot_markets(self, params: Any = {}) -> List[Market]:
+    async def fetch_spot_markets(self, params: object = {}) -> list[Market]:
         response = await self.publicSpotGetV2ExExchangeInfo(params)
         #
         #    {
@@ -1584,7 +1583,7 @@ class zebpay(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_swap_markets(self, params: Any = {}) -> List[Market]:
+    async def fetch_swap_markets(self, params: object = {}) -> list[Market]:
         response = await self.publicSwapGetV1MarketMarkets(params)
         #
         #    {
@@ -1655,7 +1654,7 @@ class zebpay(Exchange, ImplicitAPI):
             }))
         return result
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1792,7 +1791,7 @@ class zebpay(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def parse_margin_modification(self, info: Any, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, info: object, market: Market = None) -> MarginModification:
         #
         #    {
         #         "symbol": "BTCINR",
@@ -1816,7 +1815,7 @@ class zebpay(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
         params = self.omit(params, 'defaultType')
         isV1 = path.find('v1/') > -1
         marketType = 'swap' if isV1 else 'spot'
@@ -1859,7 +1858,7 @@ class zebpay(Exchange, ImplicitAPI):
             headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if not response:
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, body)
             return None
