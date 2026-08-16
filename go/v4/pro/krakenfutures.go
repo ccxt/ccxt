@@ -1006,7 +1006,7 @@ func (this *KrakenfuturesCore) HandleOrder(client any, message any) any {
 		var messageHash any = "orders"
 		var symbol any = this.SafeSymbol(marketId)
 		var orderId any = this.SafeString(order, "order_id")
-		var previousOrders any = this.SafeValue(orders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+		var previousOrders any = this.SafeValue(orders.(*ccxt.ArrayCacheBySymbolById).Hashmap, symbol, map[string]any{})
 		var previousOrder any = this.SafeValue(previousOrders, orderId)
 		var reason any = this.SafeString(message, "reason")
 		if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(previousOrder, nil))) || ccxt.IsTrue((ccxt.IsEqual(reason, "edited_by_user")))) {

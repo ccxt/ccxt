@@ -868,7 +868,7 @@ func (this *CoinbaseexchangeCore) HandleOrder(client any, message any) {
 		if ccxt.IsTrue(ccxt.IsEqual(orders, nil)) {
 			return
 		}
-		var previousOrders any = this.SafeValue(orders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+		var previousOrders any = this.SafeValue(orders.(*ccxt.ArrayCacheBySymbolById).Hashmap, symbol, map[string]any{})
 		var previousOrder any = this.SafeValue(previousOrders, orderId)
 		if ccxt.IsTrue(ccxt.IsEqual(previousOrder, nil)) {
 			previousOrder = this.SafeValue2(previousOrders, makerOrderId, takerOrderId)

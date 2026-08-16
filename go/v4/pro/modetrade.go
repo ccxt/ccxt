@@ -1135,7 +1135,7 @@ func (this *ModetradeCore) HandleOrder(client any, message any, topic any) {
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
 		var cachedOrders any = this.Orders
-		var orders any = this.SafeDict(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+		var orders any = this.SafeDict(cachedOrders.(*ccxt.ArrayCacheBySymbolById).Hashmap, symbol, map[string]any{})
 		var order any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(orderId, nil))), nil, this.SafeDict(orders, orderId))
 		if ccxt.IsTrue(!ccxt.IsEqual(order, nil)) {
 			var fee any = this.SafeValue(order, "fee")

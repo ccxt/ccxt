@@ -163,7 +163,6 @@ import bingxPro from  './src/pro/bingx.js'
 import bitfinexPro from  './src/pro/bitfinex.js'
 import bitgetPro from  './src/pro/bitget.js'
 import bithumbPro from  './src/pro/bithumb.js'
-import bitmexPro from  './src/pro/bitmex.js'
 import bitoproPro from  './src/pro/bitopro.js'
 import bitruePro from  './src/pro/bitrue.js'
 import bitstampPro from  './src/pro/bitstamp.js'
@@ -354,7 +353,6 @@ const pro = {
     'bitfinex':               bitfinexPro,
     'bitget':                 bitgetPro,
     'bithumb':                bithumbPro,
-    'bitmex':                 bitmexPro,
     'bitopro':                bitoproPro,
     'bitrue':                 bitruePro,
     'bitstamp':               bitstampPro,

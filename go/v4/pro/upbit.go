@@ -794,7 +794,7 @@ func (this *UpbitCore) HandleOrder(client any, message any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var cachedOrders any = this.Orders
-	var orders any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(symbol, nil))), map[string]any{}, this.SafeValue(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{}))
+	var orders any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(symbol, nil))), map[string]any{}, this.SafeValue(cachedOrders.(*ccxt.ArrayCacheBySymbolById).Hashmap, symbol, map[string]any{}))
 	var order any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(orderId, nil))), nil, this.SafeValue(orders, orderId))
 	if ccxt.IsTrue(!ccxt.IsEqual(order, nil)) {
 		var fee any = this.SafeValue(order, "fee")

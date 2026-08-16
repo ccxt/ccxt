@@ -617,7 +617,10 @@ class NewTranspiler {
             
             [/\.Append\(/g, '.(Appender).Append('],
             [/stored\.\(Appender\)\.Append\(this\.ParseOHLCV/g, "stored.Append(this.ParseOHLCV"],
-            [/(stored|cached)?([Oo]rders)?\.Hashmap/g, '$1$2.(*ArrayCache).Hashmap'],
+            // `.hashmap` reads assert ArrayCacheBySymbolById. That is the type
+            // of Orders / MyTrades / TriggerOrders. Positions that used BySide
+            // (BitMEX Pro) are delisted rather than kept behind CacheHashmap.
+            [/((?:this\.)?[A-Za-z_]\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCacheBySymbolById).Hashmap'],
             [/stored := NewArrayCache\(limit\)/g, 'var stored any = NewArrayCache(limit)'],  // needed for cex HandleTradesSnapshot
             // Futures
             [/future\.(Resolve|Reject)/g, 'future.(*Future).$1'],

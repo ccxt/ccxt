@@ -29,7 +29,7 @@ export default class bitmex extends Exchange {
             // 30 per minute => 0.5 per second => weight = 20 (unauthenticated)
             'rateLimit': 100,
             'certified': true,
-            'pro': true,
+            'pro': false,
             'has': {
                 'CORS': undefined,
                 'spot': true,

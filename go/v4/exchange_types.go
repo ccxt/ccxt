@@ -2146,7 +2146,9 @@ func NewLeverageTier(data any) LeverageTier {
 
 func NewTradeArray(trades2 any) []Trade {
 	var trades []any
-	if tr, ok := trades2.(*ArrayCache); ok {
+	// IArrayCache rather than *ArrayCache: the field may hold any cache
+	// subtype (ArrayCacheBySymbolById, ...), which a concrete assert misses
+	if tr, ok := trades2.(IArrayCache); ok {
 		trades = tr.ToArray()
 	} else {
 		trades = trades2.([]any)
@@ -2163,7 +2165,7 @@ func NewTradeArray(trades2 any) []Trade {
 
 func NewOrderArray(orders2 any) []Order {
 	var orders []any
-	if tr, ok := orders2.(*ArrayCache); ok {
+	if tr, ok := orders2.(IArrayCache); ok {
 		orders = tr.ToArray()
 	} else {
 		orders = orders2.([]any)
@@ -2194,10 +2196,9 @@ func NewGreeksArray(orders2 any) []Greeks {
 func NewOHLCVArray(orders2 any) []OHLCV {
 	// orders := orders2.([]any)
 	var orders []any
-	if tr, ok := orders2.(*ArrayCache); ok {
+	if tr, ok := orders2.(IArrayCache); ok {
+		// covers *ArrayCache and *ArrayCacheByTimestamp alike
 		orders = tr.ToArray()
-	} else if tr2, ok := orders2.(*ArrayCacheByTimestamp); ok {
-		orders = tr2.ToArray()
 	} else {
 		orders = orders2.([]any)
 	}
@@ -2274,10 +2275,9 @@ func NewTransferEntryArray(orders2 any) []TransferEntry {
 func NewPositionArray(orders2 any) []Position {
 	// orders := orders2.([]any)
 	var orders []any
-	if tr, ok := orders2.(*ArrayCache); ok {
+	if tr, ok := orders2.(IArrayCache); ok {
+		// covers *ArrayCache and *ArrayCacheBySymbolBySide alike
 		orders = tr.ToArray()
-	} else if tr2, ok := orders2.(*ArrayCacheBySymbolBySide); ok {
-		orders = tr2.ToArray()
 	} else {
 		orders = orders2.([]any)
 	}
@@ -2423,7 +2423,7 @@ func NewStringArray(data2 any) []string {
 		return strs
 	}
 	var items []any
-	if cache, ok := data2.(*ArrayCache); ok {
+	if cache, ok := data2.(IArrayCache); ok {
 		items = cache.ToArray()
 	} else if arr, ok := data2.([]any); ok {
 		items = arr

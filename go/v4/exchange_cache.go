@@ -5,15 +5,21 @@ package ccxt
 // exist in the JavaScript / C# Web-Socket layers (ArrayCache, ArrayCacheByTimestamp,
 // ArrayCacheBySymbolById, ArrayCacheBySymbolBySide).  They satisfy the ArrayCache
 // interface declared in exchange.go so that higher-level code can treat them
-// uniformly.  The logic is intentionally kept simple – it focuses on correctness
-// and type-safety rather than mirroring every micro-optimisation of the JS code.
+// uniformly.  The semantics mirror ts/src/base/ws/Cache.ts:
+//
+//   - ArrayCache               plain FIFO ring buffer, counts updates per symbol
+//   - ArrayCacheByTimestamp    upserts rows keyed by their first element (timestamp)
+//   - ArrayCacheBySymbolById   upserts rows keyed by (symbol|outcome, id)
+//   - ArrayCacheBySymbolBySide upserts rows keyed by (symbol, side), never evicts
 //
 // When the transpiler ports a `pro` exchange it instantiates these caches to
-// store streaming Data (trades, ohlcvs, order-books …).  Only two operations
-// are required for those flows: Append() and ToArray().  Everything else can be
-// added later if/when the need arises.
+// store streaming Data (trades, ohlcvs, order-books …).  Only Append(),
+// ToArray() and GetLimit() are required for those flows.
 
-import "sync"
+import (
+	"strconv"
+	"sync"
+)
 
 type Appender interface{ Append(any) }
 
@@ -50,18 +56,24 @@ func (c *BaseCache) AppendInternal(item any) {
 	c.Data = append(c.Data, item)
 }
 
-// ArrayCache provides O(1) lookup by symbol+id (for orders / trades).
-// It also tracks how many new updates arrived but that part is optional for
-// now, we expose only the primitives that the rest of the Go code relies on.
+// ArrayCache is a plain FIFO cache - it does NOT de-duplicate by id, mirroring
+// `class ArrayCache` in ts/src/base/ws/Cache.ts.  Two trades that happen to
+// share an id (or that carry no id at all) are two distinct rows.  The by-id
+// upsert lives in ArrayCacheBySymbolById / ArrayCacheByOutcomeById below.
+//
+// Update accounting follows the JS contract: plain caches keep an integer
+// counter per symbol, the nested caches keep a set (of ids / sides) per symbol
+// so that repeated updates of the same entity are counted once.
 
 type ArrayCache struct {
 	*BaseCache
 
 	Hashmap                  map[string]map[string]any `json:"-"`
-	nestedNewUpdates         bool                      `json:"-"`
-	newUpdatesBySymbol       map[string]Set            `json:"-"`
+	newUpdatesBySymbol       map[string]*Set           `json:"-"`
+	newUpdatesCountBySymbol  map[string]int            `json:"-"`
 	clearUpdatesBySymbol     map[string]bool           `json:"-"`
 	nestedNewUpdatesBySymbol bool                      `json:"-"`
+	byId                     bool                      `json:"-"`
 	keyField                 string                    `json:"-"`
 }
 
@@ -78,25 +90,73 @@ func NewArrayCache(MaxSize any) *ArrayCache {
 	return &ArrayCache{
 		BaseCache:                NewBaseCache(size),
 		Hashmap:                  make(map[string]map[string]any),
-		newUpdatesBySymbol:       make(map[string]Set),
+		newUpdatesBySymbol:       make(map[string]*Set),
+		newUpdatesCountBySymbol:  make(map[string]int),
 		clearUpdatesBySymbol:     make(map[string]bool),
 		nestedNewUpdatesBySymbol: false,
 		keyField:                 "symbol",
 	}
 }
 
+// rollUpdatesLocked resets the update trackers once a getLimit(undefined, …)
+// call has consumed them.  Caller must hold Mu.
+func (c *ArrayCache) rollUpdatesLocked() {
+	if c.clearAllUpdates {
+		c.clearAllUpdates = false
+		c.clearUpdatesBySymbol = make(map[string]bool)
+		c.allNewUpdates = 0
+		c.newUpdatesBySymbol = make(map[string]*Set)
+		c.newUpdatesCountBySymbol = make(map[string]int)
+	}
+}
+
+// Append pushes the item, evicting the oldest row when MaxSize is reached.
+// No by-id de-duplication happens here - see ArrayCacheBySymbolById.
 func (c *ArrayCache) Append(item any) {
-	// We expect the incoming item to at least expose a "symbol" field; try to
-	// extract it when it is a map[string]any – if not present we still
-	// store the item, it just won't participate in Hashmap logic.
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+
+	if c.byId {
+		// created via NewArrayCacheBySymbolById / NewArrayCacheByOutcomeById -
+		// upsert by (keyField, id) and keep the Hashmap index populated
+		c.appendByIdLocked(item)
+		return
+	}
+
+	var symbol string
+	if m, ok := item.(map[string]any); ok {
+		if s, ok := m["symbol"].(string); ok {
+			symbol = s
+		}
+	}
+
+	c.AppendInternal(item)
+
+	c.rollUpdatesLocked()
+	// note the boolean *value* is what matters, not the presence of the key -
+	// a `false` entry means the counter is still accumulating
+	if c.clearUpdatesBySymbol[symbol] {
+		c.clearUpdatesBySymbol[symbol] = false
+		c.newUpdatesCountBySymbol[symbol] = 0
+	}
+	c.newUpdatesCountBySymbol[symbol]++
+	c.allNewUpdates++
+}
+
+// appendByIdLocked implements the ArrayCacheBySymbolById append semantics:
+// rows are upserted by (keyField, id), an updated row is merged into the stored
+// reference and moved to the end of the array, and the per-key update tracker
+// is a set of ids so that repeated updates of one order count only once.
+// Caller must hold Mu.
+func (c *ArrayCache) appendByIdLocked(item any) {
 	keyField := c.keyField
 	if keyField == "" {
 		keyField = "symbol"
 	}
-	var symbol, id string
+	var key, id string
 	if m, ok := item.(map[string]any); ok {
 		if s, ok := m[keyField].(string); ok {
-			symbol = s
+			key = s
 		}
 		// optional id field
 		if ident, ok := m["id"].(string); ok {
@@ -104,117 +164,70 @@ func (c *ArrayCache) Append(item any) {
 		}
 	}
 
-	// Basic ring-buffer semantics
-	c.Mu.Lock()
-	defer c.Mu.Unlock()
-	shouldAppend := true
-	if symbol != "" && id != "" {
-		// keep reference for O(1) updates / de-dupe
-		byId := c.Hashmap[symbol]
-		if byId == nil {
-			byId = make(map[string]any)
-			c.Hashmap[symbol] = byId
-		}
-		if old, exists := byId[id]; exists {
-			// overwrite in-place (mirror JS behaviour where the reference is
-			// kept alive).  Shallow copy for now.
-			if om, ok := old.(map[string]any); ok {
-				if nm, ok := item.(map[string]any); ok {
-					for k, v := range nm {
-						om[k] = v
-					}
-					item = om // keep the original reference in the array
-				}
-			}
-			shouldAppend = false
-		} else {
-			byId[id] = item
-		}
+	byId := c.Hashmap[key]
+	if byId == nil {
+		byId = make(map[string]any)
+		c.Hashmap[key] = byId
 	}
 
-	if c.MaxSize != 0 && c.MaxSize == len(c.Data) && shouldAppend {
-		// remove first elem from data
-		removed := c.Data[0]
-		removedMap, ok := removed.(map[string]any)
-		if ok {
-			removedSymbol, okSym := removedMap[keyField].(string)
-			removedId, okId := removedMap["id"].(string)
-			if okSym && okId {
-				byId := c.Hashmap[removedSymbol]
-				if byId != nil {
-					delete(byId, removedId)
-					if len(byId) == 0 {
-						delete(c.Hashmap, removedSymbol)
-					}
+	if reference, exists := byId[id]; exists {
+		// overwrite in-place (mirror JS behaviour where the reference is kept
+		// alive) so that callers holding the row observe the update
+		if om, ok := reference.(map[string]any); ok {
+			if nm, ok := item.(map[string]any); ok {
+				for k, v := range nm {
+					om[k] = v
 				}
 			}
+			item = om
 		}
-		c.Data = append(c.Data[:0], c.Data[1:]...)
-		// delete from c.hashMap as well
-
-	}
-
-	if shouldAppend {
-		c.AppendInternal(item)
-	} else {
-		// move to the end of the array to reflect recent update
 		// match on both the key field (e.g. symbol) and id - different symbols can
 		// share an order id (binance uses per-symbol id sequences), and matching on
-		// id alone would move the wrong row, see ccxt/ccxt#26092
+		// id alone would splice out the wrong row, see ccxt/ccxt#26092
 		for i, v := range c.Data {
-			if (GetValue(v, "id") == GetValue(item, "id")) && (GetValue(v, keyField) == GetValue(item, keyField)) {
-				// remove from current position
-				c.Data = append(c.Data[:i], c.Data[i+1:]...)
-				// append to the end
-				c.Data = append(c.Data, item)
-				break
+			if vm, ok := v.(map[string]any); ok {
+				vId, _ := vm["id"].(string)
+				vKey, _ := vm[keyField].(string)
+				if vId == id && vKey == key {
+					c.Data = append(c.Data[:i], c.Data[i+1:]...)
+					break
+				}
 			}
 		}
+	} else {
+		byId[id] = item
 	}
 
-	if c.clearAllUpdates {
-		c.clearAllUpdates = false
-		c.clearUpdatesBySymbol = make(map[string]bool)
-		c.allNewUpdates = 0
-		c.newUpdatesBySymbol = make(map[string]Set)
+	if c.MaxSize > 0 && len(c.Data) >= c.MaxSize {
+		// drop the oldest row and forget it in the hashmap as well
+		if rm, ok := c.Data[0].(map[string]any); ok {
+			removedKey, _ := rm[keyField].(string)
+			removedId, _ := rm["id"].(string)
+			if inner := c.Hashmap[removedKey]; inner != nil {
+				delete(inner, removedId)
+			}
+		}
+		c.Data = c.Data[1:]
 	}
+	c.Data = append(c.Data, item)
 
-	if _, exists := c.newUpdatesBySymbol[symbol]; !exists {
-		c.newUpdatesBySymbol[symbol] = *NewSet()
+	c.rollUpdatesLocked()
+
+	set := c.newUpdatesBySymbol[key]
+	if set == nil {
+		set = NewSet()
+		c.newUpdatesBySymbol[key] = set
 	}
-
-	if _, exists := c.clearUpdatesBySymbol[symbol]; exists {
-		c.clearUpdatesBySymbol[symbol] = false
-		c.newUpdatesBySymbol[symbol] = *NewSet()
+	if c.clearUpdatesBySymbol[key] {
+		c.clearUpdatesBySymbol[key] = false
+		set = NewSet()
+		c.newUpdatesBySymbol[key] = set
 	}
-
-	idSet := c.newUpdatesBySymbol[symbol]
-	beforeSize := idSet.Size()
-	idSet.Add(id)
-	afterSize := idSet.Size()
-	c.allNewUpdates += (afterSize - beforeSize)
+	// in case an exchange updates the same order id twice
+	beforeSize := set.Size()
+	set.Add(id)
+	c.allNewUpdates += set.Size() - beforeSize
 }
-
-// func areArraysEqual(a any, b any) bool {
-// 	arrA, okA := a.([]any)
-// 	arrB, okB := b.([]any)
-// 	if !okA || !okB {
-// 		return false
-// 	}
-// 	if len(arrA) != len(arrB) {
-// 		return false
-// 	}
-// 	for i := range arrA {
-// 		// elems can be ints, or map[string]any etc
-// 		if !IsEqual(arrA[i], arrB[i]) {
-// 			return false
-// 		}
-// 		// if arrA[i] != arrB[i] {
-// 		// 	return false
-// 		// }
-// 	}
-// 	return true
-// }
 
 // ToArray implements the ArrayCache interface (defined in exchange.go).
 func (c *ArrayCache) ToArray() []any {
@@ -226,29 +239,42 @@ func (c *ArrayCache) ToArray() []any {
 	return out
 }
 
+// Clear drops the cached rows together with every index and update tracker.
+func (c *ArrayCache) Clear() {
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+	c.Data = c.Data[:0]
+	c.Hashmap = make(map[string]map[string]any)
+	c.newUpdatesBySymbol = make(map[string]*Set)
+	c.newUpdatesCountBySymbol = make(map[string]int)
+	c.clearUpdatesBySymbol = make(map[string]bool)
+	c.allNewUpdates = 0
+	c.clearAllUpdates = false
+}
+
+// GetLimit returns how many rows the caller should slice off the cache.
 // The function returns any so the transpiled code that works with
 // loosely-typed limits continues to compile.
 func (c *ArrayCache) GetLimit(symbol any, limit any) any {
-	// if limit != nil {
-	// 	return limit
-	// }
-	// if symbolStr, ok := symbol.(string); ok && symbolStr != "" {
-	// 	if byId, exists := c.Hashmap[symbolStr]; exists {
-	// 		return len(byId)
-	// 	}
-	// }
-	// return len(c.ToArray())
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+
 	var newUpdatesValue any = nil
 
 	if symbol == nil {
 		newUpdatesValue = c.allNewUpdates
 		c.clearAllUpdates = true
 	} else {
-		tempNewUpdates, found := c.newUpdatesBySymbol[ToString(symbol)]
-		if found && c.nestedNewUpdatesBySymbol {
-			newUpdatesValue = tempNewUpdates.Size()
+		key := ToString(symbol)
+		if c.nestedNewUpdatesBySymbol {
+			if tempNewUpdates, found := c.newUpdatesBySymbol[key]; found {
+				newUpdatesValue = tempNewUpdates.Size()
+			}
+		} else if count, found := c.newUpdatesCountBySymbol[key]; found {
+			// plain caches track an integer counter, not a set
+			newUpdatesValue = count
 		}
-		c.clearUpdatesBySymbol[ToString(symbol)] = true
+		c.clearUpdatesBySymbol[key] = true
 	}
 
 	if newUpdatesValue == nil {
@@ -270,6 +296,7 @@ func (c *ArrayCache) Remove(symbol string) {
 
 	// Remove from newUpdatesBySymbol
 	delete(c.newUpdatesBySymbol, symbol)
+	delete(c.newUpdatesCountBySymbol, symbol)
 
 	// Remove from clearUpdatesBySymbol
 	delete(c.clearUpdatesBySymbol, symbol)
@@ -315,60 +342,137 @@ func NewArrayCacheByTimestamp(MaxSize any) *ArrayCacheByTimestamp {
 	}
 }
 
-func (c *ArrayCacheByTimestamp) Append(item any) {
-	var ts int64
-	if arr, ok := item.([]any); ok && len(arr) > 0 {
-		if v, okCast := arr[0].(int64); okCast {
-			ts = v
-		} else if vI, okI := arr[0].(int); okI {
-			ts = int64(vI)
-		} else if vF, okF := arr[0].(float64); okF {
-			ts = int64(vF)
+// toTimestampKey normalises the first element of an OHLCV-style row.
+func toTimestampKey(v any) (int64, bool) {
+	switch t := v.(type) {
+	case int64:
+		return t, true
+	case int:
+		return int64(t), true
+	case int8:
+		return int64(t), true
+	case int16:
+		return int64(t), true
+	case int32:
+		return int64(t), true
+	case uint:
+		return int64(t), true
+	case uint8:
+		return int64(t), true
+	case uint16:
+		return int64(t), true
+	case uint32:
+		return int64(t), true
+	case uint64:
+		return int64(t), true
+	case float64:
+		return int64(t), true
+	case float32:
+		return int64(t), true
+	case string:
+		// JS indexes the hashmap by the stringified value, so a numeric string
+		// must land on the same bucket as its integer counterpart
+		if n, err := strconv.ParseInt(t, 10, 64); err == nil {
+			return n, true
 		}
 	}
+	return 0, false
+}
 
-	c.Mu.Lock()
-	defer c.Mu.Unlock()
-	if ts != 0 {
-		if _, exists := c.Hashmap[ts]; exists {
-			// c.Hashmap[ts] = item // update existing
-			// locate and update in Data as well
-			// to do use the reference in hashmap instead of searching
-			currItem := c.Hashmap[ts].([]any)
-			for i := range currItem {
-				if arr, ok := item.([]any); ok && len(arr) > 0 {
-					currItem[i] = arr[i]
-				}
-			}
-			// c.Hashmap[ts] = item
-			// for i, v := range c.Data {
-			// 	if arr, ok := v.([]any); ok && len(arr) > 0 {
-			// 		var ets int64
-			// 		if v2, okCast := arr[0].(int64); okCast {
-			// 			ets = v2
-			// 		} else if vI, okI := arr[0].(int); okI {
-			// 			ets = int64(vI)
-			// 		}
-			// 		if ets == ts {
-			// 			c.Data[i] = item
-			// 			break
-			// 		}
-			// 	}
-			// }
-			return
-		} else {
-			c.Hashmap[ts] = item
-		}
+// rowTimestamp extracts the cache key of a row ([timestamp, …]).
+func rowTimestamp(item any) (int64, bool) {
+	arr, ok := item.([]any)
+	if !ok || len(arr) == 0 {
+		return 0, false
 	}
+	return toTimestampKey(arr[0])
+}
 
+// trackLocked mirrors the sizeTracker bookkeeping of the JS cache: every append
+// (insert *or* update) counts, and the tracker is reset once getLimit consumed
+// the previous batch.  Caller must hold Mu.
+func (c *ArrayCacheByTimestamp) trackLocked(key string) {
 	if c.clearUpdates {
 		c.clearUpdates = false
 		c.sizeTracker = NewSet()
 	}
-
-	c.AppendInternal(item)
-	c.sizeTracker.Add(ToString(ts))
+	c.sizeTracker.Add(key)
 	c.newUpdates = c.sizeTracker.Size()
+}
+
+// evictIfFullLocked drops the oldest row when the cache is at MaxSize, always
+// forgetting its hashmap entry so the index can never outlive Data (a stale
+// entry would make a later append take the "update" branch and silently drop
+// the candle).  Caller must hold Mu.
+func (c *ArrayCacheByTimestamp) evictIfFullLocked() {
+	if c.MaxSize > 0 && len(c.Data) >= c.MaxSize {
+		if rts, ok := rowTimestamp(c.Data[0]); ok {
+			delete(c.Hashmap, rts)
+		}
+		c.Data = c.Data[1:]
+	}
+}
+
+func (c *ArrayCacheByTimestamp) Append(item any) {
+	ts, hasTs := rowTimestamp(item)
+
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+
+	if !hasTs {
+		// no usable timestamp key - degrade to plain FIFO instead of indexing
+		// the hashmap with a bogus key.  Eviction still prunes the hashmap so
+		// the index stays consistent with Data.
+		c.evictIfFullLocked()
+		c.Data = append(c.Data, item)
+		c.trackLocked("undefined")
+		return
+	}
+
+	if reference, exists := c.Hashmap[ts]; exists {
+		// update the stored row in place so that callers holding it observe the
+		// change.  Iterate the *incoming* row - a partial/short candle update
+		// must not index past its own end (the stored row may be longer).
+		refArr, okRef := reference.([]any)
+		newArr, okNew := item.([]any)
+		switch {
+		case okRef && okNew:
+			if len(newArr) == len(refArr) {
+				for i := 0; i < len(newArr); i++ {
+					refArr[i] = newArr[i]
+				}
+			} else {
+				// incoming row defines the candle: a shorter update must drop
+				// the previous tail ([100,1,2,3,4,5] then [100,9,9] → [100,9,9]),
+				// and a longer update cannot grow through a slice alias
+				merged := make([]any, len(newArr))
+				copy(merged, newArr)
+				c.Hashmap[ts] = merged
+				c.replaceRowLocked(ts, merged)
+			}
+		default:
+			c.Hashmap[ts] = item
+			c.replaceRowLocked(ts, item)
+		}
+		c.trackLocked(ToString(ts))
+		return
+	}
+
+	// new timestamp - evict the oldest row (pruning its hashmap entry) if full
+	c.evictIfFullLocked()
+	c.Hashmap[ts] = item
+	c.Data = append(c.Data, item)
+	c.trackLocked(ToString(ts))
+}
+
+// replaceRowLocked swaps the row carrying the given timestamp. Caller holds Mu.
+func (c *ArrayCacheByTimestamp) replaceRowLocked(ts int64, row any) {
+	for i, v := range c.Data {
+		if rts, ok := rowTimestamp(v); ok && rts == ts {
+			c.Data[i] = row
+			return
+		}
+	}
 }
 
 func (c *ArrayCacheByTimestamp) ToArray() []any {
@@ -379,9 +483,22 @@ func (c *ArrayCacheByTimestamp) ToArray() []any {
 	return out
 }
 
+// Clear drops the cached rows together with the timestamp index and trackers.
+func (c *ArrayCacheByTimestamp) Clear() {
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+	c.Data = c.Data[:0]
+	c.Hashmap = make(map[int64]any)
+	c.sizeTracker = NewSet()
+	c.newUpdates = 0
+	c.clearUpdates = false
+}
+
 // GetLimit for timestamp cache ignores symbol because entries are not
 // symbol-segmented.  It mirrors the same precedence order as ArrayCache.
 func (c *ArrayCacheByTimestamp) GetLimit(symbol any, limit any) any {
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
 	c.clearUpdates = true
 	if limit == nil {
 		return c.newUpdates
@@ -415,8 +532,16 @@ type ArrayCacheBySymbolById struct{ *ArrayCache }
 func NewArrayCacheBySymbolById(optionalArgs ...any) *ArrayCacheBySymbolById {
 	maxSize := GetArg(optionalArgs, 0, nil)
 	cache := &ArrayCacheBySymbolById{NewArrayCache(maxSize)}
+	cache.byId = true
 	cache.nestedNewUpdatesBySymbol = true
 	return cache
+}
+
+// Append upserts by (symbol, id) - overriding the plain FIFO ArrayCache.Append.
+func (c *ArrayCacheBySymbolById) Append(item any) {
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+	c.ArrayCache.appendByIdLocked(item)
 }
 
 // GetLimit for nested caches delegates to the inner ArrayCache.
@@ -435,9 +560,18 @@ type ArrayCacheByOutcomeById struct{ *ArrayCache }
 func NewArrayCacheByOutcomeById(optionalArgs ...any) *ArrayCacheByOutcomeById {
 	maxSize := GetArg(optionalArgs, 0, nil)
 	cache := &ArrayCacheByOutcomeById{NewArrayCache(maxSize)}
+	cache.byId = true
 	cache.nestedNewUpdatesBySymbol = true
 	cache.keyField = "outcome"
 	return cache
+}
+
+// Append upserts by (outcome, id) - same logic as ArrayCacheBySymbolById with a
+// different first-level key field.
+func (c *ArrayCacheByOutcomeById) Append(item any) {
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+	c.ArrayCache.appendByIdLocked(item)
 }
 
 func (c *ArrayCacheByOutcomeById) GetLimit(symbol any, limit any) any {
@@ -458,8 +592,8 @@ func NewArrayCacheBySymbolBySide() *ArrayCacheBySymbolBySide {
 	return res
 }
 
-// These specialised caches currently rely on ArrayCache.Append which tracks by
-// (symbol, id).  For BySide we override Append to key by side instead.
+// Append keys by (symbol, side) instead of (symbol, id) and never evicts - the
+// JS counterpart is constructed without a maxSize.
 func (c *ArrayCacheBySymbolBySide) Append(item any) {
 	var symbol, side string
 	if m, ok := item.(map[string]any); ok {
@@ -473,72 +607,55 @@ func (c *ArrayCacheBySymbolBySide) Append(item any) {
 
 	c.Mu.Lock()
 	defer c.Mu.Unlock()
-	shouldAppend := true
-
-	// if symbol != "" && side != "" {
-	// 	bySide := c.Hashmap[symbol]
-	// 	if bySide == nil {
-	// 		bySide = make(map[string]any)
-	// 		c.Hashmap[symbol] = bySide
-	// 	}
-	// 	bySide[side] = item
-	// }
-
-	if _, found := c.Hashmap[symbol]; !found {
-		c.Hashmap[symbol] = make(map[string]any)
-	}
 
 	bySide := c.Hashmap[symbol]
+	if bySide == nil {
+		bySide = make(map[string]any)
+		c.Hashmap[symbol] = bySide
+	}
 
-	if _, exists := bySide[side]; exists {
-		if om, ok := bySide[side].(map[string]any); ok {
+	if reference, exists := bySide[side]; exists {
+		if om, ok := reference.(map[string]any); ok {
 			if nm, ok := item.(map[string]any); ok {
 				for k, v := range nm {
 					om[k] = v
 				}
-				item = om
+			}
+			item = om
+		}
+		// move the order to the end of the array to reflect the recent update
+		for i, v := range c.Data {
+			if vm, ok := v.(map[string]any); ok {
+				vSide, _ := vm["side"].(string)
+				vSymbol, _ := vm["symbol"].(string)
+				if vSide == side && vSymbol == symbol {
+					c.Data = append(c.Data[:i], c.Data[i+1:]...)
+					break
+				}
 			}
 		}
-		shouldAppend = false
 	} else {
 		bySide[side] = item
 	}
-	if shouldAppend {
-		c.AppendInternal(item)
-	} else {
-		// move to the end of the array to reflect recent update
-		for i, v := range c.Data {
-			if GetValue(v, "side") == side && GetValue(v, "symbol") == symbol {
-				// remove from current position
-				c.Data = append(c.Data[:i], c.Data[i+1:]...)
-				// append to the end
-				c.Data = append(c.Data, item)
-				break
-			}
-		}
-	}
+	// no eviction here on purpose - the cache is bounded by (symbol, side)
+	c.Data = append(c.Data, item)
 
-	if c.clearAllUpdates {
-		c.clearAllUpdates = false
-		c.clearUpdatesBySymbol = make(map[string]bool)
-		c.allNewUpdates = 0
-		c.newUpdatesBySymbol = make(map[string]Set)
-	}
+	c.rollUpdatesLocked()
 
-	if _, exists := c.newUpdatesBySymbol[symbol]; !exists {
-		c.newUpdatesBySymbol[symbol] = *NewSet()
+	set := c.newUpdatesBySymbol[symbol]
+	if set == nil {
+		set = NewSet()
+		c.newUpdatesBySymbol[symbol] = set
 	}
-
-	if _, exists := c.clearUpdatesBySymbol[symbol]; exists {
+	if c.clearUpdatesBySymbol[symbol] {
 		c.clearUpdatesBySymbol[symbol] = false
-		c.newUpdatesBySymbol[symbol] = *NewSet()
+		set = NewSet()
+		c.newUpdatesBySymbol[symbol] = set
 	}
-
-	sideSet := c.newUpdatesBySymbol[symbol]
-	beforeSize := sideSet.Size()
-	sideSet.Add(side)
-	afterSize := sideSet.Size()
-	c.allNewUpdates += (afterSize - beforeSize)
+	// in case an exchange updates the same side twice
+	beforeSize := set.Size()
+	set.Add(side)
+	c.allNewUpdates += set.Size() - beforeSize
 }
 
 func (c *ArrayCacheBySymbolBySide) GetLimit(symbol any, limit any) any {
