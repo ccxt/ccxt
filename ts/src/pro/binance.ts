@@ -372,6 +372,11 @@ export default class binance extends binanceRest {
                 const requestParams: Dict = this.omit (params, [ 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ]) as Dict;
                 const response = await this.sapiPostEquityListenKey (requestParams);
                 const listenKey = this.safeString (response, 'listenKey');
+                if (listenKey === undefined) {
+                    // an empty 200 must fail the auth future for all waiters instead of
+                    // caching an undefined key and releasing them onto a broken stream
+                    throw new AuthenticationError (this.id + ' authenticateStock() failed to obtain a listenKey ' + this.json (response));
+                }
                 this.options['stock'] = this.extend (options, {
                     'listenKey': listenKey,
                     'lastAuthenticatedTime': now,
@@ -3147,6 +3152,11 @@ export default class binance extends binanceRest {
                     response = await this.publicPostUserDataStream (params);
                 }
                 const listenKey = this.safeString (response, 'listenKey');
+                if (listenKey === undefined) {
+                    // an empty 200 must fail the auth future for all waiters instead of
+                    // caching an undefined key and releasing them onto a broken stream
+                    throw new AuthenticationError (this.id + ' authenticate() failed to obtain a listenKey ' + this.json (response));
+                }
                 this.options[type] = this.extend (options, {
                     'listenKey': listenKey,
                     'lastAuthenticatedTime': time,
