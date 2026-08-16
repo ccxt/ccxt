@@ -3540,13 +3540,13 @@ public class ToobitCore extends ToobitApi
             //
             // [
             //     {
-            //         "symbol":"BTC-SWAP-USDT", //symbol
-            //         "leverage":"20",  // leverage
+            //         "symbolId":"ETH-SWAP-USDT",
+            //         "leverage":"50",
             //         "marginType":"CROSS" // CROSS;ISOLATED
             //     }
             // ]
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
         });
 
@@ -3555,10 +3555,10 @@ public class ToobitCore extends ToobitApi
     public Object parseLeverage(Object leverage, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(leverage, "symbol");
+        Object marketId = this.safeString2(leverage, "symbolId", "symbol");
         Object leverageValue = this.safeInteger(leverage, "leverage");
-        Object marginType = this.safeString(leverage, "marginType");
-        Object marginMode = ((Helpers.isTrue((Helpers.isEqual(marginType, "crossed"))))) ? "cross" : "isolated";
+        Object marginType = this.safeStringLower(leverage, "marginType");
+        Object marginMode = ((Helpers.isTrue((Helpers.isEqual(marginType, "cross"))))) ? "cross" : "isolated";
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", ToobitCore.this.safeSymbol(marketId, market) );
