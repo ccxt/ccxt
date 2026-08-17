@@ -6,6 +6,7 @@ var sha2_js = require('@noble/hashes/sha2.js');
 var latoken$1 = require('./abstract/latoken.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
+var Precise = require('./base/Precise.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -662,7 +663,34 @@ class latoken extends latoken$1["default"] {
         //         "totalBid":"112216.9029791"
         //     }
         //
-        return this.parseOrderBook(response, symbol, undefined, 'bid', 'ask', 'price', 'quantity');
+        // latoken's rest book is an absolute snapshot - price, quantity, cost,
+        // accumulated - with no signed fields, unlike their websocket stream
+        // which carries signed quantityChange deltas. during venue incidents a
+        // signed internal aggregate leaks into the rest quantity and a deleted
+        // level shows up with a zero or negative quantity for long stretches,
+        // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
+        // for over half an hour - such a level is a deleted level their
+        // aggregation failed to drop, so it is removed here
+        const rawAsks = this.safeList(response, 'ask', []);
+        const rawBids = this.safeList(response, 'bid', []);
+        const asks = [];
+        const bids = [];
+        for (let i = 0; i < rawAsks.length; i++) {
+            const askEntry = rawAsks[i];
+            const askQuantity = this.safeString(askEntry, 'quantity');
+            if (Precise["default"].stringGt(askQuantity, '0')) {
+                asks.push(askEntry);
+            }
+        }
+        for (let i = 0; i < rawBids.length; i++) {
+            const bidEntry = rawBids[i];
+            const bidQuantity = this.safeString(bidEntry, 'quantity');
+            if (Precise["default"].stringGt(bidQuantity, '0')) {
+                bids.push(bidEntry);
+            }
+        }
+        const filtered = { 'ask': asks, 'bid': bids };
+        return this.parseOrderBook(filtered, symbol, undefined, 'bid', 'ask', 'price', 'quantity');
     }
     parseTicker(ticker, market = undefined) {
         //
