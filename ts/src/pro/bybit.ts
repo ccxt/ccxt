@@ -122,6 +122,10 @@ export default class bybit extends bybitRest {
                 'watchTicker': {
                     'name': 'tickers', // 'tickers' for 24hr statistical ticker or 'tickers_lt' for leverage token ticker
                 },
+                // internal bookkeeping, not a user setting: the depth requested
+                // by watchOrderBook per symbol, filled in at subscription time,
+                // see handleOrderBook for why it is needed
+                'watchOrderBookDepths': {},
                 'watchPositions': {
                     'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
@@ -930,6 +934,10 @@ export default class bybit extends bybitRest {
         }
         const topics: string[] = [];
         const messageHashes: string[] = [];
+        // orderbook.1 is also the topic used by watchBidsAsks, remember the
+        // requested depth so that handleOrderBook knows whether the orderbook
+        // future of the symbol expects a 1-level book or a depth-N book
+        const watchOrderBookDepths = this.safeDict (this.options, 'watchOrderBookDepths', {});
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const marketId = this.marketId (symbol);
@@ -937,7 +945,9 @@ export default class bybit extends bybitRest {
             topics.push (topic);
             const messageHash = 'orderbook:' + symbol;
             messageHashes.push (messageHash);
+            watchOrderBookDepths[symbol] = limit;
         }
+        this.options['watchOrderBookDepths'] = watchOrderBookDepths;
         const orderbook = await this.watchTopics (url, messageHashes, topics, params);
         return orderbook.limit ();
     }
@@ -979,6 +989,10 @@ export default class bybit extends bybitRest {
             topics.push (topic);
         }
         const url = await this.getUrlByMarketType (symbols[0], false, 'watchOrderBook', params);
+        // the depths tracked for handleOrderBook are not needed anymore once the
+        // orderbook subscription of these symbols is gone
+        const watchOrderBookDepths = this.safeDict (this.options, 'watchOrderBookDepths', {});
+        this.options['watchOrderBookDepths'] = this.omit (watchOrderBookDepths, symbols);
         return await this.unWatchTopics (url, 'orderbook', symbols, messageHashes, subMessageHashes, topics, params);
     }
 
@@ -1041,10 +1055,24 @@ export default class bybit extends bybitRest {
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (message, 'ts');
-        if (!(symbol in this.orderbooks)) {
-            this.orderbooks[symbol] = this.orderBook ();
+        // the BBO topic (orderbook.1) feeds watchBidsAsks and, being a valid
+        // depth, it may feed watchOrderBook as well, so both streams route
+        // through the same handler. when the user did not subscribe to a
+        // 1-level orderbook the BBO book is kept under a dedicated key,
+        // otherwise its thin snapshot/delta would clobber the depth-N book
+        // maintained for watchOrderBook and resolve the orderbook future with
+        // a 1-level, often crossed, book
+        const isBbo = (limit === '1');
+        const watchOrderBookDepths = this.safeDict (this.options, 'watchOrderBookDepths', {});
+        const isDepthOne = (this.safeInteger (watchOrderBookDepths, symbol) === 1);
+        let bookKey = symbol;
+        if (isBbo && !isDepthOne) {
+            bookKey = symbol + '::bbo';
         }
-        const orderbook = this.orderbooks[symbol];
+        if (!(bookKey in this.orderbooks)) {
+            this.orderbooks[bookKey] = this.orderBook ();
+        }
+        const orderbook = this.orderbooks[bookKey];
         orderbook['symbol'] = symbol;
         if (isSnapshot) {
             const snapshot = this.parseOrderBook (data, symbol, timestamp, 'b', 'a');
@@ -1057,15 +1085,17 @@ export default class bybit extends bybitRest {
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
         }
-        const messageHash = 'orderbook' + ':' + symbol;
-        this.orderbooks[symbol] = orderbook;
-        client.resolve (orderbook, messageHash);
-        if (limit === '1') {
-            const bidask = this.parseWsBidAsk (this.orderbooks[symbol], market);
+        this.orderbooks[bookKey] = orderbook;
+        if (isBbo) {
+            const bidask = this.parseWsBidAsk (this.orderbooks[bookKey], market);
             const newBidsAsks: Dict = {};
             newBidsAsks[symbol] = bidask;
             this.bidsasks[symbol] = bidask;
             client.resolve (newBidsAsks, 'bidask:' + symbol);
+        }
+        if (!isBbo || isDepthOne) {
+            const messageHash = 'orderbook' + ':' + symbol;
+            client.resolve (orderbook, messageHash);
         }
     }
 
