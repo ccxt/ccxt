@@ -242,6 +242,23 @@ func (c *ArrayCache) Append(item any) {
 						delete(c.Hashmap, removedSymbol)
 					}
 				}
+				// the evicted id also leaves both seen scopes so single-scope
+				// pollers stay bounded - the counts mean distinct ids within
+				// the retained window
+				if symbolSeen := c.seenUpdatesBySymbol[removedSymbol]; symbolSeen != nil && symbolSeen.Contains(removedId) {
+					symbolSeen.Remove(removedId)
+					c.newUpdatesBySymbol[removedSymbol] = c.newUpdatesBySymbol[removedSymbol] - 1
+					if symbolSeen.Size() == 0 {
+						delete(c.seenUpdatesBySymbol, removedSymbol)
+					}
+				}
+				if allSeen := c.seenUpdatesAll[removedSymbol]; allSeen != nil && allSeen.Contains(removedId) {
+					allSeen.Remove(removedId)
+					c.allNewUpdates = c.allNewUpdates - 1
+					if allSeen.Size() == 0 {
+						delete(c.seenUpdatesAll, removedSymbol)
+					}
+				}
 			}
 		}
 		c.Data = append(c.Data[:0], c.Data[1:]...)

@@ -659,6 +659,21 @@ function testWsCache () {
     sideTwoScopes.append ({ 'symbol': 'BTC/USDT:USDT', 'side': 'short', 'contracts': 2 });
     const sideSymbolSecond = sideTwoScopes.getLimit ('BTC/USDT:USDT', 100);
     assert (sideSymbolSecond === 2); // long and short since the last symbol poll - the global poll must not reset this window
+
+    // ----------------------------------------------------------------------------
+    // eviction bounds the seen scopes: an id evicted by maxSize leaves both seen
+    // sets, so the counts mean distinct ids within the retained window - exactly
+    // what a consumer can slice - and single-scope pollers stay bounded
+
+    const cacheEvictSeen = new ArrayCacheBySymbolById (2);
+    cacheEvictSeen.append ({ 'symbol': 'BTC/USDT', 'id': 'a', 'i': 1 });
+    cacheEvictSeen.append ({ 'symbol': 'BTC/USDT', 'id': 'b', 'i': 2 });
+    cacheEvictSeen.append ({ 'symbol': 'BTC/USDT', 'id': 'c', 'i': 3 }); // evicts id a
+    const evictSymbolCount = cacheEvictSeen.getLimit ('BTC/USDT', 100);
+    assert (evictSymbolCount === 2); // ids b and c - the evicted id a no longer counts
+    cacheEvictSeen.append ({ 'symbol': 'BTC/USDT', 'id': 'd', 'i': 4 }); // evicts id b
+    const evictGlobalCount = cacheEvictSeen.getLimit (undefined, 100);
+    assert (evictGlobalCount === 2); // ids c and d - the counts track distinct ids within the retained window in both scopes
 }
 
 export default testWsCache;

@@ -433,6 +433,26 @@ public class ArrayCacheBySymbolById : ArrayCache
                     }
                 }
             }
+            // the evicted id also leaves both seen scopes so single-scope pollers
+            // stay bounded - the counts mean distinct ids within the retained window
+            HashSet<object> evictedSymbolSeen = null;
+            if (this.seenUpdatesBySymbol.TryGetValue(deletedSymbol, out evictedSymbolSeen) && evictedSymbolSeen.Remove(deletedId))
+            {
+                this.newUpdatesBySymbol[deletedSymbol] = this.newUpdatesBySymbol[deletedSymbol] - 1;
+                if (evictedSymbolSeen.Count == 0)
+                {
+                    this.seenUpdatesBySymbol.Remove(deletedSymbol);
+                }
+            }
+            HashSet<object> evictedAllSeen = null;
+            if (this.seenUpdatesAll.TryGetValue(deletedSymbol, out evictedAllSeen) && evictedAllSeen.Remove(deletedId))
+            {
+                this.allNewUpdates = this.allNewUpdates - 1;
+                if (evictedAllSeen.Count == 0)
+                {
+                    this.seenUpdatesAll.Remove(deletedSymbol);
+                }
+            }
         }
         this.Add(item);
 

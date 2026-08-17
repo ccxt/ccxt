@@ -258,6 +258,29 @@ class ArrayCacheBySymbolById extends ArrayCache {
             if (Object.keys (this.hashmap[deleteKey]).length === 0) {
                 delete this.hashmap[deleteKey]
             }
+            // the evicted id also leaves both seen scopes: a single-scope poller
+            // never fires the other scope's clear, so without this the seen sets
+            // grow by every distinct id for the process lifetime - the counts then
+            // mean distinct ids within the retained window, which is exactly what
+            // a consumer can slice anyway
+            if (this.seenUpdatesBySymbol[deleteKey] !== undefined) {
+                const droppedSymbolScope = this.seenUpdatesBySymbol[deleteKey].delete (deleteReference.id)
+                if (droppedSymbolScope) {
+                    this.newUpdatesBySymbol[deleteKey] = this.newUpdatesBySymbol[deleteKey] - 1
+                }
+                if (this.seenUpdatesBySymbol[deleteKey].size === 0) {
+                    delete this.seenUpdatesBySymbol[deleteKey]
+                }
+            }
+            if (this.seenUpdatesAll[deleteKey] !== undefined) {
+                const droppedGlobalScope = this.seenUpdatesAll[deleteKey].delete (deleteReference.id)
+                if (droppedGlobalScope) {
+                    this.allNewUpdates = this.allNewUpdates - 1
+                }
+                if (this.seenUpdatesAll[deleteKey].size === 0) {
+                    delete this.seenUpdatesAll[deleteKey]
+                }
+            }
         }
         this.push (item)
         if (this.clearAllUpdates) {

@@ -404,9 +404,27 @@ public class ArrayCache extends ArrayList<Object> {
 
             if (this.evictionEnabled() && this.shouldEvict()) {
                 Object evicted = this.remove(0);
-                Object evictedBucket = this.hashmap.get(keyOf(fieldOf(evicted, this.keyField)));
+                String evictedKey = keyOf(fieldOf(evicted, this.keyField));
+                Object evictedBucket = this.hashmap.get(evictedKey);
                 if (evictedBucket instanceof Map) {
                     ((Map<String, Object>) evictedBucket).remove(this.subKeyOf(evicted));
+                }
+                // the evicted id also leaves both seen scopes so single-scope
+                // pollers stay bounded - the counts mean distinct ids within
+                // the retained window
+                Set<String> evictedSymbolSeen = this.seenUpdatesBySymbol.get(evictedKey);
+                if (evictedSymbolSeen != null && evictedSymbolSeen.remove(this.subKeyOf(evicted))) {
+                    this.newUpdatesBySymbol.put(evictedKey, this.newUpdatesBySymbol.get(evictedKey) - 1);
+                    if (evictedSymbolSeen.isEmpty()) {
+                        this.seenUpdatesBySymbol.remove(evictedKey);
+                    }
+                }
+                Set<String> evictedAllSeen = this.seenUpdatesAll.get(evictedKey);
+                if (evictedAllSeen != null && evictedAllSeen.remove(this.subKeyOf(evicted))) {
+                    this.allNewUpdates = this.allNewUpdates - 1;
+                    if (evictedAllSeen.isEmpty()) {
+                        this.seenUpdatesAll.remove(evictedKey);
+                    }
                 }
             }
             this.add(toStore);

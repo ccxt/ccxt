@@ -60,6 +60,23 @@ class ArrayCacheBySymbolById extends ArrayCache {
                 if (!count($this->hashmap[$delete_key])) {
                     unset($this->hashmap[$delete_key]);
                 }
+                # the evicted id also leaves both seen scopes so single-scope pollers
+                # stay bounded - the counts mean distinct ids within the retained window
+                $delete_id = $this->as_string($delete_item['id']);
+                if (array_key_exists($delete_key, $this->seen_updates_by_symbol) && array_key_exists($delete_id, $this->seen_updates_by_symbol[$delete_key])) {
+                    unset($this->seen_updates_by_symbol[$delete_key][$delete_id]);
+                    $this->new_updates_by_symbol[$delete_key] = $this->new_updates_by_symbol[$delete_key] - 1;
+                    if (count($this->seen_updates_by_symbol[$delete_key]) === 0) {
+                        unset($this->seen_updates_by_symbol[$delete_key]);
+                    }
+                }
+                if (array_key_exists($delete_key, $this->seen_updates_all) && array_key_exists($delete_id, $this->seen_updates_all[$delete_key])) {
+                    unset($this->seen_updates_all[$delete_key][$delete_id]);
+                    $this->all_new_updates = $this->all_new_updates - 1;
+                    if (count($this->seen_updates_all[$delete_key]) === 0) {
+                        unset($this->seen_updates_all[$delete_key]);
+                    }
+                }
             }
         }
         # this allows us to effectively pass by reference

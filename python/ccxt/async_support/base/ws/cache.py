@@ -220,6 +220,20 @@ class ArrayCacheBySymbolById(ArrayCache):
                 # drop the outer bucket once its last id is evicted, otherwise the
                 # hashmap grows one empty dict per symbol for the process lifetime
                 del self.hashmap[delete_key]
+            # the evicted id also leaves both seen scopes so single-scope pollers
+            # stay bounded - the counts mean distinct ids within the retained window
+            symbol_seen = self._seen_updates_by_symbol.get(delete_key)
+            if symbol_seen is not None and delete_item['id'] in symbol_seen:
+                symbol_seen.discard(delete_item['id'])
+                self._new_updates_by_symbol[delete_key] = self._new_updates_by_symbol[delete_key] - 1
+                if not symbol_seen:
+                    del self._seen_updates_by_symbol[delete_key]
+            all_seen = self._seen_updates_all.get(delete_key)
+            if all_seen is not None and delete_item['id'] in all_seen:
+                all_seen.discard(delete_item['id'])
+                self._all_new_updates = self._all_new_updates - 1
+                if not all_seen:
+                    del self._seen_updates_all[delete_key]
         self._deque.append(item)
         self._index.append(token)
         if self._clear_all_updates:
