@@ -825,7 +825,41 @@ public class LatokenCore extends LatokenApi
             //         "totalBid":"112216.9029791"
             //     }
             //
-            return this.parseOrderBook(response, symbol, null, "bid", "ask", "price", "quantity");
+            // latoken's rest book is an absolute snapshot - price, quantity, cost,
+            // accumulated - with no signed fields, unlike their websocket stream
+            // which carries signed quantityChange deltas. during venue incidents a
+            // signed internal aggregate leaks into the rest quantity and a deleted
+            // level shows up with a zero or negative quantity for long stretches,
+            // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
+            // for over half an hour - such a level is a deleted level their
+            // aggregation failed to drop, so it is removed here
+            Object rawAsks = this.safeList(response, "ask", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object rawBids = this.safeList(response, "bid", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object asks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object bids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawAsks)); i++)
+            {
+                Object askEntry = Helpers.GetValue(rawAsks, i);
+                Object askQuantity = this.safeString(askEntry, "quantity");
+                if (Helpers.isTrue(Precise.stringGt(askQuantity, "0")))
+                {
+                    ((java.util.List<Object>)asks).add(askEntry);
+                }
+            }
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawBids)); i++)
+            {
+                Object bidEntry = Helpers.GetValue(rawBids, i);
+                Object bidQuantity = this.safeString(bidEntry, "quantity");
+                if (Helpers.isTrue(Precise.stringGt(bidQuantity, "0")))
+                {
+                    ((java.util.List<Object>)bids).add(bidEntry);
+                }
+            }
+            Object filtered = new java.util.HashMap<String, Object>() {{
+                put( "ask", asks );
+                put( "bid", bids );
+            }};
+            return this.parseOrderBook(filtered, symbol, null, "bid", "ask", "price", "quantity");
         });
 
     }
