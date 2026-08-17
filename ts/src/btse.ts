@@ -3812,6 +3812,7 @@ export default class btse extends Exchange {
                 'request-nonce': nonce.toString (),
                 'request-sign': signature,
                 'Content-Type': 'application/json',
+                'BROKER-ID': 'ccxt'
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
