@@ -745,6 +745,7 @@ public class  Blofin: blofin { public Blofin(object args = null) : base(args) { 
 public class  Btcbox: btcbox { public Btcbox(object args = null) : base(args) { } }
 public class  Btcmarkets: btcmarkets { public Btcmarkets(object args = null) : base(args) { } }
 public class  Btcturk: btcturk { public Btcturk(object args = null) : base(args) { } }
+public class  Btse: btse { public Btse(object args = null) : base(args) { } }
 public class  Bullish: bullish { public Bullish(object args = null) : base(args) { } }
 public class  Bybit: bybit { public Bybit(object args = null) : base(args) { } }
 public class  Bybiteu: bybiteu { public Bybiteu(object args = null) : base(args) { } }
