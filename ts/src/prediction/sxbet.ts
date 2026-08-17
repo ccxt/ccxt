@@ -826,29 +826,59 @@ export default class sxbet extends Exchange {
     }
 
     /**
+     * @ignore
+     * @method
+     * @name sxbet#fetchSxbetProxy
+     * @description fetches the account's obv3 proxy wallet state
+     * @see https://docs.sx.bet/api-reference/get-user-proxy
+     * @returns {object} the raw proxy data ({obv3ProxyWalletAddress, deployed, multisigSafeAddress})
+     */
+    async fetchSxbetProxy (): Promise<Dict> {
+        const response = await this.sxbetPrivateGetUserProxy ();
+        return this.safeDict (response, 'data', {});
+    }
+
+    /**
      * @method
      * @name sxbet#approve
-     * @description grants sx.bet's TokenTransferProxy an ERC20 allowance over the wallet's USDC via a gasless EIP-2612 Permit signature (POST /orders/approve) — required once before any order can be placed, otherwise the API rejects orders with an allowance error
-     * @see https://docs.sx.bet/api-reference/post-approve
+     * @description funds the account's obv3 proxy wallet - v3 trading capital must sit inside the proxy. Deploys the proxy first when absent, then moves USDC from the wallet into it via a gasless EIP-2612 Permit signature (POST /user/transfer-to-proxy)
+     * @see https://docs.sx.bet/api-reference/post-user-transfer-to-proxy
+     * @see https://docs.sx.bet/api-reference/post-user-deploy-proxy
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.tokenAddress] the token to approve, defaults to USDC (from /metadata)
-     * @param {string} [params.spender] the address granted the allowance, defaults to TokenTransferProxy (from /metadata)
-     * @param {string} [params.value] the allowance in raw token units, defaults to unlimited (max uint256)
+     * @param {float} [params.amount] the USDC amount to move into the proxy (required)
+     * @param {string} [params.tokenAddress] the token to transfer, defaults to the active base token
+     * @param {string} [params.spender] the transfer executor granted the permit, defaults to options.transferToProxySpender or the obv3 escrow address
      * @param {int} [params.deadline] unix seconds the permit signature expires at, defaults to options.approveDeadlineSeconds from now
      * @param {string} [params.rpcUrl] overrides the chain's default RPC endpoint (see options.chains)
-     * @returns {object} a dict with the raw response and the returned approval tx hash (undefined if the allowance was already set)
+     * @returns {object} a dict with the raw response and the transfer sessionId
      */
     async approve (params = {}): Promise<any> {
         this.checkRequiredCredentials ();
-        if (this.privateKey === undefined) {
-            throw new ArgumentsRequired (this.id + ' approve() requires a privateKey to sign the permit');
+        const amount = this.safeNumber (params, 'amount');
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' approve() requires params.amount - the USDC amount to move into the proxy wallet');
         }
-        const sxMetadata = await this.loadSxMetadata ();
-        const usdcAddress = this.safeString (sxMetadata, 'usdcAddress', '');
-        const tokenTransferProxy = this.safeString (sxMetadata, 'tokenTransferProxy', '');
-        const chainId = this.safeInteger (sxMetadata, 'chainId');
+        const proxy = await this.fetchSxbetProxy ();
+        const deployed = this.safeBool (proxy, 'deployed', false);
+        if (!deployed) {
+            await this.sxbetPrivatePostUserDeployProxy ();
+            // deployment is asynchronous - poll until the proxy exists
+            for (let i = 0; i < 30; i++) {
+                await this.sleep (2000);
+                const state = await this.fetchSxbetProxy ();
+                if (this.safeBool (state, 'deployed', false)) {
+                    break;
+                }
+            }
+        }
+        const obv3 = await this.loadSxObv3Metadata ();
+        const activeAsset = this.safeDict (obv3, 'activeAsset', {});
+        const chainId = this.safeInteger (obv3, 'chainId');
+        const usdcAddress = this.safeString (activeAsset, 'baseToken', '');
+        const escrowAddress = this.safeString (activeAsset, 'escrowAddress', '');
         const tokenAddress = this.safeString (params, 'tokenAddress', usdcAddress);
-        const spender = this.safeString (params, 'spender', tokenTransferProxy);
+        let spender = undefined;
+        [ spender, params ] = this.handleOptionAndParams (params, 'approve', 'transferToProxySpender', escrowAddress);
         const chains = this.safeDict (this.options, 'chains', {});
         const chainConfig = this.safeDict (chains, this.numberToString (chainId), {});
         const rpcUrl = this.safeString (params, 'rpcUrl', this.safeString (chainConfig, 'rpcUrl'));
@@ -863,8 +893,7 @@ export default class sxbet extends Exchange {
         const tokenName = await this.fetchErc20Name (rpcUrl, tokenAddress);
         const defaultDeadlineSeconds = this.safeInteger (this.options, 'approveDeadlineSeconds', 7200);
         const deadline = this.safeInteger (params, 'deadline', this.sum (this.seconds (), defaultDeadlineSeconds));
-        const maxUint256 = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
-        const value = this.safeString (params, 'value', maxUint256);
+        const value = this.decimalToPrecision (Precise.stringMul (this.numberToString (amount), '1000000'), ROUND, 0, DECIMAL_PLACES);
         const domain: Dict = { 'name': tokenName, 'version': '1', 'chainId': chainId, 'verifyingContract': tokenAddress };
         const messageTypes: Dict = {
             'Permit': [
@@ -884,15 +913,15 @@ export default class sxbet extends Exchange {
             'spender': spender,
             'tokenAddress': tokenAddress,
             'value': value,
-            'deadline': deadline,
+            'deadline': this.numberToString (deadline),
             'signature': signature,
         };
-        const rest = this.omit (params, [ 'tokenAddress', 'spender', 'value', 'deadline', 'rpcUrl' ]);
-        const response = await this.sxbetPrivatePostOrdersApprove (this.extend (request, rest));
+        const rest = this.omit (params, [ 'amount', 'tokenAddress', 'deadline', 'rpcUrl' ]);
+        const response = await this.sxbetPrivatePostUserTransferToProxy (this.extend (request, rest));
         const data = this.safeDict (response, 'data', {});
         return {
             'info': response,
-            'id': this.safeString (data, 'hash'),
+            'id': this.safeString (data, 'sessionId'),
         };
     }
 
