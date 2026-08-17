@@ -3444,7 +3444,7 @@ export default class binance extends Exchange {
                     promisesRaw.push(this.sapiGetMarginAllPairs(params));
                     promisesRaw.push(this.sapiGetMarginIsolatedAllPairs(params));
                 }
-                if (!isDemoEnv && (this.apiKey !== undefined)) {
+                if (!isDemoEnv && (this.apiKey !== undefined && this.apiKey !== '')) {
                     promisesRaw.push(this.sapiGetEquityMarketExchangeInfo(params));
                 }
             }
