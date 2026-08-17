@@ -1392,7 +1392,15 @@ export default class toobit extends Exchange {
         //        },
         //        ...
         //
-        return this.parseTickers (response, symbols, params);
+        const rows = [];
+        for (let i = 0; i < response.length; i++) {
+            const ticker = response[i];
+            const marketId = this.safeString (ticker, 's', '');
+            if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
+                rows.push (ticker);
+            }
+        }
+        return this.parseTickers (rows, symbols, params);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
