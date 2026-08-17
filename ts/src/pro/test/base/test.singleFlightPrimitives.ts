@@ -104,7 +104,7 @@ async function testCloseSettlesInFlight () {
     const exchange = new ccxt.Exchange ({ 'id': 'test' });
     const acquired = await exchange.singleFlightAcquire ('inflight');
     assert (acquired === true);
-    let waiterError = undefined;
+    let waiterError: any = undefined;
     const waiter = exchange.singleFlightWait ('inflight').catch ((e: any) => {
         waiterError = e;
     });
