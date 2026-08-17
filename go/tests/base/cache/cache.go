@@ -912,4 +912,115 @@ func TestWsCache() {
 	var bucketKeys any = ObjectKeys(cacheEvictBuckets.Hashmap)
 	var bucketCount any = GetArrayLength(bucketKeys)
 	Assert(IsEqual(bucketCount, 3)) // no empty leftover buckets
+
+	// ----------------------------------------------------------------------------
+
+	// test the symbol-scoped and the global getLimit scopes count independently -
+	// deriving the global count from the symbol-scoped seen set double-counts an
+	// id that updates again after a symbol poll
+	cacheTwoScopes := NewArrayCacheBySymbolById()
+	cacheTwoScopes.Append(map[string]any{
+		"symbol": "BTC/USDT",
+		"id":     "a",
+		"i":      1,
+	})
+	cacheTwoScopes.Append(map[string]any{
+		"symbol": "BTC/USDT",
+		"id":     "b",
+		"i":      2,
+	})
+	var symbolScopeFirst any = cacheTwoScopes.GetLimit("BTC/USDT", 100)
+	Assert(IsEqual(symbolScopeFirst, 2))
+	cacheTwoScopes.Append(map[string]any{
+		"symbol": "BTC/USDT",
+		"id":     "a",
+		"i":      3,
+	})
+	var globalScope any = cacheTwoScopes.GetLimit(nil, 100)
+	Assert(IsEqual(globalScope, 2)) // distinct ids a and b since no global poll happened - id a must not double-count
+	var symbolScopeSecond any = cacheTwoScopes.GetLimit("BTC/USDT", 100)
+	Assert(IsEqual(symbolScopeSecond, 1)) // id a since the last symbol-scoped poll
+	// the inverse direction: a global poll (and the append that fires its
+	// deferred reset) must not erase the symbol scope's window
+	cacheTwoScopes.Append(map[string]any{
+		"symbol": "BTC/USDT",
+		"id":     "d",
+		"i":      4,
+	})
+	cacheTwoScopes.Append(map[string]any{
+		"symbol": "BTC/USDT",
+		"id":     "e",
+		"i":      5,
+	})
+	var globalScopeSecond any = cacheTwoScopes.GetLimit(nil, 100)
+	Assert(IsEqual(globalScopeSecond, 2)) // ids d and e since the first global poll - id a was consumed by it
+	cacheTwoScopes.Append(map[string]any{
+		"symbol": "BTC/USDT",
+		"id":     "d",
+		"i":      6,
+	})
+	var symbolScopeThird any = cacheTwoScopes.GetLimit("BTC/USDT", 100)
+	Assert(IsEqual(symbolScopeThird, 2)) // ids d, e since the last symbol poll - the global poll in between must not reset this window
+
+	// ----------------------------------------------------------------------------
+
+	// the BySide twin of the two-scope case, covering both directions
+	sideTwoScopes := NewArrayCacheBySymbolBySide()
+	sideTwoScopes.Append(map[string]any{
+		"symbol":    "BTC/USDT:USDT",
+		"side":      "long",
+		"contracts": 1,
+	})
+	sideTwoScopes.Append(map[string]any{
+		"symbol":    "BTC/USDT:USDT",
+		"side":      "short",
+		"contracts": 1,
+	})
+	var sideSymbolFirst any = sideTwoScopes.GetLimit("BTC/USDT:USDT", 100)
+	Assert(IsEqual(sideSymbolFirst, 2))
+	sideTwoScopes.Append(map[string]any{
+		"symbol":    "BTC/USDT:USDT",
+		"side":      "long",
+		"contracts": 2,
+	})
+	var sideGlobal any = sideTwoScopes.GetLimit(nil, 100)
+	Assert(IsEqual(sideGlobal, 2)) // long and short distinct since no global poll - the re-updated long must not double-count
+	sideTwoScopes.Append(map[string]any{
+		"symbol":    "BTC/USDT:USDT",
+		"side":      "short",
+		"contracts": 2,
+	})
+	var sideSymbolSecond any = sideTwoScopes.GetLimit("BTC/USDT:USDT", 100)
+	Assert(IsEqual(sideSymbolSecond, 2)) // long and short since the last symbol poll - the global poll must not reset this window
+
+	// ----------------------------------------------------------------------------
+
+	// eviction bounds the seen scopes: an id evicted by maxSize leaves both seen
+	// sets, so the counts mean distinct ids within the retained window - exactly
+	// what a consumer can slice - and single-scope pollers stay bounded
+	cacheEvictSeen := NewArrayCacheBySymbolById(2)
+	cacheEvictSeen.Append(map[string]any{
+		"symbol": "BTC/USDT",
+		"id":     "a",
+		"i":      1,
+	})
+	cacheEvictSeen.Append(map[string]any{
+		"symbol": "BTC/USDT",
+		"id":     "b",
+		"i":      2,
+	})
+	cacheEvictSeen.Append(map[string]any{
+		"symbol": "BTC/USDT",
+		"id":     "c",
+		"i":      3,
+	}) // evicts id a
+	var evictSymbolCount any = cacheEvictSeen.GetLimit("BTC/USDT", 100)
+	Assert(IsEqual(evictSymbolCount, 2)) // ids b and c - the evicted id a no longer counts
+	cacheEvictSeen.Append(map[string]any{
+		"symbol": "BTC/USDT",
+		"id":     "d",
+		"i":      4,
+	}) // evicts id b
+	var evictGlobalCount any = cacheEvictSeen.GetLimit(nil, 100)
+	Assert(IsEqual(evictGlobalCount, 2)) // ids c and d - the counts track distinct ids within the retained window in both scopes
 }
