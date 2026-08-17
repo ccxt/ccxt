@@ -3408,7 +3408,7 @@ class binance(Exchange, ImplicitAPI):
                 if fetchMargins and self.check_required_credentials(False) and not isDemoEnv:
                     promisesRaw.append(self.sapiGetMarginAllPairs(params))
                     promisesRaw.append(self.sapiGetMarginIsolatedAllPairs(params))
-                if not isDemoEnv and (self.apiKey is not None):
+                if not isDemoEnv and (self.apiKey is not None and self.apiKey != ''):
                     promisesRaw.append(self.sapiGetEquityMarketExchangeInfo(params))
             elif marketType == 'linear':
                 promisesRaw.append(self.fapiPublicGetExchangeInfo(params))
