@@ -376,7 +376,10 @@ export default class binance extends binanceRest {
                     'listenKey': listenKey,
                     'lastAuthenticatedTime': now,
                 });
-                this.delay (listenKeyRefreshRate, this.keepAliveListenKey, this.extend (params, { 'type': 'stock', 'defaultType': 'stock' }));
+                // hoisted out of the delay call: the transpilers garble an inline
+                // dict literal nested inside a delay argument
+                const stockKeepAliveParams = this.extend (params, { 'type': 'stock', 'defaultType': 'stock' });
+                this.delay (listenKeyRefreshRate, this.keepAliveListenKey, stockKeepAliveParams);
                 client.resolve (listenKey, messageHash);
             } catch (e) {
                 client.reject (e, messageHash);
