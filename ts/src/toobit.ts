@@ -2886,7 +2886,7 @@ export default class toobit extends Exchange {
         const tagFrom = this.safeString (transaction, 'fromAddressTag');
         const addressTo = this.safeString (transaction, 'address');
         const addressFrom = this.safeString (transaction, 'fromAddress');
-        const isWithdraw = ('arriveQuantity' in transaction);
+        const isWithdraw = ('arriveQuantity' in transaction) || ('success' in transaction);
         const type = isWithdraw ? 'withdrawal' : 'deposit';
         return {
             'info': transaction,
@@ -2904,7 +2904,7 @@ export default class toobit extends Exchange {
             'type': type,
             'amount': this.safeNumber (transaction, 'quantity'),
             'currency': code,
-            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status'), type),
             'updated': undefined,
             'fee': fee,
             'comment': undefined,
@@ -2912,16 +2912,29 @@ export default class toobit extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
-        const statuses: Dict = {
-            '2': 'pending',
-            '12': 'pending',
-            '11': 'failed',
-            '3': 'ok',
+    parseTransactionStatus (status: Str, type: Str = undefined) {
+        const statusesByType: Dict = {
+            'deposit': {
+                '2': 'ok', // DEPOSIT_CAN_WITHDRAW
+                '11': 'failed', // REJECT
+                '12': 'pending', // AUDIT
+            },
+            'withdrawal': {
+                '0': 'pending', // WITHDRAWAL_STATUS_UNKNOWN
+                '1': 'pending', // BROKER_AUDITING_STATUS
+                '2': 'failed', // BROKER_REJECT_STATUS
+                '3': 'pending', // AUDITING_STATUS
+                '6': 'ok', // WITHDRAWAL_SUCCESS_STATUS
+                '7': 'failed', // WITHDRAWAL_FAILURE_STATUS
+                '9': 'canceled', // WITHDRAWAL_CANCELLED_STATUS
+                '10': 'pending', // WAIT_MERCHANT_PASS
+                '11': 'canceled', // APPLY_CANCEL
+            },
         };
         if (status === undefined) {
             return undefined;
         }
+        const statuses = this.safeDict (statusesByType, type, {});
         return this.safeString (statuses, status, status);
     }
 
