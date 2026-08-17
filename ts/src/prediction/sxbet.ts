@@ -2068,88 +2068,6 @@ export default class sxbet extends Exchange {
         };
     }
 
-    /**
-     * @ignore
-     * @method
-     * @name sxbet#parseSxbetRawOrderBook
-     * @description aggregates raw resting maker orders into sorted [price, amount] bid/ask levels for one outcome; shared by fetchOrderBook and the websocket book rebuild
-     * @param {object[]} rawOrders the raw order rows (REST GET /orders shape or the websocket order_book delta shape)
-     * @param {boolean} isOutcomeOne whether the book is built for the market's outcome one
-     * @param {string} usdcAddress the USDC contract address used to filter the base token
-     * @returns {object} a dict with sorted 'bids' and 'asks' lists
-     */
-    parseSxbetRawOrderBook (rawOrders: any[], isOutcomeOne: boolean, usdcAddress: string): Dict {
-        const oneDenom = '100000000000000000000';
-        const usdcDecimals = '1000000'; // sx.bet USDC has 6 decimals (confirmed via /metadata makerOrderMinimums)
-        const usdcLower = usdcAddress.toLowerCase ();
-        // several resting orders can share one price - aggregate amounts per price level so the
-        // book has strictly monotonic levels (keys are the exact price strings)
-        const bidTotals: Dict = {};
-        const askTotals: Dict = {};
-        const rawOrdersLength = rawOrders.length;
-        for (let i = 0; i < rawOrdersLength; i++) {
-            const order = rawOrders[i];
-            // REST rows carry orderStatus, the websocket delta rows carry status
-            const status = this.safeString2 (order, 'orderStatus', 'status');
-            if (status !== 'ACTIVE') {
-                continue;
-            }
-            // websocket delta rows omit baseToken - the subscription map is seeded USDC-only, so default to USDC
-            const rowToken = this.safeStringLower (order, 'baseToken', usdcLower);
-            if (rowToken !== usdcLower) {
-                continue;
-            }
-            const totalBetSize = this.safeString (order, 'totalBetSize');
-            const fillAmount = this.safeString (order, 'fillAmount', '0');
-            const pendingFillAmount = this.safeString (order, 'pendingFillAmount', '0');
-            const remainingMaker = Precise.stringSub (Precise.stringSub (totalBetSize, fillAmount), pendingFillAmount);
-            if (Precise.stringLe (remainingMaker, '0')) {
-                continue;
-            }
-            const percentageOdds = this.safeString (order, 'percentageOdds');
-            const makerBettingOne = this.safeBool (order, 'isMakerBettingOutcomeOne');
-            if (makerBettingOne === isOutcomeOne) {
-                const priceStr = Precise.stringDiv (percentageOdds, oneDenom);
-                if (priceStr === undefined) {
-                    continue;
-                }
-                const amountStr = Precise.stringDiv (remainingMaker, usdcDecimals, 6);
-                const existing = this.safeString (bidTotals, priceStr, '0');
-                bidTotals[priceStr] = Precise.stringAdd (existing, amountStr);
-            } else {
-                // remainingTakerSpace = remainingMaker * (1e20 / percentageOdds) - remainingMaker,
-                // per sx.bet's documented remaining-taker-space formula
-                const priceStr = Precise.stringSub ('1', Precise.stringDiv (percentageOdds, oneDenom));
-                if (priceStr === undefined) {
-                    continue;
-                }
-                const ratio = Precise.stringDiv (oneDenom, percentageOdds, 12);
-                const remainingTaker = Precise.stringSub (Precise.stringMul (remainingMaker, ratio), remainingMaker);
-                const amountStr = Precise.stringDiv (remainingTaker, usdcDecimals, 6);
-                const existing = this.safeString (askTotals, priceStr, '0');
-                askTotals[priceStr] = Precise.stringAdd (existing, amountStr);
-            }
-        }
-        const bids: any[] = [];
-        const bidPrices = Object.keys (bidTotals);
-        const bidPricesLength = bidPrices.length;
-        for (let i = 0; i < bidPricesLength; i++) {
-            const priceStr = bidPrices[i];
-            bids.push ([ this.parseNumber (priceStr), this.parseNumber (bidTotals[priceStr]) ]);
-        }
-        const asks: any[] = [];
-        const askPrices = Object.keys (askTotals);
-        const askPricesLength = askPrices.length;
-        for (let i = 0; i < askPricesLength; i++) {
-            const priceStr = askPrices[i];
-            asks.push ([ this.parseNumber (priceStr), this.parseNumber (askTotals[priceStr]) ]);
-        }
-        return {
-            'bids': this.sortBy (bids, 0, true),
-            'asks': this.sortBy (asks, 0),
-        };
-    }
-
     requestId (url: Str): number {
         const existing = this.safeValue (this.options, 'requestId');
         if (existing === undefined) {
@@ -2176,7 +2094,7 @@ export default class sxbet extends Exchange {
         if (this.apiKey === undefined) {
             throw new ArgumentsRequired (this.id + ' websocket streaming requires the apiKey credential - the realtime token endpoint authenticates with the X-Api-Key header');
         }
-        const response = await this.sxbetPrivateGetUserRealtimeTokenApiKey ();
+        const response = await this.sxbetPrivateGetUserRealtimeTokenV3ApiKey ();
         const data = this.safeDict (response, 'data', {});
         return this.safeString2 (data, 'token', 'realtimeToken', this.safeString (response, 'token'));
     }
@@ -2270,21 +2188,26 @@ export default class sxbet extends Exchange {
         }
         const parts = channel.split (':');
         const channelType = this.safeString (parts, 0);
-        if (channelType === 'order_book') {
+        if (channelType === 'orderbook_v3') {
             this.handleOrderBook (client, rows);
-        } else if (channelType === 'best_odds') {
+        } else if (channelType === 'best_odds_v3') {
             this.handleTicker (client, rows);
-        } else if (channelType === 'recent_trades') {
+        } else if (channelType === 'recent_trades_v3') {
             this.handleTrades (client, rows);
-        } else if (channelType === 'active_orders') {
-            this.handleOrder (client, rows);
+        } else if (channelType === 'account') {
+            // per-account channels: account:orders_v3_#addr / account:fills_v3_#addr
+            if (channel.indexOf ('orders_v3') >= 0) {
+                this.handleOrder (client, rows);
+            } else if (channel.indexOf ('fills_v3') >= 0) {
+                this.handleMyTrade (client, rows);
+            }
         }
     }
 
     /**
      * @method
      * @name sxbet#watchOrderBook
-     * @description streams the order book of an outcome; the channel emits per-order deltas, so a raw-order map is seeded from REST and re-aggregated on every update
+     * @description streams the order book of an outcome - the v3 channel publishes the entire aggregated book on every update with a monotonic version, so each message replaces the held book
      * @see https://docs.sx.bet/api-reference/centrifugo-order-book-updates
      * @param {string} outcome unified outcome or outcome token id
      * @param {int} [limit] the maximum number of order book entries to return
@@ -2296,150 +2219,110 @@ export default class sxbet extends Exchange {
         const outcomeObj = this.outcome (outcome);
         const sym = this.safeString (outcomeObj, 'outcome');
         const marketHash = this.safeString (outcomeObj['info'], 'marketHash');
-        const channel = 'order_book:market_' + marketHash;
+        const channel = 'orderbook_v3:' + marketHash;
         const messageHash = 'orderbook::' + sym;
         const url = this.safeString (this.urls['api'] as Dict, 'ws');
         await this.connectSxbetCentrifugo (url);
         const client = this.client (url);
         const isNewSubscription = this.safeValue (client.subscriptions, channel) === undefined;
         if (this.safeValue (this.orderbooks, sym) === undefined) {
-            await this.seedSxbetOrderBook (outcome, sym, marketHash);
+            // seed from the REST snapshot so the book is served before the first publication
+            const watchedBooks = this.safeDict (this.options, 'wsWatchedBooks');
+            if (watchedBooks === undefined) {
+                this.options['wsWatchedBooks'] = this.createSafeDictionary ();
+            }
+            this.options['wsWatchedBooks'][sym as string] = marketHash;
+            const snapshot = await this.fetchSxbetBookSnapshot (marketHash);
+            this.applySxbetWsSnapshot (snapshot);
+            if (this.safeValue (this.orderbooks, sym) === undefined) {
+                const emptyBook = this.orderBook ({});
+                this.orderbooks[sym as string] = emptyBook;
+            }
         }
         const requestId = this.requestId (url);
         const subscribeMsg: Dict = { 'subscribe': { 'channel': channel }, 'id': requestId };
         const future = this.watch (url, messageHash, subscribeMsg, channel);
         if (isNewSubscription) {
-            // return the freshly-seeded book immediately instead of blocking until the next delta
+            // return the freshly-seeded book immediately instead of blocking until the next publication
             client.resolve (this.safeValue (this.orderbooks, sym), messageHash);
         }
         const orderbook = await future;
         return orderbook.limit ();
     }
 
-    async seedSxbetOrderBook (outcome: Str, sym: Str, marketHash: Str) {
-        // seed the raw-order map from REST - the channel only streams per-order deltas
-        const sxMetadata = await this.loadSxMetadata ();
-        const usdcAddress = this.safeString (sxMetadata, 'usdcAddress', '');
-        const usdcLower = usdcAddress.toLowerCase ();
-        const request: Dict = { 'marketHashes': marketHash };
-        const response = await this.sxbetPublicGetOrders (request);
-        const rawOrders = this.safeList (response, 'data', []);
-        const existingBooks = this.safeDict (this.options, 'wsRawOrders');
-        if (existingBooks === undefined) {
-            this.options['wsRawOrders'] = this.createSafeDictionary ();
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#applySxbetWsSnapshot
+     * @description applies one full v3 book publication ({marketHash, version, outcomeOne, outcomeTwo}) to every watched outcome of that market, honoring the monotonic version
+     * @param {object} snapshot the raw book publication
+     * @returns {string[]} the outcome handles whose books were refreshed
+     */
+    applySxbetWsSnapshot (snapshot: Dict): string[] {
+        const marketHash = this.safeString (snapshot, 'marketHash');
+        const version = this.safeString (snapshot, 'version', '');
+        const refreshed: string[] = [];
+        if (marketHash === undefined) {
+            return refreshed;
         }
-        const orderMap: Dict = this.createSafeDictionary ();
-        const rawOrdersLength = rawOrders.length;
-        for (let i = 0; i < rawOrdersLength; i++) {
-            const order = rawOrders[i];
-            if (this.safeString2 (order, 'orderStatus', 'status') !== 'ACTIVE') {
-                continue;
-            }
-            if (this.safeStringLower (order, 'baseToken', usdcLower) !== usdcLower) {
-                continue;
-            }
-            const orderHash = this.safeString (order, 'orderHash');
-            if (orderHash === undefined) {
-                continue;
-            }
-            orderMap[orderHash] = order;
+        const versionsAll = this.safeValue (this.options, 'wsBookVersions');
+        if (versionsAll === undefined) {
+            this.options['wsBookVersions'] = this.createSafeDictionary ();
         }
-        this.options['wsRawOrders'][marketHash as string] = orderMap;
-        const watchedBooks = this.safeDict (this.options, 'wsWatchedBooks');
-        if (watchedBooks === undefined) {
-            this.options['wsWatchedBooks'] = this.createSafeDictionary ();
+        const held = this.safeString (this.options['wsBookVersions'], marketHash, '');
+        // versions are fixed-width numeric strings - replace only on a strictly newer publication
+        if ((held !== '') && (version <= held)) {
+            return refreshed;
         }
-        this.options['wsWatchedBooks'][sym as string] = marketHash;
-        const orderbook = this.orderBook ({});
-        this.orderbooks[sym as string] = orderbook;
-        this.rebuildSxbetWsOrderBook (sym, marketHash);
-    }
-
-    rebuildSxbetWsOrderBook (sym: Str, marketHash: Str) {
-        // re-aggregate the raw-order map into price levels for one outcome and reset its live book
-        const outcomeObj = this.outcome (sym as string);
-        const outcomeId = this.safeString (outcomeObj, 'outcomeId');
-        const isOutcomeOne = (outcomeId === marketHash);
-        const sxMetadata = this.safeDict (this.options, 'sxMetadata', {});
-        const usdcAddress = this.safeString (sxMetadata, 'usdcAddress', '');
-        const booksMap = this.safeDict (this.options, 'wsRawOrders', {});
-        const orderMap = this.safeDict (booksMap, marketHash as string, {});
-        const orderHashes = Object.keys (orderMap);
-        const rawOrders = [];
-        const orderHashesLength = orderHashes.length;
-        for (let i = 0; i < orderHashesLength; i++) {
-            rawOrders.push (orderMap[orderHashes[i]]);
-        }
-        const sides = this.parseSxbetRawOrderBook (rawOrders, isOutcomeOne, usdcAddress);
+        this.options['wsBookVersions'][marketHash] = version;
+        const watchedBooks = this.safeDict (this.options, 'wsWatchedBooks', {});
+        const watchedSyms = Object.keys (watchedBooks);
         const timestamp = this.milliseconds ();
-        const snapshot: Dict = {
-            'bids': this.safeList (sides, 'bids', []),
-            'asks': this.safeList (sides, 'asks', []),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'nonce': undefined,
-        };
-        const orderbook = this.orderbooks[sym as string];
-        orderbook.reset (snapshot);
+        const watchedSymsLength = watchedSyms.length;
+        for (let i = 0; i < watchedSymsLength; i++) {
+            const sym = watchedSyms[i];
+            if (this.safeString (watchedBooks, sym) !== marketHash) {
+                continue;
+            }
+            const outcomeObj = this.outcome (sym);
+            const outcomeId = this.safeString (outcomeObj, 'outcomeId');
+            const isOutcomeOne = (outcomeId === marketHash);
+            const sides = this.parseSxbetV3BookSides (snapshot, isOutcomeOne);
+            let orderbook = this.safeValue (this.orderbooks, sym);
+            if (orderbook === undefined) {
+                orderbook = this.orderBook ({});
+                this.orderbooks[sym] = orderbook;
+            }
+            const bookSnapshot: Dict = {
+                'bids': this.safeList (sides, 'bids', []),
+                'asks': this.safeList (sides, 'asks', []),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'nonce': undefined,
+            };
+            orderbook.reset (bookSnapshot);
+            refreshed.push (sym);
+        }
+        return refreshed;
     }
 
     handleOrderBook (client: any, rows: any[]) {
         //
-        //     [
-        //         {
-        //             "orderHash": "0x7bd76648f589f3e272d48294d8881fe68aae7704f7b2ef0a50bf612be44271",
-        //             "marketHash": "0x04b9af76dfb92e71500975db77b1de0bb32a0b2413f1b3facbb25278987519a7",
-        //             "status": "INACTIVE",
-        //             "fillAmount": "2000000000",
-        //             "pendingFillAmount": "1000000000",
-        //             "maker": "0x9883D5e7dC023A441A81Ef95af406C69926a0AB6",
-        //             "totalBetSize": "500000000",
-        //             "percentageOdds": "750000000000000000000",
-        //             "apiExpiry": 1747500000000,
-        //             "salt": "12345678901234567890",
-        //             "isMakerBettingOutcomeOne": false,
-        //             "signature": "0xbf09...e01",
-        //             "updateTime": 1747490000000,
-        //             "sportXeventId": "L13772588"
-        //         }
-        //     ]
+        //     {
+        //         "marketHash": "0x...",
+        //         "version": "00100000000000010015000",
+        //         "outcomeOne": [ { "percentageOdds": "40000000000000000000", "size": "1000000" } ],
+        //         "outcomeTwo": []
+        //     }
         //
-        const touchedMarkets: Dict = this.createSafeDictionary ();
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
-            const order = rows[i];
-            const marketHash = this.safeString (order, 'marketHash');
-            const orderHash = this.safeString (order, 'orderHash');
-            if ((marketHash === undefined) || (orderHash === undefined)) {
-                continue;
+            const refreshed = this.applySxbetWsSnapshot (rows[i]);
+            const refreshedLength = refreshed.length;
+            for (let j = 0; j < refreshedLength; j++) {
+                const sym = refreshed[j];
+                client.resolve (this.safeValue (this.orderbooks, sym), 'orderbook::' + sym);
             }
-            const booksMap = this.safeDict (this.options, 'wsRawOrders', {});
-            const orderMap = this.safeValue (booksMap, marketHash);
-            if (orderMap === undefined) {
-                // delta for a market whose book is not being watched
-                continue;
-            }
-            const status = this.safeString (order, 'status');
-            if (status === 'ACTIVE') {
-                orderMap[orderHash] = order;
-            } else {
-                // INACTIVE and FILLED orders leave the book
-                const cleaned = this.omit (orderMap, orderHash);
-                this.options['wsRawOrders'][marketHash] = cleaned;
-            }
-            touchedMarkets[marketHash] = true;
-        }
-        const watchedBooks = this.safeDict (this.options, 'wsWatchedBooks', {});
-        const watchedSyms = Object.keys (watchedBooks);
-        const watchedSymsLength = watchedSyms.length;
-        for (let i = 0; i < watchedSymsLength; i++) {
-            const sym = watchedSyms[i];
-            const marketHash = this.safeString (watchedBooks, sym);
-            if (this.safeValue (touchedMarkets, marketHash) === undefined) {
-                continue;
-            }
-            this.rebuildSxbetWsOrderBook (sym, marketHash);
-            client.resolve (this.safeValue (this.orderbooks, sym), 'orderbook::' + sym);
         }
     }
 
@@ -2462,50 +2345,20 @@ export default class sxbet extends Exchange {
         if (watchedTickers === undefined) {
             this.options['wsWatchedTickers'] = this.createSafeDictionary ();
         }
-        const oddsCacheAll = this.safeValue (this.options, 'wsBestOdds');
-        if (oddsCacheAll === undefined) {
-            this.options['wsBestOdds'] = this.createSafeDictionary ();
-        }
-        const primed = this.safeDict (this.options['wsBestOdds'], marketHash);
-        if (primed === undefined) {
-            // prime both sides from REST so the merged bid/ask survive one-sided websocket updates
-            const sxMetadata = await this.loadSxMetadata ();
-            const usdcAddress = this.safeString (sxMetadata, 'usdcAddress', '');
-            const request: Dict = { 'marketHashes': marketHash, 'baseToken': usdcAddress };
-            const response = await this.sxbetPublicGetOrdersOddsBest (request);
-            const result = this.safeDict (response, 'data', {});
-            const bestOddsList = this.safeList (result, 'bestOdds', []);
-            const raw = this.safeDict (bestOddsList, 0, {});
-            const outcomeOneOdds = this.safeDict (raw, 'outcomeOne', {});
-            const outcomeTwoOdds = this.safeDict (raw, 'outcomeTwo', {});
-            const oddsCache: Dict = this.createSafeDictionary ();
-            oddsCache['one'] = this.safeString (outcomeOneOdds, 'percentageOdds');
-            oddsCache['two'] = this.safeString (outcomeTwoOdds, 'percentageOdds');
-            oddsCache['updatedAt'] = this.safeInteger (outcomeOneOdds, 'updatedAt');
-            this.options['wsBestOdds'][marketHash as string] = oddsCache;
-        }
         this.options['wsWatchedTickers'][sym as string] = marketHash;
-        return await this.subscribeSxbetChannel (messageHash, 'best_odds:global');
+        return await this.subscribeSxbetChannel (messageHash, 'best_odds_v3:global');
     }
 
     handleTicker (client: any, rows: any[]) {
         //
-        //     [
-        //         {
-        //             "baseToken": "0x1BC6326EA6aF2aB8E4b68c83418044B1923b2956",
-        //             "marketHash": "0xddaf2ef56d0db2317cf9a1e1dde3de2f2158e28bee55fe35a684389f4dce0cf6",
-        //             "isMakerBettingOutcomeOne": true,
-        //             "percentageOdds": "750000000000000000000",
-        //             "updatedAt": 1747500000000,
-        //             "sportId": 1,
-        //             "leagueId": 1236
-        //         }
-        //     ]
+        //     {
+        //         "marketHash": "0xbf06...16a2eb",
+        //         "outcomeOne": { "percentageOdds": "40000000000000000000", "size": "1000000" },
+        //         "outcomeTwo": null
+        //     }
         //
-        const obv3 = this.safeDict (this.options, 'sxObv3Metadata', {});
-        const activeAsset = this.safeDict (obv3, 'activeAsset', {});
-        const usdcAddress = this.safeStringLower (activeAsset, 'baseToken', '');
-        const touchedMarkets: Dict = this.createSafeDictionary ();
+        const watchedTickers = this.safeDict (this.options, 'wsWatchedTickers', {});
+        const watchedSyms = Object.keys (watchedTickers);
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
             const entry = rows[i];
@@ -2513,51 +2366,33 @@ export default class sxbet extends Exchange {
             if (marketHash === undefined) {
                 continue;
             }
-            const oddsCache = this.safeValue (this.safeDict (this.options, 'wsBestOdds', {}), marketHash);
-            if (oddsCache === undefined) {
-                // update for a market whose ticker is not being watched
-                continue;
-            }
-            const entryToken = this.safeStringLower (entry, 'baseToken', usdcAddress);
-            if ((usdcAddress !== '') && (entryToken !== usdcAddress)) {
-                continue;
-            }
-            const makerBettingOne = this.safeBool (entry, 'isMakerBettingOutcomeOne');
-            if (makerBettingOne) {
-                oddsCache['one'] = this.safeString (entry, 'percentageOdds');
-            } else {
-                oddsCache['two'] = this.safeString (entry, 'percentageOdds');
-            }
-            oddsCache['updatedAt'] = this.safeInteger (entry, 'updatedAt');
-            touchedMarkets[marketHash] = true;
-        }
-        const watchedTickers = this.safeDict (this.options, 'wsWatchedTickers', {});
-        const watchedSyms = Object.keys (watchedTickers);
-        const watchedSymsLength = watchedSyms.length;
-        for (let i = 0; i < watchedSymsLength; i++) {
-            const sym = watchedSyms[i];
-            const marketHash = this.safeString (watchedTickers, sym);
-            if (this.safeValue (touchedMarkets, marketHash) === undefined) {
-                continue;
-            }
-            const oddsCache = this.safeDict (this.safeDict (this.options, 'wsBestOdds', {}), marketHash as string, {});
-            // rebuild the REST best-odds shape so the ticker parser stays the single source of truth
+            // every publication carries BOTH sides (null = no resting liquidity), so the legacy
+            // best-odds shape rebuilds directly without any merge cache
+            const bestOne = this.safeDict (entry, 'outcomeOne', {});
+            const bestTwo = this.safeDict (entry, 'outcomeTwo', {});
             const raw: Dict = {
                 'marketHash': marketHash,
-                'outcomeOne': { 'percentageOdds': this.safeString (oddsCache, 'one'), 'updatedAt': this.safeInteger (oddsCache, 'updatedAt') },
-                'outcomeTwo': { 'percentageOdds': this.safeString (oddsCache, 'two'), 'updatedAt': this.safeInteger (oddsCache, 'updatedAt') },
+                'outcomeOne': { 'percentageOdds': this.safeString (bestOne, 'percentageOdds') },
+                'outcomeTwo': { 'percentageOdds': this.safeString (bestTwo, 'percentageOdds') },
             };
-            const outcomeObj = this.outcome (sym) as any;
-            const ticker = this.parsePredictionTicker (raw, outcomeObj);
-            this.tickers[sym] = ticker as any;
-            client.resolve (ticker, 'ticker::' + sym);
+            const watchedSymsLength = watchedSyms.length;
+            for (let j = 0; j < watchedSymsLength; j++) {
+                const sym = watchedSyms[j];
+                if (this.safeString (watchedTickers, sym) !== marketHash) {
+                    continue;
+                }
+                const outcomeObj = this.outcome (sym) as any;
+                const ticker = this.parsePredictionTicker (raw, outcomeObj);
+                this.tickers[sym] = ticker as any;
+                client.resolve (ticker, 'ticker::' + sym);
+            }
         }
     }
 
     /**
      * @method
      * @name sxbet#watchTrades
-     * @description streams public trades of an outcome; the venue channel is global, entries are filtered down to the requested outcome
+     * @description streams public bets of an outcome; the venue channel is global, entries are filtered down to the requested outcome
      * @see https://docs.sx.bet/api-reference/centrifugo-trade-updates
      * @param {string} outcome unified outcome or outcome token id
      * @param {int} [since] timestamp in ms of the earliest trade to return
@@ -2570,14 +2405,82 @@ export default class sxbet extends Exchange {
         const outcomeObj = this.outcome (outcome);
         const sym = this.safeString (outcomeObj, 'outcome');
         const messageHash = 'trades::' + sym;
-        const trades = await this.subscribeSxbetChannel (messageHash, 'recent_trades:global');
+        const trades = await this.subscribeSxbetChannel (messageHash, 'recent_trades_v3:global');
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true) as PredictionTrade[];
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#parseSxbetV3PublicTrade
+     * @description parses one recent_trades_v3 publication (public TradeV3 shape) into a unified trade
+     * @param {object} trade the raw public trade row
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    parseSxbetV3PublicTrade (trade: Dict): PredictionTrade {
+        const marketHash = this.safeString (trade, 'marketHash', '');
+        const isBettingOutcomeOne = this.safeBool (trade, 'isBettingOutcomeOne', true);
+        const outcomeId = (isBettingOutcomeOne) ? marketHash : (marketHash + '-2');
+        const outcomeObj = this.safeOutcome (outcomeId);
+        const oneDenom = '100000000000000000000';
+        const usdcDecimals = '1000000';
+        const odds = this.safeString (trade, 'weightedAverageOdds');
+        const price = (odds !== undefined) ? this.parseNumber (Precise.stringDiv (odds, oneDenom)) : undefined;
+        const stake = this.safeString (trade, 'totalStake', '0');
+        const amount = this.parseNumber (Precise.stringDiv (stake, usdcDecimals, 6));
+        const timestamp = this.parse8601 (this.safeString (trade, 'betTime'));
+        return this.safePredictionTrade ({
+            'id': this.safeString (trade, 'tradeId'),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'outcome': this.safeString (outcomeObj, 'outcome'),
+            'outcomeId': this.safeString (outcomeObj, 'outcomeId', outcomeId),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString (outcomeObj, 'market'),
+            'order': undefined,
+            'type': undefined,
+            'side': 'buy',
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': amount,
+            'fee': undefined,
+        });
+    }
+
+    handleTrades (client: any, rows: any[]) {
+        //
+        //     { "trade": { "tradeId": "0xac6b...", "marketHash": "0x1fec...", "isBettingOutcomeOne": true,
+        //                  "totalStake": "1000000", "weightedAverageOdds": "40000000000000000000",
+        //                  "betTime": "2026-07-31T18:22:41.000Z", ... } }
+        //
+        const rowsLength = rows.length;
+        for (let i = 0; i < rowsLength; i++) {
+            const row = this.safeDict (rows[i], 'trade', rows[i]);
+            const trade = this.parseSxbetV3PublicTrade (row);
+            const sym = this.safeString (trade, 'outcome');
+            if (sym === undefined) {
+                // bet in a market absent from the loaded outcome cache
+                continue;
+            }
+            if (this.trades === undefined) {
+                this.trades = this.createSafeDictionary ();
+            }
+            if (this.safeValue (this.trades, sym) === undefined) {
+                const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                this.trades[sym] = new ArrayCache (tradesLimit);
+            }
+            const stored = this.trades[sym];
+            stored.append (trade);
+            client.resolve (stored, 'trades::' + sym);
+        }
     }
 
     /**
      * @method
      * @name sxbet#watchMyTrades
-     * @description streams the authenticated wallet's trades; the venue channel is global, entries are filtered by the bettor address
+     * @description streams the authenticated wallet's fills over its per-account v3 channel
      * @see https://docs.sx.bet/api-reference/centrifugo-trade-updates
      * @param {string} [outcome] unified outcome or outcome token id to narrow the stream down to
      * @param {int} [since] timestamp in ms of the earliest trade to return
@@ -2587,7 +2490,7 @@ export default class sxbet extends Exchange {
      */
     override async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         if (this.walletAddress === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a walletAddress to identify the bettor');
+            throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a walletAddress');
         }
         let messageHash = 'myTrades';
         if (outcome !== undefined) {
@@ -2596,78 +2499,38 @@ export default class sxbet extends Exchange {
             const sym = this.safeString (outcomeObj, 'outcome');
             messageHash = 'myTrades::' + sym;
         }
-        const trades = await this.subscribeSxbetChannel (messageHash, 'recent_trades:global');
+        const channel = 'account:fills_v3_#' + this.walletAddress;
+        const trades = await this.subscribeSxbetChannel (messageHash, channel);
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true) as PredictionTrade[];
     }
 
-    handleTrades (client: any, rows: any[]) {
+    handleMyTrade (client: any, rows: any[]) {
         //
-        //     {
-        //         "baseToken": "0x8f3Cf7ad23Cd3CaDb09735AFf958023239c6A063",
-        //         "bettor": "0x814d79A9940CbC5Af4C19cAa118EC065a77CD31f",
-        //         "stake": "999999999999999999",
-        //         "odds": "484425713316886290000",
-        //         "orderHash": "0xf7321de419b8887eafe5756d25db37ed2796dfc2495a49e266f13c8533fddb67",
-        //         "marketHash": "0x32d6c7d300dc44c795e2bdb8c735d9ad74fd2bbece89012904a5ea8ec6b566f1",
-        //         "maker": false,
-        //         "betTime": 1625668455,
-        //         "settled": false,
-        //         "bettingOutcomeOne": true,
-        //         "fillHash": "0x027f3237d9dc9dfa6068b60d852c3e972776b683a8c43b2e1a43602918de924e",
-        //         "status": "SUCCESS",
-        //         "tradeStatus": "SUCCESS",
-        //         "isQuarterLineLeg": false
-        //     }
+        //     FillV3 rows - identical to GET /fills-v3
         //
-        const walletLower = (this.walletAddress === undefined) ? '' : this.walletAddress.toLowerCase ();
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
-            const row = rows[i];
-            // fills stream through as PENDING first and re-arrive as SUCCESS on confirmation -
-            // keep only confirmed fills, matching the REST tape's tradeStatus=SUCCESS default
-            const tradeStatus = this.safeString2 (row, 'tradeStatus', 'status');
-            if (tradeStatus !== 'SUCCESS') {
-                continue;
-            }
-            const trade = this.parsePredictionTrade (row);
+            const row = this.safeDict (rows[i], 'fill', rows[i]);
+            const trade = this.parseSxbetV3Fill (row);
             const sym = this.safeString (trade, 'outcome');
             if (sym === undefined) {
-                // trade in a market absent from the loaded outcome cache
                 continue;
             }
-            // the feed carries BOTH bettors of every fill - only taker rows land on the public
-            // tape (one entry per fill), while the myTrades branch below keeps both sides
-            const isMakerRow = this.safeBool (row, 'maker', false);
-            if (!isMakerRow) {
-                if (this.trades === undefined) {
-                    this.trades = this.createSafeDictionary ();
-                }
-                if (this.safeValue (this.trades, sym) === undefined) {
-                    const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                    this.trades[sym] = new ArrayCache (tradesLimit);
-                }
-                const stored = this.trades[sym];
-                stored.append (trade);
-                client.resolve (stored, 'trades::' + sym);
+            if (this.myTrades === undefined) {
+                const myTradesLimit = this.safeInteger (this.options, 'myTradesLimit', 1000);
+                this.myTrades = new ArrayCacheByOutcomeById (myTradesLimit);
             }
-            const bettor = this.safeStringLower (row, 'bettor', '');
-            if ((walletLower !== '') && (bettor === walletLower)) {
-                if (this.myTrades === undefined) {
-                    const myTradesLimit = this.safeInteger (this.options, 'myTradesLimit', 1000);
-                    this.myTrades = new ArrayCacheByOutcomeById (myTradesLimit);
-                }
-                const storedMy = this.myTrades;
-                storedMy.append (trade);
-                client.resolve (storedMy, 'myTrades');
-                client.resolve (storedMy, 'myTrades::' + sym);
-            }
+            const stored = this.myTrades;
+            stored.append (trade);
+            client.resolve (stored, 'myTrades');
+            client.resolve (stored, 'myTrades::' + sym);
         }
     }
 
     /**
      * @method
      * @name sxbet#watchOrders
-     * @description streams updates of the authenticated wallet's resting maker orders over the per-maker venue channel
+     * @description streams updates of the authenticated wallet's orders over its per-account v3 channel
      * @see https://docs.sx.bet/api-reference/centrifugo-active-order-updates
      * @param {string} [outcome] unified outcome or outcome token id to narrow the stream down to
      * @param {int} [since] timestamp in ms of the earliest order to return
@@ -2677,7 +2540,7 @@ export default class sxbet extends Exchange {
      */
     override async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         if (this.walletAddress === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchOrders() requires a walletAddress to identify the maker');
+            throw new ArgumentsRequired (this.id + ' watchOrders() requires a walletAddress');
         }
         let messageHash = 'orders';
         if (outcome !== undefined) {
@@ -2686,65 +2549,19 @@ export default class sxbet extends Exchange {
             const sym = this.safeString (outcomeObj, 'outcome');
             messageHash = 'orders::' + sym;
         }
-        const channel = 'active_orders:' + this.walletAddress;
+        const channel = 'account:orders_v3_#' + this.walletAddress;
         const orders = await this.subscribeSxbetChannel (messageHash, channel);
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true) as PredictionOrder[];
     }
 
-    /**
-     * @ignore
-     * @method
-     * @name sxbet#parseSxbetWsOrderStatus
-     * @description maps the websocket active-order status onto the unified order status vocabulary
-     * @param {string} status the venue status - ACTIVE, INACTIVE or FILLED
-     * @returns {string} a unified order status, or undefined
-     */
-    parseSxbetWsOrderStatus (status: Str): Str {
-        if (status === 'ACTIVE') {
-            return 'open';
-        }
-        if (status === 'INACTIVE') {
-            return 'canceled';
-        }
-        if (status === 'FILLED') {
-            return 'closed';
-        }
-        return undefined;
-    }
-
     handleOrder (client: any, rows: any[]) {
         //
-        //     [
-        //         {
-        //             "orderHash": "0xabcdef1234567890abcdef1234567890abcdef1234567890",
-        //             "marketHash": "0x1234567890abcdef1234567890abcdef1234567890abcd",
-        //             "status": "INACTIVE",
-        //             "fillAmount": "100000000000000000",
-        //             "pendingFillAmount": "500000000000000000",
-        //             "totalBetSize": "2000000000000000000",
-        //             "percentageOdds": "750000000000000000000",
-        //             "apiExpiry": 1747500000000,
-        //             "salt": "12345678901234567890123456789012345678901",
-        //             "isMakerBettingOutcomeOne": false,
-        //             "signature": "0xbf09...e0",
-        //             "updateTime": 1747490000000,
-        //             "sportXeventId": "L13772588"
-        //         }
-        //     ]
+        //     OrderV3 rows - identical to GET /orders-v3 (plus INACTIVE states with inactiveReason)
         //
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
-            const row = rows[i];
+            const row = this.safeDict (rows[i], 'order', rows[i]);
             const order = this.parsePredictionOrder (row);
-            const wsStatus = this.parseSxbetWsOrderStatus (this.safeString (row, 'status'));
-            if (wsStatus !== undefined) {
-                order['status'] = wsStatus;
-            }
-            if (order['timestamp'] === undefined) {
-                const updateTime = this.safeInteger (row, 'updateTime');
-                order['timestamp'] = updateTime;
-                order['datetime'] = this.iso8601 (updateTime);
-            }
             if (this.orders === undefined) {
                 const cacheLimit = this.safeInteger (this.options, 'ordersLimit', 1000);
                 this.orders = new ArrayCacheByOutcomeById (cacheLimit);
