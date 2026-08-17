@@ -2829,7 +2829,7 @@ class toobit(Exchange, ImplicitAPI):
             'coin': currency['id'],
             'address': address,
             'quantity': self.currency_to_precision(currency['code'], amount),
-            'chainType': networkCode,
+            'chainType': self.network_code_to_id(networkCode, code),
             'clientOrderId': self.milliseconds(),
         }
         if tag is not None:
