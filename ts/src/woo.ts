@@ -2448,15 +2448,8 @@ export default class woo extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const market = this.market (symbols[i]);
-                if (!market['swap']) {
-                    throw new NotSupported (this.id + ' fetchTickers() supports swap markets only');
-                }
-            }
-        } else {
+        symbols = this.marketSymbols (symbols, 'swap', true, true);
+        if (symbols === undefined) {
             let marketType: Str = undefined;
             [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params, 'swap');
             if (marketType !== 'swap') {
