@@ -52,6 +52,38 @@ class TimedOut extends Error {
         this.message = message;
     }
 }
+// beyond this, native toISOString() switches to extended year notation (+/-YYYYYY);
+// everything below it (years 1970-9999) is handled by the fast integer path instead
+// of allocating a Date object, since that's the overwhelming majority of real timestamps
+const ISO8601_FAST_PATH_LIMIT = Date.UTC (10000, 0, 1);
+const pad2 = (n) => (n < 10 ? ('0' + n) : ('' + n));
+const pad3 = (n) => (n < 10 ? ('00' + n) : (n < 100 ? ('0' + n) : ('' + n)));
+// Howard Hinnant's civil_from_days algorithm (http://howardhinnant.github.io/date_algorithms.html)
+// converts days-since-epoch into a proleptic-Gregorian [year, month, day]; z must be >= 0 here
+const civilFromDays = (z) => {
+    z += 719468;
+    const era = (z / 146097) | 0;
+    const doe = z - era * 146097; // [0, 146096]
+    const yoe = ((doe - ((doe / 1460) | 0) + ((doe / 36524) | 0) - ((doe / 146096) | 0)) / 365) | 0; // [0, 399]
+    const y = yoe + era * 400;
+    const doy = doe - (365 * yoe + ((yoe / 4) | 0) - ((yoe / 100) | 0)); // [0, 365]
+    const mp = ((5 * doy + 2) / 153) | 0; // [0, 11]
+    const d = doy - (((153 * mp + 2) / 5) | 0) + 1; // [1, 31]
+    const m = mp + ((mp < 10) ? 3 : -9); // [1, 12]
+    return [ y + ((m <= 2) ? 1 : 0), m, d ];
+};
+const iso8601FastPath = (ms) => {
+    const msOfDay = ms % 86400000;
+    const days = (ms - msOfDay) / 86400000;
+    const ms3 = msOfDay % 1000;
+    const secOfDay = (msOfDay - ms3) / 1000;
+    const s = secOfDay % 60;
+    const minOfHour = (secOfDay - s) / 60;
+    const mi = minOfHour % 60;
+    const h = (minOfHour - mi) / 60;
+    const [ year, m, d ] = civilFromDays (days);
+    return '' + year + '-' + pad2 (m) + '-' + pad2 (d) + 'T' + pad2 (h) + ':' + pad2 (mi) + ':' + pad2 (s) + '.' + pad3 (ms3) + 'Z';
+};
 const iso8601 = (timestamp) => {
     let _timestampNumber = undefined;
     if (typeof timestamp === 'number') {
@@ -63,7 +95,10 @@ const iso8601 = (timestamp) => {
     if (Number.isNaN (_timestampNumber) || _timestampNumber < 0) {
         return undefined;
     }
-    // last line of defence
+    if (_timestampNumber < ISO8601_FAST_PATH_LIMIT) {
+        return iso8601FastPath (_timestampNumber);
+    }
+    // last line of defence (extended years / out-of-range values)
     try {
         return new Date (_timestampNumber).toISOString ();
     } catch (e) {
