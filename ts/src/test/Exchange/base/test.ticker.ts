@@ -155,13 +155,27 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     const changeString = exchange.safeString (entry, 'change');
     const percentageString = exchange.safeString (entry, 'percentage');
     if ((changeString !== undefined) && (open !== undefined) && (close !== undefined) && !('compareChange' in skippedProperties)) {
-        // the window is a part per million of the price, not the decimals the
-        // change itself prints: safeTicker derives change from open and last
-        // when the exchange omits it, and the result carries float residue well
-        // past any real precision - latoken's 1190.9514953271027 against a true
-        // 1190.9514953271 is right to thirteen figures and fails a quantum read
-        // off its own digits
-        const changeWindow = Precise.stringDiv (Precise.stringAbs (close), '1000000');
+        // two different roundings have to be forgiven here, so the window is the
+        // larger of the two. safeTicker derives change from open and last when the
+        // exchange omits it, and the result carries float residue past any real
+        // precision, latoken reporting 1190.9514953271027 against a true
+        // 1190.9514953271: that needs a part per million of the price. an exchange
+        // that rounds the field it does report needs the other one, xt returning
+        // "0.00000000015" for a true 0.00000000014 on a price of 0.00000002652,
+        // where a part per million is 1e-14 and the gap is 1e-11. the reported
+        // string reveals its own rounding step, the same way the quoteVolume check
+        // above reads one
+        const pricePart = Precise.stringDiv (Precise.stringAbs (close), '1000000');
+        const changeDecimals = exchange.precisionFromString (changeString);
+        let changeQuantum = exchange.parsePrecision (exchange.numberToString (changeDecimals));
+        // a reported change of "0" prints no decimals at all, so its apparent step is a
+        // whole unit: on bitbns, which reports "0" for micro-priced assets, that would be
+        // 123000% of the price and the check would accept anything. cap the step at a
+        // per cent of the price, which still covers an exchange reporting whole units on
+        // a price in the tens of thousands
+        const quantumCap = Precise.stringDiv (Precise.stringAbs (close), '100');
+        changeQuantum = Precise.stringMin (changeQuantum, quantumCap);
+        const changeWindow = Precise.stringMax (pricePart, changeQuantum);
         const difference = Precise.stringAbs (Precise.stringSub (changeString, Precise.stringSub (close, open)));
         assert (Precise.stringLe (difference, changeWindow), '`change` should be `last - open`' + logText);
     }
