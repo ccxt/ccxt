@@ -35,7 +35,13 @@ public class TestOrderBook extends BaseTest {
         TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, orderbook, "symbol", symbol);
         Object logText = TestSharedMethods.logTemplate(exchange, method, orderbook);
         // todo: check non-emtpy arrays for bids/asks for toptier exchanges
-        Object bids = Helpers.GetValue(orderbook, "bids");
+        // walk frozen frames, not the live sides: in threaded languages the ws
+        // delta-applier mutates the book during this walk - a stale length capture
+        // plus safe-indexed reads yields X>null Asserts (ten-exchange java cluster,
+        // 2026-08-17). the copy routes through the synchronized snapshot iterator,
+        // so it is one coherent instant of the book - the pattern threaded-language
+        // consumers should use for any multi-row read
+        Object bids = exchange.arrayConcat(new java.util.ArrayList<Object>(java.util.Arrays.asList()), Helpers.GetValue(orderbook, "bids"));
         Object bidsLength = Helpers.getArrayLength(bids);
         for (var i = 0; Helpers.isLessThan(i, bidsLength); i++)
         {
@@ -56,7 +62,7 @@ public class TestOrderBook extends BaseTest {
                 TestSharedMethods.AssertGreater(exchange, skippedProperties, method, Helpers.GetValue(bids, i), 1, "0");
             }
         }
-        Object asks = Helpers.GetValue(orderbook, "asks");
+        Object asks = exchange.arrayConcat(new java.util.ArrayList<Object>(java.util.Arrays.asList()), Helpers.GetValue(orderbook, "asks"));
         Object asksLength = Helpers.getArrayLength(asks);
         for (var i = 0; Helpers.isLessThan(i, asksLength); i++)
         {
