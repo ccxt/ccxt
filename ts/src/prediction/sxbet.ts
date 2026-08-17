@@ -106,6 +106,7 @@ export default class sxbet extends Exchange {
                             'user/transfer-to-proxy/pending': 1,
                             'user/transfer-to-proxy/status': 1,
                             'orders-v3': 1,
+                            'orders-v3/{orderId}': 1,
                             'trades-v3': 1,
                             'fills-v3': 1,
                             'positions-v3': 1,
@@ -1197,54 +1198,51 @@ export default class sxbet extends Exchange {
     override parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder {
         //
         //     {
+        //         "id": "0x112a4f19f20395aefcdb5d26f3f8aab0d96b1aff7ce346c0bfb13d9490340cdf",
         //         "marketHash": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
-        //         "fillAmount": "0",
-        //         "pendingFillAmount": "0",
-        //         "orderHash": "0x17253b84088b569faeb88d9e32df6eb213a9f45dee475712e8c98c2fbd6f17f8",
-        //         "maker": "0xC3f45c4Ea846424eA5bf1Dd4121b251293210f03",
-        //         "totalBetSize": "5000000",
-        //         "percentageOdds": "50000000000000000000",
-        //         "baseToken": "0x1BC6326EA6aF2aB8E4b6Bc83418044B1923b2956",
-        //         "executor": "0x3259E7Ccc0993368fCB82689F5C534669A0C06ca",
-        //         "salt": "1785852948895",
-        //         "isMakerBettingOutcomeOne": true,
-        //         "signature": "0x...",
-        //         "expiry": 2209006800,
-        //         "apiExpiry": 1785853540,
-        //         "sportXeventId": "L12003787",
-        //         "orderStatus": "ACTIVE"
+        //         "userAddress": "0xbcc6D643e4159A75ED1dB4e13330230B82F2AEe5",
+        //         "wallet": "0x4361123dbdc1D812fdf7D27045aF358C9C8AA70A",
+        //         "isBettingOutcomeOne": true,
+        //         "percentageOdds": "40000000000000000000",
+        //         "totalBetSize": "3000000",
+        //         "remainingSize": "3000000",
+        //         "expiry": null,
+        //         "status": "ACTIVE",
+        //         "inactiveReason": null,
+        //         "eventId": "L12003787",
+        //         "createdAt": "2026-07-31T18:45:42.636Z",
+        //         "updatedAt": "2026-07-31T18:45:42.838Z"
         //     }
         //
-        const orderHash = this.safeString (order, 'orderHash');
+        const orderId = this.safeString2 (order, 'id', 'orderId');
         const marketHash = this.safeString (order, 'marketHash', '');
-        const isMakerBettingOutcomeOne = this.safeBool (order, 'isMakerBettingOutcomeOne', true);
-        const outcomeId = (isMakerBettingOutcomeOne) ? marketHash : (marketHash + '-2');
+        // websocket v2-era rows carry isMakerBettingOutcomeOne - accept both spellings
+        const isBettingOutcomeOne = this.safeBool2 (order, 'isBettingOutcomeOne', 'isMakerBettingOutcomeOne', true);
+        const outcomeId = (isBettingOutcomeOne) ? marketHash : (marketHash + '-2');
         const outcomeObj = this.safeOutcome (outcomeId, market as any);
         const oneDenom = '100000000000000000000';
         const usdcDecimals = '1000000';
         const percentageOdds = this.safeString (order, 'percentageOdds');
         const price = (percentageOdds !== undefined) ? this.parseNumber (Precise.stringDiv (percentageOdds, oneDenom)) : undefined;
         const totalBetSize = this.safeString (order, 'totalBetSize', '0');
-        const fillAmount = this.safeString (order, 'fillAmount', '0');
-        const pendingFillAmount = this.safeString (order, 'pendingFillAmount', '0');
+        const remainingSize = this.safeString (order, 'remainingSize', totalBetSize);
+        const filledRaw = Precise.stringSub (totalBetSize, remainingSize);
         const amount = this.parseNumber (Precise.stringDiv (totalBetSize, usdcDecimals, 6));
-        const filled = this.parseNumber (Precise.stringDiv (fillAmount, usdcDecimals, 6));
-        const remainingRaw = Precise.stringSub (Precise.stringSub (totalBetSize, fillAmount), pendingFillAmount);
-        const remaining = this.parseNumber (Precise.stringDiv (remainingRaw, usdcDecimals, 6));
-        // the venue only distinguishes ACTIVE/INACTIVE; an INACTIVE fully-filled order closed,
-        // any other INACTIVE order was cancelled or expired
-        const orderStatus = this.safeString (order, 'orderStatus');
+        const filled = this.parseNumber (Precise.stringDiv (filledRaw, usdcDecimals, 6));
+        const remaining = this.parseNumber (Precise.stringDiv (remainingSize, usdcDecimals, 6));
+        const orderStatus = this.safeString (order, 'status');
+        const inactiveReason = this.safeString (order, 'inactiveReason');
         let status = 'open';
-        if (orderStatus !== 'ACTIVE') {
-            status = Precise.stringGe (fillAmount, totalBetSize) ? 'closed' : 'canceled';
+        if (orderStatus === 'INACTIVE') {
+            status = (inactiveReason === 'FILLED') ? 'closed' : 'canceled';
         }
-        // the sortBy created_at key exists server-side but the row carries no timestamp field
+        const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
         return this.safePredictionOrder ({
-            'id': orderHash,
-            'clientOrderId': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'lastTradeTimestamp': undefined,
+            'id': orderId,
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': this.parse8601 (this.safeString (order, 'updatedAt')),
             'status': status,
             'type': 'limit',
             'timeInForce': undefined,
@@ -1282,18 +1280,19 @@ export default class sxbet extends Exchange {
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a walletAddress to identify the maker');
         }
-        const request: Dict = { 'maker': this.walletAddress };
+        const request: Dict = {};
         let outcomeObj = undefined;
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
             outcomeObj = this.outcome (outcome);
-            request['marketHashes'] = this.safeString (outcomeObj['info'], 'marketHash');
+            request['marketHash'] = this.safeString (outcomeObj['info'], 'marketHash');
         }
         if (limit !== undefined) {
             request['perPage'] = limit;
         }
-        const response = await this.sxbetPublicGetOrders (this.extend (request, params));
-        const rawOrders = this.safeList (response, 'data', []);
+        const response = await this.sxbetPrivateGetOrdersV3 (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        const rawOrders = this.safeList (data, 'orders', []);
         return this.parsePredictionOrders (rawOrders, outcomeObj, since, limit);
     }
 
@@ -1323,6 +1322,7 @@ export default class sxbet extends Exchange {
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async fetchOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+        this.checkRequiredCredentials ();
         if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires an id argument');
         }
@@ -1331,14 +1331,14 @@ export default class sxbet extends Exchange {
             await this.loadOutcome (outcome);
             outcomeObj = this.outcome (outcome);
         }
-        const request: Dict = { 'orderHashes': id };
-        const response = await this.sxbetPublicGetOrders (this.extend (request, params));
-        const rawOrders = this.safeList (response, 'data', []);
-        const rawOrdersLength = rawOrders.length;
-        if (rawOrdersLength === 0) {
-            throw new OrderNotFound (this.id + ' fetchOrder() could not find order ' + id + ' - it is not resting (filled, cancelled or expired orders leave the venue listing)');
+        const request: Dict = { 'orderId': id };
+        const response = await this.sxbetPrivateGetOrdersV3OrderId (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        const row = this.safeDict (data, 'order', data);
+        if (this.safeString2 (row, 'id', 'orderId') === undefined) {
+            throw new OrderNotFound (this.id + ' fetchOrder() could not find order ' + id);
         }
-        return this.parsePredictionOrder (this.safeDict (rawOrders, 0, {}), outcomeObj);
+        return this.parsePredictionOrder (row, outcomeObj);
     }
 
     /**
@@ -1350,8 +1350,9 @@ export default class sxbet extends Exchange {
      * @returns {string} the power-of-ten divider as a string
      */
     tokenAmountDivider (baseToken: Str): string {
-        const sxMetadata = this.safeDict (this.options, 'sxMetadata', {});
-        const usdcAddress = this.safeStringLower (sxMetadata, 'usdcAddress', '');
+        const obv3 = this.safeDict (this.options, 'sxObv3Metadata', {});
+        const activeAsset = this.safeDict (obv3, 'activeAsset', {});
+        const usdcAddress = this.safeStringLower (activeAsset, 'baseToken', '');
         const baseTokenLower = (baseToken === undefined) ? '' : baseToken.toLowerCase ();
         if ((usdcAddress !== '') && (baseTokenLower !== usdcAddress)) {
             return '1000000000000000000'; // WSX, 18 decimals
@@ -1444,7 +1445,7 @@ export default class sxbet extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTrades() requires an outcome argument - the venue requires the trades listing to be scoped');
         }
         // warm the metadata cache so tokenAmountDivider can tell USDC from WSX amounts
-        await this.loadSxMetadata ();
+        await this.loadSxObv3Metadata ();
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const request: Dict = {
@@ -1485,64 +1486,84 @@ export default class sxbet extends Exchange {
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
-        if (this.walletAddress === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a walletAddress to identify the bettor');
-        }
-        // warm the metadata cache so tokenAmountDivider can tell USDC from WSX amounts
-        await this.loadSxMetadata ();
-        const request: Dict = { 'bettor': this.walletAddress };
+        this.checkRequiredCredentials ();
+        const request: Dict = {};
         let outcomeObj = undefined;
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
             outcomeObj = this.outcome (outcome);
-            request['marketHashes'] = this.safeString (outcomeObj['info'], 'marketHash');
         }
         if (since !== undefined) {
-            request['startDate'] = this.parseToInt (since / 1000);
+            request['startDate'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
-            request['pageSize'] = limit;
+            request['perPage'] = limit;
         }
-        const response = await this.sxbetPublicGetTrades (this.extend (request, params));
+        const response = await this.sxbetPrivateGetFillsV3 (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        const rawTrades = this.safeList (data, 'trades', []);
-        return this.parsePredictionTrades (rawTrades, outcomeObj, since, limit);
+        const rawFills = this.safeList (data, 'fills', []);
+        const trades: PredictionTrade[] = [];
+        const rawFillsLength = rawFills.length;
+        for (let i = 0; i < rawFillsLength; i++) {
+            trades.push (this.parseSxbetV3Fill (rawFills[i]));
+        }
+        const sym = (outcomeObj !== undefined) ? this.safeString (outcomeObj, 'outcome') : undefined;
+        return this.filterByValueSinceLimit (trades, 'outcome', sym, since, limit, 'timestamp', true) as PredictionTrade[];
     }
 
     /**
      * @ignore
      * @method
-     * @name sxbet#fetchRawBettorTrades
-     * @description fetches the wallet's raw GET /trades rows scoped by bettor (shared by fetchPositions and fetchSettlements)
-     * @param {string[]} [marketHashes] narrow to these market hashes (max 100)
-     * @param {boolean} [settled] the server-side settled filter
-     * @param {int} [since] timestamp in ms mapped to the server-side startDate
-     * @param {int} [limit] the server-side pageSize
-     * @param {object} [params] extra request params forwarded verbatim
-     * @returns {object[]} the raw (unparsed) sx.bet trade objects
+     * @name sxbet#parseSxbetV3Fill
+     * @description parses one GET /fills-v3 row into a unified trade - each fill is one maker/taker match of the wallet's own order
+     * @param {object} fill the raw fill row
+     * @param {object} [market] the outcome object labelling hint
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    async fetchRawBettorTrades (marketHashes: Strings = undefined, settled: any = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any[]> {
-        if (this.walletAddress === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires a walletAddress to identify the bettor');
-        }
-        // warm the metadata cache so tokenAmountDivider can tell USDC from WSX amounts
-        await this.loadSxMetadata ();
-        const request: Dict = { 'bettor': this.walletAddress };
-        if (marketHashes !== undefined) {
-            request['marketHashes'] = marketHashes.join (',');
-        }
-        if (settled !== undefined) {
-            request['settled'] = settled;
-        }
-        if (since !== undefined) {
-            request['startDate'] = this.parseToInt (since / 1000);
-        }
-        if (limit !== undefined) {
-            request['pageSize'] = limit;
-        }
-        const response = await this.sxbetPublicGetTrades (this.extend (request, params));
-        const data = this.safeDict (response, 'data', {});
-        return this.safeList (data, 'trades', []);
+    parseSxbetV3Fill (fill: Dict, market: Market = undefined): PredictionTrade {
+        //
+        //     {
+        //         "id": "0xec8e...:0x02d2...:0x1fec...",
+        //         "matchId": "0xec8e...", "orderId": "0x02d2...", "tradeId": "0xac6b...",
+        //         "marketHash": "0x1fec...", "isParlay": false,
+        //         "userAddress": "0xbcc6...", "wallet": "0x4361...",
+        //         "fillAmount": "333334", "fillOdds": "40000000000000000000",
+        //         "returnAmount": "833335", "isBettingOutcomeOne": false,
+        //         "status": "LOCKED", "txHash": "0x6430...",
+        //         "ceRefundAmount": "0", "ceRefundFeeAmount": "0",
+        //         "usedBetCredits": false, "createdAt": "2026-07-31T18:47:09.586Z",
+        //         "updatedAt": "2026-07-31T18:47:12.837Z", "settlement": null
+        //     }
+        //
+        const marketHash = this.safeString (fill, 'marketHash', '');
+        const isBettingOutcomeOne = this.safeBool (fill, 'isBettingOutcomeOne', true);
+        const outcomeId = (isBettingOutcomeOne) ? marketHash : (marketHash + '-2');
+        const outcomeObj = this.safeOutcome (outcomeId, market as any);
+        const oneDenom = '100000000000000000000';
+        const usdcDecimals = '1000000';
+        const fillOdds = this.safeString (fill, 'fillOdds');
+        const price = (fillOdds !== undefined) ? this.parseNumber (Precise.stringDiv (fillOdds, oneDenom)) : undefined;
+        const fillAmount = this.safeString (fill, 'fillAmount', '0');
+        const amount = this.parseNumber (Precise.stringDiv (fillAmount, usdcDecimals, 6));
+        const timestamp = this.parse8601 (this.safeString (fill, 'createdAt'));
+        return this.safePredictionTrade ({
+            'id': this.safeString (fill, 'id'),
+            'info': fill,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'outcome': this.safeString (outcomeObj, 'outcome'),
+            'outcomeId': this.safeString (outcomeObj, 'outcomeId', outcomeId),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString (outcomeObj, 'market'),
+            'order': this.safeString (fill, 'orderId'),
+            'type': undefined,
+            'side': 'buy',
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': amount,
+            'fee': undefined,
+        }, market);
     }
 
     /**
@@ -1584,134 +1605,107 @@ export default class sxbet extends Exchange {
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchBalance() requires a walletAddress');
         }
-        const sxMetadata = await this.loadSxMetadata ();
-        const usdcAddress = this.safeString (sxMetadata, 'usdcAddress', '');
-        const wsxAddress = this.safeString (sxMetadata, 'wsxAddress');
+        const obv3 = await this.loadSxObv3Metadata ();
+        const activeAsset = this.safeDict (obv3, 'activeAsset', {});
+        const usdcAddress = this.safeString (activeAsset, 'baseToken', '');
         const usdcRaw = await this.fetchExplorerTokenBalance (usdcAddress, params);
         const result: Dict = { 'info': { 'USDC': usdcRaw }};
         const usdcTotal = this.parseNumber (Precise.stringDiv (usdcRaw, '1000000', 6));
         result['USDC'] = { 'free': usdcTotal, 'used': 0, 'total': usdcTotal };
-        if (wsxAddress !== undefined) {
-            const wsxRaw = await this.fetchExplorerTokenBalance (wsxAddress, params);
-            const wsxTotal = this.parseNumber (Precise.stringDiv (wsxRaw, '1000000000000000000', 8));
-            result['WSX'] = { 'free': wsxTotal, 'used': 0, 'total': wsxTotal };
-            result['info'] = { 'USDC': usdcRaw, 'WSX': wsxRaw };
-        }
         return this.safeBalance (result) as Balances;
     }
 
     /**
      * @method
      * @name sxbet#fetchPositions
-     * @description builds the wallet's open positions by aggregating its unsettled successful trades per outcome — sx.bet has no dedicated positions endpoint, a position is the sum of live bets on one side of a market. contracts is the total potential payout (stake / odds summed over the trades, i.e. the USDC received if the outcome wins), entryPrice is the stake-weighted average implied probability, and collateral/notional is the total stake at risk
-     * @see https://docs.sx.bet/api-reference/get-trades
+     * @description fetches the wallet's open positions from the venue's per-market aggregates (GET /positions-v3, PENDING and LOCKED bets by default; override with params.status). contracts is the total stake at risk, entryPrice the blended implied probability of the market's best-case outcome
+     * @see https://docs.sx.bet/api-reference/get-positions-v3
      * @param {string[]} [outcomes] filter by unified outcomes or outcomeIds
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     override async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
+        this.checkRequiredCredentials ();
         // copy to a plain list so the transpilers and the strict null checks see one shape
         const outcomesList: string[] = (outcomes === undefined) ? [] : outcomes;
         const outcomesLength = outcomesList.length;
-        let marketHashes: Strings = undefined;
+        const wantedMarkets: Dict = {};
         if (outcomesLength > 0) {
             await this.loadOutcomes (outcomesList);
-            marketHashes = [];
             for (let i = 0; i < outcomesLength; i++) {
                 const outcomeObj = this.outcome (outcomesList[i]);
-                marketHashes.push (this.safeString (outcomeObj['info'], 'marketHash', ''));
+                const hash = this.safeString (outcomeObj['info'], 'marketHash', '');
+                wantedMarkets[hash] = true;
             }
         }
-        const rawTrades = await this.fetchRawBettorTrades (marketHashes, false, undefined, undefined, this.extend ({ 'tradeStatus': 'SUCCESS' }, params));
-        // aggregate per outcomeId: stakes sum to the collateral at risk, stake / odds sums to the
-        // potential payout, and the stake-weighted implied probability becomes the entry price
-        const totals: Dict = {};
-        const order: string[] = [];
-        const oneDenom = '100000000000000000000';
-        const rawTradesLength = rawTrades.length;
-        for (let i = 0; i < rawTradesLength; i++) {
-            const trade = rawTrades[i];
-            const marketHash = this.safeString (trade, 'marketHash', '');
-            const bettingOutcomeOne = this.safeBool (trade, 'bettingOutcomeOne', true);
-            const outcomeId = (bettingOutcomeOne) ? marketHash : (marketHash + '-2');
-            const divider = this.tokenAmountDivider (this.safeString (trade, 'baseToken'));
-            const stake = Precise.stringDiv (this.safeString (trade, 'stake', '0'), divider, 6);
-            const odds = Precise.stringDiv (this.safeString (trade, 'odds', '0'), oneDenom, 10);
-            if (Precise.stringLe (odds, '0')) {
-                continue;
-            }
-            if (!(outcomeId in totals)) {
-                totals[outcomeId] = { 'stake': '0', 'payout': '0', 'timestamp': undefined, 'lastTrade': trade };
-                order.push (outcomeId);
-            }
-            const entry = totals[outcomeId];
-            entry['stake'] = Precise.stringAdd (entry['stake'], stake);
-            entry['payout'] = Precise.stringAdd (entry['payout'], Precise.stringDiv (stake, odds, 6));
-            const tradeTimestamp = this.safeTimestamp (trade, 'betTime');
-            const entryTimestamp = this.safeInteger (entry, 'timestamp');
-            if ((tradeTimestamp !== undefined) && ((entryTimestamp === undefined) || (tradeTimestamp > entryTimestamp))) {
-                entry['timestamp'] = tradeTimestamp;
-                entry['lastTrade'] = trade;
-            }
-            totals[outcomeId] = entry;
-        }
+        // open exposure lives in PENDING and LOCKED bets - the venue requires an explicit status list
+        const request: Dict = { 'status': this.safeString (params, 'status', 'PENDING,LOCKED') };
+        const rest = this.omit (params, [ 'status' ]);
+        const response = await this.sxbetPrivateGetPositionsV3 (this.extend (request, rest));
+        const data = this.safeDict (response, 'data', {});
+        const rawPositions = this.safeList (data, 'positions', []);
         const result: PredictionPosition[] = [];
-        const orderLength = order.length;
-        for (let i = 0; i < orderLength; i++) {
-            const outcomeId = order[i];
-            const entry = totals[outcomeId];
-            const outcomeObj = this.safeOutcome (outcomeId);
-            const stakeTotal = this.safeString (entry, 'stake', '0');
-            const payoutTotal = this.safeString (entry, 'payout', '0');
-            // hoist the condition to a bare local — a call inside the ternary condition mangles
-            // in the regex transpiler
-            const hasPayout = Precise.stringGt (payoutTotal, '0');
-            const entryPrice = (hasPayout) ? Precise.stringDiv (stakeTotal, payoutTotal, 6) : undefined;
-            const timestamp = this.safeInteger (entry, 'timestamp');
-            result.push ({
-                'id': outcomeId,
-                'info': this.safeDict (entry, 'lastTrade', {}),
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'contracts': this.parseNumber (payoutTotal),
-                'contractSize': 1,
-                'side': 'long',
-                'notional': this.parseNumber (stakeTotal),
-                'unrealizedPnl': undefined,
-                'realizedPnl': undefined,
-                'collateral': this.parseNumber (stakeTotal),
-                'entryPrice': this.parseNumber (entryPrice),
-                'markPrice': undefined,
-                'lastPrice': undefined,
-                'percentage': undefined,
-                'outcome': this.safeString (outcomeObj, 'outcome', outcomeId),
-                'outcomeId': this.safeString (outcomeObj, 'outcomeId', outcomeId),
-                'label': this.safeString (outcomeObj, 'label'),
-                'market': this.safeString (outcomeObj, 'market'),
-                'event': undefined,
-            } as unknown as PredictionPosition);
-        }
-        if (outcomesLength === 0) {
-            return result;
-        }
-        // the server-side marketHashes filter covers both sides of each market — drop the legs
-        // the caller did not ask for
-        const wantedIds: Dict = {};
-        for (let i = 0; i < outcomesLength; i++) {
-            const outcomeObj = this.outcome (outcomesList[i]);
-            wantedIds[this.safeString (outcomeObj, 'outcomeId', '')] = true;
-        }
-        const filtered: PredictionPosition[] = [];
-        const resultLength = result.length;
-        for (let i = 0; i < resultLength; i++) {
-            const position = result[i];
-            // hoist the key to a bare local — a call on the left of `in` breaks the php transpiler
-            const positionOutcomeId = this.safeString (position, 'outcomeId', '');
-            if (positionOutcomeId in wantedIds) {
-                filtered.push (position);
+        const rawPositionsLength = rawPositions.length;
+        for (let i = 0; i < rawPositionsLength; i++) {
+            const raw = rawPositions[i];
+            const marketHash = this.safeString (raw, 'marketHash', '');
+            if (outcomesLength > 0) {
+                if (this.safeValue (wantedMarkets, marketHash) === undefined) {
+                    continue;
+                }
             }
+            result.push (this.parseSxbetV3Position (raw));
         }
-        return filtered;
+        return result;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#parseSxbetV3Position
+     * @description parses one GET /positions-v3 row (per-market aggregate) into a unified position on the market's best-case outcome
+     * @param {object} raw the raw position row
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    parseSxbetV3Position (raw: Dict): PredictionPosition {
+        //
+        //     {
+        //         "marketHash": "0x8120...", "market": {...},
+        //         "totalStake": "300000000", "maxWin": "200000000", "maxLoss": "-100000000",
+        //         "isOutcomeOneMaxWin": true,
+        //         "odds": {"outcomeOne": "40000000000000000000", "outcomeTwo": "50000000000000000000"},
+        //         "pnl": null, "tradeCount": 2,
+        //         "betTime": "2026-03-13T21:14:02.118Z", "updatedAt": "2026-03-13T22:03:41.502Z"
+        //     }
+        //
+        const marketHash = this.safeString (raw, 'marketHash', '');
+        const isOutcomeOneMaxWin = this.safeBool (raw, 'isOutcomeOneMaxWin', true);
+        const outcomeId = (isOutcomeOneMaxWin) ? marketHash : (marketHash + '-2');
+        const outcomeObj = this.safeOutcome (outcomeId);
+        const oneDenom = '100000000000000000000';
+        const usdcDecimals = '1000000';
+        const odds = this.safeDict (raw, 'odds', {});
+        const ownOdds = (isOutcomeOneMaxWin) ? this.safeString (odds, 'outcomeOne') : this.safeString (odds, 'outcomeTwo');
+        const entryPrice = (ownOdds !== undefined) ? this.parseNumber (Precise.stringDiv (ownOdds, oneDenom)) : undefined;
+        const totalStake = this.safeString (raw, 'totalStake', '0');
+        const pnl = this.safeString (raw, 'pnl');
+        const timestamp = this.parse8601 (this.safeString (raw, 'betTime'));
+        return this.safePredictionPosition ({
+            'outcome': this.safeString (outcomeObj, 'outcome'),
+            'outcomeId': this.safeString (outcomeObj, 'outcomeId', outcomeId),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString (outcomeObj, 'market'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': this.parse8601 (this.safeString (raw, 'updatedAt')),
+            'contracts': this.parseNumber (Precise.stringDiv (totalStake, usdcDecimals, 6)),
+            'entryPrice': entryPrice,
+            'markPrice': undefined,
+            'unrealizedPnl': undefined,
+            'realizedPnl': (pnl !== undefined) ? this.parseNumber (Precise.stringDiv (pnl, usdcDecimals, 6)) : undefined,
+            'side': 'long',
+            'info': raw,
+        });
     }
 
     /**
@@ -1726,15 +1720,24 @@ export default class sxbet extends Exchange {
      * @returns {object[]} a list of prediction settlement structures
      */
     override async fetchSettlements (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionSettlement[]> {
-        let marketHashes: Strings = undefined;
+        this.checkRequiredCredentials ();
+        const request: Dict = { 'status': 'SETTLED' };
         let wantedOutcomeId: Str = undefined;
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
             const outcomeObj = this.outcome (outcome);
-            marketHashes = [ this.safeString (outcomeObj['info'], 'marketHash', '') ];
+            request['marketHash'] = this.safeString (outcomeObj['info'], 'marketHash', '');
             wantedOutcomeId = this.safeString (outcomeObj, 'outcomeId');
         }
-        const rawTrades = await this.fetchRawBettorTrades (marketHashes, true, since, limit, params);
+        if (since !== undefined) {
+            request['startDate'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['perPage'] = limit;
+        }
+        const response = await this.sxbetPrivateGetTradesV3 (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        const rawTrades = this.safeList (data, 'trades', []);
         const result: any[] = [];
         const rawTradesLength = rawTrades.length;
         for (let i = 0; i < rawTradesLength; i++) {
@@ -1743,7 +1746,7 @@ export default class sxbet extends Exchange {
                 result.push (settlement);
             }
         }
-        return this.filterBySinceLimit (result, since, limit, 'timestamp') as PredictionSettlement[];
+        return result;
     }
 
     /**
@@ -1751,35 +1754,38 @@ export default class sxbet extends Exchange {
      * @method
      * @name sxbet#parseSettlement
      * @description parses one settled GET /trades row into the unified prediction settlement shape. the raw `outcome` field carries the winner as 1 or 2 with 0 for a voided market, and the full payout of a winning bet is stake / odds (the implied probability the bettor received)
-     * @param {object} settlement the raw settled sx.bet trade
+     * @param {object} trade the raw settled sx.bet trade
      * @param {object} [market] a resolved outcome/market hint
      * @returns {object} a prediction settlement structure
      */
-    parseSettlement (settlement: Dict, market: Market = undefined): any {
-        const marketHash = this.safeString (settlement, 'marketHash', '');
-        const bettingOutcomeOne = this.safeBool (settlement, 'bettingOutcomeOne', true);
-        const outcomeId = (bettingOutcomeOne) ? marketHash : (marketHash + '-2');
+    parseSettlement (trade: Dict, market: Market = undefined): any {
+        //
+        //     TradeV3 row with a settlement sub-object:
+        //     {
+        //         "tradeId": "0xac6b...", "marketHash": "0x1fec...",
+        //         "isBettingOutcomeOne": false, "totalStake": "1000000", "totalReturn": "2500000",
+        //         "weightedAverageOdds": "40000000000000000000", "status": "SETTLED",
+        //         "betTime": "2026-07-31T18:47:09.577Z",
+        //         "settlement": { "outcome": 2, "settleReturnAmount": "2500000",
+        //                         "settleFeeAmount": "0", "settleCeRefundAmount": "0",
+        //                         "settleDate": "2026-08-01T00:10:00.000Z" }
+        //     }
+        //
+        const marketHash = this.safeString (trade, 'marketHash', '');
+        const isBettingOutcomeOne = this.safeBool (trade, 'isBettingOutcomeOne', true);
+        const outcomeId = (isBettingOutcomeOne) ? marketHash : (marketHash + '-2');
         const outcomeObj = this.safeOutcome (outcomeId, market as any);
+        const settlement = this.safeDict (trade, 'settlement', {});
         const winner = this.safeInteger (settlement, 'outcome');
         const isVoid = (winner === 0);
-        const heldNumber = (bettingOutcomeOne) ? 1 : 2;
+        const heldNumber = (isBettingOutcomeOne) ? 1 : 2;
         let won: any = undefined;
         if ((winner !== undefined) && !isVoid) {
             won = (winner === heldNumber);
         }
-        const divider = this.tokenAmountDivider (this.safeString (settlement, 'baseToken'));
-        const stake = Precise.stringDiv (this.safeString (settlement, 'stake', '0'), divider, 6);
-        const oneDenom = '100000000000000000000';
-        const odds = Precise.stringDiv (this.safeString (settlement, 'odds', '0'), oneDenom, 10);
-        // a winning bet returns its full stake / odds, a voided market refunds the stake
-        let payout: Str = '0';
-        if (isVoid) {
-            payout = stake;
-        } else if (won === true) {
-            // hoist the condition to a bare local — see the fetchPositions comment
-            const hasOdds = Precise.stringGt (odds, '0');
-            payout = (hasOdds) ? Precise.stringDiv (stake, odds, 6) : stake;
-        }
+        const usdcDecimals = '1000000';
+        const stake = Precise.stringDiv (this.safeString (trade, 'totalStake', '0'), usdcDecimals, 6);
+        const payout = Precise.stringDiv (this.safeString (settlement, 'settleReturnAmount', '0'), usdcDecimals, 6);
         const pnl = Precise.stringSub (payout, stake);
         // resolve the winning side's human label through the cached market when available
         let resultLabel: Str = undefined;
@@ -1796,8 +1802,8 @@ export default class sxbet extends Exchange {
             settlePrice = (won) ? 1 : 0;
         }
         return {
-            'info': settlement,
-            'id': this.safeString (settlement, 'fillHash'),
+            'info': trade,
+            'id': this.safeString (trade, 'tradeId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'outcome': this.safeString (outcomeObj, 'outcome', outcomeId),
@@ -2496,8 +2502,9 @@ export default class sxbet extends Exchange {
         //         }
         //     ]
         //
-        const sxMetadata = this.safeDict (this.options, 'sxMetadata', {});
-        const usdcAddress = this.safeStringLower (sxMetadata, 'usdcAddress', '');
+        const obv3 = this.safeDict (this.options, 'sxObv3Metadata', {});
+        const activeAsset = this.safeDict (obv3, 'activeAsset', {});
+        const usdcAddress = this.safeStringLower (activeAsset, 'baseToken', '');
         const touchedMarkets: Dict = this.createSafeDictionary ();
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
