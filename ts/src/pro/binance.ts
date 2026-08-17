@@ -386,38 +386,9 @@ export default class binance extends binanceRest {
     }
 
     async keepAliveStockListenKey (params: Dict = {}) {
-        try {
-            const options = this.safeDict (this.options, 'stock', {});
-            const requestParams: Dict = this.omit (params, [ 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ]) as Dict;
-            const response = await this.sapiPostEquityListenKey (requestParams);
-            const listenKey = this.safeString (response, 'listenKey');
-            const now = this.milliseconds ();
-            this.options['stock'] = this.extend (options, {
-                'listenKey': listenKey,
-                'lastAuthenticatedTime': now,
-            });
-        } catch (error) {
-            const options = this.safeDict (this.options, 'stock', {});
-            this.options['stock'] = this.extend (options, {
-                'listenKey': undefined,
-                'lastAuthenticatedTime': 0,
-            });
-            return;
-        }
-        const clients = Object.values (this.clients);
-        const listenKeyRefreshRate = this.safeInteger (this.options, 'stockListenKeyRefreshRate', 1200000);
-        for (let i = 0; i < clients.length; i++) {
-            const client = clients[i];
-            const clientSubscriptions = this.safeDict (client, 'subscriptions', {});
-            const subscriptionKeys = Object.keys (clientSubscriptions);
-            for (let j = 0; j < subscriptionKeys.length; j++) {
-                const subscribeType = subscriptionKeys[j];
-                if (subscribeType === 'stock') {
-                    this.delay (listenKeyRefreshRate, this.keepAliveStockListenKey, params);
-                    return;
-                }
-            }
-        }
+        // same listenKey machinery as the other product lines - routes through
+        // the one consolidated keepalive below
+        return await this.keepAliveListenKey (this.extend (params, { 'type': 'stock', 'defaultType': 'stock' }));
     }
 
     /**
@@ -3181,17 +3152,26 @@ export default class binance extends binanceRest {
         if (type === 'margin') {
             return;
         }
+        const isStock = (type === 'stock');
         const options = this.safeValue (this.options, type, {});
         const listenKey = this.safeString (options, 'listenKey');
         if (listenKey === undefined) {
             // A network error happened: we can't renew a listen key that does not exist.
+            // this guard now covers stock too - the old stock path would POST here and
+            // resurrect a fresh key without reconnecting the dead stream, leaving the
+            // options bucket claiming a healthy auth over a broken user stream
             return;
         }
         const request: Dict = {};
         params = this.omit (params, [ 'type', 'symbol' ]);
         const time = this.milliseconds ();
         try {
-            if (isPortfolioMargin) {
+            if (isStock) {
+                // the equity endpoint is create-or-renew: with an active key this
+                // POST extends the validity of that same key
+                const requestParams: Dict = this.omit (params, [ 'stock', 'name', 'callerMethodName', 'subType', 'timeframe' ]) as Dict;
+                await this.sapiPostEquityListenKey (requestParams);
+            } else if (isPortfolioMargin) {
                 await this.papiPutListenKey (this.extend (request, params));
                 params = this.extend (params, { 'portfolioMargin': true });
             } else if (type === 'future') {
@@ -3205,15 +3185,22 @@ export default class binance extends binanceRest {
                 await this.publicPutUserDataStream (this.extend (request, params));
             }
         } catch (error) {
-            let urlType = type;
-            if (isPortfolioMargin) {
-                urlType = 'papi';
+            let url = undefined;
+            if (isStock) {
+                // the stock user stream lives on a fixed url and subscribes to
+                // listenKey@orderReport, so the client is addressable without the key
+                url = this.getStockWsUrl ('user');
+            } else {
+                let urlType = type;
+                if (isPortfolioMargin) {
+                    urlType = 'papi';
+                }
+                if (type === 'option') {
+                    urlType = 'optionPrivate';
+                }
+                const cachedListenKey = this.options[type]['listenKey'];
+                url = this.getPrivateWsUrl (urlType, cachedListenKey);
             }
-            if (type === 'option') {
-                urlType = 'optionPrivate';
-            }
-            const cachedListenKey = this.options[type]['listenKey'];
-            const url = this.getPrivateWsUrl (urlType, cachedListenKey);
             const client = this.client (url);
             const messageHashes = Object.keys (client.futures);
             for (let i = 0; i < messageHashes.length; i++) {
@@ -3232,7 +3219,13 @@ export default class binance extends binanceRest {
         });
         // whether or not to schedule another listenKey keepAlive request
         const clients = Object.values (this.clients);
-        const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
+        const refreshRateKey = isStock ? 'stockListenKeyRefreshRate' : 'listenKeyRefreshRate';
+        const listenKeyRefreshRate = this.safeInteger (this.options, refreshRateKey, 1200000);
+        let delayParams = params;
+        if (isStock) {
+            // params had type omitted above - restore it so the next cycle routes back here
+            delayParams = this.extend (params, { 'type': 'stock' });
+        }
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i];
             const clientSubscriptions = this.safeDict (client, 'subscriptions', {});
@@ -3240,7 +3233,7 @@ export default class binance extends binanceRest {
             for (let j = 0; j < subscriptionKeys.length; j++) {
                 const subscribeType = subscriptionKeys[j];
                 if (subscribeType === type) {
-                    this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+                    this.delay (listenKeyRefreshRate, this.keepAliveListenKey, delayParams);
                     return;
                 }
             }
