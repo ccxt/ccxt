@@ -974,8 +974,11 @@ export default class sxbet extends Exchange {
         const totalBetSize = this.decimalToPrecision (Precise.stringMul (amountStr, '1000000'), ROUND, 0, DECIMAL_PLACES);
         const saltNumber = this.safeString (params, 'salt', this.numberToString (this.milliseconds ()));
         // the request body carries the salt as a 32-byte hex string; the signed struct carries the
-        // same value as uint256 - both parse to one number server-side
-        const saltHex = '0x' + this.binaryToBase16 (this.numberToBE (saltNumber as any, 32));
+        // same value as uint256 - both parse to one number server-side. assign to bare locals
+        // before padStart - see the transpiler notes
+        const saltHexRaw = this.intToBase16 (this.parseToInt (saltNumber));
+        const saltHexPadded = saltHexRaw.padStart (64, '0');
+        const saltHex = '0x' + saltHexPadded;
         const expiry = this.safeInteger (params, 'expiry', 0);
         const defaultTif = (type === 'limit') ? 'GTC' : 'IOC';
         let timeInForce = undefined;
