@@ -630,6 +630,7 @@ export {
     btcbox,
     btcmarkets,
     btcturk,
+    btse,
     bullish,
     bybit,
     bybiteu,
