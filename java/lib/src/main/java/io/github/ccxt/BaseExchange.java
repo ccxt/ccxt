@@ -3844,6 +3844,17 @@ public class BaseExchange {
      */
     @SuppressWarnings("unchecked")
     public java.util.concurrent.CompletableFuture<Object> close(boolean cleanInstanceData) {
+        // settle any in-flight auth flights so their waiters do not hang across
+        // a close - same idea as client reset. note: an exceptionally-completed
+        // CompletableFuture with no consumer does not crash the jvm, so no
+        // swallow is needed here
+        java.util.List<String> flightHashes = new java.util.ArrayList<String>(this.authenticationFlights.keySet());
+        for (String flightHash : flightHashes) {
+            io.github.ccxt.ws.Future flight = this.authenticationFlights.remove(flightHash);
+            if (flight != null) {
+                flight.reject(new io.github.ccxt.errors.ExchangeClosedByUser(this.id + " close() was called"));
+            }
+        }
         closeWsClients().join();
         // [WS]
         if (cleanInstanceData) {

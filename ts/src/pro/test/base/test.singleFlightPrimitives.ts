@@ -76,6 +76,22 @@ async function testWsSingleFlightPrimitives () {
     assert (waitState.done, 'wait must return once the flight settles');
 
     await exchange.close ();
+    await testAloneLeaderReject (exchange);
+}
+
+
+async function testAloneLeaderReject (exchange: any) {
+    // an alone leader - no waiter ever awaits the flight - must be able to
+    // reject without killing the process via an unhandled promise rejection
+    const acquired = await exchange.singleFlightAcquire ('alone');
+    assert (acquired === true);
+    exchange.singleFlightReject ('alone', new Error ('alone leader failure'));
+    // give the microtask queue a tick - an unhandled rejection would fire here
+    await new Promise ((resolve) => setTimeout (resolve, 10));
+    // the slot must be clean and the next caller becomes a fresh leader
+    const reacquired = await exchange.singleFlightAcquire ('alone');
+    assert (reacquired === true);
+    exchange.singleFlightResolve ('alone');
 }
 
 export default testWsSingleFlightPrimitives;

@@ -141,6 +141,12 @@ class BaseExchange(SyncExchange):
     async def close(self, clean_instance_data=False):
         # set before the first await, a lazy open() during close() would leak a session
         self.closed_by_user = True
+        # settle any in-flight auth flights so their waiters do not hang
+        # across a close - same idea as Client.reset
+        flight_hashes = list(self.authentication_flights.keys())
+        for flight_hash in flight_hashes:
+            flight = self.authentication_flights.pop(flight_hash)
+            flight.reject(ExchangeClosedByUser(str(self.id) + ' close() was called'))
         # ##### language-specific cleanup of WS & REST resources #####
         # [WS]
         await self.close_ws_clients()
@@ -468,7 +474,12 @@ class BaseExchange(SyncExchange):
         if flight_hash in self.authentication_flights:
             await self.authentication_flights[flight_hash]
             return False
-        self.authentication_flights[flight_hash] = Future()
+        flight = Future()
+        # an alone leader may reject before any waiter awaits the flight -
+        # retrieve the exception in a done callback so asyncio never logs
+        # an unretrieved-exception warning for a waiterless rejection
+        flight.add_done_callback(lambda f: f.exception() if not f.cancelled() else None)
+        self.authentication_flights[flight_hash] = flight
         return True
 
     async def single_flight_wait(self, flight_hash):

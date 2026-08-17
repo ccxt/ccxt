@@ -2330,6 +2330,16 @@ func (this *Exchange) LoadOrderBook(client any, messageHash any, symbol any, opt
 }
 
 func (this *BaseExchange) Close(cleanInstanceData ...any) []error {
+	// settle any in-flight auth flights so their waiters do not hang across
+	// a close - same idea as client reset. note: a rejected go Future with no
+	// Await consumer simply holds the value, so no swallow is needed here
+	this.authenticationFlightsMu.Lock()
+	flights := this.authenticationFlights
+	this.authenticationFlights = map[string]*Future{}
+	this.authenticationFlightsMu.Unlock()
+	for _, flight := range flights {
+		flight.Reject(ExchangeClosedByUser(this.Id + " close() was called"))
+	}
 	// ##### language-specific cleanup of WS & REST resources #####
 	// [WS]
 	this.WsClientsMu.Lock()

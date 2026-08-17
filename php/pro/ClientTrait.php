@@ -5,6 +5,7 @@ namespace ccxt\pro;
 use ccxt\async\Throttler;
 use ccxt\BaseError;
 use ccxt\ExchangeError;
+use ccxt\ExchangeClosedByUser;
 use Exception;
 use React\Async;
 use React\EventLoop\Loop;
@@ -55,7 +56,13 @@ trait ClientTrait {
                 Async\await($this->authenticationFlights[$flight_hash]);
                 return false;
             }
-            $this->authenticationFlights[$flight_hash] = new Future();
+            $flight = new Future();
+            # an alone leader may reject before any waiter awaits the flight -
+            # attach a silent rejection handler so React never reports an
+            # unhandled promise rejection for a waiterless reject
+            $flight->then(null, function ($error) {
+            });
+            $this->authenticationFlights[$flight_hash] = $flight;
             return true;
         })();
     }
@@ -266,6 +273,14 @@ trait ClientTrait {
     }
 
     public function close_ws_clients() {
+        # settle any in-flight auth flights so their waiters do not hang
+        # across a close - same idea as Client::reset
+        $flight_hashes = array_keys($this->authenticationFlights);
+        foreach ($flight_hashes as $flight_hash) {
+            $flight = $this->authenticationFlights[$flight_hash];
+            unset($this->authenticationFlights[$flight_hash]);
+            $flight->reject(new ExchangeClosedByUser($this->id . ' close() was called'));
+        }
         // make sure to close the exchange once you are finished using the websocket connections
         // so that the event loop can complete it's work and go to sleep
         foreach ($this->clients as $client) {

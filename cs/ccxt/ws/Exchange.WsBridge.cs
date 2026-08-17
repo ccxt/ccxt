@@ -72,23 +72,28 @@ public partial class BaseExchange
         // leader election - returns true when the caller must perform the
         // fetch and settle the flight, false after awaiting an in-progress one
         var flightHash = (string)flightHash2;
-        Future flight = null;
-        if (this.authenticationFlights.TryGetValue(flightHash, out flight))
+        while (true)
         {
-            await flight.task;
-            return false;
-        }
-        var created = new Future();
-        if (!this.authenticationFlights.TryAdd(flightHash, created))
-        {
-            // lost the add race to a concurrent leader - wait on theirs
+            Future flight = null;
             if (this.authenticationFlights.TryGetValue(flightHash, out flight))
             {
                 await flight.task;
+                return false;
             }
-            return false;
+            var created = new Future();
+            // an alone leader may reject before any waiter awaits the flight -
+            // observe the task exception so a waiterless rejection can never
+            // surface as an unobserved task exception
+            created.task.ContinueWith((t) => { var _ = t.Exception; }, TaskContinuationOptions.OnlyOnFaulted);
+            if (this.authenticationFlights.TryAdd(flightHash, created))
+            {
+                return true;
+            }
+            // lost the add race - loop: either the winner's flight is visible on
+            // the next pass and gets awaited, or it already settled and vanished,
+            // in which case this caller is elected the fresh leader instead of
+            // silently returning as if a flight had completed
         }
-        return true;
     }
 
     public async Task singleFlightWait(object flightHash2)

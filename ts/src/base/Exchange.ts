@@ -1705,7 +1705,12 @@ export class BaseExchange {
             await this.authenticationFlights[flightHash];
             return false;
         }
-        this.authenticationFlights[flightHash] = Future ();
+        const flight = Future ();
+        // an alone leader may reject before any waiter awaits the flight - a
+        // native promise rejection with no handler kills the process, so the
+        // flight carries the same silent handler Future.subscribe attaches
+        flight.catch (() => {});
+        this.authenticationFlights[flightHash] = flight;
         return true;
     }
 
@@ -2025,6 +2030,15 @@ export class BaseExchange {
     }
 
     async close (cleanInstanceCache = false) {
+        // settle any in-flight auth flights so their waiters do not hang
+        // across a close - same idea as Client.reset
+        const flightHashes = Object.keys (this.authenticationFlights);
+        for (let i = 0; i < flightHashes.length; i++) {
+            const flightHash = flightHashes[i];
+            const flight = this.authenticationFlights[flightHash];
+            delete this.authenticationFlights[flightHash];
+            flight.reject (new ExchangeClosedByUser (this.id + ' close() was called'));
+        }
         // [WS]
         await this.sleep (0); // allow other futures to run
         const clients = Object.values (this.clients || {});

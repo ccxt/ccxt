@@ -782,6 +782,16 @@ public partial class BaseExchange
 
     public async Task close()
     {
+        // settle any in-flight auth flights so their waiters do not hang
+        // across a close - same idea as Client.reset
+        foreach (var flightHash in this.authenticationFlights.Keys)
+        {
+            Future flight = null;
+            if (this.authenticationFlights.TryRemove(flightHash, out flight))
+            {
+                flight.reject(new ExchangeClosedByUser(this.id + " close() was called"));
+            }
+        }
         await this.Close();
     }
 
