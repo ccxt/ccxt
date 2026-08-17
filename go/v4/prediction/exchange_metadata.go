@@ -1,5 +1,5 @@
 package ccxtprediction
 
-var Version string = "4.5.73"
+var Version string = "4.5.74"
 
 var Exchanges []string = []string{"hyperliquid", "kalshi", "limitless", "myriad", "polymarket"}
