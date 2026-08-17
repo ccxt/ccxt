@@ -418,7 +418,11 @@ class ArrayCacheTest {
         assertEquals(5, cache.size());
         assertEquals(List.of("6", "7", "8", "9", "10"), order(cache, "id"));
         assertEquals(5, asMap(cache.hashmap.get("BTC/USDT")).size(), "evicted ids leave the hashmap");
-        assertEquals(10, cache.getLimit("BTC/USDT", null).intValue(), "the id set is not capped by maxSize");
+        // ts-derived (Cache.ts eviction + test.cache.ts cacheEvictSeen): an id
+        // evicted by the maxSize shift leaves both seen scopes, so the counts
+        // mean distinct ids within the retained window - exactly what a
+        // consumer can slice - and single-scope pollers stay bounded
+        assertEquals(5, cache.getLimit("BTC/USDT", null).intValue(), "the id set tracks the retained window, not the process lifetime");
 
         // re-appending the same ten ids adds no new updates and no new rows
         for (int i = 1; i <= 10; i++) {
