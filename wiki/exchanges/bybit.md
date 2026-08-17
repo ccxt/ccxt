@@ -1419,12 +1419,13 @@ fetch the rate of interest to borrow a currency for margin trading
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
 **Returns**: <code>object</code> - a [borrow rate structure](https://docs.ccxt.com/?id=borrow-rate-structure)
 
-**See**: https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota  
+**See**: https://bybit-exchange.github.io/docs/v5/spot-margin-uta/vip-margin  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.vipLevel | <code>string</code> | No | the vip level to fetch the borrow rate for, defaults to 'No VIP' |
 
 
 ```javascript

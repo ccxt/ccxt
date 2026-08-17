@@ -133,6 +133,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		btcturkItf := NewBtcturkCore()
 		btcturkItf.Init(exchangeArgs)
 		return btcturkItf, true
+	case "btse":
+		btseItf := NewBtseCore()
+		btseItf.Init(exchangeArgs)
+		return btseItf, true
 	case "bullish":
 		bullishItf := NewBullishCore()
 		bullishItf.Init(exchangeArgs)

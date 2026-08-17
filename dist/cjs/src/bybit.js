@@ -7478,9 +7478,10 @@ class bybit extends bybit$1["default"] {
      * @method
      * @name bybit#fetchCrossBorrowRate
      * @description fetch the rate of interest to borrow a currency for margin trading
-     * @see https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota
+     * @see https://bybit-exchange.github.io/docs/v5/spot-margin-uta/vip-margin
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.vipLevel] the vip level to fetch the borrow rate for, defaults to 'No VIP'
      * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     async fetchCrossBorrowRate(code, params = {}) {
@@ -7489,36 +7490,57 @@ class bybit extends bybit$1["default"] {
         }
         const currency = this.currency(code);
         const request = {
-            'coin': currency['id'],
+            'currency': currency['id'],
+            'vipLevel': 'No VIP',
         };
-        const response = await this.privateGetV5SpotCrossMarginTradeLoanInfo(this.extend(request, params));
+        const response = await this.publicGetV5SpotMarginTradeData(this.extend(request, params));
         //
-        //    {
-        //         "retCode": "0",
+        //     {
+        //         "retCode": 0,
         //         "retMsg": "success",
         //         "result": {
-        //             "coin": "USDT",
-        //             "interestRate": "0.000107000000",
-        //             "loanAbleAmount": "",
-        //             "maxLoanAmount": "79999.999"
+        //             "vipCoinList": [
+        //                 {
+        //                     "list": [
+        //                         {
+        //                             "borrowable": true,
+        //                             "collateralRatio": "0.98",
+        //                             "currency": "BTC",
+        //                             "hourlyBorrowRate": "0.0000005030430000",
+        //                             "liquidationOrder": "3",
+        //                             "marginCollateral": true,
+        //                             "maxBorrowingAmount": "300"
+        //                         }
+        //                     ],
+        //                     "vipLevel": "No VIP"
+        //                 }
+        //             ]
         //         },
-        //         "retExtInfo": null,
-        //         "time": "1666734490778"
+        //         "retExtInfo": "{}",
+        //         "time": 1786958191900
         //     }
         //
         const timestamp = this.safeInteger(response, 'time');
         const data = this.safeDict(response, 'result', {});
-        data['timestamp'] = timestamp;
-        return this.parseBorrowRate(data, currency);
+        const vipCoinList = this.safeList(data, 'vipCoinList', []);
+        const firstVip = this.safeDict(vipCoinList, 0, {});
+        const coins = this.safeList(firstVip, 'list', []);
+        const coin = this.safeDict(coins, 0, {});
+        coin['timestamp'] = timestamp;
+        return this.parseBorrowRate(coin, currency);
     }
     parseBorrowRate(info, currency = undefined) {
         //
+        // fetchCrossBorrowRate
         //     {
-        //         "coin": "USDT",
-        //         "interestRate": "0.000107000000",
-        //         "loanAbleAmount": "",
-        //         "maxLoanAmount": "79999.999",
-        //         "timestamp": 1666734490778
+        //         "borrowable": true,
+        //         "collateralRatio": "0.98",
+        //         "currency": "BTC",
+        //         "hourlyBorrowRate": "0.0000005030430000",
+        //         "liquidationOrder": "3",
+        //         "marginCollateral": true,
+        //         "maxBorrowingAmount": "300",
+        //         "timestamp": 1786958191900
         //     }
         //
         // fetchBorrowRateHistory

@@ -855,10 +855,6 @@ public class PoloniexCore extends PoloniexApi
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
             {
-                if (Helpers.isTrue(this.inArray(timeframe, new java.util.ArrayList<Object>(java.util.Arrays.asList("10m", "1M")))))
-                {
-                    throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), timeframe), " "), Helpers.GetValue(market, "type")), " fetchOHLCV is not supported")) ;
-                }
                 Object responseRaw = (this.swapPublicGetV3MarketCandles(this.extend(request, parameters))).join();
                 //
                 //     {

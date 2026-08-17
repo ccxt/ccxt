@@ -7024,46 +7024,68 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         fetch the rate of interest to borrow a currency for margin trading
 
-        https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota
+        https://bybit-exchange.github.io/docs/v5/spot-margin-uta/vip-margin
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.vipLevel]: the vip level to fetch the borrow rate for, defaults to 'No VIP'
         :returns dict: a `borrow rate structure <https://docs.ccxt.com/?id=borrow-rate-structure>`
         """
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
         request = {
-            'coin': currency['id'],
+            'currency': currency['id'],
+            'vipLevel': 'No VIP',
         }
-        response = self.privateGetV5SpotCrossMarginTradeLoanInfo(self.extend(request, params))
+        response = self.publicGetV5SpotMarginTradeData(self.extend(request, params))
         #
-        #    {
-        #         "retCode": "0",
+        #     {
+        #         "retCode": 0,
         #         "retMsg": "success",
         #         "result": {
-        #             "coin": "USDT",
-        #             "interestRate": "0.000107000000",
-        #             "loanAbleAmount": "",
-        #             "maxLoanAmount": "79999.999"
+        #             "vipCoinList": [
+        #                 {
+        #                     "list": [
+        #                         {
+        #                             "borrowable": True,
+        #                             "collateralRatio": "0.98",
+        #                             "currency": "BTC",
+        #                             "hourlyBorrowRate": "0.0000005030430000",
+        #                             "liquidationOrder": "3",
+        #                             "marginCollateral": True,
+        #                             "maxBorrowingAmount": "300"
+        #                         }
+        #                     ],
+        #                     "vipLevel": "No VIP"
+        #                 }
+        #             ]
         #         },
-        #         "retExtInfo": null,
-        #         "time": "1666734490778"
+        #         "retExtInfo": "{}",
+        #         "time": 1786958191900
         #     }
         #
         timestamp = self.safe_integer(response, 'time')
         data = self.safe_dict(response, 'result', {})
-        data['timestamp'] = timestamp
-        return self.parse_borrow_rate(data, currency)
+        vipCoinList = self.safe_list(data, 'vipCoinList', [])
+        firstVip = self.safe_dict(vipCoinList, 0, {})
+        coins = self.safe_list(firstVip, 'list', [])
+        coin = self.safe_dict(coins, 0, {})
+        coin['timestamp'] = timestamp
+        return self.parse_borrow_rate(coin, currency)
 
     def parse_borrow_rate(self, info: object, currency: Currency = None):
         #
+        # fetchCrossBorrowRate
         #     {
-        #         "coin": "USDT",
-        #         "interestRate": "0.000107000000",
-        #         "loanAbleAmount": "",
-        #         "maxLoanAmount": "79999.999",
-        #         "timestamp": 1666734490778
+        #         "borrowable": True,
+        #         "collateralRatio": "0.98",
+        #         "currency": "BTC",
+        #         "hourlyBorrowRate": "0.0000005030430000",
+        #         "liquidationOrder": "3",
+        #         "marginCollateral": True,
+        #         "maxBorrowingAmount": "300",
+        #         "timestamp": 1786958191900
         #     }
         #
         # fetchBorrowRateHistory

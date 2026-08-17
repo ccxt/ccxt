@@ -3128,7 +3128,7 @@ class toobit extends Exchange {
             'coin' => $currency['id'],
             'address' => $address,
             'quantity' => $this->currency_to_precision($currency['code'], $amount),
-            'chainType' => $networkCode,
+            'chainType' => $this->network_code_to_id($networkCode, $code),
             'clientOrderId' => $this->milliseconds(),
         );
         if ($tag !== null) {

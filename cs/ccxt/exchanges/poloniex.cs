@@ -837,10 +837,6 @@ public partial class poloniex : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(getValue(market, "contract")))
         {
-            if (isTrue(this.inArray(timeframe, new List<object>() {"10m", "1M"})))
-            {
-                throw new NotSupported ((string)add(add(add(add(add(this.id, " "), timeframe), " "), getValue(market, "type")), " fetchOHLCV is not supported")) ;
-            }
             object responseRaw = await this.swapPublicGetV3MarketCandles(this.extend(request, parameters));
             //
             //     {

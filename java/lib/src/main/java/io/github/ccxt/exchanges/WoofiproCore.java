@@ -3793,7 +3793,7 @@ public class WoofiproCore extends WoofiproApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "v1PrivateGetClientMarginModes", new Object[] { parameters })).join();
+            Object response = (this.v1PrivateGetClientMarginModes(parameters)).join();
             //
             // {
             //     "success": true,
@@ -3886,7 +3886,7 @@ public class WoofiproCore extends WoofiproApi
             //     "timestamp": 1702989203989
             // }
             //
-            return ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "v1PrivatePostClientMarginMode", new Object[] { this.extend(request, parameters) })).join();
+            return (this.v1PrivatePostClientMarginMode(this.extend(request, parameters))).join();
         });
 
     }
@@ -3945,7 +3945,7 @@ public class WoofiproCore extends WoofiproApi
                 put( "amount", WoofiproCore.this.numberToString(amount) );
                 put( "type", finalType );
             }};
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "v1PrivatePostPositionMargin", new Object[] { this.extend(request, parameters) })).join();
+            Object response = (this.v1PrivatePostPositionMargin(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,

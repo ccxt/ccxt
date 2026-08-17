@@ -3313,11 +3313,11 @@ func (this *XtCore) CreateContractOrder(symbol any, typeVar any, side any, amoun
 			params = this.Omit(params, []any{"trailingPercent", "trailingAmount", "trailingTriggerPrice"})
 			if IsTrue(GetValue(market, "linear")) {
 
-				response = (<-this.CallDynamically("privateLinearPostFutureTradeV1EntrustCreateTrack", this.Extend(request, params)))
+				response = (<-this.PrivateLinearPostFutureTradeV1EntrustCreateTrack(this.Extend(request, params)))
 				PanicOnError(response)
 			} else if IsTrue(GetValue(market, "inverse")) {
 
-				response = (<-this.CallDynamically("privateInversePostFutureTradeV1EntrustCreateTrack", this.Extend(request, params)))
+				response = (<-this.PrivateInversePostFutureTradeV1EntrustCreateTrack(this.Extend(request, params)))
 				PanicOnError(response)
 			}
 		} else if IsTrue(isTrigger) {
@@ -3471,11 +3471,11 @@ func (this *XtCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 			params = this.Omit(params, "trailing")
 			if IsTrue(IsEqual(subType, "inverse")) {
 
-				response = (<-this.CallDynamically("privateInverseGetFutureTradeV1EntrustTrackDetail", this.Extend(request, params)))
+				response = (<-this.PrivateInverseGetFutureTradeV1EntrustTrackDetail(this.Extend(request, params)))
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.CallDynamically("privateLinearGetFutureTradeV1EntrustTrackDetail", this.Extend(request, params)))
+				response = (<-this.PrivateLinearGetFutureTradeV1EntrustTrackDetail(this.Extend(request, params)))
 				PanicOnError(response)
 			}
 		} else if IsTrue(IsEqual(subType, "inverse")) {
@@ -3695,11 +3695,11 @@ func (this *XtCore) FetchOrders(optionalArgs ...any) <-chan any {
 			params = this.Omit(params, "trailing")
 			if IsTrue(IsEqual(subType, "inverse")) {
 
-				response = (<-this.CallDynamically("privateInverseGetFutureTradeV1EntrustTrackListHistory", this.Extend(request, params)))
+				response = (<-this.PrivateInverseGetFutureTradeV1EntrustTrackListHistory(this.Extend(request, params)))
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.CallDynamically("privateLinearGetFutureTradeV1EntrustTrackListHistory", this.Extend(request, params)))
+				response = (<-this.PrivateLinearGetFutureTradeV1EntrustTrackListHistory(this.Extend(request, params)))
 				PanicOnError(response)
 			}
 		} else if IsTrue(IsEqual(subType, "inverse")) {
@@ -3947,21 +3947,21 @@ func (this *XtCore) FetchOrdersByStatus(status any, optionalArgs ...any) <-chan 
 			if IsTrue(IsEqual(status, "open")) {
 				if IsTrue(IsEqual(subType, "inverse")) {
 
-					response = (<-this.CallDynamically("privateInverseGetFutureTradeV1EntrustTrackList", this.Extend(request, params)))
+					response = (<-this.PrivateInverseGetFutureTradeV1EntrustTrackList(this.Extend(request, params)))
 					PanicOnError(response)
 				} else {
 
-					response = (<-this.CallDynamically("privateLinearGetFutureTradeV1EntrustTrackList", this.Extend(request, params)))
+					response = (<-this.PrivateLinearGetFutureTradeV1EntrustTrackList(this.Extend(request, params)))
 					PanicOnError(response)
 				}
 			} else {
 				if IsTrue(IsEqual(subType, "inverse")) {
 
-					response = (<-this.CallDynamically("privateInverseGetFutureTradeV1EntrustTrackListHistory", this.Extend(request, params)))
+					response = (<-this.PrivateInverseGetFutureTradeV1EntrustTrackListHistory(this.Extend(request, params)))
 					PanicOnError(response)
 				} else {
 
-					response = (<-this.CallDynamically("privateLinearGetFutureTradeV1EntrustTrackListHistory", this.Extend(request, params)))
+					response = (<-this.PrivateLinearGetFutureTradeV1EntrustTrackListHistory(this.Extend(request, params)))
 					PanicOnError(response)
 				}
 			}
@@ -4414,11 +4414,11 @@ func (this *XtCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 			params = this.Omit(params, "trailing")
 			if IsTrue(IsEqual(subType, "inverse")) {
 
-				response = (<-this.CallDynamically("privateInversePostFutureTradeV1EntrustCancelTrack", this.Extend(request, params)))
+				response = (<-this.PrivateInversePostFutureTradeV1EntrustCancelTrack(this.Extend(request, params)))
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.CallDynamically("privateLinearPostFutureTradeV1EntrustCancelTrack", this.Extend(request, params)))
+				response = (<-this.PrivateLinearPostFutureTradeV1EntrustCancelTrack(this.Extend(request, params)))
 				PanicOnError(response)
 			}
 		} else if IsTrue(IsEqual(subType, "inverse")) {
@@ -4545,11 +4545,11 @@ func (this *XtCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			params = this.Omit(params, "trailing")
 			if IsTrue(IsEqual(subType, "inverse")) {
 
-				response = (<-this.CallDynamically("privateInversePostFutureTradeV1EntrustCancelAllTrack", this.Extend(request, params)))
+				response = (<-this.PrivateInversePostFutureTradeV1EntrustCancelAllTrack(this.Extend(request, params)))
 				PanicOnError(response)
 			} else {
 
-				response = (<-this.CallDynamically("privateLinearPostFutureTradeV1EntrustCancelAllTrack", this.Extend(request, params)))
+				response = (<-this.PrivateLinearPostFutureTradeV1EntrustCancelAllTrack(this.Extend(request, params)))
 				PanicOnError(response)
 			}
 		} else if IsTrue(IsEqual(subType, "inverse")) {

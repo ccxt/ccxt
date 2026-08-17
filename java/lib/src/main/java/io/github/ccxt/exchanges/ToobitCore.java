@@ -3407,7 +3407,7 @@ public class ToobitCore extends ToobitApi
                 put( "coin", Helpers.GetValue(currency, "id") );
                 put( "address", address );
                 put( "quantity", ToobitCore.this.currencyToPrecision(Helpers.GetValue(currency, "code"), amount) );
-                put( "chainType", finalNetworkCode );
+                put( "chainType", ToobitCore.this.networkCodeToId(finalNetworkCode, code) );
                 put( "clientOrderId", ToobitCore.this.milliseconds() );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(tag, null)))

@@ -7682,10 +7682,11 @@ class bybit extends Exchange {
         /**
          * fetch the rate of interest to borrow a $currency for margin trading
          *
-         * @see https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota
+         * @see https://bybit-exchange.github.io/docs/v5/spot-margin-uta/vip-margin
          *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->vipLevel] the vip level to fetch the borrow rate for, defaults to 'No VIP'
          * @return {array} a ~@link https://docs.ccxt.com/?id=borrow-rate-structure borrow rate structure~
          */
         if ($this->markets === null) {
@@ -7693,37 +7694,58 @@ class bybit extends Exchange {
         }
         $currency = $this->currency($code);
         $request = array(
-            'coin' => $currency['id'],
+            'currency' => $currency['id'],
+            'vipLevel' => 'No VIP',
         );
-        $response = Async\await($this->privateGetV5SpotCrossMarginTradeLoanInfo($this->extend($request, $params)));
+        $response = Async\await($this->publicGetV5SpotMarginTradeData($this->extend($request, $params)));
         //
-        //    {
-        //         "retCode" => "0",
+        //     {
+        //         "retCode" => 0,
         //         "retMsg" => "success",
-        //         "result" => array(
-        //             "coin" => "USDT",
-        //             "interestRate" => "0.000107000000",
-        //             "loanAbleAmount" => "",
-        //             "maxLoanAmount" => "79999.999"
+        //         "result" => {
+        //             "vipCoinList" => array(
+        //                 {
+        //                     "list" => array(
+        //                         array(
+        //                             "borrowable" => true,
+        //                             "collateralRatio" => "0.98",
+        //                             "currency" => "BTC",
+        //                             "hourlyBorrowRate" => "0.0000005030430000",
+        //                             "liquidationOrder" => "3",
+        //                             "marginCollateral" => true,
+        //                             "maxBorrowingAmount" => "300"
+        //                         }
+        //                     ),
+        //                     "vipLevel" => "No VIP"
+        //                 }
+        //             )
         //         ),
-        //         "retExtInfo" => null,
-        //         "time" => "1666734490778"
+        //         "retExtInfo" => "array()",
+        //         "time" => 1786958191900
         //     }
         //
         $timestamp = $this->safe_integer($response, 'time');
         $data = $this->safe_dict($response, 'result', array());
-        $data['timestamp'] = $timestamp;
-        return $this->parse_borrow_rate($data, $currency);
+        $vipCoinList = $this->safe_list($data, 'vipCoinList', array());
+        $firstVip = $this->safe_dict($vipCoinList, 0, array());
+        $coins = $this->safe_list($firstVip, 'list', array());
+        $coin = $this->safe_dict($coins, 0, array());
+        $coin['timestamp'] = $timestamp;
+        return $this->parse_borrow_rate($coin, $currency);
     }
 
     public function parse_borrow_rate(mixed $info, ?array $currency = null) {
         //
+        // fetchCrossBorrowRate
         //     {
-        //         "coin" => "USDT",
-        //         "interestRate" => "0.000107000000",
-        //         "loanAbleAmount" => "",
-        //         "maxLoanAmount" => "79999.999",
-        //         "timestamp" => 1666734490778
+        //         "borrowable" => true,
+        //         "collateralRatio" => "0.98",
+        //         "currency" => "BTC",
+        //         "hourlyBorrowRate" => "0.0000005030430000",
+        //         "liquidationOrder" => "3",
+        //         "marginCollateral" => true,
+        //         "maxBorrowingAmount" => "300",
+        //         "timestamp" => 1786958191900
         //     }
         //
         // fetchBorrowRateHistory
