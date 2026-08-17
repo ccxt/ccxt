@@ -922,8 +922,8 @@ impl LatokenCore {
         let mut rawMarkets: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_866: bool = true;
-            while { if !__for_first_866 { i = add(&i, &Value::Int(1)); } __for_first_866 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
+            let mut __for_first_885: bool = true;
+            while { if !__for_first_885 { i = add(&i, &Value::Int(1)); } __for_first_885 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
             let mut market: Value = get_value(&rawMarkets, &i);
             let mut market: Value = get_value(&rawMarkets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "id", &[]);
@@ -1134,8 +1134,8 @@ impl LatokenCore {
         let mut balances: Value = self.safe_value(balancesByType.clone(), accountType.clone(), &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_867: bool = true;
-            while { if !__for_first_867 { i = add(&i, &Value::Int(1)); } __for_first_867 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_886: bool = true;
+            while { if !__for_first_886 { i = add(&i, &Value::Int(1)); } __for_first_886 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -1194,7 +1194,65 @@ impl LatokenCore {
         }
         let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_book_currency_quote(&[__ws_arg_0]).await;
-        return self.parse_order_book(response.clone(), symbol.clone(), &[Value::Null, Value::Str("bid".to_string()), Value::Str("ask".to_string()), Value::Str("price".to_string()), Value::Str("quantity".to_string())]);
+        //
+        //     {
+        //         "ask":[
+        //             {"price":"4428.76","quantity":"0.08136","cost":"360.3239136","accumulated":"360.3239136"},
+        //             {"price":"4429.77","quantity":"1.11786","cost":"4951.8626922","accumulated":"5312.1866058"},
+        //             {"price":"4430.94","quantity":"1.78418","cost":"7905.5945292","accumulated":"13217.781135"},
+        //         ],
+        //         "bid":[
+        //             {"price":"4428.43","quantity":"0.13675","cost":"605.5878025","accumulated":"605.5878025"},
+        //             {"price":"4428.19","quantity":"0.03619","cost":"160.2561961","accumulated":"765.8439986"},
+        //             {"price":"4428.15","quantity":"0.02926","cost":"129.567669","accumulated":"895.4116676"},
+        //         ],
+        //         "totalAsk":"53.14814",
+        //         "totalBid":"112216.9029791"
+        //     }
+        //
+        // latoken's rest book is an absolute snapshot - price, quantity, cost,
+        // accumulated - with no signed fields, unlike their websocket stream
+        // which carries signed quantityChange deltas. during venue incidents a
+        // signed internal aggregate leaks into the rest quantity and a deleted
+        // level shows up with a zero or negative quantity for long stretches,
+        // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
+        // for over half an hour - such a level is a deleted level their
+        // aggregation failed to drop, so it is removed here
+        let mut rawAsks: Value = self.safe_list_k(response.clone(), "ask", &[Value::List(vec![])]);
+        let mut rawBids: Value = self.safe_list_k(response.clone(), "bid", &[Value::List(vec![])]);
+        let mut asks: Value = Value::List(vec![]);
+        let mut bids: Value = Value::List(vec![]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_887: bool = true;
+            while { if !__for_first_887 { i = add(&i, &Value::Int(1)); } __for_first_887 = false; is_less_than(&i, &get_array_length(&rawAsks)) } {
+            let mut askEntry: Value = get_value(&rawAsks, &i);
+            let mut askEntry: Value = get_value(&rawAsks, &i);
+            let mut askQuantity: Value = self.safe_string_k(askEntry.clone(), "quantity", &[]);
+            if is_true(&crate::precise::Precise::stringGt(&askQuantity, &Value::Str("0".to_string()))) {
+                append_to_array(&mut asks, askEntry.clone());
+            }
+        }
+        }
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_888: bool = true;
+            while { if !__for_first_888 { i = add(&i, &Value::Int(1)); } __for_first_888 = false; is_less_than(&i, &get_array_length(&rawBids)) } {
+            let mut bidEntry: Value = get_value(&rawBids, &i);
+            let mut bidEntry: Value = get_value(&rawBids, &i);
+            let mut bidQuantity: Value = self.safe_string_k(bidEntry.clone(), "quantity", &[]);
+            if is_true(&crate::precise::Precise::stringGt(&bidQuantity, &Value::Str("0".to_string()))) {
+                append_to_array(&mut bids, bidEntry.clone());
+            }
+        }
+        }
+        let mut filtered: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("ask".to_string(), asks.clone());
+                m.insert("bid".to_string(), bids.clone());
+            m
+        });
+        return self.parse_order_book(filtered.clone(), symbol.clone(), &[Value::Null, Value::Str("bid".to_string()), Value::Str("ask".to_string()), Value::Str("price".to_string()), Value::Str("quantity".to_string())]);
 
     Value::Null
 }

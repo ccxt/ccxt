@@ -740,7 +740,48 @@ impl Bit2cCore {
         });
         let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
         let mut orderbook: Value = self.public_get_exchanges_pair_orderbook(&[__ws_arg_0]).await;
-        return self.parse_order_book(orderbook.clone(), symbol.clone(), &[]);
+        // the full orderbook.json snapshot can contain dead orders - rows
+        // published with a zero amount at their limit price, hours-stable and
+        // sometimes crossing the real market. per the api docs the endpoint
+        // contains open orders only, and the venue's own orderbook-top.json ui
+        // feed filters these rows out, so a non-positive amount is a dead order
+        // their full snapshot failed to purge - it is removed here, which also
+        // uncrosses the book. rows are positional price and amount pairs
+        let mut rawBids: Value = self.safe_list_k(orderbook.clone(), "bids", &[Value::List(vec![])]);
+        let mut rawAsks: Value = self.safe_list_k(orderbook.clone(), "asks", &[Value::List(vec![])]);
+        let mut bids: Value = Value::List(vec![]);
+        let mut asks: Value = Value::List(vec![]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_303: bool = true;
+            while { if !__for_first_303 { i = add(&i, &Value::Int(1)); } __for_first_303 = false; is_less_than(&i, &get_array_length(&rawBids)) } {
+            let mut bidRow: Value = get_value(&rawBids, &i);
+            let mut bidRow: Value = get_value(&rawBids, &i);
+            let mut bidAmount: Value = self.safe_string(bidRow.clone(), Value::Int(1), &[]);
+            if is_true(&crate::precise::Precise::stringGt(&bidAmount, &Value::Str("0".to_string()))) {
+                append_to_array(&mut bids, bidRow.clone());
+            }
+        }
+        }
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_304: bool = true;
+            while { if !__for_first_304 { i = add(&i, &Value::Int(1)); } __for_first_304 = false; is_less_than(&i, &get_array_length(&rawAsks)) } {
+            let mut askRow: Value = get_value(&rawAsks, &i);
+            let mut askRow: Value = get_value(&rawAsks, &i);
+            let mut askAmount: Value = self.safe_string(askRow.clone(), Value::Int(1), &[]);
+            if is_true(&crate::precise::Precise::stringGt(&askAmount, &Value::Str("0".to_string()))) {
+                append_to_array(&mut asks, askRow.clone());
+            }
+        }
+        }
+        let mut filtered: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("bids".to_string(), bids.clone());
+                m.insert("asks".to_string(), asks.clone());
+            m
+        });
+        return self.parse_order_book(filtered.clone(), symbol.clone(), &[]);
 
     Value::Null
 }
@@ -917,8 +958,8 @@ impl Bit2cCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_303: bool = true;
-            while { if !__for_first_303 { i = add(&i, &Value::Int(1)); } __for_first_303 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_305: bool = true;
+            while { if !__for_first_305 { i = add(&i, &Value::Int(1)); } __for_first_305 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut marketId: Value = get_value(&keys, &i);
             let mut marketId: Value = get_value(&keys, &i);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
@@ -1306,8 +1347,8 @@ impl Bit2cCore {
         let mut strParts: Value = split(&str_val, &Value::Str(",".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_304: bool = true;
-            while { if !__for_first_304 { i = add(&i, &Value::Int(1)); } __for_first_304 = false; is_less_than(&i, &get_array_length(&strParts)) } {
+            let mut __for_first_306: bool = true;
+            while { if !__for_first_306 { i = add(&i, &Value::Int(1)); } __for_first_306 = false; is_less_than(&i, &get_array_length(&strParts)) } {
             newString = add(&newString, &get_value(&strParts, &i));
         }
         }

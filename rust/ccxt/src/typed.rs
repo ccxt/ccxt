@@ -1014,6 +1014,7 @@ pub use crate::exchanges::blofin_typed::Blofin;
 pub use crate::exchanges::btcbox_typed::Btcbox;
 pub use crate::exchanges::btcmarkets_typed::Btcmarkets;
 pub use crate::exchanges::btcturk_typed::Btcturk;
+pub use crate::exchanges::btse_typed::Btse;
 pub use crate::exchanges::bullish_typed::Bullish;
 pub use crate::exchanges::bybit_typed::Bybit;
 pub use crate::exchanges::bybiteu_typed::Bybiteu;

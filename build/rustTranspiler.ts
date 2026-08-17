@@ -5725,7 +5725,7 @@ ${arms.join('\n')}
         // from TS so it matches our factory signature.
         if (ws) {
             content = content.replace(
-                /\b(ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide))::new\(\)/g,
+                /\b(ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide|ByOutcomeById))::new\(\)/g,
                 '$1::new(Value::Null)',
             );
             // `<id>Rest::X` — the TS WS files have `import <id>Rest from
@@ -5945,7 +5945,7 @@ ${arms.join('\n')}
         // moves `limit`; subsequent reuse needs `.clone()`.
         content = this.cloneIdentArgsToCalls(
             content,
-            /\b((?:Indexed|Counted)?OrderBook|ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide))::new\(/g,
+            /\b((?:Indexed|Counted)?OrderBook|ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide|ByOutcomeById))::new\(/g,
         );
 
         // `let mut <X>: Value = <ident>;` moves the source local. Clone
@@ -7407,7 +7407,7 @@ impl std::ops::DerefMut for ${coreName} {
                 // TS calls them with no args in some tests; our stubs
                 // take a `Value` max-length param.
                 content = content.replace(
-                    /\b(ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide))::new\(\)/g,
+                    /\b(ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide|ByOutcomeById))::new\(\)/g,
                     '$1::new(Value::Null)',
                 );
                 // `load_markets().await` → `load_markets(&[]).await`
@@ -7635,12 +7635,13 @@ impl std::ops::DerefMut for ${coreName} {
         // (process APIs, a `try/finally` with no `catch` the Rust transpiler
         // can't lower, and its own "NOT wired into CI" banner) — never meant
         // to be transpiled. Skip both.
-        // `test.clientRetention` is a native ts test (its own comment says so):
-        // the php/cs/python lanes ship hand-written siblings (PR 29720) and it
-        // drives internal client plumbing (`new Client(...)`, `client.future`,
-        // `pendingResults`) that isn't exposed for transpilation. Skip it — the
-        // Rust WS client-retention behaviour is covered by the runtime directly.
-        const SKIP = new Set<string>(['tests.init', 'test.close', 'test.close.manual', 'test.clientRetention']);
+        // `test.clientRetention` and `test.singleFlight` are native ts tests
+        // (their own comments say so): the php/cs/python lanes ship hand-written
+        // siblings (PR 29720 / issue 29393) and they drive internal client
+        // plumbing (`new Client(...)`, `client.future`, `pendingResults`) that
+        // isn't exposed for transpilation. Skip them — the Rust WS runtime covers
+        // this behaviour directly.
+        const SKIP = new Set<string>(['tests.init', 'test.close', 'test.close.manual', 'test.clientRetention', 'test.singleFlight']);
         for (const testName of testFiles) {
             if (SKIP.has(testName)) continue;
             const tsFile = `${baseFolder}/${testName}.ts`;
@@ -7719,7 +7720,7 @@ impl std::ops::DerefMut for ${coreName} {
                 // → `ArrayCacheByTimestamp::new()`) need a `Value::Null` pad
                 // so they match our factory's `(Value)` signature.
                 content = content.replace(
-                    /\b(ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide))::new\(\)/g,
+                    /\b(ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide|ByOutcomeById))::new\(\)/g,
                     '$1::new(Value::Null)',
                 );
 
@@ -7746,7 +7747,7 @@ impl std::ops::DerefMut for ${coreName} {
                 // book/cache later with the same snapshot.
                 content = this.cloneIdentArgsToCalls(
                     content,
-                    /\b((?:Indexed|Counted)?OrderBook|ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide))::new\(/g,
+                    /\b((?:Indexed|Counted)?OrderBook|ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide|ByOutcomeById))::new\(/g,
                 );
 
                 // Side-extraction rewrite. TS uses reference semantics:

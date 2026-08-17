@@ -7317,7 +7317,7 @@ impl BinanceCore {
                     append_to_array(&mut promisesRaw, self.sapi_get_margin_all_pairs(&[params.clone()]).await);
                     append_to_array(&mut promisesRaw, self.sapi_get_margin_isolated_all_pairs(&[params.clone()]).await);
                 }
-                if !is_true(&isDemoEnv) && is_true(&(!is_equal(&self.apiKey, &Value::Null))) {
+                if !is_true(&isDemoEnv) && is_true(&(!is_equal(&self.apiKey, &Value::Null) && !is_equal(&self.apiKey, &Value::Str("".to_string())))) {
                     append_to_array(&mut promisesRaw, self.sapi_get_equity_market_exchange_info(&[params.clone()]).await);
                 }
             }  else if is_equal(&marketType, &Value::Str("linear".to_string())) {

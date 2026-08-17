@@ -23,9 +23,12 @@ pub async fn testWatchOHLCV(mut exchange: Value, mut skippedProperties: Value, m
     let mut limit: Value = Value::Int(10);
     let mut duration: Value = exchange.parse_timeframe(chosenTimeframeKey.clone());
     let mut since: Value = subtract(&subtract(&exchange.milliseconds(), &multiply(&multiply(&duration, &limit), &Value::Int(1000))), &Value::Int(1000));
-    while is_less_than(&now, &ends) {
+    let mut maxIdleTime: Value = Value::Int(5000);
+    let mut idle: Value = Value::Bool(false);
+    while is_true(&(is_less_than(&now, &ends))) && !is_true(&idle) {
         let mut response: Value = Value::Null;
         let mut success: Value = Value::Bool(true);
+        let mut startTime: Value = exchange.milliseconds();
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_ohlcv", vec![symbol.clone(), chosenTimeframeKey.clone(), since.clone(), limit.clone()]).await;
             if is_equal(&response, &Value::Null) {
@@ -36,22 +39,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if !is_true(&crate::tests_support::shared::is_temporary_failure(e.clone())) {
                 panic!("{}", e);
             }
-            now = exchange.milliseconds();
-            // continue;
             success = Value::Bool(false);
         }
-        if is_equal(&success, &Value::Bool(true)) {
-            if is_equal(&response, &Value::Null) {
-                panic!("{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" watch returned undefined response".to_string())));
-            }
+        now = exchange.milliseconds();
+        if is_true(&(is_equal(&success, &Value::Bool(true)))) && is_true(&(!is_equal(&response, &Value::Null))) {
             crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response.clone(), symbol.clone()]);
-            now = exchange.milliseconds();
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1424: bool = true;
-                while { if !__for_first_1424 { i = add(&i, &Value::Int(1)); } __for_first_1424 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut __for_first_1447: bool = true;
+                while { if !__for_first_1447 { i = add(&i, &Value::Int(1)); } __for_first_1447 = false; is_less_than(&i, &get_array_length(&response)) } {
                 testOHLCV(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&response, &i), symbol.clone(), now.clone());
             }
+            }
+            if is_greater_than(&(subtract(&now, &startTime)), &maxIdleTime) {
+                idle = Value::Bool(true);
             }
         }
     }

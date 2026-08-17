@@ -1003,16 +1003,16 @@ impl DeepcoinCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_577: bool = true;
-            while { if !__for_first_577 { i = add(&i, &Value::Int(1)); } __for_first_577 = false; is_less_than(&i, &get_array_length(&types)) } {
+            let mut __for_first_596: bool = true;
+            while { if !__for_first_596 { i = add(&i, &Value::Int(1)); } __for_first_596 = false; is_less_than(&i, &get_array_length(&types)) } {
             append_to_array(&mut promises, self.fetch_markets_by_type(get_value(&types, &i), &[params.clone()]).await);
         }
         }
         promises = promise_all(&promises).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_578: bool = true;
-            while { if !__for_first_578 { i = add(&i, &Value::Int(1)); } __for_first_578 = false; is_less_than(&i, &get_array_length(&promises)) } {
+            let mut __for_first_597: bool = true;
+            while { if !__for_first_597 { i = add(&i, &Value::Int(1)); } __for_first_597 = false; is_less_than(&i, &get_array_length(&promises)) } {
             result = self.array_concat(result.clone(), get_value(&promises, &i));
         }
         }
@@ -1223,8 +1223,8 @@ impl DeepcoinCore {
         let mut symbols: Value = object_keys(&result);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_579: bool = true;
-            while { if !__for_first_579 { i = add(&i, &Value::Int(1)); } __for_first_579 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_598: bool = true;
+            while { if !__for_first_598 { i = add(&i, &Value::Int(1)); } __for_first_598 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = get_value(&result, &symbol);
@@ -1709,8 +1709,8 @@ impl DeepcoinCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_580: bool = true;
-            while { if !__for_first_580 { i = add(&i, &Value::Int(1)); } __for_first_580 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_599: bool = true;
+            while { if !__for_first_599 { i = add(&i, &Value::Int(1)); } __for_first_599 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut symbol: Value = self.safe_string_k(balance.clone(), "ccy", &[]);
@@ -2038,8 +2038,8 @@ impl DeepcoinCore {
         if is_true(&(!is_equal(&network, &Value::Null))) && is_true(&(is_greater_than(&length, &Value::Int(1)))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_581: bool = true;
-                while { if !__for_first_581 { i = add(&i, &Value::Int(1)); } __for_first_581 = false; is_less_than(&i, &length) } {
+                let mut __for_first_600: bool = true;
+                while { if !__for_first_600 { i = add(&i, &Value::Int(1)); } __for_first_600 = false; is_less_than(&i, &length) } {
                 let mut entry: Value = get_value(&addressess, &i);
                 let mut entry: Value = get_value(&addressess, &i);
                 if is_equal(&get_value(&entry, &Value::Str("network".to_string())), &network) {
@@ -4334,8 +4334,8 @@ impl DeepcoinCore {
         if !is_equal(&errorList, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_582: bool = true;
-                while { if !__for_first_582 { i = add(&i, &Value::Int(1)); } __for_first_582 = false; is_less_than(&i, &get_array_length(&errorList)) } {
+                let mut __for_first_601: bool = true;
+                while { if !__for_first_601 { i = add(&i, &Value::Int(1)); } __for_first_601 = false; is_less_than(&i, &get_array_length(&errorList)) } {
                 let mut entry: Value = self.safe_dict(errorList.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

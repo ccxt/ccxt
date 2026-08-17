@@ -11,12 +11,17 @@ use super::*;
 
 pub async fn testWatchOrderBookForSymbols(mut exchange: Value, mut skippedProperties: Value, mut symbols: Value) -> Value {
     let mut method: Value = Value::Str("watchOrderBookForSymbols".to_string());
+    // as in `watchOrderBook`, a pending subscription can not be cancelled, so the
+    // loop has to be bounded by the deadline alone. waiting for every requested
+    // symbol to be seen would hang forever whenever one of them stays idle.
+    let mut maxIdleTime: Value = Value::Int(5000);
     let mut currentTime: Value = exchange.milliseconds();
     let mut deadline: Value = add(&currentTime, &Value::Int(15000));
-    let mut seenSymbols: Value = Value::List(vec![]);
-    while is_less_than(&currentTime, &deadline) || is_less_than(&get_array_length(&seenSymbols), &get_array_length(&symbols)) {
+    let mut idle: Value = Value::Bool(false);
+    while is_true(&(is_less_than(&currentTime, &deadline))) && !is_true(&idle) {
         let mut response: Value = Value::Null;
         let mut succeeded: Value = Value::Bool(true);
+        let mut startTime: Value = exchange.milliseconds();
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_order_book_for_symbols", vec![symbols.clone()]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -25,15 +30,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if !is_true(&crate::tests_support::shared::is_temporary_failure(e.clone())) && !is_true(&(is_instance(&e, &Value::Str("InvalidNonce".to_string())))) {
                 panic!("{}", e);
             }
-            currentTime = exchange.milliseconds();
             succeeded = Value::Bool(false);
         }
+        currentTime = exchange.milliseconds();
         if is_true(&(is_equal(&succeeded, &Value::Bool(true)))) && is_true(&(!is_equal(&response, &Value::Null))) {
             testOrderBook(exchange.clone(), skippedProperties.clone(), method.clone(), response.clone(), Value::Null);
             crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response.clone(), Value::Str("symbol".to_string()).clone(), symbols.clone()]);
-            let mut symbol: Value = get_value(&response, &Value::Str("symbol".to_string()));
-            if is_true(&(!is_equal(&symbol, &Value::Null))) && !is_true(&exchange.in_array(symbol.clone(), seenSymbols.clone())) {
-                append_to_array(&mut seenSymbols, symbol.clone());
+            let mut elapsed: Value = subtract(&currentTime, &startTime);
+            if is_greater_than(&elapsed, &maxIdleTime) {
+                idle = Value::Bool(true);
             }
         }
     }

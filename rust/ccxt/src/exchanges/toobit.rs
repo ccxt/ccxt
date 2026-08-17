@@ -1453,8 +1453,8 @@ impl ToobitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1034: bool = true;
-            while { if !__for_first_1034 { i = add(&i, &Value::Int(1)); } __for_first_1034 = false; is_less_than(&i, &get_array_length(&coins)) } {
+            let mut __for_first_1055: bool = true;
+            while { if !__for_first_1055 { i = add(&i, &Value::Int(1)); } __for_first_1055 = false; is_less_than(&i, &get_array_length(&coins)) } {
             let mut coin: Value = get_value(&coins, &i);
             let mut coin: Value = get_value(&coins, &i);
             let mut parsed: Value = self.parse_currency(coin.clone());
@@ -1479,8 +1479,8 @@ impl ToobitCore {
         let mut rawNetworks: Value = self.safe_list_k(rawCurrency.clone(), "chainTypes", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1035: bool = true;
-            while { if !__for_first_1035 { j = add(&j, &Value::Int(1)); } __for_first_1035 = false; is_less_than(&j, &get_array_length(&rawNetworks)) } {
+            let mut __for_first_1056: bool = true;
+            while { if !__for_first_1056 { j = add(&j, &Value::Int(1)); } __for_first_1056 = false; is_less_than(&j, &get_array_length(&rawNetworks)) } {
             let mut rawNetwork: Value = get_value(&rawNetworks, &j);
             let mut rawNetwork: Value = get_value(&rawNetworks, &j);
             let mut networkId: Value = self.safe_string_k(rawNetwork.clone(), "chainType", &[]);
@@ -1707,8 +1707,8 @@ impl ToobitCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1036: bool = true;
-            while { if !__for_first_1036 { i = add(&i, &Value::Int(1)); } __for_first_1036 = false; is_less_than(&i, &get_array_length(&all)) } {
+            let mut __for_first_1057: bool = true;
+            while { if !__for_first_1057 { i = add(&i, &Value::Int(1)); } __for_first_1057 = false; is_less_than(&i, &get_array_length(&all)) } {
             let mut market: Value = get_value(&all, &i);
             let mut market: Value = get_value(&all, &i);
             let mut parsed: Value = self.parse_market(market.clone());
@@ -2181,7 +2181,7 @@ impl ToobitCore {
         m.insert("last".to_string(), last.clone());
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), self.safe_string_k(ticker.clone(), "pc", &[]));
-        m.insert("percentage".to_string(), self.safe_string_k(ticker.clone(), "pcp", &[]));
+        m.insert("percentage".to_string(), crate::precise::Precise::stringMul(&self.safe_string_k(ticker.clone(), "pcp", &[]), &Value::Str("100".to_string())));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), baseVolume.clone());
         m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "qv", &[]));
@@ -2295,8 +2295,8 @@ impl ToobitCore {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1037: bool = true;
-            while { if !__for_first_1037 { i = add(&i, &Value::Int(1)); } __for_first_1037 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_1058: bool = true;
+            while { if !__for_first_1058 { i = add(&i, &Value::Int(1)); } __for_first_1058 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut parsedTicker: Value = self.parse_bid_ask_custom(get_value(&tickers, &i));
             let mut ticker: Value = self.extend(parsedTicker.clone(), &[params.clone()]);
             append_to_array(&mut results, ticker.clone());
@@ -2499,8 +2499,8 @@ impl ToobitCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[response.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1038: bool = true;
-            while { if !__for_first_1038 { i = add(&i, &Value::Int(1)); } __for_first_1038 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1059: bool = true;
+            while { if !__for_first_1059 { i = add(&i, &Value::Int(1)); } __for_first_1059 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "asset", &[]), &[]);
@@ -2530,6 +2530,7 @@ impl ToobitCore {
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
@@ -2589,12 +2590,11 @@ impl ToobitCore {
         }
         let mut cost: Value = Value::Null;
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("cost".to_string()), &[]); cost = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        if is_equal(&type_var, &Value::Str("market".to_string())) {
-            if is_equal(&cost, &Value::Null) && is_equal(&side, &Value::Str("buy".to_string())) {
+        if is_equal(&type_var, &Value::Str("market".to_string())) && is_equal(&side, &Value::Str("buy".to_string())) {
+            if is_equal(&cost, &Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires params[\"cost\"] for market buy order".to_string()))));
-            }  else {
-                add_element_to_object(&mut request, &Value::Str("quantity".to_string()), self.cost_to_precision(symbol.clone(), cost.clone()));
             }
+            add_element_to_object(&mut request, &Value::Str("quantity".to_string()), self.cost_to_precision(symbol.clone(), cost.clone()));
         }  else {
             add_element_to_object(&mut request, &Value::Str("quantity".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
         }
@@ -3192,8 +3192,8 @@ impl ToobitCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1039: bool = true;
-            while { if !__for_first_1039 { i = add(&i, &Value::Int(1)); } __for_first_1039 = false; is_less_than(&i, &get_array_length(&responseList)) } {
+            let mut __for_first_1060: bool = true;
+            while { if !__for_first_1060 { i = add(&i, &Value::Int(1)); } __for_first_1060 = false; is_less_than(&i, &get_array_length(&responseList)) } {
             append_to_array(&mut ordersList, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), get_value(&responseList, &i));
@@ -3780,7 +3780,7 @@ impl ToobitCore {
                 m.insert("coin".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("address".to_string(), address.clone());
                 m.insert("quantity".to_string(), self.currency_to_precision(get_value(&currency, &Value::Str("code".to_string())), amount.clone(), &[]));
-                m.insert("chainType".to_string(), networkCode.clone());
+                m.insert("chainType".to_string(), self.network_code_to_id(networkCode.clone(), &[code.clone()]));
                 m.insert("clientOrderId".to_string(), self.milliseconds());
             m
         });
@@ -3898,13 +3898,13 @@ impl ToobitCore {
         //
         // [
         //     {
-        //         "symbol":"BTC-SWAP-USDT", //symbol
-        //         "leverage":"20",  // leverage
+        //         "symbolId":"ETH-SWAP-USDT",
+        //         "leverage":"50",
         //         "marginType":"CROSS" // CROSS;ISOLATED
         //     }
         // ]
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3915,10 +3915,10 @@ impl ToobitCore {
 
     pub fn parse_leverage(&self, mut leverage: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut marketId: Value = self.safe_string_k(leverage.clone(), "symbol", &[]);
+        let mut marketId: Value = self.safe_string2(leverage.clone(), Value::Str("symbolId".to_string()), Value::Str("symbol".to_string()), &[]);
         let mut leverageValue: Value = self.safe_integer_k(leverage.clone(), "leverage", &[]);
-        let mut marginType: Value = self.safe_string_k(leverage.clone(), "marginType", &[]);
-        let mut marginMode: Value = ternary(is_true(&(is_equal(&marginType, &Value::Str("crossed".to_string())))), Value::Str("cross".to_string()), Value::Str("isolated".to_string()));
+        let mut marginType: Value = self.safe_string_lower(leverage.clone(), Value::Str("marginType".to_string()), &[]);
+        let mut marginMode: Value = ternary(is_true(&(is_equal(&marginType, &Value::Str("cross".to_string())))), Value::Str("cross".to_string()), Value::Str("isolated".to_string()));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage.clone());

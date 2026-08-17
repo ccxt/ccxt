@@ -522,31 +522,6 @@ impl HtxCore {
         self.call_method(Value::Str("private_post_subuser_transfer".to_string()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `statusPublicSpotGetApiV2SummaryJson` implicit endpoint.
-    pub async fn status_public_spot_get_api_v2_summary_json(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("status_public_spot_get_api_v2_summary_json".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `statusPublicFutureInverseGetApiV2SummaryJson` implicit endpoint.
-    pub async fn status_public_future_inverse_get_api_v2_summary_json(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("status_public_future_inverse_get_api_v2_summary_json".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `statusPublicFutureLinearGetApiV2SummaryJson` implicit endpoint.
-    pub async fn status_public_future_linear_get_api_v2_summary_json(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("status_public_future_linear_get_api_v2_summary_json".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `statusPublicSwapInverseGetApiV2SummaryJson` implicit endpoint.
-    pub async fn status_public_swap_inverse_get_api_v2_summary_json(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("status_public_swap_inverse_get_api_v2_summary_json".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `statusPublicSwapLinearGetApiV2SummaryJson` implicit endpoint.
-    pub async fn status_public_swap_linear_get_api_v2_summary_json(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("status_public_swap_linear_get_api_v2_summary_json".to_string()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `spotPublicGetV2MarketStatus` implicit endpoint.
     pub async fn spot_public_get_v2_market_status(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_public_get_v2_market_status".to_string()), optional_args).await

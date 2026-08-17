@@ -1684,8 +1684,8 @@ impl ParadexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_998: bool = true;
-            while { if !__for_first_998 { i = add(&i, &Value::Int(1)); } __for_first_998 = false; is_less_than(&i, &get_array_length(&fees)) } {
+            let mut __for_first_1019: bool = true;
+            while { if !__for_first_1019 { i = add(&i, &Value::Int(1)); } __for_first_1019 = false; is_less_than(&i, &get_array_length(&fees)) } {
             let mut fee: Value = self.parse_trading_fee(get_value(&fees, &i), &[]);
             let mut symbol: Value = get_value(&fee, &Value::Str("symbol".to_string()));
             add_element_to_object(&mut result, &symbol, fee.clone());
@@ -2066,8 +2066,8 @@ impl ParadexCore {
         let mut trades: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_999: bool = true;
-            while { if !__for_first_999 { i = add(&i, &Value::Int(1)); } __for_first_999 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_1020: bool = true;
+            while { if !__for_first_1020 { i = add(&i, &Value::Int(1)); } __for_first_1020 = false; is_less_than(&i, &get_array_length(&trades)) } {
             add_element_to_object(get_value_mut(&mut trades, &i), &Value::Str("next".to_string()), self.safe_string_k(response.clone(), "next", &[]));
         }
         }
@@ -2938,8 +2938,8 @@ impl ParadexCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1000: bool = true;
-            while { if !__for_first_1000 { i = add(&i, &Value::Int(1)); } __for_first_1000 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_1021: bool = true;
+            while { if !__for_first_1021 { i = add(&i, &Value::Int(1)); } __for_first_1021 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -2984,8 +2984,8 @@ impl ParadexCore {
         let mut errors: Value = self.safe_list_k(response.clone(), "errors", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1001: bool = true;
-            while { if !__for_first_1001 { i = add(&i, &Value::Int(1)); } __for_first_1001 = false; is_less_than(&i, &get_array_length(&errors)) } {
+            let mut __for_first_1022: bool = true;
+            while { if !__for_first_1022 { i = add(&i, &Value::Int(1)); } __for_first_1022 = false; is_less_than(&i, &get_array_length(&errors)) } {
             let mut error: Value = get_value(&errors, &i);
             let mut error: Value = get_value(&errors, &i);
             append_to_array(&mut parsedOrders, self.safe_order(Value::Map({
@@ -3111,8 +3111,8 @@ impl ParadexCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1002: bool = true;
-            while { if !__for_first_1002 { i = add(&i, &Value::Int(1)); } __for_first_1002 = false; is_less_than(&i, &get_array_length(&results)) } {
+            let mut __for_first_1023: bool = true;
+            while { if !__for_first_1023 { i = add(&i, &Value::Int(1)); } __for_first_1023 = false; is_less_than(&i, &get_array_length(&results)) } {
             let mut result: Value = get_value(&results, &i);
             let mut result: Value = get_value(&results, &i);
             let mut marketId: Value = self.safe_string_k(result.clone(), "market", &[]);
@@ -3435,8 +3435,8 @@ impl ParadexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1003: bool = true;
-            while { if !__for_first_1003 { i = add(&i, &Value::Int(1)); } __for_first_1003 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_1024: bool = true;
+            while { if !__for_first_1024 { i = add(&i, &Value::Int(1)); } __for_first_1024 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = self.safe_dict(response.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3529,8 +3529,8 @@ impl ParadexCore {
         let mut trades: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1004: bool = true;
-            while { if !__for_first_1004 { i = add(&i, &Value::Int(1)); } __for_first_1004 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_1025: bool = true;
+            while { if !__for_first_1025 { i = add(&i, &Value::Int(1)); } __for_first_1025 = false; is_less_than(&i, &get_array_length(&trades)) } {
             add_element_to_object(get_value_mut(&mut trades, &i), &Value::Str("next".to_string()), self.safe_string_k(response.clone(), "next", &[]));
         }
         }
@@ -3833,8 +3833,8 @@ impl ParadexCore {
         let mut deposits: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1005: bool = true;
-            while { if !__for_first_1005 { i = add(&i, &Value::Int(1)); } __for_first_1005 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_1026: bool = true;
+            while { if !__for_first_1026 { i = add(&i, &Value::Int(1)); } __for_first_1026 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut row: Value = get_value(&rows, &i);
             let mut row: Value = get_value(&rows, &i);
             if is_equal(&get_value(&row, &Value::Str("kind".to_string())), &Value::Str("DEPOSIT".to_string())) {
@@ -3915,8 +3915,8 @@ impl ParadexCore {
         let mut deposits: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1006: bool = true;
-            while { if !__for_first_1006 { i = add(&i, &Value::Int(1)); } __for_first_1006 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_1027: bool = true;
+            while { if !__for_first_1027 { i = add(&i, &Value::Int(1)); } __for_first_1027 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut row: Value = get_value(&rows, &i);
             let mut row: Value = get_value(&rows, &i);
             if is_equal(&get_value(&row, &Value::Str("kind".to_string())), &Value::Str("WITHDRAWAL".to_string())) {
@@ -4709,8 +4709,8 @@ impl ParadexCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1007: bool = true;
-            while { if !__for_first_1007 { i = add(&i, &Value::Int(1)); } __for_first_1007 = false; is_less_than(&i, &get_array_length(&results)) } {
+            let mut __for_first_1028: bool = true;
+            while { if !__for_first_1028 { i = add(&i, &Value::Int(1)); } __for_first_1028 = false; is_less_than(&i, &get_array_length(&results)) } {
             let mut rate: Value = get_value(&results, &i);
             let mut rate: Value = get_value(&results, &i);
             let mut timestamp: Value = self.safe_integer_k(rate.clone(), "created_at", &[]);

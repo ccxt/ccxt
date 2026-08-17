@@ -1151,8 +1151,8 @@ impl BitteamCore {
         let mut typeRaw: Value = self.safe_string_k(currency.clone(), "type", &[]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_404: bool = true;
-            while { if !__for_first_404 { j = add(&j, &Value::Int(1)); } __for_first_404 = false; is_less_than(&j, &get_array_length(&networkIds)) } {
+            let mut __for_first_406: bool = true;
+            while { if !__for_first_406 { j = add(&j, &Value::Int(1)); } __for_first_406 = false; is_less_than(&j, &get_array_length(&networkIds)) } {
             let mut networkId: Value = get_value(&networkIds, &j);
             let mut networkId: Value = get_value(&networkIds, &j);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
@@ -2092,8 +2092,8 @@ impl BitteamCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_405: bool = true;
-            while { if !__for_first_405 { i = add(&i, &Value::Int(1)); } __for_first_405 = false; is_less_than(&i, &get_array_length(&rawTickers)) } {
+            let mut __for_first_407: bool = true;
+            while { if !__for_first_407 { i = add(&i, &Value::Int(1)); } __for_first_407 = false; is_less_than(&i, &get_array_length(&rawTickers)) } {
             let mut rawTicker: Value = get_value(&rawTickers, &i);
             let mut rawTicker: Value = get_value(&rawTickers, &i);
             let mut ticker: Value = self.parse_ticker(rawTicker.clone(), &[]);
@@ -2878,8 +2878,8 @@ impl BitteamCore {
         let mut rawCurrencyIds: Value = object_keys(&balanceByCurrencies);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_406: bool = true;
-            while { if !__for_first_406 { i = add(&i, &Value::Int(1)); } __for_first_406 = false; is_less_than(&i, &get_array_length(&rawCurrencyIds)) } {
+            let mut __for_first_408: bool = true;
+            while { if !__for_first_408 { i = add(&i, &Value::Int(1)); } __for_first_408 = false; is_less_than(&i, &get_array_length(&rawCurrencyIds)) } {
             let mut rawCurrencyId: Value = get_value(&rawCurrencyIds, &i);
             let mut rawCurrencyId: Value = get_value(&rawCurrencyIds, &i);
             let mut currencyBalance: Value = self.safe_value(result.clone(), rawCurrencyId.clone(), &[]);

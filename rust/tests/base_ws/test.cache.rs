@@ -167,8 +167,8 @@ pub fn testWsCache() {
     let mut cacheSymbolId5 = ArrayCacheBySymbolById::new(Value::Int(5));
     {
                 let mut i: Value = Value::Int(1);
-        let mut __for_first_1361: bool = true;
-        while { if !__for_first_1361 { i = add(&i, &Value::Int(1)); } __for_first_1361 = false; is_less_than(&i, &Value::Int(11)) } {
+        let mut __for_first_1382: bool = true;
+        while { if !__for_first_1382 { i = add(&i, &Value::Int(1)); } __for_first_1382 = false; is_less_than(&i, &Value::Int(11)) } {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
@@ -211,8 +211,8 @@ pub fn testWsCache() {
 })])))));
     {
                 let mut i: Value = Value::Int(1);
-        let mut __for_first_1362: bool = true;
-        while { if !__for_first_1362 { i = add(&i, &Value::Int(1)); } __for_first_1362 = false; is_less_than(&i, &Value::Int(11)) } {
+        let mut __for_first_1383: bool = true;
+        while { if !__for_first_1383 { i = add(&i, &Value::Int(1)); } __for_first_1383 = false; is_less_than(&i, &Value::Int(11)) } {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
@@ -333,8 +333,8 @@ pub fn testWsCache() {
 })])))));
     {
                 let mut i: Value = Value::Int(30);
-        let mut __for_first_1363: bool = true;
-        while { if !__for_first_1363 { i = add(&i, &Value::Int(1)); } __for_first_1363 = false; is_less_than(&i, &Value::Int(33)) } {
+        let mut __for_first_1384: bool = true;
+        while { if !__for_first_1384 { i = add(&i, &Value::Int(1)); } __for_first_1384 = false; is_less_than(&i, &Value::Int(33)) } {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
@@ -460,8 +460,8 @@ pub fn testWsCache() {
     let mut initialLength: Value = Value::Int(5);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1364: bool = true;
-        while { if !__for_first_1364 { i = add(&i, &Value::Int(1)); } __for_first_1364 = false; is_less_than(&i, &initialLength) } {
+        let mut __for_first_1385: bool = true;
+        while { if !__for_first_1385 { i = add(&i, &Value::Int(1)); } __for_first_1385 = false; is_less_than(&i, &initialLength) } {
         cacheSymbolId2.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -478,8 +478,8 @@ pub fn testWsCache() {
     let mut appendItemsLength: Value = Value::Int(3);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1365: bool = true;
-        while { if !__for_first_1365 { i = add(&i, &Value::Int(1)); } __for_first_1365 = false; is_less_than(&i, &appendItemsLength) } {
+        let mut __for_first_1386: bool = true;
+        while { if !__for_first_1386 { i = add(&i, &Value::Int(1)); } __for_first_1386 = false; is_less_than(&i, &appendItemsLength) } {
         cacheSymbolId3.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -502,8 +502,8 @@ pub fn testWsCache() {
     initialLength = Value::Int(5);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1366: bool = true;
-        while { if !__for_first_1366 { i = add(&i, &Value::Int(1)); } __for_first_1366 = false; is_less_than(&i, &initialLength) } {
+        let mut __for_first_1387: bool = true;
+        while { if !__for_first_1387 { i = add(&i, &Value::Int(1)); } __for_first_1387 = false; is_less_than(&i, &initialLength) } {
         cacheSymbolId4.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -520,8 +520,8 @@ pub fn testWsCache() {
     appendItemsLength = Value::Int(3);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1367: bool = true;
-        while { if !__for_first_1367 { i = add(&i, &Value::Int(1)); } __for_first_1367 = false; is_less_than(&i, &appendItemsLength) } {
+        let mut __for_first_1388: bool = true;
+        while { if !__for_first_1388 { i = add(&i, &Value::Int(1)); } __for_first_1388 = false; is_less_than(&i, &appendItemsLength) } {
         cacheSymbolId6.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -574,8 +574,8 @@ pub fn testWsCache() {
     initialLength = Value::Int(5);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1368: bool = true;
-        while { if !__for_first_1368 { i = add(&i, &Value::Int(1)); } __for_first_1368 = false; is_less_than(&i, &initialLength) } {
+        let mut __for_first_1389: bool = true;
+        while { if !__for_first_1389 { i = add(&i, &Value::Int(1)); } __for_first_1389 = false; is_less_than(&i, &initialLength) } {
         timestampCache2.append(Value::List(vec![multiply(&i, &Value::Int(10)), multiply(&i, &Value::Int(10)), multiply(&i, &Value::Int(10)), multiply(&i, &Value::Int(10))]));
     }
     }
@@ -584,8 +584,8 @@ pub fn testWsCache() {
     appendItemsLength = Value::Int(3);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1369: bool = true;
-        while { if !__for_first_1369 { i = add(&i, &Value::Int(1)); } __for_first_1369 = false; is_less_than(&i, &appendItemsLength) } {
+        let mut __for_first_1390: bool = true;
+        while { if !__for_first_1390 { i = add(&i, &Value::Int(1)); } __for_first_1390 = false; is_less_than(&i, &appendItemsLength) } {
         timestampCache2.append(Value::List(vec![multiply(&i, &Value::Int(4)), multiply(&i, &Value::Int(4)), multiply(&i, &Value::Int(4)), multiply(&i, &Value::Int(4))]));
     }
     }
@@ -844,4 +844,455 @@ pub fn testWsCache() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(2)), &Value::Str("contracts".to_string())), &Value::Int(4)) && is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(2)), &Value::Str("symbol".to_string())), &symbol2)))));
     let mut arrayLength: Value = get_array_length(&cacheSymbolSide4);
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&arrayLength, &Value::Int(3))))));
+    // ----------------------------------------------------------------------------
+    // test clear () really resets ArrayCacheBySymbolById - the hashmap used to keep
+    // claiming the cleared ids, so re-appending them merged into orphaned references
+    // and findIndex returned -1, making splice (-1, 1) drop an unrelated row
+    let mut cacheClearById = ArrayCacheBySymbolById::new(Value::Null);
+    cacheClearById.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("id".to_string(), Value::Str("a".to_string()));
+            m.insert("i".to_string(), Value::Int(1));
+        m
+    }));
+    cacheClearById.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("id".to_string(), Value::Str("b".to_string()));
+            m.insert("i".to_string(), Value::Int(2));
+        m
+    }));
+    cacheClearById.clear();
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&cacheClearById), &Value::Int(0))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&cacheClearById.get_limit(Value::Null, Value::Int(10)), &Value::Int(0)))))); // no phantom updates
+    cacheClearById.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("id".to_string(), Value::Str("a".to_string()));
+            m.insert("i".to_string(), Value::Int(3));
+        m
+    }));
+    cacheClearById.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("id".to_string(), Value::Str("b".to_string()));
+            m.insert("i".to_string(), Value::Int(4));
+        m
+    }));
+    assert!(ccxt::runtime::is_true(&(equals(cacheClearById.clone(), Value::List(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+        m.insert("id".to_string(), Value::Str("a".to_string()));
+        m.insert("i".to_string(), Value::Int(3));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+        m.insert("id".to_string(), Value::Str("b".to_string()));
+        m.insert("i".to_string(), Value::Int(4));
+    m
+})])))));
+    // ----------------------------------------------------------------------------
+    // test clear () really resets ArrayCacheByTimestamp - a re-appended timestamp
+    // used to merge into a reference that was no longer in the array, so the candle
+    // was silently dropped and the cache stayed empty
+    let mut cacheClearTimestamp = ArrayCacheByTimestamp::new(Value::Null);
+    cacheClearTimestamp.append(Value::List(vec![Value::Int(100), Value::Int(1), Value::Int(2), Value::Int(3)]));
+    cacheClearTimestamp.append(Value::List(vec![Value::Int(200), Value::Int(4), Value::Int(5), Value::Int(6)]));
+    cacheClearTimestamp.clear();
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&cacheClearTimestamp), &Value::Int(0))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&cacheClearTimestamp.get_limit(Value::Null, Value::Int(10)), &Value::Int(0)))))); // no phantom updates
+    cacheClearTimestamp.append(Value::List(vec![Value::Int(100), Value::Int(7), Value::Int(8), Value::Int(9)]));
+    assert!(ccxt::runtime::is_true(&(equals(cacheClearTimestamp.clone(), Value::List(vec![Value::List(vec![Value::Int(100), Value::Int(7), Value::Int(8), Value::Int(9)])])))));
+    // ----------------------------------------------------------------------------
+    // test clear () really resets ArrayCacheBySymbolBySide
+    let mut cacheClearBySide = ArrayCacheBySymbolBySide::new(Value::Null);
+    cacheClearBySide.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("contracts".to_string(), Value::Int(1));
+        m
+    }));
+    cacheClearBySide.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("ETH/USDT".to_string()));
+            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("contracts".to_string(), Value::Int(2));
+        m
+    }));
+    cacheClearBySide.clear();
+    let mut clearedBySideLength: Value = get_array_length(&cacheClearBySide);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&clearedBySideLength, &Value::Int(0))))));
+    cacheClearBySide.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("contracts".to_string(), Value::Int(3));
+        m
+    }));
+    cacheClearBySide.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("ETH/USDT".to_string()));
+            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("contracts".to_string(), Value::Int(4));
+        m
+    }));
+    let mut reappendedBySideLength: Value = get_array_length(&cacheClearBySide);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&reappendedBySideLength, &Value::Int(2))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheClearBySide, &Value::Int(0)), &Value::Str("contracts".to_string())), &Value::Int(3))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheClearBySide, &Value::Int(1)), &Value::Str("contracts".to_string())), &Value::Int(4))))));
+    // ----------------------------------------------------------------------------
+    // test a falsy maxSize means unbounded, it must not swallow rows
+    let mut cacheUnbounded = ArrayCache::new(Value::Int(0));
+    cacheUnbounded.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("data".to_string(), Value::Int(1));
+        m
+    }));
+    cacheUnbounded.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("data".to_string(), Value::Int(2));
+        m
+    }));
+    cacheUnbounded.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("data".to_string(), Value::Int(3));
+        m
+    }));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&cacheUnbounded), &Value::Int(3))))));
+    // ----------------------------------------------------------------------------
+    // test a keyed update MERGES fields instead of replacing the row - a partial
+    // order delta must not drop the fields it does not mention
+    let mut cachePartial = ArrayCacheBySymbolById::new(Value::Null);
+    cachePartial.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("id".to_string(), Value::Str("a1".to_string()));
+            m.insert("status".to_string(), Value::Str("open".to_string()));
+            m.insert("amount".to_string(), Value::Int(5));
+            m.insert("fee".to_string(), Value::Int(7));
+        m
+    }));
+    cachePartial.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("id".to_string(), Value::Str("a1".to_string()));
+            m.insert("status".to_string(), Value::Str("closed".to_string()));
+        m
+    }));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&cachePartial), &Value::Int(1))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cachePartial, &Value::Int(0)), &Value::Str("status".to_string())), &Value::Str("closed".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cachePartial, &Value::Int(0)), &Value::Str("amount".to_string())), &Value::Int(5))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cachePartial, &Value::Int(0)), &Value::Str("fee".to_string())), &Value::Int(7))))));
+    // ----------------------------------------------------------------------------
+    // test the symbol and the id are matched as two separate fields - concatenating
+    // them makes ('BTC/USDT1', '2') collide with ('BTC/USDT', '12')
+    let mut cacheColliding = ArrayCacheBySymbolById::new(Value::Null);
+    cacheColliding.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT1".to_string()));
+            m.insert("id".to_string(), Value::Str("2".to_string()));
+            m.insert("i".to_string(), Value::Int(1));
+        m
+    }));
+    cacheColliding.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("id".to_string(), Value::Str("12".to_string()));
+            m.insert("i".to_string(), Value::Int(2));
+        m
+    }));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&cacheColliding), &Value::Int(2))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheColliding, &Value::Int(0)), &Value::Str("i".to_string())), &Value::Int(1))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheColliding, &Value::Int(1)), &Value::Str("i".to_string())), &Value::Int(2))))));
+    // ----------------------------------------------------------------------------
+    // test two symbols may share one order id - matching on the id alone splices
+    // out the wrong row, so assert the positional contents and not just the count
+    let mut cacheSharedId = ArrayCacheBySymbolById::new(Value::Null);
+    cacheSharedId.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("id".to_string(), Value::Str("shared".to_string()));
+            m.insert("i".to_string(), Value::Int(1));
+        m
+    }));
+    cacheSharedId.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("ETH/USDT".to_string()));
+            m.insert("id".to_string(), Value::Str("shared".to_string()));
+            m.insert("i".to_string(), Value::Int(2));
+        m
+    }));
+    cacheSharedId.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("id".to_string(), Value::Str("shared".to_string()));
+            m.insert("i".to_string(), Value::Int(3));
+        m
+    }));
+    assert!(ccxt::runtime::is_true(&(equals(cacheSharedId.clone(), Value::List(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("symbol".to_string(), Value::Str("ETH/USDT".to_string()));
+        m.insert("id".to_string(), Value::Str("shared".to_string()));
+        m.insert("i".to_string(), Value::Int(2));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+        m.insert("id".to_string(), Value::Str("shared".to_string()));
+        m.insert("i".to_string(), Value::Int(3));
+    m
+})])))));
+    // ----------------------------------------------------------------------------
+    // test ArrayCacheByTimestamp eviction. Re-appending an evicted timestamp must
+    // create a fresh row at the end, which proves the hashmap entry went away with
+    // the evicted candle instead of leaking
+    let mut cacheTimestampLimited = ArrayCacheByTimestamp::new(Value::Int(3));
+    {
+                let mut i: Value = Value::Int(1);
+        let mut __for_first_1391: bool = true;
+        while { if !__for_first_1391 { i = add(&i, &Value::Int(1)); } __for_first_1391 = false; is_less_than(&i, &Value::Int(7)) } {
+        cacheTimestampLimited.append(Value::List(vec![multiply(&i, &Value::Int(100)), i.clone(), i.clone(), i.clone()]));
+    }
+    }
+    assert!(ccxt::runtime::is_true(&(equals(cacheTimestampLimited.clone(), Value::List(vec![Value::List(vec![Value::Int(400), Value::Int(4), Value::Int(4), Value::Int(4)]), Value::List(vec![Value::Int(500), Value::Int(5), Value::Int(5), Value::Int(5)]), Value::List(vec![Value::Int(600), Value::Int(6), Value::Int(6), Value::Int(6)])])))));
+    cacheTimestampLimited.append(Value::List(vec![Value::Int(100), Value::Int(9), Value::Int(9), Value::Int(9)]));
+    assert!(ccxt::runtime::is_true(&(equals(cacheTimestampLimited.clone(), Value::List(vec![Value::List(vec![Value::Int(500), Value::Int(5), Value::Int(5), Value::Int(5)]), Value::List(vec![Value::Int(600), Value::Int(6), Value::Int(6), Value::Int(6)]), Value::List(vec![Value::Int(100), Value::Int(9), Value::Int(9), Value::Int(9)])])))));
+    // ----------------------------------------------------------------------------
+    // test a shorter OHLCV update does not leave a stale tail behind - merging
+    // [ 100, 9, 9 ] onto [ 100, 1, 2, 3, 4, 5 ] used to yield [ 100, 9, 9, 3, 4, 5 ]
+    let mut cacheShortOhlcv = ArrayCacheByTimestamp::new(Value::Null);
+    cacheShortOhlcv.append(Value::List(vec![Value::Int(100), Value::Int(1), Value::Int(2), Value::Int(3), Value::Int(4), Value::Int(5)]));
+    cacheShortOhlcv.append(Value::List(vec![Value::Int(100), Value::Int(9), Value::Int(9)]));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&cacheShortOhlcv), &Value::Int(1))))));
+    assert!(ccxt::runtime::is_true(&(equals(cacheShortOhlcv.clone(), Value::List(vec![Value::List(vec![Value::Int(100), Value::Int(9), Value::Int(9)])])))));
+    // ----------------------------------------------------------------------------
+    // test ArrayCacheByOutcomeById keys the first nesting level on the outcome and
+    // not on the symbol - prediction markets stream several outcomes of the same
+    // market, so a symbol-keyed lookup would merge two distinct outcomes that
+    // happen to share one order id into a single row
+    let mut cacheByOutcome = ArrayCacheByOutcomeById::new(Value::Null);
+    cacheByOutcome.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("TRUMP-2024".to_string()));
+            m.insert("outcome".to_string(), Value::Str("yes".to_string()));
+            m.insert("id".to_string(), Value::Str("o1".to_string()));
+            m.insert("i".to_string(), Value::Int(1));
+        m
+    }));
+    cacheByOutcome.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("TRUMP-2024".to_string()));
+            m.insert("outcome".to_string(), Value::Str("no".to_string()));
+            m.insert("id".to_string(), Value::Str("o1".to_string()));
+            m.insert("i".to_string(), Value::Int(2));
+        m
+    }));
+    cacheByOutcome.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("TRUMP-2024".to_string()));
+            m.insert("outcome".to_string(), Value::Str("yes".to_string()));
+            m.insert("id".to_string(), Value::Str("o1".to_string()));
+            m.insert("i".to_string(), Value::Int(3));
+        m
+    }));
+    assert!(ccxt::runtime::is_true(&(equals(cacheByOutcome.clone(), Value::List(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("symbol".to_string(), Value::Str("TRUMP-2024".to_string()));
+        m.insert("outcome".to_string(), Value::Str("no".to_string()));
+        m.insert("id".to_string(), Value::Str("o1".to_string()));
+        m.insert("i".to_string(), Value::Int(2));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("symbol".to_string(), Value::Str("TRUMP-2024".to_string()));
+        m.insert("outcome".to_string(), Value::Str("yes".to_string()));
+        m.insert("id".to_string(), Value::Str("o1".to_string()));
+        m.insert("i".to_string(), Value::Int(3));
+    m
+})])))));
+    // ----------------------------------------------------------------------------
+    // test a numeric id is matched the same way a string one is - exchanges do send
+    // integer order ids, and the lookup must neither throw nor miss and append a
+    // duplicate row instead of merging the update in
+    let mut cacheNumericId = ArrayCacheBySymbolById::new(Value::Null);
+    cacheNumericId.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("id".to_string(), Value::Int(1));
+            m.insert("status".to_string(), Value::Str("open".to_string()));
+            m.insert("amount".to_string(), Value::Int(5));
+        m
+    }));
+    cacheNumericId.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("id".to_string(), Value::Int(1));
+            m.insert("status".to_string(), Value::Str("closed".to_string()));
+        m
+    }));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&cacheNumericId), &Value::Int(1))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheNumericId, &Value::Int(0)), &Value::Str("status".to_string())), &Value::Str("closed".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheNumericId, &Value::Int(0)), &Value::Str("amount".to_string())), &Value::Int(5))))));
+    // ----------------------------------------------------------------------------
+    // test eviction removes the emptied outer bucket too - a stream of short-lived
+    // symbols used to leak one empty object per symbol into the hashmap forever,
+    // so the map grew without bound even though the array stayed at maxSize
+    let mut cacheEvictBuckets = ArrayCacheBySymbolById::new(Value::Int(3));
+    {
+                let mut i: Value = Value::Int(0);
+        let mut __for_first_1392: bool = true;
+        while { if !__for_first_1392 { i = add(&i, &Value::Int(1)); } __for_first_1392 = false; is_less_than(&i, &Value::Int(10)) } {
+        cacheEvictBuckets.append(Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("symbol".to_string(), add(&add(&Value::Str("S".to_string()), &to_string_val(&i)), &Value::Str("/USDT".to_string())));
+                m.insert("id".to_string(), Value::Str("x".to_string()));
+                m.insert("i".to_string(), i.clone());
+            m
+        }));
+    }
+    }
+    let mut evictedLength: Value = get_array_length(&cacheEvictBuckets);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&evictedLength, &Value::Int(3))))));
+    let mut bucketKeys: Value = object_keys(&get_value(&cacheEvictBuckets, &Value::Str("hashmap".to_string())));
+    let mut bucketCount: Value = get_array_length(&bucketKeys);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&bucketCount, &Value::Int(3)))))); // no empty leftover buckets
+    // ----------------------------------------------------------------------------
+    // test the symbol-scoped and the global getLimit scopes count independently -
+    // deriving the global count from the symbol-scoped seen set double-counts an
+    // id that updates again after a symbol poll
+    let mut cacheTwoScopes = ArrayCacheBySymbolById::new(Value::Null);
+    cacheTwoScopes.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("id".to_string(), Value::Str("a".to_string()));
+            m.insert("i".to_string(), Value::Int(1));
+        m
+    }));
+    cacheTwoScopes.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("id".to_string(), Value::Str("b".to_string()));
+            m.insert("i".to_string(), Value::Int(2));
+        m
+    }));
+    let mut symbolScopeFirst: Value = cacheTwoScopes.get_limit(Value::Str("BTC/USDT".to_string()), Value::Int(100));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&symbolScopeFirst, &Value::Int(2))))));
+    cacheTwoScopes.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("id".to_string(), Value::Str("a".to_string()));
+            m.insert("i".to_string(), Value::Int(3));
+        m
+    }));
+    let mut globalScope: Value = cacheTwoScopes.get_limit(Value::Null, Value::Int(100));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&globalScope, &Value::Int(2)))))); // distinct ids a and b since no global poll happened - id a must not double-count
+    let mut symbolScopeSecond: Value = cacheTwoScopes.get_limit(Value::Str("BTC/USDT".to_string()), Value::Int(100));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&symbolScopeSecond, &Value::Int(1)))))); // id a since the last symbol-scoped poll
+    // the inverse direction: a global poll (and the append that fires its
+    // deferred reset) must not erase the symbol scope's window
+    cacheTwoScopes.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("id".to_string(), Value::Str("d".to_string()));
+            m.insert("i".to_string(), Value::Int(4));
+        m
+    }));
+    cacheTwoScopes.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("id".to_string(), Value::Str("e".to_string()));
+            m.insert("i".to_string(), Value::Int(5));
+        m
+    }));
+    let mut globalScopeSecond: Value = cacheTwoScopes.get_limit(Value::Null, Value::Int(100));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&globalScopeSecond, &Value::Int(2)))))); // ids d and e since the first global poll - id a was consumed by it
+    cacheTwoScopes.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("id".to_string(), Value::Str("d".to_string()));
+            m.insert("i".to_string(), Value::Int(6));
+        m
+    }));
+    let mut symbolScopeThird: Value = cacheTwoScopes.get_limit(Value::Str("BTC/USDT".to_string()), Value::Int(100));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&symbolScopeThird, &Value::Int(2)))))); // ids d, e since the last symbol poll - the global poll in between must not reset this window
+    // ----------------------------------------------------------------------------
+    // the BySide twin of the two-scope case, covering both directions
+    let mut sideTwoScopes = ArrayCacheBySymbolBySide::new(Value::Null);
+    sideTwoScopes.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".to_string()));
+            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("contracts".to_string(), Value::Int(1));
+        m
+    }));
+    sideTwoScopes.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".to_string()));
+            m.insert("side".to_string(), Value::Str("short".to_string()));
+            m.insert("contracts".to_string(), Value::Int(1));
+        m
+    }));
+    let mut sideSymbolFirst: Value = sideTwoScopes.get_limit(Value::Str("BTC/USDT:USDT".to_string()), Value::Int(100));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&sideSymbolFirst, &Value::Int(2))))));
+    sideTwoScopes.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".to_string()));
+            m.insert("side".to_string(), Value::Str("long".to_string()));
+            m.insert("contracts".to_string(), Value::Int(2));
+        m
+    }));
+    let mut sideGlobal: Value = sideTwoScopes.get_limit(Value::Null, Value::Int(100));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&sideGlobal, &Value::Int(2)))))); // long and short distinct since no global poll - the re-updated long must not double-count
+    sideTwoScopes.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".to_string()));
+            m.insert("side".to_string(), Value::Str("short".to_string()));
+            m.insert("contracts".to_string(), Value::Int(2));
+        m
+    }));
+    let mut sideSymbolSecond: Value = sideTwoScopes.get_limit(Value::Str("BTC/USDT:USDT".to_string()), Value::Int(100));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&sideSymbolSecond, &Value::Int(2)))))); // long and short since the last symbol poll - the global poll must not reset this window
+    // ----------------------------------------------------------------------------
+    // eviction bounds the seen scopes: an id evicted by maxSize leaves both seen
+    // sets, so the counts mean distinct ids within the retained window - exactly
+    // what a consumer can slice - and single-scope pollers stay bounded
+    let mut cacheEvictSeen = ArrayCacheBySymbolById::new(Value::Int(2));
+    cacheEvictSeen.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("id".to_string(), Value::Str("a".to_string()));
+            m.insert("i".to_string(), Value::Int(1));
+        m
+    }));
+    cacheEvictSeen.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("id".to_string(), Value::Str("b".to_string()));
+            m.insert("i".to_string(), Value::Int(2));
+        m
+    }));
+    cacheEvictSeen.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("id".to_string(), Value::Str("c".to_string()));
+            m.insert("i".to_string(), Value::Int(3));
+        m
+    })); // evicts id a
+    let mut evictSymbolCount: Value = cacheEvictSeen.get_limit(Value::Str("BTC/USDT".to_string()), Value::Int(100));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&evictSymbolCount, &Value::Int(2)))))); // ids b and c - the evicted id a no longer counts
+    cacheEvictSeen.append(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("id".to_string(), Value::Str("d".to_string()));
+            m.insert("i".to_string(), Value::Int(4));
+        m
+    })); // evicts id b
+    let mut evictGlobalCount: Value = cacheEvictSeen.get_limit(Value::Null, Value::Int(100));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&evictGlobalCount, &Value::Int(2)))))); // ids c and d - the counts track distinct ids within the retained window in both scopes
 }

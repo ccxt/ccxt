@@ -162,6 +162,56 @@ pub fn set_prediction_mode(on: bool) {
 pub fn is_prediction_mode() -> bool {
     PREDICTION_MODE.load(Ordering::Relaxed)
 }
+
+/// Set once when a static-WS test registers its mock transport
+/// (`setupWsMockTransport`). Static-WS tests use a FRESH offline Core per case,
+/// so pushing the snapshot's (per-case-merged) `options` to the Core is both
+/// needed — e.g. okx `watchOrderBook` reads `options.watchOrderBook.depth` to
+/// pick the `books-rpi` channel — and safe (no persistent subscription state to
+/// clobber, unlike the live `--ws` path where the write-through is skipped).
+static STATIC_WS_MODE: AtomicBool = AtomicBool::new(false);
+/// Armed by `setupWsMockTransport` at the start of each static-WS case; consumed
+/// by the FIRST `watch*` dispatch of that case. The options write-through must
+/// happen once — before the watch subscribes — NOT on every re-watch call in the
+/// parsedResponse drain loop (repeated writes clobber the Core's per-case book /
+/// subscription state, giving non-deterministic results and hangs).
+static WS_OPTIONS_PENDING: AtomicBool = AtomicBool::new(false);
+
+pub fn set_static_ws_mode(on: bool) {
+    STATIC_WS_MODE.store(on, Ordering::Relaxed);
+    WS_OPTIONS_PENDING.store(on, Ordering::Relaxed);
+}
+
+pub fn is_static_ws_mode() -> bool {
+    STATIC_WS_MODE.load(Ordering::Relaxed)
+}
+
+/// True at most once per case — the first WS dispatch after `setupWsMockTransport`.
+fn take_ws_options_pending() -> bool {
+    WS_OPTIONS_PENDING.swap(false, Ordering::Relaxed)
+}
+
+thread_local! {
+    /// The per-case options DELTA — the `extendExchangeOptions(...)` args the
+    /// static-WS harness applies (global + per-case fixture `options`). Only the
+    /// delta (not the whole describe-seeded snapshot) is pushed to the Core, so a
+    /// per-case key like `watchOrderBook.depth = books-rpi` overrides the Core's
+    /// describe default while everything else the Core set stays intact.
+    static WS_TEST_OPTIONS: std::cell::RefCell<Value> = const { std::cell::RefCell::new(Value::Null) };
+}
+
+/// Merge one `extendExchangeOptions` payload into the pending per-case delta.
+pub fn ws_test_options_accumulate(new_options: Value) {
+    WS_TEST_OPTIONS.with(|c| {
+        let cur = c.borrow().clone();
+        *c.borrow_mut() = ccxt::value::deep_extend(cur, new_options);
+    });
+}
+
+/// Take (and clear) the accumulated per-case options delta.
+fn ws_test_options_take() -> Value {
+    WS_TEST_OPTIONS.with(|c| std::mem::replace(&mut *c.borrow_mut(), Value::Null))
+}
 use crate::registry::for_each_core;
 use crate::registry::for_each_ws_core;
 use indexmap::IndexMap as HashMap;
@@ -339,13 +389,32 @@ pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
     // 2nd call blocks forever. Skip the write-throughs for watch*/unWatch*.
     let is_ws_method = method.starts_with("watch") || method.starts_with("un_watch")
         || method.starts_with("unWatch");
-    if !is_ws_method {
+    // Skip the options write-through for the LIVE ws path (persistent Core). For
+    // static-WS, write it exactly ONCE per case (the first watch dispatch), so
+    // the per-case options reach the fresh Core (e.g. okx watchOrderBook depth →
+    // books-rpi) without clobbering accumulated state on re-watch calls.
+    let write_opts = if is_ws_method { is_static_ws_mode() && take_ws_options_pending() } else { true };
+    if write_opts {
         // Pre-flight: propagate snapshot writes (e.g. `options.uta = false`
         // in the kucoin broker test) to the live Core before the call so the
         // dispatched code path observes them.
-        let opts = ccxt::get_value(ex, &Value::Str("options".to_string()));
-        if matches!(opts, Value::Dict(_)) {
-            (entry.write_options)(entry.ptr.0, opts);
+        if is_ws_method {
+            // Merge ONLY the per-case options delta onto the Core's live options
+            // (delta wins), so a per-case key like watchOrderBook.depth = books-rpi
+            // overrides the Core's describe default without the stale init snapshot
+            // clobbering options the Core set dynamically at construct.
+            let delta = ws_test_options_take();
+            if matches!(delta, Value::Dict(_)) {
+                let core_opts = (entry.read_field)(entry.ptr.0, "options").unwrap_or(Value::Null);
+                (entry.write_options)(entry.ptr.0, ccxt::value::deep_extend(core_opts, delta));
+            }
+        } else {
+            // REST replaces outright (the snapshot mirrors describe().options and
+            // is reset per case).
+            let opts = ccxt::get_value(ex, &Value::Str("options".to_string()));
+            if matches!(opts, Value::Dict(_)) {
+                (entry.write_options)(entry.ptr.0, opts);
+            }
         }
     }
     {

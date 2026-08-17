@@ -385,6 +385,9 @@ fn ws_url(url: &Value) -> String {
 
 /// Register a connected, socket-less client whose sends are captured.
 pub fn setupWsMockTransport(_exchange: Value, url: Value) -> Value {
+    // Mark static-WS mode so `dispatch` propagates per-case `options` (e.g. okx
+    // `watchOrderBook` depth) to the fresh Core — safe here, unlike live `--ws`.
+    crate::live_dispatch::set_static_ws_mode(true);
     ccxt::pro::ws_client::mock_setup(&ws_url(&url));
     Value::Null
 }
@@ -520,6 +523,7 @@ pub trait ExchangeOps {
     fn number_to_string(&self, n: Value) -> Value;
     fn precision_from_string(&self, s: Value) -> Value;
     fn parse_precision(&self, optional_args: &[Value]) -> Value;
+    fn sort_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value;
     fn parse_to_int(&self, n: Value) -> Value;
     fn parse_to_numeric(&self, n: Value) -> Value;
     fn sum(&self, optional_args: &[Value]) -> Value;
@@ -567,6 +571,7 @@ impl ExchangeOps for Value {
     fn number_to_string(&self, n: Value) -> Value { with_base(|e| e.number_to_string(n)) }
     fn precision_from_string(&self, s: Value) -> Value { with_base(|e| e.precision_from_string(s)) }
     fn parse_precision(&self, o: &[Value]) -> Value { with_base(|e| e.parse_precision(o)) }
+    fn sort_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.sort_by(arr, key, o)) }
     fn parse_to_int(&self, n: Value) -> Value { with_base(|e| e.parse_to_int(n)) }
     fn parse_to_numeric(&self, n: Value) -> Value { with_base(|e| e.parse_to_numeric(n)) }
     fn sum(&self, optional_args: &[Value]) -> Value { with_base(|e| e.sum(optional_args)) }
@@ -592,6 +597,9 @@ impl ExchangeOps for Value {
     /// Deep-merges `options` into this exchange value's `options` map
     /// (mirrors `Exchange.extendExchangeOptions`).
     fn extend_exchange_options(&mut self, options: Value) -> Value {
+        // Record the delta so the static-WS dispatch can push per-case options
+        // (e.g. okx watchOrderBook.depth) to the fresh Core — see live_dispatch.
+        crate::live_dispatch::ws_test_options_accumulate(options.clone());
         let current = ccxt::get_value(self, &Value::Str("options".to_string()));
         let merged = with_base(|e| e.deep_extend(current, &[options]));
         ccxt::set_value(self, &Value::Str("options".to_string()), merged.clone());

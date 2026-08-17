@@ -1120,8 +1120,8 @@ impl CoinbaseexchangeCore {
         let mut supportedNetworks: Value = self.safe_list_k(rawCurrency.clone(), "supported_networks", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_499: bool = true;
-            while { if !__for_first_499 { j = add(&j, &Value::Int(1)); } __for_first_499 = false; is_less_than(&j, &get_array_length(&supportedNetworks)) } {
+            let mut __for_first_518: bool = true;
+            while { if !__for_first_518 { j = add(&j, &Value::Int(1)); } __for_first_518 = false; is_less_than(&j, &get_array_length(&supportedNetworks)) } {
             let mut network: Value = get_value(&supportedNetworks, &j);
             let mut network: Value = get_value(&supportedNetworks, &j);
             let mut networkId: Value = self.safe_string_k(network.clone(), "id", &[]);
@@ -1255,8 +1255,8 @@ impl CoinbaseexchangeCore {
         let mut rawMarkets: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_500: bool = true;
-            while { if !__for_first_500 { i = add(&i, &Value::Int(1)); } __for_first_500 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
+            let mut __for_first_519: bool = true;
+            while { if !__for_first_519 { i = add(&i, &Value::Int(1)); } __for_first_519 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
             let mut market: Value = get_value(&rawMarkets, &i);
             let mut market: Value = get_value(&rawMarkets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "id", &[]);
@@ -1419,8 +1419,8 @@ impl CoinbaseexchangeCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_501: bool = true;
-            while { if !__for_first_501 { i = add(&i, &Value::Int(1)); } __for_first_501 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_520: bool = true;
+            while { if !__for_first_520 { i = add(&i, &Value::Int(1)); } __for_first_520 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -1652,8 +1652,8 @@ impl CoinbaseexchangeCore {
         let mut delimiter: Value = Value::Str("-".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_502: bool = true;
-            while { if !__for_first_502 { i = add(&i, &Value::Int(1)); } __for_first_502 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_521: bool = true;
+            while { if !__for_first_521 { i = add(&i, &Value::Int(1)); } __for_first_521 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut entry: Value = self.safe_value(response.clone(), marketId.clone(), &[Value::List(vec![])]);
@@ -1906,8 +1906,8 @@ impl CoinbaseexchangeCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_503: bool = true;
-            while { if !__for_first_503 { i = add(&i, &Value::Int(1)); } __for_first_503 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_522: bool = true;
+            while { if !__for_first_522 { i = add(&i, &Value::Int(1)); } __for_first_522 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2688,8 +2688,8 @@ impl CoinbaseexchangeCore {
         let mut entries: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_504: bool = true;
-            while { if !__for_first_504 { i = add(&i, &Value::Int(1)); } __for_first_504 = false; is_less_than(&i, &get_array_length(&entries)) } {
+            let mut __for_first_523: bool = true;
+            while { if !__for_first_523 { i = add(&i, &Value::Int(1)); } __for_first_523 = false; is_less_than(&i, &get_array_length(&entries)) } {
             add_element_to_object(get_value_mut(&mut entries, &i), &Value::Str("currency".to_string()), code.clone());
         }
         }
@@ -2781,8 +2781,8 @@ impl CoinbaseexchangeCore {
             response = self.to_array(transfers.clone());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_505: bool = true;
-                while { if !__for_first_505 { i = add(&i, &Value::Int(1)); } __for_first_505 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut __for_first_524: bool = true;
+                while { if !__for_first_524 { i = add(&i, &Value::Int(1)); } __for_first_524 = false; is_less_than(&i, &get_array_length(&response)) } {
                 let mut account_id: Value = self.safe_string_k(get_value(&response, &i), "account_id", &[]);
                 let mut account: Value = self.safe_value(self.accountsById.clone(), account_id.clone(), &[]);
                 let mut codeInner: Value = self.safe_string_k(account.clone(), "code", &[]);
@@ -2821,8 +2821,8 @@ impl CoinbaseexchangeCore {
             response = self.to_array(accountTransfers.clone());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_506: bool = true;
-                while { if !__for_first_506 { i = add(&i, &Value::Int(1)); } __for_first_506 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut __for_first_525: bool = true;
+                while { if !__for_first_525 { i = add(&i, &Value::Int(1)); } __for_first_525 = false; is_less_than(&i, &get_array_length(&response)) } {
                 add_element_to_object(get_value_mut(&mut response, &i), &Value::Str("currency".to_string()), code.clone());
             }
             }

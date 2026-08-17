@@ -1860,8 +1860,8 @@ impl HashkeyCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_687: bool = true;
-            while { if !__for_first_687 { j = add(&j, &Value::Int(1)); } __for_first_687 = false; is_less_than(&j, &get_array_length(&networks)) } {
+            let mut __for_first_706: bool = true;
+            while { if !__for_first_706 { j = add(&j, &Value::Int(1)); } __for_first_706 = false; is_less_than(&j, &get_array_length(&networks)) } {
             let mut network: Value = get_value(&networks, &j);
             let mut network: Value = get_value(&networks, &j);
             let mut networkId: Value = self.safe_string_k(network.clone(), "chainType", &[]);
@@ -2399,6 +2399,11 @@ impl HashkeyCore {
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut last: Value = self.safe_string_k(ticker.clone(), "c", &[]);
+        let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "v", &[]);
+        if is_true(&get_value(&market, &Value::Str("contract".to_string()))) && is_true(&(!is_equal(&get_value(&market, &Value::Str("contractSize".to_string())), &Value::Null))) {
+            // 'v' counts contracts, and a ticker reports base volume
+            baseVolume = crate::precise::Precise::stringMul(&baseVolume, &self.number_to_string(get_value(&market, &Value::Str("contractSize".to_string()))));
+        }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
@@ -2418,7 +2423,7 @@ impl HashkeyCore {
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string_k(ticker.clone(), "v", &[]));
+        m.insert("baseVolume".to_string(), baseVolume.clone());
         m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "qv", &[]));
         m.insert("info".to_string(), ticker.clone());
     m
@@ -2556,8 +2561,8 @@ impl HashkeyCore {
         let mut balances: Value = self.safe_list_k(balance.clone(), "balances", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_688: bool = true;
-            while { if !__for_first_688 { i = add(&i, &Value::Int(1)); } __for_first_688 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_707: bool = true;
+            while { if !__for_first_707 { i = add(&i, &Value::Int(1)); } __for_first_707 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balanceEntry: Value = get_value(&balances, &i);
             let mut balanceEntry: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balanceEntry.clone(), "asset", &[]);
@@ -3603,8 +3608,8 @@ impl HashkeyCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_689: bool = true;
-            while { if !__for_first_689 { i = add(&i, &Value::Int(1)); } __for_first_689 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_708: bool = true;
+            while { if !__for_first_708 { i = add(&i, &Value::Int(1)); } __for_first_708 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -3646,8 +3651,8 @@ impl HashkeyCore {
         let mut responseOrders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_690: bool = true;
-            while { if !__for_first_690 { i = add(&i, &Value::Int(1)); } __for_first_690 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_709: bool = true;
+            while { if !__for_first_709 { i = add(&i, &Value::Int(1)); } __for_first_709 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut responseEntry: Value = self.safe_dict(result.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4591,8 +4596,8 @@ impl HashkeyCore {
         let mut rows: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_691: bool = true;
-            while { if !__for_first_691 { i = add(&i, &Value::Int(1)); } __for_first_691 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_710: bool = true;
+            while { if !__for_first_710 { i = add(&i, &Value::Int(1)); } __for_first_710 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut entry: Value = get_value(&rows, &i);
             let mut entry: Value = get_value(&rows, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "settleTime", &[]);
@@ -5095,8 +5100,8 @@ impl HashkeyCore {
         let mut tiers: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_692: bool = true;
-            while { if !__for_first_692 { i = add(&i, &Value::Int(1)); } __for_first_692 = false; is_less_than(&i, &get_array_length(&riskLimits)) } {
+            let mut __for_first_711: bool = true;
+            while { if !__for_first_711 { i = add(&i, &Value::Int(1)); } __for_first_711 = false; is_less_than(&i, &get_array_length(&riskLimits)) } {
             let mut tier: Value = get_value(&riskLimits, &i);
             let mut tier: Value = get_value(&riskLimits, &i);
             let mut initialMarginRate: Value = self.safe_string_k(tier.clone(), "initialMargin", &[]);
@@ -5204,8 +5209,8 @@ impl HashkeyCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_693: bool = true;
-            while { if !__for_first_693 { i = add(&i, &Value::Int(1)); } __for_first_693 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_712: bool = true;
+            while { if !__for_first_712 { i = add(&i, &Value::Int(1)); } __for_first_712 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut fee: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5353,8 +5358,8 @@ impl HashkeyCore {
             let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]); // for batch methods
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_694: bool = true;
-                while { if !__for_first_694 { i = add(&i, &Value::Int(1)); } __for_first_694 = false; is_less_than(&i, &get_array_length(&result)) } {
+                let mut __for_first_713: bool = true;
+                while { if !__for_first_713 { i = add(&i, &Value::Int(1)); } __for_first_713 = false; is_less_than(&i, &get_array_length(&result)) } {
                 let mut entry: Value = self.safe_dict(result.clone(), i.clone(), &[]);
                 let mut entryCodeInteger: Value = self.safe_integer_k(entry.clone(), "code", &[]);
                 if !is_equal(&entryCodeInteger, &Value::Int(0)) {

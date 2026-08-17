@@ -13,10 +13,13 @@ pub async fn testWatchTradesForSymbols(mut exchange: Value, mut skippedPropertie
     let mut method: Value = Value::Str("watchTradesForSymbols".to_string());
     let mut now: Value = exchange.milliseconds();
     let mut ends: Value = add(&now, &Value::Int(15000));
+    let mut maxIdleTime: Value = Value::Int(5000);
+    let mut idle: Value = Value::Bool(false);
     let mut returnedSymbols: Value = Value::List(vec![]);
-    while is_less_than(&now, &ends) || is_less_than(&get_array_length(&returnedSymbols), &get_array_length(&symbols)) {
+    while is_true(&(is_less_than(&now, &ends))) && !is_true(&idle) {
         let mut response: Value = Value::Null;
         let mut success: Value = Value::Bool(true);
+        let mut startTime: Value = exchange.milliseconds();
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_trades_for_symbols", vec![symbols.clone()]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -24,16 +27,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if !is_true(&crate::tests_support::shared::is_temporary_failure(e.clone())) {
                 panic!("{}", e);
             }
-            now = exchange.milliseconds();
+            success = Value::Bool(false);
         }
+        now = exchange.milliseconds();
         if is_true(&(is_equal(&success, &Value::Bool(true)))) && is_true(&(!is_equal(&response, &Value::Null))) {
             assert!(ccxt::runtime::is_true(&(Value::Bool(is_array(&response)))));
-            now = exchange.milliseconds();
             let mut symbol: Value = Value::Null;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1431: bool = true;
-                while { if !__for_first_1431 { i = add(&i, &Value::Int(1)); } __for_first_1431 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut __for_first_1454: bool = true;
+                while { if !__for_first_1454 { i = add(&i, &Value::Int(1)); } __for_first_1454 = false; is_less_than(&i, &get_array_length(&response)) } {
                 let mut trade: Value = get_value(&response, &i);
                 symbol = get_value(&trade, &Value::Str("symbol".to_string()));
                 if is_equal(&symbol, &Value::Null) {
@@ -45,6 +48,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     append_to_array(&mut returnedSymbols, symbol.clone());
                 }
             }
+            }
+            if is_greater_than(&(subtract(&now, &startTime)), &maxIdleTime) {
+                idle = Value::Bool(true);
             }
         }
     }

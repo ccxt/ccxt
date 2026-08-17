@@ -16,8 +16,8 @@ pub async fn testFetchTradingFees(mut exchange: Value, mut skippedProperties: Va
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), symbols.clone()]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1415: bool = true;
-        while { if !__for_first_1415 { i = add(&i, &Value::Int(1)); } __for_first_1415 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+        let mut __for_first_1438: bool = true;
+        while { if !__for_first_1438 { i = add(&i, &Value::Int(1)); } __for_first_1438 = false; is_less_than(&i, &get_array_length(&symbols)) } {
         let mut symbol: Value = get_value(&symbols, &i);
         testTradingFee(exchange.clone(), skippedProperties.clone(), method.clone(), symbol.clone(), get_value(&fees, &symbol));
     }
