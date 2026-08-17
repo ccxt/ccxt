@@ -155,6 +155,15 @@ interface okx {
     privateGetAssetConvertCurrencies (params?: {}): Promise<Dict>;
     privateGetAssetConvertCurrencyPair (params?: {}): Promise<Dict>;
     privateGetAssetConvertHistory (params?: {}): Promise<Dict>;
+    privateGetFiatDepositPaymentMethods (params?: {}): Promise<Dict>;
+    privateGetFiatWithdrawalPaymentMethods (params?: {}): Promise<Dict>;
+    privateGetFiatDepositOrderHistory (params?: {}): Promise<Dict>;
+    privateGetFiatDeposit (params?: {}): Promise<Dict>;
+    privateGetFiatWithdrawalOrderHistory (params?: {}): Promise<Dict>;
+    privateGetFiatWithdrawal (params?: {}): Promise<Dict>;
+    privateGetFiatBuySellCurrencies (params?: {}): Promise<Dict>;
+    privateGetFiatBuySellCurrencyPair (params?: {}): Promise<Dict>;
+    privateGetFiatBuySellHistory (params?: {}): Promise<Dict>;
     privateGetAccountInstruments (params?: {}): Promise<Dict>;
     privateGetAccountBalance (params?: {}): Promise<Dict>;
     privateGetAccountPositions (params?: {}): Promise<Dict>;
@@ -322,6 +331,10 @@ interface okx {
     privatePostAssetMonthlyStatement (params?: {}): Promise<Dict>;
     privatePostAssetConvertEstimateQuote (params?: {}): Promise<Dict>;
     privatePostAssetConvertTrade (params?: {}): Promise<Dict>;
+    privatePostFiatCreateWithdrawal (params?: {}): Promise<Dict>;
+    privatePostFiatCancelWithdrawal (params?: {}): Promise<Dict>;
+    privatePostFiatBuySellQuote (params?: {}): Promise<Dict>;
+    privatePostFiatBuySellTrade (params?: {}): Promise<Dict>;
     privatePostAccountBillsHistoryArchive (params?: {}): Promise<Dict>;
     privatePostAccountSetPositionMode (params?: {}): Promise<Dict>;
     privatePostAccountSetLeverage (params?: {}): Promise<Dict>;

@@ -13,10 +13,13 @@ func TestWatchTradesForSymbols(exchange ccxt.ICoreExchange, skippedProperties an
 		var method any = "watchTradesForSymbols"
 		var now any = exchange.Milliseconds()
 		var ends any = Add(now, 15000)
+		var maxIdleTime any = 5000
+		var idle any = false
 		var returnedSymbols any = []any{}
-		for IsTrue(IsLessThan(now, ends)) || IsTrue(IsLessThan(GetArrayLength(returnedSymbols), GetArrayLength(symbols))) {
+		for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
 			var response any = nil
 			var success any = true
+			var startTime any = exchange.Milliseconds()
 
 			{
 				func() (ret_ any) {
@@ -30,7 +33,7 @@ func TestWatchTradesForSymbols(exchange ccxt.ICoreExchange, skippedProperties an
 								if !IsTrue(IsTemporaryFailure(e)) {
 									panic(e)
 								}
-								now = exchange.Milliseconds()
+								success = false
 								return nil
 							}()
 						}
@@ -43,9 +46,9 @@ func TestWatchTradesForSymbols(exchange ccxt.ICoreExchange, skippedProperties an
 				}()
 
 			}
+			now = exchange.Milliseconds()
 			if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
 				Assert(IsArray(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(symbols)), " must return an array. "), exchange.Json(response)))
-				now = exchange.Milliseconds()
 				var symbol any = nil
 				for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 					var trade any = GetValue(response, i)
@@ -58,6 +61,9 @@ func TestWatchTradesForSymbols(exchange ccxt.ICoreExchange, skippedProperties an
 					if !IsTrue(exchange.InArray(symbol, returnedSymbols)) {
 						AppendToArray(&returnedSymbols, symbol)
 					}
+				}
+				if IsTrue(IsGreaterThan((Subtract(now, startTime)), maxIdleTime)) {
+					idle = true
 				}
 			}
 		}

@@ -1475,7 +1475,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
+     * @param {string} [params.depth] okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
@@ -1506,6 +1506,11 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             // 2. Public depth channel, verification not required
             // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
             //
+            // books-rpi
+            // 1. All API users can subscribe
+            // 2. Public depth channel, verification not required
+            // 3. 400 depth levels, data feeds will be delivered every 100ms
+            //
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
@@ -1521,7 +1526,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] 1,5, 400, 50 (l2-tbt, vip4+) or 40000 (vip5+) the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
+     * @param {string} [params.depth] okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
@@ -1599,7 +1604,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] the maximum amount of order book entries to return
-     * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
+     * @param {string} [params.depth] okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
@@ -1668,7 +1673,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] the maximum amount of order book entries to return
-     * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
+     * @param {string} [params.depth] okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
@@ -1857,6 +1862,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             put( "bbo-tbt", 1 );
             put( "books", 400 );
             put( "books5", 5 );
+            put( "books-rpi", 400 );
             put( "books-l2-tbt", 400 );
             put( "books50-l2-tbt", 50 );
         }};
@@ -3132,6 +3138,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
                 put( "bbo-tbt", "handleOrderBook");
                 put( "books", "handleOrderBook");
                 put( "books5", "handleOrderBook");
+                put( "books-rpi", "handleOrderBook");
                 put( "books50-l2-tbt", "handleOrderBook");
                 put( "books-l2-tbt", "handleOrderBook");
                 put( "tickers", "handleTicker");

@@ -7,8 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.xt import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Any, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Tickers, FundingRate, OpenInterest, TradingFeeInterface, TradingFees, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Tickers, FundingRate, OpenInterest, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -29,7 +28,7 @@ from ccxt.base.precise import Precise
 
 class xt(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(xt, self).describe(), {
             'id': 'xt',
             'name': 'XT',
@@ -1030,7 +1029,7 @@ class xt(Exchange, ImplicitAPI):
                 })
         return result
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for xt
 
@@ -1051,7 +1050,7 @@ class xt(Exchange, ImplicitAPI):
         swapAndFutureMarkets = promises[1]
         return self.array_concat(spotMarkets, swapAndFutureMarkets)
 
-    def fetch_spot_markets(self, params: Any = {}) -> List[Market]:
+    def fetch_spot_markets(self, params: object = {}) -> list[Market]:
         response = self.publicSpotGetSymbol(params)
         #
         #     {
@@ -1176,7 +1175,7 @@ class xt(Exchange, ImplicitAPI):
         swapAndFutureMarkets = self.array_concat(self.safe_list(markets[0], 'result', []), self.safe_list(markets[1], 'result', []))
         return self.parse_markets(swapAndFutureMarkets)
 
-    def parse_markets(self, markets: Any):
+    def parse_markets(self, markets: object):
         result = []
         for i in range(0, len(markets)):
             result.append(self.parse_market(markets[i]))
@@ -1523,7 +1522,7 @@ class xt(Exchange, ImplicitAPI):
         ohlcvs = self.safe_list(response, 'result', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         # spot
         #
@@ -1895,7 +1894,7 @@ class xt(Exchange, ImplicitAPI):
                 result[symbol] = ticker
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def parse_ticker(self, ticker: Any, market: Market = None):
+    def parse_ticker(self, ticker: object, market: Market = None):
         #
         # spot: fetchTicker, fetchTickers
         #
@@ -2149,7 +2148,7 @@ class xt(Exchange, ImplicitAPI):
         trades = self.safe_list(data, 'items', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trade(self, trade: Any, market: Market = None):
+    def parse_trade(self, trade: object, market: Market = None):
         #
         # spot: fetchTrades
         #
@@ -2389,7 +2388,7 @@ class xt(Exchange, ImplicitAPI):
             balances = self.safe_list(data, 'assets', [])
         return self.parse_balance(balances)
 
-    def parse_balance(self, response: Any):
+    def parse_balance(self, response: object):
         #
         # spot
         #
@@ -2495,7 +2494,7 @@ class xt(Exchange, ImplicitAPI):
         else:
             return self.create_contract_order(symbol, type, side, amount, price, params)
 
-    def create_spot_order(self, symbol: str, type: OrderType, side: Any, amount: Any, price: Num = None, params={}):
+    def create_spot_order(self, symbol: str, type: OrderType, side: object, amount: object, price: Num = None, params={}):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -2550,7 +2549,7 @@ class xt(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 'result', {})
         return self.parse_order(order, market)
 
-    def create_contract_order(self, symbol: str, type: Any, side: Any, amount: Any, price: Num = None, params={}):
+    def create_contract_order(self, symbol: str, type: object, side: object, amount: object, price: Num = None, params={}):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -3008,7 +3007,7 @@ class xt(Exchange, ImplicitAPI):
         orders = self.safe_list(data, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         if self.markets is None:
             self.load_markets()
         request = {}
@@ -3294,7 +3293,7 @@ class xt(Exchange, ImplicitAPI):
             return self.filter_by_since_limit(filteredOrders, since, limit)
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -3315,7 +3314,7 @@ class xt(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('open', symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -3336,7 +3335,7 @@ class xt(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
-    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
@@ -3537,7 +3536,7 @@ class xt(Exchange, ImplicitAPI):
             self.safe_order(response),
         ]
 
-    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}) -> List[Order]:
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params={}) -> list[Order]:
         """
         cancel multiple orders
 
@@ -3774,7 +3773,7 @@ class xt(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -3834,7 +3833,7 @@ class xt(Exchange, ImplicitAPI):
         ledger = self.safe_list(data, 'items', [])
         return self.parse_ledger(ledger, currency, since, limit)
 
-    def parse_ledger_entry(self, item: Any, currency: Currency = None) -> LedgerEntry:
+    def parse_ledger_entry(self, item: object, currency: Currency = None) -> LedgerEntry:
         #
         #     {
         #         "id": "207260567109387524",
@@ -3873,7 +3872,7 @@ class xt(Exchange, ImplicitAPI):
             },
         }, currency)
 
-    def parse_ledger_entry_type(self, type: Any):
+    def parse_ledger_entry_type(self, type: object):
         ledgerType = {
             'EXCHANGE': 'transfer',
             'CLOSE_POSITION': 'trade',
@@ -3923,7 +3922,7 @@ class xt(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_deposit_address(result, currency)
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
@@ -4252,7 +4251,7 @@ class xt(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'SUB', params)
 
-    def modify_margin_helper(self, symbol: str, amount: Any, addOrReduce: Any, params={}) -> MarginModification:
+    def modify_margin_helper(self, symbol: str, amount: object, addOrReduce: object, params={}) -> MarginModification:
         positionSide = self.safe_string(params, 'positionSide')
         methodName = 'addMargin' if (addOrReduce == 'ADD') else 'reduceMargin'
         self.check_required_argument(methodName, positionSide, 'positionSide', ['LONG', 'SHORT'])
@@ -4282,7 +4281,7 @@ class xt(Exchange, ImplicitAPI):
         #
         return self.parse_margin_modification(response, market)
 
-    def parse_margin_modification(self, data: Any, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: object, market: Market = None) -> MarginModification:
         return {
             'info': data,
             'type': None,
@@ -4343,7 +4342,7 @@ class xt(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_leverage_tiers(self, response: Any, symbols: Strings = None, marketIdKey: Str = None) -> LeverageTiers:
+    def parse_leverage_tiers(self, response: object, symbols: Strings = None, marketIdKey: Str = None) -> LeverageTiers:
         #
         #     {
         #         "symbol": "rad_usdt",
@@ -4374,7 +4373,7 @@ class xt(Exchange, ImplicitAPI):
                 result[symbol] = self.parse_market_leverage_tiers(response[i], market)
         return result
 
-    def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
+    def fetch_market_leverage_tiers(self, symbol: str, params={}) -> list[LeverageTier]:
         """
         retrieve information on the maximum leverage for different trade sizes of a single market
 
@@ -4422,7 +4421,7 @@ class xt(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'result', {})
         return self.parse_market_leverage_tiers(data, market)
 
-    def parse_market_leverage_tiers(self, info: Any, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: object, market: Market = None) -> list[LeverageTier]:
         #
         #     {
         #         "symbol": "rad_usdt",
@@ -4588,7 +4587,7 @@ class xt(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_funding_rate(result, market)
 
-    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "btc_usdt",
@@ -4664,7 +4663,7 @@ class xt(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_open_interest(result, market)
 
-    def parse_open_interest(self, interest: Any, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
         #
         #     {
         #         "symbol": "btc_usdt",
@@ -4836,7 +4835,7 @@ class xt(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_since_limit(sorted, since, limit)
 
-    def parse_funding_history(self, contract: Any, market: Market = None):
+    def parse_funding_history(self, contract: object, market: Market = None):
         #
         #     {
         #         "id": "210804044057280512",
@@ -4862,7 +4861,7 @@ class xt(Exchange, ImplicitAPI):
             'amount': self.safe_number(contract, 'cast'),
         }
 
-    def index_position_break_list(self, breakList: List[dict]) -> dict:
+    def index_position_break_list(self, breakList: list[dict]) -> dict:
         """
  @ignore
         :param dict[] breakList: the "result" array of a position/break-list response
@@ -4975,7 +4974,7 @@ class xt(Exchange, ImplicitAPI):
                 return self.parse_position(merged, marketInner)
         raise NullResponse(self.id + ' fetchPosition() could not find a position for ' + symbol)
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -5051,7 +5050,7 @@ class xt(Exchange, ImplicitAPI):
             result.append(self.parse_position(merged, marketInner))
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
         fetches historical closed positions
 
@@ -5124,7 +5123,7 @@ class xt(Exchange, ImplicitAPI):
         positions = self.parse_positions(items, symbols)
         return self.filter_by_since_limit(positions, since, limit)
 
-    def parse_position(self, position: Any, market: Market = None):
+    def parse_position(self, position: object, market: Market = None):
         #
         # position/list
         #
@@ -5261,7 +5260,7 @@ class xt(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer(self, transfer: Any, currency: Currency = None):
+    def parse_transfer(self, transfer: object, currency: Currency = None):
         return {
             'info': transfer,
             'id': self.safe_string(transfer, 'result'),
@@ -5417,7 +5416,7 @@ class xt(Exchange, ImplicitAPI):
         result = response if (market['swap']) else self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
-    def handle_errors(self, code: int, reason: str, url: Any, method: Any, headers: Any, body: Any, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: object, method: object, headers: object, body: object, response: object, requestHeaders: object, requestBody: object):
         #
         # spot: error
         #
@@ -5483,7 +5482,7 @@ class xt(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: Any, api: Any = [], method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: object, api: object = [], method='GET', params={}, headers: dict = None, body: object = None):
         signed = api[0] == 'private'
         endpoint = api[1]
         request = '/' + self.implode_params(path, params)

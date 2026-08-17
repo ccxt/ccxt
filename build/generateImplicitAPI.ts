@@ -380,7 +380,7 @@ function pythonReturnType (exchange: string, method: string): string {
     if (mapped.length === 1) {
         return mapped[0];
     }
-    return 'Union[' + mapped.join (', ') + ']';
+    return mapped.join (' | ');
 }
 
 // the Python aliases one generated module actually uses, so a module that only
@@ -399,51 +399,27 @@ function pythonUsedAliases (exchange: string): string[] {
     return used;
 }
 
-// whether any endpoint on this exchange needs a multi-member return (Union[...])
-function pythonNeedsUnion (exchange: string): boolean {
-    const methods = storedCamelCaseMethods[exchange] || [];
-    for (const method of methods) {
-        if (returnTypeMembers (exchange, method).length > 1) {
-            return true;
-        }
-    }
-    return false;
-}
-
 // storedPyMethods[exchange][1] is the alias block, left empty by createPyHeader
 // for the same reason the TypeScript import line is: the set of shapes an
 // exchange answers with is only known after generateImplicitMethodNames ran.
-// Import only the typing names the aliases/unions actually reference — ruff F401
-// fails the Python qa gate on unused List/Union when a module is Dict-only.
+// Aliases are builtins (list/dict/object) — no typing import.
 function finalizePythonAliases (exchange: string) {
     const aliases = pythonUsedAliases (exchange);
-    const needsUnion = pythonNeedsUnion (exchange);
-    if (!aliases.length && !needsUnion) {
+    if (!aliases.length) {
         storedPyMethods[exchange][1] = '';
         return;
     }
     const spelled: Dict = {
-        '_Dict': 'Dict[str, PythonAny]',
-        '_List': 'List[PythonAny]',
-        '_Any': 'PythonAny',
+        '_Dict': 'dict[str, object]',
+        '_List': 'list[object]',
+        '_Any': 'object',
     };
-    // build the import from the names that appear in the alias RHS or in
-    // Entry[Union[...]] constructions; never import a name that is not used
-    const typingNames: string[] = [ 'Any as PythonAny' ];
-    if (aliases.includes ('_Dict')) {
-        typingNames.push ('Dict');
-    }
-    if (aliases.includes ('_List')) {
-        typingNames.push ('List');
-    }
-    if (needsUnion) {
-        typingNames.push ('Union');
-    }
-    const lines = [ 'from typing import ' + typingNames.join (', '), '' ];
+    // builtins on the Python 3.10 floor — no typing import
+    const lines: string[] = [];
     for (const alias of aliases) {
         lines.push (alias + ' = ' + spelled[alias]);
     }
-    storedPyMethods[exchange][1] = lines.join ('\n');
+    storedPyMethods[exchange][1] = lines.join ('\n') + '\n';
 }
 
 // a one-line prose description of the decoded body, for the languages whose

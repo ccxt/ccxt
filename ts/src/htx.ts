@@ -163,17 +163,6 @@ export default class htx extends Exchange {
                 'hostnames': {
                     'contract': 'api.hbdm.vn', // alternatively use api.hbdm.com
                     'spot': 'api.huobi.pro',
-                    'status': {
-                        'spot': 'status.huobigroup.com',
-                        'future': {
-                            'inverse': 'status-dm.huobigroup.com',
-                            'linear': 'status-linear-swap.huobigroup.com', // USDT-Margined Contracts
-                        },
-                        'swap': {
-                            'inverse': 'status-swap.huobigroup.com',
-                            'linear': 'status-linear-swap.huobigroup.com', // USDT-Margined Contracts
-                        },
-                    },
                     // recommended for AWS
                     // 'contract': 'api.hbdm.vn',
                     // 'spot': 'api-aws.huobi.pro',
@@ -335,43 +324,6 @@ export default class htx extends Exchange {
                 },
                 // ------------------------------------------------------------
                 // new api definitions
-                // 'https://status.huobigroup.com/api/v2/summary.json': 1,
-                // 'https://status-dm.huobigroup.com/api/v2/summary.json': 1,
-                // 'https://status-swap.huobigroup.com/api/v2/summary.json': 1,
-                // 'https://status-linear-swap.huobigroup.com/api/v2/summary.json': 1,
-                'status': {
-                    'public': {
-                        'spot': {
-                            'get': {
-                                'api/v2/summary.json': { 'cost': 1 } as Endpoint<Dict>,
-                            },
-                        },
-                        'future': {
-                            'inverse': {
-                                'get': {
-                                    'api/v2/summary.json': { 'cost': 1 } as Endpoint<Dict>,
-                                },
-                            },
-                            'linear': {
-                                'get': {
-                                    'api/v2/summary.json': { 'cost': 1 } as Endpoint<Dict>,
-                                },
-                            },
-                        },
-                        'swap': {
-                            'inverse': {
-                                'get': {
-                                    'api/v2/summary.json': { 'cost': 1 } as Endpoint<Dict>,
-                                },
-                            },
-                            'linear': {
-                                'get': {
-                                    'api/v2/summary.json': { 'cost': 1 } as Endpoint<Dict>,
-                                },
-                            },
-                        },
-                    },
-                },
                 'spot': {
                     'public': {
                         'get': {
@@ -1309,228 +1261,76 @@ export default class htx extends Exchange {
      * @method
      * @name htx#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://huobiapi.github.io/docs/spot/v1/en/#get-system-status
-     * @see https://huobiapi.github.io/docs/dm/v1/en/#get-system-status
-     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-system-status
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#get-system-status
+     * @see https://huobiapi.github.io/docs/spot/v1/en/#get-market-status
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available  // contractPublicGetHeartbeat
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     override async fetchStatus (params = {}): Promise<Status> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        // the former statuspage endpoints (status*.huobigroup.com) were
+        // decommissioned after the huobi -> htx rebrand and no longer resolve,
+        // so this method uses the live native endpoints instead
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
-        const enabledForContracts = this.handleOption ('fetchStatus', 'enableForContracts', false); // temp fix for: https://status-linear-swap.huobigroup.com/api/v2/summary.json
+        let status = undefined;
+        let eta = undefined;
         let response = undefined;
-        if (marketType !== 'spot' && enabledForContracts) {
-            const subType = this.safeString (params, 'subType', this.options['defaultSubType']);
-            if (marketType === 'swap') {
-                if (subType === 'linear') {
-                    response = await this.statusPublicSwapLinearGetApiV2SummaryJson ();
-                } else if (subType === 'inverse') {
-                    response = await this.statusPublicSwapInverseGetApiV2SummaryJson ();
-                }
-            } else if (marketType === 'future') {
-                if (subType === 'linear') {
-                    response = await this.statusPublicFutureLinearGetApiV2SummaryJson ();
-                } else if (subType === 'inverse') {
-                    response = await this.statusPublicFutureInverseGetApiV2SummaryJson ();
-                }
-            } else if (marketType === 'contract') {
-                response = await this.contractPublicGetHeartbeat ();
-            }
-        } else if (marketType === 'spot') {
-            response = await this.statusPublicSpotGetApiV2SummaryJson ();
-        }
-        //
-        // statusPublicSpotGetApiV2SummaryJson, statusPublicSwapInverseGetApiV2SummaryJson, statusPublicFutureLinearGetApiV2SummaryJson, statusPublicFutureInverseGetApiV2SummaryJson
-        //
-        //      {
-        //          "page": {
-        //              "id":"mn7l2lw8pz4p",
-        //              "name":"Huobi Futures-USDT-margined Swaps",
-        //              "url":"https://status-linear-swap.huobigroup.com",
-        //              "time_zone":"Asia/Singapore",
-        //              "updated_at":"2022-04-29T12:47:21.319+08:00"},
-        //              "components": [
-        //                  {
-        //                      "id":"lrv093qk3yp5",
-        //                      "name":"market data",
-        //                      "status":"operational",
-        //                      "created_at":"2020-10-29T14:08:59.427+08:00",
-        //                      "updated_at":"2020-10-29T14:08:59.427+08:00",
-        //                      "position":1,"description":null,
-        //                      "showcase":false,
-        //                      "start_date":null,
-        //                      "group_id":null,
-        //                      "page_id":"mn7l2lw8pz4p",
-        //                      "group":true,
-        //                      "only_show_if_degraded":false,
-        //                      "components": [
-        //                          "82k5jxg7ltxd" // list of related components
-        //                      ]
-        //                  },
-        //              ],
-        //              "incidents": [ // empty array if there are no issues
-        //                  {
-        //                      "id": "rclfxz2g21ly",  // incident id
-        //                      "name": "Market data is delayed",  // incident name
-        //                      "status": "investigating",  // incident status
-        //                      "created_at": "2020-02-11T03:15:01.913Z",  // incident create time
-        //                      "updated_at": "2020-02-11T03:15:02.003Z",   // incident update time
-        //                      "monitoring_at": null,
-        //                      "resolved_at": null,
-        //                      "impact": "minor",  // incident impact
-        //                      "shortlink": "http://stspg.io/pkvbwp8jppf9",
-        //                      "started_at": "2020-02-11T03:15:01.906Z",
-        //                      "page_id": "p0qjfl24znv5",
-        //                      "incident_updates": [
-        //                          {
-        //                              "id": "dwfsk5ttyvtb",
-        //                              "status": "investigating",
-        //                              "body": "Market data is delayed",
-        //                              "incident_id": "rclfxz2g21ly",
-        //                              "created_at": "2020-02-11T03:15:02.000Z",
-        //                              "updated_at": "2020-02-11T03:15:02.000Z",
-        //                              "display_at": "2020-02-11T03:15:02.000Z",
-        //                              "affected_components": [
-        //                                  {
-        //                                      "code": "nctwm9tghxh6",
-        //                                      "name": "Market data",
-        //                                      "old_status": "operational",
-        //                                      "new_status": "degraded_performance"
-        //                                  }
-        //                              ],
-        //                              "deliver_notifications": true,
-        //                              "custom_tweet": null,
-        //                              "tweet_id": null
-        //                          }
-        //                      ],
-        //                      "components": [
-        //                          {
-        //                              "id": "nctwm9tghxh6",
-        //                              "name": "Market data",
-        //                              "status": "degraded_performance",
-        //                              "created_at": "2020-01-13T09:34:48.284Z",
-        //                              "updated_at": "2020-02-11T03:15:01.951Z",
-        //                              "position": 8,
-        //                              "description": null,
-        //                              "showcase": false,
-        //                              "group_id": null,
-        //                              "page_id": "p0qjfl24znv5",
-        //                              "group": false,
-        //                              "only_show_if_degraded": false
-        //                          }
-        //                      ]
-        //                  }, ...
-        //              ],
-        //              "scheduled_maintenances":[ // empty array if there are no scheduled maintenances
-        //                  {
-        //                      "id": "k7g299zl765l", // incident id
-        //                      "name": "Schedule maintenance", // incident name
-        //                      "status": "scheduled", // incident status
-        //                      "created_at": "2020-02-11T03:16:31.481Z",  // incident create time
-        //                      "updated_at": "2020-02-11T03:16:31.530Z",  // incident update time
-        //                      "monitoring_at": null,
-        //                      "resolved_at": null,
-        //                      "impact": "maintenance",  // incident impact
-        //                      "shortlink": "http://stspg.io/md4t4ym7nytd",
-        //                      "started_at": "2020-02-11T03:16:31.474Z",
-        //                      "page_id": "p0qjfl24znv5",
-        //                      "incident_updates": [
-        //                          {
-        //                              "id": "8whgr3rlbld8",
-        //                              "status": "scheduled",
-        //                              "body": "We will be undergoing scheduled maintenance during this time.",
-        //                              "incident_id": "k7g299zl765l",
-        //                              "created_at": "2020-02-11T03:16:31.527Z",
-        //                              "updated_at": "2020-02-11T03:16:31.527Z",
-        //                              "display_at": "2020-02-11T03:16:31.527Z",
-        //                              "affected_components": [
-        //                                  {
-        //                                      "code": "h028tnzw1n5l",
-        //                                      "name": "Deposit And Withdraw - Deposit",
-        //                                      "old_status": "operational",
-        //                                      "new_status": "operational"
-        //                                  }
-        //                              ],
-        //                              "deliver_notifications": true,
-        //                              "custom_tweet": null,
-        //                              "tweet_id": null
-        //                          }
-        //                      ],
-        //                      "components": [
-        //                          {
-        //                              "id": "h028tnzw1n5l",
-        //                              "name": "Deposit",
-        //                              "status": "operational",
-        //                              "created_at": "2019-12-05T02:07:12.372Z",
-        //                              "updated_at": "2020-02-10T12:34:52.970Z",
-        //                              "position": 1,
-        //                              "description": null,
-        //                              "showcase": false,
-        //                              "group_id": "gtd0nyr3pf0k",
-        //                              "page_id": "p0qjfl24znv5",
-        //                              "group": false,
-        //                              "only_show_if_degraded": false
-        //                          }
-        //                      ],
-        //                      "scheduled_for": "2020-02-15T00:00:00.000Z",  // scheduled maintenance start time
-        //                      "scheduled_until": "2020-02-15T01:00:00.000Z"  // scheduled maintenance end time
-        //                  }
-        //              ],
-        //              "status": {
-        //                  "indicator":"none", // none, minor, major, critical, maintenance
-        //                  "description":"all systems operational" // All Systems Operational, Minor Service Outage, Partial System Outage, Partially Degraded Service, Service Under Maintenance
-        //              }
-        //          }
-        //
-        //
-        // contractPublicGetHeartbeat
-        //
-        //      {
-        //          "status": "ok", // 'ok', 'error'
-        //          "data": {
-        //              "heartbeat": 1, // future 1: available, 0: maintenance with service suspended
-        //              "estimated_recovery_time": null, // estimated recovery time in milliseconds
-        //              "swap_heartbeat": 1,
-        //              "swap_estimated_recovery_time": null,
-        //              "option_heartbeat": 1,
-        //              "option_estimated_recovery_time": null,
-        //              "linear_swap_heartbeat": 1,
-        //              "linear_swap_estimated_recovery_time": null
-        //          },
-        //          "ts": 1557714418033
-        //      }
-        //
-        let status: Str = undefined;
-        let updated: Int = undefined;
-        let url: Str = undefined;
-        if (marketType === 'contract') {
-            const statusRaw = this.safeString (response, 'status');
-            if (statusRaw === undefined) {
-                status = undefined;
-            } else {
-                status = (statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
-            }
-            updated = this.safeInteger (response, 'ts');
+        if (marketType === 'spot') {
+            response = await this.spotPublicGetV2MarketStatus (params);
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "success",
+            //         "data": {
+            //             "marketStatus": 1, // 1 normal, 2 halted, 3 cancel-only
+            //             "haltStartTime": 1614852011000, // only when halted
+            //             "haltEndTime": 1614852400000 // only when the end time is estimable
+            //         }
+            //     }
+            //
+            const data = this.safeDict (response, 'data', {});
+            const marketStatus = this.safeInteger (data, 'marketStatus');
+            status = (marketStatus === 1) ? 'ok' : 'maintenance';
+            eta = this.safeInteger (data, 'haltEndTime');
         } else {
-            const statusData = this.safeValue (response, 'status', {});
-            const statusRaw = this.safeString (statusData, 'indicator');
-            status = (statusRaw === 'none') ? 'ok' : 'maintenance'; // none, minor, major, critical, maintenance
-            const pageData = this.safeValue (response, 'page', {});
-            const datetime = this.safeString (pageData, 'updated_at');
-            updated = this.parse8601 (datetime);
-            url = this.safeString (pageData, 'url');
+            let subType: Str = undefined;
+            [ subType, params ] = this.handleSubTypeAndParams ('fetchStatus', undefined, params);
+            response = await this.contractPublicGetHeartbeat (params);
+            //
+            //     {
+            //         "status": "ok",
+            //         "data": {
+            //             "heartbeat": 1, // 1 available, 0 unavailable
+            //             "estimated_recovery_time": null,
+            //             "swap_heartbeat": 1,
+            //             "swap_estimated_recovery_time": null,
+            //             "option_heartbeat": 1,
+            //             "option_estimated_recovery_time": null,
+            //             "linear_swap_heartbeat": 1,
+            //             "linear_swap_estimated_recovery_time": null
+            //         },
+            //         "ts": 1557714418033 // stale on the exchange side, do not trust as an update time
+            //     }
+            //
+            const data = this.safeDict (response, 'data', {});
+            let heartbeatKey = 'heartbeat';
+            let etaKey = 'estimated_recovery_time';
+            if (subType === 'linear') {
+                heartbeatKey = 'linear_swap_heartbeat';
+                etaKey = 'linear_swap_estimated_recovery_time';
+            } else if (marketType === 'swap') {
+                heartbeatKey = 'swap_heartbeat';
+                etaKey = 'swap_estimated_recovery_time';
+            }
+            const heartbeat = this.safeInteger (data, heartbeatKey);
+            status = (heartbeat === 1) ? 'ok' : 'maintenance';
+            eta = this.safeInteger (data, etaKey);
         }
         return {
             'status': status,
-            'updated': updated,
-            'eta': undefined,
-            'url': url,
+            'updated': undefined,
+            'eta': eta,
+            'url': undefined,
             'info': response,
         };
     }

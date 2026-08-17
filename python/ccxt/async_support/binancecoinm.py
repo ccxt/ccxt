@@ -5,12 +5,11 @@
 
 from ccxt.async_support.binance import binance
 from ccxt.abstract.binancecoinm import ImplicitAPI
-from ccxt.base.types import Any
 
 
 class binancecoinm(binance, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(binancecoinm, self).describe(), {
             'id': 'binancecoinm',
             'name': 'Binance COIN-M',
@@ -42,10 +41,10 @@ class binancecoinm(binance, ImplicitAPI):
             },
         })
 
-    async def transfer_in(self, code: str, amount: Any, params={}):
+    async def transfer_in(self, code: str, amount: object, params={}):
         # transfer from spot wallet to coinm futures wallet
         return await self.futuresTransfer(code, amount, 3, params)
 
-    async def transfer_out(self, code: str, amount: Any, params={}):
+    async def transfer_out(self, code: str, amount: object, params={}):
         # transfer from coinm futures wallet to spot wallet
         return await self.futuresTransfer(code, amount, 4, params)

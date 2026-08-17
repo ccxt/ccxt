@@ -3403,11 +3403,8 @@ export default class bitget extends Exchange {
         else {
             marketType = 'spot';
         }
-        let percentage = this.safeString(ticker, 'price24hPcnt');
-        if (percentage === undefined) {
-            const change24h = this.safeString(ticker, 'change24h');
-            percentage = Precise.stringMul(change24h, '100');
-        }
+        // both fields are ratios, and a ticker reports (change/open) * 100
+        const percentage = Precise.stringMul(this.safeString2(ticker, 'price24hPcnt', 'change24h'), '100');
         return this.safeTicker({
             'symbol': this.safeSymbol(marketId, market, undefined, marketType),
             'timestamp': timestamp,

@@ -4763,12 +4763,8 @@ public partial class bitget : Exchange
         {
             marketType = "spot";
         }
-        object percentage = this.safeString(ticker, "price24hPcnt");
-        if (isTrue(isEqual(percentage, null)))
-        {
-            object change24h = this.safeString(ticker, "change24h");
-            percentage = Precise.stringMul(change24h, "100");
-        }
+        // both fields are ratios, and a ticker reports (change/open) * 100
+        object percentage = Precise.stringMul(this.safeString2(ticker, "price24hPcnt", "change24h"), "100");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(marketId, market, null, marketType) },
             { "timestamp", timestamp },

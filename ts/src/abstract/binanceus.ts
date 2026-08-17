@@ -581,7 +581,7 @@ interface binance {
     fapiPublicGetFundingInfo (params?: {}): Promise<List>;
     fapiPublicGetPremiumIndex (params?: {}): Promise<List>;
     fapiPublicGetTicker24hr (params?: {}): Promise<Dict | List>;
-    fapiPublicGetTickerPrice (params?: {}): Promise<Dict>;
+    fapiPublicGetTickerPrice (params?: {}): Promise<Dict | List>;
     fapiPublicGetTickerBookTicker (params?: {}): Promise<List>;
     fapiPublicGetOpenInterest (params?: {}): Promise<Dict>;
     fapiPublicGetIndexInfo (params?: {}): Promise<List>;
@@ -667,7 +667,7 @@ interface binance {
     fapiPrivateDeleteListenKey (params?: {}): Promise<Dict>;
     fapiPrivateDeleteAlgoOrder (params?: {}): Promise<Dict>;
     fapiPrivateDeleteAlgoOpenOrders (params?: {}): Promise<Dict>;
-    fapiPublicV2GetTickerPrice (params?: {}): Promise<List>;
+    fapiPublicV2GetTickerPrice (params?: {}): Promise<Dict | List>;
     fapiPrivateV2GetAccount (params?: {}): Promise<Dict>;
     fapiPrivateV2GetBalance (params?: {}): Promise<List>;
     fapiPrivateV2GetPositionRisk (params?: {}): Promise<List>;
@@ -732,7 +732,7 @@ interface binance {
     publicGetTicker24hr (params?: {}): Promise<Dict | List>;
     publicGetTicker (params?: {}): Promise<List>;
     publicGetTickerTradingDay (params?: {}): Promise<Dict>;
-    publicGetTickerPrice (params?: {}): Promise<List>;
+    publicGetTickerPrice (params?: {}): Promise<Dict | List>;
     publicGetTickerBookTicker (params?: {}): Promise<List>;
     publicGetExchangeInfo (params?: {}): Promise<Dict>;
     publicGetAvgPrice (params?: {}): Promise<Dict>;

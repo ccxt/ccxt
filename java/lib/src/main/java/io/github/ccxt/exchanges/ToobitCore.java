@@ -1647,7 +1647,7 @@ public class ToobitCore extends ToobitApi
             put( "last", last );
             put( "previousClose", null );
             put( "change", ToobitCore.this.safeString(ticker, "pc") );
-            put( "percentage", ToobitCore.this.safeString(ticker, "pcp") );
+            put( "percentage", Precise.stringMul(ToobitCore.this.safeString(ticker, "pcp"), "100") );
             put( "average", null );
             put( "baseVolume", finalBaseVolume );
             put( "quoteVolume", ToobitCore.this.safeString(ticker, "qv") );
@@ -2015,6 +2015,7 @@ public class ToobitCore extends ToobitApi
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
@@ -2099,15 +2100,13 @@ public class ToobitCore extends ToobitApi
         var costparametersVariable = this.handleParamString(parameters, "cost");
         cost = ((java.util.List<Object>) costparametersVariable).get(0);
         parameters = ((java.util.List<Object>) costparametersVariable).get(1);
-        if (Helpers.isTrue(Helpers.isEqual(type, "market")))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "market")) && Helpers.isTrue(Helpers.isEqual(side, "buy"))))
         {
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(cost, null)) && Helpers.isTrue(Helpers.isEqual(side, "buy"))))
+            if (Helpers.isTrue(Helpers.isEqual(cost, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires params[\"cost\"] for market buy order")) ;
-            } else
-            {
-                Helpers.addElementToObject(request, "quantity", this.costToPrecision(symbol, cost));
             }
+            Helpers.addElementToObject(request, "quantity", this.costToPrecision(symbol, cost));
         } else
         {
             Helpers.addElementToObject(request, "quantity", this.amountToPrecision(symbol, amount));
@@ -3408,7 +3407,7 @@ public class ToobitCore extends ToobitApi
                 put( "coin", Helpers.GetValue(currency, "id") );
                 put( "address", address );
                 put( "quantity", ToobitCore.this.currencyToPrecision(Helpers.GetValue(currency, "code"), amount) );
-                put( "chainType", finalNetworkCode );
+                put( "chainType", ToobitCore.this.networkCodeToId(finalNetworkCode, code) );
                 put( "clientOrderId", ToobitCore.this.milliseconds() );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
@@ -3541,13 +3540,13 @@ public class ToobitCore extends ToobitApi
             //
             // [
             //     {
-            //         "symbol":"BTC-SWAP-USDT", //symbol
-            //         "leverage":"20",  // leverage
+            //         "symbolId":"ETH-SWAP-USDT",
+            //         "leverage":"50",
             //         "marginType":"CROSS" // CROSS;ISOLATED
             //     }
             // ]
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
         });
 
@@ -3556,10 +3555,10 @@ public class ToobitCore extends ToobitApi
     public Object parseLeverage(Object leverage, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(leverage, "symbol");
+        Object marketId = this.safeString2(leverage, "symbolId", "symbol");
         Object leverageValue = this.safeInteger(leverage, "leverage");
-        Object marginType = this.safeString(leverage, "marginType");
-        Object marginMode = ((Helpers.isTrue((Helpers.isEqual(marginType, "crossed"))))) ? "cross" : "isolated";
+        Object marginType = this.safeStringLower(leverage, "marginType");
+        Object marginMode = ((Helpers.isTrue((Helpers.isEqual(marginType, "cross"))))) ? "cross" : "isolated";
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", ToobitCore.this.safeSymbol(marketId, market) );

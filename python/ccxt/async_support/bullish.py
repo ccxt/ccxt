@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bullish import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, OpenInterest, Trade, Transaction, FundingRateHistory, TransferEntry
-from typing import List
+from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, OpenInterest, Trade, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -31,7 +30,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 
 class bullish(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bullish, self).describe(), {
             'id': 'bullish',
             'name': 'Bullish',
@@ -555,7 +554,7 @@ class bullish(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for ace
 
@@ -945,7 +944,7 @@ class bullish(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, symbol, timestamp, 'bids', 'asks', 'price', 'priceLevelQuantity')
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -993,7 +992,7 @@ class bullish(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -1054,7 +1053,7 @@ class bullish(Exchange, ImplicitAPI):
             response = await self.privateGetV1HistoryTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         fetch all the trades made from a single order
 
@@ -1305,7 +1304,7 @@ class bullish(Exchange, ImplicitAPI):
                     raise e
         return []
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1366,7 +1365,7 @@ class bullish(Exchange, ImplicitAPI):
         ohlcvs = self.to_array(response)
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 'createdAtTimestamp'),
             self.safe_number(ohlcv, 'open'),
@@ -1376,7 +1375,7 @@ class bullish(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingRateHistory]:
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -1435,7 +1434,7 @@ class bullish(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1551,7 +1550,7 @@ class bullish(Exchange, ImplicitAPI):
             pageSize = 100
         return pageSize
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1569,7 +1568,7 @@ class bullish(Exchange, ImplicitAPI):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
@@ -1588,7 +1587,7 @@ class bullish(Exchange, ImplicitAPI):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -1607,7 +1606,7 @@ class bullish(Exchange, ImplicitAPI):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
@@ -1813,7 +1812,7 @@ class bullish(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}) -> List[Order]:
+    async def cancel_all_orders(self, symbol: Str = None, params={}) -> list[Order]:
         """
         cancel all open orders in a market
 
@@ -1963,7 +1962,7 @@ class bullish(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -2143,7 +2142,7 @@ class bullish(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def parse_transaction_type(self, type: Any):
+    def parse_transaction_type(self, type: object):
         types = {
             'DEPOSIT': 'deposit',
             'WITHDRAW': 'withdrawal',
@@ -2176,7 +2175,7 @@ class bullish(Exchange, ImplicitAPI):
         self.options['tradingAccountId'] = tradingAccountId
         return tradingAccountId
 
-    async def fetch_accounts(self, params={}) -> List[Account]:
+    async def fetch_accounts(self, params={}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -2326,7 +2325,7 @@ class bullish(Exchange, ImplicitAPI):
                     data = {}  # return an empty structure if the user-defined network was not found
         return self.parse_deposit_address(data, currency)
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         id = self.safe_string(depositAddress, 'symbol')
         network = self.safe_string(depositAddress, 'network')
         code = self.safe_currency_code(id, currency)
@@ -2381,7 +2380,7 @@ class bullish(Exchange, ImplicitAPI):
             #
             return self.parse_balance(response)
 
-    def parse_balance_for_single_currency(self, response: Any, code: Str) -> Balances:
+    def parse_balance_for_single_currency(self, response: object, code: Str) -> Balances:
         result = {'info': response}
         account = self.account()
         account['free'] = self.safe_string(response, 'availableQuantity')
@@ -2389,7 +2388,7 @@ class bullish(Exchange, ImplicitAPI):
         result[code] = account
         return self.safe_balance(result)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {
             'info': response,
         }
@@ -2404,7 +2403,7 @@ class bullish(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -2508,7 +2507,7 @@ class bullish(Exchange, ImplicitAPI):
         }
         return self.safe_string(sides, side, side)
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -2604,7 +2603,7 @@ class bullish(Exchange, ImplicitAPI):
             transfer['currency'] = code
         return transfer
 
-    def parse_transfer(self, transfer: Any, currency: Currency = None):
+    def parse_transfer(self, transfer: object, currency: Currency = None):
         #
         # fetchTransfers
         #     {
@@ -2699,7 +2698,7 @@ class bullish(Exchange, ImplicitAPI):
         #
         return self.parse_borrow_rate_history(response, code, since, limit)
 
-    def parse_borrow_rate(self, info: Any, currency: Currency = None):
+    def parse_borrow_rate(self, info: object, currency: Currency = None):
         #
         #     {
         #         "assetId": "1",
@@ -2781,7 +2780,7 @@ class bullish(Exchange, ImplicitAPI):
         #
         return self.parse_open_interest(response, market)
 
-    def parse_open_interest(self, interest: Any, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None):
         #
         #     {
         #         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
@@ -2832,7 +2831,7 @@ class bullish(Exchange, ImplicitAPI):
             'quoteVolume': None,
         }, market)
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint
@@ -2912,7 +2911,7 @@ class bullish(Exchange, ImplicitAPI):
         else:
             return self.token
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         #

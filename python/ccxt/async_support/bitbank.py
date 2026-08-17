@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitbank import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -20,7 +19,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 
 class bitbank(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bitbank, self).describe(), {
             'id': 'bitbank',
             'name': 'bitbank',
@@ -272,7 +271,7 @@ class bitbank(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for bitbank
 
@@ -313,7 +312,7 @@ class bitbank(Exchange, ImplicitAPI):
         pairs = self.safe_value(data, 'pairs', [])
         return self.parse_markets(pairs)
 
-    def parse_market(self, entry: Any) -> Market:
+    def parse_market(self, entry: object) -> Market:
         id = self.safe_string(entry, 'name')
         baseId = self.safe_string(entry, 'base_asset')
         quoteId = self.safe_string(entry, 'quote_asset')
@@ -484,7 +483,7 @@ class bitbank(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -565,7 +564,7 @@ class bitbank(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     [
         #         "0.02501786",
@@ -585,7 +584,7 @@ class bitbank(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 4),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -636,7 +635,7 @@ class bitbank(Exchange, ImplicitAPI):
         ohlcv = self.safe_list(first, 'ohlcv', [])
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -868,7 +867,7 @@ class bitbank(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1042,7 +1041,7 @@ class bitbank(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
         query = self.omit(params, self.extract_params(path))
         url = self.implode_hostname(self.urls['api'][api]) + '/'
         if (api == 'public') or (api == 'markets'):
@@ -1087,7 +1086,7 @@ class bitbank(Exchange, ImplicitAPI):
                 headers['ACCESS-NONCE'] = nonce
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         success = self.safe_integer(response, 'success')

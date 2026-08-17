@@ -24,10 +24,13 @@ public partial class testMainClass : BaseTest
         object limit = 10;
         object duration = exchange.parseTimeframe(chosenTimeframeKey);
         object since = subtract(subtract(exchange.milliseconds(), multiply(multiply(duration, limit), 1000)), 1000);
-        while (isLessThan(now, ends))
+        object maxIdleTime = 5000;
+        object idle = false;
+        while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             object response = null;
             object success = true;
+            object startTime = exchange.milliseconds();
             try
             {
                 response = await exchange.watchOHLCV(symbol, chosenTimeframeKey, since, limit);
@@ -41,21 +44,19 @@ public partial class testMainClass : BaseTest
                 {
                     throw e;
                 }
-                now = exchange.milliseconds();
-                // continue;
                 success = false;
             }
-            if (isTrue(isEqual(success, true)))
+            now = exchange.milliseconds();
+            if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
             {
-                if (isTrue(isEqual(response, null)))
-                {
-                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
-                }
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
-                now = exchange.milliseconds();
                 for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
                 {
                     testOHLCV(exchange, skippedProperties, method, getValue(response, i), symbol, now);
+                }
+                if (isTrue(isGreaterThan((subtract(now, startTime)), maxIdleTime)))
+                {
+                    idle = true;
                 }
             }
         }

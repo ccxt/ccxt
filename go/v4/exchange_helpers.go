@@ -404,6 +404,16 @@ func GetValue(collection any, key any) any {
 		if obs, ok := collection.(IOrderBookSide); ok {
 			return (obs.GetData())[keyNum]
 		}
+		// the ws caches extend Array in typescript too, so the transpiled code
+		// indexes them positionally (cache[0]); without this the struct-reflect
+		// fallback below panics on the non-string key
+		if cache, ok := collection.(IArrayCache); ok {
+			data := cache.ToArray()
+			if keyNum >= 0 && keyNum < len(data) {
+				return data[keyNum]
+			}
+			return nil
+		}
 	}
 
 	// this is needed in checkRequiredCredentials or alike

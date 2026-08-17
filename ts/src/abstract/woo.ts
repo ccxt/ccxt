@@ -64,7 +64,6 @@ interface Exchange {
     v1PrivateDeleteClientOrder (params?: {}): Promise<Dict>;
     v1PrivateDeleteOrders (params?: {}): Promise<List>;
     v1PrivateDeleteAssetWithdraw (params?: {}): Promise<Dict>;
-    v2PrivateGetClientHolding (params?: {}): Promise<Dict>;
     v3PublicGetSystemInfo (params?: {}): Promise<Dict>;
     v3PublicGetInstruments (params?: {}): Promise<Dict>;
     v3PublicGetToken (params?: {}): Promise<Dict>;

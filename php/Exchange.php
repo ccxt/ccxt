@@ -371,6 +371,7 @@ class BaseExchange {
         'btcbox',
         'btcmarkets',
         'btcturk',
+        'btse',
         'bullish',
         'bybit',
         'bybiteu',

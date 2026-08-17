@@ -837,10 +837,6 @@ public partial class poloniex : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(getValue(market, "contract")))
         {
-            if (isTrue(this.inArray(timeframe, new List<object>() {"10m", "1M"})))
-            {
-                throw new NotSupported ((string)add(add(add(add(add(this.id, " "), timeframe), " "), getValue(market, "type")), " fetchOHLCV is not supported")) ;
-            }
             object responseRaw = await this.swapPublicGetV3MarketCandles(this.extend(request, parameters));
             //
             //     {
@@ -1249,6 +1245,12 @@ public partial class poloniex : Exchange
         object timestamp = this.safeInteger2(ticker, "ts", "cT");
         object marketId = this.safeString2(ticker, "symbol", "s");
         market = this.safeMarket(marketId);
+        object baseVolume = this.safeString2(ticker, "quantity", "qty");
+        if (isTrue(isTrue(getValue(market, "contract")) && isTrue((!isEqual(getValue(market, "contractSize"), null)))))
+        {
+            // 'quantity' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.stringMul(baseVolume, this.numberToString(getValue(market, "contractSize")));
+        }
         object relativeChange = this.safeString2(ticker, "dailyChange", "dc");
         object percentage = Precise.stringMul(relativeChange, "100");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -1269,7 +1271,7 @@ public partial class poloniex : Exchange
             { "change", null },
             { "percentage", percentage },
             { "average", null },
-            { "baseVolume", this.safeString2(ticker, "quantity", "qty") },
+            { "baseVolume", baseVolume },
             { "quoteVolume", this.safeString2(ticker, "amount", "amt") },
             { "markPrice", this.safeString2(ticker, "markPrice", "mPx") },
             { "indexPrice", this.safeString(ticker, "iPx") },

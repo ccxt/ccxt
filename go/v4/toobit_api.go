@@ -187,7 +187,7 @@ func (this *ToobitCore) PrivateGetApiV1SubAccountList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1SubAccountList", args...)
 }
 
-// PrivateGetApiV1FuturesAccountLeverage returns a channel that yields a JSON object.
+// PrivateGetApiV1FuturesAccountLeverage returns a channel that yields a JSON array.
 func (this *ToobitCore) PrivateGetApiV1FuturesAccountLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesAccountLeverage", args...)
 }

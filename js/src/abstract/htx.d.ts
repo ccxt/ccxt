@@ -103,11 +103,6 @@ interface Exchange {
     privatePostCrossMarginOrdersIdRepay(params?: {}): Promise<Dict>;
     privatePostStableCoinExchange(params?: {}): Promise<Dict>;
     privatePostSubuserTransfer(params?: {}): Promise<Dict>;
-    statusPublicSpotGetApiV2SummaryJson(params?: {}): Promise<Dict>;
-    statusPublicFutureInverseGetApiV2SummaryJson(params?: {}): Promise<Dict>;
-    statusPublicFutureLinearGetApiV2SummaryJson(params?: {}): Promise<Dict>;
-    statusPublicSwapInverseGetApiV2SummaryJson(params?: {}): Promise<Dict>;
-    statusPublicSwapLinearGetApiV2SummaryJson(params?: {}): Promise<Dict>;
     spotPublicGetV2MarketStatus(params?: {}): Promise<Dict>;
     spotPublicGetV1CommonSymbols(params?: {}): Promise<Dict>;
     spotPublicGetV1CommonCurrencys(params?: {}): Promise<Dict>;

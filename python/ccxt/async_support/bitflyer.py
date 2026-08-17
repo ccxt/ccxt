@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitflyer import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface
-from typing import List
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import OrderNotFound
@@ -18,7 +17,7 @@ from ccxt.base.precise import Precise
 
 class bitflyer(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bitflyer, self).describe(), {
             'id': 'bitflyer',
             'name': 'bitFlyer',
@@ -227,7 +226,7 @@ class bitflyer(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_expiry_date(self, expiry: Any):
+    def parse_expiry_date(self, expiry: object):
         day = expiry[0:2]
         monthName = expiry[2:5]
         year = expiry[5:9]
@@ -254,7 +253,7 @@ class bitflyer(Exchange, ImplicitAPI):
         # Since they're the same we just need to return one
         return super(bitflyer, self).safe_market(marketId, market, delimiter, 'spot')
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for bitflyer
 
@@ -403,7 +402,7 @@ class bitflyer(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -574,7 +573,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -754,7 +753,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -781,7 +780,7 @@ class bitflyer(Exchange, ImplicitAPI):
             orders = self.filter_by(orders, 'symbol', symbol)
         return orders
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -798,7 +797,7 @@ class bitflyer(Exchange, ImplicitAPI):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -873,7 +872,7 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -943,7 +942,7 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -980,7 +979,7 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -1019,14 +1018,14 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def parse_deposit_status(self, status: Any):
+    def parse_deposit_status(self, status: object):
         statuses = {
             'PENDING': 'pending',
             'COMPLETED': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_withdrawal_status(self, status: Any):
+    def parse_withdrawal_status(self, status: object):
         statuses = {
             'PENDING': 'pending',
             'COMPLETED': 'ok',
@@ -1137,7 +1136,7 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate(response, market)
 
-    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         #    {
         #        "current_funding_rate": -0.003750000000
@@ -1167,7 +1166,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/' + self.version + '/'
         if api == 'private':
             request += 'me/'
@@ -1194,7 +1193,7 @@ class bitflyer(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to the default error handler
         feedback = self.id + ' ' + body

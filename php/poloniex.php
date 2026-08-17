@@ -97,18 +97,18 @@ class poloniex extends Exchange {
             'timeframes' => array(
                 '1m' => 'MINUTE_1',
                 '5m' => 'MINUTE_5',
-                '10m' => 'MINUTE_10', // not in swap
+                '10m' => 'MINUTE_10',
                 '15m' => 'MINUTE_15',
                 '30m' => 'MINUTE_30',
                 '1h' => 'HOUR_1',
                 '2h' => 'HOUR_2',
                 '4h' => 'HOUR_4',
-                '6h' => 'HOUR_6', // not in swap
+                '6h' => 'HOUR_6',
                 '12h' => 'HOUR_12',
                 '1d' => 'DAY_1',
                 '3d' => 'DAY_3',
                 '1w' => 'WEEK_1',
-                '1M' => 'MONTH_1', // not in swap
+                '1M' => 'MONTH_1',
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
@@ -657,9 +657,6 @@ class poloniex extends Exchange {
         }
         list($request, $params) = $this->handle_until_option($keyEnd, $request, $params);
         if ($market['contract']) {
-            if ($this->in_array($timeframe, array( '10m', '1M' ))) {
-                throw new NotSupported($this->id . ' ' . $timeframe . ' ' . $market['type'] . ' fetchOHLCV is not supported');
-            }
             $responseRaw = $this->swapPublicGetV3MarketCandles($this->extend($request, $params));
             //
             //     {
@@ -1046,6 +1043,11 @@ class poloniex extends Exchange {
         $timestamp = $this->safe_integer_2($ticker, 'ts', 'cT');
         $marketId = $this->safe_string_2($ticker, 'symbol', 's');
         $market = $this->safe_market($marketId);
+        $baseVolume = $this->safe_string_2($ticker, 'quantity', 'qty');
+        if ($market['contract'] && ($market['contractSize'] !== null)) {
+            // 'quantity' counts contracts, and a $ticker reports base volume
+            $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($market['contractSize']));
+        }
         $relativeChange = $this->safe_string_2($ticker, 'dailyChange', 'dc');
         $percentage = Precise::string_mul($relativeChange, '100');
         return $this->safe_ticker(array(
@@ -1066,7 +1068,7 @@ class poloniex extends Exchange {
             'change' => null,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_string_2($ticker, 'quantity', 'qty'),
+            'baseVolume' => $baseVolume,
             'quoteVolume' => $this->safe_string_2($ticker, 'amount', 'amt'),
             'markPrice' => $this->safe_string_2($ticker, 'markPrice', 'mPx'),
             'indexPrice' => $this->safe_string($ticker, 'iPx'),

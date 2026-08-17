@@ -70,6 +70,7 @@ public partial class krakenfutures : Exchange
                 { "fetchOrders", true },
                 { "fetchPositions", true },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchTicker", "emulated" },
                 { "fetchTickers", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", "emulated" },
@@ -555,6 +556,8 @@ public partial class krakenfutures : Exchange
                 { "linear", linear },
                 { "inverse", inverse },
                 { "contractSize", this.safeNumber(market, "contractSize") },
+                { "taker", this.safeNumber(getValue(this.fees, "trading"), "taker") },
+                { "maker", this.safeNumber(getValue(this.fees, "trading"), "maker") },
                 { "maintenanceMarginRate", null },
                 { "expiry", expiry },
                 { "expiryDatetime", this.iso8601(expiry) },
@@ -1279,9 +1282,16 @@ public partial class krakenfutures : Exchange
         if (isTrue(isTrue((!isEqual(takerOrMaker, null))) && isTrue((!isEqual(cost, null)))))
         {
             object feeRate = this.safeString(market, takerOrMaker);
+            // fees are charged in the settlement currency: the quote currency
+            // for linear contracts, the base currency for inverse contracts
+            object feeCurrency = this.safeString(market, "settle");
+            if (isTrue(isEqual(feeCurrency, null)))
+            {
+                feeCurrency = this.safeString(market, "quote");
+            }
             fee = new Dictionary<string, object>() {
                 { "cost", Precise.stringMul(cost, feeRate) },
-                { "currency", this.safeString(market, "quote") },
+                { "currency", feeCurrency },
                 { "rate", feeRate },
             };
         }

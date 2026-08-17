@@ -1723,6 +1723,9 @@
     },
     "latoken": {
         "skipMethods": {
+            "fetchTicker": {
+                "lastBetweenBidAsk": "the venue serves stale wide bestBid/bestAsk snapshots during incidents - 2026-08-17: 30+ minutes of a dust bid and a ghost negative-quantity ask from the ticker endpoint itself while trades printed 1.15% above the stale median"
+            },
             "loadMarkets": {
                 "precision": "messed just for one pair https://app.travis-ci.com/github/ccxt/ccxt/builds/269924468#L4006",
                 "currency": "messed",
@@ -2519,6 +2522,13 @@
             },
             "watchTradesForSymbols": {
                 "side": "not provided"
+            }
+        }
+    },
+    "btse": {
+        "skipMethods": {
+            "ticker": {
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/31550755306/job/93972856257?pr=27862"
             }
         }
     }
