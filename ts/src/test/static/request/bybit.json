@@ -1953,6 +1953,16 @@
                 ]
             }
         ],
+        "fetchCrossBorrowRate": [
+            {
+                "description": "cross borrow rate for BTC",
+                "method": "fetchCrossBorrowRate",
+                "url": "https://api.bybit.com/v5/spot-margin-trade/data?currency=BTC&vipLevel=No VIP",
+                "input": [
+                  "BTC"
+                ]
+            }
+        ],
         "fetchOpenInterest": [
             {
                 "description": "linear swap fetchOpenInterest",
