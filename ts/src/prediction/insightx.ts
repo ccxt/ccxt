@@ -1,7 +1,7 @@
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from '../abstract/prediction/insightx.js';
-import { AuthenticationError, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ecdsa } from '../base/functions/crypto.js';
 import type { Bool, Dict, Int, Market, Num, PredictionEvent, PredictionOrder, PredictionPosition, PredictionTicker, PredictionTickers, Str, Strings, fetchEventsParams, int } from '../base/types.js';
@@ -30,6 +30,7 @@ export default class insightx extends Exchange {
                 'future': false,
                 'option': false,
                 'cancelOrder': true,
+                'createOrder': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchEvent': false,
@@ -102,6 +103,7 @@ export default class insightx extends Exchange {
             'options': {
                 'defaultNetwork': 'mantle_mainnet',
                 'chainId': 5000,
+                'rpcUrl': 'https://rpc.mantle.xyz',
                 'tradingContract': '0xD22A5FFdb71221B7b2F081e2679C8A0149d58BE9',
                 'defaultMarketStatus': 1,
                 'marketsPageSize': 100,
@@ -968,6 +970,198 @@ export default class insightx extends Exchange {
     }
 
     /**
+     * @ignore
+     * @method
+     * @name insightx#decimalToBase16
+     * @description converts an unsigned decimal integer string to hexadecimal without JavaScript integer precision loss
+     * @param {string} value unsigned decimal integer string
+     * @returns {string} lowercase hexadecimal without a 0x prefix
+     */
+    decimalToBase16 (value: string): string {
+        let decimalString = value;
+        const hexChars = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' ];
+        let result = '';
+        while (Precise.stringGt (decimalString, '0')) {
+            const remainder = this.parseToInt (Precise.stringMod (decimalString, '16'));
+            result = hexChars[remainder] + result;
+            decimalString = Precise.stringDiv (decimalString, '16', 0) as string;
+        }
+        if (result === '') {
+            return '0';
+        }
+        return result;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name insightx#encodeTradeCalldata
+     * @description ABI-encodes trade(uint64 order_id, uint64 deadline, bytes signature)
+     * @param {string} orderId insightx order id
+     * @param {string} deadline signature expiration timestamp in seconds
+     * @param {string} signature backend-generated order signature
+     * @returns {string} EVM transaction calldata
+     */
+    encodeTradeCalldata (orderId: string, deadline: string, signature: string): string {
+        const maxUint64 = '18446744073709551615';
+        if (!Precise.stringGt (orderId, '0') || Precise.stringGt (orderId, maxUint64)) {
+            throw new InvalidOrder (this.id + ' createOrder() received an invalid uint64 order_id');
+        }
+        if (!Precise.stringGt (deadline, '0') || Precise.stringGt (deadline, maxUint64)) {
+            throw new InvalidOrder (this.id + ' createOrder() received an invalid uint64 deadline');
+        }
+        let signatureHex = this.remove0xPrefix (signature);
+        if ((signatureHex === undefined) || (signatureHex === '') || (Precise.stringMod (this.numberToString (signatureHex.length), '2') !== '0')) {
+            throw new InvalidOrder (this.id + ' createOrder() received an invalid trade signature');
+        }
+        this.base16ToBinary (signatureHex);
+        let orderIdHex = this.decimalToBase16 (orderId);
+        let deadlineHex = this.decimalToBase16 (deadline);
+        let offsetHex = '60';
+        let signatureLengthHex = this.intToBase16 (this.parseToInt (signatureHex.length / 2));
+        orderIdHex = orderIdHex.padStart (64, '0');
+        deadlineHex = deadlineHex.padStart (64, '0');
+        offsetHex = offsetHex.padStart (64, '0');
+        signatureLengthHex = signatureLengthHex.padStart (64, '0');
+        while (Precise.stringMod (this.numberToString (signatureHex.length), '64') !== '0') {
+            signatureHex = signatureHex + '0';
+        }
+        const selectorHash = this.hash (this.encode ('trade(uint64,uint64,bytes)'), keccak, 'hex');
+        const selector = selectorHash.slice (0, 8);
+        return '0x' + selector + orderIdHex + deadlineHex + offsetHex + signatureLengthHex + signatureHex;
+    }
+
+    /**
+     * @method
+     * @name insightx#createOrder
+     * @description creates a limit order intent and confirms it on Mantle by calling trade(order_id, deadline, signature)
+     * @see https://insightx-2.gitbook.io/whitepaper/insightx-whitepaper/10.-developer-resources-and-api-integration#id-10.8-create-order
+     * @see https://insightx-2.gitbook.io/whitepaper/insightx-whitepaper/10.-developer-resources-and-api-integration#id-10.9-on-chain-order-confirmation
+     * @param {string} outcome unified outcome handle or raw outcome id in marketId:outcomeIndex format
+     * @param {string} type only 'limit' is documented and supported
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount number of outcome shares or contracts
+     * @param {float} [price] price per share between 0.0001 and 0.9999
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {string} [params.rpcUrl] Mantle JSON-RPC URL, defaults to options.rpcUrl
+     * @param {string} [params.rpc] alias for params.rpcUrl
+     * @param {string} [params.gasLimit] gas limit as a hex quantity; estimated automatically when omitted
+     * @param {boolean} [params.confirmOnChain] submit the Mantle confirmation with privateKey, defaults to true; false returns the pending intent and calldata for an external wallet
+     * @param {boolean} [params.skipWaitForReceipt] return after broadcasting without waiting for the transaction receipt, defaults to false
+     * @param {int} [params.receiptTimeout] maximum milliseconds to wait for the transaction receipt, defaults to 60000
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    override async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+        await this.handleToken ();
+        const outcomeObj = await this.loadOutcome (outcome);
+        const marketId = this.safeString (outcomeObj, 'marketId');
+        const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
+        const outcomeIndex = this.safeInteger (outcomeInfo, 'outcome_idx');
+        if ((marketId === undefined) || (outcomeIndex === undefined)) {
+            throw new BadSymbol (this.id + ' createOrder() could not resolve the market id and outcome index for ' + outcome);
+        }
+        const typeLower = this.safeStringLower ({ 'type': type }, 'type');
+        if (typeLower !== 'limit') {
+            throw new NotSupported (this.id + ' createOrder() only supports documented limit orders');
+        }
+        const sideLower = this.safeStringLower ({ 'side': side }, 'side');
+        if ((sideLower !== 'buy') && (sideLower !== 'sell')) {
+            throw new InvalidOrder (this.id + ' createOrder() side must be buy or sell');
+        }
+        if (price === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price for limit orders');
+        }
+        const amountString = this.numberToString (amount);
+        const priceString = this.numberToString (price);
+        if ((amountString === undefined) || !Precise.stringGt (amountString, '0')) {
+            throw new InvalidOrder (this.id + ' createOrder() amount must be greater than zero');
+        }
+        if ((priceString === undefined) || Precise.stringLt (priceString, '0.0001') || Precise.stringGt (priceString, '0.9999')) {
+            throw new InvalidOrder (this.id + ' createOrder() price must be between 0.0001 and 0.9999');
+        }
+        const request: Dict = {
+            'market_id': this.parseToInt (marketId),
+            'outcome_idx': outcomeIndex,
+            'side': sideLower,
+            'order_type': typeLower,
+            'price': price,
+            'amount': amount,
+        };
+        const rest = this.omit (params, [ 'market_id', 'outcome_idx', 'side', 'order_type', 'price', 'amount', 'rpcUrl', 'rpc', 'gasLimit', 'confirmOnChain', 'skipWaitForReceipt', 'receiptTimeout' ]);
+        const response = await this.insightxPrivatePostPredictV2PlaceOrder (this.extend (rest, request));
+        const data = this.safeDict (response, 'data', {});
+        const orderId = this.safeString (data, 'order_id');
+        const deadline = this.safeString (data, 'deadline');
+        const signature = this.safeString (data, 'signature');
+        if ((orderId === undefined) || (deadline === undefined) || (signature === undefined)) {
+            throw new ExchangeError (this.id + ' createOrder() did not receive order_id, deadline and signature');
+        }
+        const calldata = this.encodeTradeCalldata (orderId, deadline, signature);
+        const rpcUrl = this.safeString2 (params, 'rpcUrl', 'rpc', this.safeString (this.options, 'rpcUrl'));
+        const tradingContract = this.safeString (this.options, 'tradingContract');
+        const confirmOnChain = this.safeBool (params, 'confirmOnChain', true);
+        let transactionHash: Str = undefined;
+        if (confirmOnChain) {
+            if (this.isEmptyString (this.privateKey)) {
+                throw new AuthenticationError (this.id + ' createOrder() requires a privateKey to confirm the order on-chain');
+            }
+            if (rpcUrl === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires params.rpcUrl or options.rpcUrl');
+            }
+            if (tradingContract === undefined) {
+                throw new ExchangeError (this.id + ' createOrder() requires options.tradingContract');
+            }
+            const fromAddress = this.ethGetAddressFromPrivateKey (this.privateKey);
+            let gasLimit = this.safeString (params, 'gasLimit');
+            if (gasLimit === undefined) {
+                gasLimit = await this.ethRpc (rpcUrl, 'eth_estimateGas', [ { 'from': fromAddress, 'to': tradingContract, 'value': '0x0', 'data': calldata } ]) as string;
+            }
+            const chainId = this.safeInteger (this.options, 'chainId', 5000);
+            transactionHash = await this.sendEvmTransaction (rpcUrl, chainId, fromAddress, tradingContract, '0x0', calldata, gasLimit);
+        }
+        const skipWaitForReceipt = this.safeBool (params, 'skipWaitForReceipt', false);
+        let receipt: any = undefined;
+        let status: Str = undefined;
+        if (confirmOnChain && !skipWaitForReceipt) {
+            if (rpcUrl === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires params.rpcUrl or options.rpcUrl to wait for the transaction receipt');
+            }
+            const receiptTimeout = this.safeInteger (params, 'receiptTimeout', 60000);
+            receipt = await this.waitForTransactionReceipt (rpcUrl, transactionHash, receiptTimeout);
+            const receiptStatus = this.safeString (receipt, 'status');
+            if ((receiptStatus === '0x0') || (receiptStatus === '0')) {
+                throw new ExchangeError (this.id + ' createOrder() on-chain trade transaction failed: ' + transactionHash);
+            }
+            status = 'open';
+        }
+        const info: Dict = {
+            'response': response,
+            'tradingContract': tradingContract,
+            'calldata': calldata,
+        };
+        if (transactionHash !== undefined) {
+            info['transactionHash'] = transactionHash;
+        }
+        if (receipt !== undefined) {
+            info['receipt'] = receipt;
+        }
+        return this.safePredictionOrder ({
+            'id': orderId,
+            'status': status,
+            'type': typeLower,
+            'side': sideLower,
+            'price': price,
+            'amount': amount,
+            'outcome': this.safeString (outcomeObj, 'outcome'),
+            'outcomeId': this.safeString (outcomeObj, 'outcomeId'),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString (outcomeObj, 'market'),
+            'event': this.safeString (outcomeObj, 'event'),
+            'info': info,
+        }, outcomeObj);
+    }
+
+    /**
      * @method
      * @name insightx#cancelOrder
      * @description cancels an open or partially filled insightx order
@@ -1358,6 +1552,56 @@ export default class insightx extends Exchange {
             },
             'info': raw,
         } as unknown as Market;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name insightx#signEvmTransaction
+     * @description signs an EIP-1559 Mantle transaction with the configured EVM private key
+     * @param {object} tx unsigned EIP-1559 transaction fields
+     * @param {string} privateKey EVM private key
+     * @returns {string} signed raw transaction hex
+     */
+    override signEvmTransaction (tx: Dict, privateKey: string): string {
+        const accessList = this.rlpEncodeList ([]);
+        const fields = [
+            this.rlpEncodeBytes (this.intToRlpHex (this.safeInteger (tx, 'chainId'))),
+            this.rlpEncodeBytes (this.hexToRlpBytes (this.safeString (tx, 'nonce'))),
+            this.rlpEncodeBytes (this.hexToRlpBytes (this.safeString (tx, 'maxPriorityFeePerGas'))),
+            this.rlpEncodeBytes (this.hexToRlpBytes (this.safeString (tx, 'maxFeePerGas'))),
+            this.rlpEncodeBytes (this.hexToRlpBytes (this.safeString (tx, 'gasLimit'))),
+            this.rlpEncodeBytes (this.remove0xPrefix (this.safeString (tx, 'to'))),
+            this.rlpEncodeBytes (this.hexToRlpBytes (this.safeString (tx, 'value', '0x0'))),
+            this.rlpEncodeBytes (this.remove0xPrefix (this.safeString (tx, 'data', '0x'))),
+            accessList,
+        ];
+        const payload = '02' + this.rlpEncodeList (fields);
+        const hashHex = this.hash (this.base16ToBinary (payload), keccak, 'hex');
+        const signature = ecdsa (hashHex, this.remove0xPrefix (privateKey), secp256k1, undefined);
+        let rHex = this.safeString (signature, 'r');
+        let sHex = this.safeString (signature, 's');
+        if (rHex === undefined) {
+            throw new ExchangeError (this.id + ' signEvmTransaction() missing rHex');
+        }
+        if (Precise.stringMod (this.numberToString (rHex.length), '2') !== '0') {
+            rHex = '0' + rHex;
+        }
+        if (sHex === undefined) {
+            throw new ExchangeError (this.id + ' signEvmTransaction() missing sHex');
+        }
+        if (Precise.stringMod (this.numberToString (sHex.length), '2') !== '0') {
+            sHex = '0' + sHex;
+        }
+        const yParity = this.safeInteger (signature, 'v');
+        const signedFields: string[] = [];
+        for (let i = 0; i < fields.length; i++) {
+            signedFields.push (fields[i]);
+        }
+        signedFields.push (this.rlpEncodeBytes (this.intToRlpHex (yParity)));
+        signedFields.push (this.rlpEncodeBytes (rHex));
+        signedFields.push (this.rlpEncodeBytes (sHex));
+        return '0x02' + this.rlpEncodeList (signedFields);
     }
 
     /**

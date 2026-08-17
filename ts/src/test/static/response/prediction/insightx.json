@@ -784,6 +784,71 @@
                 ]
             }
         ],
+        "createOrder": [
+            {
+                "description": "createOrder returns the pending API intent and trade calldata when external on-chain confirmation is requested",
+                "method": "createOrder",
+                "input": [
+                    "80372897:2",
+                    "limit",
+                    "buy",
+                    5,
+                    0.4,
+                    {
+                        "confirmOnChain": false
+                    }
+                ],
+                "httpResponse": {
+                    "errno": 0,
+                    "errmsg": "no error",
+                    "data": {
+                        "order_id": 123,
+                        "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+                        "deadline": 1787000000
+                    }
+                },
+                "parsedResponse": {
+                    "id": "123",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "type": "limit",
+                    "timeInForce": null,
+                    "side": "buy",
+                    "price": 0.4,
+                    "average": null,
+                    "amount": 5,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "fee": null,
+                    "reduceOnly": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "outcome": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259:NO",
+                    "outcomeId": "80372897:2",
+                    "label": "No",
+                    "market": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259",
+                    "event": "INSIGHTX_EVENT_9151820",
+                    "info": {
+                        "response": {
+                            "errno": 0,
+                            "errmsg": "no error",
+                            "data": {
+                                "order_id": 123,
+                                "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+                                "deadline": 1787000000
+                            }
+                        },
+                        "tradingContract": "0xD22A5FFdb71221B7b2F081e2679C8A0149d58BE9",
+                        "calldata": "0xa014ac6b000000000000000000000000000000000000000000000000000000000000007b000000000000000000000000000000000000000000000000000000006a8374c000000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000041111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111100000000000000000000000000000000000000000000000000000000000000"
+                    }
+                }
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "cancelOrder returns a minimal canceled prediction order",

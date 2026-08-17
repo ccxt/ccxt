@@ -166,6 +166,27 @@
                 ]
             }
         ],
+        "createOrder": [
+            {
+                "description": "createOrder resolves the outcome into market_id and outcome_idx for the documented place-order endpoint",
+                "method": "createOrder",
+                "url": "https://mainnet-api.insightx.finance/predict/v2/place-order",
+                "input": [
+                    "80372897:2",
+                    "limit",
+                    "buy",
+                    5,
+                    0.4,
+                    {
+                        "market_id": 99999999,
+                        "outcome_idx": 1,
+                        "order_type": "market",
+                        "confirmOnChain": false
+                    }
+                ],
+                "output": "{\"market_id\":80372897,\"outcome_idx\":2,\"side\":\"buy\",\"order_type\":\"limit\",\"price\":0.4,\"amount\":5}"
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "cancelOrder sends the unified order id as order_id without loading an outcome",
