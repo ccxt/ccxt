@@ -576,6 +576,36 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            },
+            {
+                "description": "swap 10m candles",
+                "method": "fetchOHLCV",
+                "url": "https://api.poloniex.com/v3/market/candles?symbol=BTC_USDT_PERP&interval=MINUTE_10",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "10m"
+                ],
+                "output": null
+            },
+            {
+                "description": "swap 6h candles",
+                "method": "fetchOHLCV",
+                "url": "https://api.poloniex.com/v3/market/candles?symbol=BTC_USDT_PERP&interval=HOUR_6",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "6h"
+                ],
+                "output": null
+            },
+            {
+                "description": "swap 1M candles",
+                "method": "fetchOHLCV",
+                "url": "https://api.poloniex.com/v3/market/candles?symbol=BTC_USDT_PERP&interval=MONTH_1",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1M"
+                ],
+                "output": null
             }
         ]
     }
