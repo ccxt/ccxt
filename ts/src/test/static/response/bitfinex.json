@@ -1326,6 +1326,80 @@
                 }
             }
         ],
+        "fetchTickers": [
+            {
+                "description": "funding ticker, whose DAILY_CHANGE_RELATIVE is a ratio",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": [
+                    [
+                        "fUSD",
+                        0.0003225150684931507,
+                        0.0002,
+                        60,
+                        31459344.50962042,
+                        0.0001424197,
+                        2,
+                        879085.12258563,
+                        -7.5e-05,
+                        -0.3333,
+                        0.00015,
+                        206061830.95326254,
+                        0.00035,
+                        8e-05,
+                        null,
+                        null,
+                        345577922.8264656,
+                        1469734163000
+                    ]
+                ],
+                "parsedResponse": {
+                    "fUSD": {
+                        "symbol": "fUSD",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 0.00035,
+                        "low": 8e-05,
+                        "bid": 0.0002,
+                        "bidVolume": null,
+                        "ask": 0.0001424197,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 0.000225,
+                        "close": 0.00015,
+                        "last": 0.00015,
+                        "previousClose": null,
+                        "change": -7.5e-05,
+                        "percentage": -33.33,
+                        "average": 0.0001875,
+                        "baseVolume": 206061830.95326254,
+                        "quoteVolume": null,
+                        "info": [
+                            "fUSD",
+                            0.0003225150684931507,
+                            0.0002,
+                            60,
+                            31459344.50962042,
+                            0.0001424197,
+                            2,
+                            879085.12258563,
+                            -7.5e-05,
+                            -0.3333,
+                            0.00015,
+                            206061830.95326254,
+                            0.00035,
+                            8e-05,
+                            null,
+                            null,
+                            345577922.8264656,
+                            1469734163000
+                        ],
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                }
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "public spot ohlcv",
