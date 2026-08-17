@@ -14,6 +14,7 @@ use React\Async;
 use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
 use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
 
 class krakenfutures extends \ccxt\async\krakenfutures {
     public function describe(): mixed {
@@ -375,7 +376,10 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //    }
         //
         if ($this->positions === null) {
-            $this->positions = new ArrayCacheBySymbolById();
+            // krakenfutures $positions carry no id (parseWsPosition always sets
+            // 'id' => null), so key by symbol . side instead of by-id, see
+            // https://github.com/ccxt/ccxt/issues/29709
+            $this->positions = new ArrayCacheBySymbolBySide();
         }
         $cache = $this->positions;
         $rawPositions = $this->safe_value($message, 'positions', array());

@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     web_get_v1_healthcheck = webGetV1Healthcheck = Entry[_Dict]('v1/healthcheck', 'web', 'GET', {'cost': 1})
@@ -59,7 +58,7 @@ class ImplicitAPI:
     v4_private_post_main_account_history = v4PrivatePostMainAccountHistory = Entry[_Dict]('main-account/history', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_main_account_withdraw = v4PrivatePostMainAccountWithdraw = Entry[_Dict]('main-account/withdraw', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_main_account_withdraw_pay = v4PrivatePostMainAccountWithdrawPay = Entry[_List]('main-account/withdraw-pay', ['v4', 'private'], 'POST', {'cost': 1})
-    v4_private_post_main_account_transfer = v4PrivatePostMainAccountTransfer = Entry[_Dict]('main-account/transfer', ['v4', 'private'], 'POST', {'cost': 1})
+    v4_private_post_main_account_transfer = v4PrivatePostMainAccountTransfer = Entry[_List]('main-account/transfer', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_main_account_smart_plans = v4PrivatePostMainAccountSmartPlans = Entry[_List]('main-account/smart/plans', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_main_account_smart_investment = v4PrivatePostMainAccountSmartInvestment = Entry[_Dict]('main-account/smart/investment', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_main_account_smart_investment_close = v4PrivatePostMainAccountSmartInvestmentClose = Entry[_Dict]('main-account/smart/investment/close', ['v4', 'private'], 'POST', {'cost': 1})
@@ -67,7 +66,7 @@ class ImplicitAPI:
     v4_private_post_main_account_fee = v4PrivatePostMainAccountFee = Entry[_List]('main-account/fee', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_main_account_smart_interest_payment_history = v4PrivatePostMainAccountSmartInterestPaymentHistory = Entry[_Dict]('main-account/smart/interest-payment-history', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_trade_account_balance = v4PrivatePostTradeAccountBalance = Entry[_Dict]('trade-account/balance', ['v4', 'private'], 'POST', {'cost': 1})
-    v4_private_post_trade_account_executed_history = v4PrivatePostTradeAccountExecutedHistory = Entry[_Dict]('trade-account/executed-history', ['v4', 'private'], 'POST', {'cost': 1})
+    v4_private_post_trade_account_executed_history = v4PrivatePostTradeAccountExecutedHistory = Entry[_Dict | _List]('trade-account/executed-history', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_trade_account_order_history = v4PrivatePostTradeAccountOrderHistory = Entry[_Dict]('trade-account/order/history', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_trade_account_order = v4PrivatePostTradeAccountOrder = Entry[_Dict]('trade-account/order', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_order_collateral_limit = v4PrivatePostOrderCollateralLimit = Entry[_Dict]('order/collateral/limit', ['v4', 'private'], 'POST', {'cost': 1})
@@ -99,7 +98,7 @@ class ImplicitAPI:
     v4_private_post_sub_account_create = v4PrivatePostSubAccountCreate = Entry[_Dict]('sub-account/create', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_sub_account_delete = v4PrivatePostSubAccountDelete = Entry[_Dict]('sub-account/delete', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_sub_account_edit = v4PrivatePostSubAccountEdit = Entry[_Dict]('sub-account/edit', ['v4', 'private'], 'POST', {'cost': 1})
-    v4_private_post_sub_account_list = v4PrivatePostSubAccountList = Entry[_List]('sub-account/list', ['v4', 'private'], 'POST', {'cost': 1})
+    v4_private_post_sub_account_list = v4PrivatePostSubAccountList = Entry[_Dict]('sub-account/list', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_sub_account_transfer = v4PrivatePostSubAccountTransfer = Entry[_Dict]('sub-account/transfer', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_sub_account_block = v4PrivatePostSubAccountBlock = Entry[_Dict]('sub-account/block', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_sub_account_unblock = v4PrivatePostSubAccountUnblock = Entry[_Dict]('sub-account/unblock', ['v4', 'private'], 'POST', {'cost': 1})

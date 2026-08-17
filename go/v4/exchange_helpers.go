@@ -404,6 +404,16 @@ func GetValue(collection any, key any) any {
 		if obs, ok := collection.(IOrderBookSide); ok {
 			return (obs.GetData())[keyNum]
 		}
+		// the ws caches extend Array in typescript too, so the transpiled code
+		// indexes them positionally (cache[0]); without this the struct-reflect
+		// fallback below panics on the non-string key
+		if cache, ok := collection.(IArrayCache); ok {
+			data := cache.ToArray()
+			if keyNum >= 0 && keyNum < len(data) {
+				return data[keyNum]
+			}
+			return nil
+		}
 	}
 
 	// this is needed in checkRequiredCredentials or alike
@@ -2618,17 +2628,13 @@ func Remove(dict any, key any) {
 		delete(v, keyStr)
 		return
 	case *sync.Map:
-		// Check if the key exists in sync.Map
-		if _, exists := v.Load(keyStr); !exists {
-			panic(fmt.Sprintf("key '%s' does not exist in the sync.Map", keyStr))
-		}
-		// Remove the key from the sync.Map
+		// the javascript delete statement is a no-op on a missing key and
+		// never throws, mirror that semantic instead of panicking, concurrent
+		// transpiled deletes of the same key raced here and panicked the loser
 		v.Delete(keyStr)
 		return
 	case map[string]any:
-		if _, exists := v[keyStr]; !exists {
-			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
-		}
+		// the javascript delete statement is a no-op on a missing key
 		delete(v, keyStr)
 		return
 	default:

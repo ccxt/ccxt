@@ -1203,9 +1203,16 @@ public partial class delta : Exchange
         //
         object timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.001);
         object marketId = this.safeString(ticker, "symbol");
-        object symbol = this.safeSymbol(marketId, market);
+        market = this.safeMarket(marketId, market);
+        object symbol = getValue(market, "symbol");
         object last = this.safeString(ticker, "close");
         object quotes = this.safeDict(ticker, "quotes", new Dictionary<string, object>() {});
+        // turnover_symbol names the currency turnover is denominated in, and on
+        // spot markets that is the base currency rather than the quote
+        object turnoverSymbol = this.safeStringUpper(ticker, "turnover_symbol");
+        object quoteId = this.safeStringUpper(market, "quoteId");
+        object baseDenominated = isTrue(isTrue((!isEqual(turnoverSymbol, null))) && isTrue((!isEqual(quoteId, null)))) && isTrue((!isEqual(turnoverSymbol, quoteId)));
+        object quoteVolume = ((bool) isTrue(baseDenominated)) ? this.safeNumber(ticker, "turnover_usd") : this.safeNumber(ticker, "turnover");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -1225,7 +1232,7 @@ public partial class delta : Exchange
             { "percentage", null },
             { "average", null },
             { "baseVolume", this.safeNumber(ticker, "volume") },
-            { "quoteVolume", this.safeNumber(ticker, "turnover") },
+            { "quoteVolume", quoteVolume },
             { "markPrice", this.safeNumber(ticker, "mark_price") },
             { "indexPrice", this.safeNumber(ticker, "spot_price") },
             { "info", ticker },

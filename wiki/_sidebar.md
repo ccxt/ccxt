@@ -59,7 +59,6 @@
 	- [derive](exchanges/derive.md)
 	- [digifinex](exchanges/digifinex.md)
 	- [dydx](exchanges/dydx.md)
-	- [exmo](exchanges/exmo.md)
 	- [extended](exchanges/extended.md)
 	- [foxbit](exchanges/foxbit.md)
 	- [gate](exchanges/gate.md)

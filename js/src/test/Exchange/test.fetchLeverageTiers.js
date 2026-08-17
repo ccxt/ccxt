@@ -8,7 +8,7 @@ import testLeverageTier from './base/test.leverageTier.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 async function testFetchLeverageTiers(exchange, skippedProperties, symbol) {
     const method = 'fetchLeverageTiers';
-    const tiers = await exchange.fetchLeverageTiers(['symbol']);
+    const tiers = await exchange.fetchLeverageTiers([symbol]);
     // const format = {
     //     'RAY/USDT': [
     //       {},

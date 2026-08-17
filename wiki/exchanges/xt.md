@@ -359,6 +359,7 @@ create a trade order
 - https://doc.xt.com/docs/futures/Order/Create%20Orders
 - https://doc.xt.com/docs/futures/Entrust/CreateTriggerOrders
 - https://doc.xt.com/docs/futures/Entrust/CreateStopLimit
+- https://doc.xt.com/docs/futures/Entrust/CreateTrack
 
 
 | Param | Type | Required | Description |
@@ -376,6 +377,10 @@ create a trade order
 | params.stopPrice | <code>float</code> | No | alias for triggerPrice |
 | params.stopLoss | <code>float</code> | No | price to set a stop-loss on an open position |
 | params.takeProfit | <code>float</code> | No | price to set a take-profit on an open position |
+| params.trailingPercent | <code>float</code> | No | the percent to trail away from the current market price, swap markets only |
+| params.trailingAmount | <code>float</code> | No | the quote amount to trail away from the current market price, swap markets only |
+| params.trailingTriggerPrice | <code>float</code> | No | the price to activate a trailing order, swap markets only |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', for trailing orders only, default is 'cross' |
 
 
 ```javascript
@@ -397,6 +402,7 @@ fetches information on an order made by the user
 - https://doc.xt.com/docs/futures/Order/see-orders-by-id
 - https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersByEntrustId
 - https://doc.xt.com/docs/futures/Entrust/SeeStopLimitByProfitId
+- https://doc.xt.com/docs/futures/Entrust/GetSingleTrackDetail
 
 
 | Param | Type | Required | Description |
@@ -406,6 +412,7 @@ fetches information on an order made by the user
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
+| params.trailing | <code>bool</code> | No | if the order is a trailing order or not |
 
 
 ```javascript
@@ -426,6 +433,7 @@ fetches information on multiple orders made by the user
 - https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
 - https://doc.xt.com/docs/futures/Order/see-order-history
 - https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersHistory
+- https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
 
 
 | Param | Type | Required | Description |
@@ -435,6 +443,7 @@ fetches information on multiple orders made by the user
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
+| params.trailing | <code>bool</code> | No | if the orders are trailing orders or not |
 
 
 ```javascript
@@ -456,6 +465,7 @@ fetch all unfilled currently open orders
 - https://doc.xt.com/docs/futures/Order/see-orders
 - https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
 - https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+- https://doc.xt.com/docs/futures/Entrust/getTrackList
 
 
 | Param | Type | Required | Description |
@@ -466,6 +476,7 @@ fetch all unfilled currently open orders
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
+| params.trailing | <code>bool</code> | No | if the orders are trailing orders or not |
 
 
 ```javascript
@@ -487,6 +498,7 @@ fetches information on multiple closed orders made by the user
 - https://doc.xt.com/docs/futures/Order/see-orders
 - https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
 - https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+- https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
 
 
 | Param | Type | Required | Description |
@@ -497,6 +509,7 @@ fetches information on multiple closed orders made by the user
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
+| params.trailing | <code>bool</code> | No | if the orders are trailing orders or not |
 
 
 ```javascript
@@ -518,6 +531,7 @@ fetches information on multiple canceled orders made by the user
 - https://doc.xt.com/docs/futures/Order/see-orders
 - https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
 - https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+- https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
 
 
 | Param | Type | Required | Description |
@@ -528,6 +542,7 @@ fetches information on multiple canceled orders made by the user
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
+| params.trailing | <code>bool</code> | No | if the orders are trailing orders or not |
 
 
 ```javascript
@@ -549,6 +564,7 @@ cancels an open order
 - https://doc.xt.com/docs/futures/Order/cancel-orders
 - https://doc.xt.com/docs/futures/Entrust/CancelTriggerOrders
 - https://doc.xt.com/docs/futures/Entrust/CancelStopLimit
+- https://doc.xt.com/docs/futures/Entrust/CancelSingleTrack
 
 
 | Param | Type | Required | Description |
@@ -558,6 +574,7 @@ cancels an open order
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
+| params.trailing | <code>bool</code> | No | if the order is a trailing order or not |
 
 
 ```javascript
@@ -579,6 +596,7 @@ cancel all open orders in a market
 - https://doc.xt.com/docs/futures/Order/cancel-all-orders
 - https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders
 - https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit
+- https://doc.xt.com/docs/futures/Entrust/CancelAllTrack
 
 
 | Param | Type | Required | Description |
@@ -587,6 +605,7 @@ cancel all open orders in a market
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
+| params.trailing | <code>bool</code> | No | if the orders are trailing orders or not |
 
 
 ```javascript

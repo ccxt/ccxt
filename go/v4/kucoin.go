@@ -12828,6 +12828,7 @@ func (this *KucoinCore) FetchPosition(symbol any, optionalArgs ...any) <-chan an
 			//                 "mmr": "0.007",
 			//                 "maintenanceMargin": "0.128086",
 			//                 "creationTime": 1774469753178000000
+			//                 "updateTime": 1774469753178000000
 			//             }
 			//         ]
 			//     }
@@ -12916,8 +12917,8 @@ func (this *KucoinCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1049012 := (<-this.LoadMarkets())
-			PanicOnError(retRes1049012)
+			retRes1049112 := (<-this.LoadMarkets())
+			PanicOnError(retRes1049112)
 		}
 
 		uta := (<-this.IsUTAEnabled())
@@ -12977,8 +12978,8 @@ func (this *KucoinCore) FetchPositionsHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1056712 := (<-this.LoadMarkets())
-			PanicOnError(retRes1056712)
+			retRes1056812 := (<-this.LoadMarkets())
+			PanicOnError(retRes1056812)
 		}
 
 		uta := (<-this.IsUTAEnabled())
@@ -13186,6 +13187,7 @@ func (this *KucoinCore) ParsePosition(position any, optionalArgs ...any) any {
 	//         "mmr": "0.007",
 	//         "maintenanceMargin": "0.128086",
 	//         "creationTime": 1774469753178000000
+	//         "updateTime": 1774469753178000000
 	//     }
 	//
 	// uta fetchPositionsHistory
@@ -13246,7 +13248,11 @@ func (this *KucoinCore) ParsePosition(position any, optionalArgs ...any) any {
 	}
 	var lastUpdateTimestamp any = this.SafeInteger(position, "closeTime")
 	if IsTrue(IsEqual(lastUpdateTimestamp, nil)) {
-		lastUpdateTimestamp = this.SafeIntegerProduct(position, "closingTime", 0.000001)
+		if IsTrue(InOp(position, "closingTime")) {
+			lastUpdateTimestamp = this.SafeIntegerProduct(position, "closingTime", 0.000001)
+		} else if IsTrue(InOp(position, "updateTime")) {
+			lastUpdateTimestamp = this.SafeIntegerProduct(position, "updateTime", 0.000001)
+		}
 	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -13305,8 +13311,8 @@ func (this *KucoinCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1086912 := (<-this.LoadMarkets())
-			PanicOnError(retRes1086912)
+			retRes1087512 := (<-this.LoadMarkets())
+			PanicOnError(retRes1087512)
 		}
 
 		uta := (<-this.IsUTAEnabled())
@@ -13428,8 +13434,8 @@ func (this *KucoinCore) AddMargin(symbol any, amount any, optionalArgs ...any) <
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1096712 := (<-this.LoadMarkets())
-			PanicOnError(retRes1096712)
+			retRes1097312 := (<-this.LoadMarkets())
+			PanicOnError(retRes1097312)
 		}
 		var market any = this.Market(symbol)
 		var uuid any = this.Uuid()
@@ -13522,8 +13528,8 @@ func (this *KucoinCore) ReduceMargin(symbol any, amount any, optionalArgs ...any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1104612 := (<-this.LoadMarkets())
-			PanicOnError(retRes1104612)
+			retRes1105212 := (<-this.LoadMarkets())
+			PanicOnError(retRes1105212)
 		}
 		var market any = this.Market(symbol)
 		var amountString any = this.AmountToPrecision(symbol, amount)
@@ -13647,8 +13653,8 @@ func (this *KucoinCore) FetchMarginMode(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1115512 := (<-this.LoadMarkets())
-			PanicOnError(retRes1115512)
+			retRes1116112 := (<-this.LoadMarkets())
+			PanicOnError(retRes1116112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -13711,8 +13717,8 @@ func (this *KucoinCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
 		this.CheckRequiredArgument("setMarginMode", marginMode, "marginMode", []any{"cross", "isolated"})
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1120112 := (<-this.LoadMarkets())
-			PanicOnError(retRes1120112)
+			retRes1120712 := (<-this.LoadMarkets())
+			PanicOnError(retRes1120712)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
@@ -13764,8 +13770,8 @@ func (this *KucoinCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1123712 := (<-this.LoadMarkets())
-			PanicOnError(retRes1123712)
+			retRes1124312 := (<-this.LoadMarkets())
+			PanicOnError(retRes1124312)
 		}
 		var posMode any = Ternary(IsTrue(hedged), "1", "0")
 		var request any = map[string]any{
@@ -13847,8 +13853,8 @@ func (this *KucoinCore) ClosePosition(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1128812 := (<-this.LoadMarkets())
-			PanicOnError(retRes1128812)
+			retRes1129412 := (<-this.LoadMarkets())
+			PanicOnError(retRes1129412)
 		}
 		var market any = this.Market(symbol)
 		var clientOrderId any = this.SafeString(params, "clientOrderId")
@@ -13900,8 +13906,8 @@ func (this *KucoinCore) FetchMarketLeverageTiers(symbol any, optionalArgs ...any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1132412 := (<-this.LoadMarkets())
-			PanicOnError(retRes1132412)
+			retRes1133012 := (<-this.LoadMarkets())
+			PanicOnError(retRes1133012)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
@@ -14022,8 +14028,8 @@ func (this *KucoinCore) FetchLeverageTiers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1142212 := (<-this.LoadMarkets())
-			PanicOnError(retRes1142212)
+			retRes1142812 := (<-this.LoadMarkets())
+			PanicOnError(retRes1142812)
 		}
 		if IsTrue(IsEqual(symbols, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchLeverageTiers() requires a symbols argument")))
@@ -14083,8 +14089,8 @@ func (this *KucoinCore) FetchLeverageTiers(optionalArgs ...any) <-chan any {
 				if !IsTrue((InOp(result, symbol))) {
 					AddElementToObject(result, symbol, []any{})
 				}
-				retRes1147816 := GetValue(result, symbol)
-				AppendToArray(&retRes1147816, tier)
+				retRes1148416 := GetValue(result, symbol)
+				AppendToArray(&retRes1148416, tier)
 			}
 		}
 
@@ -14115,8 +14121,8 @@ func (this *KucoinCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1149512 := (<-this.LoadMarkets())
-			PanicOnError(retRes1149512)
+			retRes1150112 := (<-this.LoadMarkets())
+			PanicOnError(retRes1150112)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
@@ -14222,8 +14228,8 @@ func (this *KucoinCore) FetchOpenInterestHistory(symbol any, optionalArgs ...any
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1158012 := (<-this.LoadMarkets())
-			PanicOnError(retRes1158012)
+			retRes1158612 := (<-this.LoadMarkets())
+			PanicOnError(retRes1158612)
 		}
 		var market any = this.Market(symbol)
 		var maxLimit any = 200
@@ -14233,9 +14239,9 @@ func (this *KucoinCore) FetchOpenInterestHistory(symbol any, optionalArgs ...any
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes1158719 := (<-this.FetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, maxLimit))
-			PanicOnError(retRes1158719)
-			ch <- retRes1158719
+			retRes1159319 := (<-this.FetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, maxLimit))
+			PanicOnError(retRes1159319)
+			ch <- retRes1159319
 			return nil
 		}
 		var request any = map[string]any{
@@ -14450,8 +14456,8 @@ func (this *KucoinCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1175312 := (<-this.LoadMarkets())
-			PanicOnError(retRes1175312)
+			retRes1175912 := (<-this.LoadMarkets())
+			PanicOnError(retRes1175912)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
@@ -14459,9 +14465,9 @@ func (this *KucoinCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes1175819 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params))
-			PanicOnError(retRes1175819)
-			ch <- retRes1175819
+			retRes1176419 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params))
+			PanicOnError(retRes1176419)
+			ch <- retRes1176419
 			return nil
 		}
 		var request any = map[string]any{
@@ -14546,8 +14552,8 @@ func (this *KucoinCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes1182412 := (<-this.LoadMarkets())
-			PanicOnError(retRes1182412)
+			retRes1183012 := (<-this.LoadMarkets())
+			PanicOnError(retRes1183012)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 

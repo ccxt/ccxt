@@ -456,7 +456,40 @@ public class Bit2cCore extends Bit2cApi
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             Object orderbook = (this.publicGetExchangesPairOrderbook(this.extend(request, parameters))).join();
-            return this.parseOrderBook(orderbook, symbol);
+            // the full orderbook.json snapshot can contain dead orders - rows
+            // published with a zero amount at their limit price, hours-stable and
+            // sometimes crossing the real market. per the api docs the endpoint
+            // contains open orders only, and the venue's own orderbook-top.json ui
+            // feed filters these rows out, so a non-positive amount is a dead order
+            // their full snapshot failed to purge - it is removed here, which also
+            // uncrosses the book. rows are positional price and amount pairs
+            Object rawBids = this.safeList(orderbook, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object rawAsks = this.safeList(orderbook, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object bids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object asks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawBids)); i++)
+            {
+                Object bidRow = Helpers.GetValue(rawBids, i);
+                Object bidAmount = this.safeString(bidRow, 1);
+                if (Helpers.isTrue(Precise.stringGt(bidAmount, "0")))
+                {
+                    ((java.util.List<Object>)bids).add(bidRow);
+                }
+            }
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawAsks)); i++)
+            {
+                Object askRow = Helpers.GetValue(rawAsks, i);
+                Object askAmount = this.safeString(askRow, 1);
+                if (Helpers.isTrue(Precise.stringGt(askAmount, "0")))
+                {
+                    ((java.util.List<Object>)asks).add(askRow);
+                }
+            }
+            Object filtered = new java.util.HashMap<String, Object>() {{
+                put( "bids", bids );
+                put( "asks", asks );
+            }};
+            return this.parseOrderBook(filtered, symbol);
         });
 
     }

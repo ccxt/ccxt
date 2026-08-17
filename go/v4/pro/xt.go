@@ -974,7 +974,7 @@ func (this *XtCore) WatchFundingRate(symbol any, optionalArgs ...any) <-chan any
 		}
 		var market any = this.Market(symbol)
 		if !ccxt.IsTrue(ccxt.GetValue(market, "swap")) {
-			panic(ccxt.BadSymbol(ccxt.Add(this.Id, " watchFundingRate() supports swap contracts only")))
+			panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchFundingRate() supports swap contracts only")))
 		}
 		var name any = ccxt.Add("fund_rate@", ccxt.GetValue(market, "id"))
 
@@ -1010,7 +1010,7 @@ func (this *XtCore) UnWatchFundingRate(symbol any, optionalArgs ...any) <-chan a
 		}
 		var market any = this.Market(symbol)
 		if !ccxt.IsTrue(ccxt.GetValue(market, "swap")) {
-			panic(ccxt.BadSymbol(ccxt.Add(this.Id, " unWatchFundingRate() supports swap contracts only")))
+			panic(ccxt.NotSupported(ccxt.Add(this.Id, " unWatchFundingRate() supports swap contracts only")))
 		}
 		var name any = ccxt.Add("fund_rate@", ccxt.GetValue(market, "id"))
 		var messageHash any = ccxt.Add("unsubscribe::", name)

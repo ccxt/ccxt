@@ -691,6 +691,252 @@
                 ],
                 "output": "{\"request\":\"/api/v4/trade-account/order/history\",\"nonce\":\"1786454926329\",\"nonceWindow\":false,\"market\":\"DOGE_PERP\",\"limit\":2}"
             }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades swap with symbol",
+                "method": "fetchMyTrades",
+                "url": "https://whitebit.com/api/v4/trade-account/executed-history",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    2
+                ],
+                "output": "{\"request\":\"/api/v4/trade-account/executed-history\",\"nonce\":\"1786484584444\",\"nonceWindow\":false,\"market\":\"DOGE_PERP\"}"
+            },
+            {
+                "description": "fetchMyTrades all symbols",
+                "method": "fetchMyTrades",
+                "url": "https://whitebit.com/api/v4/trade-account/executed-history",
+                "input": [
+                    null,
+                    null,
+                    2
+                ],
+                "output": "{\"request\":\"/api/v4/trade-account/executed-history\",\"nonce\":\"1786484584570\",\"nonceWindow\":false}"
+            }
+        ],
+        "fetchOrderTrades": [
+            {
+                "description": "fetchOrderTrades by executed order id",
+                "method": "fetchOrderTrades",
+                "url": "https://whitebit.com/api/v4/trade-account/order",
+                "input": [
+                    "2558095898746",
+                    "DOGE/USDT:USDT"
+                ],
+                "output": "{\"request\":\"/api/v4/trade-account/order\",\"nonce\":\"1786484584696\",\"nonceWindow\":false,\"orderId\":2558095898746,\"market\":\"DOGE_PERP\"}"
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits USDT with limit",
+                "method": "fetchDeposits",
+                "url": "https://whitebit.com/api/v4/main-account/history",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "output": "{\"request\":\"/api/v4/main-account/history\",\"nonce\":\"1786637757003\",\"nonceWindow\":false,\"transactionMethod\":1,\"limit\":2,\"offset\":0,\"ticker\":\"USDT\"}"
+            }
+        ],
+        "fetchDeposit": [
+            {
+                "description": "fetchDeposit by uniqueId",
+                "method": "fetchDeposit",
+                "url": "https://whitebit.com/api/v4/main-account/history",
+                "input": [
+                    "5593377049",
+                    "USDT"
+                ],
+                "output": "{\"request\":\"/api/v4/main-account/history\",\"nonce\":\"1786637757003\",\"nonceWindow\":false,\"transactionMethod\":1,\"uniqueId\":\"5593377049\",\"limit\":1,\"offset\":0,\"ticker\":\"USDT\"}"
+            }
+        ],
+        "fetchTransactions": [
+            {
+                "description": "fetchTransactions USDT with limit",
+                "method": "fetchTransactions",
+                "url": "https://whitebit.com/api/v4/main-account/history",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "output": "{\"request\":\"/api/v4/main-account/history\",\"nonce\":\"1786637757319\",\"nonceWindow\":false,\"ticker\":\"USDT\",\"limit\":2}"
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals USDT with limit",
+                "method": "fetchWithdrawals",
+                "url": "https://whitebit.com/api/v4/main-account/history",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "output": {
+                    "request": "/api/v4/main-account/history",
+                    "nonce": "1786645149548",
+                    "nonceWindow": false,
+                    "ticker": "USDT",
+                    "limit": 2,
+                    "transactionMethod": "2"
+                }
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory swap with limit",
+                "method": "fetchFundingHistory",
+                "url": "https://whitebit.com/api/v4/collateral-account/funding-history",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    2
+                ],
+                "output": {
+                    "request": "/api/v4/collateral-account/funding-history",
+                    "nonce": "1786645149703",
+                    "nonceWindow": false,
+                    "market": "DOGE_PERP",
+                    "limit": 2
+                }
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer USDT from collateral to spot",
+                "method": "transfer",
+                "url": "https://whitebit.com/api/v4/main-account/transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "margin",
+                    "spot"
+                ],
+                "output": {
+                    "request": "/api/v4/main-account/transfer",
+                    "nonce": "1786650935076",
+                    "nonceWindow": false,
+                    "ticker": "USDT",
+                    "amount": "1",
+                    "from": "collateral",
+                    "to": "spot"
+                }
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts sub-account list",
+                "method": "fetchAccounts",
+                "url": "https://whitebit.com/api/v4/sub-account/list",
+                "input": [],
+                "output": {
+                    "request": "/api/v4/sub-account/list",
+                    "nonce": "1786650973437",
+                    "nonceWindow": false
+                }
+            }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "createDepositAddress USDT on TRC20",
+                "method": "createDepositAddress",
+                "url": "https://whitebit.com/api/v4/main-account/create-new-address",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "output": {
+                    "request": "/api/v4/main-account/create-new-address",
+                    "nonce": "1786653783376",
+                    "nonceWindow": false,
+                    "ticker": "USDT",
+                    "network": "TRC20"
+                }
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus public ping",
+                "method": "fetchStatus",
+                "url": "https://whitebit.com/api/v4/public/ping",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "fetchBorrowInterest with symbol",
+                "method": "fetchBorrowInterest",
+                "url": "https://whitebit.com/api/v4/collateral-account/positions/open",
+                "input": [
+                    null,
+                    "DOGE/USDT:USDT"
+                ],
+                "output": {
+                    "request": "/api/v4/collateral-account/positions/open",
+                    "nonce": "1786656245070",
+                    "nonceWindow": false,
+                    "market": "DOGE_PERP"
+                }
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "setLeverage account-wide",
+                "method": "setLeverage",
+                "url": "https://whitebit.com/api/v4/collateral-account/leverage",
+                "input": [
+                    5
+                ],
+                "output": {
+                    "request": "/api/v4/collateral-account/leverage",
+                    "nonce": "1786656245319",
+                    "nonceWindow": false,
+                    "leverage": 5
+                }
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw USDT on TRC20 (request only, never live-tested)",
+                "method": "withdraw",
+                "url": "https://whitebit.com/api/v4/main-account/withdraw",
+                "input": [
+                    "USDT",
+                    5,
+                    "TQMbNLpgvJ4hPtR3HXi5zccc2mL2n9PURD",
+                    null,
+                    {
+                        "uniqueId": "ccxt-test-withdraw-0001",
+                        "network": "TRC20"
+                    }
+                ],
+                "output": {
+                    "request": "/api/v4/main-account/withdraw",
+                    "nonce": "1786656245400",
+                    "nonceWindow": false,
+                    "ticker": "USDT",
+                    "amount": "5",
+                    "address": "TQMbNLpgvJ4hPtR3HXi5zccc2mL2n9PURD",
+                    "uniqueId": "ccxt-test-withdraw-0001",
+                    "network": "TRC20"
+                }
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "fetchTradingFees public assets",
+                "method": "fetchTradingFees",
+                "url": "https://whitebit.com/api/v4/public/assets",
+                "input": [],
+                "output": null
+            }
         ]
     }
 }

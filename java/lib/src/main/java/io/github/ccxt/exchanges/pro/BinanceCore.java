@@ -398,15 +398,34 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object delay = this.sum(listenKeyRefreshRate, 10000);
             if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(now, lastAuthenticatedTime)), delay)))
             {
-                Object requestParams = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe")));
-                Object response = (this.sapiPostEquityListenKey(requestParams)).join();
-                Object listenKey = this.safeString(response, "listenKey");
-                final Object finalNow = now;
-                Helpers.addElementToObject(this.options, "stock", this.extend(options, new java.util.HashMap<String, Object>() {{
+                // the stock user stream url embeds this listenKey, so the future is parked
+                // on the listenKey-free market url of the same host
+                Client client = this.client(this.getStockWsUrl("market"));
+                Object messageHash = "authenticate:stock";
+                if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
+                {
+                    // another caller is already fetching, wait for it instead of fetching again
+                    client.future((String)messageHash).getFuture().join();
+                    return null;
+                }
+                client.future((String)messageHash); // created ahead of the request below, so concurrent callers can find it
+                try
+                {
+                    Object requestParams = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe")));
+                    Object response = (this.sapiPostEquityListenKey(requestParams)).join();
+                    Object listenKey = this.safeString(response, "listenKey");
+                    final Object finalNow = now;
+                    Helpers.addElementToObject(this.options, "stock", this.extend(options, new java.util.HashMap<String, Object>() {{
         put( "listenKey", listenKey );
         put( "lastAuthenticatedTime", finalNow );
     }}));
-                this.scheduleCallback(listenKeyRefreshRate, "keepAliveStockListenKey", parameters);
+                    this.scheduleCallback(listenKeyRefreshRate, "keepAliveStockListenKey", parameters);
+                    client.resolve(listenKey, messageHash);
+                } catch(Exception e)
+                {
+                    client.reject(e, messageHash);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+                }
             }
             return null;
         });
@@ -3521,20 +3540,39 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             {
                 return null;
             }
+            // the subscriptions flag is raised before the subscribe request is confirmed,
+            // so a concurrent caller would otherwise return onto an unauthenticated stream
+            Object messageHash = Helpers.add("authenticate:signature:", marketType);
+            if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
+            {
+                // another caller is already subscribing, wait for it instead of subscribing again
+                client.future((String)messageHash).getFuture().join();
+                return null;
+            }
+            client.future((String)messageHash); // created ahead of the request below, so concurrent callers can find it
             Helpers.addElementToObject(client.subscriptions, marketType, true);
             Object requestId = this.requestId(url);
-            Object messageHash = String.valueOf(requestId);
+            Object requestHash = String.valueOf(requestId);
             Object message = new java.util.HashMap<String, Object>() {{
-                put( "id", messageHash );
+                put( "id", requestHash );
                 put( "method", "userDataStream.subscribe.signature" );
                 put( "params", BinanceCore.this.signParams(new java.util.HashMap<String, Object>() {{}}) );
             }};
             Object subscription = new java.util.HashMap<String, Object>() {{
-                put( "id", messageHash );
+                put( "id", requestHash );
                 put( "method", "handleUserDataStreamSubscribe");
                 put( "subscription", marketType );
             }};
-            (this.watch(url, messageHash, message, messageHash, subscription)).join();
+            try
+            {
+                (this.watch(url, requestHash, message, requestHash, subscription)).join();
+                client.resolve(marketType, messageHash);
+            } catch(Exception e)
+            {
+                ((java.util.Map<String,Object>)client.subscriptions).remove((String)marketType);
+                client.reject(e, messageHash);
+                throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+            }
             return null;
         });
 
@@ -3561,6 +3599,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         {
             ((java.util.Map<String,Object>)client.subscriptions).remove((String)accountType);
             client.reject(message, accountType);
+            client.reject(message, messageHash);
+            return;
         }
         client.resolve(message, messageHash);
     }
@@ -3591,68 +3631,96 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object delay = this.sum(listenTokenRefreshRate, 10000);
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), delay)))
             {
-                // Step 1: Create listenToken via REST API
-                Object symbol = this.safeString(parameters, "symbol");
-                Object isIsolated = this.safeBool(parameters, "isIsolated", false);
-                Object validity = this.safeInteger(parameters, "validity");
-                Object request = new java.util.HashMap<String, Object>() {{}};
-                if (Helpers.isTrue(isIsolated))
+                // the future covers the REST create plus the ws subscribe, including the
+                // renewal timer re-entry through renewListenToken, so a concurrent caller
+                // waits for the leader rather than minting a second listenToken
+                Client client = this.client(url);
+                Object messageHash = Helpers.add(Helpers.add("authenticate:", marketType), ":listenToken");
+                if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
                 {
-                    if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+                    // another caller is already fetching, wait for it instead of fetching again
+                    client.future((String)messageHash).getFuture().join();
+                    return null;
+                }
+                client.future((String)messageHash); // created ahead of the request below, so concurrent callers can find it
+                try
+                {
+                    // Step 1: Create listenToken via REST API
+                    Object symbol = this.safeString(parameters, "symbol");
+                    Object isIsolated = this.safeBool(parameters, "isIsolated", false);
+                    Object validity = this.safeInteger(parameters, "validity");
+                    Object request = new java.util.HashMap<String, Object>() {{}};
+                    if (Helpers.isTrue(isIsolated))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(this.id, " ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode")) ;
+                        if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+                        {
+                            throw new ArgumentsRequired((String)Helpers.add(this.id, " ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode")) ;
+                        }
+                        Object marketId = this.marketId(symbol);
+                        Helpers.addElementToObject(request, "symbol", marketId);
+                        Helpers.addElementToObject(request, "isIsolated", true);
                     }
-                    Object marketId = this.marketId(symbol);
-                    Helpers.addElementToObject(request, "symbol", marketId);
-                    Helpers.addElementToObject(request, "isIsolated", true);
-                }
-                if (Helpers.isTrue(!Helpers.isEqual(validity, null)))
-                {
-                    Helpers.addElementToObject(request, "validity", validity);
-                }
-                Object response = (this.sapiPostUserListenToken(request)).join();
-                Object listenToken = this.safeString(response, "token");
-                Object expirationTime = this.safeInteger(response, "expirationTime");
-                // Step 2: Subscribe to user data stream via WebSocket API
-                Object requestId = this.requestId(url);
-                Object messageHash = String.valueOf(requestId);
-                Object message = new java.util.HashMap<String, Object>() {{
-                    put( "id", messageHash );
-                    put( "method", "userDataStream.subscribe.listenToken" );
-                    put( "params", new java.util.HashMap<String, Object>() {{
-                        put( "listenToken", listenToken );
-                    }} );
-                }};
-                Object subscription = new java.util.HashMap<String, Object>() {{
-                    put( "id", messageHash );
-                    put( "method", "handleUserDataStreamSubscribe");
-                    put( "subscription", marketType );
-                }};
-                final Object finalExpirationTime = expirationTime;
-                final Object finalTime = time;
-                final Object finalSymbol = symbol;
-                final Object finalValidity = validity;
-                Helpers.addElementToObject(this.options, marketType, this.extend(options, new java.util.HashMap<String, Object>() {{
-        put( "listenToken", listenToken );
+                    if (Helpers.isTrue(!Helpers.isEqual(validity, null)))
+                    {
+                        Helpers.addElementToObject(request, "validity", validity);
+                    }
+                    Object response = (this.sapiPostUserListenToken(request)).join();
+                    Object listenToken = this.safeString(response, "token");
+                    if (Helpers.isTrue(Helpers.isEqual(listenToken, null)))
+                    {
+                        throw new AuthenticationError((String)Helpers.add(this.id, " ensureUserDataStreamWsSubscribeListenToken() failed to obtain a listenToken")) ;
+                    }
+                    Object expirationTime = this.safeInteger(response, "expirationTime");
+                    // Step 2: Subscribe to user data stream via WebSocket API
+                    Object requestId = this.requestId(url);
+                    Object requestHash = String.valueOf(requestId);
+                    final Object finalListenToken = listenToken;
+                    Object message = new java.util.HashMap<String, Object>() {{
+                        put( "id", requestHash );
+                        put( "method", "userDataStream.subscribe.listenToken" );
+                        put( "params", new java.util.HashMap<String, Object>() {{
+                            put( "listenToken", finalListenToken );
+                        }} );
+                    }};
+                    Object subscription = new java.util.HashMap<String, Object>() {{
+                        put( "id", requestHash );
+                        put( "method", "handleUserDataStreamSubscribe");
+                        put( "subscription", marketType );
+                    }};
+                    (this.watch(url, requestHash, message, requestHash, subscription)).join();
+                    final Object finalExpirationTime = expirationTime;
+                    final Object finalTime = time;
+                    final Object finalSymbol = symbol;
+                    final Object finalValidity = validity;
+                    Helpers.addElementToObject(this.options, marketType, this.extend(options, new java.util.HashMap<String, Object>() {{
+        put( "listenToken", finalListenToken );
         put( "expirationTime", finalExpirationTime );
         put( "lastAuthenticatedTime", finalTime );
         put( "symbol", finalSymbol );
         put( "isIsolated", isIsolated );
         put( "validity", finalValidity );
     }}));
-                // Schedule token renewal before expiration
-                if (Helpers.isTrue(!Helpers.isEqual(expirationTime, null)))
-                {
-                    Object renewalTime = Helpers.subtract(Helpers.subtract(expirationTime, time), 60000); // Renew 1 minute before expiration
-                    if (Helpers.isTrue(Helpers.isGreaterThan(renewalTime, 0)))
+                    // Schedule token renewal before expiration
+                    if (Helpers.isTrue(!Helpers.isEqual(expirationTime, null)))
                     {
-                        Object extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
-                            put( "type", marketType );
-                        }});
-                        this.scheduleCallback(renewalTime, "renewListenToken", extendedParams);
+                        Object renewalTime = Helpers.subtract(Helpers.subtract(expirationTime, time), 60000); // Renew 1 minute before expiration
+                        if (Helpers.isTrue(Helpers.isGreaterThan(renewalTime, 0)))
+                        {
+                            Object extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                                put( "type", marketType );
+                            }});
+                            this.scheduleCallback(renewalTime, "renewListenToken", extendedParams);
+                        }
                     }
+                    client.resolve(listenToken, messageHash);
+                } catch(Exception e)
+                {
+                    Helpers.addElementToObject(this.options, marketType, this.extend(options, new java.util.HashMap<String, Object>() {{
+        put( "lastAuthenticatedTime", 0 );
+    }}));
+                    client.reject(e, messageHash);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
-                (this.watch(url, messageHash, message, messageHash, subscription)).join();
             }
             return null;
         });
@@ -3749,33 +3817,54 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object delay = this.sum(listenKeyRefreshRate, 10000);
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), delay)))
             {
-                Object response = null;
-                if (Helpers.isTrue(isPortfolioMargin))
+                // the private url embeds the listenKey that this request produces, so the future
+                // is parked on the listenKey-free base url of that same stream - concurrent
+                // callers wait for the leader instead of fetching a second listenKey, which
+                // would split the user-data subscriptions across two connections
+                Client client = this.client(this.getWsUrl(type, "private"));
+                Object messageHash = Helpers.add("authenticate:", type);
+                if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
                 {
-                    response = (this.papiPostListenKey(parameters)).join();
-                    parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
-                        put( "portfolioMargin", true );
-                    }});
-                } else if (Helpers.isTrue(Helpers.isEqual(type, "future")))
-                {
-                    response = (this.fapiPrivatePostListenKey(parameters)).join();
-                } else if (Helpers.isTrue(Helpers.isEqual(type, "delivery")))
-                {
-                    response = (this.dapiPrivatePostListenKey(parameters)).join();
-                } else if (Helpers.isTrue(Helpers.isEqual(type, "option")))
-                {
-                    response = (this.eapiPrivatePostListenKey(parameters)).join();
-                } else
-                {
-                    response = (this.publicPostUserDataStream(parameters)).join();
+                    // another caller is already fetching, wait for it instead of fetching again
+                    client.future((String)messageHash).getFuture().join();
+                    return null;
                 }
-                final Object finalResponse = response;
-                final Object finalTime = time;
-                Helpers.addElementToObject(this.options, type, this.extend(options, new java.util.HashMap<String, Object>() {{
-        put( "listenKey", BinanceCore.this.safeString(finalResponse, "listenKey") );
+                client.future((String)messageHash); // created ahead of the request below, so concurrent callers can find it
+                try
+                {
+                    Object response = null;
+                    if (Helpers.isTrue(isPortfolioMargin))
+                    {
+                        response = (this.papiPostListenKey(parameters)).join();
+                        parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                            put( "portfolioMargin", true );
+                        }});
+                    } else if (Helpers.isTrue(Helpers.isEqual(type, "future")))
+                    {
+                        response = (this.fapiPrivatePostListenKey(parameters)).join();
+                    } else if (Helpers.isTrue(Helpers.isEqual(type, "delivery")))
+                    {
+                        response = (this.dapiPrivatePostListenKey(parameters)).join();
+                    } else if (Helpers.isTrue(Helpers.isEqual(type, "option")))
+                    {
+                        response = (this.eapiPrivatePostListenKey(parameters)).join();
+                    } else
+                    {
+                        response = (this.publicPostUserDataStream(parameters)).join();
+                    }
+                    Object listenKey = this.safeString(response, "listenKey");
+                    final Object finalTime = time;
+                    Helpers.addElementToObject(this.options, type, this.extend(options, new java.util.HashMap<String, Object>() {{
+        put( "listenKey", listenKey );
         put( "lastAuthenticatedTime", finalTime );
     }}));
-                this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
+                    this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
+                    client.resolve(listenKey, messageHash);
+                } catch(Exception e)
+                {
+                    client.reject(e, messageHash);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+                }
             }
             return null;
         });
@@ -6673,6 +6762,13 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                         Object orderTrades = this.safeList(order, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                         ((java.util.List<Object>)orderTrades).add(trade);
                         Helpers.addElementToObject(order, "trades", orderTrades);
+                        // write the updated order back into the cache: php
+                        // arrays are value types, so the fee/trades mutations
+                        // above only touched a local copy there — the cache
+                        // hashmap rows are wired by reference, so this
+                        // assignment reaches the cached row (and is a no-op
+                        // in the reference-semantics runtimes)
+                        Helpers.addElementToObject(orders, orderId, order);
                     }
                 }
             }

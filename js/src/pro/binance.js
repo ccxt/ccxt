@@ -9,7 +9,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { ed25519 } from '@noble/curves/ed25519.js';
 import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
-import { ChecksumError, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
+import { ChecksumError, ArgumentsRequired, AuthenticationError, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -346,14 +346,31 @@ export default class binance extends binanceRest {
         const now = this.milliseconds();
         const delay = this.sum(listenKeyRefreshRate, 10000);
         if ((now - lastAuthenticatedTime) > delay) {
-            const requestParams = this.omit(params, ['stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe']);
-            const response = await this.sapiPostEquityListenKey(requestParams);
-            const listenKey = this.safeString(response, 'listenKey');
-            this.options['stock'] = this.extend(options, {
-                'listenKey': listenKey,
-                'lastAuthenticatedTime': now,
-            });
-            this.delay(listenKeyRefreshRate, this.keepAliveStockListenKey, params);
+            // the stock user stream url embeds this listenKey, so the future is parked
+            // on the listenKey-free market url of the same host
+            const client = this.client(this.getStockWsUrl('market'));
+            const messageHash = 'authenticate:stock';
+            if (messageHash in client.futures) {
+                // another caller is already fetching, wait for it instead of fetching again
+                await client.future(messageHash);
+                return;
+            }
+            client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
+            try {
+                const requestParams = this.omit(params, ['stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe']);
+                const response = await this.sapiPostEquityListenKey(requestParams);
+                const listenKey = this.safeString(response, 'listenKey');
+                this.options['stock'] = this.extend(options, {
+                    'listenKey': listenKey,
+                    'lastAuthenticatedTime': now,
+                });
+                this.delay(listenKeyRefreshRate, this.keepAliveStockListenKey, params);
+                client.resolve(listenKey, messageHash);
+            }
+            catch (e) {
+                client.reject(e, messageHash);
+                throw e;
+            }
         }
     }
     async keepAliveStockListenKey(params = {}) {
@@ -2866,20 +2883,37 @@ export default class binance extends binanceRest {
         if (accountType === marketType) {
             return;
         }
+        // the subscriptions flag is raised before the subscribe request is confirmed,
+        // so a concurrent caller would otherwise return onto an unauthenticated stream
+        const messageHash = 'authenticate:signature:' + marketType;
+        if (messageHash in client.futures) {
+            // another caller is already subscribing, wait for it instead of subscribing again
+            await client.future(messageHash);
+            return;
+        }
+        client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
         client.subscriptions[marketType] = true;
         const requestId = this.requestId(url);
-        const messageHash = requestId.toString();
+        const requestHash = requestId.toString();
         const message = {
-            'id': messageHash,
+            'id': requestHash,
             'method': 'userDataStream.subscribe.signature',
             'params': this.signParams({}),
         };
         const subscription = {
-            'id': messageHash,
+            'id': requestHash,
             'method': this.handleUserDataStreamSubscribe,
             'subscription': marketType,
         };
-        await this.watch(url, messageHash, message, messageHash, subscription);
+        try {
+            await this.watch(url, requestHash, message, requestHash, subscription);
+            client.resolve(marketType, messageHash);
+        }
+        catch (e) {
+            delete client.subscriptions[marketType];
+            client.reject(e, messageHash);
+            throw e;
+        }
     }
     handleUserDataStreamSubscribe(client, message) {
         //
@@ -2900,6 +2934,8 @@ export default class binance extends binanceRest {
         if (subscriptionId === undefined) {
             delete client.subscriptions[accountType];
             client.reject(message, accountType);
+            client.reject(message, messageHash);
+            return;
         }
         client.resolve(message, messageHash);
     }
@@ -2922,57 +2958,81 @@ export default class binance extends binanceRest {
         const time = this.milliseconds();
         const delay = this.sum(listenTokenRefreshRate, 10000);
         if (time - lastAuthenticatedTime > delay) {
-            // Step 1: Create listenToken via REST API
-            const symbol = this.safeString(params, 'symbol');
-            const isIsolated = this.safeBool(params, 'isIsolated', false);
-            const validity = this.safeInteger(params, 'validity');
-            const request = {};
-            if (isIsolated) {
-                if (symbol === undefined) {
-                    throw new ArgumentsRequired(this.id + ' ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode');
+            // the future covers the REST create plus the ws subscribe, including the
+            // renewal timer re-entry through renewListenToken, so a concurrent caller
+            // waits for the leader rather than minting a second listenToken
+            const client = this.client(url);
+            const messageHash = 'authenticate:' + marketType + ':listenToken';
+            if (messageHash in client.futures) {
+                // another caller is already fetching, wait for it instead of fetching again
+                await client.future(messageHash);
+                return;
+            }
+            client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
+            try {
+                // Step 1: Create listenToken via REST API
+                const symbol = this.safeString(params, 'symbol');
+                const isIsolated = this.safeBool(params, 'isIsolated', false);
+                const validity = this.safeInteger(params, 'validity');
+                const request = {};
+                if (isIsolated) {
+                    if (symbol === undefined) {
+                        throw new ArgumentsRequired(this.id + ' ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode');
+                    }
+                    const marketId = this.marketId(symbol);
+                    request['symbol'] = marketId;
+                    request['isIsolated'] = true;
                 }
-                const marketId = this.marketId(symbol);
-                request['symbol'] = marketId;
-                request['isIsolated'] = true;
-            }
-            if (validity !== undefined) {
-                request['validity'] = validity;
-            }
-            const response = await this.sapiPostUserListenToken(request);
-            const listenToken = this.safeString(response, 'token');
-            const expirationTime = this.safeInteger(response, 'expirationTime');
-            // Step 2: Subscribe to user data stream via WebSocket API
-            const requestId = this.requestId(url);
-            const messageHash = requestId.toString();
-            const message = {
-                'id': messageHash,
-                'method': 'userDataStream.subscribe.listenToken',
-                'params': {
+                if (validity !== undefined) {
+                    request['validity'] = validity;
+                }
+                const response = await this.sapiPostUserListenToken(request);
+                const listenToken = this.safeString(response, 'token');
+                if (listenToken === undefined) {
+                    throw new AuthenticationError(this.id + ' ensureUserDataStreamWsSubscribeListenToken() failed to obtain a listenToken');
+                }
+                const expirationTime = this.safeInteger(response, 'expirationTime');
+                // Step 2: Subscribe to user data stream via WebSocket API
+                const requestId = this.requestId(url);
+                const requestHash = requestId.toString();
+                const message = {
+                    'id': requestHash,
+                    'method': 'userDataStream.subscribe.listenToken',
+                    'params': {
+                        'listenToken': listenToken,
+                    },
+                };
+                const subscription = {
+                    'id': requestHash,
+                    'method': this.handleUserDataStreamSubscribe,
+                    'subscription': marketType,
+                };
+                await this.watch(url, requestHash, message, requestHash, subscription);
+                this.options[marketType] = this.extend(options, {
                     'listenToken': listenToken,
-                },
-            };
-            const subscription = {
-                'id': messageHash,
-                'method': this.handleUserDataStreamSubscribe,
-                'subscription': marketType,
-            };
-            this.options[marketType] = this.extend(options, {
-                'listenToken': listenToken,
-                'expirationTime': expirationTime,
-                'lastAuthenticatedTime': time,
-                'symbol': symbol,
-                'isIsolated': isIsolated,
-                'validity': validity,
-            });
-            // Schedule token renewal before expiration
-            if (expirationTime !== undefined) {
-                const renewalTime = expirationTime - time - 60000; // Renew 1 minute before expiration
-                if (renewalTime > 0) {
-                    const extendedParams = this.extend(params, { 'type': marketType });
-                    this.delay(renewalTime, this.renewListenToken, extendedParams);
+                    'expirationTime': expirationTime,
+                    'lastAuthenticatedTime': time,
+                    'symbol': symbol,
+                    'isIsolated': isIsolated,
+                    'validity': validity,
+                });
+                // Schedule token renewal before expiration
+                if (expirationTime !== undefined) {
+                    const renewalTime = expirationTime - time - 60000; // Renew 1 minute before expiration
+                    if (renewalTime > 0) {
+                        const extendedParams = this.extend(params, { 'type': marketType });
+                        this.delay(renewalTime, this.renewListenToken, extendedParams);
+                    }
                 }
+                client.resolve(listenToken, messageHash);
             }
-            await this.watch(url, messageHash, message, messageHash, subscription);
+            catch (e) {
+                this.options[marketType] = this.extend(options, {
+                    'lastAuthenticatedTime': 0,
+                });
+                client.reject(e, messageHash);
+                throw e;
+            }
         }
     }
     async renewListenToken(params = {}) {
@@ -3034,28 +3094,48 @@ export default class binance extends binanceRest {
         const listenKeyRefreshRate = this.safeInteger(this.options, 'listenKeyRefreshRate', 1200000);
         const delay = this.sum(listenKeyRefreshRate, 10000);
         if (time - lastAuthenticatedTime > delay) {
-            let response;
-            if (isPortfolioMargin) {
-                response = await this.papiPostListenKey(params);
-                params = this.extend(params, { 'portfolioMargin': true });
+            // the private url embeds the listenKey that this request produces, so the future
+            // is parked on the listenKey-free base url of that same stream - concurrent
+            // callers wait for the leader instead of fetching a second listenKey, which
+            // would split the user-data subscriptions across two connections
+            const client = this.client(this.getWsUrl(type, 'private'));
+            const messageHash = 'authenticate:' + type;
+            if (messageHash in client.futures) {
+                // another caller is already fetching, wait for it instead of fetching again
+                await client.future(messageHash);
+                return;
             }
-            else if (type === 'future') {
-                response = await this.fapiPrivatePostListenKey(params);
+            client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
+            try {
+                let response = undefined;
+                if (isPortfolioMargin) {
+                    response = await this.papiPostListenKey(params);
+                    params = this.extend(params, { 'portfolioMargin': true });
+                }
+                else if (type === 'future') {
+                    response = await this.fapiPrivatePostListenKey(params);
+                }
+                else if (type === 'delivery') {
+                    response = await this.dapiPrivatePostListenKey(params);
+                }
+                else if (type === 'option') {
+                    response = await this.eapiPrivatePostListenKey(params);
+                }
+                else {
+                    response = await this.publicPostUserDataStream(params);
+                }
+                const listenKey = this.safeString(response, 'listenKey');
+                this.options[type] = this.extend(options, {
+                    'listenKey': listenKey,
+                    'lastAuthenticatedTime': time,
+                });
+                this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
+                client.resolve(listenKey, messageHash);
             }
-            else if (type === 'delivery') {
-                response = await this.dapiPrivatePostListenKey(params);
+            catch (e) {
+                client.reject(e, messageHash);
+                throw e;
             }
-            else if (type === 'option') {
-                response = await this.eapiPrivatePostListenKey(params);
-            }
-            else {
-                response = await this.publicPostUserDataStream(params);
-            }
-            this.options[type] = this.extend(options, {
-                'listenKey': this.safeString(response, 'listenKey'),
-                'lastAuthenticatedTime': time,
-            });
-            this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
         }
     }
     async keepAliveListenKey(params = {}) {
@@ -5420,6 +5500,13 @@ export default class binance extends binanceRest {
                         const orderTrades = this.safeList(order, 'trades', []);
                         orderTrades.push(trade);
                         order['trades'] = orderTrades;
+                        // write the updated order back into the cache: php
+                        // arrays are value types, so the fee/trades mutations
+                        // above only touched a local copy there — the cache
+                        // hashmap rows are wired by reference, so this
+                        // assignment reaches the cached row (and is a no-op
+                        // in the reference-semantics runtimes)
+                        orders[orderId] = order;
                         // don't append twice cause it breaks newUpdates mode
                         // this order already exists in the cache
                     }

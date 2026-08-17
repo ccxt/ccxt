@@ -5,15 +5,14 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 
 
 class bithumb(ccxt.async_support.bithumb):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bithumb, self).describe(), {
             'has': {
                 'ws': True,
@@ -98,7 +97,7 @@ class bithumb(ccxt.async_support.bithumb):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    def handle_ticker(self, client: Client, message: Any):
+    def handle_ticker(self, client: Client, message: object):
         #
         #    {
         #        "type" : "ticker",
@@ -202,7 +201,7 @@ class bithumb(ccxt.async_support.bithumb):
         orderbook = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message: Any):
+    def handle_order_book(self, client: Client, message: object):
         #
         #    {
         #        "type" : "orderbookdepth",
@@ -244,7 +243,7 @@ class bithumb(ccxt.async_support.bithumb):
         messageHash = 'orderbook' + ':' + symbol
         client.resolve(orderbook, messageHash)
 
-    def handle_delta(self, orderbook: Any, delta: Any):
+    def handle_delta(self, orderbook: object, delta: object):
         #
         #    {
         #        symbol: "ETH_BTC",
@@ -260,11 +259,11 @@ class bithumb(ccxt.async_support.bithumb):
         orderbookSide = orderbook[side]
         orderbookSide.storeArray(bidAsk)
 
-    def handle_deltas(self, orderbook: Any, deltas: Any):
+    def handle_deltas(self, orderbook: object, deltas: object):
         for i in range(0, len(deltas)):
             self.handle_delta(orderbook, deltas[i])
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -291,7 +290,7 @@ class bithumb(ccxt.async_support.bithumb):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Any, message: Any):
+    def handle_trades(self, client: object, message: object):
         #
         #    {
         #        "type" : "transaction",
@@ -326,7 +325,7 @@ class bithumb(ccxt.async_support.bithumb):
             messageHash = 'trade' + ':' + symbol
             client.resolve(trades, messageHash)
 
-    def parse_ws_trade(self, trade: Any, market: Market = None):
+    def parse_ws_trade(self, trade: object, market: Market = None):
         #
         #    {
         #        "symbol" : "BTC_KRW",
@@ -359,7 +358,7 @@ class bithumb(ccxt.async_support.bithumb):
             'fee': None,
         }, market)
 
-    def handle_error_message(self, client: Client, message: Any) -> Bool:
+    def handle_error_message(self, client: Client, message: object) -> Bool:
         #
         #    {
         #        "status" : "5100",
@@ -399,7 +398,7 @@ class bithumb(ccxt.async_support.bithumb):
         balance = await self.watch(url, messageHash, request, messageHash)
         return balance
 
-    def handle_balance(self, client: Client, message: Any):
+    def handle_balance(self, client: Client, message: object):
         #
         #    {
         #        "type": "myAsset",
@@ -457,7 +456,7 @@ class bithumb(ccxt.async_support.bithumb):
         client = self.client(url)
         return client
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -489,7 +488,7 @@ class bithumb(ccxt.async_support.bithumb):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client: Client, message: Any):
+    def handle_orders(self, client: Client, message: object):
         #
         #    {
         #        "type": "myOrder",
@@ -527,7 +526,7 @@ class bithumb(ccxt.async_support.bithumb):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(cachedOrders, symbolSpecificMessageHash)
 
-    def parse_ws_order(self, order: Any, market: Market = None):
+    def parse_ws_order(self, order: object, market: Market = None):
         #
         #    {
         #        "type": "myOrder",
@@ -614,7 +613,7 @@ class bithumb(ccxt.async_support.bithumb):
             'trades': None,
         }, market)
 
-    def handle_message(self, client: Client, message: Any):
+    def handle_message(self, client: Client, message: object):
         if not self.handle_error_message(client, message):
             return
         topic = self.safe_string(message, 'type')

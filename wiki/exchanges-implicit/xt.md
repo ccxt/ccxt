@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official xt API documentation:** [doc.xt.com](https://doc.xt.com/) · [github.com](https://github.com/xtpub/api-doc)
 
-> 162 implicit endpoints across 2 access groups.
+> 174 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -145,6 +145,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateLinearGetFutureTradeV1EntrustPlanListHistory` | GET | `future/trade/v1/entrust/plan-list-history` | 1 |
 | `privateLinearGetFutureTradeV1EntrustProfitDetail` | GET | `future/trade/v1/entrust/profit-detail` | 1 |
 | `privateLinearGetFutureTradeV1EntrustProfitList` | GET | `future/trade/v1/entrust/profit-list` | 1 |
+| `privateLinearGetFutureTradeV1EntrustTrackDetail` | GET | `future/trade/v1/entrust/track-detail` | 1 |
+| `privateLinearGetFutureTradeV1EntrustTrackList` | GET | `future/trade/v1/entrust/track-list` | 1 |
+| `privateLinearGetFutureTradeV1EntrustTrackListHistory` | GET | `future/trade/v1/entrust/track-list-history` | 1 |
 | `privateLinearGetFutureTradeV1OrderDetail` | GET | `future/trade/v1/order/detail` | 1 |
 | `privateLinearGetFutureTradeV1OrderList` | GET | `future/trade/v1/order/list` | 1 |
 | `privateLinearGetFutureTradeV1OrderListHistory` | GET | `future/trade/v1/order/list-history` | 1 |
@@ -163,10 +166,13 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateLinearGetFutureUserV1UserListenKey` | GET | `future/user/v1/user/listen-key` | 1 |
 | `privateLinearPostFutureTradeV1EntrustCancelAllPlan` | POST | `future/trade/v1/entrust/cancel-all-plan` | 1 |
 | `privateLinearPostFutureTradeV1EntrustCancelAllProfitStop` | POST | `future/trade/v1/entrust/cancel-all-profit-stop` | 1 |
+| `privateLinearPostFutureTradeV1EntrustCancelAllTrack` | POST | `future/trade/v1/entrust/cancel-all-track` | 1 |
 | `privateLinearPostFutureTradeV1EntrustCancelPlan` | POST | `future/trade/v1/entrust/cancel-plan` | 1 |
 | `privateLinearPostFutureTradeV1EntrustCancelProfitStop` | POST | `future/trade/v1/entrust/cancel-profit-stop` | 1 |
 | `privateLinearPostFutureTradeV1EntrustCreatePlan` | POST | `future/trade/v1/entrust/create-plan` | 1 |
+| `privateLinearPostFutureTradeV1EntrustCancelTrack` | POST | `future/trade/v1/entrust/cancel-track` | 1 |
 | `privateLinearPostFutureTradeV1EntrustCreateProfit` | POST | `future/trade/v1/entrust/create-profit` | 1 |
+| `privateLinearPostFutureTradeV1EntrustCreateTrack` | POST | `future/trade/v1/entrust/create-track` | 1 |
 | `privateLinearPostFutureTradeV1EntrustUpdateProfitStop` | POST | `future/trade/v1/entrust/update-profit-stop` | 1 |
 | `privateLinearPostFutureTradeV1OrderCancel` | POST | `future/trade/v1/order/cancel` | 1 |
 | `privateLinearPostFutureTradeV1OrderCancelAll` | POST | `future/trade/v1/order/cancel-all` | 1 |
@@ -186,6 +192,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateInverseGetFutureTradeV1EntrustPlanListHistory` | GET | `future/trade/v1/entrust/plan-list-history` | 1 |
 | `privateInverseGetFutureTradeV1EntrustProfitDetail` | GET | `future/trade/v1/entrust/profit-detail` | 1 |
 | `privateInverseGetFutureTradeV1EntrustProfitList` | GET | `future/trade/v1/entrust/profit-list` | 1 |
+| `privateInverseGetFutureTradeV1EntrustTrackDetail` | GET | `future/trade/v1/entrust/track-detail` | 1 |
+| `privateInverseGetFutureTradeV1EntrustTrackList` | GET | `future/trade/v1/entrust/track-list` | 1 |
+| `privateInverseGetFutureTradeV1EntrustTrackListHistory` | GET | `future/trade/v1/entrust/track-list-history` | 1 |
 | `privateInverseGetFutureTradeV1OrderDetail` | GET | `future/trade/v1/order/detail` | 1 |
 | `privateInverseGetFutureTradeV1OrderList` | GET | `future/trade/v1/order/list` | 1 |
 | `privateInverseGetFutureTradeV1OrderListHistory` | GET | `future/trade/v1/order/list-history` | 1 |
@@ -204,10 +213,13 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateInverseGetFutureUserV1UserListenKey` | GET | `future/user/v1/user/listen-key` | 1 |
 | `privateInversePostFutureTradeV1EntrustCancelAllPlan` | POST | `future/trade/v1/entrust/cancel-all-plan` | 1 |
 | `privateInversePostFutureTradeV1EntrustCancelAllProfitStop` | POST | `future/trade/v1/entrust/cancel-all-profit-stop` | 1 |
+| `privateInversePostFutureTradeV1EntrustCancelAllTrack` | POST | `future/trade/v1/entrust/cancel-all-track` | 1 |
 | `privateInversePostFutureTradeV1EntrustCancelPlan` | POST | `future/trade/v1/entrust/cancel-plan` | 1 |
 | `privateInversePostFutureTradeV1EntrustCancelProfitStop` | POST | `future/trade/v1/entrust/cancel-profit-stop` | 1 |
 | `privateInversePostFutureTradeV1EntrustCreatePlan` | POST | `future/trade/v1/entrust/create-plan` | 1 |
+| `privateInversePostFutureTradeV1EntrustCancelTrack` | POST | `future/trade/v1/entrust/cancel-track` | 1 |
 | `privateInversePostFutureTradeV1EntrustCreateProfit` | POST | `future/trade/v1/entrust/create-profit` | 1 |
+| `privateInversePostFutureTradeV1EntrustCreateTrack` | POST | `future/trade/v1/entrust/create-track` | 1 |
 | `privateInversePostFutureTradeV1EntrustUpdateProfitStop` | POST | `future/trade/v1/entrust/update-profit-stop` | 1 |
 | `privateInversePostFutureTradeV1OrderCancel` | POST | `future/trade/v1/order/cancel` | 1 |
 | `privateInversePostFutureTradeV1OrderCancelAll` | POST | `future/trade/v1/order/cancel-all` | 1 |

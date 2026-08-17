@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
@@ -368,14 +369,30 @@ class binance extends \ccxt\async\binance {
         $now = $this->milliseconds();
         $delay = $this->sum($listenKeyRefreshRate, 10000);
         if (($now - $lastAuthenticatedTime) > $delay) {
-            $requestParams = $this->omit($params, array( 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ));
-            $response = Async\await($this->sapiPostEquityListenKey($requestParams));
-            $listenKey = $this->safe_string($response, 'listenKey');
-            $this->options['stock'] = $this->extend($options, array(
-                'listenKey' => $listenKey,
-                'lastAuthenticatedTime' => $now,
-            ));
-            $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_stock_listen_key'), $params);
+            // the stock user stream url embeds this $listenKey, so the future is parked
+            // on the $listenKey-free market url of the same host
+            $client = $this->client($this->get_stock_ws_url('market'));
+            $messageHash = 'authenticate:stock';
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+                // another caller is already fetching, wait for it instead of fetching again
+                Async\await($client->future($messageHash));
+                return;
+            }
+            $client->future($messageHash); // created ahead of the request below, so concurrent callers can find it
+            try {
+                $requestParams = $this->omit($params, array( 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ));
+                $response = Async\await($this->sapiPostEquityListenKey($requestParams));
+                $listenKey = $this->safe_string($response, 'listenKey');
+                $this->options['stock'] = $this->extend($options, array(
+                    'listenKey' => $listenKey,
+                    'lastAuthenticatedTime' => $now,
+                ));
+                $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_stock_listen_key'), $params);
+                $client->resolve($listenKey, $messageHash);
+            } catch (Exception $e) {
+                $client->reject($e, $messageHash);
+                throw $e;
+            }
         }
     }
 
@@ -3005,20 +3022,36 @@ class binance extends \ccxt\async\binance {
         if ($accountType === $marketType) {
             return;
         }
+        // the $subscriptions flag is raised before the subscribe request is confirmed,
+        // so a concurrent caller would otherwise return onto an unauthenticated stream
+        $messageHash = 'authenticate:signature:' . $marketType;
+        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+            // another caller is already subscribing, wait for it instead of subscribing again
+            Async\await($client->future($messageHash));
+            return;
+        }
+        $client->future($messageHash); // created ahead of the request below, so concurrent callers can find it
         $client->subscriptions[$marketType] = true;
         $requestId = $this->request_id($url);
-        $messageHash = (string) $requestId;
+        $requestHash = (string) $requestId;
         $message = array(
-            'id' => $messageHash,
+            'id' => $requestHash,
             'method' => 'userDataStream.subscribe.signature',
             'params' => $this->sign_params(array()),
         );
         $subscription = array(
-            'id' => $messageHash,
+            'id' => $requestHash,
             'method' => array($this, 'handle_user_data_stream_subscribe'),
             'subscription' => $marketType,
         );
-        Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
+        try {
+            Async\await($this->watch($url, $requestHash, $message, $requestHash, $subscription));
+            $client->resolve($marketType, $messageHash);
+        } catch (Exception $e) {
+            unset($client->subscriptions[$marketType]);
+            $client->reject($e, $messageHash);
+            throw $e;
+        }
     }
 
     public function handle_user_data_stream_subscribe(Client $client, mixed $message) {
@@ -3040,6 +3073,8 @@ class binance extends \ccxt\async\binance {
         if ($subscriptionId === null) {
             unset($client->subscriptions[$accountType]);
             $client->reject($message, $accountType);
+            $client->reject($message, $messageHash);
+            return;
         }
         $client->resolve($message, $messageHash);
     }
@@ -3051,7 +3086,7 @@ class binance extends \ccxt\async\binance {
     private function do_ensure_user_data_stream_ws_subscribe_listen_token(string $marketType = 'margin', $params = array()) {
         /**
          * subscribes to user data stream using $listenToken (for margin)
-         * @param {string} $marketType - the market type (e.g., 'margin')
+         * @param {string} $marketType - the market type ($e->g., 'margin')
          * @param {array} $params - extra parameters specific to the $request
          * @param {string} [$params->symbol] - required for isolated margin
          * @param {boolean} [$params->isIsolated] - whether it is isolated margin
@@ -3068,57 +3103,80 @@ class binance extends \ccxt\async\binance {
         $time = $this->milliseconds();
         $delay = $this->sum($listenTokenRefreshRate, 10000);
         if ($time - $lastAuthenticatedTime > $delay) {
-            // Step 1 => Create $listenToken via REST API
-            $symbol = $this->safe_string($params, 'symbol');
-            $isIsolated = $this->safe_bool($params, 'isIsolated', false);
-            $validity = $this->safe_integer($params, 'validity');
-            $request = array();
-            if ($isIsolated) {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' ensureUserDataStreamWsSubscribeListenToken() requires a $symbol argument for isolated margin mode');
+            // the future covers the REST create plus the ws subscribe, including the
+            // renewal timer re-entry through renewListenToken, so a concurrent caller
+            // waits for the leader rather than minting a second $listenToken
+            $client = $this->client($url);
+            $messageHash = 'authenticate:' . $marketType . ':listenToken';
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+                // another caller is already fetching, wait for it instead of fetching again
+                Async\await($client->future($messageHash));
+                return;
+            }
+            $client->future($messageHash); // created ahead of the $request below, so concurrent callers can find it
+            try {
+                // Step 1 => Create $listenToken via REST API
+                $symbol = $this->safe_string($params, 'symbol');
+                $isIsolated = $this->safe_bool($params, 'isIsolated', false);
+                $validity = $this->safe_integer($params, 'validity');
+                $request = array();
+                if ($isIsolated) {
+                    if ($symbol === null) {
+                        throw new ArgumentsRequired($this->id . ' ensureUserDataStreamWsSubscribeListenToken() requires a $symbol argument for isolated margin mode');
+                    }
+                    $marketId = $this->market_id($symbol);
+                    $request['symbol'] = $marketId;
+                    $request['isIsolated'] = true;
                 }
-                $marketId = $this->market_id($symbol);
-                $request['symbol'] = $marketId;
-                $request['isIsolated'] = true;
-            }
-            if ($validity !== null) {
-                $request['validity'] = $validity;
-            }
-            $response = Async\await($this->sapiPostUserListenToken($request));
-            $listenToken = $this->safe_string($response, 'token');
-            $expirationTime = $this->safe_integer($response, 'expirationTime');
-            // Step 2 => Subscribe to user data stream via WebSocket API
-            $requestId = $this->request_id($url);
-            $messageHash = (string) $requestId;
-            $message = array(
-                'id' => $messageHash,
-                'method' => 'userDataStream.subscribe.listenToken',
-                'params' => array(
+                if ($validity !== null) {
+                    $request['validity'] = $validity;
+                }
+                $response = Async\await($this->sapiPostUserListenToken($request));
+                $listenToken = $this->safe_string($response, 'token');
+                if ($listenToken === null) {
+                    throw new AuthenticationError($this->id . ' ensureUserDataStreamWsSubscribeListenToken() failed to obtain a listenToken');
+                }
+                $expirationTime = $this->safe_integer($response, 'expirationTime');
+                // Step 2 => Subscribe to user data stream via WebSocket API
+                $requestId = $this->request_id($url);
+                $requestHash = (string) $requestId;
+                $message = array(
+                    'id' => $requestHash,
+                    'method' => 'userDataStream.subscribe.listenToken',
+                    'params' => array(
+                        'listenToken' => $listenToken,
+                    ),
+                );
+                $subscription = array(
+                    'id' => $requestHash,
+                    'method' => array($this, 'handle_user_data_stream_subscribe'),
+                    'subscription' => $marketType,
+                );
+                Async\await($this->watch($url, $requestHash, $message, $requestHash, $subscription));
+                $this->options[$marketType] = $this->extend($options, array(
                     'listenToken' => $listenToken,
-                ),
-            );
-            $subscription = array(
-                'id' => $messageHash,
-                'method' => array($this, 'handle_user_data_stream_subscribe'),
-                'subscription' => $marketType,
-            );
-            $this->options[$marketType] = $this->extend($options, array(
-                'listenToken' => $listenToken,
-                'expirationTime' => $expirationTime,
-                'lastAuthenticatedTime' => $time,
-                'symbol' => $symbol,
-                'isIsolated' => $isIsolated,
-                'validity' => $validity,
-            ));
-            // Schedule token renewal before expiration
-            if ($expirationTime !== null) {
-                $renewalTime = $expirationTime - $time - 60000; // Renew 1 minute before expiration
-                if ($renewalTime > 0) {
-                    $extendedParams = $this->extend($params, array( 'type' => $marketType ));
-                    $this->delay($renewalTime, array($this, 'renew_listen_token'), $extendedParams);
+                    'expirationTime' => $expirationTime,
+                    'lastAuthenticatedTime' => $time,
+                    'symbol' => $symbol,
+                    'isIsolated' => $isIsolated,
+                    'validity' => $validity,
+                ));
+                // Schedule token renewal before expiration
+                if ($expirationTime !== null) {
+                    $renewalTime = $expirationTime - $time - 60000; // Renew 1 minute before expiration
+                    if ($renewalTime > 0) {
+                        $extendedParams = $this->extend($params, array( 'type' => $marketType ));
+                        $this->delay($renewalTime, array($this, 'renew_listen_token'), $extendedParams);
+                    }
                 }
+                $client->resolve($listenToken, $messageHash);
+            } catch (Exception $e) {
+                $this->options[$marketType] = $this->extend($options, array(
+                    'lastAuthenticatedTime' => 0,
+                ));
+                $client->reject($e, $messageHash);
+                throw $e;
             }
-            Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
         }
     }
 
@@ -3189,23 +3247,43 @@ class binance extends \ccxt\async\binance {
         $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
         $delay = $this->sum($listenKeyRefreshRate, 10000);
         if ($time - $lastAuthenticatedTime > $delay) {
-            if ($isPortfolioMargin) {
-                $response = Async\await($this->papiPostListenKey($params));
-                $params = $this->extend($params, array( 'portfolioMargin' => true ));
-            } elseif ($type === 'future') {
-                $response = Async\await($this->fapiPrivatePostListenKey($params));
-            } elseif ($type === 'delivery') {
-                $response = Async\await($this->dapiPrivatePostListenKey($params));
-            } elseif ($type === 'option') {
-                $response = Async\await($this->eapiPrivatePostListenKey($params));
-            } else {
-                $response = Async\await($this->publicPostUserDataStream($params));
+            // the private url embeds the $listenKey that this request produces, so the future
+            // is parked on the $listenKey-free base url of that same stream - concurrent
+            // callers wait for the leader instead of fetching a second $listenKey, which
+            // would split the user-data subscriptions across two connections
+            $client = $this->client($this->get_ws_url($type, 'private'));
+            $messageHash = 'authenticate:' . $type;
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+                // another caller is already fetching, wait for it instead of fetching again
+                Async\await($client->future($messageHash));
+                return;
             }
-            $this->options[$type] = $this->extend($options, array(
-                'listenKey' => $this->safe_string($response, 'listenKey'),
-                'lastAuthenticatedTime' => $time,
-            ));
-            $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
+            $client->future($messageHash); // created ahead of the request below, so concurrent callers can find it
+            try {
+                $response = null;
+                if ($isPortfolioMargin) {
+                    $response = Async\await($this->papiPostListenKey($params));
+                    $params = $this->extend($params, array( 'portfolioMargin' => true ));
+                } elseif ($type === 'future') {
+                    $response = Async\await($this->fapiPrivatePostListenKey($params));
+                } elseif ($type === 'delivery') {
+                    $response = Async\await($this->dapiPrivatePostListenKey($params));
+                } elseif ($type === 'option') {
+                    $response = Async\await($this->eapiPrivatePostListenKey($params));
+                } else {
+                    $response = Async\await($this->publicPostUserDataStream($params));
+                }
+                $listenKey = $this->safe_string($response, 'listenKey');
+                $this->options[$type] = $this->extend($options, array(
+                    'listenKey' => $listenKey,
+                    'lastAuthenticatedTime' => $time,
+                ));
+                $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
+                $client->resolve($listenKey, $messageHash);
+            } catch (Exception $e) {
+                $client->reject($e, $messageHash);
+                throw $e;
+            }
         }
     }
 
@@ -5643,6 +5721,13 @@ class binance extends \ccxt\async\binance {
                         $orderTrades = $this->safe_list($order, 'trades', array());
                         $orderTrades[] = $trade;
                         $order['trades'] = $orderTrades;
+                        // write the updated $order back into the cache => php
+                        // arrays are value types, so the fee/trades mutations
+                        // above only touched a local copy there — the cache
+                        // hashmap rows are wired by reference, so this
+                        // assignment reaches the cached row (and is a no-op
+                        // in the reference-semantics runtimes)
+                        $orders[$orderId] = $order;
                         // don't append twice cause it breaks newUpdates mode
                         // this $order already exists in the cache
                     }

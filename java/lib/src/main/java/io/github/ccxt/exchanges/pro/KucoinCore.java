@@ -1863,7 +1863,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             var methodparametersVariable = this.handleOptionAndParams2(parameters, "watchOrderBook", optionName, "method", method);
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.getIndexOf(method, "Depth"), Helpers.opNeg(1))))
+            if (Helpers.isTrue(Helpers.isLessThan(Helpers.getIndexOf(method, "Depth"), 0)))
             {
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(limit, 5))) || Helpers.isTrue((Helpers.isEqual(limit, 50)))))
                 {
@@ -1938,7 +1938,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             var methodparametersVariable = this.handleOptionAndParams2(parameters, "watchOrderBook", optionName, "method", method);
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.getIndexOf(method, "Depth"), Helpers.opNeg(1))))
+            if (Helpers.isTrue(Helpers.isLessThan(Helpers.getIndexOf(method, "Depth"), 0)))
             {
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(limit, 5))) || Helpers.isTrue((Helpers.isEqual(limit, 50)))))
                 {

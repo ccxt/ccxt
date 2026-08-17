@@ -79,6 +79,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 'fetchOrders': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchTicker': 'emulated',
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': 'emulated',
@@ -498,6 +499,8 @@ class krakenfutures extends krakenfutures$1["default"] {
                 'linear': linear,
                 'inverse': inverse,
                 'contractSize': this.safeNumber(market, 'contractSize'),
+                'taker': this.safeNumber(this.fees['trading'], 'taker'),
+                'maker': this.safeNumber(this.fees['trading'], 'maker'),
                 'maintenanceMarginRate': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601(expiry),
@@ -1162,9 +1165,15 @@ class krakenfutures extends krakenfutures$1["default"] {
         let fee = undefined;
         if ((takerOrMaker !== undefined) && (cost !== undefined)) {
             const feeRate = this.safeString(market, takerOrMaker);
+            // fees are charged in the settlement currency: the quote currency
+            // for linear contracts, the base currency for inverse contracts
+            let feeCurrency = this.safeString(market, 'settle');
+            if (feeCurrency === undefined) {
+                feeCurrency = this.safeString(market, 'quote');
+            }
             fee = {
                 'cost': Precise["default"].stringMul(cost, feeRate),
-                'currency': this.safeString(market, 'quote'),
+                'currency': feeCurrency,
                 'rate': feeRate,
             };
         }
@@ -3015,9 +3024,15 @@ class krakenfutures extends krakenfutures$1["default"] {
     }
     parsePositions(response, symbols = undefined, params = {}) {
         const result = [];
-        // a degraded response can omit openPositions entirely - default to an
-        // empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
-        const positions = this.safeList(response, 'openPositions', []);
+        // a degraded response missing openPositions must fail loudly - a flat
+        // account and "could not read positions" are not interchangeable for
+        // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
+        // the crash guarded against in #19896 is still avoided, since we no
+        // longer call .length on a non-list value
+        const positions = this.safeList(response, 'openPositions');
+        if (positions === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchPositions() returned a response without an "openPositions" list');
+        }
         for (let i = 0; i < positions.length; i++) {
             const position = this.parsePosition(positions[i]);
             result.push(position);

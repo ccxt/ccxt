@@ -147,7 +147,8 @@ class woo extends woo$1["default"] {
                 },
                 'www': 'https://woox.io/',
                 'doc': [
-                    'https://docs.woox.io/',
+                    'https://developer.woox.io/',
+                    'https://docs.woox.io/', // legacy v1 api reference
                 ],
                 'fees': [
                     'https://support.woox.io/hc/en-001/articles/4404611795353--Trading-Fees',
@@ -227,14 +228,7 @@ class woo extends woo$1["default"] {
                             'order': { 'cost': 1 },
                             'client/order': { 'cost': 1 },
                             'orders': { 'cost': 1 },
-                            'asset/withdraw': { 'cost': 120 }, // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
-                        },
-                    },
-                },
-                'v2': {
-                    'private': {
-                        'get': {
-                            'client/holding': { 'cost': 1 },
+                            'asset/withdraw': { 'cost': 120 }, // cancel a pending withdrawal, undocumented but alive as of 2026-08
                         },
                     },
                 },
@@ -346,23 +340,24 @@ class woo extends woo$1["default"] {
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'sandboxMode': false,
                 'createMarketBuyOrderRequiresPrice': true,
-                // these network aliases require manual mapping here
-                'network-aliases-for-tokens': {
-                    'HT': 'ERC20',
-                    'OMG': 'ERC20',
-                    'UATOM': 'ATOM',
-                    'ZRX': 'ZRX',
-                },
                 'networks': {
                     'TRX': 'TRX', // WOO X renamed the network id from TRON to TRX
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
                     'ARBITRUM': 'Arbitrum',
+                    'BASE': 'BASE',
+                    'AVAXC': 'AVAXC',
+                    'OP': 'OP',
+                    'OPTIMISM': 'OP',
+                    'MATIC': 'MATIC',
+                    'SONIC': 'S',
+                    'HYPEREVM': 'HyperEVM',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
                     'TRON': 'TRC20',
+                    'OP': 'OP',
                 },
                 // override defaultNetworkCodePriorities for a specific currency
                 'defaultNetworkCodeForCurrencies': {
@@ -3183,19 +3178,9 @@ class woo extends woo$1["default"] {
             'amount': this.safeNumber(transfer, 'amount'),
             'fromAccount': this.safeString(fromAccount, 'applicationId'),
             'toAccount': this.safeString(toAccount, 'applicationId'),
-            'status': this.parseTransferStatus(this.safeString(transfer, 'status', status)),
+            'status': this.parseTransactionStatus(this.safeString(transfer, 'status', status)),
             'info': transfer,
         };
-    }
-    parseTransferStatus(status) {
-        const statuses = {
-            'NEW': 'pending',
-            'CONFIRMING': 'pending',
-            'PROCESSING': 'pending',
-            'COMPLETED': 'ok',
-            'CANCELED': 'canceled',
-        };
-        return this.safeString(statuses, status, status);
     }
     /**
      * @method

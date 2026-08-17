@@ -439,6 +439,73 @@ public class BaseTest {
         return exchange;
     }
 
+    public static Object setupWsMockTransport(Object exchange2, Object url) {
+        // put the ws client for the given url into an "already connected" state
+        // with a transport stub, so watch* methods never open a real socket;
+        // everything above the socket (subscriptions, futures, caches, message
+        // routing) runs unmodified
+        // block sleeps synchronously for the rest of the run — joining a
+        // delayed future inside a ForkJoinPool worker can steal the pending
+        // watch task onto the injector's own stack and deadlock the test
+        BaseExchange.syncSleep = true;
+        var exchange = (BaseExchange) exchange2;
+        var client = exchange.client(url);
+        client.startedConnecting.set(true);
+        client.isMock = true;
+        client.isConnected = true;
+        client.connected.complete(true);
+        return exchange;
+    }
+
+    public static void injectWsMessage(Object exchange2, Object url, Object message) {
+        // feed one already-json-parsed frame into the exchange's ws message
+        // handler - the same entry point the real transport invokes
+        var exchange = (BaseExchange) exchange2;
+        var client = exchange.client(url);
+        client.handleMessageCallback.accept(client, message);
+    }
+
+    public static Object getWsSentMessages(Object exchange2, Object url) {
+        // the frames the exchange sent over the mocked transport, already parsed
+        var exchange = (BaseExchange) exchange2;
+        var client = exchange.client(url);
+        return client.mockSentMessages;
+    }
+
+    public static boolean wsClientHasPendingFutures(Object exchange2, Object url) {
+        // whether the watch flow is currently awaiting a message - the frame
+        // injector polls this instead of relying on a fixed head-start sleep
+        var exchange = (BaseExchange) exchange2;
+        var client = exchange.client(url);
+        return !((java.util.Map<?, ?>) client.futures).isEmpty();
+    }
+
+    private static final java.util.Set<Object> wsCompletedClients =
+        java.util.Collections.synchronizedSet(new java.util.HashSet<Object>());
+
+    public static void markWsTestCompleted(Object exchange2, Object url) {
+        // the watch side of a static ws test flags completion here so the
+        // frame injector's rejection loop knows it can stop
+        var exchange = (BaseExchange) exchange2;
+        var client = exchange.client(url);
+        wsCompletedClients.add(client);
+    }
+
+    public static boolean isWsTestCompleted(Object exchange2, Object url) {
+        var exchange = (BaseExchange) exchange2;
+        var client = exchange.client(url);
+        return wsCompletedClients.contains(client);
+    }
+
+    public static void rejectPendingWsFutures(Object exchange2, Object url) {
+        // reject any futures the injected frames did not resolve, so a broken
+        // fixture fails the test instead of hanging it; resolved futures are
+        // already removed from the futures map, so only pending ones remain
+        var exchange = (BaseExchange) exchange2;
+        var client = exchange.client(url);
+        client.reject(new io.github.ccxt.errors.ExchangeError("static ws test: the injected messages did not resolve the watch future"));
+    }
+
     @SuppressWarnings("unchecked")
     public static CompletableFuture<Object> callExchangeMethodDynamicallySync(
         Object exchange,
@@ -531,11 +598,29 @@ public class BaseTest {
         Object result = method.invoke(exchange, invokeArgs);
 
         if (result instanceof CompletableFuture<?>) {
-            return (CompletableFuture<Object>) result;
+            // isolate the join from the ForkJoinPool: joining a common-pool
+            // future from a common-pool worker lets the pool "help" by
+            // stealing queued tasks (helpAsyncBlocker) onto the caller's
+            // stack — in the ws static test harness the watch side could
+            // steal the frame-injector task and deadlock beneath it. the
+            // wrapper joins on a dedicated plain thread and hands back a
+            // future whose executor is not the common pool, so joining it
+            // never steals anything.
+            CompletableFuture<Object> inner = (CompletableFuture<Object>) result;
+            return CompletableFuture.supplyAsync(() -> inner.join(), isolatedJoinPool);
         }
 
         return CompletableFuture.completedFuture(result);
     }
+
+    // plain (non-ForkJoin) threads used to await exchange futures — see
+    // callExchangeMethodDynamically
+    private static final java.util.concurrent.ExecutorService isolatedJoinPool =
+        java.util.concurrent.Executors.newCachedThreadPool(runnable -> {
+            Thread thread = new Thread(runnable, "ccxt-test-isolated-join");
+            thread.setDaemon(true);
+            return thread;
+        });
 
     public static Exception getRootException(Exception exc) {
         if (exc == null) {
@@ -669,6 +754,12 @@ public class BaseTest {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public static BaseExchange initExchange(Object exchangeId, Object exchangeArgs, Object isWs2) {
+        // the transpiled tests pass the isWs flag as an Object
+        var isWs = (isWs2 == null) ? false : (boolean) isWs2;
+        return initExchange(exchangeId, exchangeArgs, isWs);
     }
 
     public static BaseExchange initExchange(Object exchangeId, Object exchangeArgs, boolean isWs) {

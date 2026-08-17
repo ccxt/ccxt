@@ -450,8 +450,8 @@ class Transpiler {
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
             [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],
-            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/g, '$1List[List[$2]]' ],  // typed variables with double list type (must precede the single-list rule)
-            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/g, '$1List[$2]' ],  // typed variable with list type
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/g, '$1list[list[$2]]' ],  // typed variables with double list type (must precede the single-list rule)
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/g, '$1list[$2]' ],  // typed variable with list type
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
@@ -977,9 +977,26 @@ class Transpiler {
         // transpile camelCase base method names to underscore base method names
         const baseMethods = this.getPythonBaseMethods ()
         methods = methods.concat (baseMethods)
+        // the rename can only fire where the body literally contains `.<method>` followed by
+        // a non-identifier char, so index the dotted names once and skip the methods that
+        // cannot possibly occur — that avoids building and running ~1.5k regexes per class.
+        // names that are not plain identifiers (Object.prototype stringifications that reach
+        // getBaseMethods) are interpolated as regex source, so they are never skipped, and
+        // every dotted name a replacement introduces is added back to the index.
+        const dottedNames = new Set<string> ()
+        for (const dotted of bodyAsString.matchAll (/\.([A-Za-z0-9_]+)/g)) {
+            dottedNames.add (dotted[1])
+        }
         for (let method of methods) {
+            if (/^[A-Za-z0-9_]+$/.test (method) && !dottedNames.has (method)) {
+                continue
+            }
             const regex = new RegExp ('(self|super\\([^)]+\\))\\.(' + method + ')([^a-zA-Z0-9_])', 'g')
-            bodyAsString = bodyAsString.replace (regex, (match: any, p1: string, p2: string, p3: string) => (p1 + '.' + unCamelCase (p2) + p3))
+            bodyAsString = bodyAsString.replace (regex, (match: any, p1: string, p2: string, p3: string) => {
+                const renamed = unCamelCase (p2)
+                dottedNames.add (renamed)
+                return p1 + '.' + renamed + p3
+            })
         }
 
         header.push ("\n\n" + this.createPythonClassDeclaration (className, baseClass))
@@ -1035,25 +1052,25 @@ class Transpiler {
             libraries.push ('from ccxt' + wsAsyncString + '.base.ws.order_book_side import ' + uniqueSides.join (', '))
         }
         const matchObject = {
-            'Account': /-> (?:List\[)?Account/,
-            'Any': /(?:->|:) (?:List\[)?Any/,
+            'Account': /-> (?:[Ll]ist\[)?Account/,
+            'Any': /(?:->|:) (?:[Ll]ist\[)?Any/,
             'ADL': /-> ADL:/,
             'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
             'BorrowInterest': /-> BorrowInterest:/,
-            'Bool': /(: (?:List\[)?Bool =)|(-> Bool:)/,
+            'Bool': /(: (?:[Ll]ist\[)?Bool =)|(-> Bool:)/,
             'Conversion': /-> Conversion:/,
             'CrossBorrowRate': /-> CrossBorrowRate:/,
             'CrossBorrowRates': /-> CrossBorrowRates:/,
             'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
-            'CurrencyInterface': /(?:->|:) (?:List\[)?CurrencyInterface\b/,
-            'DepositAddress': /-> (?:List\[)?DepositAddress/,
+            'CurrencyInterface': /(?:->|:) (?:[Ll]ist\[)?CurrencyInterface\b/,
+            'DepositAddress': /-> (?:[Ll]ist\[)?DepositAddress/,
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
             'IndexType': /: IndexType/,
             'NullableIndexType': /: NullableIndexType/,
-            'Int': /(: (?:List\[)?Int\b)|(-> Int:)/,
+            'Int': /(: (?:[Ll]ist\[)?Int\b)|(-> Int:)/,
             'IsolatedBorrowRate': /-> IsolatedBorrowRate:/,
             'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
             'LastPrice': /-> LastPrice:/,
@@ -1061,10 +1078,10 @@ class Transpiler {
             'LedgerEntry': /-> LedgerEntry:/,
             'Leverage': /-> Leverage:/,
             'Leverages': /-> Leverages:/,
-            'LeverageTier': /-> (?:List\[)?LeverageTier/,
+            'LeverageTier': /-> (?:[Ll]ist\[)?LeverageTier/,
             'LeverageTiers': /-> LeverageTiers:/,
-            'Liquidation': /-> (?:List\[)?Liquidation/,
-            'LongShortRatio': /-> (?:List\[)?LongShortRatio/,
+            'Liquidation': /-> (?:[Ll]ist\[)?Liquidation/,
+            'LongShortRatio': /-> (?:[Ll]ist\[)?LongShortRatio/,
             'MarginMode': /-> MarginMode:/,
             'MarginModes': /-> MarginModes:/,
             'MarginModification': /-> MarginModification:/,
@@ -1073,20 +1090,20 @@ class Transpiler {
             // 'MarketInterface': /-> MarketInterface:/,
             'MarketMarginModes': /-> MarketMarginModes:/,
             'MarketType': /: MarketType/,
-            'Num': /(: (?:List\[)?Num\b)|(-> Num:)/,
+            'Num': /(: (?:[Ll]ist\[)?Num\b)|(-> Num:)/,
             'Option': /-> Option:/,
             'OptionChain': /-> OptionChain:/,
-            'Order': /-> (?:List\[)?Order\]?:/,
+            'Order': /-> (?:[Ll]ist\[)?Order\]?:/,
             'OrderBook': /-> OrderBook:/,
-            'OrderRequest': /: (?:List\[)?OrderRequest/,
-            'CancellationRequest': /: (?:List\[)?CancellationRequest/,
+            'OrderRequest': /: (?:[Ll]ist\[)?OrderRequest/,
+            'CancellationRequest': /: (?:[Ll]ist\[)?CancellationRequest/,
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
-            'Position': /-> (?:List\[)?Position/,
+            'Position': /-> (?:[Ll]ist\[)?Position/,
             'PositionModeInfo': /-> PositionModeInfo:/,
             'Status': /-> Status:/,
-            'Str': /(: (?:List\[)?Str\b)|(-> Str:)/,
-            'Strings': /: (?:List\[)?Strings =/,
+            'Str': /(: (?:[Ll]ist\[)?Str\b)|(-> Str:)/,
+            'Strings': /: (?:[Ll]ist\[)?Strings =/,
             'SubType': /: SubType/,
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
@@ -1095,28 +1112,28 @@ class Transpiler {
             'FundingRates': /-> FundingRates:/,
             'OrderBooks': /-> OrderBooks:/,
             'OpenInterests': /-> OpenInterests:/,
-            'Trade': /-> (?:List\[)?Trade/,
+            'Trade': /-> (?:[Ll]ist\[)?Trade/,
             'TradingFeeInterface': /-> TradingFeeInterface:/,
             'TradingFees': /-> TradingFees:/,
             'DepositWithdrawFee': /-> DepositWithdrawFee:/,
             'DepositWithdrawFees': /-> DepositWithdrawFees:/,
-            'Transaction': /-> (?:List\[)?Transaction/,
-            'FundingRateHistory': /-> (?:List\[)?FundingRateHistory/,
-            'MarketInterface': /-> (?:List\[)?MarketInterface/,
+            'Transaction': /-> (?:[Ll]ist\[)?Transaction/,
+            'FundingRateHistory': /-> (?:[Ll]ist\[)?FundingRateHistory/,
+            'MarketInterface': /-> (?:[Ll]ist\[)?MarketInterface/,
             'TransferEntry': /-> TransferEntry:/,
-            'PredictionEvent': /-> (?:List\[)?PredictionEvent/,
-            'PredictionOutcome': /: (?:List\[)?PredictionOutcome/,
-            'fetchEventsParams': /: (?:List\[)?fetchEventsParams\b/,
-            'PredictionTicker': /-> (?:List\[)?PredictionTicker\b/,
-            'PredictionTickers': /-> (?:List\[)?PredictionTickers\b/,
-            'PredictionOrder': /-> (?:List\[)?PredictionOrder\b/,
-            'PredictionOrderBook': /-> (?:List\[)?PredictionOrderBook\b/,
-            'PredictionTrade': /-> (?:List\[)?PredictionTrade\b/,
-            'PredictionPosition': /-> (?:List\[)?PredictionPosition\b/,
-            'PredictionOpenInterest': /-> (?:List\[)?PredictionOpenInterest\b/,
-            'PredictionTradingFee': /-> (?:List\[)?PredictionTradingFee\b/,
-            'PredictionSettlement': /-> (?:List\[)?PredictionSettlement\b/,
-            'PredictionOrderRequest': /: (?:List\[)?PredictionOrderRequest\b/,
+            'PredictionEvent': /-> (?:[Ll]ist\[)?PredictionEvent/,
+            'PredictionOutcome': /: (?:[Ll]ist\[)?PredictionOutcome/,
+            'fetchEventsParams': /: (?:[Ll]ist\[)?fetchEventsParams\b/,
+            'PredictionTicker': /-> (?:[Ll]ist\[)?PredictionTicker\b/,
+            'PredictionTickers': /-> (?:[Ll]ist\[)?PredictionTickers\b/,
+            'PredictionOrder': /-> (?:[Ll]ist\[)?PredictionOrder\b/,
+            'PredictionOrderBook': /-> (?:[Ll]ist\[)?PredictionOrderBook\b/,
+            'PredictionTrade': /-> (?:[Ll]ist\[)?PredictionTrade\b/,
+            'PredictionPosition': /-> (?:[Ll]ist\[)?PredictionPosition\b/,
+            'PredictionOpenInterest': /-> (?:[Ll]ist\[)?PredictionOpenInterest\b/,
+            'PredictionTradingFee': /-> (?:[Ll]ist\[)?PredictionTradingFee\b/,
+            'PredictionSettlement': /-> (?:[Ll]ist\[)?PredictionSettlement\b/,
+            'PredictionOrderRequest': /: (?:[Ll]ist\[)?PredictionOrderRequest\b/,
         }
         const matches: string[] = []
         let match
@@ -1131,12 +1148,7 @@ class Transpiler {
         if (bodyAsString.match (/: Client/)) {
             libraries.push ('from ccxt.async_support.base.ws.client import Client')
         }
-        if (bodyAsString.match (/[\s(]Optional\[/)) {
-            libraries.push ('from typing import Optional')
-        }
-        if (bodyAsString.match (/[\s\[(]List\[/)) {
-            libraries.push ('from typing import List')
-        }
+        // list[] / X | None are builtins on the Python 3.10 floor; do not import typing
 
         const errorImports: string[] = []
 
@@ -1387,22 +1399,43 @@ class Transpiler {
         const baseMethods = this.getPHPBaseMethods ()
         methods = methods.concat (baseMethods)
 
-        for (let method of methods) {
-            let regex = new RegExp ('\\$this->(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
-            bodyAsString = bodyAsString.replace (regex,
-                (match: any, p1: string, p2: string) => {
-                    return ((p2 === '(') ?
-                        ('$this->' + unCamelCase (p1) + p2) : // support direct php calls
-                        ("array($this, '" + unCamelCase (p1) + "')" + p2)) // as well as passing instance methods as callables
-                })
+        // same index-then-skip gate as createPythonClass: a rename can only fire where the
+        // body literally contains `$this-><method>` / `parent::<method>`, so the methods that
+        // occur in neither form are skipped instead of compiling and running two regexes each
+        const thisNames = new Set<string> ()
+        for (const named of bodyAsString.matchAll (/\$this->([A-Za-z0-9_]+)/g)) {
+            thisNames.add (named[1])
+        }
+        const parentNames = new Set<string> ()
+        for (const named of bodyAsString.matchAll (/parent::([A-Za-z0-9_]+)/g)) {
+            parentNames.add (named[1])
+        }
 
-            regex = new RegExp ('parent::(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
-            bodyAsString = bodyAsString.replace (regex,
-                (match: any, p1: string, p2: string) => {
-                    return ((p2 === '(') ?
-                        ('parent::' + unCamelCase (p1) + p2) : // support direct php calls
-                        ("array($this, '" + unCamelCase (p1) + "')" + p2)) // as well as passing instance methods as callables
-                })
+        for (let method of methods) {
+            const plain = /^[A-Za-z0-9_]+$/.test (method)
+            if (!plain || thisNames.has (method)) {
+                let regex = new RegExp ('\\$this->(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
+                bodyAsString = bodyAsString.replace (regex,
+                    (match: any, p1: string, p2: string) => {
+                        const renamed = unCamelCase (p1)
+                        thisNames.add (renamed)
+                        return ((p2 === '(') ?
+                            ('$this->' + renamed + p2) : // support direct php calls
+                            ("array($this, '" + renamed + "')" + p2)) // as well as passing instance methods as callables
+                    })
+            }
+
+            if (!plain || parentNames.has (method)) {
+                const regex = new RegExp ('parent::(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
+                bodyAsString = bodyAsString.replace (regex,
+                    (match: any, p1: string, p2: string) => {
+                        const renamed = unCamelCase (p1)
+                        parentNames.add (renamed)
+                        return ((p2 === '(') ?
+                            ('parent::' + renamed + p2) : // support direct php calls
+                            ("array($this, '" + renamed + "')" + p2)) // as well as passing instance methods as callables
+                    })
+            }
         }
 
         header.push ("\n" + this.createPHPClassDeclaration (className, baseClass))
@@ -2100,16 +2133,16 @@ class Transpiler {
             const pythonTypes: dict = {
                 'string': 'str',
                 'number': 'float',
-                'any': 'Any',
-                'unknown': 'Any',
+                'any': 'object',
+                'unknown': 'object',
                 'boolean': 'bool',
                 'Int': 'Int',
                 'OHLCV': 'list',
                 'Dictionary<any>': 'dict',
                 'Dict': 'dict',
                 'NullableDict': 'dict',
-                'List': 'List[Any]',
-                'NullableList': 'List[Any]'
+                'List': 'list',
+                'NullableList': 'list'
             }
             const unwrapLists = (type: string) => {
                 // a union like `Dict | Dict[] | undefined` must be mapped member-by-member;
@@ -2123,7 +2156,7 @@ class Transpiler {
                     type = type.slice (0, -2)
                     count++
                 }
-                return 'List['.repeat (count) + (pythonTypes[type] ?? type) + ']'.repeat (count)
+                return 'list['.repeat (count) + (pythonTypes[type] ?? type) + ']'.repeat (count)
             }
 
             if (this.buildPHP) {

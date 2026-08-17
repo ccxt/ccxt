@@ -1395,6 +1395,11 @@ class toobit extends toobit$1["default"] {
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(ticker, 't');
         const last = this.safeString(ticker, 'c');
+        let baseVolume = this.safeString(ticker, 'v');
+        if (market['contract'] && (market['contractSize'] !== undefined)) {
+            // 'v' counts contracts, and a ticker reports base volume
+            baseVolume = Precise["default"].stringMul(baseVolume, this.numberToString(market['contractSize']));
+        }
         return this.safeTicker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -1411,9 +1416,10 @@ class toobit extends toobit$1["default"] {
             'last': last,
             'previousClose': undefined,
             'change': this.safeString(ticker, 'pc'),
-            'percentage': this.safeString(ticker, 'pcp'),
+            // 'pcp' is a ratio, and a ticker reports a percentage
+            'percentage': Precise["default"].stringMul(this.safeString(ticker, 'pcp'), '100'),
             'average': undefined,
-            'baseVolume': this.safeString(ticker, 'v'),
+            'baseVolume': baseVolume,
             'quoteVolume': this.safeString(ticker, 'qv'),
             'info': ticker,
         }, market);
@@ -1719,6 +1725,7 @@ class toobit extends toobit$1["default"] {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1779,13 +1786,11 @@ class toobit extends toobit$1["default"] {
         }
         let cost = undefined;
         [cost, params] = this.handleParamString(params, 'cost');
-        if (type === 'market') {
-            if (cost === undefined && side === 'buy') {
+        if (type === 'market' && side === 'buy') {
+            if (cost === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrder() requires params["cost"] for market buy order');
             }
-            else {
-                request['quantity'] = this.costToPrecision(symbol, cost);
-            }
+            request['quantity'] = this.costToPrecision(symbol, cost);
         }
         else {
             request['quantity'] = this.amountToPrecision(symbol, amount);
@@ -3068,20 +3073,20 @@ class toobit extends toobit$1["default"] {
         //
         // [
         //     {
-        //         "symbol":"BTC-SWAP-USDT", //symbol
-        //         "leverage":"20",  // leverage
+        //         "symbolId":"ETH-SWAP-USDT",
+        //         "leverage":"50",
         //         "marginType":"CROSS" // CROSS;ISOLATED
         //     }
         // ]
         //
-        const data = this.safeDict(response, 'data', {});
+        const data = this.safeDict(response, 0, {});
         return this.parseLeverage(data, market);
     }
     parseLeverage(leverage, market = undefined) {
-        const marketId = this.safeString(leverage, 'symbol');
+        const marketId = this.safeString2(leverage, 'symbolId', 'symbol');
         const leverageValue = this.safeInteger(leverage, 'leverage');
-        const marginType = this.safeString(leverage, 'marginType');
-        const marginMode = (marginType === 'crossed') ? 'cross' : 'isolated';
+        const marginType = this.safeStringLower(leverage, 'marginType');
+        const marginMode = (marginType === 'cross') ? 'cross' : 'isolated';
         return {
             'info': leverage,
             'symbol': this.safeSymbol(marketId, market),

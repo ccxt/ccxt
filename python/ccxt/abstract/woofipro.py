@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     v1_public_get_public_volume_stats = v1PublicGetPublicVolumeStats = Entry[_Dict]('public/volume/stats', ['v1', 'public'], 'GET', {'cost': 1})
@@ -85,6 +84,7 @@ class ImplicitAPI:
     v1_private_get_broker_user_info = v1PrivateGetBrokerUserInfo = Entry[_Dict]('broker/user_info', ['v1', 'private'], 'GET', {'cost': 10})
     v1_private_get_orderbook_symbol = v1PrivateGetOrderbookSymbol = Entry[_Dict]('orderbook/{symbol}', ['v1', 'private'], 'GET', {'cost': 1})
     v1_private_get_kline = v1PrivateGetKline = Entry[_Dict]('kline', ['v1', 'private'], 'GET', {'cost': 1})
+    v1_private_get_client_margin_modes = v1PrivateGetClientMarginModes = Entry[_Dict]('client/margin_modes', ['v1', 'private'], 'GET', {'cost': 1})
     v1_private_post_orderly_key = v1PrivatePostOrderlyKey = Entry[_Dict]('orderly_key', ['v1', 'private'], 'POST', {'cost': 1})
     v1_private_post_client_set_orderly_key_ip_restriction = v1PrivatePostClientSetOrderlyKeyIpRestriction = Entry[_Dict]('client/set_orderly_key_ip_restriction', ['v1', 'private'], 'POST', {'cost': 6})
     v1_private_post_client_reset_orderly_key_ip_restriction = v1PrivatePostClientResetOrderlyKeyIpRestriction = Entry[_Dict]('client/reset_orderly_key_ip_restriction', ['v1', 'private'], 'POST', {'cost': 6})
@@ -98,6 +98,8 @@ class ImplicitAPI:
     v1_private_post_notification_inbox_mark_read = v1PrivatePostNotificationInboxMarkRead = Entry[_Dict]('notification/inbox/mark_read', ['v1', 'private'], 'POST', {'cost': 60})
     v1_private_post_notification_inbox_mark_read_all = v1PrivatePostNotificationInboxMarkReadAll = Entry[_Dict]('notification/inbox/mark_read_all', ['v1', 'private'], 'POST', {'cost': 60})
     v1_private_post_client_leverage = v1PrivatePostClientLeverage = Entry[_Dict]('client/leverage', ['v1', 'private'], 'POST', {'cost': 120})
+    v1_private_post_client_margin_mode = v1PrivatePostClientMarginMode = Entry[_Dict]('client/margin_mode', ['v1', 'private'], 'POST', {'cost': 1})
+    v1_private_post_position_margin = v1PrivatePostPositionMargin = Entry[_Dict]('position_margin', ['v1', 'private'], 'POST', {'cost': 1})
     v1_private_post_client_maintenance_config = v1PrivatePostClientMaintenanceConfig = Entry[_Dict]('client/maintenance_config', ['v1', 'private'], 'POST', {'cost': 60})
     v1_private_post_delegate_signer = v1PrivatePostDelegateSigner = Entry[_Dict]('delegate_signer', ['v1', 'private'], 'POST', {'cost': 10})
     v1_private_post_delegate_orderly_key = v1PrivatePostDelegateOrderlyKey = Entry[_Dict]('delegate_orderly_key', ['v1', 'private'], 'POST', {'cost': 10})

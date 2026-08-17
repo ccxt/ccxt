@@ -82,6 +82,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 put( "fetchOrders", true );
                 put( "fetchPositions", true );
                 put( "fetchPremiumIndexOHLCV", false );
+                put( "fetchTicker", "emulated" );
                 put( "fetchTickers", true );
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", "emulated" );
@@ -579,6 +580,8 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                     put( "linear", finalLinear );
                     put( "inverse", finalInverse );
                     put( "contractSize", KrakenfuturesCore.this.safeNumber(market, "contractSize") );
+                    put( "taker", KrakenfuturesCore.this.safeNumber(Helpers.GetValue(KrakenfuturesCore.this.fees, "trading"), "taker") );
+                    put( "maker", KrakenfuturesCore.this.safeNumber(Helpers.GetValue(KrakenfuturesCore.this.fees, "trading"), "maker") );
                     put( "maintenanceMarginRate", null );
                     put( "expiry", finalExpiry );
                     put( "expiryDatetime", KrakenfuturesCore.this.iso8601(finalExpiry) );
@@ -1346,16 +1349,23 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(takerOrMaker, null))) && Helpers.isTrue((!Helpers.isEqual(cost, null)))))
         {
             Object feeRate = this.safeString(market, takerOrMaker);
+            // fees are charged in the settlement currency: the quote currency
+            // for linear contracts, the base currency for inverse contracts
+            Object feeCurrency = this.safeString(market, "settle");
+            if (Helpers.isTrue(Helpers.isEqual(feeCurrency, null)))
+            {
+                feeCurrency = this.safeString(market, "quote");
+            }
             final Object finalCost = cost;
-            final Object finalMarket = market;
+            final Object finalFeeCurrency = feeCurrency;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", Precise.stringMul(finalCost, feeRate) );
-                put( "currency", KrakenfuturesCore.this.safeString(finalMarket, "quote") );
+                put( "currency", finalFeeCurrency );
                 put( "rate", feeRate );
             }};
         }
         final Object finalId = id;
-        final Object finalMarket_2 = market;
+        final Object finalMarket = market;
         final Object finalTimestamp = timestamp;
         final Object finalOrder = order;
         final Object finalType = type;
@@ -1368,7 +1378,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", finalId );
-            put( "symbol", KrakenfuturesCore.this.safeString(finalMarket_2, "symbol") );
+            put( "symbol", KrakenfuturesCore.this.safeString(finalMarket, "symbol") );
             put( "timestamp", finalTimestamp );
             put( "datetime", KrakenfuturesCore.this.iso8601(finalTimestamp) );
             put( "order", finalOrder );
@@ -3563,9 +3573,16 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        // a degraded response can omit openPositions entirely - default to an
-        // empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
-        Object positions = this.safeList(response, "openPositions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        // a degraded response missing openPositions must fail loudly - a flat
+        // account and "could not read positions" are not interchangeable for
+        // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
+        // the crash guarded against in #19896 is still avoided, since we no
+        // longer call .length on a non-list value
+        Object positions = this.safeList(response, "openPositions");
+        if (Helpers.isTrue(Helpers.isEqual(positions, null)))
+        {
+            throw new ExchangeError((String)Helpers.add(this.id, " fetchPositions() returned a response without an \"openPositions\" list")) ;
+        }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
         {
             Object position = this.parsePosition(Helpers.GetValue(positions, i));

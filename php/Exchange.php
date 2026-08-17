@@ -393,7 +393,6 @@ class BaseExchange {
         'derive',
         'digifinex',
         'dydx',
-        'exmo',
         'extended',
         'fmfwio',
         'foxbit',
@@ -819,9 +818,12 @@ class BaseExchange {
     }
 
     public function filter_by($array, $key, $value = null) {
+        // mirrors the strict comparison of the typescript filterBy, an absent
+        // key counts as null so it matches the null filter and nothing else
         $result = array();
         foreach ($array as $element) {
-            if (isset($key, $element) && ($element[$key] == $value)) {
+            $elementValue = isset($element[$key]) ? $element[$key] : null;
+            if ($elementValue === $value) {
                 $result[] = $element;
             }
         }

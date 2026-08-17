@@ -1639,11 +1639,26 @@ public class TokocryptoCore extends TokocryptoApi
                 response = (this.publicGetOpenV1MarketKlines(this.extend(request, parameters))).join();
             }
             //
+            // binanceGetKlines
+            //
             //     [
             //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
             //         [1591478580000,"0.02499600","0.02500900","0.02499400","0.02500300","21.34700000",1591478639999,"0.53370468",24,"7.53800000","0.18850725","0"],
             //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
             //     ]
+            //
+            // publicGetOpenV1MarketKlines
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "Success",
+            //         "data": {
+            //             "list": [
+            //                 [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
+            //             ]
+            //         },
+            //         "timestamp": 1659492212507
+            //     }
             //
             Object data = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isArray(response)))
@@ -1651,7 +1666,8 @@ public class TokocryptoCore extends TokocryptoApi
                 data = response;
             } else
             {
-                data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object responseData = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                data = this.safeList(responseData, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             }
             return this.parseOHLCVs(data, market, timeframe, since, limit);
         });

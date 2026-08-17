@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List, Union
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     public_get_api_v3_time = publicGetApiV3Time = Entry[_Dict]('api/v3/time', 'public', 'GET', {'cost': 5})
@@ -11,7 +10,7 @@ class ImplicitAPI:
     public_get_api_v3_ping = publicGetApiV3Ping = Entry[_Dict]('api/v3/ping', 'public', 'GET', {'cost': 5})
     public_get_api_v3_apitradingsymbols = publicGetApiV3ApiTradingSymbols = Entry[_List]('api/v3/apiTradingSymbols', 'public', 'GET', {'cost': 25})
     public_get_api_v3_market_ticker_price = publicGetApiV3MarketTickerPrice = Entry[_List]('api/v3/market/ticker/price', 'public', 'GET', {'cost': 20})
-    public_get_api_v3_market_ticker_24hr = publicGetApiV3MarketTicker24hr = Entry[Union[_Dict, _List]]('api/v3/market/ticker/24hr', 'public', 'GET', {'cost': 10})
+    public_get_api_v3_market_ticker_24hr = publicGetApiV3MarketTicker24hr = Entry[_Dict | _List]('api/v3/market/ticker/24hr', 'public', 'GET', {'cost': 10})
     public_get_api_v3_market_trades = publicGetApiV3MarketTrades = Entry[_List]('api/v3/market/trades', 'public', 'GET', {'cost': 125})
     public_get_api_v3_market_klines = publicGetApiV3MarketKlines = Entry[_List]('api/v3/market/klines', 'public', 'GET', {'cost': 10})
     public_get_api_v3_market_depth = publicGetApiV3MarketDepth = Entry[_Dict]('api/v3/market/depth', 'public', 'GET', {'cost': 25})

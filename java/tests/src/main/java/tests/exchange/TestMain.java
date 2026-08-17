@@ -13,8 +13,10 @@ public class TestMain extends BaseTest
     public boolean idTests = false;
     public boolean requestTestsFailed = false;
     public boolean responseTestsFailed = false;
+    public boolean staticWsTestsFailed = false;
     public boolean requestTests = false;
     public boolean wsTests = false;
+    public boolean staticWsTests = false;
     public boolean responseTests = false;
     public boolean predictionTests = false;
     public boolean info = false;
@@ -47,6 +49,7 @@ public class TestMain extends BaseTest
         this.sandbox = getCliArgValue("--sandbox");
         this.loadKeys = getCliArgValue("--loadKeys");
         this.wsTests = getCliArgValue("--ws");
+        this.staticWsTests = getCliArgValue("--wsTests");
         // when set, static request/response tests are read from the static/<type>/prediction/ subfolder
         this.predictionTests = getCliArgValue("--prediction");
         this.lang = getLang();
@@ -86,6 +89,11 @@ public class TestMain extends BaseTest
             if (Helpers.isTrue(this.responseTests))
             {
                 (this.runStaticResponseTests(exchangeId, symbolArgv)).join();
+                return true;
+            }
+            if (Helpers.isTrue(this.staticWsTests))
+            {
+                (this.runStaticWsTests(exchangeId, symbolArgv)).join();
                 return true;
             }
             if (Helpers.isTrue(this.requestTests))
@@ -781,6 +789,124 @@ public class TestMain extends BaseTest
         return symbol;
     }
 
+    public Object getTickerVolume(BaseExchange exchange, Object ticker)
+    {
+        // all candidates compared with this helper share the same quote currency,
+        // so `quoteVolume` is directly comparable between them. fall back to the
+        // base volume converted with the last price, then to the raw base volume,
+        // because not every exchange populates `quoteVolume`.
+        Object quoteVolume = exchange.safeNumber(ticker, "quoteVolume");
+        if (Helpers.isTrue(!Helpers.isEqual(quoteVolume, null)))
+        {
+            return quoteVolume;
+        }
+        Object baseVolume = exchange.safeNumber(ticker, "baseVolume");
+        if (Helpers.isTrue(Helpers.isEqual(baseVolume, null)))
+        {
+            return 0;
+        }
+        Object last = exchange.safeNumber(ticker, "last");
+        if (Helpers.isTrue(!Helpers.isEqual(last, null)))
+        {
+            return Helpers.multiply(baseVolume, last);
+        }
+        return baseVolume;
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> getMostActiveSymbols(BaseExchange exchange, Object defaultSymbols)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            // `watch*` methods only resolve when the exchange pushes an update, so a
+            // thinly traded market makes the ws tests hang until the harness timeout
+            // kills them. the 24h volume is our proxy for "how often does this book
+            // change", so rank the markets by it and watch the busiest ones instead.
+            // the ranking is restricted to markets sharing the type/quote/settle of
+            // the statically chosen symbol, which keeps the volumes comparable (quote
+            // volumes denominated in different quote currencies are not) and keeps a
+            // per-exchange `preferredSpotSymbol`/`preferredSwapSymbol` meaningful.
+            Object defaultSymbol = Helpers.GetValue(defaultSymbols, 0);
+            Object defaultMarket = exchange.safeDict(exchange.markets, defaultSymbol);
+            if (Helpers.isTrue(Helpers.isEqual(defaultMarket, null)))
+            {
+                return defaultSymbols;
+            }
+            // an explicit per-exchange pin is a deliberate maintainer choice (it usually
+            // works around a venue-specific quirk), so never rank around it
+            Object isSpot = exchange.safeBool(defaultMarket, "spot", false);
+            Object preferredKey = ((Helpers.isTrue((isSpot)))) ? "preferredSpotSymbol" : "preferredSwapSymbol";
+            Object preferredSymbol = exchange.safeString(this.skippedSettingsForExchange, preferredKey);
+            if (Helpers.isTrue(!Helpers.isEqual(preferredSymbol, null)))
+            {
+                return defaultSymbols;
+            }
+            if (!Helpers.isTrue(exchange.safeBool(exchange.has, "fetchTickers", false)))
+            {
+                return defaultSymbols;
+            }
+            Object tickers = null;
+            try
+            {
+                // dynamic dispatch: `fetchTickers` is not on the base exchange type in
+                // the statically typed ports (c#/go/java), same as the other call sites
+                tickers = (callExchangeMethodDynamically(exchange, "fetchTickers", new java.util.ArrayList<Object>(java.util.Arrays.asList()))).join();
+            } catch(Exception e)
+            {
+                // choosing a symbol must never fail the run, keep the static choice
+                tickers = null;
+            }
+            if (Helpers.isTrue(Helpers.isEqual(tickers, null)))
+            {
+                return defaultSymbols;
+            }
+            Object marketType = exchange.safeString(defaultMarket, "type");
+            Object quote = exchange.safeString(defaultMarket, "quote");
+            Object settle = exchange.safeString(defaultMarket, "settle");
+            Object candidates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object tickerSymbols = Helpers.objectKeys(tickers);
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickerSymbols)); i++)
+            {
+                Object tickerSymbol = Helpers.GetValue(tickerSymbols, i);
+                Object market = exchange.safeDict(exchange.markets, tickerSymbol);
+                if (Helpers.isTrue(!Helpers.isEqual(market, null)))
+                {
+                    // exchanges keep returning tickers for delisted markets, and those
+                    // never push a websocket update at all, so skip inactive markets
+                    Object isActive = exchange.safeBool(market, "active", true);
+                    Object sameType = Helpers.isEqual(exchange.safeString(market, "type"), marketType);
+                    Object sameQuote = Helpers.isEqual(exchange.safeString(market, "quote"), quote);
+                    Object sameSettle = Helpers.isEqual(exchange.safeString(market, "settle"), settle);
+                    if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isActive) && Helpers.isTrue(sameType)) && Helpers.isTrue(sameQuote)) && Helpers.isTrue(sameSettle)))
+                    {
+                        Object ticker = exchange.safeDict(tickers, tickerSymbol, new java.util.HashMap<String, Object>() {{}});
+                        Object volume = this.getTickerVolume(exchange, ticker);
+                        if (Helpers.isTrue(Helpers.isGreaterThan(volume, 0)))
+                        {
+                            Object entry = new java.util.HashMap<String, Object>() {{}};
+                            Helpers.addElementToObject(entry, "symbol", tickerSymbol);
+                            Helpers.addElementToObject(entry, "volume", volume);
+                            ((java.util.List<Object>)candidates).add(entry);
+                        }
+                    }
+                }
+            }
+            Object ranked = exchange.sortBy(candidates, "volume", true);
+            Object rankedLength = Helpers.getArrayLength(ranked);
+            if (Helpers.isTrue(Helpers.isEqual(rankedLength, 0)))
+            {
+                return defaultSymbols;
+            }
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList(exchange.safeString(Helpers.GetValue(ranked, 0), "symbol")));
+            if (Helpers.isTrue(Helpers.isGreaterThan(rankedLength, 1)))
+            {
+                ((java.util.List<Object>)result).add(exchange.safeString(Helpers.GetValue(ranked, 1), "symbol"));
+            }
+            return result;
+        });
+
+    }
+
     public java.util.concurrent.CompletableFuture<Object> testExchange(BaseExchange exchange, Object... optionalArgs)
     {
 
@@ -829,6 +955,20 @@ public class TestMain extends BaseTest
                     {
                         Object secondarySymbol = Helpers.replaceAll((String)primarySymbol, (String)"BTC", (String)"ETH"); // this should work any exchange
                         swapSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol, secondarySymbol));
+                    }
+                }
+                // ws tests subscribe with `watch*`, which only resolves on an update,
+                // so re-target them at the most actively traded markets to avoid the
+                // harness timing out on a quiet book. rest tests keep the static choice.
+                if (Helpers.isTrue(this.wsTests))
+                {
+                    if (Helpers.isTrue(!Helpers.isEqual(spotSymbols, null)))
+                    {
+                        spotSymbols = (this.getMostActiveSymbols(exchange, spotSymbols)).join();
+                    }
+                    if (Helpers.isTrue(!Helpers.isEqual(swapSymbols, null)))
+                    {
+                        swapSymbols = (this.getMostActiveSymbols(exchange, swapSymbols)).join();
                     }
                 }
             }
@@ -1289,11 +1429,15 @@ public class TestMain extends BaseTest
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> runPrivateTests(BaseExchange exchange, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> runPrivateTests(BaseExchange exchange, Object symbols)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
+            // mirrors runPublicTests: the caller always passes the selected symbols as an array
+            // (even a CLI-provided symbol arrives as a one-element array), and private tests run
+            // on the primary symbol per market type
+            Object symbol = Helpers.GetValue(symbols, 0);
             if (!Helpers.isTrue(exchange.checkRequiredCredentials(false)))
             {
                 dump("[INFO] Skipping private tests", "Keys not found");
@@ -2005,7 +2149,244 @@ public class TestMain extends BaseTest
 
     }
 
-    public BaseExchange initOfflineExchange(Object exchangeName)
+    public java.util.concurrent.CompletableFuture<Object> injectWsMessages(BaseExchange exchange, Object url, Object messages, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            // before every frame, wait until the watch flow is actually awaiting
+            // something — a fixed head-start sleep is not enough on slow ci
+            // runners and the frame's resolution would be dropped
+            // threaded runtimes resolve futures on another thread — wait for
+            // the consumed frame to settle so the pending check above does not
+            // observe a stale future and burn the next frame early; frames
+            // that resolve nothing (e.g. subscribe acks) fall through on the
+            // timeout
+            Object sequential = Helpers.getArg(optionalArgs, 0, false);
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messages)); i++)
+            {
+                Object waited = 0;
+                while (!Helpers.isTrue(wsClientHasPendingFutures(exchange, url)) && Helpers.isTrue((Helpers.isLessThan(waited, 5000))))
+                {
+                    (exchange.sleep(50)).join();
+                    waited = Helpers.add(waited, 50);
+                }
+                injectWsMessage(exchange, url, Helpers.GetValue(messages, i));
+                Object settled = 0;
+                while (Helpers.isTrue(wsClientHasPendingFutures(exchange, url)) && Helpers.isTrue((Helpers.isLessThan(settled, 500))))
+                {
+                    (exchange.sleep(20)).join();
+                    settled = Helpers.add(settled, 20);
+                }
+            }
+            (exchange.sleep(50)).join();
+            if (Helpers.isTrue(sequential))
+            {
+                // a watch call of a sequence can register its future after every
+                // frame was already consumed — keep rejecting until the watch side
+                // reports completion (the rejections force it to finish). the time
+                // bound is a backstop for threaded runtimes where this task can be
+                // executed inline on a stack that blocks the watch side (forkjoin
+                // work stealing): give up eventually so the stack unwinds instead
+                // of deadlocking
+                Object waitedDone = 0;
+                while (!Helpers.isTrue(isWsTestCompleted(exchange, url)) && Helpers.isTrue((Helpers.isLessThan(waitedDone, 30000))))
+                {
+                    rejectPendingWsFutures(exchange, url);
+                    (exchange.sleep(50)).join();
+                    waitedDone = Helpers.add(waitedDone, 50);
+                }
+            }
+            // reject anything still pending so a wrong fixture fails fast
+            // instead of hanging the test run forever
+            rejectPendingWsFutures(exchange, url);
+            return true;  // c# methods used with promiseAll need to return something
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> watchAndAssertSequence(BaseExchange exchange, Object url, Object method, Object input, Object skipKeys, Object expectedResults)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            try
+            {
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(expectedResults)); i++)
+                {
+                    Object result = (callExchangeMethodDynamically(exchange, method, input)).join();
+                    // ws structures can be live typed objects (e.g. orderbooks) in some
+                    // runtimes — roundtrip through json so the deep-compare sees plain
+                    // dicts in every language
+                    Object unifiedResult = jsonParse(jsonStringify(result));
+                    this.AssertStaticResponseOutput(exchange, skipKeys, unifiedResult, Helpers.GetValue(expectedResults, i));
+                }
+            } catch(Exception e)
+            {
+                // let the injector's rejection loop exit before the caller reports
+                // — the explicit try/catch also keeps the java transpilation
+                // compilable (checked exceptions)
+                markWsTestCompleted(exchange, url);
+                throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+            }
+            markWsTestCompleted(exchange, url);
+            return true;  // c# methods used with promiseAll need to return something
+        });
+
+    }
+
+    public void AssertWsSentMessages(BaseExchange exchange, Object url, Object data)
+    {
+        // the ws analog of the static request tests: Assert the frames the
+        // watch method sent over the mocked transport (subscribe requests etc)
+        Object expectedSent = exchange.safeList(data, "sentMessages");
+        if (Helpers.isTrue(Helpers.isEqual(expectedSent, null)))
+        {
+            return;
+        }
+        // ids/signatures/timestamps inside outgoing frames can be volatile —
+        // exclude them per entry without touching the response skipKeys
+        Object sentSkipKeys = exchange.safeList(data, "sentSkipKeys", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object sentMessages = getWsSentMessages(exchange, url);
+        Object sentLength = Helpers.getArrayLength(sentMessages);
+        Object expectedLength = Helpers.getArrayLength(expectedSent);
+        Assert(Helpers.isEqual(sentLength, expectedLength), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("sent ws messages count mismatch: sent ", String.valueOf(sentLength)), ", expected "), String.valueOf(expectedLength)), " "), jsonStringify(sentMessages)));
+        for (var i = 0; Helpers.isLessThan(i, expectedLength); i++)
+        {
+            Object unifiedSent = jsonParse(jsonStringify(Helpers.GetValue(sentMessages, i)));
+            this.AssertStaticResponseOutput(exchange, sentSkipKeys, unifiedSent, Helpers.GetValue(expectedSent, i));
+        }
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> testWsStatically(BaseExchange exchange, Object method, Object skipKeys, Object data)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object url = exchange.safeString(data, "url");
+            setupWsMockTransport(exchange, url);
+            Object httpResponse = exchange.safeValue(data, "httpResponse");
+            if (Helpers.isTrue(!Helpers.isEqual(httpResponse, null)))
+            {
+                // some watch methods fetch a rest snapshot (e.g. watchOrderBook)
+                setFetchResponse(exchange, httpResponse);
+            }
+            if (Helpers.isTrue(this.info))
+            {
+                dump("[INFO] STATIC WS TEST:", method, ":", Helpers.GetValue(data, "description"));
+            }
+            try
+            {
+                Object messages = exchange.safeList(data, "messages", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object input = this.sanitizeDataInput(Helpers.GetValue(data, "input"));
+                Object expectedResults = exchange.safeList(data, "parsedResponses");
+                if (Helpers.isTrue(!Helpers.isEqual(expectedResults, null)))
+                {
+                    // 'parsedResponses' Asserts one result per successive watch
+                    // resolution (e.g. an order going from open to closed)
+                    // start the injector before the watch side: it must never sit
+                    // queued while the watch chain blocks on a join — a forkjoin
+                    // worker could execute it inline on the blocked stack and the
+                    // rejection loop would then wait on the very watch side it is
+                    // buried on top of
+                    Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.injectWsMessages(exchange, url, messages, true), this.watchAndAssertSequence(exchange, url, method, input, skipKeys, expectedResults)));
+                    (Helpers.promiseAll(promises)).join();
+                    this.AssertWsSentMessages(exchange, url, data);
+                } else
+                {
+                    // 'parsedResponse' Asserts the final state after every frame
+                    // was replayed — live structures like orderbooks keep updating
+                    // after the first resolution, so serialize only at the end
+                    Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(callExchangeMethodDynamically(exchange, method, input), this.injectWsMessages(exchange, url, messages)));
+                    Object results = (Helpers.promiseAll(promises)).join();
+                    Object unifiedResult = jsonParse(jsonStringify(Helpers.GetValue(results, 0)));
+                    this.AssertStaticResponseOutput(exchange, skipKeys, unifiedResult, Helpers.GetValue(data, "parsedResponse"));
+                    this.AssertWsSentMessages(exchange, url, data);
+                }
+            } catch(Exception e)
+            {
+                this.staticWsTestsFailed = true;
+                Object errorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("[", this.lang), "][STATIC_WS]"), "["), exchange.id), "]"), "["), method), "]"), "["), Helpers.GetValue(data, "description")), "]"), exceptionMessage(e));
+                dump(Helpers.add("[TEST_FAILURE]", errorMessage));
+            }
+            setFetchResponse(exchange, null); // reset state
+            return true;
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> testExchangeWsStatically(Object exchangeName, Object exchangeData, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object testName = Helpers.getArg(optionalArgs, 0, null);
+            Object globalOptions = ((Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(exchangeData, "options"), null)))) ? new java.util.HashMap<String, Object>() {{}} : Helpers.GetValue(exchangeData, "options");
+            Object methods = ((Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(exchangeData, "methods"), null)))) ? new java.util.HashMap<String, Object>() {{}} : Helpers.GetValue(exchangeData, "methods");
+            Object methodsNames = Helpers.objectKeys(methods);
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(methodsNames)); i++)
+            {
+                Object method = Helpers.GetValue(methodsNames, i);
+                Object results = Helpers.GetValue(methods, method);
+                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(results)); j++)
+                {
+                    Object result = Helpers.GetValue(results, j);
+                    Object description = Helpers.GetValue(result, "description");
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(testName, null))) && Helpers.isTrue((!Helpers.isEqual(testName, description)))))
+                    {
+                        continue;
+                    }
+                    // a fresh exchange per entry: ws caches (trades, orderbooks,
+                    // ohlcvs) and request-id counters survive between watch calls
+                    // and would leak state across entries otherwise
+                    BaseExchange exchange = this.initOfflineExchange(exchangeName, true);
+                    Object isDisabled = exchange.safeBool(result, "disabled", false);
+                    if (Helpers.isTrue(isDisabled))
+                    {
+                        continue;
+                    }
+                    Object disabledString = exchange.safeString(result, "disabled", "");
+                    if (Helpers.isTrue(!Helpers.isEqual(disabledString, "")))
+                    {
+                        continue;
+                    }
+                    Object isDisabledCSharp = exchange.safeString(result, "disabledCS");
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isDisabledCSharp, null))) && Helpers.isTrue((Helpers.isEqual(this.lang, "C#")))))
+                    {
+                        continue;
+                    }
+                    Object isDisabledGo = exchange.safeString(result, "disabledGO");
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isDisabledGo, null))) && Helpers.isTrue((Helpers.isEqual(this.lang, "GO")))))
+                    {
+                        continue;
+                    }
+                    Object isDisabledJava = exchange.safeString(result, "disabledJava");
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isDisabledJava, null))) && Helpers.isTrue((Helpers.isEqual(this.lang, "java")))))
+                    {
+                        continue;
+                    }
+                    Object isDisabledPhp = exchange.safeString(result, "disabledPHP");
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isDisabledPhp, null))) && Helpers.isTrue((Helpers.isEqual(this.lang, "PHP")))))
+                    {
+                        continue;
+                    }
+                    exchange.extendExchangeOptions(globalOptions);
+                    Object testExchangeOptions = exchange.safeValue(result, "options", new java.util.HashMap<String, Object>() {{}});
+                    exchange.extendExchangeOptions(testExchangeOptions);
+                    Object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    (this.testWsStatically(exchange, method, skipKeys, result)).join();
+                    if (!Helpers.isTrue(isSync()))
+                    {
+                        (close(exchange)).join();
+                    }
+                }
+            }
+            return true;  // in c# methods that will be used with promiseAll need to return something
+        });
+
+    }
+
+    public BaseExchange initOfflineExchange(Object exchangeName, Object... optionalArgs)
     {
         // prediction exchanges load their outcome markets from an event -> markets -> outcomes
         // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
@@ -2013,6 +2394,7 @@ public class TestMain extends BaseTest
         // is required for ids present in both namespaces (e.g. hyperliquid), whose markets/<id>.json
         // holds the crypto markets. when a fixture is present, skip markets/currencies entirely so
         // setMarkets rebuilds cleanly from the outcome markets
+        Object isWs = Helpers.getArg(optionalArgs, 0, false);
         Object predictionEvents = null;
         if (Helpers.isTrue(this.predictionTests))
         {
@@ -2106,7 +2488,7 @@ public class TestMain extends BaseTest
             Helpers.addElementToObject(options, "apiKey", "");
             Helpers.addElementToObject(options, "secret", "");
         }
-        BaseExchange exchange = initExchange(exchangeName, options);
+        BaseExchange exchange = initExchange(exchangeName, options, isWs);
         if (Helpers.isTrue(!Helpers.isEqual(currencies, null)))
         {
             exchange.currencies = currencies;
@@ -2456,6 +2838,9 @@ public class TestMain extends BaseTest
                 if (Helpers.isTrue(Helpers.isEqual(type, "request")))
                 {
                     ((java.util.List<Object>)promises).add(this.testExchangeRequestStatically(exchangeName, exchangeData, testName));
+                } else if (Helpers.isTrue(Helpers.isEqual(type, "ws")))
+                {
+                    ((java.util.List<Object>)promises).add(this.testExchangeWsStatically(exchangeName, exchangeData, testName));
                 } else
                 {
                     ((java.util.List<Object>)promises).add(this.testExchangeResponseStatically(exchangeName, exchangeData, testName));
@@ -2469,6 +2854,9 @@ public class TestMain extends BaseTest
                 if (Helpers.isTrue(Helpers.isEqual(type, "request")))
                 {
                     this.requestTestsFailed = true;
+                } else if (Helpers.isTrue(Helpers.isEqual(type, "ws")))
+                {
+                    this.staticWsTestsFailed = true;
                 } else
                 {
                     this.responseTestsFailed = true;
@@ -2476,7 +2864,7 @@ public class TestMain extends BaseTest
                 Object errorMessage = Helpers.add(Helpers.add(Helpers.add("[", this.lang), "][STATIC_REQUEST]"), exceptionMessage(e));
                 dump(Helpers.add("[TEST_FAILURE]", errorMessage));
             }
-            if (Helpers.isTrue(Helpers.isTrue(this.requestTestsFailed) || Helpers.isTrue(this.responseTestsFailed)))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(this.requestTestsFailed) || Helpers.isTrue(this.responseTestsFailed)) || Helpers.isTrue(this.staticWsTestsFailed)))
             {
                 exitScript(1);
             } else
@@ -2501,6 +2889,28 @@ public class TestMain extends BaseTest
             Object exchangeName = Helpers.getArg(optionalArgs, 0, null);
             Object test = Helpers.getArg(optionalArgs, 1, null);
             (this.runStaticTests("response", exchangeName, test)).join();
+            return true;
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> runStaticWsTests(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            //  -----------------------------------------------------------------------------
+            //  --- static ws tests: replay canned frames into the ws message handlers ------
+            //  -----------------------------------------------------------------------------
+            // watch methods are async-only, there is nothing to test in the
+            // synchronous python/php flavours
+            Object exchangeName = Helpers.getArg(optionalArgs, 0, null);
+            Object test = Helpers.getArg(optionalArgs, 1, null);
+            if (Helpers.isTrue(isSync()))
+            {
+                return true;
+            }
+            (this.runStaticTests("ws", exchangeName, test)).join();
             return true;
         });
 

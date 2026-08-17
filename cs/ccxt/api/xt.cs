@@ -564,6 +564,27 @@ public partial class xt : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateLinearGetFutureTradeV1EntrustProfitList",parameters);
     }
 
+    /// <summary>Calls the privateLinearGetFutureTradeV1EntrustTrackDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateLinearGetFutureTradeV1EntrustTrackDetail (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateLinearGetFutureTradeV1EntrustTrackDetail",parameters);
+    }
+
+    /// <summary>Calls the privateLinearGetFutureTradeV1EntrustTrackList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateLinearGetFutureTradeV1EntrustTrackList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateLinearGetFutureTradeV1EntrustTrackList",parameters);
+    }
+
+    /// <summary>Calls the privateLinearGetFutureTradeV1EntrustTrackListHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateLinearGetFutureTradeV1EntrustTrackListHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateLinearGetFutureTradeV1EntrustTrackListHistory",parameters);
+    }
+
     /// <summary>Calls the privateLinearGetFutureTradeV1OrderDetail endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateLinearGetFutureTradeV1OrderDetail (object parameters = null)
@@ -690,6 +711,13 @@ public partial class xt : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateLinearPostFutureTradeV1EntrustCancelAllProfitStop",parameters);
     }
 
+    /// <summary>Calls the privateLinearPostFutureTradeV1EntrustCancelAllTrack endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateLinearPostFutureTradeV1EntrustCancelAllTrack (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateLinearPostFutureTradeV1EntrustCancelAllTrack",parameters);
+    }
+
     /// <summary>Calls the privateLinearPostFutureTradeV1EntrustCancelPlan endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateLinearPostFutureTradeV1EntrustCancelPlan (object parameters = null)
@@ -711,11 +739,25 @@ public partial class xt : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateLinearPostFutureTradeV1EntrustCreatePlan",parameters);
     }
 
+    /// <summary>Calls the privateLinearPostFutureTradeV1EntrustCancelTrack endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateLinearPostFutureTradeV1EntrustCancelTrack (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateLinearPostFutureTradeV1EntrustCancelTrack",parameters);
+    }
+
     /// <summary>Calls the privateLinearPostFutureTradeV1EntrustCreateProfit endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateLinearPostFutureTradeV1EntrustCreateProfit (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateLinearPostFutureTradeV1EntrustCreateProfit",parameters);
+    }
+
+    /// <summary>Calls the privateLinearPostFutureTradeV1EntrustCreateTrack endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateLinearPostFutureTradeV1EntrustCreateTrack (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateLinearPostFutureTradeV1EntrustCreateTrack",parameters);
     }
 
     /// <summary>Calls the privateLinearPostFutureTradeV1EntrustUpdateProfitStop endpoint.</summary>
@@ -851,6 +893,27 @@ public partial class xt : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateInverseGetFutureTradeV1EntrustProfitList",parameters);
     }
 
+    /// <summary>Calls the privateInverseGetFutureTradeV1EntrustTrackDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateInverseGetFutureTradeV1EntrustTrackDetail (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateInverseGetFutureTradeV1EntrustTrackDetail",parameters);
+    }
+
+    /// <summary>Calls the privateInverseGetFutureTradeV1EntrustTrackList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateInverseGetFutureTradeV1EntrustTrackList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateInverseGetFutureTradeV1EntrustTrackList",parameters);
+    }
+
+    /// <summary>Calls the privateInverseGetFutureTradeV1EntrustTrackListHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateInverseGetFutureTradeV1EntrustTrackListHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateInverseGetFutureTradeV1EntrustTrackListHistory",parameters);
+    }
+
     /// <summary>Calls the privateInverseGetFutureTradeV1OrderDetail endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateInverseGetFutureTradeV1OrderDetail (object parameters = null)
@@ -977,6 +1040,13 @@ public partial class xt : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateInversePostFutureTradeV1EntrustCancelAllProfitStop",parameters);
     }
 
+    /// <summary>Calls the privateInversePostFutureTradeV1EntrustCancelAllTrack endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateInversePostFutureTradeV1EntrustCancelAllTrack (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateInversePostFutureTradeV1EntrustCancelAllTrack",parameters);
+    }
+
     /// <summary>Calls the privateInversePostFutureTradeV1EntrustCancelPlan endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateInversePostFutureTradeV1EntrustCancelPlan (object parameters = null)
@@ -998,11 +1068,25 @@ public partial class xt : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateInversePostFutureTradeV1EntrustCreatePlan",parameters);
     }
 
+    /// <summary>Calls the privateInversePostFutureTradeV1EntrustCancelTrack endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateInversePostFutureTradeV1EntrustCancelTrack (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateInversePostFutureTradeV1EntrustCancelTrack",parameters);
+    }
+
     /// <summary>Calls the privateInversePostFutureTradeV1EntrustCreateProfit endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateInversePostFutureTradeV1EntrustCreateProfit (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateInversePostFutureTradeV1EntrustCreateProfit",parameters);
+    }
+
+    /// <summary>Calls the privateInversePostFutureTradeV1EntrustCreateTrack endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateInversePostFutureTradeV1EntrustCreateTrack (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateInversePostFutureTradeV1EntrustCreateTrack",parameters);
     }
 
     /// <summary>Calls the privateInversePostFutureTradeV1EntrustUpdateProfitStop endpoint.</summary>

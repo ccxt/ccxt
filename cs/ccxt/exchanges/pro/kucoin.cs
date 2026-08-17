@@ -1681,7 +1681,7 @@ public partial class kucoin : ccxt.kucoin
         var methodparametersVariable = this.handleOptionAndParams2(parameters, "watchOrderBook", optionName, "method", method);
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
-        if (isTrue(isEqual(getIndexOf(method, "Depth"), -1)))
+        if (isTrue(isLessThan(getIndexOf(method, "Depth"), 0)))
         {
             if (isTrue(isTrue((isEqual(limit, 5))) || isTrue((isEqual(limit, 50)))))
             {
@@ -1749,7 +1749,7 @@ public partial class kucoin : ccxt.kucoin
         var methodparametersVariable = this.handleOptionAndParams2(parameters, "watchOrderBook", optionName, "method", method);
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
-        if (isTrue(isEqual(getIndexOf(method, "Depth"), -1)))
+        if (isTrue(isLessThan(getIndexOf(method, "Depth"), 0)))
         {
             if (isTrue(isTrue((isEqual(limit, 5))) || isTrue((isEqual(limit, 50)))))
             {

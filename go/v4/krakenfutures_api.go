@@ -42,7 +42,7 @@ func (this *KrakenfuturesCore) PrivateGetFeeschedulesVolumes(args ...any) <-chan
 	return this.callEndpointAsync("privateGetFeeschedulesVolumes", args...)
 }
 
-// PrivateGetOpenpositions returns a channel that yields a JSON array.
+// PrivateGetOpenpositions returns a channel that yields a JSON object.
 func (this *KrakenfuturesCore) PrivateGetOpenpositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenpositions", args...)
 }

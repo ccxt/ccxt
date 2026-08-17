@@ -1707,6 +1707,11 @@ export default class hashkey extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const last = this.safeString (ticker, 'c');
+        let baseVolume = this.safeString (ticker, 'v');
+        if (market['contract'] && (market['contractSize'] !== undefined)) {
+            // 'v' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.stringMul (baseVolume, this.numberToString (market['contractSize']));
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1725,7 +1730,7 @@ export default class hashkey extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'v'),
+            'baseVolume': baseVolume,
             'quoteVolume': this.safeString (ticker, 'qv'),
             'info': ticker,
         }, market);
@@ -1767,7 +1772,9 @@ export default class hashkey extends Exchange {
             'symbol': market['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
-            'price': this.safeNumber (entry, 'p') as number,
+            // dormant listings carry a literal zero price meaning never traded,
+            // the zero is omitted so the structure reports no price instead
+            'price': this.safeNumberOmitZero (entry, 'p') as number,
             'side': undefined,
             'info': entry,
         };

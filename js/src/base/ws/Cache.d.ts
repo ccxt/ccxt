@@ -10,11 +10,13 @@ declare class ArrayCache extends BaseCache implements CustomArray {
     hashmap: object;
     constructor(maxSize?: Int);
     getLimit(symbol: any, limit: any): any;
+    clear(): void;
     append(item: any): void;
 }
 declare class ArrayCacheByTimestamp extends BaseCache {
     constructor(maxSize?: Int);
     getLimit(symbol: any, limit: any): any;
+    clear(): void;
     append(item: any): void;
 }
 declare class ArrayCacheBySymbolById extends ArrayCache {

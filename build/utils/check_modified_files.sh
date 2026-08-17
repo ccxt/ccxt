@@ -1,11 +1,75 @@
 #!/bin/bash
 
 diff=$(git diff --name-only HEAD^1 HEAD)
+# deleted files must stay visible to the critical check below (removing a base file is critical),
+# but must NOT feed the scoped exchange collection: a delisted exchange's deleted ts/src/<id>.ts
+# and ts/src/pro/<id>.ts (and its deleted statics) would otherwise schedule scoped transpile and
+# live tests for sources that no longer exist -- build dies with ENOENT ts/src/<id>.ts and the
+# live lanes fail instantly against the ghost exchange, see https://github.com/ccxt/ccxt/pull/29796
+diff_existing=$(git diff --diff-filter=d --name-only HEAD^1 HEAD)
 diff=$(echo "$diff" | sed -e "s/^build\.sh//")
 diff=$(echo "$diff" | sed -e "s/^skip\-tests\.json//")
 diff=$(echo "$diff" | sed -e "s/^run\-tests\-simul\.sh//")
 diff=$(echo "$diff" | sed -e "s/^\w+.yml//") # tmp remove actions files
 diff_without_statics=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//")
+
+# ts/ccxt.ts sits in the critical set because structural changes to the entry file affect every
+# runtime. But when a PR integrates a new exchange for the first time, ts/ccxt.ts changes in
+# exactly one way: it gains the two integration lines for the newcomer — an import and a map
+# entry. An integration-only diff cannot affect any already-integrated exchange (the build job
+# compiles the file regardless), yet the ccxt.ts critical arm was forcing a FULL live-test run
+# over all ~111 exchanges for every first-time integration. An integration-only content diff is
+# therefore stripped from the critical check so live tests stay scoped to the exchange(s)
+# actually touched; any other changed line in ccxt.ts keeps the file critical and the full run
+# intact.
+if echo "$diff" | grep -qx 'ts/ccxt.ts'; then
+    ccxt_ts_content_diff=$(git diff -U0 HEAD^1 HEAD -- ts/ccxt.ts | grep -E '^[+-]' | grep -vE '^(\+\+\+|---)')
+    # a complete wire-up touches up to four line shapes per exchange id:
+    #   import <id> from './src/<id>.js'           (rest import)
+    #   import <id>Pro from './src/pro/<id>.js'    (pro import)
+    #   '<id>': <id>,  /  '<id>': <id>Pro,         (rest / pro map entries)
+    #   <id>,                                      (bare export-list line)
+    # the bare export-list shape is shared with structural exports (version, errors, functions, ...),
+    # so a bare line only counts as integration glue when its identifier is wired by an import or
+    # map line WITHIN THE SAME DIFF — a lone export-list change stays critical (fail-closed)
+    integration_import="^[+-]import ([A-Za-z0-9_]+) from +'\./src/[A-Za-z0-9_]+\.js'\$"
+    integration_pro_import="^[+-]import ([A-Za-z0-9_]+)Pro from +'\./src/pro/[A-Za-z0-9_]+\.js'\$"
+    integration_map="^[+-][[:space:]]+'([A-Za-z0-9_-]+)':[[:space:]]+[A-Za-z0-9_]+,\$"
+    integration_export="^[+-][[:space:]]+([A-Za-z0-9_]+),\$"
+    if [[ -n "$ccxt_ts_content_diff" ]]; then
+        # the gate set is harvested from IMPORT lines only: map entries and export-list lines both
+        # count solely for ids that gain or lose an import in the same diff. Gating maps on the
+        # map lines themselves would let a map-only rewire of an EXISTING exchange (e.g. flipping
+        # 'binance': ... with no import change) sail through as integration-only — and a blanket
+        # "at least one import anywhere" gate would let such a rewire smuggle in alongside an
+        # unrelated genuine integration, so the check is per-id
+        import_ids=" $(echo "$ccxt_ts_content_diff" | sed -nE "s/^[+-]import ([A-Za-z0-9_]+)Pro from +'\.\/src\/pro\/[A-Za-z0-9_]+\.js'\$/\1/p; s/^[+-]import ([A-Za-z0-9_]+) from +'\.\/src\/[A-Za-z0-9_]+\.js'\$/\1/p" | sort -u | tr '\n' ' ') "
+        integration_only="true"
+        while IFS= read -r line; do
+            if [[ "$line" =~ $integration_pro_import || "$line" =~ $integration_import ]]; then
+                continue
+            elif [[ "$line" =~ $integration_map ]]; then
+                map_id="${BASH_REMATCH[1]}"
+                if [[ "$import_ids" != *" ${map_id} "* ]]; then
+                    integration_only="false"
+                    break
+                fi
+            elif [[ "$line" =~ $integration_export ]]; then
+                bare_id="${BASH_REMATCH[1]}"
+                if [[ "$import_ids" != *" ${bare_id} "* ]]; then
+                    integration_only="false"
+                    break
+                fi
+            else
+                integration_only="false"
+                break
+            fi
+        done <<< "$ccxt_ts_content_diff"
+        if [[ "$integration_only" == "true" ]]; then
+            diff_without_statics=$(echo "$diff_without_statics" | sed -e "s/^ts\/ccxt\.ts$//")
+        fi
+    fi
+fi
 
 # critical_pattern assembled one language per line, joined below
 critical_php='Client(Trait)?\.php|Exchange\.php|composer\.json'
@@ -47,7 +111,7 @@ if [ "$IMPORTANT_MODIFIED" == "true" ]; then
   exit
 fi
 
-readarray -t y <<<"$diff"
+readarray -t y <<<"$diff_existing"
 rest_pattern='ts\/src\/([A-Za-z0-9_-]+).ts' # \w not working for some reason
 ws_pattern='ts\/src\/pro\/([A-Za-z0-9_-]+)\.ts'
 # prediction-market exchanges live under ts/src/prediction/ (rest) and ts/src/pro/prediction/

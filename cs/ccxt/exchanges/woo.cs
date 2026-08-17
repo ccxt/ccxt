@@ -137,7 +137,7 @@ public partial class woo : Exchange
                     { "private", "https://api.staging.woox.io" },
                 } },
                 { "www", "https://woox.io/" },
-                { "doc", new List<object>() {"https://docs.woox.io/"} },
+                { "doc", new List<object>() {"https://developer.woox.io/", "https://docs.woox.io/"} },
                 { "fees", new List<object>() {"https://support.woox.io/hc/en-001/articles/4404611795353--Trading-Fees"} },
                 { "referral", new Dictionary<string, object>() {
                     { "url", "https://woox.io/register?ref=DIJT0CNL" },
@@ -324,15 +324,6 @@ public partial class woo : Exchange
                             } },
                             { "asset/withdraw", new Dictionary<string, object>() {
                                 { "cost", 120 },
-                            } },
-                        } },
-                    } },
-                } },
-                { "v2", new Dictionary<string, object>() {
-                    { "private", new Dictionary<string, object>() {
-                        { "get", new Dictionary<string, object>() {
-                            { "client/holding", new Dictionary<string, object>() {
-                                { "cost", 1 },
                             } },
                         } },
                     } },
@@ -601,22 +592,24 @@ public partial class woo : Exchange
                 { "adjustForTimeDifference", false },
                 { "sandboxMode", false },
                 { "createMarketBuyOrderRequiresPrice", true },
-                { "network-aliases-for-tokens", new Dictionary<string, object>() {
-                    { "HT", "ERC20" },
-                    { "OMG", "ERC20" },
-                    { "UATOM", "ATOM" },
-                    { "ZRX", "ZRX" },
-                } },
                 { "networks", new Dictionary<string, object>() {
                     { "TRX", "TRX" },
                     { "TRC20", "TRX" },
                     { "ERC20", "ETH" },
                     { "BEP20", "BSC" },
                     { "ARBITRUM", "Arbitrum" },
+                    { "BASE", "BASE" },
+                    { "AVAXC", "AVAXC" },
+                    { "OP", "OP" },
+                    { "OPTIMISM", "OP" },
+                    { "MATIC", "MATIC" },
+                    { "SONIC", "S" },
+                    { "HYPEREVM", "HyperEVM" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
                     { "TRX", "TRC20" },
                     { "TRON", "TRC20" },
+                    { "OP", "OP" },
                 } },
                 { "defaultNetworkCodeForCurrencies", new Dictionary<string, object>() {} },
                 { "transfer", new Dictionary<string, object>() {
@@ -3532,21 +3525,9 @@ public partial class woo : Exchange
             { "amount", this.safeNumber(transfer, "amount") },
             { "fromAccount", this.safeString(fromAccount, "applicationId") },
             { "toAccount", this.safeString(toAccount, "applicationId") },
-            { "status", this.parseTransferStatus(this.safeString(transfer, "status", status)) },
+            { "status", this.parseTransactionStatus(this.safeString(transfer, "status", status)) },
             { "info", transfer },
         };
-    }
-
-    public virtual object parseTransferStatus(object status)
-    {
-        object statuses = new Dictionary<string, object>() {
-            { "NEW", "pending" },
-            { "CONFIRMING", "pending" },
-            { "PROCESSING", "pending" },
-            { "COMPLETED", "ok" },
-            { "CANCELED", "canceled" },
-        };
-        return this.safeString(statuses, ((string)status), status);
     }
 
     /**

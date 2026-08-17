@@ -50,7 +50,7 @@ public class Tests
         isWs = args.Contains("--ws");
         isBaseTests = args.Contains("--baseTests");
         isExchangeTests = args.Contains("--exchangeTests");
-        isReqResTests = args.Contains("--requestTests") || args.Contains("--request") || args.Contains("--responseTests") || args.Contains("--response");
+        isReqResTests = args.Contains("--requestTests") || args.Contains("--request") || args.Contains("--responseTests") || args.Contains("--response") || args.Contains("--wsTests");
         isAllTest = !isReqResTests && !isBaseTests && !isExchangeTests; // if neither was chosen
 
         raceCondition = args.Contains("--race");
@@ -141,8 +141,10 @@ public class Tests
             if (isWs)
             {
                 WsCacheTests();
+                WsCacheRegressionTests();
                 WsOrderBookTests();
                 WsOrderBookDefaultsTests();
+                WsOrderBookCopyAtomicityTests();
                 await WsClientRetentionTests();
                 await WsClientKeepAliveLivenessTests();
                 Helper.Green("[C#] base WS tests passed");
@@ -180,6 +182,12 @@ public class Tests
         Helper.Green(" [C#] ArrayCache tests passed");
     }
 
+    static void WsCacheRegressionTests()
+    {
+        baseTestInstance.testWsCacheRegressions();
+        Helper.Green(" [C#] ArrayCache regression tests passed");
+    }
+
     static async Task WsClientRetentionTests()
     {
         await baseTestInstance.testWsClientRetention();
@@ -190,6 +198,13 @@ public class Tests
     {
         baseTestInstance.testWsOrderBookNullSnapshotDefaults();
         Helper.Green(" [C#] OrderBook null-snapshot defaults tests passed");
+    }
+
+    static void WsOrderBookCopyAtomicityTests()
+    {
+        baseTestInstance.testWsOrderBookCopyAtomicity();
+        baseTestInstance.testWsOrderBookSingleStore();
+        Helper.Green(" [C#] OrderBook Copy() atomicity tests passed");
     }
 
     static async Task WsClientKeepAliveLivenessTests()

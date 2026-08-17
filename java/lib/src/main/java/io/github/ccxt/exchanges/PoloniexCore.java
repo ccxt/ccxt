@@ -1299,9 +1299,16 @@ public class PoloniexCore extends PoloniexApi
         Object timestamp = this.safeInteger2(ticker, "ts", "cT");
         Object marketId = this.safeString2(ticker, "symbol", "s");
         market = this.safeMarket(marketId);
+        Object baseVolume = this.safeString2(ticker, "quantity", "qty");
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "contract")) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "contractSize"), null)))))
+        {
+            // 'quantity' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.stringMul(baseVolume, this.numberToString(Helpers.GetValue(market, "contractSize")));
+        }
         Object relativeChange = this.safeString2(ticker, "dailyChange", "dc");
         Object percentage = Precise.stringMul(relativeChange, "100");
         final Object finalMarket = market;
+        final Object finalBaseVolume = baseVolume;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "id", marketId );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
@@ -1320,7 +1327,7 @@ public class PoloniexCore extends PoloniexApi
             put( "change", null );
             put( "percentage", percentage );
             put( "average", null );
-            put( "baseVolume", PoloniexCore.this.safeString2(ticker, "quantity", "qty") );
+            put( "baseVolume", finalBaseVolume );
             put( "quoteVolume", PoloniexCore.this.safeString2(ticker, "amount", "amt") );
             put( "markPrice", PoloniexCore.this.safeString2(ticker, "markPrice", "mPx") );
             put( "indexPrice", PoloniexCore.this.safeString(ticker, "iPx") );

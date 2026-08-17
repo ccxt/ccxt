@@ -1374,56 +1374,54 @@ public class BitstampCore extends BitstampApi
             //         },
             //     ]
             //
-            Helpers.addElementToObject(this.options, "_temp_currencies_result", new java.util.HashMap<String, Object>() {{}});
-            Object result = this.parseCurrencies(response);
-            Object finalResult = this.deepExtend(result, Helpers.GetValue(this.options, "_temp_currencies_result"));
-            ((java.util.Map<String,Object>)this.options).remove((String)"_temp_currencies_result");
-            return finalResult;
+            return this.parseCurrencies(response);
         });
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrencies(Object rawCurrencies)
     {
-        Object market = rawCurrency;
-        Object existing = this.safeDict(this.options, "_temp_currencies_result", new java.util.HashMap<String, Object>() {{}});
-        var baseIdquoteIdVariable = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")));
-        var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
-        var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
-        Object description = this.safeString(market, "description");
-        if (Helpers.isTrue(Helpers.isEqual(description, null)))
+        // each market row yields two currencies so the accumulation happens
+        // in a local dictionary here instead of a temp key inside this.options
+        // because the shared scratch key raced between concurrent
+        // fetchCurrencies invocations in the multi threaded runtimes
+        Object result = new java.util.HashMap<String, Object>() {{}};
+        Object arr = this.toArray(rawCurrencies);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(arr)); i++)
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseCurrency() missing description")) ;
-        }
-        var baseDescriptionquoteDescriptionVariable = Helpers.split(description, " / ");
-        var baseDescription = ((java.util.List<Object>) baseDescriptionquoteDescriptionVariable).get(0);
-        var quoteDescription = ((java.util.List<Object>) baseDescriptionquoteDescriptionVariable).get(1);
-        Object minimumOrder = this.safeString(market, "minimum_order_value");
-        if (Helpers.isTrue(Helpers.isEqual(minimumOrder, null)))
-        {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseCurrency() missing minimumOrder")) ;
-        }
-        Object parts = Helpers.split(minimumOrder, " ");
-        Object cost = Helpers.GetValue(parts, 0);
-        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(base, null))) || !Helpers.isTrue((Helpers.inOp(existing, base)))))
-        {
-            Object baseDecimals = this.safeInteger(market, "base_decimals");
-            if (Helpers.isTrue(!Helpers.isEqual(base, null)))
+            Object market = Helpers.GetValue(arr, i);
+            var baseIdquoteIdVariable = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")));
+            var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
+            var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
+            Object base = this.safeCurrencyCode(baseId);
+            Object quote = this.safeCurrencyCode(quoteId);
+            Object description = this.safeString(market, "description");
+            if (Helpers.isTrue(Helpers.isEqual(description, null)))
             {
-                Helpers.addElementToObject(Helpers.GetValue(this.options, "_temp_currencies_result"), base, this.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, null, market));
+                throw new ExchangeError((String)Helpers.add(this.id, " parseCurrencies() missing description")) ;
+            }
+            var baseDescriptionquoteDescriptionVariable = Helpers.split(description, " / ");
+            var baseDescription = ((java.util.List<Object>) baseDescriptionquoteDescriptionVariable).get(0);
+            var quoteDescription = ((java.util.List<Object>) baseDescriptionquoteDescriptionVariable).get(1);
+            Object minimumOrder = this.safeString(market, "minimum_order_value");
+            if (Helpers.isTrue(Helpers.isEqual(minimumOrder, null)))
+            {
+                throw new ExchangeError((String)Helpers.add(this.id, " parseCurrencies() missing minimumOrder")) ;
+            }
+            Object parts = Helpers.split(minimumOrder, " ");
+            Object cost = Helpers.GetValue(parts, 0);
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(base, null))) && !Helpers.isTrue((Helpers.inOp(result, base)))))
+            {
+                Object baseDecimals = this.safeInteger(market, "base_decimals");
+                Helpers.addElementToObject(result, base, this.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, null, market));
+            }
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(quote, null))) && !Helpers.isTrue((Helpers.inOp(result, quote)))))
+            {
+                Object counterDecimals = this.safeInteger(market, "counter_decimals");
+                Helpers.addElementToObject(result, quote, this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market));
             }
         }
-        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(quote, null))) || !Helpers.isTrue((Helpers.inOp(existing, quote)))))
-        {
-            Object counterDecimals = this.safeInteger(market, "counter_decimals");
-            if (Helpers.isTrue(!Helpers.isEqual(quote, null)))
-            {
-                Helpers.addElementToObject(Helpers.GetValue(this.options, "_temp_currencies_result"), quote, this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market));
-            }
-        }
-        return this.safeValue(Helpers.GetValue(this.options, "_temp_currencies_result"), quote);
+        return result;
     }
 
     /**
@@ -3111,10 +3109,24 @@ public class BitstampCore extends BitstampApi
         //        "market": "BTC/USD"
         //    }
         //
+        // editOrder
+        //
+        //    {
+        //        "order_id": 1453282316578816,
+        //        "order_type": "0",
+        //        "market": "BTC/USD",
+        //        "amount": "0.02035278",
+        //        "price": "2100.45",
+        //        "datetime": "2025-10-17T14:23:01.725000Z",
+        //        "orig_order_id": 1453282316578816,
+        //        "orig_client_order_id": "my-original-order-123",
+        //        "status": "Open"
+        //    }
+        //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(order, "id");
-        Object clientOrderId = this.safeString(order, "client_order_id");
-        Object side = this.safeString(order, "type");
+        Object id = this.safeString2(order, "id", "order_id");
+        Object clientOrderId = this.safeString2(order, "client_order_id", "orig_client_order_id");
+        Object side = this.safeString2(order, "type", "order_type");
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
             side = ((Helpers.isTrue((Helpers.isEqual(side, "1"))))) ? "sell" : "buy";

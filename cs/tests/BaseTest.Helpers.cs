@@ -35,8 +35,9 @@ public partial class testMainClass : BaseTest
     public static int TICK_SIZE = Exchange.TICK_SIZE;
 
     // public static object AuthenticationError = typeof(Exchange.AuthenticationError);
-    public static BaseExchange initExchange(object exchangeId, object exchangeArgs = null, bool isWs = false)
+    public static BaseExchange initExchange(object exchangeId, object exchangeArgs = null, object isWs2 = null)
     {
+        var isWs = (isWs2 == null) ? false : (bool)isWs2;
         // the --prediction flag forces the prediction-markets namespace; prediction exchanges carry
         // their watch* methods on the main prediction class (no ccxt.pro variant), so keep the bare id
         var forcePrediction = getCliArgValue("--prediction");
@@ -334,6 +335,85 @@ public partial class testMainClass : BaseTest
         exchange.fetchResponse = response;
         return exchange;
 
+    }
+
+    public object setupWsMockTransport(object exchange2, object url)
+    {
+        // put the ws client for the given url into an "already connected" state
+        // with a transport stub, so watch* methods never open a real socket;
+        // everything above the socket (subscriptions, futures, caches, message
+        // routing) runs unmodified
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        client.startedConnecting = true;
+        client.isConnected = true;
+        client.isMock = true;
+        client.connected.TrySetResult(true);
+        return exchange;
+    }
+
+    public void injectWsMessage(object exchange2, object url, object message)
+    {
+        // feed one already-json-parsed frame into the exchange's ws message
+        // handler - the same entry point the real transport invokes
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        client.handleMessage(client, message);
+    }
+
+    public object getWsSentMessages(object exchange2, object url)
+    {
+        // the frames the exchange sent over the mocked transport, already parsed
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        return client.mockSentMessages;
+    }
+
+    public bool wsClientHasPendingFutures(object exchange2, object url)
+    {
+        // whether the watch flow is currently awaiting a message - the frame
+        // injector polls this instead of relying on a fixed head-start sleep
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        return client.futures.Count > 0;
+    }
+
+    private static readonly HashSet<object> wsCompletedClients = new HashSet<object>();
+
+    public void markWsTestCompleted(object exchange2, object url)
+    {
+        // the watch side of a static ws test flags completion here so the
+        // frame injector's rejection loop knows it can stop
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        lock (wsCompletedClients)
+        {
+            wsCompletedClients.Add(client);
+        }
+    }
+
+    public bool isWsTestCompleted(object exchange2, object url)
+    {
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        lock (wsCompletedClients)
+        {
+            return wsCompletedClients.Contains(client);
+        }
+    }
+
+    public void rejectPendingWsFutures(object exchange2, object url)
+    {
+        // reject any futures the injected frames did not resolve, so a broken
+        // fixture fails the test instead of hanging it; resolved futures are
+        // already removed from the futures dict, so only pending ones remain
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        var messageHashes = new List<string>(client.futures.Keys);
+        foreach (var messageHash in messageHashes)
+        {
+            client.reject(new ccxt.ExchangeError("static ws test: the injected messages did not resolve the watch future"), messageHash);
+        }
     }
 
     public bool isNullValue(object value)

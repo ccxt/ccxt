@@ -394,6 +394,15 @@ public partial class xt : Exchange
                             { "future/trade/v1/entrust/profit-list", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "future/trade/v1/entrust/track-detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/entrust/track-list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/entrust/track-list-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "future/trade/v1/order/detail", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -450,6 +459,9 @@ public partial class xt : Exchange
                             { "future/trade/v1/entrust/cancel-all-profit-stop", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "future/trade/v1/entrust/cancel-all-track", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "future/trade/v1/entrust/cancel-plan", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -459,7 +471,13 @@ public partial class xt : Exchange
                             { "future/trade/v1/entrust/create-plan", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "future/trade/v1/entrust/cancel-track", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "future/trade/v1/entrust/create-profit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/entrust/create-track", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "future/trade/v1/entrust/update-profit-stop", new Dictionary<string, object>() {
@@ -523,6 +541,15 @@ public partial class xt : Exchange
                             { "future/trade/v1/entrust/profit-list", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "future/trade/v1/entrust/track-detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/entrust/track-list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/entrust/track-list-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "future/trade/v1/order/detail", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -579,6 +606,9 @@ public partial class xt : Exchange
                             { "future/trade/v1/entrust/cancel-all-profit-stop", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "future/trade/v1/entrust/cancel-all-track", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "future/trade/v1/entrust/cancel-plan", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -588,7 +618,13 @@ public partial class xt : Exchange
                             { "future/trade/v1/entrust/create-plan", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "future/trade/v1/entrust/cancel-track", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "future/trade/v1/entrust/create-profit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/entrust/create-track", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "future/trade/v1/entrust/update-profit-stop", new Dictionary<string, object>() {
@@ -1052,13 +1088,34 @@ public partial class xt : Exchange
                         { "daysBack", null },
                         { "untilDays", null },
                     } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "trailing", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "trailing", true },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "trailing", true },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "trailing", true },
+                    } },
+                    { "fetchCanceledOrders", new Dictionary<string, object>() {
+                        { "trailing", true },
+                    } },
                 } },
                 { "swap", new Dictionary<string, object>() {
                     { "linear", new Dictionary<string, object>() {
                         { "extends", "forDerivatives" },
+                        { "createOrder", new Dictionary<string, object>() {
+                            { "trailing", true },
+                        } },
                     } },
                     { "inverse", new Dictionary<string, object>() {
                         { "extends", "forDerivatives" },
+                        { "createOrder", new Dictionary<string, object>() {
+                            { "trailing", true },
+                        } },
                     } },
                 } },
                 { "future", new Dictionary<string, object>() {
@@ -1100,7 +1157,7 @@ public partial class xt : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "result");
+        object data = this.safeDict(response, "result");
         return this.safeInteger(data, "serverTime");
     }
 
@@ -1170,9 +1227,9 @@ public partial class xt : Exchange
         //
         // note: individual network's full data is available on per-currency endpoint: https://www.xt.com/sapi/v4/balance/public/currency/11
         //
-        object chainsData = this.safeValue(chainsResponse, "result", new List<object>() {});
-        object currenciesResult = this.safeValue(currenciesResponse, "result", new List<object>() {});
-        object currenciesData = this.safeValue(currenciesResult, "currencies", new List<object>() {});
+        object chainsData = this.safeList(chainsResponse, "result", new List<object>() {});
+        object currenciesResult = this.safeDict(currenciesResponse, "result", new Dictionary<string, object>() {});
+        object currenciesData = this.safeList(currenciesResult, "currencies", new List<object>() {});
         object chainsDataIndexed = this.indexBy(chainsData, "currency");
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currenciesData)); postFixIncrement(ref i))
@@ -1180,8 +1237,8 @@ public partial class xt : Exchange
             object entry = getValue(currenciesData, i);
             object currencyId = this.safeString(entry, "currency");
             object code = this.safeCurrencyCode(currencyId);
-            object networkEntry = this.safeValue(chainsDataIndexed, currencyId, new Dictionary<string, object>() {});
-            object rawNetworks = this.safeValue(networkEntry, "supportChains", new List<object>() {});
+            object networkEntry = this.safeDict(chainsDataIndexed, currencyId, new Dictionary<string, object>() {});
+            object rawNetworks = this.safeList(networkEntry, "supportChains", new List<object>() {});
             object networks = new Dictionary<string, object>() {};
             for (object j = 0; isLessThan(j, getArrayLength(rawNetworks)); postFixIncrement(ref j))
             {
@@ -1339,8 +1396,8 @@ public partial class xt : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object symbols = this.safeValue(data, "symbols", new List<object>() {});
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object symbols = this.safeList(data, "symbols", new List<object>() {});
         return this.parseMarkets(symbols);
     }
 
@@ -1410,7 +1467,7 @@ public partial class xt : Exchange
         //         ]
         //     }
         //
-        object swapAndFutureMarkets = this.arrayConcat(this.safeValue(getValue(markets, 0), "result", new List<object>() {}), this.safeValue(getValue(markets, 1), "result", new List<object>() {}));
+        object swapAndFutureMarkets = this.arrayConcat(this.safeList(getValue(markets, 0), "result", new List<object>() {}), this.safeList(getValue(markets, 1), "result", new List<object>() {}));
         return this.parseMarkets(swapAndFutureMarkets);
     }
 
@@ -1549,7 +1606,7 @@ public partial class xt : Exchange
         object quote = this.safeCurrencyCode(quoteId);
         object state = this.safeString(market, "state");
         object symbol = add(add(bs, "/"), quote);
-        object filters = this.safeValue(market, "filters", new List<object>() {});
+        object filters = this.safeList(market, "filters", new List<object>() {});
         object minAmount = null;
         object maxAmount = null;
         object minCost = null;
@@ -1632,10 +1689,10 @@ public partial class xt : Exchange
         object isActive = false;
         if (isTrue(contract))
         {
-            isActive = this.safeValue(market, "isOpenApi", false);
+            isActive = this.safeBool(market, "isOpenApi", false);
         } else
         {
-            if (isTrue(isTrue(isTrue((isEqual(state, "ONLINE"))) && isTrue((this.safeValue(market, "tradingEnabled")))) && isTrue((this.safeValue(market, "openapiEnabled")))))
+            if (isTrue(isTrue(isTrue((isEqual(state, "ONLINE"))) && isTrue((this.safeBool(market, "tradingEnabled")))) && isTrue((this.safeBool(market, "openapiEnabled")))))
             {
                 isActive = true;
             }
@@ -1810,7 +1867,7 @@ public partial class xt : Exchange
         //         ]
         //     }
         //
-        object ohlcvs = this.safeValue(response, "result", new List<object>() {});
+        object ohlcvs = this.safeList(response, "result", new List<object>() {});
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
 
@@ -1941,7 +1998,7 @@ public partial class xt : Exchange
         //         }
         //     }
         //
-        object orderBook = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object orderBook = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger2(orderBook, "timestamp", "t");
         if (isTrue(getValue(market, "spot")))
         {
@@ -2131,7 +2188,7 @@ public partial class xt : Exchange
         //         ]
         //     }
         //
-        object tickers = this.safeValue(response, "result", new List<object>() {});
+        object tickers = this.safeList(response, "result", new List<object>() {});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
@@ -2415,7 +2472,7 @@ public partial class xt : Exchange
         //         ]
         //     }
         //
-        object trades = this.safeValue(response, "result", new List<object>() {});
+        object trades = this.safeList(response, "result", new List<object>() {});
         return this.parseTrades(trades, market);
     }
 
@@ -2543,8 +2600,8 @@ public partial class xt : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object trades = this.safeValue(data, "items", new List<object>() {});
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object trades = this.safeList(data, "items", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -2818,11 +2875,11 @@ public partial class xt : Exchange
         object balances = null;
         if (isTrue(isTrue((!isEqual(subType, null))) || isTrue(isContractWallet)))
         {
-            balances = this.safeValue(response, "result", new List<object>() {});
+            balances = this.safeList(response, "result", new List<object>() {});
         } else
         {
-            object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
-            balances = this.safeValue(data, "assets", new List<object>() {});
+            object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
+            balances = this.safeList(data, "assets", new List<object>() {});
         }
         return this.parseBalance(balances);
     }
@@ -2916,6 +2973,7 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/docs/futures/Order/Create%20Orders
      * @see https://doc.xt.com/docs/futures/Entrust/CreateTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/CreateStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/CreateTrack
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2929,6 +2987,10 @@ public partial class xt : Exchange
      * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.stopLoss] price to set a stop-loss on an open position
      * @param {float} [params.takeProfit] price to set a take-profit on an open position
+     * @param {float} [params.trailingPercent] the percent to trail away from the current market price, swap markets only
+     * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price, swap markets only
+     * @param {float} [params.trailingTriggerPrice] the price to activate a trailing order, swap markets only
+     * @param {string} [params.marginMode] 'cross' or 'isolated', for trailing orders only, default is 'cross'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -2942,6 +3004,11 @@ public partial class xt : Exchange
         symbol = getValue(market, "symbol");
         if (isTrue(getValue(market, "spot")))
         {
+            object isTrailing = isTrue(isTrue((inOp(parameters, "trailingPercent"))) || isTrue((inOp(parameters, "trailingAmount")))) || isTrue((inOp(parameters, "trailingTriggerPrice")));
+            if (isTrue(isTrailing))
+            {
+                throw new NotSupported ((string)add(this.id, " createOrder() trailing orders are only supported on swap markets")) ;
+            }
             return await this.createSpotOrder(symbol, type, side, amount, price, parameters);
         } else
         {
@@ -3023,7 +3090,7 @@ public partial class xt : Exchange
         //         }
         //     }
         //
-        object order = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object order = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
 
@@ -3044,7 +3111,7 @@ public partial class xt : Exchange
         {
             ((IDictionary<string,object>)request)["timeInForce"] = timeInForce;
         }
-        object reduceOnly = this.safeValue(parameters, "reduceOnly", false);
+        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         if (isTrue(isEqual(side, "buy")))
         {
             object requestType = ((bool) isTrue((reduceOnly))) ? "SHORT" : "LONG";
@@ -3058,17 +3125,59 @@ public partial class xt : Exchange
         object triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
         object stopLoss = this.safeNumber2(parameters, "stopLoss", "triggerStopPrice");
         object takeProfit = this.safeNumber2(parameters, "takeProfit", "triggerProfitPrice");
+        object trailingPercent = this.safeString(parameters, "trailingPercent");
+        object trailingAmount = this.safeString(parameters, "trailingAmount");
+        object trailingTriggerPrice = this.safeNumber(parameters, "trailingTriggerPrice");
         object isTrigger = (!isEqual(triggerPrice, null));
         object isStopLoss = (!isEqual(stopLoss, null));
         object isTakeProfit = (!isEqual(takeProfit, null));
+        object isTrailing = isTrue((!isEqual(trailingPercent, null))) || isTrue((!isEqual(trailingAmount, null)));
+        if (isTrue(isTrue(isTrailing) && !isTrue(getValue(market, "swap"))))
+        {
+            throw new NotSupported ((string)add(this.id, " createOrder() trailing orders are only supported on swap markets")) ;
+        }
+        if (isTrue(isTrue((!isEqual(trailingTriggerPrice, null))) && !isTrue(isTrailing)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() trailingTriggerPrice requires trailingPercent or trailingAmount")) ;
+        }
         if (isTrue(!isEqual(price, null)))
         {
-            if (isTrue(!isTrue((isStopLoss)) && !isTrue((isTakeProfit))))
+            if (isTrue(isTrue(!isTrue((isStopLoss)) && !isTrue((isTakeProfit))) && !isTrue((isTrailing))))
             {
                 ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
             }
         }
-        if (isTrue(isTrigger))
+        if (isTrue(isTrailing))
+        {
+            ((IDictionary<string,object>)request)["orderSide"] = ((string)side).ToUpper();
+            ((IDictionary<string,object>)request)["triggerPriceType"] = this.safeString(parameters, "triggerPriceType", "LATEST_PRICE");
+            object marginMode = null;
+            var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters, "cross");
+            marginMode = ((IList<object>)marginModeparametersVariable)[0];
+            parameters = ((IList<object>)marginModeparametersVariable)[1];
+            ((IDictionary<string,object>)request)["positionType"] = ((bool) isTrue((isEqual(marginMode, "isolated")))) ? "ISOLATED" : "CROSSED";
+            if (isTrue(!isEqual(trailingPercent, null)))
+            {
+                ((IDictionary<string,object>)request)["callback"] = "PROPORTION";
+                ((IDictionary<string,object>)request)["callbackVal"] = this.parseToNumeric(Precise.stringDiv(trailingPercent, "100"));
+            } else
+            {
+                ((IDictionary<string,object>)request)["callback"] = "FIXED";
+                ((IDictionary<string,object>)request)["callbackVal"] = this.parseToNumeric(trailingAmount);
+            }
+            if (isTrue(!isEqual(trailingTriggerPrice, null)))
+            {
+                ((IDictionary<string,object>)request)["activationPrice"] = this.priceToPrecision(symbol, trailingTriggerPrice);
+            }
+            parameters = this.omit(parameters, new List<object>() {"trailingPercent", "trailingAmount", "trailingTriggerPrice"});
+            if (isTrue(getValue(market, "linear")))
+            {
+                response = await ((Task<object>)callDynamically(this, "privateLinearPostFutureTradeV1EntrustCreateTrack", new object[] { this.extend(request, parameters) }));
+            } else if (isTrue(getValue(market, "inverse")))
+            {
+                response = await ((Task<object>)callDynamically(this, "privateInversePostFutureTradeV1EntrustCreateTrack", new object[] { this.extend(request, parameters) }));
+            }
+        } else if (isTrue(isTrigger))
         {
             ((IDictionary<string,object>)request)["timeInForce"] = this.safeStringUpper(parameters, "timeInForce", "GTC");
             ((IDictionary<string,object>)request)["triggerPriceType"] = this.safeString(parameters, "triggerPriceType", "LATEST_PRICE");
@@ -3132,11 +3241,13 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/docs/futures/Order/see-orders-by-id
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersByEntrustId
      * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimitByProfitId
+     * @see https://doc.xt.com/docs/futures/Entrust/GetSingleTrackDetail
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the order is a trailing order or not
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -3161,21 +3272,33 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOrder", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object trigger = this.safeValue(parameters, "stop");
-        object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
+        object trigger = this.safeBool2(parameters, "trigger", "stop");
+        object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
+        object trailing = this.safeBool(parameters, "trailing");
+        if (isTrue(trailing))
+        {
+            object isContract = isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
+            if (!isTrue(isContract))
+            {
+                throw new NotSupported ((string)add(this.id, " fetchOrder() trailing orders are only supported on swap and future markets")) ;
+            }
+        }
         if (isTrue(trigger))
         {
             ((IDictionary<string,object>)request)["entrustId"] = id;
         } else if (isTrue(stopLossTakeProfit))
         {
             ((IDictionary<string,object>)request)["profitId"] = id;
+        } else if (isTrue(trailing))
+        {
+            ((IDictionary<string,object>)request)["trackId"] = id;
         } else
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
         if (isTrue(trigger))
         {
-            parameters = this.omit(parameters, "stop");
+            parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
             if (isTrue(isEqual(subType, "inverse")))
             {
                 response = await this.privateInverseGetFutureTradeV1EntrustPlanDetail(this.extend(request, parameters));
@@ -3192,6 +3315,16 @@ public partial class xt : Exchange
             } else
             {
                 response = await this.privateLinearGetFutureTradeV1EntrustProfitDetail(this.extend(request, parameters));
+            }
+        } else if (isTrue(trailing))
+        {
+            parameters = this.omit(parameters, "trailing");
+            if (isTrue(isEqual(subType, "inverse")))
+            {
+                response = await ((Task<object>)callDynamically(this, "privateInverseGetFutureTradeV1EntrustTrackDetail", new object[] { this.extend(request, parameters) }));
+            } else
+            {
+                response = await ((Task<object>)callDynamically(this, "privateLinearGetFutureTradeV1EntrustTrackDetail", new object[] { this.extend(request, parameters) }));
             }
         } else if (isTrue(isEqual(subType, "inverse")))
         {
@@ -3320,7 +3453,7 @@ public partial class xt : Exchange
         //         }
         //     }
         //
-        object order = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object order = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
 
@@ -3331,11 +3464,13 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
      * @see https://doc.xt.com/docs/futures/Order/see-order-history
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersHistory
+     * @see https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -3369,7 +3504,16 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOrders", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object trigger = this.safeValue2(parameters, "trigger", "stop");
+        object trigger = this.safeBool2(parameters, "trigger", "stop");
+        object trailing = this.safeBool(parameters, "trailing");
+        if (isTrue(trailing))
+        {
+            object isContract = isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
+            if (!isTrue(isContract))
+            {
+                throw new NotSupported ((string)add(this.id, " fetchOrders() trailing orders are only supported on swap and future markets")) ;
+            }
+        }
         if (isTrue(trigger))
         {
             parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
@@ -3379,6 +3523,16 @@ public partial class xt : Exchange
             } else
             {
                 response = await this.privateLinearGetFutureTradeV1EntrustPlanListHistory(this.extend(request, parameters));
+            }
+        } else if (isTrue(trailing))
+        {
+            parameters = this.omit(parameters, "trailing");
+            if (isTrue(isEqual(subType, "inverse")))
+            {
+                response = await ((Task<object>)callDynamically(this, "privateInverseGetFutureTradeV1EntrustTrackListHistory", new object[] { this.extend(request, parameters) }));
+            } else
+            {
+                response = await ((Task<object>)callDynamically(this, "privateLinearGetFutureTradeV1EntrustTrackListHistory", new object[] { this.extend(request, parameters) }));
             }
         } else if (isTrue(isEqual(subType, "inverse")))
         {
@@ -3506,8 +3660,8 @@ public partial class xt : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object orders = this.safeValue(data, "items", new List<object>() {});
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object orders = this.safeList(data, "items", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -3543,8 +3697,20 @@ public partial class xt : Exchange
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object trigger = this.safeBool2(parameters, "stop", "trigger");
-        object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-        if (isTrue(isEqual(status, "open")))
+        object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
+        object trailing = this.safeBool(parameters, "trailing");
+        if (isTrue(trailing))
+        {
+            object isContract = isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
+            if (!isTrue(isContract))
+            {
+                throw new NotSupported ((string)add(this.id, " fetchOrdersByStatus() trailing orders are only supported on swap and future markets")) ;
+            }
+            // the track endpoints do not accept a state filter, and a server-side
+            // size would truncate the mixed-state page before the local status
+            // filter runs, so the limit is only applied locally after filtering
+            request = this.omit(request, new List<object>() {"state", "size"});
+        } else if (isTrue(isEqual(status, "open")))
         {
             if (isTrue(isTrue(trigger) || isTrue(stopLossTakeProfit)))
             {
@@ -3581,7 +3747,7 @@ public partial class xt : Exchange
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
             }
-            if (isTrue(!isEqual(limit, null)))
+            if (isTrue(isTrue((!isEqual(limit, null))) && !isTrue(trailing)))
             {
                 ((IDictionary<string,object>)request)["size"] = limit;
             }
@@ -3605,6 +3771,28 @@ public partial class xt : Exchange
             } else
             {
                 response = await this.privateLinearGetFutureTradeV1EntrustProfitList(this.extend(request, parameters));
+            }
+        } else if (isTrue(trailing))
+        {
+            parameters = this.omit(parameters, "trailing");
+            if (isTrue(isEqual(status, "open")))
+            {
+                if (isTrue(isEqual(subType, "inverse")))
+                {
+                    response = await ((Task<object>)callDynamically(this, "privateInverseGetFutureTradeV1EntrustTrackList", new object[] { this.extend(request, parameters) }));
+                } else
+                {
+                    response = await ((Task<object>)callDynamically(this, "privateLinearGetFutureTradeV1EntrustTrackList", new object[] { this.extend(request, parameters) }));
+                }
+            } else
+            {
+                if (isTrue(isEqual(subType, "inverse")))
+                {
+                    response = await ((Task<object>)callDynamically(this, "privateInverseGetFutureTradeV1EntrustTrackListHistory", new object[] { this.extend(request, parameters) }));
+                } else
+                {
+                    response = await ((Task<object>)callDynamically(this, "privateLinearGetFutureTradeV1EntrustTrackListHistory", new object[] { this.extend(request, parameters) }));
+                }
             }
         } else if (isTrue(isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")))))
         {
@@ -3827,6 +4015,15 @@ public partial class xt : Exchange
         {
             orders = this.safeList(response, "result", new List<object>() {});
         }
+        if (isTrue(trailing))
+        {
+            // the track endpoints do not support a server-side state filter
+            // and return entries in every state, so filter by status first,
+            // otherwise since/limit could cut off matching rows
+            object parsedOrders = this.parseOrders(orders, market);
+            object filteredOrders = this.filterBy(parsedOrders, "status", status);
+            return this.filterBySinceLimit(filteredOrders, since, limit);
+        }
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -3838,12 +4035,14 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/docs/futures/Order/see-orders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/getTrackList
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -3860,12 +4059,14 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/docs/futures/Order/see-orders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -3882,12 +4083,14 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/docs/futures/Order/see-orders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -3904,11 +4107,13 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/docs/futures/Order/cancel-orders
      * @see https://doc.xt.com/docs/futures/Entrust/CancelTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/CancelStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/CancelSingleTrack
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the order is a trailing order or not
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
@@ -3933,14 +4138,26 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("cancelOrder", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object trigger = this.safeValue2(parameters, "trigger", "stop");
-        object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
+        object trigger = this.safeBool2(parameters, "trigger", "stop");
+        object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
+        object trailing = this.safeBool(parameters, "trailing");
+        if (isTrue(trailing))
+        {
+            object isContract = isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
+            if (!isTrue(isContract))
+            {
+                throw new NotSupported ((string)add(this.id, " cancelOrder() trailing orders are only supported on swap and future markets")) ;
+            }
+        }
         if (isTrue(trigger))
         {
             ((IDictionary<string,object>)request)["entrustId"] = id;
         } else if (isTrue(stopLossTakeProfit))
         {
             ((IDictionary<string,object>)request)["profitId"] = id;
+        } else if (isTrue(trailing))
+        {
+            ((IDictionary<string,object>)request)["trackId"] = id;
         } else
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
@@ -3964,6 +4181,16 @@ public partial class xt : Exchange
             } else
             {
                 response = await this.privateLinearPostFutureTradeV1EntrustCancelProfitStop(this.extend(request, parameters));
+            }
+        } else if (isTrue(trailing))
+        {
+            parameters = this.omit(parameters, "trailing");
+            if (isTrue(isEqual(subType, "inverse")))
+            {
+                response = await ((Task<object>)callDynamically(this, "privateInversePostFutureTradeV1EntrustCancelTrack", new object[] { this.extend(request, parameters) }));
+            } else
+            {
+                response = await ((Task<object>)callDynamically(this, "privateLinearPostFutureTradeV1EntrustCancelTrack", new object[] { this.extend(request, parameters) }));
             }
         } else if (isTrue(isEqual(subType, "inverse")))
         {
@@ -3997,7 +4224,7 @@ public partial class xt : Exchange
         //     }
         //
         object isContractResponse = (isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future"))));
-        object order = ((bool) isTrue(isContractResponse)) ? response : this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object order = ((bool) isTrue(isContractResponse)) ? response : this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
 
@@ -4009,10 +4236,12 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/docs/futures/Order/cancel-all-orders
      * @see https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders
      * @see https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit
+     * @see https://doc.xt.com/docs/futures/Entrust/CancelAllTrack
      * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -4038,8 +4267,17 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("cancelAllOrders", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object trigger = this.safeValue2(parameters, "trigger", "stop");
-        object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
+        object trigger = this.safeBool2(parameters, "trigger", "stop");
+        object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
+        object trailing = this.safeBool(parameters, "trailing");
+        if (isTrue(trailing))
+        {
+            object isContract = isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
+            if (!isTrue(isContract))
+            {
+                throw new NotSupported ((string)add(this.id, " cancelAllOrders() trailing orders are only supported on swap and future markets")) ;
+            }
+        }
         if (isTrue(trigger))
         {
             parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
@@ -4059,6 +4297,16 @@ public partial class xt : Exchange
             } else
             {
                 response = await this.privateLinearPostFutureTradeV1EntrustCancelAllProfitStop(this.extend(request, parameters));
+            }
+        } else if (isTrue(trailing))
+        {
+            parameters = this.omit(parameters, "trailing");
+            if (isTrue(isEqual(subType, "inverse")))
+            {
+                response = await ((Task<object>)callDynamically(this, "privateInversePostFutureTradeV1EntrustCancelAllTrack", new object[] { this.extend(request, parameters) }));
+            } else
+            {
+                response = await ((Task<object>)callDynamically(this, "privateLinearPostFutureTradeV1EntrustCancelAllTrack", new object[] { this.extend(request, parameters) }));
             }
         } else if (isTrue(isEqual(subType, "inverse")))
         {
@@ -4304,7 +4552,7 @@ public partial class xt : Exchange
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
-            { "id", this.safeStringN(order, new List<object>() {"orderId", "result", "cancelId", "entrustId", "profitId"}) },
+            { "id", this.safeStringN(order, new List<object>() {"orderId", "result", "cancelId", "entrustId", "profitId", "trackId"}) },
             { "clientOrderId", this.safeString2(order, "clientOrderId", "clientModifyId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -4343,11 +4591,13 @@ public partial class xt : Exchange
             { "REJECTED", "rejected" },
             { "EXPIRED", "expired" },
             { "UNFINISHED", "open" },
+            { "NOT_ACTIVATION", "open" },
             { "NOT_TRIGGERED", "open" },
             { "TRIGGERING", "open" },
             { "TRIGGERED", "closed" },
             { "USER_REVOCATION", "canceled" },
             { "PLATFORM_REVOCATION", "rejected" },
+            { "DELEGATION_FAILED", "rejected" },
             { "HISTORY", "expired" },
         };
         return this.safeString(statuses, status, status);
@@ -4427,8 +4677,8 @@ public partial class xt : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object ledger = this.safeValue(data, "items", new List<object>() {});
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object ledger = this.safeList(data, "items", new List<object>() {});
         return this.parseLedger(ledger, currency, since, limit);
     }
 
@@ -4528,7 +4778,7 @@ public partial class xt : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseDepositAddress(result, currency);
     }
 
@@ -4611,8 +4861,8 @@ public partial class xt : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object deposits = this.safeValue(data, "items", new List<object>() {});
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object deposits = this.safeList(data, "items", new List<object>() {});
         return this.parseTransactions(deposits, currency, since, limit, parameters);
     }
 
@@ -4676,8 +4926,8 @@ public partial class xt : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object withdrawals = this.safeValue(data, "items", new List<object>() {});
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object withdrawals = this.safeList(data, "items", new List<object>() {});
         return this.parseTransactions(withdrawals, currency, since, limit, parameters);
     }
 
@@ -4709,7 +4959,7 @@ public partial class xt : Exchange
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
-        object networkIdsByCodes = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
+        object networkIdsByCodes = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         object networkId = this.safeString2(networkIdsByCodes, networkCode, code, code);
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
@@ -4732,7 +4982,7 @@ public partial class xt : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseTransaction(result, currency);
     }
 
@@ -4858,7 +5108,7 @@ public partial class xt : Exchange
         object market = this.market(symbol);
         if (!isTrue((getValue(market, "contract"))))
         {
-            throw new BadSymbol ((string)add(this.id, " setLeverage() supports contract markets only")) ;
+            throw new NotSupported ((string)add(this.id, " setLeverage() supports contract markets only")) ;
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -5030,7 +5280,7 @@ public partial class xt : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "result", new List<object>() {});
+        object data = this.safeList(response, "result", new List<object>() {});
         symbols = this.marketSymbols(symbols);
         return this.parseLeverageTiers(data, symbols, "symbol");
     }
@@ -5129,7 +5379,7 @@ public partial class xt : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseMarketLeverageTiers(data, market);
     }
 
@@ -5153,7 +5403,7 @@ public partial class xt : Exchange
         //     }
         //
         object tiers = new List<object>() {};
-        object brackets = this.safeValue(info, "leverageBrackets", new List<object>() {});
+        object brackets = this.safeList(info, "leverageBrackets", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(brackets)); postFixIncrement(ref i))
         {
             object tier = getValue(brackets, i);
@@ -5208,7 +5458,7 @@ public partial class xt : Exchange
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "swap")))
         {
-            throw new BadSymbol ((string)add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
+            throw new NotSupported ((string)add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -5252,8 +5502,8 @@ public partial class xt : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object items = this.safeValue(result, "items", new List<object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object items = this.safeList(result, "items", new List<object>() {});
         object rates = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(items)); postFixIncrement(ref i))
         {
@@ -5307,7 +5557,7 @@ public partial class xt : Exchange
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "swap")))
         {
-            throw new BadSymbol ((string)add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+            throw new NotSupported ((string)add(this.id, " fetchFundingRate() supports swap contracts only")) ;
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -5337,7 +5587,7 @@ public partial class xt : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseFundingRate(result, market);
     }
 
@@ -5479,10 +5729,10 @@ public partial class xt : Exchange
         object response = null;
         if (isTrue(isEqual(subType, "inverse")))
         {
-            response = await ((Task<object>)callDynamically(this, "privateInverseGetFutureUserV1UserStepRate", new object[] { parameters }));
+            response = await this.privateInverseGetFutureUserV1UserStepRate(parameters);
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "privateLinearGetFutureUserV1UserStepRate", new object[] { parameters }));
+            response = await this.privateLinearGetFutureUserV1UserStepRate(parameters);
         }
         //
         //     {
@@ -5531,10 +5781,10 @@ public partial class xt : Exchange
         object response = null;
         if (isTrue(isInverse))
         {
-            response = await ((Task<object>)callDynamically(this, "privateInverseGetFutureUserV1UserStepRate", new object[] { parameters }));
+            response = await this.privateInverseGetFutureUserV1UserStepRate(parameters);
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "privateLinearGetFutureUserV1UserStepRate", new object[] { parameters }));
+            response = await this.privateLinearGetFutureUserV1UserStepRate(parameters);
         }
         //
         // same response as fetchTradingFee
@@ -5589,7 +5839,7 @@ public partial class xt : Exchange
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "swap")))
         {
-            throw new BadSymbol ((string)add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
+            throw new NotSupported ((string)add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -5635,8 +5885,8 @@ public partial class xt : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object items = this.safeValue(data, "items", new List<object>() {});
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object items = this.safeList(data, "items", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(items)); postFixIncrement(ref i))
         {
@@ -6111,7 +6361,7 @@ public partial class xt : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        object accountsByType = this.safeValue(this.options, "accountsById");
+        object accountsByType = this.safeDict(this.options, "accountsById");
         object fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
         object toAccountId = this.safeString(accountsByType, toAccount, toAccount);
         object amountString = this.currencyToPrecision(code, amount);
@@ -6179,7 +6429,7 @@ public partial class xt : Exchange
         object market = this.market(symbol);
         if (isTrue(getValue(market, "spot")))
         {
-            throw new BadSymbol ((string)add(this.id, " setMarginMode() supports contract markets only")) ;
+            throw new NotSupported ((string)add(this.id, " setMarginMode() supports contract markets only")) ;
         }
         marginMode = ((string)marginMode).ToLower();
         if (isTrue(isTrue(!isEqual(marginMode, "isolated")) && isTrue(!isEqual(marginMode, "cross"))))
@@ -6374,7 +6624,7 @@ public partial class xt : Exchange
         if (isTrue(isTrue(!isEqual(status, null)) && isTrue(!isEqual(status, "SUCCESS"))))
         {
             object feedback = add(add(this.id, " "), body);
-            object error = this.safeValue(response, "error", new Dictionary<string, object>() {});
+            object error = this.safeDict(response, "error", new Dictionary<string, object>() {});
             object spotErrorCode = this.safeString(response, "mc");
             object errorCode = this.safeString(error, "code", spotErrorCode);
             object spotMessage = this.safeString(response, "msgInfo");

@@ -70,6 +70,7 @@ public partial class krakenfutures : Exchange
                 { "fetchOrders", true },
                 { "fetchPositions", true },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchTicker", "emulated" },
                 { "fetchTickers", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", "emulated" },
@@ -555,6 +556,8 @@ public partial class krakenfutures : Exchange
                 { "linear", linear },
                 { "inverse", inverse },
                 { "contractSize", this.safeNumber(market, "contractSize") },
+                { "taker", this.safeNumber(getValue(this.fees, "trading"), "taker") },
+                { "maker", this.safeNumber(getValue(this.fees, "trading"), "maker") },
                 { "maintenanceMarginRate", null },
                 { "expiry", expiry },
                 { "expiryDatetime", this.iso8601(expiry) },
@@ -1279,9 +1282,16 @@ public partial class krakenfutures : Exchange
         if (isTrue(isTrue((!isEqual(takerOrMaker, null))) && isTrue((!isEqual(cost, null)))))
         {
             object feeRate = this.safeString(market, takerOrMaker);
+            // fees are charged in the settlement currency: the quote currency
+            // for linear contracts, the base currency for inverse contracts
+            object feeCurrency = this.safeString(market, "settle");
+            if (isTrue(isEqual(feeCurrency, null)))
+            {
+                feeCurrency = this.safeString(market, "quote");
+            }
             fee = new Dictionary<string, object>() {
                 { "cost", Precise.stringMul(cost, feeRate) },
-                { "currency", this.safeString(market, "quote") },
+                { "currency", feeCurrency },
                 { "rate", feeRate },
             };
         }
@@ -3332,9 +3342,16 @@ public partial class krakenfutures : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object result = new List<object>() {};
-        // a degraded response can omit openPositions entirely - default to an
-        // empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
-        object positions = this.safeList(response, "openPositions", new List<object>() {});
+        // a degraded response missing openPositions must fail loudly - a flat
+        // account and "could not read positions" are not interchangeable for
+        // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
+        // the crash guarded against in #19896 is still avoided, since we no
+        // longer call .length on a non-list value
+        object positions = this.safeList(response, "openPositions");
+        if (isTrue(isEqual(positions, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchPositions() returned a response without an \"openPositions\" list")) ;
+        }
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = this.parsePosition(getValue(positions, i));

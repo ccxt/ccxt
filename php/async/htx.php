@@ -172,17 +172,6 @@ class htx extends Exchange {
                 'hostnames' => array(
                     'contract' => 'api.hbdm.vn', // alternatively use api.hbdm.com
                     'spot' => 'api.huobi.pro',
-                    'status' => array(
-                        'spot' => 'status.huobigroup.com',
-                        'future' => array(
-                            'inverse' => 'status-dm.huobigroup.com',
-                            'linear' => 'status-linear-swap.huobigroup.com', // USDT-Margined Contracts
-                        ),
-                        'swap' => array(
-                            'inverse' => 'status-swap.huobigroup.com',
-                            'linear' => 'status-linear-swap.huobigroup.com', // USDT-Margined Contracts
-                        ),
-                    ),
                     // recommended for AWS
                     // 'contract' => 'api.hbdm.vn',
                     // 'spot' => 'api-aws.huobi.pro',
@@ -344,43 +333,6 @@ class htx extends Exchange {
                 ),
                 // ------------------------------------------------------------
                 // new api definitions
-                // 'https://status.huobigroup.com/api/v2/summary.json' => 1,
-                // 'https://status-dm.huobigroup.com/api/v2/summary.json' => 1,
-                // 'https://status-swap.huobigroup.com/api/v2/summary.json' => 1,
-                // 'https://status-linear-swap.huobigroup.com/api/v2/summary.json' => 1,
-                'status' => array(
-                    'public' => array(
-                        'spot' => array(
-                            'get' => array(
-                                'api/v2/summary.json' => array( 'cost' => 1 ),
-                            ),
-                        ),
-                        'future' => array(
-                            'inverse' => array(
-                                'get' => array(
-                                    'api/v2/summary.json' => array( 'cost' => 1 ),
-                                ),
-                            ),
-                            'linear' => array(
-                                'get' => array(
-                                    'api/v2/summary.json' => array( 'cost' => 1 ),
-                                ),
-                            ),
-                        ),
-                        'swap' => array(
-                            'inverse' => array(
-                                'get' => array(
-                                    'api/v2/summary.json' => array( 'cost' => 1 ),
-                                ),
-                            ),
-                            'linear' => array(
-                                'get' => array(
-                                    'api/v2/summary.json' => array( 'cost' => 1 ),
-                                ),
-                            ),
-                        ),
-                    ),
-                ),
                 'spot' => array(
                     'public' => array(
                         'get' => array(
@@ -1322,228 +1274,76 @@ class htx extends Exchange {
         /**
          * the latest known information on the availability of the exchange API
          *
-         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-system-$status
-         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-system-$status
-         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-system-$status
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#get-system-$status
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-market-$status
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available  // contractPublicGetHeartbeat
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
          */
-        if ($this->markets === null) {
-            Async\await($this->load_markets());
-        }
+        // the former statuspage endpoints ($status*.huobigroup.com) were
+        // decommissioned after the huobi -> htx rebrand and no longer resolve,
+        // so this method uses the live native endpoints instead
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchStatus', null, $params);
-        $enabledForContracts = $this->handle_option('fetchStatus', 'enableForContracts', false); // temp fix for => https://status-linear-swap.huobigroup.com/api/v2/summary.json
-        $response = null;
-        if ($marketType !== 'spot' && $enabledForContracts) {
-            $subType = $this->safe_string($params, 'subType', $this->options['defaultSubType']);
-            if ($marketType === 'swap') {
-                if ($subType === 'linear') {
-                    $response = Async\await($this->statusPublicSwapLinearGetApiV2SummaryJson());
-                } elseif ($subType === 'inverse') {
-                    $response = Async\await($this->statusPublicSwapInverseGetApiV2SummaryJson());
-                }
-            } elseif ($marketType === 'future') {
-                if ($subType === 'linear') {
-                    $response = Async\await($this->statusPublicFutureLinearGetApiV2SummaryJson());
-                } elseif ($subType === 'inverse') {
-                    $response = Async\await($this->statusPublicFutureInverseGetApiV2SummaryJson());
-                }
-            } elseif ($marketType === 'contract') {
-                $response = Async\await($this->contractPublicGetHeartbeat());
-            }
-        } elseif ($marketType === 'spot') {
-            $response = Async\await($this->statusPublicSpotGetApiV2SummaryJson());
-        }
-        //
-        // statusPublicSpotGetApiV2SummaryJson, statusPublicSwapInverseGetApiV2SummaryJson, statusPublicFutureLinearGetApiV2SummaryJson, statusPublicFutureInverseGetApiV2SummaryJson
-        //
-        //      {
-        //          "page" => array(
-        //              "id":"mn7l2lw8pz4p",
-        //              "name":"Huobi Futures-USDT-margined Swaps",
-        //              "url":"https://status-linear-swap.huobigroup.com",
-        //              "time_zone":"Asia/Singapore",
-        //              "updated_at":"2022-04-29T12:47:21.319+08:00"),
-        //              "components" => array(
-        //                  array(
-        //                      "id":"lrv093qk3yp5",
-        //                      "name":"market data",
-        //                      "status":"operational",
-        //                      "created_at":"2020-10-29T14:08:59.427+08:00",
-        //                      "updated_at":"2020-10-29T14:08:59.427+08:00",
-        //                      "position":1,"description":null,
-        //                      "showcase":false,
-        //                      "start_date":null,
-        //                      "group_id":null,
-        //                      "page_id":"mn7l2lw8pz4p",
-        //                      "group":true,
-        //                      "only_show_if_degraded":false,
-        //                      "components" => array(
-        //                          "82k5jxg7ltxd" // list of related components
-        //                      )
-        //                  ),
-        //              ),
-        //              "incidents" => array( // empty array if there are no issues
-        //                  {
-        //                      "id" => "rclfxz2g21ly",  // incident id
-        //                      "name" => "Market data is delayed",  // incident name
-        //                      "status" => "investigating",  // incident $status
-        //                      "created_at" => "2020-02-11T03:15:01.913Z",  // incident create time
-        //                      "updated_at" => "2020-02-11T03:15:02.003Z",   // incident update time
-        //                      "monitoring_at" => null,
-        //                      "resolved_at" => null,
-        //                      "impact" => "minor",  // incident impact
-        //                      "shortlink" => "http://stspg.io/pkvbwp8jppf9",
-        //                      "started_at" => "2020-02-11T03:15:01.906Z",
-        //                      "page_id" => "p0qjfl24znv5",
-        //                      "incident_updates" => array(
-        //                          {
-        //                              "id" => "dwfsk5ttyvtb",
-        //                              "status" => "investigating",
-        //                              "body" => "Market data is delayed",
-        //                              "incident_id" => "rclfxz2g21ly",
-        //                              "created_at" => "2020-02-11T03:15:02.000Z",
-        //                              "updated_at" => "2020-02-11T03:15:02.000Z",
-        //                              "display_at" => "2020-02-11T03:15:02.000Z",
-        //                              "affected_components" => array(
-        //                                  {
-        //                                      "code" => "nctwm9tghxh6",
-        //                                      "name" => "Market data",
-        //                                      "old_status" => "operational",
-        //                                      "new_status" => "degraded_performance"
-        //                                  }
-        //                              ),
-        //                              "deliver_notifications" => true,
-        //                              "custom_tweet" => null,
-        //                              "tweet_id" => null
-        //                          }
-        //                      ),
-        //                      "components" => array(
-        //                          array(
-        //                              "id" => "nctwm9tghxh6",
-        //                              "name" => "Market data",
-        //                              "status" => "degraded_performance",
-        //                              "created_at" => "2020-01-13T09:34:48.284Z",
-        //                              "updated_at" => "2020-02-11T03:15:01.951Z",
-        //                              "position" => 8,
-        //                              "description" => null,
-        //                              "showcase" => false,
-        //                              "group_id" => null,
-        //                              "page_id" => "p0qjfl24znv5",
-        //                              "group" => false,
-        //                              "only_show_if_degraded" => false
-        //                          }
-        //                      )
-        //                  ), ...
-        //              ),
-        //              "scheduled_maintenances":array( // empty array if there are no scheduled maintenances
-        //                  {
-        //                      "id" => "k7g299zl765l", // incident id
-        //                      "name" => "Schedule maintenance", // incident name
-        //                      "status" => "scheduled", // incident $status
-        //                      "created_at" => "2020-02-11T03:16:31.481Z",  // incident create time
-        //                      "updated_at" => "2020-02-11T03:16:31.530Z",  // incident update time
-        //                      "monitoring_at" => null,
-        //                      "resolved_at" => null,
-        //                      "impact" => "maintenance",  // incident impact
-        //                      "shortlink" => "http://stspg.io/md4t4ym7nytd",
-        //                      "started_at" => "2020-02-11T03:16:31.474Z",
-        //                      "page_id" => "p0qjfl24znv5",
-        //                      "incident_updates" => array(
-        //                          {
-        //                              "id" => "8whgr3rlbld8",
-        //                              "status" => "scheduled",
-        //                              "body" => "We will be undergoing scheduled maintenance during this time.",
-        //                              "incident_id" => "k7g299zl765l",
-        //                              "created_at" => "2020-02-11T03:16:31.527Z",
-        //                              "updated_at" => "2020-02-11T03:16:31.527Z",
-        //                              "display_at" => "2020-02-11T03:16:31.527Z",
-        //                              "affected_components" => array(
-        //                                  {
-        //                                      "code" => "h028tnzw1n5l",
-        //                                      "name" => "Deposit And Withdraw - Deposit",
-        //                                      "old_status" => "operational",
-        //                                      "new_status" => "operational"
-        //                                  }
-        //                              ),
-        //                              "deliver_notifications" => true,
-        //                              "custom_tweet" => null,
-        //                              "tweet_id" => null
-        //                          }
-        //                      ),
-        //                      "components" => array(
-        //                          {
-        //                              "id" => "h028tnzw1n5l",
-        //                              "name" => "Deposit",
-        //                              "status" => "operational",
-        //                              "created_at" => "2019-12-05T02:07:12.372Z",
-        //                              "updated_at" => "2020-02-10T12:34:52.970Z",
-        //                              "position" => 1,
-        //                              "description" => null,
-        //                              "showcase" => false,
-        //                              "group_id" => "gtd0nyr3pf0k",
-        //                              "page_id" => "p0qjfl24znv5",
-        //                              "group" => false,
-        //                              "only_show_if_degraded" => false
-        //                          }
-        //                      ),
-        //                      "scheduled_for" => "2020-02-15T00:00:00.000Z",  // scheduled maintenance start time
-        //                      "scheduled_until" => "2020-02-15T01:00:00.000Z"  // scheduled maintenance end time
-        //                  }
-        //              ),
-        //              "status" => {
-        //                  "indicator":"none", // none, minor, major, critical, maintenance
-        //                  "description":"all systems operational" // All Systems Operational, Minor Service Outage, Partial System Outage, Partially Degraded Service, Service Under Maintenance
-        //              }
-        //          }
-        //
-        //
-        // contractPublicGetHeartbeat
-        //
-        //      {
-        //          "status" => "ok", // 'ok', 'error'
-        //          "data" => array(
-        //              "heartbeat" => 1, // future 1 => available, 0 => maintenance with service suspended
-        //              "estimated_recovery_time" => null, // estimated recovery time in milliseconds
-        //              "swap_heartbeat" => 1,
-        //              "swap_estimated_recovery_time" => null,
-        //              "option_heartbeat" => 1,
-        //              "option_estimated_recovery_time" => null,
-        //              "linear_swap_heartbeat" => 1,
-        //              "linear_swap_estimated_recovery_time" => null
-        //          ),
-        //          "ts" => 1557714418033
-        //      }
-        //
         $status = null;
-        $updated = null;
-        $url = null;
-        if ($marketType === 'contract') {
-            $statusRaw = $this->safe_string($response, 'status');
-            if ($statusRaw === null) {
-                $status = null;
-            } else {
-                $status = ($statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
-            }
-            $updated = $this->safe_integer($response, 'ts');
+        $eta = null;
+        $response = null;
+        if ($marketType === 'spot') {
+            $response = Async\await($this->spotPublicGetV2MarketStatus($params));
+            //
+            //     {
+            //         "code" => 200,
+            //         "message" => "success",
+            //         "data" => {
+            //             "marketStatus" => 1, // 1 normal, 2 halted, 3 cancel-only
+            //             "haltStartTime" => 1614852011000, // only when halted
+            //             "haltEndTime" => 1614852400000 // only when the end time is estimable
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $marketStatus = $this->safe_integer($data, 'marketStatus');
+            $status = ($marketStatus === 1) ? 'ok' : 'maintenance';
+            $eta = $this->safe_integer($data, 'haltEndTime');
         } else {
-            $statusData = $this->safe_value($response, 'status', array());
-            $statusRaw = $this->safe_string($statusData, 'indicator');
-            $status = ($statusRaw === 'none') ? 'ok' : 'maintenance'; // none, minor, major, critical, maintenance
-            $pageData = $this->safe_value($response, 'page', array());
-            $datetime = $this->safe_string($pageData, 'updated_at');
-            $updated = $this->parse8601($datetime);
-            $url = $this->safe_string($pageData, 'url');
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchStatus', null, $params);
+            $response = Async\await($this->contractPublicGetHeartbeat($params));
+            //
+            //     {
+            //         "status" => "ok",
+            //         "data" => array(
+            //             "heartbeat" => 1, // 1 available, 0 unavailable
+            //             "estimated_recovery_time" => null,
+            //             "swap_heartbeat" => 1,
+            //             "swap_estimated_recovery_time" => null,
+            //             "option_heartbeat" => 1,
+            //             "option_estimated_recovery_time" => null,
+            //             "linear_swap_heartbeat" => 1,
+            //             "linear_swap_estimated_recovery_time" => null
+            //         ),
+            //         "ts" => 1557714418033 // stale on the exchange side, do not trust update time
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $heartbeatKey = 'heartbeat';
+            $etaKey = 'estimated_recovery_time';
+            if ($subType === 'linear') {
+                $heartbeatKey = 'linear_swap_heartbeat';
+                $etaKey = 'linear_swap_estimated_recovery_time';
+            } elseif ($marketType === 'swap') {
+                $heartbeatKey = 'swap_heartbeat';
+                $etaKey = 'swap_estimated_recovery_time';
+            }
+            $heartbeat = $this->safe_integer($data, $heartbeatKey);
+            $status = ($heartbeat === 1) ? 'ok' : 'maintenance';
+            $eta = $this->safe_integer($data, $etaKey);
         }
         return array(
             'status' => $status,
-            'updated' => $updated,
-            'eta' => null,
-            'url' => $url,
+            'updated' => null,
+            'eta' => $eta,
+            'url' => null,
             'info' => $response,
         );
     }
