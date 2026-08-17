@@ -1255,7 +1255,7 @@ export default class krakenfutures extends Exchange {
             request['reduceOnly'] = true;
         }
         request['orderType'] = type;
-        price = this.safeNumber ({ 'price': price }, 'price'); // some callers pass null instead of undefined, normalize it
+        price = this.parseNumber (price); // some callers pass null instead of undefined, normalize it
         const isLimitOrder = (type === 'lmt') || (type === 'post') || (type === 'ioc');
         if (isLimitOrder && (price === undefined)) {
             throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for ' + type + ' orders');
