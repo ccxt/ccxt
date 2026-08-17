@@ -76,6 +76,7 @@ import blofin from  './src/blofin.js'
 import btcbox from  './src/btcbox.js'
 import btcmarkets from  './src/btcmarkets.js'
 import btcturk from  './src/btcturk.js'
+import btse from  './src/btse.js'
 import bullish from  './src/bullish.js'
 import bybit from  './src/bybit.js'
 import bybiteu from  './src/bybiteu.js'
@@ -267,6 +268,7 @@ const exchanges = {
     'btcbox':                 btcbox,
     'btcmarkets':             btcmarkets,
     'btcturk':                btcturk,
+    'btse':                   btse,
     'bullish':                bullish,
     'bybit':                  bybit,
     'bybiteu':                bybiteu,
