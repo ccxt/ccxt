@@ -2548,7 +2548,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.depth | <code>string</code> | No | okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt |
+| params.depth | <code>string</code> | No | okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt |
 
 
 ```javascript
@@ -2571,7 +2571,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
 | limit | <code>int</code> | No | 1,5, 400, 50 (l2-tbt, vip4+) or 40000 (vip5+) the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.depth | <code>string</code> | No | okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt |
+| params.depth | <code>string</code> | No | okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt |
 
 
 ```javascript
@@ -2594,7 +2594,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.limit | <code>int</code> | No | the maximum amount of order book entries to return |
-| params.depth | <code>string</code> | No | okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt |
+| params.depth | <code>string</code> | No | okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt |
 
 
 ```javascript
@@ -2617,7 +2617,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 | symbol | <code>string</code> | Yes | unified array of symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.limit | <code>int</code> | No | the maximum amount of order book entries to return |
-| params.depth | <code>string</code> | No | okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt |
+| params.depth | <code>string</code> | No | okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt |
 
 
 ```javascript
