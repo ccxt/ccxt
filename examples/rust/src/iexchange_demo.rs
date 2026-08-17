@@ -2,7 +2,10 @@
 // Rust analog of a C#/Go `IExchange`. Every typed wrapper (ccxt::Binance,
 // ccxt::Kraken, …) implements it, so you can be generic OR dynamic over
 // exchanges with native typed returns. Compile-check only.
-use ccxt::{Binance, Kraken, TypedExchange, Value};
+// `TypedExchange` = object-safe core (call_raw + load_markets, enables
+// `Box<dyn ...>`); `TypedExchangeExt` = the typed methods (fetch_ticker, …),
+// blanket-implemented for every `TypedExchange`. Import both to call them.
+use ccxt::{Binance, Kraken, TypedExchange, TypedExchangeExt, Value};
 
 // ── A. generic (static dispatch) ─────────────────────────────────────────────
 async fn last_price<E: TypedExchange>(ex: &mut E, symbol: &str) -> Option<f64> {
