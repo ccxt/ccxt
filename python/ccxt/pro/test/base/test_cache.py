@@ -862,3 +862,108 @@ def test_ws_cache():
     bucket_keys = list(cache_evict_buckets.hashmap.keys())
     bucket_count = len(bucket_keys)
     assert bucket_count == 3  # no empty leftover buckets
+    # ----------------------------------------------------------------------------
+    # test the symbol-scoped and the global getLimit scopes count independently -
+    # deriving the global count from the symbol-scoped seen set double-counts an
+    # id that updates again after a symbol poll
+    cache_two_scopes = ArrayCacheBySymbolById()
+    cache_two_scopes.append({
+        'symbol': 'BTC/USDT',
+        'id': 'a',
+        'i': 1,
+    })
+    cache_two_scopes.append({
+        'symbol': 'BTC/USDT',
+        'id': 'b',
+        'i': 2,
+    })
+    symbol_scope_first = cache_two_scopes.get_limit('BTC/USDT', 100)
+    assert symbol_scope_first == 2
+    cache_two_scopes.append({
+        'symbol': 'BTC/USDT',
+        'id': 'a',
+        'i': 3,
+    })
+    global_scope = cache_two_scopes.get_limit(None, 100)
+    assert global_scope == 2  # distinct ids a and b since no global poll happened - id a must not double-count
+    symbol_scope_second = cache_two_scopes.get_limit('BTC/USDT', 100)
+    assert symbol_scope_second == 1  # id a since the last symbol-scoped poll
+    # the inverse direction: a global poll (and the append that fires its
+    # deferred reset) must not erase the symbol scope's window
+    cache_two_scopes.append({
+        'symbol': 'BTC/USDT',
+        'id': 'd',
+        'i': 4,
+    })
+    cache_two_scopes.append({
+        'symbol': 'BTC/USDT',
+        'id': 'e',
+        'i': 5,
+    })
+    global_scope_second = cache_two_scopes.get_limit(None, 100)
+    assert global_scope_second == 2  # ids d and e since the first global poll - id a was consumed by it
+    cache_two_scopes.append({
+        'symbol': 'BTC/USDT',
+        'id': 'd',
+        'i': 6,
+    })
+    symbol_scope_third = cache_two_scopes.get_limit('BTC/USDT', 100)
+    assert symbol_scope_third == 2  # ids d, e since the last symbol poll - the global poll in between must not reset this window
+    # ----------------------------------------------------------------------------
+    # the BySide twin of the two-scope case, covering both directions
+    side_two_scopes = ArrayCacheBySymbolBySide()
+    side_two_scopes.append({
+        'symbol': 'BTC/USDT:USDT',
+        'side': 'long',
+        'contracts': 1,
+    })
+    side_two_scopes.append({
+        'symbol': 'BTC/USDT:USDT',
+        'side': 'short',
+        'contracts': 1,
+    })
+    side_symbol_first = side_two_scopes.get_limit('BTC/USDT:USDT', 100)
+    assert side_symbol_first == 2
+    side_two_scopes.append({
+        'symbol': 'BTC/USDT:USDT',
+        'side': 'long',
+        'contracts': 2,
+    })
+    side_global = side_two_scopes.get_limit(None, 100)
+    assert side_global == 2  # long and short distinct since no global poll - the re-updated long must not double-count
+    side_two_scopes.append({
+        'symbol': 'BTC/USDT:USDT',
+        'side': 'short',
+        'contracts': 2,
+    })
+    side_symbol_second = side_two_scopes.get_limit('BTC/USDT:USDT', 100)
+    assert side_symbol_second == 2  # long and short since the last symbol poll - the global poll must not reset this window
+    # ----------------------------------------------------------------------------
+    # eviction bounds the seen scopes: an id evicted by maxSize leaves both seen
+    # sets, so the counts mean distinct ids within the retained window - exactly
+    # what a consumer can slice - and single-scope pollers stay bounded
+    cache_evict_seen = ArrayCacheBySymbolById(2)
+    cache_evict_seen.append({
+        'symbol': 'BTC/USDT',
+        'id': 'a',
+        'i': 1,
+    })
+    cache_evict_seen.append({
+        'symbol': 'BTC/USDT',
+        'id': 'b',
+        'i': 2,
+    })
+    cache_evict_seen.append({
+        'symbol': 'BTC/USDT',
+        'id': 'c',
+        'i': 3,
+    })  # evicts id a
+    evict_symbol_count = cache_evict_seen.get_limit('BTC/USDT', 100)
+    assert evict_symbol_count == 2  # ids b and c - the evicted id a no longer counts
+    cache_evict_seen.append({
+        'symbol': 'BTC/USDT',
+        'id': 'd',
+        'i': 4,
+    })  # evicts id b
+    evict_global_count = cache_evict_seen.get_limit(None, 100)
+    assert evict_global_count == 2  # ids c and d - the counts track distinct ids within the retained window in both scopes
