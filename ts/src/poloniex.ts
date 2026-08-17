@@ -3720,10 +3720,9 @@ export default class poloniex extends Exchange {
         //
         const responseCode = this.safeString (response, 'code');
         if ((responseCode !== undefined) && (responseCode !== '200')) {
-            const codeInner = response['code'];
             const message = this.safeString2 (response, 'message', 'msg');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], codeInner, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
