@@ -376,19 +376,13 @@ export default class binance extends binanceRest {
                     'listenKey': listenKey,
                     'lastAuthenticatedTime': now,
                 });
-                this.delay (listenKeyRefreshRate, this.keepAliveStockListenKey, params);
+                this.delay (listenKeyRefreshRate, this.keepAliveListenKey, this.extend (params, { 'type': 'stock', 'defaultType': 'stock' }));
                 client.resolve (listenKey, messageHash);
             } catch (e) {
                 client.reject (e, messageHash);
                 throw e;
             }
         }
-    }
-
-    async keepAliveStockListenKey (params: Dict = {}) {
-        // same listenKey machinery as the other product lines - routes through
-        // the one consolidated keepalive below
-        return await this.keepAliveListenKey (this.extend (params, { 'type': 'stock', 'defaultType': 'stock' }));
     }
 
     /**
