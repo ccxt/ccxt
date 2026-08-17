@@ -21,6 +21,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class latoken(Exchange, ImplicitAPI):
@@ -659,7 +660,30 @@ class latoken(Exchange, ImplicitAPI):
         #         "totalBid":"112216.9029791"
         #     }
         #
-        return self.parse_order_book(response, symbol, None, 'bid', 'ask', 'price', 'quantity')
+        # latoken's rest book is an absolute snapshot - price, quantity, cost,
+        # accumulated - with no signed fields, unlike their websocket stream
+        # which carries signed quantityChange deltas. during venue incidents a
+        # signed internal aggregate leaks into the rest quantity and a deleted
+        # level shows up with a zero or negative quantity for long stretches,
+        # observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
+        # for over half an hour - such a level is a deleted level their
+        # aggregation failed to drop, so it is removed here
+        rawAsks = self.safe_list(response, 'ask', [])
+        rawBids = self.safe_list(response, 'bid', [])
+        asks = []
+        bids = []
+        for i in range(0, len(rawAsks)):
+            askEntry = rawAsks[i]
+            askQuantity = self.safe_string(askEntry, 'quantity')
+            if Precise.string_gt(askQuantity, '0'):
+                asks.append(askEntry)
+        for i in range(0, len(rawBids)):
+            bidEntry = rawBids[i]
+            bidQuantity = self.safe_string(bidEntry, 'quantity')
+            if Precise.string_gt(bidQuantity, '0'):
+                bids.append(bidEntry)
+        filtered = {'ask': asks, 'bid': bids}
+        return self.parse_order_book(filtered, symbol, None, 'bid', 'ask', 'price', 'quantity')
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
