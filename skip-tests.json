@@ -1137,7 +1137,7 @@
                 "precision": "not provided",
                 "withdraw": "not provided",
                 "deposit": "not provided",
-                "networks":"empty",
+                "networks": "empty",
                 "type": "not provided",
                 "activeMajorCurrencies": "todo"
             },
@@ -1560,8 +1560,16 @@
         "until": "2026-12-31",
         "preferredEventQuery": "trump",
         "preferredEventScopes": [
-            { "tags": [ "BTC" ], "limit": 3 },
-            { "category": "Crypto", "limit": 3 }
+            {
+                "tags": [
+                    "BTC"
+                ],
+                "limit": 3
+            },
+            {
+                "category": "Crypto",
+                "limit": 3
+            }
         ],
         "httpsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
@@ -1829,7 +1837,7 @@
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6610",
-                "spread":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3916",
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3916",
                 "vwap": "https://app.travis-ci.com/github/ccxt/ccxt/builds/271520319#L5664"
             },
             "fetchTickers": {
@@ -1988,9 +1996,7 @@
     },
     "okxus": {
         "skipCSharp": true,
-        "loadMarkets": {
-
-        },
+        "loadMarkets": {},
         "skipMethods": {
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
@@ -2447,7 +2453,7 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed",
-                "precision":"is undefined"
+                "precision": "is undefined"
             },
             "ticker": {
                 "maxIncrease": "listed joke tokens (TEST etc) have abnormal price swings"
@@ -2522,5 +2528,9 @@
                 "side": "not provided"
             }
         }
+    },
+    "sxbet": {
+        "skip": "migrated to the v3 API; mainnet v3 endpoints return 403 until the venue cutover on Aug 25 10:00 EST (verified live on testnet)",
+        "until": "2026-08-26"
     }
 }
