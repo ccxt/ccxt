@@ -1,4 +1,5 @@
 import assert from 'assert';
+import { ExchangeClosedByUser } from '../../../base/errors.js';
 import ccxt from '../../../../ccxt.js';
 
 // native ts test, intentionally not transpiled - exercises the base
@@ -77,6 +78,7 @@ async function testWsSingleFlightPrimitives () {
 
     await exchange.close ();
     await testAloneLeaderReject (exchange);
+    await testCloseSettlesInFlight ();
 }
 
 
@@ -92,6 +94,26 @@ async function testAloneLeaderReject (exchange: any) {
     const reacquired = await exchange.singleFlightAcquire ('alone');
     assert (reacquired === true);
     exchange.singleFlightResolve ('alone');
+}
+
+
+async function testCloseSettlesInFlight () {
+    // close() must reject in-flight waiters with ExchangeClosedByUser and leave
+    // no slot behind - a shutdown never strands an auth waiter. a FRESH instance,
+    // so this pins close-while-in-flight rather than reusing a closed exchange
+    const exchange = new ccxt.Exchange ({ 'id': 'test' });
+    const acquired = await exchange.singleFlightAcquire ('inflight');
+    assert (acquired === true);
+    let waiterError = undefined;
+    const waiter = exchange.singleFlightWait ('inflight').catch ((e: any) => {
+        waiterError = e;
+    });
+    await exchange.close ();
+    await waiter;
+    assert (waiterError instanceof ExchangeClosedByUser);
+    const flightHashes = Object.keys (exchange.authenticationFlights);
+    const flightCount = flightHashes.length;
+    assert (flightCount === 0); // the slot is gone
 }
 
 export default testWsSingleFlightPrimitives;
