@@ -5,11 +5,117 @@
     "methods": {
         "watchBidsAsks": [
             {
-                "description": "spot bids asks",
+                "description": "spot bids asks via bbo-tbt",
                 "input": [
                     [
                         "BTC/USDT"
                     ]
+                ],
+                "url": "wss://ws.okx.com:8443/ws/v5/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "channel": "bbo-tbt",
+                            "instId": "BTC-USDT"
+                        },
+                        "connId": "d604ccd0"
+                    },
+                    {
+                        "arg": {
+                            "channel": "bbo-tbt",
+                            "instId": "BTC-USDT"
+                        },
+                        "data": [
+                            {
+                                "asks": [
+                                    [
+                                        "63707.3",
+                                        "0.15455902",
+                                        "0",
+                                        "3"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "63707.2",
+                                        "1.70080521",
+                                        "0",
+                                        "9"
+                                    ]
+                                ],
+                                "ts": "1786613174873"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "channel": "bbo-tbt",
+                                "instId": "BTC-USDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USDT": {
+                            "symbol": "BTC/USDT",
+                            "timestamp": 1786613174873,
+                            "datetime": "2026-08-13T09:26:14.873Z",
+                            "ask": 63707.3,
+                            "askVolume": 0.15455902,
+                            "bid": 63707.2,
+                            "bidVolume": 1.70080521,
+                            "info": {
+                                "asks": [
+                                    [
+                                        "63707.3",
+                                        "0.15455902",
+                                        "0",
+                                        "3"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "63707.2",
+                                        "1.70080521",
+                                        "0",
+                                        "9"
+                                    ]
+                                ],
+                                "ts": "1786613174873"
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "spot bids asks via tickers channel",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ],
+                    {
+                        "channel": "tickers"
+                    }
                 ],
                 "url": "wss://ws.okx.com:8443/ws/v5/public",
                 "messages": [
@@ -44,32 +150,6 @@
                                 "volCcy24h": "229576048.730317321",
                                 "vol24h": "3601.1585121",
                                 "ts": "1786613174873"
-                            }
-                        ]
-                    },
-                    {
-                        "arg": {
-                            "channel": "tickers",
-                            "instId": "BTC-USDT"
-                        },
-                        "data": [
-                            {
-                                "instType": "SPOT",
-                                "instId": "BTC-USDT",
-                                "last": "63707.3",
-                                "lastSz": "0.00164251",
-                                "askPx": "63707.3",
-                                "askSz": "0.15455902",
-                                "bidPx": "63707.2",
-                                "bidSz": "1.91873057",
-                                "open24h": "63958.9",
-                                "high24h": "64496.9",
-                                "low24h": "63309.4",
-                                "sodUtc0": "63484.7",
-                                "sodUtc8": "63445.9",
-                                "volCcy24h": "229576048.730317321",
-                                "vol24h": "3601.1585121",
-                                "ts": "1786613175081"
                             }
                         ]
                     }
