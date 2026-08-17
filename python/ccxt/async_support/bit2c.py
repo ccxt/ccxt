@@ -382,7 +382,29 @@ class bit2c(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         orderbook = await self.publicGetExchangesPairOrderbook(self.extend(request, params))
-        return self.parse_order_book(orderbook, symbol)
+        # the full orderbook.json snapshot can contain dead orders - rows
+        # published with a zero amount at their limit price, hours-stable and
+        # sometimes crossing the real market. per the api docs the endpoint
+        # contains open orders only, and the venue's own orderbook-top.json ui
+        # feed filters these rows out, so a non-positive amount is a dead order
+        # their full snapshot failed to purge - it is removed here, which also
+        # uncrosses the book. rows are positional price and amount pairs
+        rawBids = self.safe_list(orderbook, 'bids', [])
+        rawAsks = self.safe_list(orderbook, 'asks', [])
+        bids = []
+        asks = []
+        for i in range(0, len(rawBids)):
+            bidRow = rawBids[i]
+            bidAmount = self.safe_string(bidRow, 1)
+            if Precise.string_gt(bidAmount, '0'):
+                bids.append(bidRow)
+        for i in range(0, len(rawAsks)):
+            askRow = rawAsks[i]
+            askAmount = self.safe_string(askRow, 1)
+            if Precise.string_gt(askAmount, '0'):
+                asks.append(askRow)
+        filtered = {'bids': bids, 'asks': asks}
+        return self.parse_order_book(filtered, symbol)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         symbol = self.safe_symbol(None, market)
