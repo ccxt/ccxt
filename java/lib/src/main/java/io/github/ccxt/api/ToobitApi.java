@@ -419,9 +419,9 @@ public class ToobitApi extends Exchange
      * Calls the privateGetApiV1FuturesAccountLeverage endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1FuturesAccountLeverage (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1FuturesAccountLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesAccountLeverage", optionalArgs);
     }

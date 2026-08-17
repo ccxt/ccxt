@@ -53,7 +53,13 @@ class ArrayCacheBySymbolById extends ArrayCache {
             if ($this->max_size && (count($this->deque) === $this->max_size)) {
                 $delete_item = array_shift($this->deque);
                 array_shift($this->index);
-                unset($this->hashmap[$this->as_string($delete_item[$this->key_field])][$this->as_string($delete_item['id'])]);
+                $delete_key = $this->as_string($delete_item[$this->key_field]);
+                unset($this->hashmap[$delete_key][$this->as_string($delete_item['id'])]);
+                # drop the outer bucket once its last id is evicted, otherwise the
+                # hashmap grows one empty array per key for the process lifetime
+                if (!count($this->hashmap[$delete_key])) {
+                    unset($this->hashmap[$delete_key]);
+                }
             }
         }
         # this allows us to effectively pass by reference

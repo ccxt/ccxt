@@ -3279,22 +3279,22 @@ public partial class toobit : Exchange
         //
         // [
         //     {
-        //         "symbol":"BTC-SWAP-USDT", //symbol
-        //         "leverage":"20",  // leverage
+        //         "symbolId":"ETH-SWAP-USDT",
+        //         "leverage":"50",
         //         "marginType":"CROSS" // CROSS;ISOLATED
         //     }
         // ]
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, 0, new Dictionary<string, object>() {});
         return this.parseLeverage(data, market);
     }
 
     public override object parseLeverage(object leverage, object market = null)
     {
-        object marketId = this.safeString(leverage, "symbol");
+        object marketId = this.safeString2(leverage, "symbolId", "symbol");
         object leverageValue = this.safeInteger(leverage, "leverage");
-        object marginType = this.safeString(leverage, "marginType");
-        object marginMode = ((bool) isTrue((isEqual(marginType, "crossed")))) ? "cross" : "isolated";
+        object marginType = this.safeStringLower(leverage, "marginType");
+        object marginMode = ((bool) isTrue((isEqual(marginType, "cross")))) ? "cross" : "isolated";
         return new Dictionary<string, object>() {
             { "info", leverage },
             { "symbol", this.safeSymbol(marketId, market) },

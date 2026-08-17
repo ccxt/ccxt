@@ -540,6 +540,17 @@
                 "output": "symbol=ETHUSDT&side=SELL&quantity=0.001&type=MARKET&recvWindow=5000&timestamp=1757586671089&signature=7ae3a5a3e77f4a441d4dc3f9272fcb5b88698b0d340123185b74bc97a44b6391"
             }
         ],
+        "fetchLeverage": [
+            {
+                "description": "fetchLeverage swap",
+                "method": "fetchLeverage",
+                "url": "https://api.toobit.com/api/v1/futures/accountLeverage?symbol=ETH-SWAP-USDT&recvWindow=5000&timestamp=1786884806492&signature=e96b15087bd0ea9cd8cd767e0af427e82db1b4b0c64dab133115da03d7ce85ad",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "fetchTicker symbol perp",

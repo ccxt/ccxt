@@ -92,6 +92,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchTicker': 'emulated',
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': 'emulated',
@@ -505,6 +506,8 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'linear': linear,
                 'inverse': inverse,
                 'contractSize': self.safe_number(market, 'contractSize'),
+                'taker': self.safe_number(self.fees['trading'], 'taker'),
+                'maker': self.safe_number(self.fees['trading'], 'maker'),
                 'maintenanceMarginRate': None,
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
@@ -1130,9 +1133,14 @@ class krakenfutures(Exchange, ImplicitAPI):
         fee = None
         if (takerOrMaker is not None) and (cost is not None):
             feeRate = self.safe_string(market, takerOrMaker)
+            # fees are charged in the settlement currency: the quote currency
+            # for linear contracts, the base currency for inverse contracts
+            feeCurrency = self.safe_string(market, 'settle')
+            if feeCurrency is None:
+                feeCurrency = self.safe_string(market, 'quote')
             fee = {
                 'cost': Precise.string_mul(cost, feeRate),
-                'currency': self.safe_string(market, 'quote'),
+                'currency': feeCurrency,
                 'rate': feeRate,
             }
         return self.safe_trade({

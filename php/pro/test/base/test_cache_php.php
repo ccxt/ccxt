@@ -94,14 +94,13 @@ function test_php_field_wise_merge() {
     check($positions[0]['entryPrice'] === 100.0, 'BySide merge must preserve entryPrice the delta omitted');
     check($positions[0]['leverage'] === 10, 'BySide merge must preserve leverage the delta omitted');
 
-    // ... and for ohlcv rows keyed by timestamp
+    // ... and for ohlcv rows keyed by timestamp the whole row is replaced
     $ohlcv = new ArrayCacheByTimestamp();
     $ohlcv->append(array( 1000, 1.0, 2.0, 0.5, 1.5, 100.0 ));
     $ohlcv->append(array( 1000, 1.0, 3.0 )); // a partial candle update
     check(count($ohlcv) === 1, 'ByTimestamp merge must update in place');
     check($ohlcv[0][2] === 3.0, 'ByTimestamp merge must apply the new high');
-    check($ohlcv[0][4] === 1.5, 'ByTimestamp merge must preserve the close the update omitted');
-    check($ohlcv[0][5] === 100.0, 'ByTimestamp merge must preserve the volume the update omitted');
+    check(count($ohlcv[0]) === 3, 'ByTimestamp merge must not leave a stale tail behind');
 }
 
 function test_php_two_field_match() {
