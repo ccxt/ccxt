@@ -2826,7 +2826,12 @@ export default class toobit extends Exchange {
             // ]
             //
         }
-        return this.parseTransactions (response, currency, since, limit, params);
+        const transactType = (type === 'deposits') ? 'deposit' : 'withdrawal';
+        const rows = [];
+        for (let i = 0; i < response.length; i++) {
+            rows.push (this.extend ({ 'transactType': transactType }, response[i]));
+        }
+        return this.parseTransactions (rows, currency, since, limit, params);
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -2886,10 +2891,16 @@ export default class toobit extends Exchange {
         const tagFrom = this.safeString (transaction, 'fromAddressTag');
         const addressTo = this.safeString (transaction, 'address');
         const addressFrom = this.safeString (transaction, 'fromAddress');
-        const isWithdraw = ('arriveQuantity' in transaction) || ('success' in transaction);
+        const transactType = this.safeString (transaction, 'transactType');
+        let isWithdraw = false;
+        if (transactType !== undefined) {
+            isWithdraw = (transactType === 'withdrawal');
+        } else {
+            isWithdraw = ('arriveQuantity' in transaction) || ('success' in transaction);
+        }
         const type = isWithdraw ? 'withdrawal' : 'deposit';
         return {
-            'info': transaction,
+            'info': this.omit (transaction, 'transactType'),
             'id': this.safeString (transaction, 'id'),
             'txid': this.safeString (transaction, 'txId'),
             'timestamp': timestamp,
@@ -2928,7 +2939,7 @@ export default class toobit extends Exchange {
                 '7': 'failed', // WITHDRAWAL_FAILURE_STATUS
                 '9': 'canceled', // WITHDRAWAL_CANCELLED_STATUS
                 '10': 'pending', // WAIT_MERCHANT_PASS
-                '11': 'canceled', // APPLY_CANCEL
+                '11': 'pending', // APPLY_CANCEL, cancellation requested but not final yet
             },
         };
         if (status === undefined) {
