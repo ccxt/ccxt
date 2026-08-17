@@ -1031,94 +1031,43 @@ export default class sxbet extends Exchange {
     /**
      * @ignore
      * @method
-     * @name sxbet#signSxbetCancel
-     * @description signs a cancel payload with EIP-712 — the cancel domain uses a random 'salt' field instead of the usual 'verifyingContract' (verified byte-identical against the reference TypedDataEncoder for this domain shape)
-     * @param {string} domainName the EIP-712 domain name for this cancel endpoint (e.g. 'CancelOrderV2SportX')
-     * @param {object} messageTypes the EIP-712 'Details' type definition for this cancel endpoint
-     * @param {object} messageData the EIP-712 message values for this cancel endpoint
-     * @param {string} salt the random bytes32 hex salt (also sent in the request body)
-     * @returns {string} a '0x'-prefixed 65-byte hex signature
+     * @name sxbet#parseSxbetCancelResponse
+     * @description parses the shared v3 cancel response ({cancelled, notCancelled, unconfirmed}) into order structures
+     * @param {object} response the raw DELETE /orders-v3 response
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async signSxbetCancel (domainName: string, messageTypes: Dict, messageData: Dict, salt: string): Promise<string> {
-        const sxMetadata = await this.loadSxMetadata ();
-        const chainId = this.safeInteger (sxMetadata, 'chainId');
-        // the bytes32 domain salt goes in as raw bytes - every language's EIP-712 encoder accepts
-        // binary, while a hex string ends up UTF8-encoded (and rejected) by some of them
-        const saltBinary = this.base16ToBinary (this.remove0xPrefix (salt));
-        const domain: Dict = { 'name': domainName, 'version': '1.0', 'chainId': chainId, 'salt': saltBinary };
-        const encoded = this.ethEncodeStructuredData (domain, messageTypes, messageData);
-        const digest = this.hashEip712Digest (encoded);
-        return this.signDigest (digest, this.privateKey);
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name sxbet#parseSxbetCancelResult
-     * @description parses one order's outcome out of a cancel endpoint's shared {cancelledCount, orders, notCancelled} response shape
-     * @param {string} orderHash the order hash to report status for
-     * @param {object} response the raw cancel endpoint response
-     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
-     */
-    parseSxbetCancelResult (orderHash: string, response: Dict): PredictionOrder {
+    parseSxbetCancelResponse (response: Dict): PredictionOrder[] {
         const data = this.safeDict (response, 'data', {});
-        const cancelledOrders = this.safeList (data, 'orders', []);
-        let status = 'open';
-        const cancelledOrdersLength = cancelledOrders.length;
-        for (let i = 0; i < cancelledOrdersLength; i++) {
-            if (this.safeString (cancelledOrders[i], 'orderHash') === orderHash) {
-                status = 'canceled';
-                break;
-            }
-        }
-        return this.safePredictionOrder ({
-            'id': orderHash,
-            'status': status,
-            'info': response,
-        });
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name sxbet#cancelSxbetOrders
-     * @description signs and posts a batch cancel via POST /orders/cancel/v2 — one EIP-712 signature cancels every hash in the list
-     * @param {string[]} orderHashes the order hashes to cancel
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure) per requested hash
-     */
-    async cancelSxbetOrders (orderHashes: string[], params = {}): Promise<PredictionOrder[]> {
-        this.checkRequiredCredentials ();
-        if (this.privateKey === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a privateKey to sign the cancel request');
-        }
-        const maker = this.walletAddress;
-        const timestamp = this.seconds ();
-        // assign to a bare local before padStart — see the signDigest comment
-        const saltHexRaw = this.intToBase16 (this.milliseconds ());
-        const saltHex = saltHexRaw.padStart (64, '0');
-        const salt = this.safeString (params, 'salt', '0x' + saltHex);
-        const messageTypes: Dict = {
-            'Details': [
-                { 'name': 'orderHashes', 'type': 'string[]' },
-                { 'name': 'timestamp', 'type': 'uint256' },
-            ],
-        };
-        const messageData: Dict = { 'orderHashes': orderHashes, 'timestamp': timestamp };
-        const signature = await this.signSxbetCancel ('CancelOrderV2SportX', messageTypes, messageData, salt);
-        const request: Dict = {
-            'orderHashes': orderHashes,
-            'signature': signature,
-            'salt': salt,
-            'maker': maker,
-            'timestamp': timestamp,
-        };
-        const rest = this.omit (params, [ 'salt' ]);
-        const response = await this.sxbetPrivatePostOrdersCancelV2 (this.extend (request, rest));
         const result: PredictionOrder[] = [];
-        const orderHashesLength = orderHashes.length;
-        for (let i = 0; i < orderHashesLength; i++) {
-            result.push (this.parseSxbetCancelResult (orderHashes[i], response));
+        // by-id cancels report 'cancelled'; the /all and /event paths submit asynchronously and
+        // report 'cancelledSubmitted' instead - treat both as cancelled
+        const cancelled = this.safeList2 (data, 'cancelled', 'cancelledSubmitted', []);
+        const cancelledLength = cancelled.length;
+        for (let i = 0; i < cancelledLength; i++) {
+            result.push (this.safePredictionOrder ({
+                'id': this.safeString (cancelled[i], 'orderId'),
+                'status': 'canceled',
+                'info': response,
+            }));
+        }
+        const notCancelled = this.safeList (data, 'notCancelled', []);
+        const notCancelledLength = notCancelled.length;
+        for (let i = 0; i < notCancelledLength; i++) {
+            // the venue reports why (e.g. NOT_FOUND) - the order was not cancelled, report it honestly
+            result.push (this.safePredictionOrder ({
+                'id': this.safeString (notCancelled[i], 'orderId'),
+                'status': undefined,
+                'info': response,
+            }));
+        }
+        const unconfirmed = this.safeList (data, 'unconfirmed', []);
+        const unconfirmedLength = unconfirmed.length;
+        for (let i = 0; i < unconfirmedLength; i++) {
+            result.push (this.safePredictionOrder ({
+                'id': this.safeString (unconfirmed[i], 'orderId'),
+                'status': undefined,
+                'info': response,
+            }));
         }
         return result;
     }
@@ -1126,32 +1075,36 @@ export default class sxbet extends Exchange {
     /**
      * @method
      * @name sxbet#cancelOrder
-     * @description cancels a single resting maker order by its order hash
-     * @see https://docs.sx.bet/api-reference/post-cancel-orders
-     * @param {string} id the order hash to cancel
+     * @description cancels one resting maker order - v3 cancels are plain api-key-authenticated DELETE requests, no signature involved
+     * @see https://docs.sx.bet/api-reference/delete-orders-v3
+     * @param {string} id the order id
      * @param {string} [outcome] not used by sxbet.cancelOrder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     override async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+        this.checkRequiredCredentials ();
         if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires an id argument');
         }
-        const orders = await this.cancelSxbetOrders ([ id ], params);
+        const request: Dict = { 'orders': [ { 'orderId': id } ] };
+        const response = await this.sxbetPrivateDeleteOrdersV3 (this.extend (request, params));
+        const orders = this.parseSxbetCancelResponse (response);
         return this.safeDict (orders, 0) as PredictionOrder;
     }
 
     /**
      * @method
      * @name sxbet#cancelOrders
-     * @description cancels multiple resting maker orders in a single signed request
-     * @see https://docs.sx.bet/api-reference/post-cancel-orders
-     * @param {string[]} ids the order hashes to cancel
+     * @description cancels multiple resting maker orders in one request - v3 cancels are plain api-key-authenticated DELETE requests, no signature involved
+     * @see https://docs.sx.bet/api-reference/delete-orders-v3
+     * @param {string[]} ids the order ids to cancel
      * @param {string} [outcome] not used by sxbet.cancelOrders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     override async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+        this.checkRequiredCredentials ();
         if (ids === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a non-empty ids argument');
         }
@@ -1159,103 +1112,48 @@ export default class sxbet extends Exchange {
         if (idsLength === 0) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a non-empty ids argument');
         }
-        return await this.cancelSxbetOrders (ids, params);
+        const orderItems = [];
+        for (let i = 0; i < idsLength; i++) {
+            orderItems.push ({ 'orderId': ids[i] });
+        }
+        const request: Dict = { 'orders': orderItems };
+        const response = await this.sxbetPrivateDeleteOrdersV3 (this.extend (request, params));
+        return this.parseSxbetCancelResponse (response);
     }
 
     /**
      * @method
      * @name sxbet#cancelAllOrders
-     * @description cancels every resting maker order. With no outcome, one signature cancels ALL open orders (POST /orders/cancel/all). With an outcome, only that market's open orders are cancelled — resolved via GET /orders and batch-cancelled through POST /orders/cancel/v2, since sx.bet's per-market granularity of native cancellation is the whole fixture (POST /orders/cancel/event, all markets under one sportXeventId), not a single market
-     * @see https://docs.sx.bet/api-reference/post-cancel-all
-     * @see https://docs.sx.bet/api-reference/post-cancel-event
-     * @param {string} [outcome] unified outcome or outcomeId — scopes the cancel to that outcome's market; omit to cancel everything
+     * @description cancels every resting maker order of the account, or every order of one fixture via params.sportXeventId - v3 cancels are plain api-key-authenticated DELETE requests, no signature involved
+     * @see https://docs.sx.bet/api-reference/delete-orders-v3-all
+     * @see https://docs.sx.bet/api-reference/delete-orders-v3-event
+     * @param {string} [outcome] not used by sxbet.cancelAllOrders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.sportXeventId] cancels every order across every market of this fixture (POST /orders/cancel/event) instead of the outcome/blanket paths
+     * @param {string} [params.sportXeventId] cancels every order across every market of this fixture instead of the account-wide path
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async cancelAllOrders (outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
         this.checkRequiredCredentials ();
-        if (this.privateKey === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a privateKey to sign the cancel request');
-        }
-        const maker = this.walletAddress;
-        const timestamp = this.seconds ();
-        // assign to a bare local before padStart — see the signDigest comment
-        const saltHexRaw = this.intToBase16 (this.milliseconds ());
-        const saltHex = saltHexRaw.padStart (64, '0');
-        const salt = this.safeString (params, 'salt', '0x' + saltHex);
         const sportXeventId = this.safeString (params, 'sportXeventId');
+        let response = undefined;
         if (sportXeventId !== undefined) {
-            const messageTypes: Dict = {
-                'Details': [
-                    { 'name': 'sportXeventId', 'type': 'string' },
-                    { 'name': 'timestamp', 'type': 'uint256' },
-                ],
-            };
-            const messageData: Dict = { 'sportXeventId': sportXeventId, 'timestamp': timestamp };
-            const signature = await this.signSxbetCancel ('CancelOrderEventsSportX', messageTypes, messageData, salt);
-            const request: Dict = {
-                'sportXeventId': sportXeventId,
-                'signature': signature,
-                'salt': salt,
-                'maker': maker,
-                'timestamp': timestamp,
-            };
-            const rest = this.omit (params, [ 'salt', 'sportXeventId' ]);
-            const response = await this.sxbetPrivatePostOrdersCancelEvent (this.extend (request, rest));
-            const data = this.safeDict (response, 'data', {});
-            const cancelledOrders = this.safeList (data, 'orders', []);
-            const result: PredictionOrder[] = [];
-            const cancelledOrdersLength = cancelledOrders.length;
-            for (let i = 0; i < cancelledOrdersLength; i++) {
-                const orderHash = this.safeString (cancelledOrders[i], 'orderHash', '');
-                result.push (this.parseSxbetCancelResult (orderHash, response));
-            }
-            return result;
+            const rest = this.omit (params, [ 'sportXeventId' ]);
+            const request: Dict = { 'sportXeventId': sportXeventId };
+            response = await this.sxbetPrivateDeleteOrdersV3Event (this.extend (request, rest));
+        } else {
+            response = await this.sxbetPrivateDeleteOrdersV3All (params);
         }
-        if (outcome !== undefined) {
-            await this.loadOutcome (outcome);
-            const outcomeObj = this.outcome (outcome);
-            const marketHash = this.safeString (outcomeObj['info'], 'marketHash', '');
-            const openOrders = await this.sxbetPublicGetOrders ({ 'marketHashes': marketHash, 'maker': maker });
-            const rawOrders = this.safeList (openOrders, 'data', []);
-            const orderHashes: string[] = [];
-            const rawOrdersLength = rawOrders.length;
-            for (let i = 0; i < rawOrdersLength; i++) {
-                const rawOrder = rawOrders[i];
-                if (this.safeString (rawOrder, 'orderStatus') === 'ACTIVE') {
-                    orderHashes.push (this.safeString (rawOrder, 'orderHash', ''));
-                }
-            }
-            if (orderHashes.length === 0) {
-                return [];
-            }
-            return await this.cancelSxbetOrders (orderHashes, params);
+        let result = this.parseSxbetCancelResponse (response);
+        // the account-wide path paginates its async submission - keep going while more remain
+        let hasMore = this.safeBool (this.safeDict (response, 'data', {}), 'hasMore', false);
+        let guard = 0;
+        while (hasMore && (guard < 50)) {
+            const nextResponse = await this.sxbetPrivateDeleteOrdersV3All (params);
+            result = this.arrayConcat (result, this.parseSxbetCancelResponse (nextResponse));
+            hasMore = this.safeBool (this.safeDict (nextResponse, 'data', {}), 'hasMore', false);
+            guard = this.sum (guard, 1);
         }
-        const blanketMessageTypes: Dict = {
-            'Details': [
-                { 'name': 'timestamp', 'type': 'uint256' },
-            ],
-        };
-        const blanketMessageData: Dict = { 'timestamp': timestamp };
-        const blanketSignature = await this.signSxbetCancel ('CancelAllOrdersSportX', blanketMessageTypes, blanketMessageData, salt);
-        const blanketRequest: Dict = {
-            'signature': blanketSignature,
-            'salt': salt,
-            'maker': maker,
-            'timestamp': timestamp,
-        };
-        const blanketRest = this.omit (params, [ 'salt' ]);
-        const blanketResponse = await this.sxbetPrivatePostOrdersCancelAll (this.extend (blanketRequest, blanketRest));
-        const blanketData = this.safeDict (blanketResponse, 'data', {});
-        const blanketCancelledOrders = this.safeList (blanketData, 'orders', []);
-        const blanketResult: PredictionOrder[] = [];
-        const blanketCancelledOrdersLength = blanketCancelledOrders.length;
-        for (let i = 0; i < blanketCancelledOrdersLength; i++) {
-            const orderHash = this.safeString (blanketCancelledOrders[i], 'orderHash', '');
-            blanketResult.push (this.parseSxbetCancelResult (orderHash, blanketResponse));
-        }
-        return blanketResult;
+        return result;
     }
 
     /**
