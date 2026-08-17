@@ -145,32 +145,31 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     //
     // change & percentage
     //
-    // the Manual defines these two against each other and against open:
-    //   change      absolute change, `last - open`
-    //   percentage  relative change, `(change/open) * 100`
-    // neither was asserted anywhere, and a parser that fills one of them from a
-    // field measuring a different window or carrying a ratio instead of a
-    // percentage produces a ticker that contradicts itself while every existing
-    // check passes
+    // the Manual defines both against open: change is `last - open`, and
+    // percentage is `(change/open) * 100`
     const changeString = exchange.safeString (entry, 'change');
     const percentageString = exchange.safeString (entry, 'percentage');
     if ((changeString !== undefined) && (open !== undefined) && (close !== undefined) && !('compareChange' in skippedProperties)) {
-        // the window is a part per million of the price, not the decimals the
-        // change itself prints: safeTicker derives change from open and last
-        // when the exchange omits it, and the result carries float residue well
-        // past any real precision - latoken's 1190.9514953271027 against a true
-        // 1190.9514953271 is right to thirteen figures and fails a quantum read
-        // off its own digits
-        const changeWindow = Precise.stringDiv (Precise.stringAbs (close), '1000000');
+        // the window is the larger of two roundings: float residue on a change
+        // safeTicker derived, which needs a part per million of the price, and an
+        // exchange's own rounding, which its reported decimals reveal
+        const pricePart = Precise.stringDiv (Precise.stringAbs (close), '1000000');
+        const changeDecimals = exchange.precisionFromString (changeString);
+        let changeQuantum = exchange.parsePrecision (exchange.numberToString (changeDecimals));
+        // a change of "0" prints no decimals, so its apparent step is a whole unit
+        // and accepts anything on a micro-priced asset. a per cent of the price
+        // caps it, and covers whole units on a price in the tens of thousands
+        const quantumCap = Precise.stringDiv (Precise.stringAbs (close), '100');
+        changeQuantum = Precise.stringMin (changeQuantum, quantumCap);
+        const changeWindow = Precise.stringMax (pricePart, changeQuantum);
         const difference = Precise.stringAbs (Precise.stringSub (changeString, Precise.stringSub (close, open)));
         assert (Precise.stringLe (difference, changeWindow), '`change` should be `last - open`' + logText);
     }
     if ((changeString !== undefined) && (percentageString !== undefined) && (open !== undefined) && !('comparePercentage' in skippedProperties)) {
         const derived = Precise.stringMul (Precise.stringDiv (changeString, open), '100');
-        // exchanges round the percentage they report, so allow one part in fifty
-        // of the derived value plus an absolute floor for moves near zero. a
-        // ratio reported where a percentage belongs is out by a hundred and
-        // clears this by three orders of magnitude
+        // exchanges round the percentage, so allow one part in fifty of the derived
+        // value plus a floor for moves near zero. a ratio where a percentage
+        // belongs is out by a hundred and clears that by three orders of magnitude
         const relative = Precise.stringDiv (Precise.stringAbs (derived), '50');
         const allowed = Precise.stringMax (relative, '0.01');
         const gap = Precise.stringAbs (Precise.stringSub (percentageString, derived));
