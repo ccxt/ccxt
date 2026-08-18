@@ -7339,18 +7339,18 @@
                             "cw": "49.81083984",
                             "bc": "-1.00000000"
                         },
-                        "free": 49.81083984,
+                        "free": null,
                         "used": null,
-                        "total": null
+                        "total": 49.81083984
                     },
                     "free": {
-                        "USDT": 49.81083984
+                        "USDT": null
                     },
                     "used": {
                         "USDT": null
                     },
                     "total": {
-                        "USDT": null
+                        "USDT": 49.81083984
                     },
                     "timestamp": 1696244249320,
                     "datetime": "2023-10-02T10:57:29.320Z"
@@ -7416,18 +7416,18 @@
                             "cw": "54.04945926",
                             "bc": "1.00000000"
                         },
-                        "free": 54.04945926,
+                        "free": null,
                         "used": null,
-                        "total": null
+                        "total": 54.04945926
                     },
                     "free": {
-                        "USDT": 54.04945926
+                        "USDT": null
                     },
                     "used": {
                         "USDT": null
                     },
                     "total": {
-                        "USDT": null
+                        "USDT": 54.04945926
                     },
                     "timestamp": 1696242817000,
                     "datetime": "2023-10-02T10:33:37.000Z"

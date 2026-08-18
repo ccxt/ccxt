@@ -1722,8 +1722,7 @@ export default class bingx extends bingxRest {
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['info'] = balance;
-            account['used'] = this.safeString (balance, 'lk');
-            account['free'] = this.safeString (balance, 'wb');
+            account['total'] = this.safeString (balance, 'wb');
             if ((type !== undefined) && (code !== undefined)) {
                 this.balance[type][code] = account;
             }
