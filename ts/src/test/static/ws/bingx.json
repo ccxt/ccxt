@@ -7361,7 +7361,7 @@
                 "input": [
                     {
                         "type": "spot",
-                        "fetchBalanceSnapshot": true,
+                        "fetchBalanceSnapshot": false,
                         "awaitBalanceSnapshot": true
                     }
                 ],
@@ -7370,19 +7370,6 @@
                     "lastAuthenticatedTime": 9999999999999
                 },
                 "url": "wss://open-api-ws.bingx.com/market?listenKey=test-listen-key",
-                "httpResponse": {
-                    "code": 0,
-                    "msg": "",
-                    "data": {
-                        "balances": [
-                            {
-                                "asset": "USDT",
-                                "free": "54.04945926",
-                                "locked": "0"
-                            }
-                        ]
-                    }
-                },
                 "messages": [
                     {
                         "e": "ACCOUNT_UPDATE",
