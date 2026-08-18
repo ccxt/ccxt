@@ -111,12 +111,14 @@ impl Value {
                 if let Some(id) = cache_id_of_m(m) {
                     with_cache_cell(id, |c| {
                         if let Some(Value::Arr(data)) = c.get_mut("_data") { Arc::make_mut(data).clear(); }
+                        cache_reset_bookkeeping(c);
                     });
                 } else {
                     let m = Arc::make_mut(m);
                     if let Some(Value::Arr(data)) = m.get_mut("_data") {
                         Arc::make_mut(data).clear();
                     }
+                    cache_reset_bookkeeping(m);
                 }
             }
             _ => {}
@@ -676,6 +678,16 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
             if k == "cache" {
                 if let Some(id) = book_id_of(m) { return book_cache_handle(id); }
             }
+            // A cache marker's `hashmap` (bucket index) lives in the shared
+            // CACHE_STORE cell, not the marker Dict — route the read there so a
+            // transpiled `cache.hashmap` sees live bucket state (the base-ws
+            // eviction test counts `Object.keys(cache.hashmap)`).
+            if k == "hashmap" && m.contains_key("__cacheKind") {
+                if let Some(id) = cache_id_of_m(m) {
+                    return with_cache_cell(id, |c| c.get("hashmap").cloned().unwrap_or(Value::Null));
+                }
+                return m.get("hashmap").cloned().unwrap_or(Value::Null);
+            }
             // A client handle (`Map{url, subscriptions, futures}`) serves its
             // subscriptions/futures live from the WS registry, so a read after a
             // write (upbit sets subs then reads them back to build its subscribe
@@ -825,7 +837,14 @@ pub fn deep_extend(dst: Value, src: Value) -> Value {
 fn cache_str_field(item: &Value, key: &str) -> Option<String> {
     match item {
         Value::Dict(d) => match d.get(key) {
+            // Coerce to the string the TS uses as an object key: exchanges send
+            // integer order ids, and JS `byId[1]` / `byId["1"]` are the same slot,
+            // so a numeric id must dedupe like its string form (else the bucket
+            // lookup and the _data removal disagree and a duplicate row leaks).
             Some(Value::Str(s)) => Some(s.clone()),
+            Some(Value::Int(n)) => Some(n.to_string()),
+            Some(Value::Float(f)) => Some(f.to_string()),
+            Some(Value::Bool(b)) => Some(b.to_string()),
             _ => None,
         },
         _ => None,
@@ -956,6 +975,97 @@ fn cache_set_bool(m: &mut HashMap<String, Value>, key: &str, value: bool) {
     m.insert(key.to_string(), Value::Bool(value));
 }
 
+// Reset the per-kind bookkeeping that a `clear()` must drop, mirroring the TS
+// `ArrayCache` / `ArrayCacheByTimestamp` `clear()` overrides (base/ws/Cache.ts):
+// the keyed caches find rows through the hashmap and report new-update counts,
+// so a `clear()` that only truncates `_data` leaves the hashmap + counters
+// claiming rows that are gone — `getLimit()` then keeps reporting phantom
+// updates and the next `append` merges into an orphaned reference. Only fields
+// already present are reset (guards the bare-marker fallback path). The caller
+// truncates `_data` separately.
+fn cache_reset_bookkeeping(state: &mut HashMap<String, Value>) {
+    for k in ["hashmap", "_newUpdatesBySymbol", "_seenUpdatesBySymbol", "_seenUpdatesAll",
+              "_clearUpdatesBySymbol", "_sizeTracker"] {
+        if state.contains_key(k) {
+            state.insert(k.to_string(), Value::Map(HashMap::new()));
+        }
+    }
+    if state.contains_key("_allNewUpdates") { cache_set_int(state, "_allNewUpdates", 0); }
+    if state.contains_key("_newUpdates") { cache_set_int(state, "_newUpdates", 0); }
+    if state.contains_key("_clearAllUpdates") { cache_set_bool(state, "_clearAllUpdates", false); }
+    if state.contains_key("_clearUpdates") { cache_set_bool(state, "_clearUpdates", false); }
+}
+
+// ── ArrayCache update-counter scopes ────────────────────────────────────────
+// The keyed caches (BySymbolById / ByOutcomeById / BySymbolBySide) count the
+// distinct second-level keys (id / side) seen since the last poll, kept in TWO
+// independent scopes so a symbol-scoped poll and a global poll clear each other
+// without interfering (mirrors `seenUpdatesBySymbol` / `seenUpdatesAll` in
+// base/ws/Cache.ts). A "set" is a `Map<key2, Bool>` nested under `field[key1]`.
+
+// Apply a pending global-scope clear at the top of `append` (TS `clearAllUpdates`).
+fn cache_apply_clear_all(m: &mut HashMap<String, Value>) {
+    if cache_bool_field(m, "_clearAllUpdates") {
+        cache_set_bool(m, "_clearAllUpdates", false);
+        cache_set_int(m, "_allNewUpdates", 0);
+        cache_dict_field_mut(m, "_seenUpdatesAll").clear();
+    }
+}
+
+// Take (and reset) the pending symbol-scoped clear flag for `key1`.
+fn cache_take_symbol_clear(m: &mut HashMap<String, Value>, key1: &str) -> bool {
+    let cs = cache_dict_field_mut(m, "_clearUpdatesBySymbol");
+    if matches!(cs.get(key1), Some(Value::Bool(true))) {
+        cs.insert(key1.to_string(), Value::Bool(false));
+        true
+    } else {
+        false
+    }
+}
+
+// Add `key2` to the seen-set `field[key1]`; returns the resulting set size.
+fn cache_seen_add(m: &mut HashMap<String, Value>, field: &str, key1: &str, key2: &str) -> i64 {
+    let outer = cache_dict_field_mut(m, field);
+    let set = outer.entry(key1.to_string()).or_insert_with(|| Value::Map(HashMap::new()));
+    if let Value::Dict(sd) = set {
+        let sd = Arc::make_mut(sd);
+        sd.insert(key2.to_string(), Value::Bool(true));
+        sd.len() as i64
+    } else {
+        0
+    }
+}
+
+// Size of the seen-set `field[key1]` (0 if absent).
+fn cache_seen_size(m: &mut HashMap<String, Value>, field: &str, key1: &str) -> i64 {
+    match cache_dict_field_mut(m, field).get(key1) {
+        Some(Value::Dict(sd)) => sd.len() as i64,
+        _ => 0,
+    }
+}
+
+// Empty the seen-set `field[key1]` (leaves the bucket in place).
+fn cache_seen_clear(m: &mut HashMap<String, Value>, field: &str, key1: &str) {
+    if let Some(Value::Dict(sd)) = cache_dict_field_mut(m, field).get_mut(key1) {
+        Arc::make_mut(sd).clear();
+    }
+}
+
+// Remove `key2` from the seen-set `field[key1]`; returns whether it was present.
+// Drops the outer bucket once its set is empty (TS eviction cleanup).
+fn cache_seen_remove(m: &mut HashMap<String, Value>, field: &str, key1: &str, key2: &str) -> bool {
+    let outer = cache_dict_field_mut(m, field);
+    let (removed, empty) = if let Some(Value::Dict(sd)) = outer.get_mut(key1) {
+        let sd = Arc::make_mut(sd);
+        let removed = sd.shift_remove(key2).is_some();
+        (removed, sd.is_empty())
+    } else {
+        (false, false)
+    };
+    if empty { outer.shift_remove(key1); }
+    removed
+}
+
 // ── Shared cache backing store ──────────────────────────────────────────────
 // ArrayCache & friends must survive COW clones the way order-book sides do: a
 // handler creates a cache, stores a *clone* in `self.ohlcvs[sym][tf]`, appends
@@ -1043,8 +1153,12 @@ fn cache_append_inner(m: &mut HashMap<String, Value>, kind: &str, cap: Option<us
                 let data = cache_data_mut(m);
                 if let Some(cap) = cap { if data.len() == cap { data.remove(0); } }
                 data.push(item.clone());
-                cache_reset_counters_if_needed(m, &item, /*by_id_set=*/ false, /*by_side_set=*/ false);
+                // Base ArrayCache counts every append (not distinct ids), per scope.
+                cache_apply_clear_all(m);
                 let sym = cache_str_field(&item, "symbol").unwrap_or_default();
+                if cache_take_symbol_clear(m, &sym) {
+                    cache_dict_field_mut(m, "_newUpdatesBySymbol").insert(sym.clone(), Value::Int(0));
+                }
                 {
                     let nubs = cache_dict_field_mut(m, "_newUpdatesBySymbol");
                     let cur = match nubs.get(&sym) { Some(Value::Int(n)) => *n, _ => 0 };
@@ -1121,9 +1235,14 @@ fn cache_append_inner(m: &mut HashMap<String, Value>, kind: &str, cap: Option<us
                 };
                 cache_set_int(m, "_newUpdates", st_len);
             }
-            "ArrayCacheBySymbolById" | "ArrayCacheBySymbolBySide" => {
-                let symbol = cache_str_field(&item, "symbol").unwrap_or_default();
-                let key2_name = if kind == "ArrayCacheBySymbolById" { "id" } else { "side" };
+            "ArrayCacheBySymbolById" | "ArrayCacheBySymbolBySide" | "ArrayCacheByOutcomeById" => {
+                // ArrayCacheByOutcomeById keys the outer bucket on `outcome` — prediction
+                // markets stream several outcomes of one market that can share an order id,
+                // so a symbol-keyed lookup would merge two distinct outcomes into one row.
+                // The others key on `symbol`. Second level is `id` except BySymbolBySide.
+                let key1_name = if kind == "ArrayCacheByOutcomeById" { "outcome" } else { "symbol" };
+                let symbol = cache_str_field(&item, key1_name).unwrap_or_default();
+                let key2_name = if kind == "ArrayCacheBySymbolBySide" { "side" } else { "id" };
                 let key2 = cache_str_field(&item, key2_name).unwrap_or_default();
                 let was_duplicate = {
                     let hm = cache_dict_field_mut(m, "hashmap");
@@ -1166,7 +1285,7 @@ fn cache_append_inner(m: &mut HashMap<String, Value>, kind: &str, cap: Option<us
                         let data = cache_data_mut(m);
                         if let Some(pos) = data.iter().position(|x| {
                             cache_str_field(x, key2_name).as_deref() == Some(&key2)
-                                && cache_str_field(x, "symbol").as_deref() == Some(&symbol)
+                                && cache_str_field(x, key1_name).as_deref() == Some(&symbol)
                         }) { data.remove(pos); }
                     }
                     merged
@@ -1188,30 +1307,48 @@ fn cache_append_inner(m: &mut HashMap<String, Value>, kind: &str, cap: Option<us
                         let data = cache_data_mut(m);
                         if data.is_empty() { Value::Null } else { data.remove(0) }
                     };
-                    let r_sym = cache_str_field(&removed, "symbol").unwrap_or_default();
+                    let r_sym = cache_str_field(&removed, key1_name).unwrap_or_default();
                     let r_key2 = cache_str_field(&removed, key2_name).unwrap_or_default();
-                    let hm = cache_dict_field_mut(m, "hashmap");
-                    if let Some(Value::Dict(bd)) = hm.get_mut(&r_sym) {
-                        Arc::make_mut(bd).shift_remove(&r_key2);
+                    {
+                        let hm = cache_dict_field_mut(m, "hashmap");
+                        let now_empty = if let Some(Value::Dict(bd)) = hm.get_mut(&r_sym) {
+                            let bd = Arc::make_mut(bd);
+                            bd.shift_remove(&r_key2);
+                            bd.is_empty()
+                        } else { false };
+                        // Drop the emptied outer bucket, else a stream of short-lived
+                        // keys leaks one empty object per key forever (mirrors TS
+                        // `delete this.hashmap[deleteKey]` when its last id is gone).
+                        if now_empty { hm.shift_remove(&r_sym); }
+                    }
+                    // The evicted key2 leaves both update scopes; a single-scope
+                    // poller never fires the other scope's clear, so decrement the
+                    // counts here or they would report the evicted id forever.
+                    if cache_seen_remove(m, "_seenUpdatesBySymbol", &r_sym, &r_key2) {
+                        let nubs = cache_dict_field_mut(m, "_newUpdatesBySymbol");
+                        if let Some(Value::Int(n)) = nubs.get(&r_sym).cloned() {
+                            nubs.insert(r_sym.clone(), Value::Int(n - 1));
+                        }
+                    }
+                    if cache_seen_remove(m, "_seenUpdatesAll", &r_sym, &r_key2) {
+                        let all = cache_int_field(m, "_allNewUpdates");
+                        cache_set_int(m, "_allNewUpdates", all - 1);
                     }
                 }
                 cache_data_mut(m).push(item_to_store);
 
-                // Per-symbol Set-based update tracking.
-                cache_reset_counters_if_needed(m, &item, /*by_id_set=*/ kind == "ArrayCacheBySymbolById", /*by_side_set=*/ kind == "ArrayCacheBySymbolBySide");
-                let before;
-                let after;
-                {
-                    let nubs = cache_dict_field_mut(m, "_newUpdatesBySymbol");
-                    let bucket = nubs.entry(symbol.clone())
-                        .or_insert_with(|| Value::Map(HashMap::new()));
-                    if let Value::Dict(bd) = bucket {
-                        let bd = Arc::make_mut(bd);
-                        before = bd.len() as i64;
-                        bd.insert(key2.clone(), Value::Bool(true));
-                        after = bd.len() as i64;
-                    } else { before = 0; after = 0; }
+                // Keyed caches count the distinct second-level keys (id / side)
+                // seen per scope. Mirror ArrayCacheBySymbolById/BySymbolBySide
+                // .append (base/ws/Cache.ts): symbol scope and global scope keep
+                // independent seen-sets, each cleared only by its own poll.
+                cache_apply_clear_all(m);
+                if cache_take_symbol_clear(m, &symbol) {
+                    cache_seen_clear(m, "_seenUpdatesBySymbol", &symbol);
                 }
+                let sz = cache_seen_add(m, "_seenUpdatesBySymbol", &symbol, &key2);
+                cache_dict_field_mut(m, "_newUpdatesBySymbol").insert(symbol.clone(), Value::Int(sz));
+                let before = cache_seen_size(m, "_seenUpdatesAll", &symbol);
+                let after = cache_seen_add(m, "_seenUpdatesAll", &symbol, &key2);
                 let all = cache_int_field(m, "_allNewUpdates");
                 cache_set_int(m, "_allNewUpdates", all + (after - before));
             }
@@ -1220,48 +1357,25 @@ fn cache_append_inner(m: &mut HashMap<String, Value>, kind: &str, cap: Option<us
     }
 }
 
-fn cache_reset_counters_if_needed(m: &mut HashMap<String, Value>, item: &Value, by_id_set: bool, by_side_set: bool) {
-    if cache_bool_field(m, "_clearAllUpdates") {
-        cache_set_bool(m, "_clearAllUpdates", false);
-        cache_dict_field_mut(m, "_clearUpdatesBySymbol").clear();
-        cache_set_int(m, "_allNewUpdates", 0);
-        cache_dict_field_mut(m, "_newUpdatesBySymbol").clear();
-    }
-    let sym = cache_str_field(item, "symbol").unwrap_or_default();
-    let pending = {
-        let cs = cache_dict_field_mut(m, "_clearUpdatesBySymbol");
-        matches!(cs.get(&sym), Some(Value::Bool(true)))
-    };
-    if pending {
-        cache_dict_field_mut(m, "_clearUpdatesBySymbol")
-            .insert(sym.clone(), Value::Bool(false));
-        let by_set = by_id_set || by_side_set;
-        let nubs = cache_dict_field_mut(m, "_newUpdatesBySymbol");
-        if by_set {
-            if let Some(Value::Dict(bd)) = nubs.get_mut(&sym) {
-                Arc::make_mut(bd).clear();
-            }
-        } else {
-            nubs.insert(sym, Value::Int(0));
-        }
-    }
-}
 
 pub(crate) fn cache_get_limit(target: &mut Value, symbol: Value, limit: Value) -> Value {
     let kind = cache_kind(target).unwrap_or_default();
-    let nested_set = matches!(kind.as_str(), "ArrayCacheBySymbolById" | "ArrayCacheBySymbolBySide");
     if let Some(id) = cache_id_of(target) {
-        return with_cache_cell(id, |m| cache_get_limit_inner(m, &kind, nested_set, symbol, limit));
+        return with_cache_cell(id, |m| cache_get_limit_inner(m, &kind, symbol, limit));
     }
     if let Value::Dict(m_arc) = target {
         let m = Arc::make_mut(m_arc);
-        cache_get_limit_inner(m, &kind, nested_set, symbol, limit)
+        cache_get_limit_inner(m, &kind, symbol, limit)
     } else {
         limit
     }
 }
 
-fn cache_get_limit_inner(m: &mut HashMap<String, Value>, kind: &str, nested_set: bool, symbol: Value, limit: Value) -> Value {
+// Mirrors `ArrayCache.getLimit` (base/ws/Cache.ts). A `symbol` arg polls the
+// symbol scope and arms its clear; `undefined` (Null) polls the global scope.
+// The count is `undefined` only when the key was never seen — then the caller's
+// `limit` passes through unclamped.
+fn cache_get_limit_inner(m: &mut HashMap<String, Value>, kind: &str, symbol: Value, limit: Value) -> Value {
     {
         // `ArrayCacheByTimestamp` doesn't track per-symbol updates —
         // both `getLimit(undefined, …)` and `getLimit(sym, …)` return
@@ -1280,10 +1394,8 @@ fn cache_get_limit_inner(m: &mut HashMap<String, Value>, kind: &str, nested_set:
                 Some(cache_int_field(m, "_allNewUpdates"))
             }
             Value::Str(sym) => {
-                let nubs = cache_dict_field_mut(m, "_newUpdatesBySymbol");
-                let v = match nubs.get(sym) {
+                let v = match cache_dict_field_mut(m, "_newUpdatesBySymbol").get(sym) {
                     Some(Value::Int(n)) => Some(*n),
-                    Some(Value::Dict(bd)) if nested_set => Some(bd.len() as i64),
                     _ => None,
                 };
                 cache_dict_field_mut(m, "_clearUpdatesBySymbol")
@@ -1295,7 +1407,6 @@ fn cache_get_limit_inner(m: &mut HashMap<String, Value>, kind: &str, nested_set:
         match (new_updates_value, &limit) {
             (None,    _)              => limit.clone(),
             (Some(v), Value::Int(l))  => Value::Int(v.min(*l)),
-            (Some(v), Value::Null)    => Value::Int(v),
             (Some(v), _)              => Value::Int(v),
         }
     }

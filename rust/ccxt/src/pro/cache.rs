@@ -23,6 +23,10 @@ pub const KIND_ARRAY_CACHE:              &str = "ArrayCache";
 pub const KIND_ARRAY_CACHE_BY_TIMESTAMP: &str = "ArrayCacheByTimestamp";
 pub const KIND_ARRAY_CACHE_BY_SYMBOL_ID: &str = "ArrayCacheBySymbolById";
 pub const KIND_ARRAY_CACHE_BY_SYMBOL_SIDE: &str = "ArrayCacheBySymbolBySide";
+// Prediction-market cache: like BySymbolById but keys the outer bucket on
+// `outcome` (several outcomes of one market can share an order id), so it needs
+// a distinct tag or the append dispatch merges two outcomes into one row.
+pub const KIND_ARRAY_CACHE_BY_OUTCOME_ID: &str = "ArrayCacheByOutcomeById";
 
 /// Internal constructor: builds the marker `Value::Dict` with default
 /// bookkeeping fields. Per-kind overrides flip specific fields after.
@@ -34,6 +38,10 @@ fn new_marker(kind: &str, max_size: Value) -> Value {
     state.insert("_data".to_string(),             Value::Array(Vec::new()));
     state.insert("hashmap".to_string(),           Value::Map(IndexMap::new()));
     state.insert("_newUpdatesBySymbol".to_string(),   Value::Map(IndexMap::new()));
+    // Two independent distinct-key seen-sets: the symbol-scoped poll and the
+    // global poll each clear only their own scope (see value::cache_seen_*).
+    state.insert("_seenUpdatesBySymbol".to_string(),  Value::Map(IndexMap::new()));
+    state.insert("_seenUpdatesAll".to_string(),       Value::Map(IndexMap::new()));
     state.insert("_clearUpdatesBySymbol".to_string(), Value::Map(IndexMap::new()));
     state.insert("_allNewUpdates".to_string(),    Value::Int(0));
     state.insert("_clearAllUpdates".to_string(),  Value::Bool(false));
@@ -87,6 +95,6 @@ impl ArrayCacheBySymbolBySide {
 pub struct ArrayCacheByOutcomeById;
 impl ArrayCacheByOutcomeById {
     pub fn new(max_size: Value) -> Value {
-        new_marker(KIND_ARRAY_CACHE_BY_SYMBOL_ID, max_size)
+        new_marker(KIND_ARRAY_CACHE_BY_OUTCOME_ID, max_size)
     }
 }
