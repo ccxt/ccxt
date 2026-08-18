@@ -664,10 +664,15 @@ export default class binance extends binanceRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyLiquidationsForSymbols', market, params);
         let subType: Str = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('watchMyLiquidationsForSymbols', market, params);
-        if (this.isLinear (type, subType)) {
-            type = 'future';
-        } else if (this.isInverse (type, subType)) {
-            type = 'delivery';
+        // same guard authenticate carries: this local rewrite must agree with the
+        // bucket authenticate writes, or the listenKey read below dereferences an
+        // options bucket that was never seeded and throws
+        if (type !== 'option' && type !== 'stock') {
+            if (this.isLinear (type, subType)) {
+                type = 'future';
+            } else if (this.isInverse (type, subType)) {
+                type = 'delivery';
+            }
         }
         await this.authenticate (params);
         const listenKey = this.options[type]['listenKey'];
@@ -3056,10 +3061,17 @@ export default class binance extends binanceRest {
         [ subType, params ] = this.handleSubTypeAndParams ('authenticate', undefined, params);
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'authenticate', 'papi', 'portfolioMargin', false);
-        if (this.isLinear (type, subType)) {
-            type = 'future';
-        } else if (this.isInverse (type, subType)) {
-            type = 'delivery';
+        if (type !== 'option' && type !== 'stock') {
+            // guard option and stock from the rewrite: isLinear keys off subType alone
+            // when a subType is present - a defaultSubType of 'linear' would flip
+            // 'option' to 'future' and authenticate an option user stream with a
+            // FUTURES listen key stored in the future bucket. keepAliveListenKey
+            // carries the same guard; stock joins this path in the auth consolidation
+            if (this.isLinear (type, subType)) {
+                type = 'future';
+            } else if (this.isInverse (type, subType)) {
+                type = 'delivery';
+            }
         }
         // For spot use WebSocket API signature subscription
         if (type === 'spot') {
@@ -3520,10 +3532,16 @@ export default class binance extends binanceRest {
         [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params);
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchBalance', 'papi', 'portfolioMargin', false);
-        if (this.isLinear (type, subType)) {
-            type = 'future';
-        } else if (this.isInverse (type, subType)) {
-            type = 'delivery';
+        // same guard authenticate carries: this local rewrite must agree with the
+        // bucket authenticate writes, or the listenKey read below dereferences an
+        // options bucket that was never seeded and throws - and the explicit
+        // urlType branch for option below would be unreachable
+        if (type !== 'option' && type !== 'stock') {
+            if (this.isLinear (type, subType)) {
+                type = 'future';
+            } else if (this.isInverse (type, subType)) {
+                type = 'delivery';
+            }
         }
         let url = '';
         let urlType = type;
