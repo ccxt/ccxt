@@ -3056,10 +3056,17 @@ export default class binance extends binanceRest {
         [ subType, params ] = this.handleSubTypeAndParams ('authenticate', undefined, params);
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'authenticate', 'papi', 'portfolioMargin', false);
-        if (this.isLinear (type, subType)) {
-            type = 'future';
-        } else if (this.isInverse (type, subType)) {
-            type = 'delivery';
+        if (type !== 'option' && type !== 'stock') {
+            // guard option and stock from the rewrite: isLinear keys off subType alone
+            // when a subType is present - a defaultSubType of 'linear' would flip
+            // 'option' to 'future' and authenticate an option user stream with a
+            // FUTURES listen key stored in the future bucket. keepAliveListenKey
+            // carries the same guard; stock joins this path in the auth consolidation
+            if (this.isLinear (type, subType)) {
+                type = 'future';
+            } else if (this.isInverse (type, subType)) {
+                type = 'delivery';
+            }
         }
         // For spot use WebSocket API signature subscription
         if (type === 'spot') {
