@@ -1166,20 +1166,9 @@
                 ]
             },
             {
-                "description": "Fetch Tickers - swap",
-                "method": "fetchTickers",
-                "url": "https://api.gateio.ws/api/v4/futures/usdt/tickers?timezone=utc0",
-                "input": [
-                    null,
-                    {
-                        "type": "swap"
-                    }
-                ]
-            },
-            {
                 "description": "Fetch Tickers - future",
                 "method": "fetchTickers",
-                "url": "https://api.gateio.ws/api/v4/delivery/btc/tickers?timezone=utc0",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/tickers?timezone=utc0",
                 "input": [
                     null,
                     {
