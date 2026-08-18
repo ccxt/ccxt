@@ -3112,7 +3112,7 @@ export default class bingx extends Exchange {
         const isTriggerOrder = triggerPrice !== undefined;
         const isStopLossPriceOrder = stopLossPrice !== undefined;
         const isTakeProfitPriceOrder = takeProfitPrice !== undefined;
-        const exchangeClientOrderId = isSpot ? 'newClientOrderId' : 'clientOrderID';
+        const exchangeClientOrderId = isSpot ? 'newClientOrderId' : 'clientOrderId';
         const clientOrderId = this.safeString2 (params, exchangeClientOrderId, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request[exchangeClientOrderId] = clientOrderId;
@@ -4039,20 +4039,21 @@ export default class bingx extends Exchange {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
             }
             market = this.market (symbol);
-            const request: Dict = {
-                'symbol': market['id'],
-            };
-            const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientOrderID');
-            params = this.omit (params, [ 'clientOrderId' ]);
-            if (clientOrderId !== undefined) {
-                request['clientOrderID'] = clientOrderId;
-            } else {
-                request['orderId'] = id;
-            }
             let type: Str = undefined;
             let subType: Str = undefined;
             [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
             [ subType, params ] = this.handleSubTypeAndParams ('cancelOrder', market, params);
+            const request: Dict = {
+                'symbol': market['id'],
+            };
+            const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientOrderID');
+            params = this.omit (params, [ 'clientOrderId', 'clientOrderID' ]);
+            if (clientOrderId !== undefined) {
+                const clientOrderIdRequest = (type === 'spot') ? 'clientOrderID' : 'clientOrderId';
+                request[clientOrderIdRequest] = clientOrderId;
+            } else {
+                request['orderId'] = id;
+            }
             if (type === 'spot') {
                 response = await this.spotV1PrivatePostTradeCancel (this.extend (request, params));
             } else {
@@ -4526,14 +4527,21 @@ export default class bingx extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
             }
             market = this.market (symbol);
-            const request: Dict = {
-                'symbol': market['id'],
-                'orderId': id,
-            };
             let type: Str = undefined;
             let subType: Str = undefined;
             [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
             [ subType, params ] = this.handleSubTypeAndParams ('fetchOrder', market, params);
+            const request: Dict = {
+                'symbol': market['id'],
+            };
+            const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientOrderID');
+            params = this.omit (params, [ 'clientOrderId', 'clientOrderID' ]);
+            if (clientOrderId !== undefined) {
+                const clientOrderIdRequest = (type === 'spot') ? 'clientOrderID' : 'clientOrderId';
+                request[clientOrderIdRequest] = clientOrderId;
+            } else {
+                request['orderId'] = id;
+            }
             if (type === 'spot') {
                 response = await this.spotV1PrivateGetTradeQuery (this.extend (request, params));
                 //
@@ -6620,8 +6628,18 @@ export default class bingx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        if (market['inverse']) {
+            throw new NotSupported (this.id + ' editOrder() is not supported for inverse swap markets');
+        }
+        const cancelClientOrderId = this.safeString2 (params, 'cancelClientOrderId', 'cancelClientOrderID');
+        params = this.omit (params, [ 'cancelClientOrderId', 'cancelClientOrderID' ]);
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
-        request['cancelOrderId'] = id;
+        if (cancelClientOrderId !== undefined) {
+            const cancelClientOrderIdRequest = market['spot'] ? 'cancelClientOrderID' : 'cancelClientOrderId';
+            request[cancelClientOrderIdRequest] = cancelClientOrderId;
+        } else {
+            request['cancelOrderId'] = id;
+        }
         request['cancelReplaceMode'] = 'STOP_ON_FAILURE';
         let response: Dict;
         if (market['swap']) {
