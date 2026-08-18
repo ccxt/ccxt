@@ -1645,7 +1645,68 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
+    findCommentStart (line: string) {
+        // returns the index of the first comment marker sitting outside of any
+        // string literal or minus one, quote state is tracked per line so that
+        // protocol separators and protocol relative joins inside strings like
+        // https:// or a bare '//' never register as comment starts
+        let quote = ''
+        for (let i = 0; i < line.length; i++) {
+            const c = line[i]
+            if (quote !== '') {
+                if (c === '\\') {
+                    i++
+                } else if (c === quote) {
+                    quote = ''
+                }
+            } else if (c === "'" || c === '"' || c === '`') {
+                quote = c
+            } else if (c === '/' && line[i + 1] === '/' && line[i - 1] !== ':') {
+                // the colon guard keeps bare protocol separators inside jsdoc
+                // blocks like https:// out of the match, those lines feed the
+                // docstring and link conversion passes and must stay visible
+                return i
+            }
+        }
+        return -1
+    }
+
+    maskComments (js: string) {
+        // comment text is documentation, not code to translate, so the body of
+        // every comment is replaced by a regex-inert token before any transform
+        // runs and restored verbatim afterwards, the marker itself stays visible
+        // for the language specific marker conversion rules
+        const masks: string[] = []
+        const lines = js.split ('\n')
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i]
+            const start = this.findCommentStart (line)
+            if (start < 0) {
+                continue
+            }
+            let textStart = start + 2
+            if (line[textStart] === ' ') {
+                textStart++
+            }
+            const text = line.slice (textStart)
+            if (text.length === 0) {
+                continue
+            }
+            masks.push (text)
+            lines[i] = line.slice (0, textStart) + '\x01' + (masks.length - 1).toString () + '\x01'
+        }
+        return { masked: lines.join ('\n'), masks }
+    }
+
+    unmaskComments (body: string, masks: string[]) {
+        return body.replace (/\x01(\d+)\x01/g, (match: string, index: string) => masks[parseInt (index)])
+    }
+
     transpileJavaScriptToPythonAndPHP (args:any) {
+
+        // protect comment bodies from every code transform below
+        const { masked, masks } = this.maskComments (args.js)
+        args.js = masked
 
         // apply common regexes once before branching to language-specific paths
         args.js = this.regexAll (args.js, this.getCommonRegexes ())
@@ -1672,6 +1733,11 @@ class Transpiler {
             // transpile JS -> Sync PHP
             phpBody = this.transpileAsyncPHPToSyncPHP (this.transpileJavaScriptToPHP (args, false))
         }
+
+        python3Body = this.unmaskComments (python3Body, masks)
+        python2Body = this.unmaskComments (python2Body, masks)
+        phpBody = this.unmaskComments (phpBody, masks)
+        phpAsyncBody = this.unmaskComments (phpAsyncBody, masks)
 
         return { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait }
     }
