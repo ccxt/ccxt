@@ -15,10 +15,14 @@ from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import OperationRejected
+from ccxt.base.errors import MarketClosed
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
@@ -546,10 +550,10 @@ class poloniex(Exchange, ImplicitAPI):
                     '21356': BadRequest,  # Order size would cause too much price movement. Reduce order size.
                     '21721': InsufficientFunds,
                     '24101': BadSymbol,  # Invalid symbol
-                    '24102': InvalidOrder,  # Invalid K-line type
-                    '24103': InvalidOrder,  # Invalid endTime
-                    '24104': InvalidOrder,  # Invalid amount
-                    '24105': InvalidOrder,  # Invalid startTime
+                    '24102': BadRequest,  # Invalid K-line type
+                    '24103': BadRequest,  # Invalid endTime
+                    '24104': BadRequest,  # Invalid limit
+                    '24105': BadRequest,  # Invalid startTime
                     '25020': InvalidOrder,  # No active kill switch
                     # Smartorders
                     '25000': InvalidOrder,  # Invalid userId
@@ -572,6 +576,42 @@ class poloniex(Exchange, ImplicitAPI):
                     '25017': ExchangeError,  # No orders were canceled
                     '25018': BadRequest,  # Invalid accountType
                     '25019': BadSymbol,  # Invalid symbol
+                    # Futures v3(https://api-docs.poloniex.com/v3/futures/error)
+                    '250': DuplicateOrderId,  # {"code":250,"msg":"Client order id already exists"} — live-verified on v3/trade/order
+                    '400': BadRequest,  # ILLEGAL_PARAM
+                    '403': PermissionDenied,  # ACCESS_DENY
+                    '404': BadRequest,  # NOT_FOUND
+                    '429': RateLimitExceeded,  # TOO_MANY_REQUEST
+                    '503': ExchangeNotAvailable,  # DEGRADE_ERROR
+                    '1000': AuthenticationError,  # USER_NOT_EXITS
+                    '1001': ExchangeError,  # SYSTEM_CONFIG_ERROR
+                    '1002': OnMaintenance,  # SYSTEM_MAINTENANCE
+                    '1003': AccountSuspended,  # USER_IS_FROZEN
+                    '10000': MarketClosed,  # SYMBOL_NOT_IN_TRADING_STATUS
+                    '10001': BadSymbol,  # SYMBOL_NOT_EXISTS
+                    '10002': InvalidOrder,  # PRICE_LIMIT
+                    '10003': InvalidOrder,  # NO_BID
+                    '10004': InvalidOrder,  # NO_ASK
+                    '10005': MarketClosed,  # SYMBOL_STATUS_PAUSED
+                    '10006': OperationRejected,  # SYMBOL_STATUS_CANCEL_ONLY
+                    '10007': OperationRejected,  # SYMBOL_STATUS_NOT_ALLOWED
+                    '10008': AccountSuspended,  # USER_STATUS_ABNORMAL
+                    '10009': OperationRejected,  # ALREADY_EXISTS_GRID_STRATEGY
+                    '10010': InvalidOrder,  # PRICE_HIGHER_THAN_BANKRUPT_PRICE
+                    '10011': InvalidOrder,  # PRICE_LOWER_THAN_BANKRUPT_PRICE
+                    '10012': InvalidOrder,  # PRICE_HIGHER_THAN_LIQUIDATION_PRICE
+                    '10013': InvalidOrder,  # PRICE_LOWER_THAN_LIQUIDATION_PRICE
+                    '10014': BadRequest,  # PRICE_LIMIT_PARAM
+                    '10015': OperationRejected,  # SYMBOL_STATUS_CLOSE_POSITION_ONLY
+                    '10016': BadRequest,  # BATCH_PLACE_ORDER_SIZE_OVER_LIMIT
+                    '10017': BadRequest,  # BATCH_CANCEL_ORDER_SIZE_OVER_LIMIT
+                    '10018': OperationRejected,  # NO_POSITION_TO_CLOSE_ORDER
+                    '10019': OperationRejected,  # ACCOUNT_STATE_OPEN_LIMIT
+                    '11003': BadRequest,  # UNKNOWN_SOURCE
+                    '11004': OperationRejected,  # ORDER_NOT_CANCELABLE
+                    '11008': OrderNotFound,  # ORDER_NOT_EXISTS
+                    '12004': PermissionDenied,  # NOT_KYC_VERIFIED
+                    '21001': OperationRejected,  # POSITION_NOT_EXIST
                 },
                 'broad': {
                 },
@@ -3508,10 +3548,9 @@ class poloniex(Exchange, ImplicitAPI):
         #
         responseCode = self.safe_string(response, 'code')
         if (responseCode is not None) and (responseCode != '200'):
-            codeInner = response['code']
-            message = self.safe_string(response, 'message')
+            message = self.safe_string_2(response, 'message', 'msg')
             feedback = self.id + ' ' + body
-            self.throw_exactly_matched_exception(self.exceptions['exact'], codeInner, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], responseCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
         return None
