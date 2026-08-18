@@ -674,6 +674,34 @@ function testWsCache () {
     cacheEvictSeen.append ({ 'symbol': 'BTC/USDT', 'id': 'd', 'i': 4 }); // evicts id b
     const evictGlobalCount = cacheEvictSeen.getLimit (undefined, 100);
     assert (evictGlobalCount === 2); // ids c and d - the counts track distinct ids within the retained window in both scopes
+
+    // ----------------------------------------------------------------------------
+    // removeAt () drops exactly one row, keeps the surviving order and returns the
+    // removed row, so the move-to-end and eviction paths built on it stay correct
+
+    const cacheRemoveAt = new ArrayCache ();
+    cacheRemoveAt.append ({ 'symbol': 'BTC/USDT', 'i': 0 });
+    cacheRemoveAt.append ({ 'symbol': 'BTC/USDT', 'i': 1 });
+    cacheRemoveAt.append ({ 'symbol': 'BTC/USDT', 'i': 2 });
+    cacheRemoveAt.append ({ 'symbol': 'BTC/USDT', 'i': 3 });
+    const removedMiddle = cacheRemoveAt.removeAt (1);
+    assert (removedMiddle['i'] === 1);
+    assert (cacheRemoveAt.length === 3);
+    assert (equals (cacheRemoveAt, [
+        { 'symbol': 'BTC/USDT', 'i': 0 },
+        { 'symbol': 'BTC/USDT', 'i': 2 },
+        { 'symbol': 'BTC/USDT', 'i': 3 },
+    ]));
+    const removedLast = cacheRemoveAt.removeAt (2);
+    assert (removedLast['i'] === 3);
+    assert (cacheRemoveAt.length === 2);
+    const removedFirst = cacheRemoveAt.removeAt (0);
+    assert (removedFirst['i'] === 0);
+    assert (cacheRemoveAt.length === 1);
+    assert (cacheRemoveAt[0]['i'] === 2);
+    // the cache is still a real array afterwards, callers slice and iterate it
+    assert (Array.isArray (cacheRemoveAt));
+    assert (cacheRemoveAt.slice ().length === 1);
 }
 
 export default testWsCache;
