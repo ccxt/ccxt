@@ -1,0 +1,21 @@
+{
+    "exchange": "perpl",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": []
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": []
+            }
+        ]
+    }
+}

@@ -1,0 +1,217 @@
+{
+    "exchange": "perpl",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "market with an empty upstream symbol",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": {
+                    "instances": [
+                        {
+                            "ver": 150,
+                            "id": 1,
+                            "address": "0x34b6552d57a35a1d042ccae1951bd1c370112a6f",
+                            "collateral_token_id": 1,
+                            "min_account_open_amount": "10000000",
+                            "min_deposit_amount": "10000000",
+                            "min_withdraw_amount": "10000",
+                            "max_account_equity": "1000000000000",
+                            "max_account_trigger_orders": 16
+                        }
+                    ],
+                    "tokens": [
+                        {
+                            "ver": 150,
+                            "id": 1,
+                            "address": "0x00000000efe302beaa2b3e6e1b18d08d69a9012a",
+                            "symbol": "AUSD",
+                            "name": "AUSD",
+                            "decimals": 6,
+                            "display_precision": 2,
+                            "usd_index": "<index_name>"
+                        }
+                    ],
+                    "markets": [
+                        {
+                            "ver": 150,
+                            "id": 1,
+                            "instance_id": 1,
+                            "perpetual_id": 1,
+                            "symbol": "",
+                            "name": "BTC",
+                            "size_units": "BTC",
+                            "icon": "",
+                            "funding_interval_sec": 2580,
+                            "funding_interval_blocks": 8571,
+                            "order_ttl_blocks": 20,
+                            "order_retry_blocks": 22,
+                            "order_max_market_slippage_bps": 100,
+                            "config": {
+                                "is_open": true,
+                                "price_decimals": 1,
+                                "size_decimals": 5,
+                                "min_posting_amount": "0",
+                                "min_settle_amount": "0",
+                                "funding_sum_scaling_exp": 0,
+                                "initial_margin": 1500,
+                                "maintenance_margin": 2500,
+                                "maker_fee": 90,
+                                "taker_fee": 690,
+                                "maker_fees": [90, 50, 30, 0, 0, 0, 0, 0],
+                                "taker_fees": [690, 600, 500, 420, 350, 300, 250, 0],
+                                "recycle_fee": "0"
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1",
+                        "lowercaseId": null,
+                        "symbol": "BTC/AUSD:AUSD",
+                        "base": "BTC",
+                        "quote": "AUSD",
+                        "settle": "AUSD",
+                        "baseId": "BTC",
+                        "quoteId": "1",
+                        "settleId": "1",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": 0.00069,
+                        "maker": 0.00009,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.00001,
+                            "price": 0.1
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "ver": 150,
+                            "id": 1,
+                            "instance_id": 1,
+                            "perpetual_id": 1,
+                            "symbol": "",
+                            "name": "BTC",
+                            "size_units": "BTC",
+                            "icon": "",
+                            "funding_interval_sec": 2580,
+                            "funding_interval_blocks": 8571,
+                            "order_ttl_blocks": 20,
+                            "order_retry_blocks": 22,
+                            "order_max_market_slippage_bps": 100,
+                            "config": {
+                                "is_open": true,
+                                "price_decimals": 1,
+                                "size_decimals": 5,
+                                "min_posting_amount": "0",
+                                "min_settle_amount": "0",
+                                "funding_sum_scaling_exp": 0,
+                                "initial_margin": 1500,
+                                "maintenance_margin": 2500,
+                                "maker_fee": 90,
+                                "taker_fee": 690,
+                                "maker_fees": [90, 50, 30, 0, 0, 0, 0, 0],
+                                "taker_fees": [690, 600, 500, 420, 350, 300, 250, 0],
+                                "recycle_fee": "0"
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "collateral token",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "tokens": [
+                        {
+                            "ver": 150,
+                            "id": 1,
+                            "address": "0x00000000efe302beaa2b3e6e1b18d08d69a9012a",
+                            "symbol": "AUSD",
+                            "name": "AUSD",
+                            "decimals": 6,
+                            "display_precision": 2,
+                            "usd_index": "<index_name>"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "AUSD": {
+                        "info": {
+                            "ver": 150,
+                            "id": 1,
+                            "address": "0x00000000efe302beaa2b3e6e1b18d08d69a9012a",
+                            "symbol": "AUSD",
+                            "name": "AUSD",
+                            "decimals": 6,
+                            "display_precision": 2,
+                            "usd_index": "<index_name>"
+                        },
+                        "id": "1",
+                        "numericId": null,
+                        "code": "AUSD",
+                        "precision": 0.000001,
+                        "type": "crypto",
+                        "name": "AUSD",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
