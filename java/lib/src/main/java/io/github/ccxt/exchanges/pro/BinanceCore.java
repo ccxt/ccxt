@@ -385,59 +385,6 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> authenticateStock(Object... optionalArgs)
-    {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object options = this.safeDict(this.options, "stock", new java.util.HashMap<String, Object>() {{}});
-            Object lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
-            Object listenKeyRefreshRate = this.safeInteger(this.options, "stockListenKeyRefreshRate", 1200000);
-            Object now = this.milliseconds();
-            Object delay = this.sum(listenKeyRefreshRate, 10000);
-            if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(now, lastAuthenticatedTime)), delay)))
-            {
-                // the stock user stream url embeds this listenKey, so the future is parked
-                // on the listenKey-free market url of the same host
-                Client client = this.client(this.getStockWsUrl("market"));
-                Object messageHash = "authenticate:stock";
-                if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
-                {
-                    // another caller is already fetching, wait for it instead of fetching again
-                    client.future((String)messageHash).getFuture().join();
-                    return null;
-                }
-                client.future((String)messageHash); // created ahead of the request below, so concurrent callers can find it
-                try
-                {
-                    Object requestParams = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe")));
-                    Object response = (this.sapiPostEquityListenKey(requestParams)).join();
-                    Object listenKey = this.safeString(response, "listenKey");
-                    final Object finalNow = now;
-                    Helpers.addElementToObject(this.options, "stock", this.extend(options, new java.util.HashMap<String, Object>() {{
-        put( "listenKey", listenKey );
-        put( "lastAuthenticatedTime", finalNow );
-    }}));
-                    // hoisted out of the delay call: the transpilers garble an inline
-                    // dict literal nested inside a delay argument
-                    Object stockKeepAliveParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
-                        put( "type", "stock" );
-                        put( "defaultType", "stock" );
-                    }});
-                    this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", stockKeepAliveParams);
-                    client.resolve(listenKey, messageHash);
-                } catch(Exception e)
-                {
-                    client.reject(e, messageHash);
-                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
-                }
-            }
-            return null;
-        });
-
-    }
-
     /**
      * @method
      * @name binance#watchLiquidations
@@ -3783,17 +3730,22 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 return null;
             }
             parameters = this.omit(parameters, "symbol");
+            Object isStock = (Helpers.isEqual(type, "stock"));
             Object options = this.safeValue(this.options, type, new java.util.HashMap<String, Object>() {{}});
             Object lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
-            Object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 1200000);
+            Object refreshRateKey = ((Helpers.isTrue(isStock))) ? "stockListenKeyRefreshRate" : "listenKeyRefreshRate";
+            Object listenKeyRefreshRate = this.safeInteger(this.options, refreshRateKey, 1200000);
             Object delay = this.sum(listenKeyRefreshRate, 10000);
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), delay)))
             {
                 // the private url embeds the listenKey that this request produces, so the future
                 // is parked on the listenKey-free base url of that same stream - concurrent
                 // callers wait for the leader instead of fetching a second listenKey, which
-                // would split the user-data subscriptions across two connections
-                Client client = this.client(this.getWsUrl(type, "private"));
+                // would split the user-data subscriptions across two connections. the stock
+                // stream parks on the listenKey-free market url of the same host for the
+                // same reason
+                Object clientUrl = ((Helpers.isTrue(isStock))) ? this.getStockWsUrl("market") : this.getWsUrl(type, "private");
+                Client client = this.client(clientUrl);
                 Object messageHash = Helpers.add("authenticate:", type);
                 if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
                 {
@@ -3805,7 +3757,11 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 try
                 {
                     Object response = null;
-                    if (Helpers.isTrue(isPortfolioMargin))
+                    if (Helpers.isTrue(isStock))
+                    {
+                        Object requestParams = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe")));
+                        response = (this.sapiPostEquityListenKey(requestParams)).join();
+                    } else if (Helpers.isTrue(isPortfolioMargin))
                     {
                         response = (this.papiPostListenKey(parameters)).join();
                         parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
@@ -3830,7 +3786,17 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         put( "listenKey", listenKey );
         put( "lastAuthenticatedTime", finalTime );
     }}));
-                    this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
+                    // hoisted out of the delay call: the transpilers garble an inline
+                    // dict literal nested inside a delay argument
+                    Object delayParams = parameters;
+                    if (Helpers.isTrue(isStock))
+                    {
+                        delayParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                            put( "type", "stock" );
+                            put( "defaultType", "stock" );
+                        }});
+                    }
+                    this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", delayParams);
                     client.resolve(listenKey, messageHash);
                 } catch(Exception e)
                 {
@@ -5348,7 +5314,11 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             parameters = ((java.util.List<Object>) stockparametersVariable).get(1);
             if (Helpers.isTrue(stock))
             {
-                (this.authenticateStock(parameters)).join();
+                // literal on top: a stray type in the caller params must not override
+                // the forced stock, the removed authenticateStock ignored it entirely
+                (this.authenticate(this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                    put( "type", "stock" );
+                }}))).join();
                 Object stockOptions = this.safeDict(this.options, "stock", new java.util.HashMap<String, Object>() {{}});
                 Object stockListenKey = this.safeString(stockOptions, "listenKey");
                 if (Helpers.isTrue(Helpers.isEqual(stockListenKey, null)))
