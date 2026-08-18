@@ -56,7 +56,17 @@ public partial class BaseExchange
             {
                 exception = new Exception($"Future rejected: {data?.ToString() ?? "null"} (Type: {data?.GetType().Name ?? "null"})\n");
             }
-            this.tcs.SetException(exception);
+            // settle-once under the same lock resolve takes: without it a
+            // message-handler thread resolving this future races a teardown or
+            // close-path reject, and SetException on the completed task throws
+            // InvalidOperationException instead of being a no-op
+            lock (obj)
+            {
+                if (!this.tcs.Task.IsCompleted)
+                {
+                    this.tcs.SetException(exception);
+                }
+            }
             // this.tcs = new TaskCompletionSource<object>(); // reset
             // this.task = this.tcs.Task;
         }
