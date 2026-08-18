@@ -7300,8 +7300,8 @@
                             "balance": "49.81083984",
                             "equity": "49.81083984",
                             "unrealizedProfit": "0",
-                            "availableMargin": "49.81083984",
-                            "usedMargin": "0",
+                            "availableMargin": "40",
+                            "usedMargin": "9.81083984",
                             "freezedMargin": "0"
                         }
                     ]
@@ -7339,15 +7339,15 @@
                             "cw": "49.81083984",
                             "bc": "-1.00000000"
                         },
-                        "free": null,
-                        "used": null,
+                        "free": 40,
+                        "used": 9.81083984,
                         "total": 49.81083984
                     },
                     "free": {
-                        "USDT": null
+                        "USDT": 40
                     },
                     "used": {
-                        "USDT": null
+                        "USDT": 9.81083984
                     },
                     "total": {
                         "USDT": 49.81083984
@@ -7416,15 +7416,15 @@
                             "cw": "54.04945926",
                             "bc": "1.00000000"
                         },
-                        "free": null,
-                        "used": null,
+                        "free": 54.04945926,
+                        "used": 0,
                         "total": 54.04945926
                     },
                     "free": {
-                        "USDT": null
+                        "USDT": 54.04945926
                     },
                     "used": {
-                        "USDT": null
+                        "USDT": 0
                     },
                     "total": {
                         "USDT": 54.04945926
