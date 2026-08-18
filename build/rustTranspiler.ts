@@ -7674,7 +7674,11 @@ impl std::ops::DerefMut for ${coreName} {
         // plumbing (`new Client(...)`, `client.future`, `pendingResults`) that
         // isn't exposed for transpilation. Skip them — the Rust WS runtime covers
         // this behaviour directly.
-        const SKIP = new Set<string>(['tests.init', 'test.close', 'test.close.manual', 'test.clientRetention', 'test.singleFlight']);
+        // `test.cacheNative` is a js-only test (its own header says "intentionally
+        // not transpiled"): `removeAt ()` / `slice ()` are JS Array helpers on
+        // BaseCache with no port equivalent; the python/php/cs lanes ship
+        // hand-written siblings (test_cache_native.*). Skip it here too.
+        const SKIP = new Set<string>(['tests.init', 'test.close', 'test.close.manual', 'test.clientRetention', 'test.singleFlight', 'test.cacheNative']);
         for (const testName of testFiles) {
             if (SKIP.has(testName)) continue;
             const tsFile = `${baseFolder}/${testName}.ts`;
