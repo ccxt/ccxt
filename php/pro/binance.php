@@ -683,10 +683,15 @@ class binance extends \ccxt\async\binance {
         list($type, $params) = $this->handle_market_type_and_params('watchMyLiquidationsForSymbols', $market, $params);
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('watchMyLiquidationsForSymbols', $market, $params);
-        if ($this->isLinear($type, $subType)) {
-            $type = 'future';
-        } elseif ($this->isInverse($type, $subType)) {
-            $type = 'delivery';
+        // same guard authenticate carries => this local rewrite must agree with the
+        // bucket authenticate writes, or the $listenKey read below dereferences an
+        // options bucket that was never seeded and throws
+        if ($type !== 'option' && $type !== 'stock') {
+            if ($this->isLinear($type, $subType)) {
+                $type = 'future';
+            } elseif ($this->isInverse($type, $subType)) {
+                $type = 'delivery';
+            }
         }
         Async\await($this->authenticate($params));
         $listenKey = $this->options[$type]['listenKey'];
@@ -3179,10 +3184,17 @@ class binance extends \ccxt\async\binance {
         list($subType, $params) = $this->handle_sub_type_and_params('authenticate', null, $params);
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'authenticate', 'papi', 'portfolioMargin', false);
-        if ($this->isLinear($type, $subType)) {
-            $type = 'future';
-        } elseif ($this->isInverse($type, $subType)) {
-            $type = 'delivery';
+        if ($type !== 'option' && $type !== 'stock') {
+            // guard option and stock from the rewrite => isLinear keys off $subType alone
+            // when a $subType is present - a defaultSubType of 'linear' would flip
+            // 'option' to 'future' and authenticate an option user stream with a
+            // FUTURES listen key stored in the future bucket. keepAliveListenKey
+            // carries the same guard; stock joins this path in the auth consolidation
+            if ($this->isLinear($type, $subType)) {
+                $type = 'future';
+            } elseif ($this->isInverse($type, $subType)) {
+                $type = 'delivery';
+            }
         }
         // For spot use WebSocket API signature subscription
         if ($type === 'spot') {
@@ -3661,10 +3673,16 @@ class binance extends \ccxt\async\binance {
         list($subType, $params) = $this->handle_sub_type_and_params('watchBalance', null, $params);
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'watchBalance', 'papi', 'portfolioMargin', false);
-        if ($this->isLinear($type, $subType)) {
-            $type = 'future';
-        } elseif ($this->isInverse($type, $subType)) {
-            $type = 'delivery';
+        // same guard authenticate carries => this local rewrite must agree with the
+        // bucket authenticate writes, or the listenKey read below dereferences an
+        // $options bucket that was never seeded and throws - and the explicit
+        // $urlType branch for option below would be unreachable
+        if ($type !== 'option' && $type !== 'stock') {
+            if ($this->isLinear($type, $subType)) {
+                $type = 'future';
+            } elseif ($this->isInverse($type, $subType)) {
+                $type = 'delivery';
+            }
         }
         $url = '';
         $urlType = $type;
