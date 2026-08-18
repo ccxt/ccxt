@@ -136,6 +136,7 @@ import p2b from  './src/p2b.js'
 import pacifica from  './src/pacifica.js'
 import paradex from  './src/paradex.js'
 import paymium from  './src/paymium.js'
+import perpl from  './src/perpl.js'
 import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
 import tokocrypto from  './src/tokocrypto.js'
@@ -328,6 +329,7 @@ const exchanges = {
     'pacifica':               pacifica,
     'paradex':                paradex,
     'paymium':                paymium,
+    'perpl':                  perpl,
     'phemex':                 phemex,
     'poloniex':               poloniex,
     'tokocrypto':             tokocrypto,
@@ -690,6 +692,7 @@ export {
     pacifica,
     paradex,
     paymium,
+    perpl,
     phemex,
     poloniex,
     tokocrypto,
