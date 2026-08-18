@@ -93,6 +93,9 @@ export default class extended extends extendedRest {
         //
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 'm');
+        if (marketId === undefined) {
+            return;
+        }
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
@@ -876,23 +879,28 @@ export default class extended extends extendedRest {
                 this.handleOHLCV (client, message);
             }
         } else if (data !== undefined) {
+            let handled = false;
             if ((type === 'ORDER') || ('orders' in data)) {
                 this.handleOrders (client, message);
+                handled = true;
             }
             if ((type === 'TRADE') || ('trades' in data)) {
                 this.handleMyTrades (client, message);
+                handled = true;
             }
             if ((type === 'POSITION') || ('positions' in data)) {
                 this.handlePositions (client, message);
+                handled = true;
             }
             if ((type === 'BALANCE') || ('balance' in data) || ('spotBalances' in data)) {
                 this.handleBalance (client, message);
+                handled = true;
             }
             if (type === 'MP') {
                 this.handleMarkPrice (client, message);
             } else if ('f' in data) {
                 this.handleFundingRate (client, message);
-            } else {
+            } else if (!handled) {
                 this.handleOrderBook (client, message);
             }
         }
