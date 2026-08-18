@@ -7275,6 +7275,164 @@
                     "id"
                 ]
             }
+        ],
+        "watchBalance": [
+            {
+                "description": "swap balance update without positions",
+                "input": [
+                    {
+                        "type": "swap",
+                        "fetchBalanceSnapshot": true,
+                        "awaitBalanceSnapshot": true
+                    }
+                ],
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "url": "wss://open-api-swap.bingx.com/swap-market?listenKey=test-listen-key",
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": [
+                        {
+                            "asset": "USDT",
+                            "balance": "49.81083984",
+                            "equity": "49.81083984",
+                            "unrealizedProfit": "0",
+                            "availableMargin": "49.81083984",
+                            "usedMargin": "0",
+                            "freezedMargin": "0"
+                        }
+                    ]
+                },
+                "messages": [
+                    {
+                        "e": "ACCOUNT_UPDATE",
+                        "E": 1696244249320,
+                        "a": {
+                            "m": "WITHDRAW",
+                            "B": [
+                                {
+                                    "a": "USDT",
+                                    "wb": "49.81083984",
+                                    "cw": "49.81083984",
+                                    "bc": "-1.00000000"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "a": "USDT",
+                            "wb": "49.81083984",
+                            "cw": "49.81083984",
+                            "bc": "-1.00000000"
+                        }
+                    ],
+                    "USDT": {
+                        "info": {
+                            "a": "USDT",
+                            "wb": "49.81083984",
+                            "cw": "49.81083984",
+                            "bc": "-1.00000000"
+                        },
+                        "free": 49.81083984,
+                        "used": null,
+                        "total": null
+                    },
+                    "free": {
+                        "USDT": 49.81083984
+                    },
+                    "used": {
+                        "USDT": null
+                    },
+                    "total": {
+                        "USDT": null
+                    },
+                    "timestamp": 1696244249320,
+                    "datetime": "2023-10-02T10:57:29.320Z"
+                }
+            },
+            {
+                "description": "spot balance update without positions",
+                "input": [
+                    {
+                        "type": "spot",
+                        "fetchBalanceSnapshot": true,
+                        "awaitBalanceSnapshot": true
+                    }
+                ],
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "url": "wss://open-api-ws.bingx.com/market?listenKey=test-listen-key",
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": {
+                        "balances": [
+                            {
+                                "asset": "USDT",
+                                "free": "54.04945926",
+                                "locked": "0"
+                            }
+                        ]
+                    }
+                },
+                "messages": [
+                    {
+                        "e": "ACCOUNT_UPDATE",
+                        "E": 1696242817000,
+                        "a": {
+                            "m": "ASSET_TRANSFER",
+                            "B": [
+                                {
+                                    "a": "USDT",
+                                    "wb": "54.04945926",
+                                    "cw": "54.04945926",
+                                    "bc": "1.00000000"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "a": "USDT",
+                            "wb": "54.04945926",
+                            "cw": "54.04945926",
+                            "bc": "1.00000000"
+                        }
+                    ],
+                    "USDT": {
+                        "info": {
+                            "a": "USDT",
+                            "wb": "54.04945926",
+                            "cw": "54.04945926",
+                            "bc": "1.00000000"
+                        },
+                        "free": 54.04945926,
+                        "used": null,
+                        "total": null
+                    },
+                    "free": {
+                        "USDT": 54.04945926
+                    },
+                    "used": {
+                        "USDT": null
+                    },
+                    "total": {
+                        "USDT": null
+                    },
+                    "timestamp": 1696242817000,
+                    "datetime": "2023-10-02T10:33:37.000Z"
+                }
+            }
         ]
     }
 }
