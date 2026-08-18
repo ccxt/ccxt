@@ -351,43 +351,6 @@ export default class binance extends binanceRest {
         return await this.watchMultiple (url, messageHashes, this.extend (request, query), messageHashes, subscribe);
     }
 
-    async authenticateStock (params: Dict = {}) {
-        const options = this.safeDict (this.options, 'stock', {});
-        const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
-        const listenKeyRefreshRate = this.safeInteger (this.options, 'stockListenKeyRefreshRate', 1200000);
-        const now = this.milliseconds ();
-        const delay = this.sum (listenKeyRefreshRate, 10000);
-        if ((now - lastAuthenticatedTime) > delay) {
-            // the stock user stream url embeds this listenKey, so the future is parked
-            // on the listenKey-free market url of the same host
-            const client = this.client (this.getStockWsUrl ('market'));
-            const messageHash = 'authenticate:stock';
-            if (messageHash in client.futures) {
-                // another caller is already fetching, wait for it instead of fetching again
-                await client.future (messageHash);
-                return;
-            }
-            client.future (messageHash); // created ahead of the request below, so concurrent callers can find it
-            try {
-                const requestParams: Dict = this.omit (params, [ 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ]) as Dict;
-                const response = await this.sapiPostEquityListenKey (requestParams);
-                const listenKey = this.safeString (response, 'listenKey');
-                this.options['stock'] = this.extend (options, {
-                    'listenKey': listenKey,
-                    'lastAuthenticatedTime': now,
-                });
-                // hoisted out of the delay call: the transpilers garble an inline
-                // dict literal nested inside a delay argument
-                const stockKeepAliveParams = this.extend (params, { 'type': 'stock', 'defaultType': 'stock' });
-                this.delay (listenKeyRefreshRate, this.keepAliveListenKey, stockKeepAliveParams);
-                client.resolve (listenKey, messageHash);
-            } catch (e) {
-                client.reject (e, messageHash);
-                throw e;
-            }
-        }
-    }
-
     /**
      * @method
      * @name binance#watchLiquidations
@@ -3095,16 +3058,21 @@ export default class binance extends binanceRest {
             return;
         }
         params = this.omit (params, 'symbol');
+        const isStock = (type === 'stock');
         const options = this.safeValue (this.options, type, {});
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
-        const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
+        const refreshRateKey = isStock ? 'stockListenKeyRefreshRate' : 'listenKeyRefreshRate';
+        const listenKeyRefreshRate = this.safeInteger (this.options, refreshRateKey, 1200000);
         const delay = this.sum (listenKeyRefreshRate, 10000);
         if (time - lastAuthenticatedTime > delay) {
             // the private url embeds the listenKey that this request produces, so the future
             // is parked on the listenKey-free base url of that same stream - concurrent
             // callers wait for the leader instead of fetching a second listenKey, which
-            // would split the user-data subscriptions across two connections
-            const client = this.client (this.getWsUrl (type, 'private'));
+            // would split the user-data subscriptions across two connections. the stock
+            // stream parks on the listenKey-free market url of the same host for the
+            // same reason
+            const clientUrl = isStock ? this.getStockWsUrl ('market') : this.getWsUrl (type, 'private');
+            const client = this.client (clientUrl);
             const messageHash = 'authenticate:' + type;
             if (messageHash in client.futures) {
                 // another caller is already fetching, wait for it instead of fetching again
@@ -3114,7 +3082,10 @@ export default class binance extends binanceRest {
             client.future (messageHash); // created ahead of the request below, so concurrent callers can find it
             try {
                 let response = undefined;
-                if (isPortfolioMargin) {
+                if (isStock) {
+                    const requestParams: Dict = this.omit (params, [ 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ]) as Dict;
+                    response = await this.sapiPostEquityListenKey (requestParams);
+                } else if (isPortfolioMargin) {
                     response = await this.papiPostListenKey (params);
                     params = this.extend (params, { 'portfolioMargin': true });
                 } else if (type === 'future') {
@@ -3131,7 +3102,13 @@ export default class binance extends binanceRest {
                     'listenKey': listenKey,
                     'lastAuthenticatedTime': time,
                 });
-                this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+                // hoisted out of the delay call: the transpilers garble an inline
+                // dict literal nested inside a delay argument
+                let delayParams = params;
+                if (isStock) {
+                    delayParams = this.extend (params, { 'type': 'stock', 'defaultType': 'stock' });
+                }
+                this.delay (listenKeyRefreshRate, this.keepAliveListenKey, delayParams);
                 client.resolve (listenKey, messageHash);
             } catch (e) {
                 client.reject (e, messageHash);
@@ -4343,7 +4320,7 @@ export default class binance extends binanceRest {
         let stock = false;
         [ stock, params ] = this.handleOptionAndParams (params, 'watchOrders', 'stock', false);
         if (stock) {
-            await this.authenticateStock (params);
+            await this.authenticate (this.extend ({ 'type': 'stock' }, params));
             const stockOptions = this.safeDict (this.options, 'stock', {});
             const stockListenKey = this.safeString (stockOptions, 'listenKey');
             if (stockListenKey === undefined) {
