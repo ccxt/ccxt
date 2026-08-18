@@ -351,41 +351,14 @@ class binance(ccxt.async_support.binance):
                     'listenKey': listenKey,
                     'lastAuthenticatedTime': now,
                 })
-                self.delay(listenKeyRefreshRate, self.keep_alive_stock_listen_key, params)
+                # hoisted out of the delay call: the transpilers garble an inline
+                # dict literal nested inside a delay argument
+                stockKeepAliveParams = self.extend(params, {'type': 'stock', 'defaultType': 'stock'})
+                self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, stockKeepAliveParams)
                 client.resolve(listenKey, messageHash)
             except Exception as e:
                 client.reject(e, messageHash)
                 raise e
-
-    async def keep_alive_stock_listen_key(self, params: dict = {}):
-        try:
-            options = self.safe_dict(self.options, 'stock', {})
-            requestParams = self.omit(params, ['stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe'])
-            response = await self.sapiPostEquityListenKey(requestParams)
-            listenKey = self.safe_string(response, 'listenKey')
-            now = self.milliseconds()
-            self.options['stock'] = self.extend(options, {
-                'listenKey': listenKey,
-                'lastAuthenticatedTime': now,
-            })
-        except Exception as error:
-            options = self.safe_dict(self.options, 'stock', {})
-            self.options['stock'] = self.extend(options, {
-                'listenKey': None,
-                'lastAuthenticatedTime': 0,
-            })
-            return
-        clients = list(self.clients.values())
-        listenKeyRefreshRate = self.safe_integer(self.options, 'stockListenKeyRefreshRate', 1200000)
-        for i in range(0, len(clients)):
-            client = clients[i]
-            clientSubscriptions = self.safe_dict(client, 'subscriptions', {})
-            subscriptionKeys = list(clientSubscriptions.keys())
-            for j in range(0, len(subscriptionKeys)):
-                subscribeType = subscriptionKeys[j]
-                if subscribeType == 'stock':
-                    self.delay(listenKeyRefreshRate, self.keep_alive_stock_listen_key, params)
-                    return
 
     def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Liquidation]:
         """
@@ -2880,9 +2853,14 @@ class binance(ccxt.async_support.binance):
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'keepAliveListenKey', 'papi', 'portfolioMargin', False)
         subTypeInfo = self.handle_sub_type_and_params('keepAliveListenKey', None, params)
         subType = subTypeInfo[0]
-        if type != 'option':
+        if type != 'option' and type != 'stock':
             # guard options first: isLinear returns True for linear-settled options(subType='linear')
-            # which would incorrectly convert type='option' to 'future'
+            # which would incorrectly convert type='option' to 'future'.
+            # stock needs the same exemption: with a defaultSubType of 'linear' -
+            # always on binanceusdm, common on mixed instances - isLinear keys off
+            # subType alone and would flip 'stock' to 'future' - the stock branch
+            # below would never run, and the bucket lookup would renew the
+            # FUTURES listen key while the stock key silently expires
             if self.isLinear(type, subType):
                 type = 'future'
             elif self.isInverse(type, subType):
@@ -2890,16 +2868,25 @@ class binance(ccxt.async_support.binance):
         # For margin, token renewal is handled by renewListenToken method
         if type == 'margin':
             return
+        isStock = (type == 'stock')
         options = self.safe_value(self.options, type, {})
         listenKey = self.safe_string(options, 'listenKey')
         if listenKey is None:
             # A network error happened: we can't renew a listen key that does not exist.
+            # self guard now covers stock too - the old stock path would POST here and
+            # resurrect a fresh key without reconnecting the dead stream, leaving the
+            # options bucket claiming a healthy auth over a broken user stream
             return
         request = {}
         params = self.omit(params, ['type', 'symbol'])
         time = self.milliseconds()
         try:
-            if isPortfolioMargin:
+            if isStock:
+                # the equity endpoint is create-or-renew: with an active key self
+                # POST extends the validity of that same key
+                requestParams = self.omit(params, ['stock', 'name', 'callerMethodName', 'subType', 'timeframe'])
+                await self.sapiPostEquityListenKey(requestParams)
+            elif isPortfolioMargin:
                 await self.papiPutListenKey(self.extend(request, params))
                 params = self.extend(params, {'portfolioMargin': True})
             elif type == 'future':
@@ -2912,13 +2899,19 @@ class binance(ccxt.async_support.binance):
                 request['listenKey'] = listenKey
                 await self.publicPutUserDataStream(self.extend(request, params))
         except Exception as error:
-            urlType = type
-            if isPortfolioMargin:
-                urlType = 'papi'
-            if type == 'option':
-                urlType = 'optionPrivate'
-            cachedListenKey = self.options[type]['listenKey']
-            url = self.get_private_ws_url(urlType, cachedListenKey)
+            url = None
+            if isStock:
+                # the stock user stream lives on a fixed url and subscribes to
+                # listenKey@orderReport, so the client is addressable without the key
+                url = self.get_stock_ws_url('user')
+            else:
+                urlType = type
+                if isPortfolioMargin:
+                    urlType = 'papi'
+                if type == 'option':
+                    urlType = 'optionPrivate'
+                cachedListenKey = self.options[type]['listenKey']
+                url = self.get_private_ws_url(urlType, cachedListenKey)
             client = self.client(url)
             messageHashes = list(client.futures.keys())
             for i in range(0, len(messageHashes)):
@@ -2935,7 +2928,12 @@ class binance(ccxt.async_support.binance):
         })
         # whether or not to schedule another listenKey keepAlive request
         clients = list(self.clients.values())
-        listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 1200000)
+        refreshRateKey = 'stockListenKeyRefreshRate' if isStock else 'listenKeyRefreshRate'
+        listenKeyRefreshRate = self.safe_integer(self.options, refreshRateKey, 1200000)
+        delayParams = params
+        if isStock:
+            # params had type omitted above - restore it so the next cycle routes back here
+            delayParams = self.extend(params, {'type': 'stock'})
         for i in range(0, len(clients)):
             client = clients[i]
             clientSubscriptions = self.safe_dict(client, 'subscriptions', {})
@@ -2943,7 +2941,7 @@ class binance(ccxt.async_support.binance):
             for j in range(0, len(subscriptionKeys)):
                 subscribeType = subscriptionKeys[j]
                 if subscribeType == type:
-                    self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
+                    self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, delayParams)
                     return
 
     def set_balance_cache(self, client: Client, type: object, isPortfolioMargin=False):
