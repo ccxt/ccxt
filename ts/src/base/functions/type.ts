@@ -141,7 +141,11 @@ function safeStringUpper2 (o: safeInputType, k1: NullableIndexType, k2: Nullable
 }
 
 function safeFloatN (o: safeInputType, k: (NullableIndexType)[], $default?: number): Num {
-    const n = asFloat (getValueFromKeysInArray (o, k));
+    const found = getValueFromKeysInArray (o, k);
+    if (found === undefined) {
+        return $default;
+    }
+    const n = asFloat (found);
     return isNumber (n) ? n : $default;
 }
 
@@ -151,17 +155,29 @@ function safeIntegerN (o: safeInputType, k: (NullableIndexType)[], $default?: nu
     if (o === undefined) {
         return $default;
     }
-    const n = asInteger (getValueFromKeysInArray (o, k));
+    const found = getValueFromKeysInArray (o, k);
+    if (found === undefined) {
+        return $default;
+    }
+    const n = asInteger (found);
     return isNumber (n) ? n : $default;
 }
 
 function safeIntegerProductN (o: safeInputType, k: (NullableIndexType)[], $factor: number, $default?: number): Int {
-    const n = asFloat (getValueFromKeysInArray (o, k));
+    const found = getValueFromKeysInArray (o, k);
+    if (found === undefined) {
+        return $default;
+    }
+    const n = asFloat (found);
     return isNumber (n) ? parseInt (n * $factor as any) : $default;
 }
 
 function safeTimestampN (o: safeInputType, k: (NullableIndexType)[], $default?: number): Int {
-    const n = asFloat (getValueFromKeysInArray (o, k));
+    const found = getValueFromKeysInArray (o, k);
+    if (found === undefined) {
+        return $default;
+    }
+    const n = asFloat (found);
     return isNumber (n) ? parseInt (n * 1000 as any) : $default;
 }
 
@@ -178,6 +194,7 @@ function safeStringN (o: safeInputType, k: (NullableIndexType)[], $default?: str
 function safeStringN (o: safeInputType, k: (NullableIndexType)[], $default?: string): Str {
     if (o === undefined) return $default; 
     const x = getValueFromKeysInArray (o, k); 
+    if (x === undefined) return $default;
     if (typeof x === 'string') return x;
     if (Number.isFinite (x)) return String (x);
     return $default;
@@ -186,6 +203,7 @@ function safeStringN (o: safeInputType, k: (NullableIndexType)[], $default?: str
 function safeStringLowerN (o: safeInputType, k: (NullableIndexType)[], $default?: string): Str {
     if (o === undefined) return $default; 
     const x = getValueFromKeysInArray (o, k);
+    if (x === undefined) return $default;
     if (typeof x === 'string') return x.toLowerCase ();
     if (Number.isFinite (x)) return String (x).toLowerCase ();
     return $default;
@@ -194,6 +212,7 @@ function safeStringLowerN (o: safeInputType, k: (NullableIndexType)[], $default?
 function safeStringUpperN (o: safeInputType, k: (NullableIndexType)[], $default?: string): Str {
     if (o === undefined) return $default; 
     const x = getValueFromKeysInArray (o, k);
+    if (x === undefined) return $default;
     if (typeof x === 'string') return x.toUpperCase ();
     if (Number.isFinite (x)) return String (x).toUpperCase ();
     return $default;
