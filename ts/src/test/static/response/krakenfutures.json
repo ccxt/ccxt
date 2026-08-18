@@ -648,7 +648,7 @@
                             "price": "68.54",
                             "fillTime": "2024-02-06T22:24:34.849Z",
                             "size": "0.1",
-                            "unrealizedPnl": "-607250.006654067",
+                            "unrealizedPnl": "-0.08",
                             "unrealizedFunding": "-0.001878596918214635"
                         }
                     ],
@@ -662,7 +662,7 @@
                             "price": "68.54",
                             "fillTime": "2024-02-06T22:24:34.849Z",
                             "size": "0.1",
-                            "unrealizedPnl": "-607250.006654067",
+                            "unrealizedPnl": "-0.08",
                             "unrealizedFunding": "-0.001878596918214635"
                         },
                         "symbol": "LTC/USD:USD",
@@ -675,7 +675,7 @@
                         "entryPrice": 68.54,
                         "notional": null,
                         "leverage": null,
-                        "unrealizedPnl": -607250.006654067,
+                        "unrealizedPnl": -0.08,
                         "contracts": 0.1,
                         "contractSize": 1,
                         "marginRatio": null,
