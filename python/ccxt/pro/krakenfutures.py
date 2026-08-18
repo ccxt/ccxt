@@ -318,7 +318,12 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             # https://github.com/ccxt/ccxt/issues/29709
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
-        rawPositions = self.safe_value(message, 'positions', [])
+        rawPositions = self.safe_list(message, 'positions')
+        if rawPositions is None:
+            # an open_positions frame without the positions key is malformed
+            # do not resolve with a fabricated empty list(the caller cannot
+            # distinguish it from a genuinely flat account)
+            return
         newPositions = []
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
