@@ -7361,6 +7361,83 @@
                 "input": [
                     {
                         "type": "spot",
+                        "fetchBalanceSnapshot": true,
+                        "awaitBalanceSnapshot": true
+                    }
+                ],
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "url": "wss://open-api-ws.bingx.com/market?listenKey=test-listen-key",
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": {
+                        "balances": [
+                            {
+                                "asset": "USDT",
+                                "free": "54.04945926",
+                                "locked": "0"
+                            }
+                        ]
+                    }
+                },
+                "messages": [
+                    {
+                        "e": "ACCOUNT_UPDATE",
+                        "E": 1696242817000,
+                        "a": {
+                            "m": "ASSET_TRANSFER",
+                            "B": [
+                                {
+                                    "a": "USDT",
+                                    "wb": "54.04945926",
+                                    "cw": "54.04945926",
+                                    "bc": "1.00000000"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "a": "USDT",
+                            "wb": "54.04945926",
+                            "cw": "54.04945926",
+                            "bc": "1.00000000"
+                        }
+                    ],
+                    "USDT": {
+                        "info": {
+                            "a": "USDT",
+                            "wb": "54.04945926",
+                            "cw": "54.04945926",
+                            "bc": "1.00000000"
+                        },
+                        "free": 54.04945926,
+                        "used": null,
+                        "total": null
+                    },
+                    "free": {
+                        "USDT": 54.04945926
+                    },
+                    "used": {
+                        "USDT": null
+                    },
+                    "total": {
+                        "USDT": null
+                    },
+                    "timestamp": 1696242817000,
+                    "datetime": "2023-10-02T10:33:37.000Z"
+                }
+            },
+            {
+                "description": "spot balance update without rest snapshot",
+                "input": [
+                    {
+                        "type": "spot",
                         "fetchBalanceSnapshot": false,
                         "awaitBalanceSnapshot": true
                     }
