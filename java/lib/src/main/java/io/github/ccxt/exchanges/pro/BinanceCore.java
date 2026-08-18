@@ -774,12 +774,18 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             var subTypeparametersVariable = this.handleSubTypeAndParams("watchMyLiquidationsForSymbols", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            if (Helpers.isTrue(this.isLinear(type, subType)))
+            // same guard authenticate carries: this local rewrite must agree with the
+            // bucket authenticate writes, or the listenKey read below dereferences an
+            // options bucket that was never seeded and throws
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "option")) && Helpers.isTrue(!Helpers.isEqual(type, "stock"))))
             {
-                type = "future";
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
-            {
-                type = "delivery";
+                if (Helpers.isTrue(this.isLinear(type, subType)))
+                {
+                    type = "future";
+                } else if (Helpers.isTrue(this.isInverse(type, subType)))
+                {
+                    type = "delivery";
+                }
             }
             (this.authenticate(parameters)).join();
             Object listenKey = Helpers.GetValue(Helpers.GetValue(this.options, type), "listenKey");
@@ -3734,12 +3740,20 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "authenticate", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(1);
-            if (Helpers.isTrue(this.isLinear(type, subType)))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "option")) && Helpers.isTrue(!Helpers.isEqual(type, "stock"))))
             {
-                type = "future";
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
-            {
-                type = "delivery";
+                // guard option and stock from the rewrite: isLinear keys off subType alone
+                // when a subType is present - a defaultSubType of 'linear' would flip
+                // 'option' to 'future' and authenticate an option user stream with a
+                // FUTURES listen key stored in the future bucket. keepAliveListenKey
+                // carries the same guard; stock joins this path in the auth consolidation
+                if (Helpers.isTrue(this.isLinear(type, subType)))
+                {
+                    type = "future";
+                } else if (Helpers.isTrue(this.isInverse(type, subType)))
+                {
+                    type = "delivery";
+                }
             }
             // For spot use WebSocket API signature subscription
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
@@ -4335,12 +4349,19 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "watchBalance", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(1);
-            if (Helpers.isTrue(this.isLinear(type, subType)))
+            // same guard authenticate carries: this local rewrite must agree with the
+            // bucket authenticate writes, or the listenKey read below dereferences an
+            // options bucket that was never seeded and throws - and the explicit
+            // urlType branch for option below would be unreachable
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "option")) && Helpers.isTrue(!Helpers.isEqual(type, "stock"))))
             {
-                type = "future";
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
-            {
-                type = "delivery";
+                if (Helpers.isTrue(this.isLinear(type, subType)))
+                {
+                    type = "future";
+                } else if (Helpers.isTrue(this.isInverse(type, subType)))
+                {
+                    type = "delivery";
+                }
             }
             Object url = "";
             Object urlType = type;
