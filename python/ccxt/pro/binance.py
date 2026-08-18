@@ -619,10 +619,14 @@ class binance(ccxt.async_support.binance):
         type, params = self.handle_market_type_and_params('watchMyLiquidationsForSymbols', market, params)
         subType = None
         subType, params = self.handle_sub_type_and_params('watchMyLiquidationsForSymbols', market, params)
-        if self.isLinear(type, subType):
-            type = 'future'
-        elif self.isInverse(type, subType):
-            type = 'delivery'
+        # same guard authenticate carries: self local rewrite must agree with the
+        # bucket authenticate writes, or the listenKey read below dereferences an
+        # options bucket that was never seeded and throws
+        if type != 'option' and type != 'stock':
+            if self.isLinear(type, subType):
+                type = 'future'
+            elif self.isInverse(type, subType):
+                type = 'delivery'
         await self.authenticate(params)
         listenKey = self.options[type]['listenKey']
         url = self.get_private_ws_url(type, listenKey)
@@ -2783,10 +2787,16 @@ class binance(ccxt.async_support.binance):
         subType, params = self.handle_sub_type_and_params('authenticate', None, params)
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'authenticate', 'papi', 'portfolioMargin', False)
-        if self.isLinear(type, subType):
-            type = 'future'
-        elif self.isInverse(type, subType):
-            type = 'delivery'
+        if type != 'option' and type != 'stock':
+            # guard option and stock from the rewrite: isLinear keys off subType alone
+            # when a subType is present - a defaultSubType of 'linear' would flip
+            # 'option' to 'future' and authenticate an option user stream with a
+            # FUTURES listen key stored in the future bucket. keepAliveListenKey
+            # carries the same guard; stock joins self path in the auth consolidation
+            if self.isLinear(type, subType):
+                type = 'future'
+            elif self.isInverse(type, subType):
+                type = 'delivery'
         # For spot use WebSocket API signature subscription
         if type == 'spot':
             await self.ensure_user_data_stream_ws_subscribe_signature('spot')
@@ -3196,10 +3206,15 @@ class binance(ccxt.async_support.binance):
         subType, params = self.handle_sub_type_and_params('watchBalance', None, params)
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'watchBalance', 'papi', 'portfolioMargin', False)
-        if self.isLinear(type, subType):
-            type = 'future'
-        elif self.isInverse(type, subType):
-            type = 'delivery'
+        # same guard authenticate carries: self local rewrite must agree with the
+        # bucket authenticate writes, or the listenKey read below dereferences an
+        # options bucket that was never seeded and throws - and the explicit
+        # urlType branch for option below would be unreachable
+        if type != 'option' and type != 'stock':
+            if self.isLinear(type, subType):
+                type = 'future'
+            elif self.isInverse(type, subType):
+                type = 'delivery'
         url = ''
         urlType = type
         if type == 'spot' or type == 'margin':
