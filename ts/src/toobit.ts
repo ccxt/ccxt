@@ -1395,8 +1395,8 @@ export default class toobit extends Exchange {
         const rows = [];
         for (let i = 0; i < response.length; i++) {
             const ticker = response[i];
-            const marketId = this.safeString (ticker, 's', '');
-            if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
+            const marketId = this.safeString (ticker, 's');
+            if ((marketId !== undefined) && (this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 rows.push (ticker);
             }
         }
@@ -2835,14 +2835,16 @@ export default class toobit extends Exchange {
             //
         }
         const transactType = (type === 'deposits') ? 'deposit' : 'withdrawal';
-        const rows = [];
+        const results = [];
         for (let i = 0; i < response.length; i++) {
-            rows.push (this.extend ({ 'transactType': transactType }, response[i]));
+            results.push (this.parseTransaction (response[i], currency, transactType));
         }
-        return this.parseTransactions (rows, currency, since, limit, params);
+        const sorted = this.sortBy (results, 'timestamp');
+        const currencyCode = (currency !== undefined) ? currency['code'] : undefined;
+        return this.filterByCurrencySinceLimit (sorted, currencyCode, since, limit);
     }
 
-    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined, transactType: Str = undefined): Transaction {
         //
         // fetchDeposits & fetchWithdrawals
         //
@@ -2899,7 +2901,6 @@ export default class toobit extends Exchange {
         const tagFrom = this.safeString (transaction, 'fromAddressTag');
         const addressTo = this.safeString (transaction, 'address');
         const addressFrom = this.safeString (transaction, 'fromAddress');
-        const transactType = this.safeString (transaction, 'transactType');
         let isWithdraw = false;
         if (transactType !== undefined) {
             isWithdraw = (transactType === 'withdrawal');
@@ -2908,7 +2909,7 @@ export default class toobit extends Exchange {
         }
         const type = isWithdraw ? 'withdrawal' : 'deposit';
         return {
-            'info': this.omit (transaction, 'transactType'),
+            'info': transaction,
             'id': this.safeString (transaction, 'id'),
             'txid': this.safeString (transaction, 'txId'),
             'timestamp': timestamp,
