@@ -2837,14 +2837,18 @@ export default class toobit extends Exchange {
         const transactType = (type === 'deposits') ? 'deposit' : 'withdrawal';
         const results = [];
         for (let i = 0; i < response.length; i++) {
-            results.push (this.parseTransaction (response[i], currency, transactType));
+            results.push (this.parseTransactionWithType (response[i], currency, transactType));
         }
         const sorted = this.sortBy (results, 'timestamp');
         const currencyCode = (currency !== undefined) ? currency['code'] : undefined;
         return this.filterByCurrencySinceLimit (sorted, currencyCode, since, limit);
     }
 
-    override parseTransaction (transaction: Dict, currency: Currency = undefined, transactType: Str = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        return this.parseTransactionWithType (transaction, currency, undefined);
+    }
+
+    parseTransactionWithType (transaction: Dict, currency: Currency = undefined, transactType: Str = undefined): Transaction {
         //
         // fetchDeposits & fetchWithdrawals
         //
