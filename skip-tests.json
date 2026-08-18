@@ -426,9 +426,6 @@
             "fetchTicker": {
                 "lastBetweenBidAsk": "bitmex shuts down 2026-09-23 (announced 2026-07-23): liquidity is evaporating through the wind-down - wide stale spreads fail the last-vs-median check chronically. REMOVE THE EXCHANGE after the closure date"
             },
-            "fetchTickers": {
-                "lastBetweenBidAsk": "bitmex shuts down 2026-09-23: same wind-down liquidity evaporation as fetchTicker"
-            },
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
             },
