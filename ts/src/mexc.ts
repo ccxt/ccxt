@@ -1966,6 +1966,23 @@ export default class mexc extends Exchange {
         ];
     }
 
+    async requestTickersSafely (marketType: string, params = {}) {
+        // one request of the unbounded fetchTickers gather, a failing surface
+        // returns an empty list instead of failing the whole merged call
+        let response: any = [];
+        try {
+            if (marketType === 'spot') {
+                response = await this.spotPublicGetTicker24hr (params);
+            } else {
+                const rawResponse = await this.contractPublicGetTicker (params);
+                response = this.safeValue (rawResponse, 'data', []);
+            }
+        } catch (e) {
+            response = [];
+        }
+        return response;
+    }
+
     /**
      * @method
      * @name mexc#fetchTickers
@@ -1974,6 +1991,7 @@ export default class mexc extends Exchange {
      * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-ticker-contract-market-data // swap
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', scopes the call to a single market type, without it the unbounded call fetches tickers for both market types
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -1989,7 +2007,18 @@ export default class mexc extends Exchange {
             const firstSymbol = this.safeString (symbols, 0);
             market = this.market (firstSymbol);
         }
+        const requestedType = this.safeString2 (params, 'type', 'defaultType');
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        if ((symbols === undefined) && (requestedType === undefined)) {
+            // the unbounded call covers both loaded market types, the hard
+            // spot default silently dropped every swap ticker before
+            const responses = await Promise.all ([
+                this.requestTickersSafely ('spot', query),
+                this.requestTickersSafely ('swap', query),
+            ]);
+            const merged = this.arrayConcat (responses[0], responses[1]);
+            return this.parseTickers (merged, symbols);
+        }
         let tickers: Dict | List | undefined = undefined;
         if (isSingularMarket) {
             request['symbol'] = this.safeString (market, 'id');

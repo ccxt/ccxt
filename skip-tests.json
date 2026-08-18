@@ -1835,9 +1835,6 @@
                 "spread":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3916",
                 "vwap": "https://app.travis-ci.com/github/ccxt/ccxt/builds/271520319#L5664"
             },
-            "fetchTickers": {
-                "checkActiveSymbols": "todo"
-            },
             "fetchAccounts": {
                 "type": "type is not provided"
             },
