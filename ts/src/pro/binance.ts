@@ -3139,8 +3139,8 @@ export default class binance extends binanceRest {
         if (type !== 'option' && type !== 'stock') {
             // guard options first: isLinear returns true for linear-settled options (subType='linear')
             // which would incorrectly convert type='option' to 'future'.
-            // stock needs the same exemption: with a defaultSubType of 'linear'
-            // (always on binanceusdm, common on mixed instances) isLinear keys off
+            // stock needs the same exemption: with a defaultSubType of 'linear' -
+            // always on binanceusdm, common on mixed instances - isLinear keys off
             // subType alone and would flip 'stock' to 'future' - the stock branch
             // below would never run, and the bucket lookup would renew the
             // FUTURES listen key while the stock key silently expires
