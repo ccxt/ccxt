@@ -648,6 +648,7 @@
                             "price": "68.54",
                             "fillTime": "2024-02-06T22:24:34.849Z",
                             "size": "0.1",
+                            "unrealizedPnl": "-607250.006654067",
                             "unrealizedFunding": "-0.001878596918214635"
                         }
                     ],
@@ -661,6 +662,7 @@
                             "price": "68.54",
                             "fillTime": "2024-02-06T22:24:34.849Z",
                             "size": "0.1",
+                            "unrealizedPnl": "-607250.006654067",
                             "unrealizedFunding": "-0.001878596918214635"
                         },
                         "symbol": "LTC/USD:USD",
@@ -673,7 +675,7 @@
                         "entryPrice": 68.54,
                         "notional": null,
                         "leverage": null,
-                        "unrealizedPnl": null,
+                        "unrealizedPnl": -607250.006654067,
                         "contracts": 0.1,
                         "contractSize": 1,
                         "marginRatio": null,
@@ -681,6 +683,63 @@
                         "markPrice": null,
                         "collateral": null,
                         "marginType": "cross",
+                        "side": "long",
+                        "percentage": null
+                    }
+                ]
+            },
+            {
+                "description": "open positions with isolated margin, regression test for #29933",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "result": "success",
+                    "openPositions": [
+                        {
+                            "side": "long",
+                            "symbol": "PF_LTCUSD",
+                            "price": "68.54",
+                            "fillTime": "2024-02-06T22:24:34.849Z",
+                            "size": "0.1",
+                            "unrealizedPnl": "12.34",
+                            "unrealizedFunding": "-0.001878596918214635",
+                            "pnlCurrency": "USD",
+                            "maxFixedLeverage": "1.0"
+                        }
+                    ],
+                    "serverTime": "2024-02-06T22:25:22.290Z"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "side": "long",
+                            "symbol": "PF_LTCUSD",
+                            "price": "68.54",
+                            "fillTime": "2024-02-06T22:24:34.849Z",
+                            "size": "0.1",
+                            "unrealizedPnl": "12.34",
+                            "unrealizedFunding": "-0.001878596918214635",
+                            "pnlCurrency": "USD",
+                            "maxFixedLeverage": "1.0"
+                        },
+                        "symbol": "LTC/USD:USD",
+                        "timestamp": 1707258274849,
+                        "datetime": "2024-02-06T22:24:34.849Z",
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 68.54,
+                        "notional": null,
+                        "leverage": 1,
+                        "unrealizedPnl": 12.34,
+                        "contracts": 0.1,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "collateral": null,
+                        "marginType": "isolated",
                         "side": "long",
                         "percentage": null
                     }
