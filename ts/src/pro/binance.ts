@@ -4320,7 +4320,9 @@ export default class binance extends binanceRest {
         let stock = false;
         [ stock, params ] = this.handleOptionAndParams (params, 'watchOrders', 'stock', false);
         if (stock) {
-            await this.authenticate (this.extend ({ 'type': 'stock' }, params));
+            // literal on top: a stray type in the caller params must not override
+            // the forced stock, the removed authenticateStock ignored it entirely
+            await this.authenticate (this.extend (params, { 'type': 'stock' }));
             const stockOptions = this.safeDict (this.options, 'stock', {});
             const stockListenKey = this.safeString (stockOptions, 'listenKey');
             if (stockListenKey === undefined) {
