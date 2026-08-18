@@ -327,39 +327,6 @@ class binance(ccxt.async_support.binance):
         }
         return await self.watch_multiple(url, messageHashes, self.extend(request, query), messageHashes, subscribe)
 
-    async def authenticate_stock(self, params: dict = {}):
-        options = self.safe_dict(self.options, 'stock', {})
-        lastAuthenticatedTime = self.safe_integer(options, 'lastAuthenticatedTime', 0)
-        listenKeyRefreshRate = self.safe_integer(self.options, 'stockListenKeyRefreshRate', 1200000)
-        now = self.milliseconds()
-        delay = self.sum(listenKeyRefreshRate, 10000)
-        if (now - lastAuthenticatedTime) > delay:
-            # the stock user stream url embeds self listenKey, so the future is parked
-            # on the listenKey-free market url of the same host
-            client = self.client(self.get_stock_ws_url('market'))
-            messageHash = 'authenticate:stock'
-            if messageHash in client.futures:
-                # another caller is already fetching, wait for it instead of fetching again
-                await client.future(messageHash)
-                return
-            client.future(messageHash)  # created ahead of the request below, so concurrent callers can find it
-            try:
-                requestParams = self.omit(params, ['stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe'])
-                response = await self.sapiPostEquityListenKey(requestParams)
-                listenKey = self.safe_string(response, 'listenKey')
-                self.options['stock'] = self.extend(options, {
-                    'listenKey': listenKey,
-                    'lastAuthenticatedTime': now,
-                })
-                # hoisted out of the delay call: the transpilers garble an inline
-                # dict literal nested inside a delay argument
-                stockKeepAliveParams = self.extend(params, {'type': 'stock', 'defaultType': 'stock'})
-                self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, stockKeepAliveParams)
-                client.resolve(listenKey, messageHash)
-            except Exception as e:
-                client.reject(e, messageHash)
-                raise e
-
     def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Liquidation]:
         """
         watch the public liquidations of a trading pair
@@ -2815,16 +2782,21 @@ class binance(ccxt.async_support.binance):
             await self.ensure_user_data_stream_ws_subscribe_listen_token('margin', marginParams)
             return
         params = self.omit(params, 'symbol')
+        isStock = (type == 'stock')
         options = self.safe_value(self.options, type, {})
         lastAuthenticatedTime = self.safe_integer(options, 'lastAuthenticatedTime', 0)
-        listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 1200000)
+        refreshRateKey = 'stockListenKeyRefreshRate' if isStock else 'listenKeyRefreshRate'
+        listenKeyRefreshRate = self.safe_integer(self.options, refreshRateKey, 1200000)
         delay = self.sum(listenKeyRefreshRate, 10000)
         if time - lastAuthenticatedTime > delay:
             # the private url embeds the listenKey that self request produces, so the future
             # is parked on the listenKey-free base url of that same stream - concurrent
             # callers wait for the leader instead of fetching a second listenKey, which
-            # would split the user-data subscriptions across two connections
-            client = self.client(self.get_ws_url(type, 'private'))
+            # would split the user-data subscriptions across two connections. the stock
+            # stream parks on the listenKey-free market url of the same host for the
+            # same reason
+            clientUrl = self.get_stock_ws_url('market') if isStock else self.get_ws_url(type, 'private')
+            client = self.client(clientUrl)
             messageHash = 'authenticate:' + type
             if messageHash in client.futures:
                 # another caller is already fetching, wait for it instead of fetching again
@@ -2833,7 +2805,10 @@ class binance(ccxt.async_support.binance):
             client.future(messageHash)  # created ahead of the request below, so concurrent callers can find it
             try:
                 response = None
-                if isPortfolioMargin:
+                if isStock:
+                    requestParams = self.omit(params, ['stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe'])
+                    response = await self.sapiPostEquityListenKey(requestParams)
+                elif isPortfolioMargin:
                     response = await self.papiPostListenKey(params)
                     params = self.extend(params, {'portfolioMargin': True})
                 elif type == 'future':
@@ -2849,7 +2824,12 @@ class binance(ccxt.async_support.binance):
                     'listenKey': listenKey,
                     'lastAuthenticatedTime': time,
                 })
-                self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
+                # hoisted out of the delay call: the transpilers garble an inline
+                # dict literal nested inside a delay argument
+                delayParams = params
+                if isStock:
+                    delayParams = self.extend(params, {'type': 'stock', 'defaultType': 'stock'})
+                self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, delayParams)
                 client.resolve(listenKey, messageHash)
             except Exception as e:
                 client.reject(e, messageHash)
@@ -3953,7 +3933,9 @@ class binance(ccxt.async_support.binance):
         stock = False
         stock, params = self.handle_option_and_params(params, 'watchOrders', 'stock', False)
         if stock:
-            await self.authenticate_stock(params)
+            # literal on top: a stray type in the caller params must not override
+            # the forced stock, the removed authenticateStock ignored it entirely
+            await self.authenticate(self.extend(params, {'type': 'stock'}))
             stockOptions = self.safe_dict(self.options, 'stock', {})
             stockListenKey = self.safe_string(stockOptions, 'listenKey')
             if stockListenKey is None:
