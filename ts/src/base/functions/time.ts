@@ -56,10 +56,12 @@ class TimedOut extends Error {
 // called with scattered, non-ordered timestamps (multi-symbol feeds, daily OHLCV bars,
 // historical pagination), so it is completely stateless and makes no locality assumptions:
 // the civil date is derived from the day number with pure integer math (classic
-// civil-from-days algorithm) and a Date object is never allocated — every call costs the
-// same few divisions regardless of ordering. The output is byte-for-byte identical to
-// new Date (ms).toISOString () (including the extended-year '+YYYYYY-' format above
-// year 9999)
+// civil-from-days algorithm, inlined below) and a Date object is never allocated — every
+// call costs the same few divisions regardless of ordering. The tables below are static
+// bounded data (zero-padded strings and the 8030 post-epoch year strings), not caches:
+// every lookup is O(1) for any input, nothing is ever invalidated. The output is
+// byte-for-byte identical to new Date (ms).toISOString () (including the extended-year
+// '+YYYYYY-' format above year 9999)
 const iso8601TwoDigits = [];
 for (let i = 0; i < 60; i++) {
     iso8601TwoDigits.push ((i < 10) ? ('0' + i) : ('' + i));
@@ -68,19 +70,10 @@ const iso8601ThreeDigits = [];
 for (let i = 0; i < 1000; i++) {
     iso8601ThreeDigits.push ((i < 10) ? ('00' + i) : ((i < 100) ? ('0' + i) : ('' + i)));
 }
-// convert days since 1970-01-01 to a civil gregorian [ year, month, day ] triple
-const iso8601CivilFromDays = (z) => {
-    z = z + 719468;
-    const era = Math.floor (z / 146097);
-    const doe = z - (era * 146097); // [0, 146096] day of era
-    const yoe = Math.floor ((doe - Math.floor (doe / 1460) + Math.floor (doe / 36524) - Math.floor (doe / 146096)) / 365); // [0, 399] year of era
-    const doy = doe - ((365 * yoe) + Math.floor (yoe / 4) - Math.floor (yoe / 100)); // [0, 365] day of year
-    const mp = Math.floor (((5 * doy) + 2) / 153); // [0, 11] month index counting from March
-    const dayOfMonth = doy - Math.floor (((153 * mp) + 2) / 5) + 1; // [1, 31]
-    const month = (mp < 10) ? (mp + 3) : (mp - 9); // [1, 12]
-    const year = yoe + (era * 400);
-    return [ (month <= 2) ? (year + 1) : year, month, dayOfMonth ];
-};
+const iso8601Years = [];
+for (let year = 1970; year <= 9999; year++) {
+    iso8601Years.push ('' + year); // every post-epoch 4-digit year, prebuilt once
+}
 const iso8601 = (timestamp) => {
     let _timestampNumber = undefined;
     if (typeof timestamp === 'number') {
@@ -98,22 +91,28 @@ const iso8601 = (timestamp) => {
     }
     const seconds = Math.floor (_timestampNumber / 1000);
     const milliseconds = _timestampNumber - (seconds * 1000);
-    const day = Math.floor (seconds / 86400);
-    const civilFromDays = iso8601CivilFromDays (day);
-    const year = civilFromDays[0];
-    const month = civilFromDays[1];
-    const dayOfMonth = civilFromDays[2];
+    const timeOfDay = seconds - (Math.floor (seconds / 86400) * 86400);
+    const day = (seconds - timeOfDay) / 86400;
+    // civil-from-days: convert days since 1970-01-01 to a gregorian date
+    const z = day + 719468;
+    const era = Math.floor (z / 146097);
+    const doe = z - (era * 146097); // [0, 146096] day of era
+    const yoe = Math.floor ((doe - Math.floor (doe / 1460) + Math.floor (doe / 36524) - Math.floor (doe / 146096)) / 365); // [0, 399] year of era
+    const doy = doe - ((365 * yoe) + Math.floor (yoe / 4) - Math.floor (yoe / 100)); // [0, 365] day of year
+    const mp = Math.floor (((5 * doy) + 2) / 153); // [0, 11] month index counting from March
+    const dayOfMonth = doy - Math.floor (((153 * mp) + 2) / 5) + 1; // [1, 31]
+    const month = (mp < 10) ? (mp + 3) : (mp - 9); // [1, 12]
+    const yearExact = yoe + (era * 400);
+    const year = (month <= 2) ? (yearExact + 1) : yearExact;
     let yearString = undefined;
     if (year <= 9999) {
-        // all post-epoch years are 4-digit already, no zero-padding needed
-        yearString = '' + year;
+        yearString = iso8601Years[year - 1970];
     } else if (year < 100000) {
         // extended year, same format as Date.toISOString ()
         yearString = '+0' + year;
     } else {
         yearString = '+' + year;
     }
-    const timeOfDay = seconds - (day * 86400);
     const hours = Math.floor (timeOfDay / 3600);
     const minutesSeconds = timeOfDay - (hours * 3600);
     const minutes = Math.floor (minutesSeconds / 60);
