@@ -315,8 +315,6 @@ export default class deepcoin extends Exchange {
                     'BTC': 'Bitcoin',
                     'ADA': 'Cardano',
                 },
-                'networksById': {
-                },
                 'fetchMarkets': {
                     'types': [ 'spot', 'swap' ], // spot, swap,
                 },
