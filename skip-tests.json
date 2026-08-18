@@ -2455,9 +2455,6 @@
             "ticker": {
                 "maxIncrease": "listed joke tokens (TEST etc) have abnormal price swings"
             },
-            "fetchTickers": {
-                "checkActiveSymbols": "not all active markets are returned by the tickers endpoint"
-            },
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided",
