@@ -2752,10 +2752,7 @@ export default class poloniex extends Exchange {
         networkCode = this.networkIdToCode (networkCode, code);
         const networkEntry = (networkCode === undefined) ? undefined : this.safeDict (currency['networks'], networkCode);
         if (networkEntry !== undefined) {
-            // the wallets api is keyed by the currency-junction id (e.g. USDTTRON), which lives in
-            // the raw networkList entry as "coin", not by the blockchain id stored in networkEntry['id']
-            const networkInfo = this.safeDict (networkEntry, 'info', {});
-            exchangeNetworkId = this.safeString (networkInfo, 'coin', this.safeString (networkEntry, 'id'));
+            exchangeNetworkId = this.networkJunctionId (networkEntry);
         } else {
             exchangeNetworkId = networkCode;
         }
@@ -2765,12 +2762,22 @@ export default class poloniex extends Exchange {
         return [ request, params, currency, networkEntry ];
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description the wallets api is keyed by the currency-junction id (e.g. USDTTRON), which lives in the raw networkList entry as "coin", not by the blockchain id stored in networkEntry['id']
+     * @param {object} networkEntry a unified network entry from currency['networks']
+     * @returns {string} the exchange-specific currency-junction id
+     */
+    networkJunctionId (networkEntry: Dict): Str {
+        const networkInfo = this.safeDict (networkEntry, 'info', {});
+        return this.safeString (networkInfo, 'coin', this.safeString (networkEntry, 'id'));
+    }
+
     parseDepositAddressSpecial (response: any, currency: any, networkEntry: any): DepositAddress {
         let address = this.safeString (response, 'address');
         if (address === undefined) {
-            const networkInfo = this.safeDict (networkEntry, 'info', {});
-            const junctionId = this.safeString (networkInfo, 'coin', this.safeString (networkEntry, 'id'));
-            address = this.safeString (response, junctionId);
+            address = this.safeString (response, this.networkJunctionId (networkEntry));
         }
         let tag: Str = undefined;
         this.checkAddress (address);
