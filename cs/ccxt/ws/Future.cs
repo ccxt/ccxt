@@ -10,8 +10,6 @@ public partial class BaseExchange
     {
         public TaskCompletionSource<object> tcs = null;
 
-        private static readonly Object obj = new Object();
-
         public Task<object> task = null;
         public Future()
         {
@@ -21,19 +19,10 @@ public partial class BaseExchange
 
         public void resolve(object data = null)
         {
-            lock (obj)
-            {
-                if (!this.tcs.Task.IsCompleted)
-                {
-                    if (this.tcs.Task.Status == TaskStatus.RanToCompletion)
-                    {
-                        return;
-                    }
-                    this.tcs.SetResult(data);
-                }
-                // this.tcs = new TaskCompletionSource<object>(); // reset
-                // this.task = this.tcs.Task;
-            }
+            // TrySetResult is atomically settle-once: losers of a concurrent
+            // resolve/reject race become no-ops, with no lock held while awaiter
+            // continuations run inline on the settling thread
+            this.tcs.TrySetResult(data);
         }
 
         public void reject(object data)
@@ -56,17 +45,10 @@ public partial class BaseExchange
             {
                 exception = new Exception($"Future rejected: {data?.ToString() ?? "null"} (Type: {data?.GetType().Name ?? "null"})\n");
             }
-            // settle-once under the same lock resolve takes: without it a
-            // message-handler thread resolving this future races a teardown or
-            // close-path reject, and SetException on the completed task throws
-            // InvalidOperationException instead of being a no-op
-            lock (obj)
-            {
-                if (!this.tcs.Task.IsCompleted)
-                {
-                    this.tcs.SetException(exception);
-                }
-            }
+            // TrySetException is atomically settle-once: a teardown or close-path
+            // reject racing a message-handler resolve becomes a no-op instead of
+            // throwing InvalidOperationException on the completed task
+            this.tcs.TrySetException(exception);
             // this.tcs = new TaskCompletionSource<object>(); // reset
             // this.task = this.tcs.Task;
         }
