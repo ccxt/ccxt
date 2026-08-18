@@ -419,60 +419,18 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         put( "listenKey", listenKey );
         put( "lastAuthenticatedTime", finalNow );
     }}));
-                    this.scheduleCallback(listenKeyRefreshRate, "keepAliveStockListenKey", parameters);
+                    // hoisted out of the delay call: the transpilers garble an inline
+                    // dict literal nested inside a delay argument
+                    Object stockKeepAliveParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                        put( "type", "stock" );
+                        put( "defaultType", "stock" );
+                    }});
+                    this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", stockKeepAliveParams);
                     client.resolve(listenKey, messageHash);
                 } catch(Exception e)
                 {
                     client.reject(e, messageHash);
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
-                }
-            }
-            return null;
-        });
-
-    }
-
-    public java.util.concurrent.CompletableFuture<Object> keepAliveStockListenKey(Object... optionalArgs)
-    {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            try
-            {
-                Object options = this.safeDict(this.options, "stock", new java.util.HashMap<String, Object>() {{}});
-                Object requestParams = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe")));
-                Object response = (this.sapiPostEquityListenKey(requestParams)).join();
-                Object listenKey = this.safeString(response, "listenKey");
-                Object now = this.milliseconds();
-                Helpers.addElementToObject(this.options, "stock", this.extend(options, new java.util.HashMap<String, Object>() {{
-        put( "listenKey", listenKey );
-        put( "lastAuthenticatedTime", now );
-    }}));
-            } catch(Exception error)
-            {
-                Object options = this.safeDict(this.options, "stock", new java.util.HashMap<String, Object>() {{}});
-                Helpers.addElementToObject(this.options, "stock", this.extend(options, new java.util.HashMap<String, Object>() {{
-        put( "listenKey", null );
-        put( "lastAuthenticatedTime", 0 );
-    }}));
-                return null;
-            }
-            Object clients = Helpers.objectValues(this.clients);
-            Object listenKeyRefreshRate = this.safeInteger(this.options, "stockListenKeyRefreshRate", 1200000);
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(clients)); i++)
-            {
-                Client client = (Client)Helpers.GetValue(clients, i);
-                Object clientSubscriptions = this.safeDict(client, "subscriptions", new java.util.HashMap<String, Object>() {{}});
-                Object subscriptionKeys = Helpers.objectKeys(clientSubscriptions);
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(subscriptionKeys)); j++)
-                {
-                    Object subscribeType = Helpers.GetValue(subscriptionKeys, j);
-                    if (Helpers.isTrue(Helpers.isEqual(subscribeType, "stock")))
-                    {
-                        this.scheduleCallback(listenKeyRefreshRate, "keepAliveStockListenKey", parameters);
-                        return null;
-                    }
                 }
             }
             return null;
@@ -3886,10 +3844,15 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             parameters = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object subTypeInfo = this.handleSubTypeAndParams("keepAliveListenKey", null, parameters);
             Object subType = Helpers.GetValue(subTypeInfo, 0);
-            if (Helpers.isTrue(!Helpers.isEqual(type, "option")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "option")) && Helpers.isTrue(!Helpers.isEqual(type, "stock"))))
             {
                 // guard options first: isLinear returns true for linear-settled options (subType='linear')
-                // which would incorrectly convert type='option' to 'future'
+                // which would incorrectly convert type='option' to 'future'.
+                // stock needs the same exemption: with a defaultSubType of 'linear' -
+                // always on binanceusdm, common on mixed instances - isLinear keys off
+                // subType alone and would flip 'stock' to 'future' - the stock branch
+                // below would never run, and the bucket lookup would renew the
+                // FUTURES listen key while the stock key silently expires
                 if (Helpers.isTrue(this.isLinear(type, subType)))
                 {
                     type = "future";
@@ -3903,11 +3866,15 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             {
                 return null;
             }
+            Object isStock = (Helpers.isEqual(type, "stock"));
             Object options = this.safeValue(this.options, type, new java.util.HashMap<String, Object>() {{}});
             Object listenKey = this.safeString(options, "listenKey");
             if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
             {
                 // A network error happened: we can't renew a listen key that does not exist.
+                // this guard now covers stock too - the old stock path would POST here and
+                // resurrect a fresh key without reconnecting the dead stream, leaving the
+                // options bucket claiming a healthy auth over a broken user stream
                 return null;
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
@@ -3915,7 +3882,13 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object time = this.milliseconds();
             try
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Helpers.isTrue(isStock))
+                {
+                    // the equity endpoint is create-or-renew: with an active key this
+                    // POST extends io.github.ccxt.exchanges.Binance validity of that same key
+                    Object requestParams = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stock", "name", "callerMethodName", "subType", "timeframe")));
+                    (this.sapiPostEquityListenKey(requestParams)).join();
+                } else if (Helpers.isTrue(isPortfolioMargin))
                 {
                     (this.papiPutListenKey(this.extend(request, parameters))).join();
                     parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
@@ -3937,17 +3910,26 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 }
             } catch(Exception error)
             {
-                Object urlType = type;
-                if (Helpers.isTrue(isPortfolioMargin))
+                Object url = null;
+                if (Helpers.isTrue(isStock))
                 {
-                    urlType = "papi";
-                }
-                if (Helpers.isTrue(Helpers.isEqual(type, "option")))
+                    // the stock user stream lives on a fixed url and subscribes to
+                    // listenKey@orderReport, so the client is addressable without the key
+                    url = this.getStockWsUrl("user");
+                } else
                 {
-                    urlType = "optionPrivate";
+                    Object urlType = type;
+                    if (Helpers.isTrue(isPortfolioMargin))
+                    {
+                        urlType = "papi";
+                    }
+                    if (Helpers.isTrue(Helpers.isEqual(type, "option")))
+                    {
+                        urlType = "optionPrivate";
+                    }
+                    Object cachedListenKey = Helpers.GetValue(Helpers.GetValue(this.options, type), "listenKey");
+                    url = this.getPrivateWsUrl(urlType, cachedListenKey);
                 }
-                Object cachedListenKey = Helpers.GetValue(Helpers.GetValue(this.options, type), "listenKey");
-                Object url = this.getPrivateWsUrl(urlType, cachedListenKey);
                 Client client = this.client(url);
                 Object messageHashes = Helpers.objectKeys(client.futures);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
@@ -3968,7 +3950,16 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
     }}));
             // whether or not to schedule another listenKey keepAlive request
             Object clients = Helpers.objectValues(this.clients);
-            Object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 1200000);
+            Object refreshRateKey = ((Helpers.isTrue(isStock))) ? "stockListenKeyRefreshRate" : "listenKeyRefreshRate";
+            Object listenKeyRefreshRate = this.safeInteger(this.options, refreshRateKey, 1200000);
+            Object delayParams = parameters;
+            if (Helpers.isTrue(isStock))
+            {
+                // params had type omitted above - restore it so the next cycle routes back here
+                delayParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                    put( "type", "stock" );
+                }});
+            }
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(clients)); i++)
             {
                 Client client = (Client)Helpers.GetValue(clients, i);
@@ -3979,7 +3970,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     Object subscribeType = Helpers.GetValue(subscriptionKeys, j);
                     if (Helpers.isTrue(Helpers.isEqual(subscribeType, type)))
                     {
-                        this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
+                        this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", delayParams);
                         return null;
                     }
                 }
