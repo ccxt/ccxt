@@ -57,8 +57,9 @@ use ccxt::exchanges::{
 };
 
 // Pro (WebSocket) Cores — built for --ws live tests (they carry the watch*
-// methods in `has` and their `call_dynamic` routes the watch handlers).
-use ccxt::pro::{
+// methods in `has` and their `call_dynamic` routes the watch handlers). The
+// transpiled venues now live in the sibling `ccxt-pro` crate.
+use ccxt_pro::pro::{
     alpaca::AlpacaCore as WsAlpacaCore,
     apex::ApexCore as WsApexCore,
     aster::AsterCore as WsAsterCore,

@@ -1,11 +1,12 @@
-// Exchange-agnostic code via the built-in `ccxt::TypedExchange` trait — the
-// Rust analog of a C#/Go `IExchange`. Every typed wrapper (ccxt::Binance,
-// ccxt::Kraken, …) implements it, so you can be generic OR dynamic over
+// Exchange-agnostic code via the built-in `ccxt_typed::TypedExchange` trait — the
+// Rust analog of a C#/Go `IExchange`. Every typed wrapper (ccxt_typed::Binance,
+// ccxt_typed::Kraken, …) implements it, so you can be generic OR dynamic over
 // exchanges with native typed returns. Compile-check only.
 // `TypedExchange` = object-safe core (call_raw + load_markets, enables
 // `Box<dyn ...>`); `TypedExchangeExt` = the typed methods (fetch_ticker, …),
 // blanket-implemented for every `TypedExchange`. Import both to call them.
-use ccxt::{Binance, Kraken, TypedExchange, TypedExchangeExt, Value};
+use ccxt::Value;
+use ccxt_typed::{Binance, Kraken, TypedExchange, TypedExchangeExt};
 
 // ── A. generic (static dispatch) ─────────────────────────────────────────────
 async fn last_price<E: TypedExchange>(ex: &mut E, symbol: &str) -> Option<f64> {
@@ -45,5 +46,5 @@ async fn demo() {
 }
 
 fn main() {
-    println!("iexchange_demo: compile-check only — uses ccxt::TypedExchange");
+    println!("iexchange_demo: compile-check only — uses ccxt_typed::TypedExchange");
 }

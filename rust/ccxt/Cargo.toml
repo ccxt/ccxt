@@ -20,14 +20,13 @@ default = []
 # Includes the transpiled-from-Exchange.ts REST + prediction Cores and the
 # base method surface. Compiles and passes the offline static request/response
 # and base suites (see the crate README for the supported matrix).
+#
+# The transpiled WebSocket (`pro`) venues and the typed unified-method wrappers
+# used to live behind features here; they were split into the sibling
+# `ccxt-pro` and `ccxt-typed` crates so no single `rustc` invocation holds the
+# whole generated surface at once (it OOM'd the 16 GB CI runner). Depend on
+# those crates directly instead of enabling a feature.
 transpiled-base = []
-# Includes the transpiled WS (pro) exchanges in `src/pro/<id>.rs`. The
-# structural transpile (struct shape, parent routing, static dispatch)
-# compiles; per-venue subscription transport/callbacks are still experimental
-# and not all venue methods are operational. Default builds skip the per-id
-# files so the hand-written `pro::{cache, order_book}` modules stay usable on
-# their own.
-transpiled-ws = ["transpiled-base"]
 
 [dependencies]
 # HTTP client (async)

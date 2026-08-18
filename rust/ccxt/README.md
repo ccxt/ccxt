@@ -45,12 +45,16 @@ The typed wrapper `Deref`s to the underlying core, so the full dynamic surface
 | feature | what it enables |
 |---|---|
 | *(default)* | the base runtime + hand-written base methods only (no venues) |
-| `transpiled-base` | all transpiled REST exchanges (`ccxt::Binance`, …) |
-| `transpiled-ws` | the transpiled WebSocket (`pro`) exchanges (implies `transpiled-base`) |
+| `transpiled-base` | all transpiled REST exchange Cores (`ccxt::exchanges::Binance`, …) |
 
 The base `Exchange` methods are always compiled; `transpiled-base` gates only the
 per-exchange venue modules. The crate builds with `--no-default-features` and
 with `--all-features`.
+
+The transpiled WebSocket (`pro`) venues live in the sibling **`ccxt-pro`** crate
+and the typed unified-method wrappers (`ccxt_typed::Binance`, …) in **`ccxt-typed`**.
+They were split out of `ccxt` so no single `rustc` invocation compiles the whole
+generated surface at once. Add those crates as dependencies to use them.
 
 ## Error handling
 

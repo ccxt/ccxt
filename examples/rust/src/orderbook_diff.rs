@@ -16,7 +16,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-use ccxt::{Binance, Value};
+use ccxt::Value;
+use ccxt_typed::Binance;
 use tokio::sync::RwLock;
 use tokio::time::MissedTickBehavior;
 

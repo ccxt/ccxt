@@ -49,7 +49,12 @@ const BASE_METHODS_FILE      = `${RUST_BASE}/exchange_generated.rs`;
 const PREDICTION_BASE_FILE   = `${RUST_BASE}/prediction_exchange_generated.rs`;
 const ERRORS_FILE            = `${RUST_BASE}/exchange_errors.rs`;
 const EXCHANGES_FOLDER       = `${RUST_BASE}/exchanges`;
-const EXCHANGES_WS_FOLDER    = `${RUST_BASE}/pro`;
+// The transpiled per-venue WS exchanges live in their own crate (`ccxt-pro`)
+// so each `rustc` invocation stays under the CI runner's memory ceiling. The
+// hand-written pro infra (cache / order_book / ws_client) stays in `ccxt`
+// because the base crate depends on it — see `rust/ccxt/src/pro/mod.rs`.
+const RUST_PRO_BASE          = './rust/ccxt-pro/src';
+const EXCHANGES_WS_FOLDER    = `${RUST_PRO_BASE}/pro`;
 // Prediction venues live in their own module so ids that also exist as a
 // regular exchange (e.g. `hyperliquid`) don't clobber each other.
 const PREDICTION_EXCHANGES_FOLDER = `${RUST_BASE}/prediction`;
@@ -6574,6 +6579,34 @@ impl std::ops::DerefMut for ${coreName} {
      * Writes a `mod.rs` (or `mod` declarations) listing all transpiled exchanges.
      */
     writeModFile(folder: string, names: string[]) {
+        // The WS venues live in the sibling `ccxt-pro` crate. Their mod.rs
+        // re-exports the base crate's `pro` infra (cache / order_book /
+        // ws_client and their public items) so the venue files' `crate::pro::*`
+        // paths resolve, then declares one ungated `pub mod <venue>;` per file.
+        // No `_api`/`_typed` siblings and no per-venue feature gate (the venues
+        // are always compiled in `ccxt-pro`; the memory split is what the crate
+        // boundary buys, not a feature flag).
+        if (folder === EXCHANGES_WS_FOLDER) {
+            const venues = names
+                .filter(n => n !== 'mod' && !n.endsWith('_api') && !n.endsWith('_typed'))
+                .sort();
+            const wsLines = [
+                '// Re-export the hand-written pro infra (cache / order_book /',
+                '// ws_client and their public items) from the base crate so the',
+                "// venue files' `crate::pro::*` paths resolve. The venue modules",
+                '// themselves live in this crate.',
+                'pub use ccxt::pro::*;',
+                '',
+                ...venues.map(n => `pub mod ${n};`),
+            ];
+            const wsContent = [
+                ...this.createGeneratedHeader(),
+                wsLines.join('\n'),
+                '',
+            ].join('\n');
+            overwriteFileAndFolder(`${folder}/mod.rs`, wsContent);
+            return;
+        }
         // Each exchange gets its main `<id>.rs` plus optional siblings:
         //   `<id>_api.rs`    — auto-generated implicit-endpoint wrappers
         //                      (by `build/generateImplicitAPI.ts`); e.g.

@@ -6,15 +6,21 @@ publish = false
 
 [dependencies]
 ccxt = { path = "../../rust/ccxt", features = ["transpiled-base"] }
+# The per-exchange typed unified-method wrappers (`ccxt_typed::Binance`, …) live
+# in their own crate now. `iexchange_demo` uses them.
+ccxt-typed = { path = "../../rust/ccxt-typed" }
+# The transpiled pro/ WebSocket venues live in their own crate now. Optional so
+# the default examples build (and CI) stays on the lighter transpiled-base set.
+ccxt-pro = { path = "../../rust/ccxt-pro", optional = true }
 tokio = { version = "1", features = ["full"] }
 futures = "0.3"
 async-trait = "0.1"
 
 [features]
-# Opt-in: pulls the transpiled pro/ WebSocket venues into `ccxt`. Only the
-# `watch_orderbook_compare` bin needs it, so the default `cargo build --bins`
-# (and CI) stays on the lighter transpiled-base set.
-ws = ["ccxt/transpiled-ws"]
+# Opt-in: pulls in the transpiled pro/ WebSocket venue crate (`ccxt-pro`). Only
+# the watch*/probe bins need it, so the default `cargo build --bins` (and CI)
+# stays on the lighter transpiled-base set.
+ws = ["dep:ccxt-pro"]
 
 [[bin]]
 name = "binance_basics"

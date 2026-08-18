@@ -15,6 +15,15 @@ env:
   # mid-`Compiling ccxt`) comes back on the `cargo test` steps unless the test
   # profile is pinned to no-debug too.
   CARGO_PROFILE_TEST_DEBUG: "0"
+  # Serialize compilation across crates. The generated `ccxt` crate is a single
+  # ~12 GB (rustc RSS) compilation unit on its own; with default parallelism
+  # cargo runs it concurrently with the tail of the dependency graph, and the
+  # combined RSS (~14 GB, measured) tips the 16 GB runner into an OOM kill mid
+  # `Compiling ccxt`. `--jobs 1` makes the build's peak the single largest crate
+  # rather than a sum of overlapping rustc processes. (The WS `pro` venues and
+  # the typed-wrapper layer were also split into the sibling `ccxt-pro` /
+  # `ccxt-typed` crates so no single rustc holds all of them at once.)
+  CARGO_BUILD_JOBS: "1"
 
 on:
   workflow_dispatch:

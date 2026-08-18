@@ -232,7 +232,65 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "ccxt",
+ "ccxt-pro",
+ "ccxt-typed",
  "futures",
+ "tokio",
+]
+
+[[package]]
+name = "ccxt-pro"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "base64",
+ "ccxt",
+ "chrono",
+ "ed25519-dalek",
+ "flate2",
+ "form_urlencoded",
+ "futures",
+ "hex",
+ "hmac",
+ "indexmap",
+ "k256",
+ "md-5",
+ "num-bigint",
+ "num-traits",
+ "once_cell",
+ "parking_lot",
+ "rand 0.8.6",
+ "reqwest",
+ "rmp-serde",
+ "rmpv",
+ "rsa",
+ "rust_decimal",
+ "serde",
+ "serde_json",
+ "sha1",
+ "sha2",
+ "sha3",
+ "thiserror 1.0.69",
+ "tokio",
+ "tokio-tungstenite",
+ "url",
+ "urlencoding",
+]
+
+[[package]]
+name = "ccxt-typed"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "ccxt",
+ "chrono",
+ "futures",
+ "indexmap",
+ "num-bigint",
+ "num-traits",
+ "rust_decimal",
+ "serde",
+ "serde_json",
  "tokio",
 ]
 

@@ -33,7 +33,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
+// The base REST/prediction Cores are READ from here (parents, method surface).
 const EXCHANGES_FOLDER = './rust/ccxt/src/exchanges/';
+// The typed wrappers are WRITTEN into the sibling `ccxt-typed` crate — split out
+// of `ccxt` so the base crate's single `rustc` invocation stays under the CI
+// runner's memory ceiling. `crate::exchanges::*` inside the wrappers resolves
+// via `ccxt-typed/src/exchanges/mod.rs`'s `pub use ccxt::exchanges::*;`.
+const TYPED_FOLDER = './rust/ccxt-typed/src/exchanges/';
+const TYPED_AGGREGATOR = './rust/ccxt-typed/src/typed.rs';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Type mapping
@@ -757,6 +764,8 @@ function main() {
         console.error(`Exchanges folder not found: ${EXCHANGES_FOLDER}`);
         process.exit(1);
     }
+    // The typed wrappers are written into the sibling `ccxt-typed` crate.
+    fs.mkdirSync(TYPED_FOLDER, { recursive: true });
 
     // Methods defined on the base `Exchange` — these are reachable via
     // `Deref<Target = Exchange>` from any `<Exchange>Core` and don't need
@@ -807,27 +816,29 @@ function main() {
             ...baseMethods,
             ...discoverDefinedMethods(path.join(EXCHANGES_FOLDER, `${id}.rs`)),
         ]);
-        const out = path.join(EXCHANGES_FOLDER, `${id}_typed.rs`);
+        const out = path.join(TYPED_FOLDER, `${id}_typed.rs`);
         const content = generateTypedWrapper(id, exchangeMethods, directlyCallable);
         fs.writeFileSync(out, content, 'utf-8');
         generatedIds.push(id);
     }
     const generated = generatedIds.length;
-    console.log(`Generated ${generated} typed wrappers (avg ${(totalEmittedMethods / Math.max(1, generated)).toFixed(1)} methods/exchange) in ${EXCHANGES_FOLDER}`);
+    console.log(`Generated ${generated} typed wrappers (avg ${(totalEmittedMethods / Math.max(1, generated)).toFixed(1)} methods/exchange) in ${TYPED_FOLDER}`);
 
     // When generating the full set (no single-exchange filter), also emit
     // the aggregator `rust/ccxt/src/typed.rs` that re-exports every
     // `<Capitalized>` typed wrapper. `lib.rs` does `pub use typed::*;`
     // so users can write `use ccxt::Binance;` directly.
     if (!onlyId) {
-        const aggregator = path.resolve('./rust/ccxt/src/typed.rs');
+        const aggregator = path.resolve(TYPED_AGGREGATOR);
         // Read the on-disk listing so the aggregator includes every typed
         // file present, not just those we just wrote (handles partial-build
         // states where the per-exchange generator was run for one id).
-        const allTyped = fs.readdirSync(EXCHANGES_FOLDER)
+        const allTyped = fs.readdirSync(TYPED_FOLDER)
             .filter(f => f.endsWith('_typed.rs'))
             .map(f => f.replace(/_typed\.rs$/, ''));
         // Header + the `TypedExchange` trait declaration, then the re-exports.
+        // `crate::exchanges::<id>_typed` resolves within `ccxt-typed` (its
+        // `exchanges/mod.rs` declares the wrapper modules).
         const lines: string[] = [genTypedExchangeTrait(methods)];
         for (const id of allTyped) {
             lines.push(`pub use crate::exchanges::${id}_typed::${capitalize(id)};`);
@@ -836,42 +847,32 @@ function main() {
         fs.writeFileSync(aggregator, lines.join('\n'), 'utf-8');
         console.log(`Wrote aggregator ${aggregator} with ${allTyped.length} re-exports`);
 
-        // Keep `exchanges/mod.rs` in sync with the wrappers we just wrote. The
-        // transpiler's `writeModFile` only emits `pub mod <id>_typed;` for a
-        // `<id>_typed.rs` that already existed when IT ran — so a BRAND-NEW
-        // exchange (e.g. `nado` from an upstream merge) gets its wrapper +
-        // `typed.rs` re-export here but no module declaration, and the crate
-        // fails with `unresolved import crate::exchanges::<id>_typed`. Insert
-        // any missing `pub mod <id>_typed;` next to the exchange's own module
-        // line (idempotent — the transpiler re-emits the same line on its next
-        // run once the file exists on disk).
-        syncTypedModDecls(allTyped);
+        // Author `ccxt-typed/src/exchanges/mod.rs` in full: re-export the base
+        // crate's Cores (so the wrappers' `crate::exchanges::<id>::<Id>Core`
+        // paths resolve) and declare one `pub mod <id>_typed;` per wrapper.
+        writeTypedModFile(allTyped);
     }
 }
 
-// Ensure `rust/ccxt/src/exchanges/mod.rs` declares `pub mod <id>_typed;` for
-// every generated typed wrapper. Only adds missing lines; never reorders or
-// removes (the transpiler's `writeModFile` remains the primary author).
-function syncTypedModDecls(ids: string[]) {
-    const modPath = path.join(EXCHANGES_FOLDER, 'mod.rs');
-    if (!fs.existsSync(modPath)) return;
-    const src = fs.readFileSync(modPath, 'utf-8');
-    const lines = src.split('\n');
-    const has = (mod: string) => lines.some(l => l.trim() === `pub mod ${mod};`);
-    let added = 0;
-    for (const id of ids) {
-        if (has(`${id}_typed`)) continue;
-        // Anchor after `pub mod <id>_api;`, else `pub mod <id>;`.
-        let anchor = lines.findIndex(l => l.trim() === `pub mod ${id}_api;`);
-        if (anchor < 0) anchor = lines.findIndex(l => l.trim() === `pub mod ${id};`);
-        if (anchor < 0) continue; // exchange module not listed — leave to the transpiler
-        lines.splice(anchor + 1, 0, `pub mod ${id}_typed;`);
-        added++;
-    }
-    if (added > 0) {
-        fs.writeFileSync(modPath, lines.join('\n'), 'utf-8');
-        console.log(`Synced ${added} missing 'pub mod <id>_typed;' decl(s) into exchanges/mod.rs`);
-    }
+// Author `ccxt-typed/src/exchanges/mod.rs` — the wrappers live in this crate,
+// but reference the base Cores via `crate::exchanges::<id>::<Id>Core`, so the
+// module re-exports `ccxt::exchanges::*` and declares each `<id>_typed` module.
+function writeTypedModFile(ids: string[]) {
+    const modPath = path.join(TYPED_FOLDER, 'mod.rs');
+    const lines: string[] = [
+        '// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:',
+        '// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code',
+        '//',
+        "// Re-export the base crate's REST/prediction Cores so the wrapper files'",
+        '// `crate::exchanges::<id>::<Id>Core` paths resolve. The `<id>_typed`',
+        '// wrapper modules themselves live in this crate.',
+        'pub use ccxt::exchanges::*;',
+        '',
+        ...[...ids].sort().map(id => `pub mod ${id}_typed;`),
+        '',
+    ];
+    fs.writeFileSync(modPath, lines.join('\n'), 'utf-8');
+    console.log(`Wrote ${modPath} with ${ids.length} 'pub mod <id>_typed;' decl(s)`);
 }
 
 main();

@@ -16,7 +16,7 @@ fn symbol() -> String {
 }
 
 async fn run() {
-    let mut ex = Box::new(ccxt::pro::binance::BinanceCore::new(None));
+    let mut ex = Box::new(ccxt_pro::pro::binance::BinanceCore::new(None));
     ex.bind();
     let _ = ExchangeBase::call_dynamic(&mut *ex, "load_markets", vec![]).await;
 
