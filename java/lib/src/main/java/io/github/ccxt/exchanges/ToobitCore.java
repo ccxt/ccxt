@@ -2295,6 +2295,11 @@ public class ToobitCore extends ToobitApi
         market = this.safeMarket(marketId, market);
         Object rawType = this.safeString(order, "type");
         Object rawSideLower = this.safeStringLower(order, "side");
+        if (Helpers.isTrue(!Helpers.isEqual(rawSideLower, null)))
+        {
+            // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like
+            rawSideLower = this.safeString(Helpers.split(rawSideLower, "_"), 0);
+        }
         Object triggerPrice = this.omitZero(this.safeString(order, "stopPrice"));
         if (Helpers.isTrue(Helpers.isEqual(triggerPrice, "0.0")))
         {
@@ -2302,6 +2307,7 @@ public class ToobitCore extends ToobitApi
         }
         final Object finalMarket = market;
         final Object finalRawType = rawType;
+        final Object finalRawSideLower = rawSideLower;
         final Object finalTriggerPrice = triggerPrice;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
@@ -2316,7 +2322,7 @@ public class ToobitCore extends ToobitApi
             put( "type", ToobitCore.this.parseOrderType(finalRawType) );
             put( "timeInForce", ToobitCore.this.safeString(order, "timeInForce") );
             put( "postOnly", (Helpers.isEqual(finalRawType, "LIMIT_MAKER")) );
-            put( "side", rawSideLower );
+            put( "side", finalRawSideLower );
             put( "price", ToobitCore.this.omitZero(ToobitCore.this.safeString(order, "price")) );
             put( "triggerPrice", finalTriggerPrice );
             put( "cost", ToobitCore.this.omitZero(ToobitCore.this.safeString(order, "cumulativeQuoteQty")) );
