@@ -3448,22 +3448,17 @@ public partial class binance : ccxt.binance
         object delay = this.sum(listenKeyRefreshRate, 10000);
         if (isTrue(isGreaterThan(subtract(time, lastAuthenticatedTime), delay)))
         {
-            // the private url embeds the listenKey that this request produces, so the future
-            // is parked on the listenKey-free base url of that same stream - concurrent
-            // callers wait for the leader instead of fetching a second listenKey, which
-            // would split the user-data subscriptions across two connections. the stock
-            // stream parks on the listenKey-free market url of the same host for the
-            // same reason
-            object clientUrl = ((bool) isTrue(isStock)) ? this.getStockWsUrl("market") : this.getWsUrl(type, "private");
-            var client = this.client(clientUrl);
-            object messageHash = add("authenticate:", type);
-            if (isTrue(inOp(client.futures, messageHash)))
+            // single-flight leader election: the flight lives on the exchange,
+            // not parked on a ws client, so no client is instantiated just to
+            // carry the future and no listenKey-free parking url is needed -
+            // waiters wake when the leader settles and read the cached bucket
+            object flightHash = add("authenticate:", type);
+            object isLeader = await this.singleFlightAcquire(flightHash);
+            if (!isTrue(isLeader))
             {
-                // another caller is already fetching, wait for it instead of fetching again
-                await client.future(messageHash);
+                // the leader settled the flight: the listenKey is in the bucket
                 return;
             }
-            client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
             try
             {
                 object response = null;
@@ -3506,10 +3501,10 @@ public partial class binance : ccxt.binance
                     });
                 }
                 this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { delayParams});
-                callDynamically(client as WebSocketClient, "resolve", new object[] {listenKey, messageHash});
+                this.singleFlightResolve(flightHash, listenKey);
             } catch(Exception e)
             {
-                ((WebSocketClient)client).reject(e, messageHash);
+                this.singleFlightReject(flightHash, e);
                 throw e;
             }
         }
