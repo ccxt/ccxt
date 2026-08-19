@@ -759,12 +759,24 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         else:
             isCancel = self.safe_value(message, 'is_cancel')
             if isCancel:
+                # Kraken documents is_cancel as "fully filled, cancelled, or
+                # rejected". Derive unified status from `reason` instead of
+                # mapping every removal to canceled. Preserve reason on info
+                # so consumers can tell a user cancel from liquidation, etc.
+                reason = self.safe_string(message, 'reason')
+                status = 'canceled'
+                if reason == 'full_fill':
+                    status = 'closed'
                 # get order without symbol
                 for i in range(0, len(orders)):
                     currentOrder = orders[i]
                     if currentOrder['id'] == message['order_id']:
+                        info = self.extend(self.safe_dict(currentOrder, 'info', {}), {
+                            'reason': reason,
+                        })
                         orders[i] = self.extend(currentOrder, {
-                            'status': 'canceled',
+                            'status': status,
+                            'info': info,
                         })
                         client.resolve(orders, 'orders')
                         client.resolve(orders, 'orders:' + currentOrder['symbol'])
