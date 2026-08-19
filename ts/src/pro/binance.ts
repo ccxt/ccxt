@@ -404,14 +404,12 @@ export default class binance extends binanceRest {
         }
         const resolvedAuth: Dict = this.resolveAuthType ('watchLiquidationsForSymbols', firstMarket, params);
         const type = resolvedAuth['type'] as string;
-        const rawType = resolvedAuth['rawType'] as Str;
         params = resolvedAuth['params'] as Dict;
-        // the spot check keeps its pre-helper semantics: on master it ran
-        // before the subType derivation and rewrite, so it always saw the raw
-        // type - rawType preserves that, it does not fix anything here. the
-        // throw the unguarded rewrite genuinely made unreachable is the
-        // option one below, which the helper's guard restores
-        if (rawType === 'spot') {
+        // the spot check runs on the RESOLVED type: a spot default combined
+        // with a linear or inverse defaultSubType means the caller wants the
+        // matching derivatives stream, so the rewrite is allowed to route it
+        // there and only a request that still resolves to spot throws
+        if (type === 'spot') {
             throw new BadRequest (this.id + ' watchLiquidationsForSymbols is not supported for spot symbols');
         }
         if (type === 'option') {
