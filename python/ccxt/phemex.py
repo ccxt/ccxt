@@ -2679,9 +2679,9 @@ class phemex(Exchange, ImplicitAPI):
             posSide = self.capitalize(posSide)
             request['posSide'] = posSide
             if isStableSettled:
-                request['orderQtyRq'] = amount
+                request['orderQtyRq'] = self.amount_to_precision(symbol, amount)
             else:
-                request['orderQty'] = self.parse_to_int(amount)
+                request['orderQty'] = self.parse_to_int(self.amount_to_precision(symbol, amount))
             if triggerPrice is not None:
                 triggerType = self.safe_string(params, 'triggerType', 'ByMarkPrice')
                 request['triggerType'] = triggerType
