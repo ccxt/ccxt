@@ -1907,7 +1907,9 @@ public partial class bingx : ccxt.bingx
         object a = this.safeDict(message, "a", new Dictionary<string, object>() {});
         object data = this.safeList(a, "B", new List<object>() {});
         object timestamp = this.safeInteger2(message, "T", "E");
-        object type = ((bool) isTrue((inOp(a, "P")))) ? "swap" : "spot";
+        object spotUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), "spot");
+        object isSpot = isTrue((!isEqual(spotUrl, null))) && isTrue((isEqual(getIndexOf(client.url, spotUrl), 0)));
+        object type = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         if (!isTrue((inOp(this.balance, type))))
         {
             ((IDictionary<string,object>)this.balance)[(string)type] = new Dictionary<string, object>() {};

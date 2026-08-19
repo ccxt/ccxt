@@ -710,10 +710,10 @@ public partial class poloniex : Exchange
                     { "21356", typeof(BadRequest) },
                     { "21721", typeof(InsufficientFunds) },
                     { "24101", typeof(BadSymbol) },
-                    { "24102", typeof(InvalidOrder) },
-                    { "24103", typeof(InvalidOrder) },
-                    { "24104", typeof(InvalidOrder) },
-                    { "24105", typeof(InvalidOrder) },
+                    { "24102", typeof(BadRequest) },
+                    { "24103", typeof(BadRequest) },
+                    { "24104", typeof(BadRequest) },
+                    { "24105", typeof(BadRequest) },
                     { "25020", typeof(InvalidOrder) },
                     { "25000", typeof(InvalidOrder) },
                     { "25001", typeof(InvalidOrder) },
@@ -735,6 +735,41 @@ public partial class poloniex : Exchange
                     { "25017", typeof(ExchangeError) },
                     { "25018", typeof(BadRequest) },
                     { "25019", typeof(BadSymbol) },
+                    { "250", typeof(DuplicateOrderId) },
+                    { "400", typeof(BadRequest) },
+                    { "403", typeof(PermissionDenied) },
+                    { "404", typeof(BadRequest) },
+                    { "429", typeof(RateLimitExceeded) },
+                    { "503", typeof(ExchangeNotAvailable) },
+                    { "1000", typeof(AuthenticationError) },
+                    { "1001", typeof(ExchangeError) },
+                    { "1002", typeof(OnMaintenance) },
+                    { "1003", typeof(AccountSuspended) },
+                    { "10000", typeof(MarketClosed) },
+                    { "10001", typeof(BadSymbol) },
+                    { "10002", typeof(InvalidOrder) },
+                    { "10003", typeof(InvalidOrder) },
+                    { "10004", typeof(InvalidOrder) },
+                    { "10005", typeof(MarketClosed) },
+                    { "10006", typeof(OperationRejected) },
+                    { "10007", typeof(OperationRejected) },
+                    { "10008", typeof(AccountSuspended) },
+                    { "10009", typeof(OperationRejected) },
+                    { "10010", typeof(InvalidOrder) },
+                    { "10011", typeof(InvalidOrder) },
+                    { "10012", typeof(InvalidOrder) },
+                    { "10013", typeof(InvalidOrder) },
+                    { "10014", typeof(BadRequest) },
+                    { "10015", typeof(OperationRejected) },
+                    { "10016", typeof(BadRequest) },
+                    { "10017", typeof(BadRequest) },
+                    { "10018", typeof(OperationRejected) },
+                    { "10019", typeof(OperationRejected) },
+                    { "11003", typeof(BadRequest) },
+                    { "11004", typeof(OperationRejected) },
+                    { "11008", typeof(OrderNotFound) },
+                    { "12004", typeof(PermissionDenied) },
+                    { "21001", typeof(OperationRejected) },
                 } },
                 { "broad", new Dictionary<string, object>() {} },
             } },
@@ -4153,10 +4188,9 @@ public partial class poloniex : Exchange
         object responseCode = this.safeString(response, "code");
         if (isTrue(isTrue((!isEqual(responseCode, null))) && isTrue((!isEqual(responseCode, "200")))))
         {
-            object codeInner = getValue(response, "code");
-            object message = this.safeString(response, "message");
+            object message = this.safeString2(response, "message", "msg");
             object feedback = add(add(this.id, " "), body);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), codeInner, feedback);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), responseCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
