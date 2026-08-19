@@ -1640,7 +1640,7 @@ func (this *HyperliquidCore) HandlePositions(client any, message any) {
 		cache.(ccxt.Appender).Append(position)
 	}
 	var baseMessageHash any = "clearinghouseState::positions"
-	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), baseMessageHash)
+	var messageHashes any = this.FindMessageHashes(client.(*ccxt.Client), baseMessageHash)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var parts any = ccxt.Split(messageHash, "::")
@@ -1979,7 +1979,7 @@ func (this *HyperliquidCore) HandleOrderBookUnsubscription(client any, subscript
 	var symbol any = this.SafeSymbol(marketId)
 	var subMessageHash any = ccxt.Add("orderbook:", symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(client.(*ccxt.Client), subMessageHash, messageHash)
 	if ccxt.IsTrue(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.Remove(this.Orderbooks, symbol)
 	}
@@ -1991,7 +1991,7 @@ func (this *HyperliquidCore) HandleTradesUnsubscription(client any, subscription
 	var symbol any = this.SafeSymbol(marketId)
 	var subMessageHash any = ccxt.Add("trade:", symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(client.(*ccxt.Client), subMessageHash, messageHash)
 	if ccxt.IsTrue(ccxt.InOp(this.Trades, symbol)) {
 		ccxt.Remove(this.Trades, symbol)
 	}
@@ -2000,7 +2000,7 @@ func (this *HyperliquidCore) HandleTickersUnsubscription(client any, subscriptio
 	//
 	var subMessageHash any = "tickers"
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(client.(*ccxt.Client), subMessageHash, messageHash)
 	var symbols any = ccxt.ObjectKeys(this.Tickers)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
 		ccxt.Remove(this.Tickers, ccxt.GetValue(symbols, i))
@@ -2013,7 +2013,7 @@ func (this *HyperliquidCore) HandleTickerUnsubscription(client any, subscription
 	var symbol any = this.SafeSymbol(marketId)
 	var subMessageHash any = ccxt.Add("ticker:", symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(client.(*ccxt.Client), subMessageHash, messageHash)
 	if ccxt.IsTrue(ccxt.InOp(this.Tickers, symbol)) {
 		ccxt.Remove(this.Tickers, symbol)
 	}
@@ -2026,7 +2026,7 @@ func (this *HyperliquidCore) HandleOHLCVUnsubscription(client any, subscription 
 	var timeframe any = this.FindTimeframe(interval)
 	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(client.(*ccxt.Client), subMessageHash, messageHash)
 	if ccxt.IsTrue(ccxt.InOp(this.Ohlcvs, symbol)) {
 		if ccxt.IsTrue(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
 			ccxt.Remove(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
@@ -2036,7 +2036,7 @@ func (this *HyperliquidCore) HandleOHLCVUnsubscription(client any, subscription 
 func (this *HyperliquidCore) HandleOrderUnsubscription(client any, subscription any) {
 	var subHash any = "order"
 	var unSubHash any = ccxt.Add("unsubscribe:", subHash)
-	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
+	this.CleanUnsubscription(client.(*ccxt.Client), subHash, unSubHash, true)
 	// the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design)
 	// clear it for the user echoed in the ack so a later watch re-subscribes
 	var user any = this.SafeStringLower(subscription, "user")
@@ -2054,7 +2054,7 @@ func (this *HyperliquidCore) HandleOrderUnsubscription(client any, subscription 
 func (this *HyperliquidCore) HandleMyTradesUnsubscription(client any, subscription any) {
 	var subHash any = "myTrades"
 	var unSubHash any = ccxt.Add("unsubscribe:", subHash)
-	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
+	this.CleanUnsubscription(client.(*ccxt.Client), subHash, unSubHash, true)
 	// the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design)
 	// clear it for the user echoed in the ack so a later watch re-subscribes
 	var user any = this.SafeStringLower(subscription, "user")
@@ -2072,7 +2072,7 @@ func (this *HyperliquidCore) HandleMyTradesUnsubscription(client any, subscripti
 func (this *HyperliquidCore) HandlePositionsUnsubscription(client any, subscription any) {
 	var subHash any = "clearinghouseState"
 	var unSubHash any = ccxt.Add("unsubscribe:", subHash)
-	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
+	this.CleanUnsubscription(client.(*ccxt.Client), subHash, unSubHash, true)
 	var topicStructure any = map[string]any{
 		"topic": "positions",
 	}
@@ -2085,7 +2085,7 @@ func (this *HyperliquidCore) HandlePositionsUnsubscription(client any, subscript
 func (this *HyperliquidCore) HandleSpotBalanceUnsubscription(client any, subscription any) {
 	var subHash any = "spotState"
 	var unSubHash any = ccxt.Add("unsubscribe:", subHash)
-	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
+	this.CleanUnsubscription(client.(*ccxt.Client), subHash, unSubHash, true)
 	if ccxt.IsTrue(ccxt.InOp(this.Balance, "spot")) {
 		ccxt.Remove(this.Balance, "spot")
 	}

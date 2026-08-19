@@ -1880,7 +1880,7 @@ func (this *LighterCore) HandleUnSubscription(client any, subscription any) {
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var unsubHash any = ccxt.GetValue(messageHashes, i)
 		var subHash any = ccxt.GetValue(subMessageHashes, i)
-		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
+		this.CleanUnsubscription(client.(*ccxt.Client), subHash, unsubHash)
 	}
 	this.CleanCache(subscription)
 }

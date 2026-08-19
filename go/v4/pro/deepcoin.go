@@ -1484,7 +1484,7 @@ func (this *DeepcoinCore) HandleSubscriptionStatus(client any, message any) {
 func (this *DeepcoinCore) HandleUnSubscription(client any, subscription any) {
 	var subHash any = this.SafeString(subscription, "subHash")
 	var unsubHash any = this.SafeString(subscription, "unsubHash")
-	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
+	this.CleanUnsubscription(client.(*ccxt.Client), subHash, unsubHash)
 	this.CleanCache(subscription)
 }
 func (this *DeepcoinCore) HandleErrorMessage(client any, message any) {

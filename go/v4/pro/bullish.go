@@ -903,7 +903,7 @@ func (this *BullishCore) HandlePositions(client any, message any) {
 		positions.(ccxt.Appender).Append(position)
 		ccxt.AppendToArray(&newPositions, position)
 	}
-	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "positions::")
+	var messageHashes any = this.FindMessageHashes(client.(*ccxt.Client), "positions::")
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var parts any = ccxt.Split(messageHash, "::")

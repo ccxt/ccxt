@@ -1232,7 +1232,7 @@ func (this *BitvavoCore) HandleUnsubscriptionStatus(client any, message any) any
 		var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), key)
 		var subHash any = ccxt.Replace(key, "unsubscribe:", "")
 		this.CleanCache(subscription)
-		this.CleanUnsubscription(ccxt.AsClient(client), subHash, key)
+		this.CleanUnsubscription(client.(*ccxt.Client), subHash, key)
 		// bitvavo resolves-and-deletes the data futures on every message, so at
 		// unsubscribe time the sub future is usually already gone and cleanUnsubscription
 		// stashes the error in client.rejections instead - that stale entry

@@ -2444,7 +2444,7 @@ func (this *NadoCore) HandleUnsubscription(client any, message any) {
 		var unsubscribeHash any = this.SafeString(unsubscription, "unsubscribeHash")
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("unsubscription:", id))
 		if ccxt.IsTrue(!ccxt.IsEqual(messageHash, nil)) {
-			this.CleanUnsubscription(ccxt.AsClient(client), messageHash, unsubscribeHash)
+			this.CleanUnsubscription(client.(*ccxt.Client), messageHash, unsubscribeHash)
 			this.HandleUnsubscriptionCache(messageHash)
 		}
 		client.(ccxt.ClientInterface).Resolve(message, unsubscribeHash)
@@ -2460,7 +2460,7 @@ func (this *NadoCore) HandleUnsubscription(client any, message any) {
 		}
 		var messageHash any = this.SafeString(subscription, "messageHash")
 		if ccxt.IsTrue(!ccxt.IsEqual(messageHash, nil)) {
-			this.CleanUnsubscription(ccxt.AsClient(client), messageHash, unsubscribeHash)
+			this.CleanUnsubscription(client.(*ccxt.Client), messageHash, unsubscribeHash)
 			this.HandleUnsubscriptionCache(messageHash)
 		}
 		client.(ccxt.ClientInterface).Resolve(message, unsubscribeHash)

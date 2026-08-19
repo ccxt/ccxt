@@ -1287,7 +1287,7 @@ func (this *CoinbaseCore) HandleSubscriptionStatus(client any, message any) any 
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 			var messageHash any = ccxt.GetValue(messageHashes, i)
 			var subHash any = ccxt.GetValue(subMessageHashes, i)
-			this.CleanUnsubscription(ccxt.AsClient(client), subHash, messageHash)
+			this.CleanUnsubscription(client.(*ccxt.Client), subHash, messageHash)
 		}
 		this.CleanCache(unSubObject)
 	}

@@ -2132,7 +2132,7 @@ func (this *BybitCore) HandlePositions(client any, message any) {
 			cache.(ccxt.Appender).Append(position)
 		}
 	}
-	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "positions::")
+	var messageHashes any = this.FindMessageHashes(client.(*ccxt.Client), "positions::")
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var parts any = ccxt.Split(messageHash, "::")
@@ -3332,7 +3332,7 @@ func (this *BybitCore) HandleUnSubscribe(client any, message any) any {
 				var unsubHash any = ccxt.GetValue(messageHashes, j)
 				var subHash any = ccxt.GetValue(subMessageHashes, j)
 				var usePrefix any = ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(subHash, "orders"))) || ccxt.IsTrue((ccxt.IsEqual(subHash, "myTrades")))) || ccxt.IsTrue((ccxt.IsEqual(subHash, "positions")))
-				this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash, usePrefix)
+				this.CleanUnsubscription(client.(*ccxt.Client), subHash, unsubHash, usePrefix)
 			}
 			this.CleanCache(subscription)
 		}

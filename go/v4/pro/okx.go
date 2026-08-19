@@ -3274,7 +3274,7 @@ func (this *OkxCore) HandleMessage(client any, message any) {
 func (this *OkxCore) HandleUnSubscriptionTrades(client any, symbol any, channel any) {
 	var subMessageHash any = ccxt.Add(ccxt.Add(channel, ":"), symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(client.(*ccxt.Client), subMessageHash, messageHash)
 	if ccxt.IsTrue(ccxt.InOp(this.Trades, symbol)) {
 		ccxt.Remove(this.Trades, symbol)
 	}
@@ -3282,7 +3282,7 @@ func (this *OkxCore) HandleUnSubscriptionTrades(client any, symbol any, channel 
 func (this *OkxCore) HandleUnsubscriptionOrderBook(client any, symbol any, channel any) {
 	var subMessageHash any = ccxt.Add(ccxt.Add(channel, ":"), symbol)
 	var messageHash any = ccxt.Add("unsubscribe:orderbook:", symbol)
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(client.(*ccxt.Client), subMessageHash, messageHash)
 	if ccxt.IsTrue(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.Remove(this.Orderbooks, symbol)
 	}
@@ -3295,7 +3295,7 @@ func (this *OkxCore) HandleUnsubscriptionOHLCV(client any, symbol any, channel a
 	}
 	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add("multi:", channel), ":"), symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(client.(*ccxt.Client), subMessageHash, messageHash)
 	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(symbol, nil))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, nil)))) && ccxt.IsTrue((ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)))) {
 		ccxt.Remove(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 	}
@@ -3303,7 +3303,7 @@ func (this *OkxCore) HandleUnsubscriptionOHLCV(client any, symbol any, channel a
 func (this *OkxCore) HandleUnsubscriptionTicker(client any, symbol any, channel any) {
 	var subMessageHash any = ccxt.Add(ccxt.Add(channel, "::"), symbol)
 	var messageHash any = ccxt.Add("unsubscribe:ticker:", symbol)
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(client.(*ccxt.Client), subMessageHash, messageHash)
 	if ccxt.IsTrue(ccxt.InOp(this.Tickers, symbol)) {
 		ccxt.Remove(this.Tickers, symbol)
 	}

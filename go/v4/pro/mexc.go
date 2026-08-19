@@ -2283,7 +2283,7 @@ func (this *MexcCore) HandleUnsubscriptions(client any, messageHashes any) {
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var subMessageHash any = ccxt.Replace(messageHash, "unsubscribe:", "")
-		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+		this.CleanUnsubscription(client.(*ccxt.Client), subMessageHash, messageHash)
 		if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(messageHash, "ticker"), 0)) {
 			var symbol any = ccxt.Replace(messageHash, "unsubscribe:ticker:", "")
 			if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(symbol, "unsubscribe"), 0)) {

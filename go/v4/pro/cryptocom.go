@@ -1390,7 +1390,7 @@ func (this *CryptocomCore) HandlePositions(client any, message any) {
 		ccxt.AppendToArray(&newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
-	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "positions::")
+	var messageHashes any = this.FindMessageHashes(client.(*ccxt.Client), "positions::")
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var parts any = ccxt.Split(messageHash, "::")
@@ -2045,7 +2045,7 @@ func (this *CryptocomCore) HandleUnsubscribe(client any, message any) {
 			for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(messageHashes)); j++ {
 				var unsubHash any = ccxt.GetValue(messageHashes, j)
 				var subHash any = ccxt.GetValue(subMessageHashes, j)
-				this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
+				this.CleanUnsubscription(client.(*ccxt.Client), subHash, unsubHash)
 			}
 			this.CleanCache(subscription)
 		}

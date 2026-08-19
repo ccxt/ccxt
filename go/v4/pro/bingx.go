@@ -1689,7 +1689,7 @@ func (this *BingxCore) HandlePositions(client any, message any) {
 		ccxt.AppendToArray(&newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
-	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "swap:positions::")
+	var messageHashes any = this.FindMessageHashes(client.(*ccxt.Client), "swap:positions::")
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var parts any = ccxt.Split(messageHash, "::")
@@ -2084,9 +2084,7 @@ func (this *BingxCore) HandleBalance(client any, message any) {
 	var a any = this.SafeDict(message, "a", map[string]any{})
 	var data any = this.SafeList(a, "B", []any{})
 	var timestamp any = this.SafeInteger2(message, "T", "E")
-	var spotUrl any = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
-	var isSpot any = ccxt.IsTrue((!ccxt.IsEqual(spotUrl, nil))) && ccxt.IsTrue((ccxt.IsEqual(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), spotUrl), 0)))
-	var typeVar any = ccxt.Ternary(ccxt.IsTrue(isSpot), "spot", "swap")
+	var typeVar any = ccxt.Ternary(ccxt.IsTrue((ccxt.InOp(a, "P"))), "swap", "spot")
 	if !ccxt.IsTrue((ccxt.InOp(this.Balance, typeVar))) {
 		ccxt.AddElementToObject(this.Balance, typeVar, map[string]any{})
 	}
@@ -2190,7 +2188,7 @@ func (this *BingxCore) HandleUnSubscription(client any, subscription any) {
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var unsubHash any = ccxt.GetValue(messageHashes, i)
 		var subHash any = ccxt.GetValue(subMessageHashes, i)
-		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
+		this.CleanUnsubscription(client.(*ccxt.Client), subHash, unsubHash)
 	}
 	this.CleanCache(subscription)
 }

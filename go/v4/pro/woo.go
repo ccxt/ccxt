@@ -2021,7 +2021,7 @@ func (this *WooCore) HandleUnSubscription(client any, message any) {
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(subMessageHashes)); i++ {
 		var subHash any = ccxt.GetValue(subMessageHashes, i)
 		var unsubHash any = ccxt.GetValue(unsubMessageHashes, i)
-		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
+		this.CleanUnsubscription(client.(*ccxt.Client), subHash, unsubHash)
 	}
 	this.CleanCache(subscription)
 }

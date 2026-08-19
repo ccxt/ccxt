@@ -1132,7 +1132,7 @@ func (this *XtCore) HandlePosition(client any, message any) {
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var position any = this.ParsePosition(data)
 	cache.(ccxt.Appender).Append(position)
-	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "position::contract")
+	var messageHashes any = this.FindMessageHashes(client.(*ccxt.Client), "position::contract")
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var parts any = ccxt.Split(messageHash, "::")
@@ -1306,7 +1306,7 @@ func (this *XtCore) HandleTickers(client any, message any) any {
 		ccxt.AppendToArray(&newTickers, ticker)
 	}
 	var messageHashStart any = ccxt.Add(ccxt.Add(this.SafeString(message, "topic"), "::"), tradeType)
-	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), ccxt.Add(messageHashStart, "::"))
+	var messageHashes any = this.FindMessageHashes(client.(*ccxt.Client), ccxt.Add(messageHashStart, "::"))
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var parts any = ccxt.Split(messageHash, "::")
@@ -1922,7 +1922,7 @@ func (this *XtCore) HandleUnSubscription(client any, subscription any) {
 	for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(messageHashes)); j++ {
 		var unsubHash any = ccxt.GetValue(messageHashes, j)
 		var subHash any = ccxt.GetValue(subMessageHashes, j)
-		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
+		this.CleanUnsubscription(client.(*ccxt.Client), subHash, unsubHash)
 	}
 	this.CleanCache(subscription)
 }
