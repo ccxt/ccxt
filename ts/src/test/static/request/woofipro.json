@@ -388,14 +388,54 @@
         ],
         "setLeverage": [
             {
-                "description": "Set linear leverage",
+                "description": "Set per-symbol leverage",
                 "method": "setLeverage",
-                "url": "https://api-evm.orderly.org/v1/client/leverage",
+                "url": "https://api-evm.orderly.org/v1/client/leverages",
                 "input": [
                     5,
                     "LTC/USDC:USDC"
                 ],
-                "output": "{\"leverage\":5}"
+                "output": "{\"leverage\":5,\"symbol\":\"PERP_LTC_USDC\"}"
+            },
+            {
+                "description": "Set per-symbol leverage with isolated margin mode",
+                "method": "setLeverage",
+                "url": "https://api-evm.orderly.org/v1/client/leverages",
+                "input": [
+                    5,
+                    "LTC/USDC:USDC",
+                    {
+                        "marginMode": "isolated"
+                    }
+                ],
+                "output": "{\"leverage\":5,\"symbol\":\"PERP_LTC_USDC\",\"margin_mode\":\"ISOLATED\"}"
+            },
+            {
+                "description": "Set account-wide leverage without symbol",
+                "method": "setLeverage",
+                "url": "https://api-evm.orderly.org/v1/client/leverages",
+                "input": [
+                    10
+                ],
+                "output": "{\"leverage\":10}"
+            }
+        ],
+        "fetchLeverages": [
+            {
+                "description": "fetch leverage of all markets",
+                "method": "fetchLeverages",
+                "url": "https://api-evm.orderly.org/v1/client/leverages",
+                "input": []
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "fetch leverage of one market",
+                "method": "fetchLeverage",
+                "url": "https://api-evm.orderly.org/v1/client/leverages",
+                "input": [
+                    "LTC/USDC:USDC"
+                ]
             }
         ],
         "fetchDeposits": [
