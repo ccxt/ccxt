@@ -21,6 +21,21 @@
                     }
                 ],
                 "output": "{\"coin\":\"USDT\",\"amount\":\"5\",\"address\":\"0x883b79D31EA07AA200A4a83c50d444470A212eEE\",\"network\":\"ETH\"}"
+            },
+            {
+                "description": "tron network id must be TRX, TRON is rejected by the api",
+                "method": "withdraw",
+                "url": "https://api.poloniex.com/v2/wallets/withdraw",
+                "input": [
+                    "USDT",
+                    5,
+                    "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD",
+                    null,
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "output": "{\"coin\":\"USDT\",\"amount\":\"5\",\"address\":\"TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD\",\"network\":\"TRX\"}"
             }
         ],
         "fetchDepositAddress": [
