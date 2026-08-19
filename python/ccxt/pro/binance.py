@@ -2772,20 +2772,15 @@ class binance(ccxt.async_support.binance):
         listenKeyRefreshRate = self.safe_integer(self.options, refreshRateKey, 1200000)
         delay = self.sum(listenKeyRefreshRate, 10000)
         if time - lastAuthenticatedTime > delay:
-            # the private url embeds the listenKey that self request produces, so the future
-            # is parked on the listenKey-free base url of that same stream - concurrent
-            # callers wait for the leader instead of fetching a second listenKey, which
-            # would split the user-data subscriptions across two connections. the stock
-            # stream parks on the listenKey-free market url of the same host for the
-            # same reason
-            clientUrl = self.get_stock_ws_url('market') if isStock else self.get_ws_url(type, 'private')
-            client = self.client(clientUrl)
-            messageHash = 'authenticate:' + type
-            if messageHash in client.futures:
-                # another caller is already fetching, wait for it instead of fetching again
-                await client.future(messageHash)
+            # single-flight leader election: the flight lives on the exchange,
+            # not parked on a ws client, so no client is instantiated just to
+            # carry the future and no listenKey-free parking url is needed -
+            # waiters wake when the leader settles and read the cached bucket
+            flightHash = 'authenticate:' + type
+            isLeader = await self.single_flight_acquire(flightHash)
+            if not isLeader:
+                # the leader settled the flight: the listenKey is in the bucket
                 return
-            client.future(messageHash)  # created ahead of the request below, so concurrent callers can find it
             try:
                 response = None
                 if isStock:
@@ -2813,9 +2808,9 @@ class binance(ccxt.async_support.binance):
                 if isStock:
                     delayParams = self.extend(params, {'type': 'stock', 'defaultType': 'stock'})
                 self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, delayParams)
-                client.resolve(listenKey, messageHash)
+                self.single_flight_resolve(flightHash, listenKey)
             except Exception as e:
-                client.reject(e, messageHash)
+                self.single_flight_reject(flightHash, e)
                 raise e
 
     async def keep_alive_listen_key(self, params={}):
