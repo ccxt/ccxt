@@ -823,8 +823,6 @@ export default class krakenfutures extends krakenfuturesRest {
                 let status = 'canceled';
                 if (reason === 'full_fill') {
                     status = 'closed';
-                } else if (reason === 'partial_fill') {
-                    status = 'open';
                 }
                 // get order without symbol
                 for (let i = 0; i < orders.length; i++) {
