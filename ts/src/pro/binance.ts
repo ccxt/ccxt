@@ -402,9 +402,9 @@ export default class binance extends binanceRest {
         if (!this.isEmpty (symbols)) {
             firstMarket = this.getMarketFromSymbols (symbols);
         }
-        const resolvedAuth: Dict = this.resolveAuthType ('watchLiquidationsForSymbols', firstMarket, params);
-        const type = resolvedAuth['type'] as string;
-        params = resolvedAuth['params'] as Dict;
+        const resolvedAuth = this.resolveAuthType ('watchLiquidationsForSymbols', firstMarket, params);
+        const type = resolvedAuth[0];
+        params = resolvedAuth[2];
         // the spot check runs on the RESOLVED type: a spot default combined
         // with a linear or inverse defaultSubType means the caller wants the
         // matching derivatives stream, so the rewrite is allowed to route it
@@ -621,10 +621,9 @@ export default class binance extends binanceRest {
                 messageHashes.push ('myLiquidations::' + symbol);
             }
         }
-        const resolvedAuth: Dict = this.resolveAuthType ('watchMyLiquidationsForSymbols', market, params);
-        const type = resolvedAuth['type'] as string;
-        const subType = resolvedAuth['subType'] as Str;
-        params = resolvedAuth['params'] as Dict;
+        let type: Str = undefined;
+        let subType: Str = undefined;
+        [ type, subType, params ] = this.resolveAuthType ('watchMyLiquidationsForSymbols', market, params);
         // hand the resolved type forward: the helper already omitted type and
         // subType from params, so a bare authenticate would re-derive from
         // options.defaultType and seed a different bucket than the listenKey
@@ -3010,9 +3009,9 @@ export default class binance extends binanceRest {
 
     async authenticate (params = {}) {
         const time = this.milliseconds ();
-        const resolvedAuth: Dict = this.resolveAuthType ('authenticate', undefined, params);
-        const type = resolvedAuth['type'] as string;
-        params = resolvedAuth['params'] as Dict;
+        const resolvedAuth = this.resolveAuthType ('authenticate', undefined, params);
+        const type = resolvedAuth[0];
+        params = resolvedAuth[2];
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'authenticate', 'papi', 'portfolioMargin', false);
         // For spot use WebSocket API signature subscription
@@ -3485,10 +3484,9 @@ export default class binance extends binanceRest {
         // re-derives from its own method scope, so without this a method-scoped
         // options.watchBalance.type seeds one bucket while the read below
         // indexes another - the same derive-first shape watchOrders uses
-        const resolvedAuth: Dict = this.resolveAuthType ('watchBalance', undefined, params);
-        const type = resolvedAuth['type'] as string;
-        const subType = resolvedAuth['subType'] as Str;
-        params = resolvedAuth['params'] as Dict;
+        let type: Str = undefined;
+        let subType: Str = undefined;
+        [ type, subType, params ] = this.resolveAuthType ('watchBalance', undefined, params);
         await this.authenticate (this.extend ({ 'type': type, 'subType': subType }, params));
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchBalance', 'papi', 'portfolioMargin', false);
@@ -3655,7 +3653,7 @@ export default class binance extends binanceRest {
         return accountType;
     }
 
-    resolveAuthType (methodName: string, market: Market = undefined, params: Dict = {}): Dict {
+    resolveAuthType (methodName: string, market: Market = undefined, params: Dict = {}): [string, Str, Dict] {
         // the single home for user-data type derivation: market type, subType,
         // and the guarded linear/inverse rewrite. option and stock must keep
         // their own type, or the listenKey bucket, the endpoint dispatch and
@@ -3674,9 +3672,9 @@ export default class binance extends binanceRest {
                 type = 'delivery';
             }
         }
-        // a dict, not a positional tuple: call sites read only the keys they
-        // consume, so no receiver variable is ever declared-but-unread
-        return { 'type': type, 'subType': subType, 'params': params };
+        // sites consuming every element unpack this; the two that skip subType
+        // index it positionally instead, so no receiver is declared-but-unread
+        return [ type, subType, params ];
     }
 
     getMarketType (method: any, market: any, params = {}) {
@@ -4353,10 +4351,9 @@ export default class binance extends binanceRest {
             symbol = market['symbol'];
             messageHash += ':' + symbol;
         }
-        const resolvedAuth: Dict = this.resolveAuthType ('watchOrders', market, params);
-        const type = resolvedAuth['type'] as string;
-        const subType = resolvedAuth['subType'] as Str;
-        params = resolvedAuth['params'] as Dict;
+        let type: Str = undefined;
+        let subType: Str = undefined;
+        [ type, subType, params ] = this.resolveAuthType ('watchOrders', market, params);
         params = this.extend (params, { 'type': type, 'symbol': symbol, 'subType': subType }); // needed inside authenticate for isolated margin
         await this.authenticate (params);
         let marginMode: Str = undefined;
@@ -4963,10 +4960,9 @@ export default class binance extends binanceRest {
             }
             messageHash = '::' + symbols.join (',');
         }
-        const resolvedAuth: Dict = this.resolveAuthType ('watchPositions', market, params);
-        let type = resolvedAuth['type'] as string;
-        const subType = resolvedAuth['subType'] as Str;
-        params = resolvedAuth['params'] as Dict;
+        let type: Str = undefined;
+        let subType: Str = undefined;
+        [ type, subType, params ] = this.resolveAuthType ('watchPositions', market, params);
         // spot and margin have no positions - whatever still RESOLVES to spot
         // or margin after the helper falls through to the derivatives stream
         // matching the subType. requests a defaultSubType already rewrote
@@ -5405,10 +5401,8 @@ export default class binance extends binanceRest {
             market = marketResolved;
             symbol = market['symbol'];
         }
-        const resolvedAuth: Dict = this.resolveAuthType ('watchMyTrades', market, params);
-        type = resolvedAuth['type'] as string;
-        const subType = resolvedAuth['subType'] as Str;
-        params = resolvedAuth['params'] as Dict;
+        let subType: Str = undefined;
+        [ type, subType, params ] = this.resolveAuthType ('watchMyTrades', market, params);
         let messageHash = 'myTrades';
         if ((symbol !== undefined) && (market !== undefined)) {
             symbol = this.symbol (symbol);
