@@ -212,6 +212,226 @@
                     }
                 }
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "scaled prices and collateral volume",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/AUSD:AUSD",
+                    "1m",
+                    1787037000000,
+                    2,
+                    {
+                        "until": 1787037120000
+                    }
+                ],
+                "httpResponse": {
+                    "mt": 12,
+                    "sn": 97001532,
+                    "at": {
+                        "b": 97001532,
+                        "t": 1787037900000
+                    },
+                    "r": 60,
+                    "d": [
+                        {
+                            "t": 1787037000000,
+                            "o": 642835,
+                            "c": 642821,
+                            "h": 642835,
+                            "l": 642786,
+                            "v": "52037259999",
+                            "n": 110
+                        },
+                        {
+                            "t": 1787037060000,
+                            "o": 642821,
+                            "c": 642666,
+                            "h": 642821,
+                            "l": 642619,
+                            "v": "73698407238",
+                            "n": 126
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [1787037000000, 64283.5, 64283.5, 64278.6, 64282.1, 52037.259999],
+                    [1787037060000, 64282.1, 64282.1, 64261.9, 64266.6, 73698.407238]
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "market state ticker",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/AUSD:AUSD"
+                    ]
+                ],
+                "httpResponse": {
+                    "markets": [
+                        {
+                            "id": 1,
+                            "config": {
+                                "price_decimals": 1,
+                                "size_decimals": 5
+                            },
+                            "state": {
+                                "at": {
+                                    "b": 97001267,
+                                    "t": 1787037820000
+                                },
+                                "orl": 642508,
+                                "mrk": 642693,
+                                "lst": 642517,
+                                "mid": 642516,
+                                "bid": 642516,
+                                "ask": 642517,
+                                "prv": 634970,
+                                "dv": 127119980,
+                                "dva": "81324722336080",
+                                "oi": 4056609,
+                                "tvl": "933252571361"
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/AUSD:AUSD": {
+                        "symbol": "BTC/AUSD:AUSD",
+                        "timestamp": 1787037820000,
+                        "datetime": "2026-08-18T07:23:40.000Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 64251.6,
+                        "bidVolume": null,
+                        "ask": 64251.7,
+                        "askVolume": null,
+                        "vwap": 63974.77590547135,
+                        "open": 63497,
+                        "close": 64251.7,
+                        "last": 64251.7,
+                        "previousClose": null,
+                        "change": 754.7,
+                        "percentage": 1.188560089453045,
+                        "average": 63874.3,
+                        "baseVolume": 1271.1998,
+                        "quoteVolume": 81324722.33608,
+                        "markPrice": 64269.3,
+                        "indexPrice": 64250.8,
+                        "info": {
+                            "id": 1,
+                            "config": {
+                                "price_decimals": 1,
+                                "size_decimals": 5
+                            },
+                            "state": {
+                                "at": {
+                                    "b": 97001267,
+                                    "t": 1787037820000
+                                },
+                                "orl": 642508,
+                                "mrk": 642693,
+                                "lst": 642517,
+                                "mid": 642516,
+                                "bid": 642516,
+                                "ask": 642517,
+                                "prv": 634970,
+                                "dv": 127119980,
+                                "dva": "81324722336080",
+                                "oi": 4056609,
+                                "tvl": "933252571361"
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "single market state ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/AUSD:AUSD"
+                ],
+                "httpResponse": {
+                    "markets": [
+                        {
+                            "id": 1,
+                            "config": {
+                                "price_decimals": 1,
+                                "size_decimals": 5
+                            },
+                            "state": {
+                                "at": {
+                                    "b": 97001267,
+                                    "t": 1787037820000
+                                },
+                                "orl": 642508,
+                                "mrk": 642693,
+                                "lst": 642517,
+                                "mid": 642516,
+                                "bid": 642516,
+                                "ask": 642517,
+                                "prv": 634970,
+                                "dv": 127119980,
+                                "dva": "81324722336080",
+                                "oi": 4056609,
+                                "tvl": "933252571361"
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/AUSD:AUSD",
+                    "timestamp": 1787037820000,
+                    "datetime": "2026-08-18T07:23:40.000Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 64251.6,
+                    "bidVolume": null,
+                    "ask": 64251.7,
+                    "askVolume": null,
+                    "vwap": 63974.77590547135,
+                    "open": 63497,
+                    "close": 64251.7,
+                    "last": 64251.7,
+                    "previousClose": null,
+                    "change": 754.7,
+                    "percentage": 1.188560089453045,
+                    "average": 63874.3,
+                    "baseVolume": 1271.1998,
+                    "quoteVolume": 81324722.33608,
+                    "markPrice": 64269.3,
+                    "indexPrice": 64250.8,
+                    "info": {
+                        "id": 1,
+                        "config": {
+                            "price_decimals": 1,
+                            "size_decimals": 5
+                        },
+                        "state": {
+                            "at": {
+                                "b": 97001267,
+                                "t": 1787037820000
+                            },
+                            "orl": 642508,
+                            "mrk": 642693,
+                            "lst": 642517,
+                            "mid": 642516,
+                            "bid": 642516,
+                            "ask": 642517,
+                            "prv": 634970,
+                            "dv": 127119980,
+                            "dva": "81324722336080",
+                            "oi": 4056609,
+                            "tvl": "933252571361"
+                        }
+                    }
+                }
+            }
         ]
     }
 }

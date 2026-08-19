@@ -16,6 +16,58 @@
                 "url": "https://app.perpl.xyz/api/v1/pub/context",
                 "input": []
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch the latest candles ending at until",
+                "method": "fetchOHLCV",
+                "url": "https://app.perpl.xyz/api/v1/market-data/1/candles/60/1787037000000-1787037900000",
+                "input": [
+                    "BTC/AUSD:AUSD",
+                    "1m",
+                    null,
+                    16,
+                    {
+                        "until": 1787037900000
+                    }
+                ]
+            },
+            {
+                "description": "fetch one minute candles with an explicit range",
+                "method": "fetchOHLCV",
+                "url": "https://app.perpl.xyz/api/v1/market-data/1/candles/60/1787037000000-1787037900000",
+                "input": [
+                    "BTC/AUSD:AUSD",
+                    "1m",
+                    1787037000000,
+                    16,
+                    {
+                        "until": 1787037900000
+                    }
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetch a filtered list of tickers",
+                "method": "fetchTickers",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": [
+                    [
+                        "BTC/AUSD:AUSD"
+                    ]
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetch a single ticker",
+                "method": "fetchTicker",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": [
+                    "BTC/AUSD:AUSD"
+                ]
+            }
         ]
     }
 }

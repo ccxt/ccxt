@@ -1,9 +1,9 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/perpl.js';
-import { BadRequest, NotSupported, OperationRejected, PermissionDenied } from './base/errors.js';
+import { BadRequest, BadSymbol, NotSupported, OperationRejected, PermissionDenied } from './base/errors.js';
 import Precise from './base/Precise.js';
-import type { Currencies, CurrencyInterface, Dict, Endpoint, Market, NullableDict, Str } from './base/types.js';
+import type { Currencies, CurrencyInterface, Dict, Endpoint, Int, Market, NullableDict, OHLCV, Str, Strings, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -46,13 +46,14 @@ export default class perpl extends Exchange {
                 'fetchL2OrderBook': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
                 'fetchOrderBook': false,
                 'fetchOrders': false,
                 'fetchPositions': false,
-                'fetchTicker': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTrades': false,
                 'sandbox': true,
                 'watchBalance': false,
@@ -451,6 +452,228 @@ export default class perpl extends Exchange {
             },
             'info': rawCurrency,
         });
+    }
+
+    /**
+     * @method
+     * @name perpl#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1market-datamarket_idcandlesresolutionfrom-to
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch, maximum 1024
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @returns {int[][]} a list of [OHLCV structures]{@link https://docs.ccxt.com/#/?id=ohlcv-structure}
+     */
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const resolution = this.safeString (this.timeframes, timeframe, timeframe);
+        const timeframeMilliseconds = this.parseTimeframe (timeframe) * 1000;
+        let requestLimit = 1024;
+        if (limit !== undefined) {
+            requestLimit = Math.min (limit, 1024);
+        }
+        const duration = timeframeMilliseconds * (requestLimit - 1);
+        let until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        if (since === undefined) {
+            if (until === undefined) {
+                until = this.milliseconds ();
+            }
+            since = (until as number) - duration;
+        } else if (until === undefined) {
+            until = Math.min (this.milliseconds (), since + duration);
+        }
+        const request: Dict = {
+            'market_id': market['id'],
+            'resolution': resolution,
+            'from': since,
+            'to': until,
+        };
+        const response = await this.publicGetV1MarketDataMarketIdCandlesResolutionFromTo (this.extend (request, params));
+        //
+        //     {
+        //         "mt": 12,
+        //         "sn": 97001532,
+        //         "at": { "b": 97001532, "t": 1787037900000 },
+        //         "r": 60,
+        //         "d": [
+        //             { "t": 1787037000000, "o": 642835, "c": 642821, "h": 642835, "l": 642786, "v": "52037259999", "n": 110 }
+        //         ]
+        //     }
+        //
+        const candles = this.safeList (response, 'd', []);
+        return this.parseOHLCVs (candles, market, timeframe, since, requestLimit);
+    }
+
+    /**
+     * @ignore
+     * @param {object} ohlcv raw candle data
+     * @param {object} [market] unified market structure
+     * @returns {int[]} a unified OHLCV structure
+     */
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
+        //
+        //     {
+        //         "t": 1787037000000,
+        //         "o": 642835,
+        //         "c": 642821,
+        //         "h": 642835,
+        //         "l": 642786,
+        //         "v": "52037259999",
+        //         "n": 110
+        //     }
+        //
+        market = this.safeMarket (undefined, market);
+        const pricePrecision = this.numberToString (market['precision']['price']);
+        const quoteCurrency = this.currency (market['quote']);
+        const quotePrecision = this.numberToString (quoteCurrency['precision']);
+        return [
+            this.safeInteger (ohlcv, 't'),
+            this.parseNumber (Precise.stringMul (this.safeString (ohlcv, 'o'), pricePrecision)),
+            this.parseNumber (Precise.stringMul (this.safeString (ohlcv, 'h'), pricePrecision)),
+            this.parseNumber (Precise.stringMul (this.safeString (ohlcv, 'l'), pricePrecision)),
+            this.parseNumber (Precise.stringMul (this.safeString (ohlcv, 'c'), pricePrecision)),
+            this.parseNumber (Precise.stringMul (this.safeString (ohlcv, 'v'), quotePrecision)),
+        ];
+    }
+
+    /**
+     * @method
+     * @name perpl#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1pubcontext
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetV1PubContext (params);
+        //
+        //     {
+        //         "markets": [
+        //             {
+        //                 "id": 1,
+        //                 "config": { "price_decimals": 1, "size_decimals": 5 },
+        //                 "state": {
+        //                     "at": { "b": 97001267, "t": 1787037820000 },
+        //                     "orl": 642508,
+        //                     "mrk": 642693,
+        //                     "lst": 642517,
+        //                     "mid": 642516,
+        //                     "bid": 642516,
+        //                     "ask": 642517,
+        //                     "prv": 634970,
+        //                     "dv": 127119980,
+        //                     "dva": "81324722336080",
+        //                     "oi": 4056609,
+        //                     "tvl": "933252571361"
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const markets = this.safeList (response, 'markets', []);
+        const result: Tickers = {};
+        for (let i = 0; i < markets.length; i++) {
+            const rawTicker = markets[i];
+            const marketId = this.safeString (rawTicker, 'id');
+            const market = this.safeMarket (marketId);
+            const ticker = this.parseTicker (rawTicker, market);
+            const tickerSymbol = this.safeString (ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                result[tickerSymbol] = ticker;
+            }
+        }
+        return this.filterByArrayTickers (result, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name perpl#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1pubcontext
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const tickers = await this.fetchTickers ([ market['symbol'] ], params);
+        const ticker = this.safeDict (tickers, market['symbol']);
+        if (ticker === undefined) {
+            throw new BadSymbol (this.id + ' fetchTicker() ticker not found for ' + symbol);
+        }
+        return ticker as Ticker;
+    }
+
+    /**
+     * @ignore
+     * @param {object} ticker raw market state data
+     * @param {object} [market] unified market structure
+     * @returns {object} a unified ticker structure
+     */
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "id": 1,
+        //         "config": { "price_decimals": 1, "size_decimals": 5 },
+        //         "state": {
+        //             "at": { "b": 97001267, "t": 1787037820000 },
+        //             "orl": 642508,
+        //             "mrk": 642693,
+        //             "lst": 642517,
+        //             "mid": 642516,
+        //             "bid": 642516,
+        //             "ask": 642517,
+        //             "prv": 634970,
+        //             "dv": 127119980,
+        //             "dva": "81324722336080",
+        //             "oi": 4056609,
+        //             "tvl": "933252571361"
+        //         }
+        //     }
+        //
+        const marketId = this.safeString (ticker, 'id');
+        market = this.safeMarket (marketId, market);
+        const state = this.safeDict (ticker, 'state', {});
+        const at = this.safeDict (state, 'at', {});
+        const timestamp = this.safeInteger (at, 't');
+        const pricePrecision = this.numberToString (market['precision']['price']);
+        const amountPrecision = this.numberToString (market['precision']['amount']);
+        const quoteCurrency = this.currency (market['quote']);
+        const quotePrecision = this.numberToString (quoteCurrency['precision']);
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': this.parseNumber (Precise.stringMul (this.safeString (state, 'bid'), pricePrecision)),
+            'bidVolume': undefined,
+            'ask': this.parseNumber (Precise.stringMul (this.safeString (state, 'ask'), pricePrecision)),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.parseNumber (Precise.stringMul (this.safeString (state, 'prv'), pricePrecision)),
+            // prv is the price 24h ago, see https://github.com/PerplFoundation/api-docs/blob/main/types.md#marketstate
+            'close': this.parseNumber (Precise.stringMul (this.safeString (state, 'lst'), pricePrecision)),
+            'last': this.parseNumber (Precise.stringMul (this.safeString (state, 'lst'), pricePrecision)),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.parseNumber (Precise.stringMul (this.safeString (state, 'dv'), amountPrecision)),
+            'quoteVolume': this.parseNumber (Precise.stringMul (this.safeString (state, 'dva'), quotePrecision)),
+            'markPrice': this.parseNumber (Precise.stringMul (this.safeString (state, 'mrk'), pricePrecision)),
+            'indexPrice': this.parseNumber (Precise.stringMul (this.safeString (state, 'orl'), pricePrecision)),
+            'info': ticker,
+        }, market);
     }
 
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
