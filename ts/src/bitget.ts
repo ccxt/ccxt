@@ -1610,7 +1610,7 @@ export default class bitget extends Exchange {
                 },
                 'fetchTrades': {
                     'spot': {
-                        'method': 'publicSpotGetV2SpotMarketFillsHistory', // or publicSpotGetV2SpotMarketFills
+                        'method': 'publicSpotGetV2SpotMarketFillsHistory', // or publicSpotGetV2SpotMarketFills or privateUtaGetV3AccountRealityFills
                     },
                     'swap': {
                         'method': 'publicMixGetV2MixMarketFillsHistory', // or publicMixGetV2MixMarketFills
@@ -3260,10 +3260,12 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/spot/market/Get-Orderbook
      * @see https://www.bitget.com/api-doc/contract/market/Get-Merge-Depth
      * @see https://www.bitget.com/api-doc/uta/public/OrderBook
+     * @see https://www.bitget.com/api-doc/uta/reality/market/Reality-OrderBook
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock order books
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -3280,9 +3282,18 @@ export default class bitget extends Exchange {
         let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         let response = undefined;
+        const stockDefault = this.safeBool (market, 'stock', false);
+        let stock: Bool = undefined;
+        [ stock, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'stock', stockDefault);
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOrderBook', false);
-        if (uta) {
+        uta = uta || stock;
+        if (stock) {
+            if (limit !== undefined) {
+                throw new BadRequest (this.id + ' fetchOrderBook() does not support limit for tokenized stock markets');
+            }
+            response = await this.privateUtaGetV3AccountRealityOrderbook (this.extend (request, params));
+        } else if (uta) {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketOrderbook (this.extend (request, params));
         } else if (market['spot']) {
@@ -3303,7 +3314,7 @@ export default class bitget extends Exchange {
         //       }
         //     }
         //
-        // uta
+        // uta and tokenized stocks
         //
         //     {
         //         "code": "00000",
@@ -3317,8 +3328,8 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const bidsKey = uta ? 'b' : 'bids';
-        const asksKey = uta ? 'a' : 'asks';
+        const bidsKey = (uta || stock) ? 'b' : 'bids';
+        const asksKey = (uta || stock) ? 'a' : 'asks';
         const timestamp = this.safeInteger (data, 'ts');
         return this.parseOrderBook (data, market['symbol'], timestamp, bidsKey, asksKey);
     }
@@ -4024,11 +4035,13 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/contract/market/Get-Recent-Fills
      * @see https://www.bitget.com/api-doc/contract/market/Get-Fills-History
      * @see https://www.bitget.com/api-doc/uta/public/Fills
+     * @see https://www.bitget.com/api-doc/uta/reality/market/Reality-Fills
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock trades
      * @param {int} [params.until] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* the latest time in ms to fetch trades for
      * @param {boolean} [params.paginate] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
@@ -4039,15 +4052,22 @@ export default class bitget extends Exchange {
         }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, params, 'idLessThan', 'idLessThan') as Trade[];
-        }
         const market = this.market (symbol);
         let request: Dict = {
             'symbol': market['id'],
         };
+        const stockDefault = this.safeBool (market, 'stock', false);
+        let stock: Bool = undefined;
+        [ stock, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'stock', stockDefault);
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTrades', false);
+        uta = uta || stock;
+        if (paginate) {
+            if (stock) {
+                throw new BadRequest (this.id + ' fetchTrades() does not support paginate for tokenized stock markets');
+            }
+            return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, params, 'idLessThan', 'idLessThan') as Trade[];
+        }
         if (limit !== undefined) {
             if (uta) {
                 request['limit'] = Math.min (limit, 100);
@@ -4061,7 +4081,13 @@ export default class bitget extends Exchange {
         let response = undefined;
         let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        if (uta) {
+        if (stock) {
+            if (since !== undefined) {
+                throw new BadRequest (this.id + ' fetchTrades() does not support since for tokenized stock markets');
+            }
+            params = this.omit (params, [ 'until', 'idLessThan' ]);
+            response = await this.privateUtaGetV3AccountRealityFills (this.extend (request, params));
+        } else if (uta) {
             if (productType === 'SPOT') {
                 let marginMode: Str = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTrades', params);
@@ -4138,7 +4164,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        // uta
+        // uta and tokenized stock
         //
         //     {
         //         "code": "00000",
