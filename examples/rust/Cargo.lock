@@ -249,8 +249,26 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "ccxt",
+ "ccxt-prediction",
  "ccxt-pro",
  "futures",
+ "tokio",
+]
+
+[[package]]
+name = "ccxt-prediction"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "ccxt-base",
+ "chrono",
+ "futures",
+ "indexmap",
+ "num-bigint",
+ "num-traits",
+ "rust_decimal",
+ "serde",
+ "serde_json",
  "tokio",
 ]
 

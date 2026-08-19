@@ -11,6 +11,8 @@ ccxt = { path = "../../rust/ccxt" }
 # The transpiled pro/ WebSocket venues live in their own crate. Optional so the
 # default examples build (and CI) stays on the lighter set.
 ccxt-pro = { path = "../../rust/ccxt-pro", optional = true }
+# The typed prediction-market API crate (`ccxt_prediction::Kalshi`, …).
+ccxt-prediction = { path = "../../rust/ccxt-prediction" }
 tokio = { version = "1", features = ["full"] }
 futures = "0.3"
 async-trait = "0.1"
@@ -20,6 +22,17 @@ async-trait = "0.1"
 # the watch*/probe bins need it, so the default `cargo build --bins` (and CI)
 # stays on the lighter transpiled-base set.
 ws = ["dep:ccxt-pro"]
+
+# Typed prediction-market API demo (`ccxt_prediction::Kalshi::fetch_ticker`, …).
+[[bin]]
+name = "prediction_typed_demo"
+path = "src/prediction_typed_demo.rs"
+
+# Typed WebSocket API demo (`ccxt_pro::Binance::watch_ticker`, …). Gated on `ws`.
+[[bin]]
+name = "ws_typed_demo"
+path = "src/ws_typed_demo.rs"
+required-features = ["ws"]
 
 [[bin]]
 name = "binance_basics"
