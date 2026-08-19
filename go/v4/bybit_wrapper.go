@@ -1876,9 +1876,10 @@ func (this *Bybit) FetchOpenInterestHistory(symbol string, options ...FetchOpenI
  * @method
  * @name bybit#fetchCrossBorrowRate
  * @description fetch the rate of interest to borrow a currency for margin trading
- * @see https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota
+ * @see https://bybit-exchange.github.io/docs/v5/spot-margin-uta/vip-margin
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.vipLevel] the vip level to fetch the borrow rate for, defaults to 'No VIP'
  * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
 func (this *Bybit) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {

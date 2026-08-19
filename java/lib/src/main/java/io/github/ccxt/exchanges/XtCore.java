@@ -3317,10 +3317,10 @@ public class XtCore extends XtApi
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trailingPercent", "trailingAmount", "trailingTriggerPrice")));
                 if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
                 {
-                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearPostFutureTradeV1EntrustCreateTrack", new Object[] { this.extend(request, parameters) })).join();
+                    response = (this.privateLinearPostFutureTradeV1EntrustCreateTrack(this.extend(request, parameters))).join();
                 } else if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
                 {
-                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInversePostFutureTradeV1EntrustCreateTrack", new Object[] { this.extend(request, parameters) })).join();
+                    response = (this.privateInversePostFutureTradeV1EntrustCreateTrack(this.extend(request, parameters))).join();
                 }
             } else if (Helpers.isTrue(isTrigger))
             {
@@ -3472,10 +3472,10 @@ public class XtCore extends XtApi
                 parameters = this.omit(parameters, "trailing");
                 if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
                 {
-                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInverseGetFutureTradeV1EntrustTrackDetail", new Object[] { this.extend(request, parameters) })).join();
+                    response = (this.privateInverseGetFutureTradeV1EntrustTrackDetail(this.extend(request, parameters))).join();
                 } else
                 {
-                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearGetFutureTradeV1EntrustTrackDetail", new Object[] { this.extend(request, parameters) })).join();
+                    response = (this.privateLinearGetFutureTradeV1EntrustTrackDetail(this.extend(request, parameters))).join();
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
@@ -3688,10 +3688,10 @@ public class XtCore extends XtApi
                 parameters = this.omit(parameters, "trailing");
                 if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
                 {
-                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInverseGetFutureTradeV1EntrustTrackListHistory", new Object[] { this.extend(request, parameters) })).join();
+                    response = (this.privateInverseGetFutureTradeV1EntrustTrackListHistory(this.extend(request, parameters))).join();
                 } else
                 {
-                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearGetFutureTradeV1EntrustTrackListHistory", new Object[] { this.extend(request, parameters) })).join();
+                    response = (this.privateLinearGetFutureTradeV1EntrustTrackListHistory(this.extend(request, parameters))).join();
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
@@ -3946,19 +3946,19 @@ public class XtCore extends XtApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
                     {
-                        response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInverseGetFutureTradeV1EntrustTrackList", new Object[] { this.extend(request, parameters) })).join();
+                        response = (this.privateInverseGetFutureTradeV1EntrustTrackList(this.extend(request, parameters))).join();
                     } else
                     {
-                        response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearGetFutureTradeV1EntrustTrackList", new Object[] { this.extend(request, parameters) })).join();
+                        response = (this.privateLinearGetFutureTradeV1EntrustTrackList(this.extend(request, parameters))).join();
                     }
                 } else
                 {
                     if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
                     {
-                        response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInverseGetFutureTradeV1EntrustTrackListHistory", new Object[] { this.extend(request, parameters) })).join();
+                        response = (this.privateInverseGetFutureTradeV1EntrustTrackListHistory(this.extend(request, parameters))).join();
                     } else
                     {
-                        response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearGetFutureTradeV1EntrustTrackListHistory", new Object[] { this.extend(request, parameters) })).join();
+                        response = (this.privateLinearGetFutureTradeV1EntrustTrackListHistory(this.extend(request, parameters))).join();
                     }
                 }
             } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subType, null))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future")))))
@@ -4384,10 +4384,10 @@ public class XtCore extends XtApi
                 parameters = this.omit(parameters, "trailing");
                 if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
                 {
-                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInversePostFutureTradeV1EntrustCancelTrack", new Object[] { this.extend(request, parameters) })).join();
+                    response = (this.privateInversePostFutureTradeV1EntrustCancelTrack(this.extend(request, parameters))).join();
                 } else
                 {
-                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearPostFutureTradeV1EntrustCancelTrack", new Object[] { this.extend(request, parameters) })).join();
+                    response = (this.privateLinearPostFutureTradeV1EntrustCancelTrack(this.extend(request, parameters))).join();
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
@@ -4506,10 +4506,10 @@ public class XtCore extends XtApi
                 parameters = this.omit(parameters, "trailing");
                 if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
                 {
-                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInversePostFutureTradeV1EntrustCancelAllTrack", new Object[] { this.extend(request, parameters) })).join();
+                    response = (this.privateInversePostFutureTradeV1EntrustCancelAllTrack(this.extend(request, parameters))).join();
                 } else
                 {
-                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearPostFutureTradeV1EntrustCancelAllTrack", new Object[] { this.extend(request, parameters) })).join();
+                    response = (this.privateLinearPostFutureTradeV1EntrustCancelAllTrack(this.extend(request, parameters))).join();
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {

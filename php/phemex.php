@@ -2770,9 +2770,9 @@ class phemex extends Exchange {
             $posSide = $this->capitalize($posSide);
             $request['posSide'] = $posSide;
             if ($isStableSettled) {
-                $request['orderQtyRq'] = $amount;
+                $request['orderQtyRq'] = $this->amount_to_precision($symbol, $amount);
             } else {
-                $request['orderQty'] = $this->parse_to_int($amount);
+                $request['orderQty'] = $this->parse_to_int($this->amount_to_precision($symbol, $amount));
             }
             if ($triggerPrice !== null) {
                 $triggerType = $this->safe_string($params, 'triggerType', 'ByMarkPrice');

@@ -438,4 +438,4 @@ def test_ws_cache_python_regressions():
 
 if __name__ == '__main__':
     test_ws_cache_python_regressions()
-    print('test_cache_python passed')
+    print('test_cache_native passed')

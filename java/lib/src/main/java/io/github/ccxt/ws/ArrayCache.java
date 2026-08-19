@@ -62,6 +62,8 @@ public class ArrayCache extends ArrayList<Object> {
     protected final ConcurrentHashMap<String, Integer> newUpdatesBySymbol = new ConcurrentHashMap<String, Integer>();
     /** Distinct ids/sides seen this window when {@link #nestedNewUpdatesBySymbol}. */
     protected final ConcurrentHashMap<String, Set<String>> seenUpdatesBySymbol = new ConcurrentHashMap<String, Set<String>>();
+    /** The same, cleared only by the GLOBAL {@link #getLimit} scope - the two poll scopes are independent. */
+    protected final ConcurrentHashMap<String, Set<String>> seenUpdatesAll = new ConcurrentHashMap<String, Set<String>>();
     /** symbol -> "reset me on the next append". */
     protected final ConcurrentHashMap<String, Boolean> clearUpdatesBySymbol = new ConcurrentHashMap<String, Boolean>();
     protected volatile int allNewUpdates = 0;
@@ -177,6 +179,7 @@ public class ArrayCache extends ArrayList<Object> {
         this.hashmap.clear();
         this.newUpdatesBySymbol.clear();
         this.seenUpdatesBySymbol.clear();
+        this.seenUpdatesAll.clear();
         this.clearUpdatesBySymbol.clear();
         this.allNewUpdates = 0;
         this.clearAllUpdates = false;
@@ -212,10 +215,10 @@ public class ArrayCache extends ArrayList<Object> {
     protected void applyDeferredResets() {
         if (this.clearAllUpdates) {
             this.clearAllUpdates = false;
-            this.clearUpdatesBySymbol.clear();
+            // the global poll consumes only the global scope: the symbol-scoped
+            // seen sets, counts and pending flags belong to the symbol consumers
             this.allNewUpdates = 0;
-            this.newUpdatesBySymbol.clear();
-            this.seenUpdatesBySymbol.clear();
+            this.seenUpdatesAll.clear();
         }
     }
 
@@ -401,9 +404,27 @@ public class ArrayCache extends ArrayList<Object> {
 
             if (this.evictionEnabled() && this.shouldEvict()) {
                 Object evicted = this.remove(0);
-                Object evictedBucket = this.hashmap.get(keyOf(fieldOf(evicted, this.keyField)));
+                String evictedKey = keyOf(fieldOf(evicted, this.keyField));
+                Object evictedBucket = this.hashmap.get(evictedKey);
                 if (evictedBucket instanceof Map) {
                     ((Map<String, Object>) evictedBucket).remove(this.subKeyOf(evicted));
+                }
+                // the evicted id also leaves both seen scopes so single-scope
+                // pollers stay bounded - the counts mean distinct ids within
+                // the retained window
+                Set<String> evictedSymbolSeen = this.seenUpdatesBySymbol.get(evictedKey);
+                if (evictedSymbolSeen != null && evictedSymbolSeen.remove(this.subKeyOf(evicted))) {
+                    this.newUpdatesBySymbol.put(evictedKey, this.newUpdatesBySymbol.get(evictedKey) - 1);
+                    if (evictedSymbolSeen.isEmpty()) {
+                        this.seenUpdatesBySymbol.remove(evictedKey);
+                    }
+                }
+                Set<String> evictedAllSeen = this.seenUpdatesAll.get(evictedKey);
+                if (evictedAllSeen != null && evictedAllSeen.remove(this.subKeyOf(evicted))) {
+                    this.allNewUpdates = this.allNewUpdates - 1;
+                    if (evictedAllSeen.isEmpty()) {
+                        this.seenUpdatesAll.remove(evictedKey);
+                    }
                 }
             }
             this.add(toStore);
@@ -419,10 +440,19 @@ public class ArrayCache extends ArrayList<Object> {
                 idSet.clear();
             }
             // an exchange may update the same id twice — count it once per window
-            int before = idSet.size();
             idSet.add(subKey);
             this.newUpdatesBySymbol.put(key, idSet.size());
-            this.allNewUpdates = this.allNewUpdates + (idSet.size() - before);
+            // the global scope keeps its own seen sets: the symbol-scoped poll clears
+            // the symbol set, and deriving the global count from that set double-counts
+            // an id that updates again after a symbol poll
+            Set<String> allIdSet = this.seenUpdatesAll.get(key);
+            if (allIdSet == null) {
+                allIdSet = new LinkedHashSet<String>();
+                this.seenUpdatesAll.put(key, allIdSet);
+            }
+            int beforeAll = allIdSet.size();
+            allIdSet.add(subKey);
+            this.allNewUpdates = this.allNewUpdates + (allIdSet.size() - beforeAll);
         }
     }
 

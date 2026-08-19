@@ -3164,7 +3164,7 @@ public partial class toobit : Exchange
             { "coin", getValue(currency, "id") },
             { "address", address },
             { "quantity", this.currencyToPrecision(getValue(currency, "code"), amount) },
-            { "chainType", networkCode },
+            { "chainType", this.networkCodeToId(networkCode, code) },
             { "clientOrderId", this.milliseconds() },
         };
         if (isTrue(!isEqual(tag, null)))

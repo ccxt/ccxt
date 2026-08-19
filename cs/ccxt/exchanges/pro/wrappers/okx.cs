@@ -403,7 +403,7 @@ public partial class okx
     /// <item>
     /// <term>params.depth</term>
     /// <description>
-    /// string : okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
+    /// string : okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
     /// </description>
     /// </item>
     /// </list>
@@ -436,7 +436,7 @@ public partial class okx
     /// <item>
     /// <term>params.depth</term>
     /// <description>
-    /// string : okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
+    /// string : okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
     /// </description>
     /// </item>
     /// </list>

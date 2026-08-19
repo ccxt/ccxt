@@ -78,6 +78,9 @@ class ArrayCache(BaseCache):
         # the last getLimit here, so _new_updates_by_symbol only ever holds the
         # resulting integer count and getLimit never has to type-check its values
         self._seen_updates_by_symbol = {}
+        # the same, but cleared only by the GLOBAL getLimit() scope - the two poll
+        # scopes are independent, so each needs its own memory of what it has seen
+        self._seen_updates_all = {}
         self._clear_updates_by_symbol = {}
         self._all_new_updates = 0
         self._clear_all_updates = False
@@ -87,6 +90,7 @@ class ArrayCache(BaseCache):
         self.hashmap.clear()
         self._new_updates_by_symbol.clear()
         self._seen_updates_by_symbol.clear()
+        self._seen_updates_all.clear()
         self._clear_updates_by_symbol.clear()
         self._all_new_updates = 0
         self._clear_all_updates = False
@@ -112,10 +116,10 @@ class ArrayCache(BaseCache):
         self._deque.append(item)
         if self._clear_all_updates:
             self._clear_all_updates = False
-            self._clear_updates_by_symbol.clear()
+            # the global poll consumes only the global scope: the symbol-scoped
+            # seen sets, counts and pending flags belong to the symbol consumers
             self._all_new_updates = 0
-            self._new_updates_by_symbol.clear()
-            self._seen_updates_by_symbol.clear()
+            self._seen_updates_all.clear()
         # item.get('symbol') (not item['symbol']): prediction trades carry 'outcome' not 'symbol',
         # so a bare lookup raises KeyError in Python where JS just yields undefined
         symbol = item.get('symbol')
@@ -216,14 +220,28 @@ class ArrayCacheBySymbolById(ArrayCache):
                 # drop the outer bucket once its last id is evicted, otherwise the
                 # hashmap grows one empty dict per symbol for the process lifetime
                 del self.hashmap[delete_key]
+            # the evicted id also leaves both seen scopes so single-scope pollers
+            # stay bounded - the counts mean distinct ids within the retained window
+            symbol_seen = self._seen_updates_by_symbol.get(delete_key)
+            if symbol_seen is not None and delete_item['id'] in symbol_seen:
+                symbol_seen.discard(delete_item['id'])
+                self._new_updates_by_symbol[delete_key] = self._new_updates_by_symbol[delete_key] - 1
+                if not symbol_seen:
+                    del self._seen_updates_by_symbol[delete_key]
+            all_seen = self._seen_updates_all.get(delete_key)
+            if all_seen is not None and delete_item['id'] in all_seen:
+                all_seen.discard(delete_item['id'])
+                self._all_new_updates = self._all_new_updates - 1
+                if not all_seen:
+                    del self._seen_updates_all[delete_key]
         self._deque.append(item)
         self._index.append(token)
         if self._clear_all_updates:
             self._clear_all_updates = False
-            self._clear_updates_by_symbol.clear()
+            # the global poll consumes only the global scope: the symbol-scoped
+            # seen sets, counts and pending flags belong to the symbol consumers
             self._all_new_updates = 0
-            self._new_updates_by_symbol.clear()
-            self._seen_updates_by_symbol.clear()
+            self._seen_updates_all.clear()
         if key not in self._seen_updates_by_symbol:
             self._seen_updates_by_symbol[key] = set()
         if self._clear_updates_by_symbol.get(key):
@@ -231,11 +249,17 @@ class ArrayCacheBySymbolById(ArrayCache):
             self._seen_updates_by_symbol[key].clear()
         # in case an exchange updates the same order id twice
         id_set = self._seen_updates_by_symbol[key]
-        before_length = len(id_set)
         id_set.add(item_id)
-        after_length = len(id_set)
-        self._new_updates_by_symbol[key] = after_length
-        self._all_new_updates = (self._all_new_updates or 0) + (after_length - before_length)
+        self._new_updates_by_symbol[key] = len(id_set)
+        # the global scope keeps its own seen sets: the symbol-scoped poll clears
+        # the symbol set, and deriving the global count from that set double-counts
+        # an id that updates again after a symbol poll
+        if key not in self._seen_updates_all:
+            self._seen_updates_all[key] = set()
+        all_id_set = self._seen_updates_all[key]
+        before_all_length = len(all_id_set)
+        all_id_set.add(item_id)
+        self._all_new_updates = (self._all_new_updates or 0) + (len(all_id_set) - before_all_length)
 
 
 class ArrayCacheByOutcomeById(ArrayCacheBySymbolById):
@@ -278,10 +302,10 @@ class ArrayCacheBySymbolBySide(ArrayCache):
         self._index.append(token)
         if self._clear_all_updates:
             self._clear_all_updates = False
-            self._clear_updates_by_symbol.clear()
+            # the global poll consumes only the global scope: the symbol-scoped
+            # seen sets, counts and pending flags belong to the symbol consumers
             self._all_new_updates = 0
-            self._new_updates_by_symbol.clear()
-            self._seen_updates_by_symbol.clear()
+            self._seen_updates_all.clear()
         if symbol not in self._seen_updates_by_symbol:
             self._seen_updates_by_symbol[symbol] = set()
         if self._clear_updates_by_symbol.get(symbol):
@@ -289,8 +313,12 @@ class ArrayCacheBySymbolBySide(ArrayCache):
             self._seen_updates_by_symbol[symbol].clear()
         # in case an exchange updates the same position twice
         side_set = self._seen_updates_by_symbol[symbol]
-        before_length = len(side_set)
         side_set.add(side)
-        after_length = len(side_set)
-        self._new_updates_by_symbol[symbol] = after_length
-        self._all_new_updates = (self._all_new_updates or 0) + (after_length - before_length)
+        self._new_updates_by_symbol[symbol] = len(side_set)
+        # independent global-scope memory, see ArrayCacheBySymbolById.append
+        if symbol not in self._seen_updates_all:
+            self._seen_updates_all[symbol] = set()
+        all_side_set = self._seen_updates_all[symbol]
+        before_all_length = len(all_side_set)
+        all_side_set.add(side)
+        self._all_new_updates = (self._all_new_updates or 0) + (len(all_side_set) - before_all_length)

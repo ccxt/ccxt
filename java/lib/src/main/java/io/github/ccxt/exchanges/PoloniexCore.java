@@ -505,8 +505,8 @@ public class PoloniexCore extends PoloniexApi
                 put( "networks", new java.util.HashMap<String, Object>() {{
                     put( "BEP20", "BSC" );
                     put( "ERC20", "ETH" );
-                    put( "TRC20", "TRON" );
-                    put( "TRX", "TRON" );
+                    put( "TRC20", "TRX" );
+                    put( "TRX", "TRX" );
                 }} );
                 put( "networksById", new java.util.HashMap<String, Object>() {{
                     put( "TRX", "TRC20" );
@@ -722,10 +722,10 @@ public class PoloniexCore extends PoloniexApi
                     put( "21356", BadRequest.class );
                     put( "21721", InsufficientFunds.class );
                     put( "24101", BadSymbol.class );
-                    put( "24102", InvalidOrder.class );
-                    put( "24103", InvalidOrder.class );
-                    put( "24104", InvalidOrder.class );
-                    put( "24105", InvalidOrder.class );
+                    put( "24102", BadRequest.class );
+                    put( "24103", BadRequest.class );
+                    put( "24104", BadRequest.class );
+                    put( "24105", BadRequest.class );
                     put( "25020", InvalidOrder.class );
                     put( "25000", InvalidOrder.class );
                     put( "25001", InvalidOrder.class );
@@ -747,6 +747,44 @@ public class PoloniexCore extends PoloniexApi
                     put( "25017", ExchangeError.class );
                     put( "25018", BadRequest.class );
                     put( "25019", BadSymbol.class );
+                    put( "820181", BadRequest.class );
+                    put( "820201", BadRequest.class );
+                    put( "830111", BadRequest.class );
+                    put( "250", DuplicateOrderId.class );
+                    put( "400", BadRequest.class );
+                    put( "403", PermissionDenied.class );
+                    put( "404", BadRequest.class );
+                    put( "429", RateLimitExceeded.class );
+                    put( "503", ExchangeNotAvailable.class );
+                    put( "1000", AuthenticationError.class );
+                    put( "1001", ExchangeError.class );
+                    put( "1002", OnMaintenance.class );
+                    put( "1003", AccountSuspended.class );
+                    put( "10000", MarketClosed.class );
+                    put( "10001", BadSymbol.class );
+                    put( "10002", InvalidOrder.class );
+                    put( "10003", InvalidOrder.class );
+                    put( "10004", InvalidOrder.class );
+                    put( "10005", MarketClosed.class );
+                    put( "10006", OperationRejected.class );
+                    put( "10007", OperationRejected.class );
+                    put( "10008", AccountSuspended.class );
+                    put( "10009", OperationRejected.class );
+                    put( "10010", InvalidOrder.class );
+                    put( "10011", InvalidOrder.class );
+                    put( "10012", InvalidOrder.class );
+                    put( "10013", InvalidOrder.class );
+                    put( "10014", BadRequest.class );
+                    put( "10015", OperationRejected.class );
+                    put( "10016", BadRequest.class );
+                    put( "10017", BadRequest.class );
+                    put( "10018", OperationRejected.class );
+                    put( "10019", OperationRejected.class );
+                    put( "11003", BadRequest.class );
+                    put( "11004", OperationRejected.class );
+                    put( "11008", OrderNotFound.class );
+                    put( "12004", PermissionDenied.class );
+                    put( "21001", OperationRejected.class );
                 }} );
                 put( "broad", new java.util.HashMap<String, Object>() {{}} );
             }} );
@@ -855,10 +893,6 @@ public class PoloniexCore extends PoloniexApi
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
             {
-                if (Helpers.isTrue(this.inArray(timeframe, new java.util.ArrayList<Object>(java.util.Arrays.asList("10m", "1M")))))
-                {
-                    throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), timeframe), " "), Helpers.GetValue(market, "type")), " fetchOHLCV is not supported")) ;
-                }
                 Object responseRaw = (this.swapPublicGetV3MarketCandles(this.extend(request, parameters))).join();
                 //
                 //     {
@@ -2388,6 +2422,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
@@ -2527,11 +2562,13 @@ public class PoloniexCore extends PoloniexApi
             Object priceKey = ((Helpers.isTrue(Helpers.GetValue(market, "spot")))) ? "price" : "px";
             Helpers.addElementToObject(request, priceKey, this.priceToPrecision(symbol, price));
         }
-        Object clientOrderId = this.safeString(parameters, "clientOrderId");
+        Object clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId");
         if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
         {
-            Helpers.addElementToObject(request, "clientOrderId", clientOrderId);
-            parameters = this.omit(parameters, "clientOrderId");
+            // the futures v3 api silently ignores the spot key and generates its own id
+            Object clientOrderIdKey = ((Helpers.isTrue(Helpers.GetValue(market, "spot")))) ? "clientOrderId" : "clOrdId";
+            Helpers.addElementToObject(request, clientOrderIdKey, clientOrderId);
+            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "clOrdId")));
         }
         // remember the timestamp before issuing the request
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(request, parameters));
@@ -2551,6 +2588,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
@@ -4470,10 +4508,9 @@ public class PoloniexCore extends PoloniexApi
         Object responseCode = this.safeString(response, "code");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(responseCode, null))) && Helpers.isTrue((!Helpers.isEqual(responseCode, "200")))))
         {
-            Object codeInner = Helpers.GetValue(response, "code");
-            Object message = this.safeString(response, "message");
+            Object message = this.safeString2(response, "message", "msg");
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
-            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), codeInner, feedback);
+            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), responseCode, feedback);
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError((String)feedback) ;
         }

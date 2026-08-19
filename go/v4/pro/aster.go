@@ -2087,7 +2087,7 @@ func (this *AsterCore) HandlePositions(client any, message any) {
 		ccxt.AppendToArray(&newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
-	var messageHashes any = this.FindMessageHashes(client.(*ccxt.Client), messageHash)
+	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), messageHash)
 	if !ccxt.IsTrue(this.IsEmpty(messageHashes)) {
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(newPositions)); i++ {
 			var position any = ccxt.GetValue(newPositions, i)
@@ -2447,7 +2447,7 @@ func (this *AsterCore) HandleOrder(client any, message any) {
 	var parsed any = this.ParseWsOrder(message, market)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	cache.(ccxt.Appender).Append(parsed)
-	var messageHashes any = this.FindMessageHashes(client.(*ccxt.Client), messageHash)
+	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), messageHash)
 	if !ccxt.IsTrue(this.IsEmpty(messageHashes)) {
 		var symbolMessageHash any = ccxt.Add(ccxt.Add(messageHash, "::"), symbol)
 		client.(ccxt.ClientInterface).Resolve(cache, symbolMessageHash)

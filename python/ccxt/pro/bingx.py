@@ -1583,7 +1583,9 @@ class bingx(ccxt.async_support.bingx):
         a = self.safe_dict(message, 'a', {})
         data = self.safe_list(a, 'B', [])
         timestamp = self.safe_integer_2(message, 'T', 'E')
-        type = 'swap' if ('P' in a) else 'spot'
+        spotUrl = self.safe_string(self.urls['api']['ws'], 'spot')
+        isSpot = (spotUrl is not None) and (client.url.find(spotUrl) == 0)
+        type = 'spot' if isSpot else 'swap'
         if not (type in self.balance):
             self.balance[type] = {}
         self.balance[type]['info'] = data

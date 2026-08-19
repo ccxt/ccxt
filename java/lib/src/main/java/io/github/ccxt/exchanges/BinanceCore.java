@@ -4983,7 +4983,7 @@ public class BinanceCore extends BinanceApi
                         ((java.util.List<Object>)promisesRaw).add(this.sapiGetMarginAllPairs(parameters));
                         ((java.util.List<Object>)promisesRaw).add(this.sapiGetMarginIsolatedAllPairs(parameters));
                     }
-                    if (Helpers.isTrue(!Helpers.isTrue(isDemoEnv) && Helpers.isTrue((!Helpers.isEqual(this.apiKey, null)))))
+                    if (Helpers.isTrue(!Helpers.isTrue(isDemoEnv) && Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(this.apiKey, null)) && Helpers.isTrue(!Helpers.isEqual(this.apiKey, ""))))))
                     {
                         ((java.util.List<Object>)promisesRaw).add(this.sapiGetEquityMarketExchangeInfo(parameters));
                     }

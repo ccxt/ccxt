@@ -3480,7 +3480,7 @@ func (this *ToobitCore) Withdraw(code any, amount any, address any, optionalArgs
 			"coin":          GetValue(currency, "id"),
 			"address":       address,
 			"quantity":      this.CurrencyToPrecision(GetValue(currency, "code"), amount),
-			"chainType":     networkCode,
+			"chainType":     this.NetworkCodeToId(networkCode, code),
 			"clientOrderId": this.Milliseconds(),
 		}
 		if IsTrue(!IsEqual(tag, nil)) {

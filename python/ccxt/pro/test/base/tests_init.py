@@ -6,7 +6,7 @@ sys.path.append(root)
 
 from ccxt.pro.test.base.test_order_book import test_ws_order_book  # noqa: F401
 from ccxt.pro.test.base.test_cache import test_ws_cache  # noqa: F401
-from ccxt.pro.test.base.test_cache_python import test_ws_cache_python_regressions  # noqa: F401  # hand-written python-only
+from ccxt.pro.test.base.test_cache_native import test_ws_cache_python_regressions  # noqa: F401  # hand-written python-only
 # todo : from ccxt.pro.test.base.test_close import test_ws_close  # noqa: F401
 from ccxt.pro.test.base.test_future import test_ws_future  # noqa: F401
 from ccxt.pro.test.base.test_client_retention import test_ws_client_retention  # noqa: F401

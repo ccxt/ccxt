@@ -98,6 +98,9 @@ type ArrayCache struct {
 	// Distinct ids/sides live in seenUpdatesBySymbol; getLimit never reads a Set.
 	newUpdatesBySymbol       map[string]int  `json:"-"`
 	seenUpdatesBySymbol      map[string]*Set `json:"-"`
+	// the same, but cleared only by the GLOBAL GetLimit scope - the two poll
+	// scopes are independent, so each needs its own memory of what it has seen
+	seenUpdatesAll map[string]*Set `json:"-"`
 	clearUpdatesBySymbol     map[string]bool `json:"-"`
 	nestedNewUpdatesBySymbol bool            `json:"-"`
 	keyField                 string          `json:"-"`
@@ -118,6 +121,7 @@ func NewArrayCache(MaxSize any) *ArrayCache {
 		Hashmap:                  make(map[string]map[string]any),
 		newUpdatesBySymbol:       make(map[string]int),
 		seenUpdatesBySymbol:      make(map[string]*Set),
+		seenUpdatesAll:           make(map[string]*Set),
 		clearUpdatesBySymbol:     make(map[string]bool),
 		nestedNewUpdatesBySymbol: false,
 		keyField:                 "symbol",
@@ -130,6 +134,7 @@ func (c *ArrayCache) resetUpdateTrackersLocked() {
 	c.allNewUpdates = 0
 	c.newUpdatesBySymbol = make(map[string]int)
 	c.seenUpdatesBySymbol = make(map[string]*Set)
+	c.seenUpdatesAll = make(map[string]*Set)
 }
 
 // trackAppendLocked records one append against the getLimit counters.
@@ -139,7 +144,10 @@ func (c *ArrayCache) resetUpdateTrackersLocked() {
 func (c *ArrayCache) trackAppendLocked(key string, distinctId string) {
 	if c.clearAllUpdates {
 		c.clearAllUpdates = false
-		c.resetUpdateTrackersLocked()
+		// the global poll consumes only the global scope: the symbol-scoped
+		// seen sets, counts and pending flags belong to the symbol consumers
+		c.allNewUpdates = 0
+		c.seenUpdatesAll = make(map[string]*Set)
 	}
 	if c.nestedNewUpdatesBySymbol {
 		idSet := c.seenUpdatesBySymbol[key]
@@ -151,11 +159,19 @@ func (c *ArrayCache) trackAppendLocked(key string, distinctId string) {
 			c.clearUpdatesBySymbol[key] = false
 			idSet.Clear()
 		}
-		beforeSize := idSet.Size()
 		idSet.Add(distinctId)
-		afterSize := idSet.Size()
-		c.newUpdatesBySymbol[key] = afterSize
-		c.allNewUpdates += afterSize - beforeSize
+		c.newUpdatesBySymbol[key] = idSet.Size()
+		// the global scope keeps its own seen sets: the symbol-scoped poll clears
+		// the symbol set, and deriving the global count from that set double-counts
+		// an id that updates again after a symbol poll
+		allIdSet := c.seenUpdatesAll[key]
+		if allIdSet == nil {
+			allIdSet = NewSet()
+			c.seenUpdatesAll[key] = allIdSet
+		}
+		beforeAllSize := allIdSet.Size()
+		allIdSet.Add(distinctId)
+		c.allNewUpdates += allIdSet.Size() - beforeAllSize
 		return
 	}
 	if c.clearUpdatesBySymbol[key] {
@@ -226,6 +242,23 @@ func (c *ArrayCache) Append(item any) {
 						delete(c.Hashmap, removedSymbol)
 					}
 				}
+				// the evicted id also leaves both seen scopes so single-scope
+				// pollers stay bounded - the counts mean distinct ids within
+				// the retained window
+				if symbolSeen := c.seenUpdatesBySymbol[removedSymbol]; symbolSeen != nil && symbolSeen.Contains(removedId) {
+					symbolSeen.Remove(removedId)
+					c.newUpdatesBySymbol[removedSymbol] = c.newUpdatesBySymbol[removedSymbol] - 1
+					if symbolSeen.Size() == 0 {
+						delete(c.seenUpdatesBySymbol, removedSymbol)
+					}
+				}
+				if allSeen := c.seenUpdatesAll[removedSymbol]; allSeen != nil && allSeen.Contains(removedId) {
+					allSeen.Remove(removedId)
+					c.allNewUpdates = c.allNewUpdates - 1
+					if allSeen.Size() == 0 {
+						delete(c.seenUpdatesAll, removedSymbol)
+					}
+				}
 			}
 		}
 		c.Data = append(c.Data[:0], c.Data[1:]...)
@@ -288,6 +321,7 @@ func (c *ArrayCache) Clear() {
 	c.Hashmap = make(map[string]map[string]any)
 	c.newUpdatesBySymbol = make(map[string]int)
 	c.seenUpdatesBySymbol = make(map[string]*Set)
+	c.seenUpdatesAll = make(map[string]*Set)
 	c.clearUpdatesBySymbol = make(map[string]bool)
 	c.allNewUpdates = 0
 	c.clearAllUpdates = false

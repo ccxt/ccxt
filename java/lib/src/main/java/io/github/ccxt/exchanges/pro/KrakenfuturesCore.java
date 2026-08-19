@@ -454,7 +454,14 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object cache = this.positions;
-        Object rawPositions = this.safeValue(message, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object rawPositions = this.safeList(message, "positions");
+        if (Helpers.isTrue(Helpers.isEqual(rawPositions, null)))
+        {
+            // an open_positions frame without the positions key is malformed;
+            // do not resolve with a fabricated empty list (the caller cannot
+            // distinguish it from a genuinely flat account)
+            return;
+        }
         Object newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
         {
@@ -991,14 +998,30 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             Object isCancel = this.safeValue(message, "is_cancel");
             if (Helpers.isTrue(isCancel))
             {
+                // Kraken documents is_cancel as "fully filled, cancelled, or
+                // rejected". Derive unified status from `reason` instead of
+                // mapping every removal to canceled. Preserve reason on info
+                // so consumers can tell a user cancel from liquidation, etc.
+                Object reason = this.safeString(message, "reason");
+                Object status = "canceled";
+                if (Helpers.isTrue(Helpers.isEqual(reason, "full_fill")))
+                {
+                    status = "closed";
+                }
                 // get order without symbol
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
                 {
                     Object currentOrder = Helpers.GetValue(orders, i);
                     if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(currentOrder, "id"), Helpers.GetValue(message, "order_id"))))
                     {
+                        final Object finalReason = reason;
+                        Object info = this.extend(this.safeDict(currentOrder, "info", new java.util.HashMap<String, Object>() {{}}), new java.util.HashMap<String, Object>() {{
+                            put( "reason", finalReason );
+                        }});
+                        final Object finalStatus = status;
                         Helpers.addElementToObject(orders, i, this.extend(currentOrder, new java.util.HashMap<String, Object>() {{
-    put( "status", "canceled" );
+    put( "status", finalStatus );
+    put( "info", info );
 }}));
                         client.resolve(orders, "orders");
                         client.resolve(orders, Helpers.add("orders:", Helpers.GetValue(currentOrder, "symbol")));

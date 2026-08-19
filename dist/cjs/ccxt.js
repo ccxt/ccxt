@@ -40,6 +40,7 @@ var blofin = require('./src/blofin.js');
 var btcbox = require('./src/btcbox.js');
 var btcmarkets = require('./src/btcmarkets.js');
 var btcturk = require('./src/btcturk.js');
+var btse = require('./src/btse.js');
 var bullish = require('./src/bullish.js');
 var bybit = require('./src/bybit.js');
 var bybiteu = require('./src/bybiteu.js');
@@ -197,7 +198,7 @@ var polymarket = require('./src/prediction/polymarket.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.73';
+const version = '4.5.74';
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
@@ -230,6 +231,7 @@ const exchanges = {
     'btcbox': btcbox["default"],
     'btcmarkets': btcmarkets["default"],
     'btcturk': btcturk["default"],
+    'btse': btse["default"],
     'bullish': bullish["default"],
     'bybit': bybit["default"],
     'bybiteu': bybiteu["default"],
@@ -478,6 +480,7 @@ exports.blofin = blofin["default"];
 exports.btcbox = btcbox["default"];
 exports.btcmarkets = btcmarkets["default"];
 exports.btcturk = btcturk["default"];
+exports.btse = btse["default"];
 exports.bullish = bullish["default"];
 exports.bybit = bybit["default"];
 exports.bybiteu = bybiteu["default"];

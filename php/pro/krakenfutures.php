@@ -382,7 +382,13 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $this->positions = new ArrayCacheBySymbolBySide();
         }
         $cache = $this->positions;
-        $rawPositions = $this->safe_value($message, 'positions', array());
+        $rawPositions = $this->safe_list($message, 'positions');
+        if ($rawPositions === null) {
+            // an open_positions frame without the $positions key is malformed;
+            // do not resolve with a fabricated empty list (the caller cannot
+            // distinguish it from a genuinely flat account)
+            return;
+        }
         $newPositions = array();
         for ($i = 0; $i < count($rawPositions); $i++) {
             $rawPosition = $rawPositions[$i];
@@ -862,12 +868,25 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         } else {
             $isCancel = $this->safe_value($message, 'is_cancel');
             if ($isCancel) {
+                // Kraken documents is_cancel as "fully filled, cancelled, or
+                // rejected". Derive unified $status from `$reason` instead of
+                // mapping every removal to canceled. Preserve $reason on $info
+                // so consumers can tell a user cancel from liquidation, etc.
+                $reason = $this->safe_string($message, 'reason');
+                $status = 'canceled';
+                if ($reason === 'full_fill') {
+                    $status = 'closed';
+                }
                 // get $order without $symbol
                 for ($i = 0; $i < count($orders); $i++) {
                     $currentOrder = $orders[$i];
                     if ($currentOrder['id'] === $message['order_id']) {
+                        $info = $this->extend($this->safe_dict($currentOrder, 'info', array()), array(
+                            'reason' => $reason,
+                        ));
                         $orders[$i] = $this->extend($currentOrder, array(
-                            'status' => 'canceled',
+                            'status' => $status,
+                            'info' => $info,
                         ));
                         $client->resolve($orders, 'orders');
                         $client->resolve($orders, 'orders:' . $currentOrder['symbol']);

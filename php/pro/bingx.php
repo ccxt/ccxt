@@ -1784,7 +1784,9 @@ class bingx extends \ccxt\async\bingx {
         $a = $this->safe_dict($message, 'a', array());
         $data = $this->safe_list($a, 'B', array());
         $timestamp = $this->safe_integer_2($message, 'T', 'E');
-        $type = (is_array($a) && array_key_exists('P' ?? '', $a)) ? 'swap' : 'spot';
+        $spotUrl = $this->safe_string($this->urls['api']['ws'], 'spot');
+        $isSpot = ($spotUrl !== null) && (mb_strpos($client->url, $spotUrl) === 0);
+        $type = $isSpot ? 'spot' : 'swap';
         if (!(is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             $this->balance[$type] = array();
         }

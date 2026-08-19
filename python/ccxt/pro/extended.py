@@ -791,17 +791,24 @@ class extended(ccxt.async_support.extended):
             else:
                 self.handle_ohlcv(client, message)
         elif data is not None:
+            # an account frame may carry several sections at once, so these are
+            # not mutually exclusive and must not fall through to the order book
+            isAccountUpdate = False
             if (type == 'ORDER') or ('orders' in data):
                 self.handle_orders(client, message)
+                isAccountUpdate = True
             if (type == 'TRADE') or ('trades' in data):
                 self.handle_my_trades(client, message)
+                isAccountUpdate = True
             if (type == 'POSITION') or ('positions' in data):
                 self.handle_positions(client, message)
+                isAccountUpdate = True
             if (type == 'BALANCE') or ('balance' in data) or ('spotBalances' in data):
                 self.handle_balance(client, message)
+                isAccountUpdate = True
             if type == 'MP':
                 self.handle_mark_price(client, message)
             elif 'f' in data:
                 self.handle_funding_rate(client, message)
-            else:
+            elif not isAccountUpdate:
                 self.handle_order_book(client, message)
