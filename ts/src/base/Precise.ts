@@ -8,7 +8,7 @@ const base = BigInt (10);
 // exponentiation for exponents beyond the table)
 const powersOfTen: bigint[] = [ BigInt (1) ];
 for (let i = 1; i <= 128; i++) {
-    powersOfTen.push (powersOfTen[ i - 1 ] * base);
+    powersOfTen.push (powersOfTen[i - 1] * base);
 }
 
 /**
