@@ -3133,10 +3133,10 @@ public partial class phemex : Exchange
             ((IDictionary<string,object>)request)["posSide"] = posSide;
             if (isTrue(isStableSettled))
             {
-                ((IDictionary<string,object>)request)["orderQtyRq"] = amount;
+                ((IDictionary<string,object>)request)["orderQtyRq"] = this.amountToPrecision(symbol, amount);
             } else
             {
-                ((IDictionary<string,object>)request)["orderQty"] = this.parseToInt(amount);
+                ((IDictionary<string,object>)request)["orderQty"] = this.parseToInt(this.amountToPrecision(symbol, amount));
             }
             if (isTrue(!isEqual(triggerPrice, null)))
             {
