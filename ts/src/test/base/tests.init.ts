@@ -62,6 +62,7 @@ import testBase58ToBinary from './test.base58ToBinary.js';
 import testIsJsonEncodedObject from './test.isJsonEncodedObject.js';
 import testIsDictionary from './test.isDictionary.js';
 import testEncodeDecode from './test.encodeDecode.js';
+import testKrakenfuturesParsePositions from './test.krakenfuturesParsePositions.js';
 
 async function baseTestsInit () {
     await testLanguageSpecific ();
@@ -126,6 +127,7 @@ async function baseTestsInit () {
     testIo ();
     testIsJsonEncodedObject ();
     testEncodeDecode ();
+    testKrakenfuturesParsePositions ();
     return true;
 }
 
