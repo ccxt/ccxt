@@ -2050,6 +2050,7 @@ func (this *ToobitCore) ParseBalance(response any) any {
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ToobitCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
@@ -2063,8 +2064,8 @@ func (this *ToobitCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes174712 := (<-this.LoadMarkets())
-			PanicOnError(retRes174712)
+			retRes174812 := (<-this.LoadMarkets())
+			PanicOnError(retRes174812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
@@ -2138,12 +2139,11 @@ func (this *ToobitCore) CreateOrderRequest(symbol any, typeVar any, side any, am
 	costparamsVariable := this.HandleParamString(params, "cost")
 	cost = GetValue(costparamsVariable, 0)
 	params = GetValue(costparamsVariable, 1)
-	if IsTrue(IsEqual(typeVar, "market")) {
-		if IsTrue(IsTrue(IsEqual(cost, nil)) && IsTrue(IsEqual(side, "buy"))) {
+	if IsTrue(IsTrue(IsEqual(typeVar, "market")) && IsTrue(IsEqual(side, "buy"))) {
+		if IsTrue(IsEqual(cost, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " createOrder() requires params[\"cost\"] for market buy order")))
-		} else {
-			AddElementToObject(request, "quantity", this.CostToPrecision(symbol, cost))
 		}
+		AddElementToObject(request, "quantity", this.CostToPrecision(symbol, cost))
 	} else {
 		AddElementToObject(request, "quantity", this.AmountToPrecision(symbol, amount))
 	}
@@ -3480,7 +3480,7 @@ func (this *ToobitCore) Withdraw(code any, amount any, address any, optionalArgs
 			"coin":          GetValue(currency, "id"),
 			"address":       address,
 			"quantity":      this.CurrencyToPrecision(GetValue(currency, "code"), amount),
-			"chainType":     networkCode,
+			"chainType":     this.NetworkCodeToId(networkCode, code),
 			"clientOrderId": this.Milliseconds(),
 		}
 		if IsTrue(!IsEqual(tag, nil)) {
@@ -3633,13 +3633,13 @@ func (this *ToobitCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan an
 		//
 		// [
 		//     {
-		//         "symbol":"BTC-SWAP-USDT", //symbol
-		//         "leverage":"20",  // leverage
+		//         "symbolId":"ETH-SWAP-USDT",
+		//         "leverage":"50",
 		//         "marginType":"CROSS" // CROSS;ISOLATED
 		//     }
 		// ]
 		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
+		var data any = this.SafeDict(response, 0, map[string]any{})
 
 		ch <- this.ParseLeverage(data, market)
 		return nil
@@ -3650,10 +3650,10 @@ func (this *ToobitCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan an
 func (this *ToobitCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString(leverage, "symbol")
+	var marketId any = this.SafeString2(leverage, "symbolId", "symbol")
 	var leverageValue any = this.SafeInteger(leverage, "leverage")
-	var marginType any = this.SafeString(leverage, "marginType")
-	var marginMode any = Ternary(IsTrue((IsEqual(marginType, "crossed"))), "cross", "isolated")
+	var marginType any = this.SafeStringLower(leverage, "marginType")
+	var marginMode any = Ternary(IsTrue((IsEqual(marginType, "cross"))), "cross", "isolated")
 	return map[string]any{
 		"info":          leverage,
 		"symbol":        this.SafeSymbol(marketId, market),

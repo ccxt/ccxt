@@ -53,7 +53,30 @@ class ArrayCacheBySymbolById extends ArrayCache {
             if ($this->max_size && (count($this->deque) === $this->max_size)) {
                 $delete_item = array_shift($this->deque);
                 array_shift($this->index);
-                unset($this->hashmap[$this->as_string($delete_item[$this->key_field])][$this->as_string($delete_item['id'])]);
+                $delete_key = $this->as_string($delete_item[$this->key_field]);
+                unset($this->hashmap[$delete_key][$this->as_string($delete_item['id'])]);
+                # drop the outer bucket once its last id is evicted, otherwise the
+                # hashmap grows one empty array per key for the process lifetime
+                if (!count($this->hashmap[$delete_key])) {
+                    unset($this->hashmap[$delete_key]);
+                }
+                # the evicted id also leaves both seen scopes so single-scope pollers
+                # stay bounded - the counts mean distinct ids within the retained window
+                $delete_id = $this->as_string($delete_item['id']);
+                if (array_key_exists($delete_key, $this->seen_updates_by_symbol) && array_key_exists($delete_id, $this->seen_updates_by_symbol[$delete_key])) {
+                    unset($this->seen_updates_by_symbol[$delete_key][$delete_id]);
+                    $this->new_updates_by_symbol[$delete_key] = $this->new_updates_by_symbol[$delete_key] - 1;
+                    if (count($this->seen_updates_by_symbol[$delete_key]) === 0) {
+                        unset($this->seen_updates_by_symbol[$delete_key]);
+                    }
+                }
+                if (array_key_exists($delete_key, $this->seen_updates_all) && array_key_exists($delete_id, $this->seen_updates_all[$delete_key])) {
+                    unset($this->seen_updates_all[$delete_key][$delete_id]);
+                    $this->all_new_updates = $this->all_new_updates - 1;
+                    if (count($this->seen_updates_all[$delete_key]) === 0) {
+                        unset($this->seen_updates_all[$delete_key]);
+                    }
+                }
             }
         }
         # this allows us to effectively pass by reference
@@ -61,10 +84,10 @@ class ArrayCacheBySymbolById extends ArrayCache {
         $this->index[] = $this->index_key($key, $id);
         if ($this->clear_all_updates) {
             $this->clear_all_updates = false;
-            $this->clear_updates_by_symbol = array();
+            # the global poll consumes only the global scope: the symbol-scoped
+            # seen sets, counts and pending flags belong to the symbol consumers
             $this->all_new_updates = 0;
-            $this->new_updates_by_symbol = array();
-            $this->seen_updates_by_symbol = array();
+            $this->seen_updates_all = array();
         }
         # the DISTINCT ids seen for this key live in their own map - the count
         # they produce is what $new_updates_by_symbol carries, so getLimit()
@@ -77,11 +100,18 @@ class ArrayCacheBySymbolById extends ArrayCache {
             $this->seen_updates_by_symbol[$key] = array();
         }
         # in case an exchange updates the same order id twice
-        $before_length = count($this->seen_updates_by_symbol[$key]);
         $this->seen_updates_by_symbol[$key][$id] = true;
-        $after_length = count($this->seen_updates_by_symbol[$key]);
-        $this->new_updates_by_symbol[$key] = $after_length;
-        $this->all_new_updates = ($this->all_new_updates ?? 0) + ($after_length - $before_length);
+        $this->new_updates_by_symbol[$key] = count($this->seen_updates_by_symbol[$key]);
+        # the global scope keeps its own seen sets: the symbol-scoped poll clears
+        # the symbol set, and deriving the global count from that set double-counts
+        # an entry that updates again after a symbol poll
+        if (!array_key_exists($key, $this->seen_updates_all)) {
+            $this->seen_updates_all[$key] = array();
+        }
+        $before_all_length = count($this->seen_updates_all[$key]);
+        $this->seen_updates_all[$key][$id] = true;
+        $after_all_length = count($this->seen_updates_all[$key]);
+        $this->all_new_updates = ($this->all_new_updates ?? 0) + ($after_all_length - $before_all_length);
     }
 
     public function clear() {

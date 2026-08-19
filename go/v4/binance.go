@@ -4927,7 +4927,7 @@ func (this *BinanceCore) FetchMarkets(optionalArgs ...any) <-chan any {
 					AppendToArray(&promisesRaw, this.SapiGetMarginAllPairs(params))
 					AppendToArray(&promisesRaw, this.SapiGetMarginIsolatedAllPairs(params))
 				}
-				if IsTrue(!IsTrue(isDemoEnv) && IsTrue((!IsEqual(this.ApiKey, nil)))) {
+				if IsTrue(!IsTrue(isDemoEnv) && IsTrue((IsTrue(!IsEqual(this.ApiKey, nil)) && IsTrue(!IsEqual(this.ApiKey, ""))))) {
 					AppendToArray(&promisesRaw, this.SapiGetEquityMarketExchangeInfo(params))
 				}
 			} else if IsTrue(IsEqual(marketType, "linear")) {

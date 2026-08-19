@@ -1679,6 +1679,7 @@ class toobit(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1732,11 +1733,10 @@ class toobit(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         cost = None
         cost, params = self.handle_param_string(params, 'cost')
-        if type == 'market':
-            if cost is None and side == 'buy':
+        if type == 'market' and side == 'buy':
+            if cost is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires params["cost"] for market buy order')
-            else:
-                request['quantity'] = self.cost_to_precision(symbol, cost)
+            request['quantity'] = self.cost_to_precision(symbol, cost)
         else:
             request['quantity'] = self.amount_to_precision(symbol, amount)
         isPostOnly = None
@@ -2829,7 +2829,7 @@ class toobit(Exchange, ImplicitAPI):
             'coin': currency['id'],
             'address': address,
             'quantity': self.currency_to_precision(currency['code'], amount),
-            'chainType': networkCode,
+            'chainType': self.network_code_to_id(networkCode, code),
             'clientOrderId': self.milliseconds(),
         }
         if tag is not None:
@@ -2921,20 +2921,20 @@ class toobit(Exchange, ImplicitAPI):
         #
         # [
         #     {
-        #         "symbol":"BTC-SWAP-USDT",  #symbol
-        #         "leverage":"20",  # leverage
+        #         "symbolId":"ETH-SWAP-USDT",
+        #         "leverage":"50",
         #         "marginType":"CROSS"  # CROSS;ISOLATED
         #     }
         # ]
         #
-        data = self.safe_dict(response, 'data', {})
+        data = self.safe_dict(response, 0, {})
         return self.parse_leverage(data, market)
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
-        marketId = self.safe_string(leverage, 'symbol')
+        marketId = self.safe_string_2(leverage, 'symbolId', 'symbol')
         leverageValue = self.safe_integer(leverage, 'leverage')
-        marginType = self.safe_string(leverage, 'marginType')
-        marginMode = 'cross' if (marginType == 'crossed') else 'isolated'
+        marginType = self.safe_string_lower(leverage, 'marginType')
+        marginMode = 'cross' if (marginType == 'cross') else 'isolated'
         return {
             'info': leverage,
             'symbol': self.safe_symbol(marketId, market),

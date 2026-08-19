@@ -3961,7 +3961,7 @@ func (this *WoofiproCore) FetchMarginModes(optionalArgs ...any) <-chan any {
 		}
 		symbols = this.MarketSymbols(symbols)
 
-		response := (<-this.CallDynamically("v1PrivateGetClientMarginModes", params))
+		response := (<-this.V1PrivateGetClientMarginModes(params))
 		PanicOnError(response)
 		//
 		// {
@@ -4059,7 +4059,7 @@ func (this *WoofiproCore) SetMarginMode(marginMode any, optionalArgs ...any) <-c
 			"default_margin_mode": ToUpper(marginMode),
 		}
 
-		retRes311315 := (<-this.CallDynamically("v1PrivatePostClientMarginMode", this.Extend(request, params)))
+		retRes311315 := (<-this.V1PrivatePostClientMarginMode(this.Extend(request, params)))
 		PanicOnError(retRes311315)
 		//
 		// {
@@ -4129,7 +4129,7 @@ func (this *WoofiproCore) ModifyMarginHelper(symbol any, amount any, typeVar any
 			"type":   typeVar,
 		}
 
-		response := (<-this.CallDynamically("v1PrivatePostPositionMargin", this.Extend(request, params)))
+		response := (<-this.V1PrivatePostPositionMargin(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		// {

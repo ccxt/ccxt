@@ -3436,7 +3436,7 @@ class binance extends Exchange {
                     $promisesRaw[] = $this->sapiGetMarginAllPairs($params);
                     $promisesRaw[] = $this->sapiGetMarginIsolatedAllPairs($params);
                 }
-                if (!$isDemoEnv && ($this->apiKey !== null)) {
+                if (!$isDemoEnv && ($this->apiKey !== null && $this->apiKey !== '')) {
                     $promisesRaw[] = $this->sapiGetEquityMarketExchangeInfo($params);
                 }
             } elseif ($marketType === 'linear') {

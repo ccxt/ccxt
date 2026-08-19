@@ -82,6 +82,11 @@ class okx(ccxt.async_support.okx):
                     # 2. Public depth channel, verification not required
                     # 3. Data feeds will be delivered every 100ms(vs. every 200ms now)
                     #
+                    # books-rpi
+                    # 1. All API users can subscribe
+                    # 2. Public depth channel, verification not required
+                    # 3. 400 depth levels, data feeds will be delivered every 100ms
+                    #
                     'depth': 'books',
                 },
                 'watchBalance': 'spot',  # margin, futures, swap
@@ -1113,7 +1118,7 @@ class okx(ccxt.async_support.okx):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.depth]: okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
+        :param str [params.depth]: okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         #
@@ -1139,6 +1144,11 @@ class okx(ccxt.async_support.okx):
         # 2. Public depth channel, verification not required
         # 3. Data feeds will be delivered every 100ms(vs. every 200ms now)
         #
+        # books-rpi
+        # 1. All API users can subscribe
+        # 2. Public depth channel, verification not required
+        # 3. 400 depth levels, data feeds will be delivered every 100ms
+        #
         return self.watch_order_book_for_symbols([symbol], limit, params)
 
     async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params={}) -> OrderBook:
@@ -1150,7 +1160,7 @@ class okx(ccxt.async_support.okx):
         :param str[] symbols: unified array of symbols
         :param int [limit]: 1,5, 400, 50(l2-tbt, vip4+) or 40000(vip5+) the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.depth]: okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
+        :param str [params.depth]: okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
@@ -1199,7 +1209,7 @@ class okx(ccxt.async_support.okx):
         :param str[] symbols: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.limit]: the maximum amount of order book entries to return
-        :param str [params.depth]: okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
+        :param str [params.depth]: okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
@@ -1246,7 +1256,7 @@ class okx(ccxt.async_support.okx):
         :param str symbol: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.limit]: the maximum amount of order book entries to return
-        :param str [params.depth]: okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
+        :param str [params.depth]: okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         return self.un_watch_order_book_for_symbols([symbol], params)
@@ -1410,6 +1420,7 @@ class okx(ccxt.async_support.okx):
             'bbo-tbt': 1,
             'books': 400,
             'books5': 5,
+            'books-rpi': 400,
             'books-l2-tbt': 400,
             'books50-l2-tbt': 50,
         }
@@ -2388,6 +2399,7 @@ class okx(ccxt.async_support.okx):
                 'bbo-tbt': self.handle_order_book,  # newly added channel that sends tick-by-tick Level 1 data, all API users can subscribe, public depth channel, verification not required
                 'books': self.handle_order_book,  # all API users can subscribe, public depth channel, verification not required
                 'books5': self.handle_order_book,  # all API users can subscribe, public depth channel, verification not required, data feeds will be delivered every 100ms(vs. every 200ms now)
+                'books-rpi': self.handle_order_book,  # all API users can subscribe, public depth channel, verification not required
                 'books50-l2-tbt': self.handle_order_book,  # only users who're VIP4 and above can subscribe, identity verification required before subscription
                 'books-l2-tbt': self.handle_order_book,  # only users who're VIP5 and above can subscribe, identity verification required before subscription
                 'tickers': self.handle_ticker,

@@ -517,31 +517,6 @@ func (this *HtxCore) PrivatePostSubuserTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSubuserTransfer", args...)
 }
 
-// StatusPublicSpotGetApiV2SummaryJson returns a channel that yields a JSON object.
-func (this *HtxCore) StatusPublicSpotGetApiV2SummaryJson(args ...any) <-chan any {
-	return this.callEndpointAsync("statusPublicSpotGetApiV2SummaryJson", args...)
-}
-
-// StatusPublicFutureInverseGetApiV2SummaryJson returns a channel that yields a JSON object.
-func (this *HtxCore) StatusPublicFutureInverseGetApiV2SummaryJson(args ...any) <-chan any {
-	return this.callEndpointAsync("statusPublicFutureInverseGetApiV2SummaryJson", args...)
-}
-
-// StatusPublicFutureLinearGetApiV2SummaryJson returns a channel that yields a JSON object.
-func (this *HtxCore) StatusPublicFutureLinearGetApiV2SummaryJson(args ...any) <-chan any {
-	return this.callEndpointAsync("statusPublicFutureLinearGetApiV2SummaryJson", args...)
-}
-
-// StatusPublicSwapInverseGetApiV2SummaryJson returns a channel that yields a JSON object.
-func (this *HtxCore) StatusPublicSwapInverseGetApiV2SummaryJson(args ...any) <-chan any {
-	return this.callEndpointAsync("statusPublicSwapInverseGetApiV2SummaryJson", args...)
-}
-
-// StatusPublicSwapLinearGetApiV2SummaryJson returns a channel that yields a JSON object.
-func (this *HtxCore) StatusPublicSwapLinearGetApiV2SummaryJson(args ...any) <-chan any {
-	return this.callEndpointAsync("statusPublicSwapLinearGetApiV2SummaryJson", args...)
-}
-
 // SpotPublicGetV2MarketStatus returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetV2MarketStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetV2MarketStatus", args...)

@@ -94,14 +94,13 @@ function test_php_field_wise_merge() {
     check($positions[0]['entryPrice'] === 100.0, 'BySide merge must preserve entryPrice the delta omitted');
     check($positions[0]['leverage'] === 10, 'BySide merge must preserve leverage the delta omitted');
 
-    // ... and for ohlcv rows keyed by timestamp
+    // ... and for ohlcv rows keyed by timestamp the whole row is replaced
     $ohlcv = new ArrayCacheByTimestamp();
     $ohlcv->append(array( 1000, 1.0, 2.0, 0.5, 1.5, 100.0 ));
     $ohlcv->append(array( 1000, 1.0, 3.0 )); // a partial candle update
     check(count($ohlcv) === 1, 'ByTimestamp merge must update in place');
     check($ohlcv[0][2] === 3.0, 'ByTimestamp merge must apply the new high');
-    check($ohlcv[0][4] === 1.5, 'ByTimestamp merge must preserve the close the update omitted');
-    check($ohlcv[0][5] === 100.0, 'ByTimestamp merge must preserve the volume the update omitted');
+    check(count($ohlcv[0]) === 3, 'ByTimestamp merge must not leave a stale tail behind');
 }
 
 function test_php_two_field_match() {
@@ -368,16 +367,20 @@ function test_php_consume_resets_the_seen_set() {
     check(count($cache->seen_updates_by_symbol['BTC/USDT']) === 1, 'the per-symbol reset must empty the seen set too');
     check($cache->get_limit('BTC/USDT', null) === 1, 'only the row appended after the read is new');
 
-    // and the symbol-less read wipes BOTH maps on the next append
+    // the symbol-less read consumes ONLY the global scope on the next append -
+    // the per-symbol maps belong to the symbol consumers and must survive
+    // (ts-derived: Cache.ts deferred all-clear resets allNewUpdates and
+    // seenUpdatesAll only, see test.cache.ts cacheTwoScopes)
     $all = new ArrayCacheBySymbolById();
     $all->append(array( 'symbol' => 'BTC/USDT', 'id' => '1' ));
     $all->append(array( 'symbol' => 'ETH/USDT', 'id' => '1' ));
     check($all->get_limit(null, null) === 2, 'precondition: two symbols, two new updates');
     $all->append(array( 'symbol' => 'BTC/USDT', 'id' => '2' ));
     check($all->all_new_updates === 1, 'the deferred all-clear must restart the running total');
-    check(array_keys($all->new_updates_by_symbol) === array( 'BTC/USDT' ), 'the deferred all-clear must drop the stale per-symbol counts');
-    check(array_keys($all->seen_updates_by_symbol) === array( 'BTC/USDT' ), 'the deferred all-clear must drop the stale seen sets');
-    check($all->new_updates_by_symbol['BTC/USDT'] === 1, 'the surviving symbol restarts at one, not at its pre-clear count');
+    check(array_keys($all->new_updates_by_symbol) === array( 'BTC/USDT', 'ETH/USDT' ), 'the per-symbol counts must survive the global consume');
+    check(array_keys($all->seen_updates_by_symbol) === array( 'BTC/USDT', 'ETH/USDT' ), 'the per-symbol seen sets must survive the global consume');
+    check($all->new_updates_by_symbol['BTC/USDT'] === 2, 'the symbol window keeps counting distinct ids across the global consume');
+    check($all->get_limit('BTC/USDT', null) === 2, 'a symbol consumer still sees both of its ids');
 
     // clear() wipes the seen sets with everything else
     $wiped = new ArrayCacheBySymbolById();

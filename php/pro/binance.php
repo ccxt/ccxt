@@ -358,83 +358,6 @@ class binance extends \ccxt\async\binance {
         return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $query), $messageHashes, $subscribe));
     }
 
-    public function authenticate_stock($params = array()) {
-        return Async\async(self::do_authenticate_stock(...))($params);
-    }
-
-    private function do_authenticate_stock($params = array()) {
-        $options = $this->safe_dict($this->options, 'stock', array());
-        $lastAuthenticatedTime = $this->safe_integer($options, 'lastAuthenticatedTime', 0);
-        $listenKeyRefreshRate = $this->safe_integer($this->options, 'stockListenKeyRefreshRate', 1200000);
-        $now = $this->milliseconds();
-        $delay = $this->sum($listenKeyRefreshRate, 10000);
-        if (($now - $lastAuthenticatedTime) > $delay) {
-            // the stock user stream url embeds this $listenKey, so the future is parked
-            // on the $listenKey-free market url of the same host
-            $client = $this->client($this->get_stock_ws_url('market'));
-            $messageHash = 'authenticate:stock';
-            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
-                // another caller is already fetching, wait for it instead of fetching again
-                Async\await($client->future($messageHash));
-                return;
-            }
-            $client->future($messageHash); // created ahead of the request below, so concurrent callers can find it
-            try {
-                $requestParams = $this->omit($params, array( 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ));
-                $response = Async\await($this->sapiPostEquityListenKey($requestParams));
-                $listenKey = $this->safe_string($response, 'listenKey');
-                $this->options['stock'] = $this->extend($options, array(
-                    'listenKey' => $listenKey,
-                    'lastAuthenticatedTime' => $now,
-                ));
-                $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_stock_listen_key'), $params);
-                $client->resolve($listenKey, $messageHash);
-            } catch (Exception $e) {
-                $client->reject($e, $messageHash);
-                throw $e;
-            }
-        }
-    }
-
-    public function keep_alive_stock_listen_key($params = array()) {
-        return Async\async(self::do_keep_alive_stock_listen_key(...))($params);
-    }
-
-    private function do_keep_alive_stock_listen_key($params = array()) {
-        try {
-            $options = $this->safe_dict($this->options, 'stock', array());
-            $requestParams = $this->omit($params, array( 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ));
-            $response = Async\await($this->sapiPostEquityListenKey($requestParams));
-            $listenKey = $this->safe_string($response, 'listenKey');
-            $now = $this->milliseconds();
-            $this->options['stock'] = $this->extend($options, array(
-                'listenKey' => $listenKey,
-                'lastAuthenticatedTime' => $now,
-            ));
-        } catch (Exception $error) {
-            $options = $this->safe_dict($this->options, 'stock', array());
-            $this->options['stock'] = $this->extend($options, array(
-                'listenKey' => null,
-                'lastAuthenticatedTime' => 0,
-            ));
-            return;
-        }
-        $clients = is_array($this->clients) ? array_values($this->clients) : array();
-        $listenKeyRefreshRate = $this->safe_integer($this->options, 'stockListenKeyRefreshRate', 1200000);
-        for ($i = 0; $i < count($clients); $i++) {
-            $client = $clients[$i];
-            $clientSubscriptions = $this->safe_dict($client, 'subscriptions', array());
-            $subscriptionKeys = is_array($clientSubscriptions) ? array_keys($clientSubscriptions) : array();
-            for ($j = 0; $j < count($subscriptionKeys); $j++) {
-                $subscribeType = $subscriptionKeys[$j];
-                if ($subscribeType === 'stock') {
-                    $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_stock_listen_key'), $params);
-                    return;
-                }
-            }
-        }
-    }
-
     public function watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         /**
          * watch the public liquidations of a trading pair
@@ -719,10 +642,15 @@ class binance extends \ccxt\async\binance {
         list($type, $params) = $this->handle_market_type_and_params('watchMyLiquidationsForSymbols', $market, $params);
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('watchMyLiquidationsForSymbols', $market, $params);
-        if ($this->isLinear($type, $subType)) {
-            $type = 'future';
-        } elseif ($this->isInverse($type, $subType)) {
-            $type = 'delivery';
+        // same guard authenticate carries => this local rewrite must agree with the
+        // bucket authenticate writes, or the $listenKey read below dereferences an
+        // options bucket that was never seeded and throws
+        if ($type !== 'option' && $type !== 'stock') {
+            if ($this->isLinear($type, $subType)) {
+                $type = 'future';
+            } elseif ($this->isInverse($type, $subType)) {
+                $type = 'delivery';
+            }
         }
         Async\await($this->authenticate($params));
         $listenKey = $this->options[$type]['listenKey'];
@@ -3215,10 +3143,17 @@ class binance extends \ccxt\async\binance {
         list($subType, $params) = $this->handle_sub_type_and_params('authenticate', null, $params);
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'authenticate', 'papi', 'portfolioMargin', false);
-        if ($this->isLinear($type, $subType)) {
-            $type = 'future';
-        } elseif ($this->isInverse($type, $subType)) {
-            $type = 'delivery';
+        if ($type !== 'option' && $type !== 'stock') {
+            // guard option and stock from the rewrite => isLinear keys off $subType alone
+            // when a $subType is present - a defaultSubType of 'linear' would flip
+            // 'option' to 'future' and authenticate an option user stream with a
+            // FUTURES listen key stored in the future bucket. keepAliveListenKey
+            // carries the same guard; stock joins this path in the auth consolidation
+            if ($this->isLinear($type, $subType)) {
+                $type = 'future';
+            } elseif ($this->isInverse($type, $subType)) {
+                $type = 'delivery';
+            }
         }
         // For spot use WebSocket API signature subscription
         if ($type === 'spot') {
@@ -3242,16 +3177,21 @@ class binance extends \ccxt\async\binance {
             return;
         }
         $params = $this->omit($params, 'symbol');
+        $isStock = ($type === 'stock');
         $options = $this->safe_value($this->options, $type, array());
         $lastAuthenticatedTime = $this->safe_integer($options, 'lastAuthenticatedTime', 0);
-        $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
+        $refreshRateKey = $isStock ? 'stockListenKeyRefreshRate' : 'listenKeyRefreshRate';
+        $listenKeyRefreshRate = $this->safe_integer($this->options, $refreshRateKey, 1200000);
         $delay = $this->sum($listenKeyRefreshRate, 10000);
         if ($time - $lastAuthenticatedTime > $delay) {
             // the private url embeds the $listenKey that this request produces, so the future
             // is parked on the $listenKey-free base url of that same stream - concurrent
             // callers wait for the leader instead of fetching a second $listenKey, which
-            // would split the user-data subscriptions across two connections
-            $client = $this->client($this->get_ws_url($type, 'private'));
+            // would split the user-data subscriptions across two connections. the stock
+            // stream parks on the $listenKey-free market url of the same host for the
+            // same reason
+            $clientUrl = $isStock ? $this->get_stock_ws_url('market') : $this->get_ws_url($type, 'private');
+            $client = $this->client($clientUrl);
             $messageHash = 'authenticate:' . $type;
             if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
                 // another caller is already fetching, wait for it instead of fetching again
@@ -3261,7 +3201,10 @@ class binance extends \ccxt\async\binance {
             $client->future($messageHash); // created ahead of the request below, so concurrent callers can find it
             try {
                 $response = null;
-                if ($isPortfolioMargin) {
+                if ($isStock) {
+                    $requestParams = $this->omit($params, array( 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ));
+                    $response = Async\await($this->sapiPostEquityListenKey($requestParams));
+                } elseif ($isPortfolioMargin) {
                     $response = Async\await($this->papiPostListenKey($params));
                     $params = $this->extend($params, array( 'portfolioMargin' => true ));
                 } elseif ($type === 'future') {
@@ -3278,7 +3221,13 @@ class binance extends \ccxt\async\binance {
                     'listenKey' => $listenKey,
                     'lastAuthenticatedTime' => $time,
                 ));
-                $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
+                // hoisted out of the $delay call => the transpilers garble an inline
+                // dict literal nested inside a $delay argument
+                $delayParams = $params;
+                if ($isStock) {
+                    $delayParams = $this->extend($params, array( 'type' => 'stock', 'defaultType' => 'stock' ));
+                }
+                $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $delayParams);
                 $client->resolve($listenKey, $messageHash);
             } catch (Exception $e) {
                 $client->reject($e, $messageHash);
@@ -3299,9 +3248,14 @@ class binance extends \ccxt\async\binance {
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'keepAliveListenKey', 'papi', 'portfolioMargin', false);
         $subTypeInfo = $this->handle_sub_type_and_params('keepAliveListenKey', null, $params);
         $subType = $subTypeInfo[0];
-        if ($type !== 'option') {
+        if ($type !== 'option' && $type !== 'stock') {
             // guard $options first => isLinear returns true for linear-settled $options ($subType='linear')
-            // which would incorrectly convert $type='option' to 'future'
+            // which would incorrectly convert $type='option' to 'future'.
+            // stock needs the same exemption => with a defaultSubType of 'linear' -
+            // always on binanceusdm, common on mixed instances - isLinear keys off
+            // $subType alone and would flip 'stock' to 'future' - the stock branch
+            // below would never run, and the bucket lookup would renew the
+            // FUTURES listen key while the stock key silently expires
             if ($this->isLinear($type, $subType)) {
                 $type = 'future';
             } elseif ($this->isInverse($type, $subType)) {
@@ -3312,17 +3266,26 @@ class binance extends \ccxt\async\binance {
         if ($type === 'margin') {
             return;
         }
+        $isStock = ($type === 'stock');
         $options = $this->safe_value($this->options, $type, array());
         $listenKey = $this->safe_string($options, 'listenKey');
         if ($listenKey === null) {
             // A network $error happened => we can't renew a listen key that does not exist.
+            // this guard now covers stock too - the old stock path would POST here and
+            // resurrect a fresh key without reconnecting the dead stream, leaving the
+            // $options bucket claiming a healthy auth over a broken user stream
             return;
         }
         $request = array();
         $params = $this->omit($params, array( 'type', 'symbol' ));
         $time = $this->milliseconds();
         try {
-            if ($isPortfolioMargin) {
+            if ($isStock) {
+                // the equity endpoint is create-or-renew => with an active key this
+                // POST extends the validity of that same key
+                $requestParams = $this->omit($params, array( 'stock', 'name', 'callerMethodName', 'subType', 'timeframe' ));
+                Async\await($this->sapiPostEquityListenKey($requestParams));
+            } elseif ($isPortfolioMargin) {
                 Async\await($this->papiPutListenKey($this->extend($request, $params)));
                 $params = $this->extend($params, array( 'portfolioMargin' => true ));
             } elseif ($type === 'future') {
@@ -3336,15 +3299,22 @@ class binance extends \ccxt\async\binance {
                 Async\await($this->publicPutUserDataStream($this->extend($request, $params)));
             }
         } catch (Exception $error) {
-            $urlType = $type;
-            if ($isPortfolioMargin) {
-                $urlType = 'papi';
+            $url = null;
+            if ($isStock) {
+                // the stock user stream lives on a fixed $url and subscribes to
+                // $listenKey@orderReport, so the $client is addressable without the key
+                $url = $this->get_stock_ws_url('user');
+            } else {
+                $urlType = $type;
+                if ($isPortfolioMargin) {
+                    $urlType = 'papi';
+                }
+                if ($type === 'option') {
+                    $urlType = 'optionPrivate';
+                }
+                $cachedListenKey = $this->options[$type]['listenKey'];
+                $url = $this->get_private_ws_url($urlType, $cachedListenKey);
             }
-            if ($type === 'option') {
-                $urlType = 'optionPrivate';
-            }
-            $cachedListenKey = $this->options[$type]['listenKey'];
-            $url = $this->get_private_ws_url($urlType, $cachedListenKey);
             $client = $this->client($url);
             $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
             for ($i = 0; $i < count($messageHashes); $i++) {
@@ -3363,7 +3333,13 @@ class binance extends \ccxt\async\binance {
         ));
         // whether or not to schedule another $listenKey keepAlive $request
         $clients = is_array($this->clients) ? array_values($this->clients) : array();
-        $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
+        $refreshRateKey = $isStock ? 'stockListenKeyRefreshRate' : 'listenKeyRefreshRate';
+        $listenKeyRefreshRate = $this->safe_integer($this->options, $refreshRateKey, 1200000);
+        $delayParams = $params;
+        if ($isStock) {
+            // $params had $type omitted above - restore it so the next cycle routes back here
+            $delayParams = $this->extend($params, array( 'type' => 'stock' ));
+        }
         for ($i = 0; $i < count($clients); $i++) {
             $client = $clients[$i];
             $clientSubscriptions = $this->safe_dict($client, 'subscriptions', array());
@@ -3371,7 +3347,7 @@ class binance extends \ccxt\async\binance {
             for ($j = 0; $j < count($subscriptionKeys); $j++) {
                 $subscribeType = $subscriptionKeys[$j];
                 if ($subscribeType === $type) {
-                    $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
+                    $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $delayParams);
                     return;
                 }
             }
@@ -3670,10 +3646,16 @@ class binance extends \ccxt\async\binance {
         list($subType, $params) = $this->handle_sub_type_and_params('watchBalance', null, $params);
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'watchBalance', 'papi', 'portfolioMargin', false);
-        if ($this->isLinear($type, $subType)) {
-            $type = 'future';
-        } elseif ($this->isInverse($type, $subType)) {
-            $type = 'delivery';
+        // same guard authenticate carries => this local rewrite must agree with the
+        // bucket authenticate writes, or the listenKey read below dereferences an
+        // $options bucket that was never seeded and throws - and the explicit
+        // $urlType branch for option below would be unreachable
+        if ($type !== 'option' && $type !== 'stock') {
+            if ($this->isLinear($type, $subType)) {
+                $type = 'future';
+            } elseif ($this->isInverse($type, $subType)) {
+                $type = 'delivery';
+            }
         }
         $url = '';
         $urlType = $type;
@@ -4510,7 +4492,9 @@ class binance extends \ccxt\async\binance {
         $stock = false;
         list($stock, $params) = $this->handle_option_and_params($params, 'watchOrders', 'stock', false);
         if ($stock) {
-            Async\await($this->authenticate_stock($params));
+            // literal on top => a stray $type in the caller $params must not override
+            // the forced $stock, the removed authenticateStock ignored it entirely
+            Async\await($this->authenticate($this->extend($params, array( 'type' => 'stock' ))));
             $stockOptions = $this->safe_dict($this->options, 'stock', array());
             $stockListenKey = $this->safe_string($stockOptions, 'listenKey');
             if ($stockListenKey === null) {

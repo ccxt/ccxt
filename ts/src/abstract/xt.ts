@@ -88,6 +88,9 @@ interface Exchange {
     privateLinearGetFutureTradeV1EntrustPlanListHistory (params?: {}): Promise<Dict>;
     privateLinearGetFutureTradeV1EntrustProfitDetail (params?: {}): Promise<Dict>;
     privateLinearGetFutureTradeV1EntrustProfitList (params?: {}): Promise<Dict>;
+    privateLinearGetFutureTradeV1EntrustTrackDetail (params?: {}): Promise<Dict>;
+    privateLinearGetFutureTradeV1EntrustTrackList (params?: {}): Promise<Dict>;
+    privateLinearGetFutureTradeV1EntrustTrackListHistory (params?: {}): Promise<Dict>;
     privateLinearGetFutureTradeV1OrderDetail (params?: {}): Promise<Dict>;
     privateLinearGetFutureTradeV1OrderList (params?: {}): Promise<Dict>;
     privateLinearGetFutureTradeV1OrderListHistory (params?: {}): Promise<Dict>;
@@ -106,10 +109,13 @@ interface Exchange {
     privateLinearGetFutureUserV1UserListenKey (params?: {}): Promise<Dict>;
     privateLinearPostFutureTradeV1EntrustCancelAllPlan (params?: {}): Promise<Dict>;
     privateLinearPostFutureTradeV1EntrustCancelAllProfitStop (params?: {}): Promise<Dict>;
+    privateLinearPostFutureTradeV1EntrustCancelAllTrack (params?: {}): Promise<Dict>;
     privateLinearPostFutureTradeV1EntrustCancelPlan (params?: {}): Promise<Dict>;
     privateLinearPostFutureTradeV1EntrustCancelProfitStop (params?: {}): Promise<Dict>;
     privateLinearPostFutureTradeV1EntrustCreatePlan (params?: {}): Promise<Dict>;
+    privateLinearPostFutureTradeV1EntrustCancelTrack (params?: {}): Promise<Dict>;
     privateLinearPostFutureTradeV1EntrustCreateProfit (params?: {}): Promise<Dict>;
+    privateLinearPostFutureTradeV1EntrustCreateTrack (params?: {}): Promise<Dict>;
     privateLinearPostFutureTradeV1EntrustUpdateProfitStop (params?: {}): Promise<Dict>;
     privateLinearPostFutureTradeV1OrderCancel (params?: {}): Promise<Dict>;
     privateLinearPostFutureTradeV1OrderCancelAll (params?: {}): Promise<Dict>;
@@ -129,6 +135,9 @@ interface Exchange {
     privateInverseGetFutureTradeV1EntrustPlanListHistory (params?: {}): Promise<Dict>;
     privateInverseGetFutureTradeV1EntrustProfitDetail (params?: {}): Promise<Dict>;
     privateInverseGetFutureTradeV1EntrustProfitList (params?: {}): Promise<Dict>;
+    privateInverseGetFutureTradeV1EntrustTrackDetail (params?: {}): Promise<Dict>;
+    privateInverseGetFutureTradeV1EntrustTrackList (params?: {}): Promise<Dict>;
+    privateInverseGetFutureTradeV1EntrustTrackListHistory (params?: {}): Promise<Dict>;
     privateInverseGetFutureTradeV1OrderDetail (params?: {}): Promise<Dict>;
     privateInverseGetFutureTradeV1OrderList (params?: {}): Promise<Dict>;
     privateInverseGetFutureTradeV1OrderListHistory (params?: {}): Promise<Dict>;
@@ -147,10 +156,13 @@ interface Exchange {
     privateInverseGetFutureUserV1UserListenKey (params?: {}): Promise<Dict>;
     privateInversePostFutureTradeV1EntrustCancelAllPlan (params?: {}): Promise<Dict>;
     privateInversePostFutureTradeV1EntrustCancelAllProfitStop (params?: {}): Promise<Dict>;
+    privateInversePostFutureTradeV1EntrustCancelAllTrack (params?: {}): Promise<Dict>;
     privateInversePostFutureTradeV1EntrustCancelPlan (params?: {}): Promise<Dict>;
     privateInversePostFutureTradeV1EntrustCancelProfitStop (params?: {}): Promise<Dict>;
     privateInversePostFutureTradeV1EntrustCreatePlan (params?: {}): Promise<Dict>;
+    privateInversePostFutureTradeV1EntrustCancelTrack (params?: {}): Promise<Dict>;
     privateInversePostFutureTradeV1EntrustCreateProfit (params?: {}): Promise<Dict>;
+    privateInversePostFutureTradeV1EntrustCreateTrack (params?: {}): Promise<Dict>;
     privateInversePostFutureTradeV1EntrustUpdateProfitStop (params?: {}): Promise<Dict>;
     privateInversePostFutureTradeV1OrderCancel (params?: {}): Promise<Dict>;
     privateInversePostFutureTradeV1OrderCancelAll (params?: {}): Promise<Dict>;

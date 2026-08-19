@@ -92,6 +92,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchTicker': 'emulated',
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': 'emulated',
@@ -505,6 +506,8 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'linear': linear,
                 'inverse': inverse,
                 'contractSize': self.safe_number(market, 'contractSize'),
+                'taker': self.safe_number(self.fees['trading'], 'taker'),
+                'maker': self.safe_number(self.fees['trading'], 'maker'),
                 'maintenanceMarginRate': None,
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
@@ -1130,9 +1133,14 @@ class krakenfutures(Exchange, ImplicitAPI):
         fee = None
         if (takerOrMaker is not None) and (cost is not None):
             feeRate = self.safe_string(market, takerOrMaker)
+            # fees are charged in the settlement currency: the quote currency
+            # for linear contracts, the base currency for inverse contracts
+            feeCurrency = self.safe_string(market, 'settle')
+            if feeCurrency is None:
+                feeCurrency = self.safe_string(market, 'quote')
             fee = {
                 'cost': Precise.string_mul(cost, feeRate),
-                'currency': self.safe_string(market, 'quote'),
+                'currency': feeCurrency,
                 'rate': feeRate,
             }
         return self.safe_trade({
@@ -2875,6 +2883,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #        "price": "0.7533",
         #        "fillTime": "2022-03-03T22:51:16.566Z",
         #        "size": "230",
+        #        "unrealizedPnl": "-607250.006654067",
         #        "unrealizedFunding": "-0.001878596918214635"
         #    }
         #
@@ -2885,6 +2894,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #        "price":"0.4921",
         #        "fillTime":"2023-02-22T11:37:16.685Z",
         #        "size":"1",
+        #        "unrealizedPnl":"12.34",
         #        "unrealizedFunding":"-8.155240068885155E-8",
         #        "pnlCurrency":"USD",
         #        "maxFixedLeverage":"1.0"
@@ -2909,7 +2919,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'entryPrice': self.safe_number(position, 'price'),
             'notional': None,
             'leverage': leverage,
-            'unrealizedPnl': None,
+            'unrealizedPnl': self.safe_number(position, 'unrealizedPnl'),
             'contracts': self.safe_number(position, 'size'),
             'contractSize': self.safe_number(market, 'contractSize'),
             'marginRatio': None,

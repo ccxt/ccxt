@@ -73,6 +73,7 @@ class krakenfutures extends Exchange {
                 'fetchOrders' => true,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchTicker' => 'emulated',
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => 'emulated',
@@ -491,6 +492,8 @@ class krakenfutures extends Exchange {
                 'linear' => $linear,
                 'inverse' => $inverse,
                 'contractSize' => $this->safe_number($market, 'contractSize'),
+                'taker' => $this->safe_number($this->fees['trading'], 'taker'),
+                'maker' => $this->safe_number($this->fees['trading'], 'maker'),
                 'maintenanceMarginRate' => null,
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
@@ -1158,9 +1161,15 @@ class krakenfutures extends Exchange {
         $fee = null;
         if (($takerOrMaker !== null) && ($cost !== null)) {
             $feeRate = $this->safe_string($market, $takerOrMaker);
+            // fees are charged in the settlement currency => the quote currency
+            // for $linear contracts, the base currency for inverse contracts
+            $feeCurrency = $this->safe_string($market, 'settle');
+            if ($feeCurrency === null) {
+                $feeCurrency = $this->safe_string($market, 'quote');
+            }
             $fee = array(
                 'cost' => Precise::string_mul($cost, $feeRate),
-                'currency' => $this->safe_string($market, 'quote'),
+                'currency' => $feeCurrency,
                 'rate' => $feeRate,
             );
         }
@@ -3042,6 +3051,7 @@ class krakenfutures extends Exchange {
         //        "price" => "0.7533",
         //        "fillTime" => "2022-03-03T22:51:16.566Z",
         //        "size" => "230",
+        //        "unrealizedPnl" => "-607250.006654067",
         //        "unrealizedFunding" => "-0.001878596918214635"
         //    }
         //
@@ -3052,6 +3062,7 @@ class krakenfutures extends Exchange {
         //        "price":"0.4921",
         //        "fillTime":"2023-02-22T11:37:16.685Z",
         //        "size":"1",
+        //        "unrealizedPnl":"12.34",
         //        "unrealizedFunding":"-8.155240068885155E-8",
         //        "pnlCurrency":"USD",
         //        "maxFixedLeverage":"1.0"
@@ -3077,7 +3088,7 @@ class krakenfutures extends Exchange {
             'entryPrice' => $this->safe_number($position, 'price'),
             'notional' => null,
             'leverage' => $leverage,
-            'unrealizedPnl' => null,
+            'unrealizedPnl' => $this->safe_number($position, 'unrealizedPnl'),
             'contracts' => $this->safe_number($position, 'size'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'marginRatio' => null,

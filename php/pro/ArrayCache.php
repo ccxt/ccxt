@@ -6,6 +6,7 @@ class ArrayCache extends BaseCache {
     public $hashmap;
     public $new_updates_by_symbol;
     public $seen_updates_by_symbol;
+    public $seen_updates_all;
     public $clear_updates_by_symbol;
     public $nested_new_updates_by_symbol;
     public $all_new_updates;
@@ -22,6 +23,9 @@ class ArrayCache extends BaseCache {
         // set, and never type-puns one for the other
         $this->new_updates_by_symbol = array();
         $this->seen_updates_by_symbol = array();
+        # the same, but cleared only by the GLOBAL getLimit() scope - the two poll
+        # scopes are independent, so each needs its own memory of what it has seen
+        $this->seen_updates_all = array();
         $this->clear_updates_by_symbol = array();
         $this->all_new_updates = 0;
         $this->clear_all_updates = false;
@@ -56,10 +60,9 @@ class ArrayCache extends BaseCache {
         $this->deque[] = $item;
         if ($this->clear_all_updates) {
             $this->clear_all_updates = false;
-            $this->clear_updates_by_symbol = array();
+            # the global poll consumes only the global scope
             $this->all_new_updates = 0;
-            $this->new_updates_by_symbol = array();
-            $this->seen_updates_by_symbol = array();
+            $this->seen_updates_all = array();
         }
         // prediction-market items carry an `outcome` handle instead of a `symbol`
         $symbol = $item['symbol'] ?? $item['outcome'] ?? '';
@@ -79,6 +82,7 @@ class ArrayCache extends BaseCache {
         $this->hashmap = array();
         $this->new_updates_by_symbol = array();
         $this->seen_updates_by_symbol = array();
+        $this->seen_updates_all = array();
         $this->clear_updates_by_symbol = array();
         $this->all_new_updates = 0;
         $this->clear_all_updates = false;

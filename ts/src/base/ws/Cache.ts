@@ -20,6 +20,22 @@ class BaseCache extends Array {
     clear () {
         this.length = 0
     }
+
+    // these caches subclass Array, so the receiver is not a pristine array and
+    // Array.prototype.shift / splice fall back to their generic paths; splice
+    // additionally runs ArraySpeciesCreate, which constructs a throw-away cache
+    // instance (running every defineProperty in the constructor) just to hold
+    // the one removed element. Sliding the tail down by hand stays on the fast
+    // path and allocates nothing.
+    removeAt (index) {
+        const last = this.length - 1
+        const removed = this[index]
+        for (let i = index; i < last; i++) {
+            this[i] = this[i + 1]
+        }
+        this.length = last
+        return removed
+    }
 }
 
 class ArrayCache extends BaseCache implements CustomArray {
@@ -41,6 +57,13 @@ class ArrayCache extends BaseCache implements CustomArray {
         // the distinct ids/sides seen per key since the last getLimit (), kept by the
         // keyed subclasses; newUpdatesBySymbol only ever holds the resulting count
         Object.defineProperty (this, 'seenUpdatesBySymbol', {
+            __proto__: null, // make it invisible
+            value: {},
+            writable: true,
+        })
+        // the same, but cleared only by the GLOBAL getLimit () scope - the two poll
+        // scopes are independent, so each needs its own memory of what it has seen
+        Object.defineProperty (this, 'seenUpdatesAll', {
             __proto__: null, // make it invisible
             value: {},
             writable: true,
@@ -93,12 +116,13 @@ class ArrayCache extends BaseCache implements CustomArray {
         // the keyed subclasses find existing rows through the hashmap, so a clear ()
         // that only truncates the array leaves the hashmap claiming rows that are
         // gone - the next append then merges into an orphaned reference, and the
-        // findIndex below returns -1, so the row is silently lost. The update
-        // counters have to go too, or getLimit () keeps reporting updates for rows
-        // that no longer exist.
+        // move-to-end scan below finds no row, so the row is silently lost. The
+        // update counters have to go too, or getLimit () keeps reporting updates
+        // for rows that no longer exist.
         this.hashmap = {}
         this.newUpdatesBySymbol = {}
         this.seenUpdatesBySymbol = {}
+        this.seenUpdatesAll = {}
         this.clearUpdatesBySymbol = {}
         this.allNewUpdates = 0
         this.clearAllUpdates = false
@@ -107,15 +131,16 @@ class ArrayCache extends BaseCache implements CustomArray {
     append (item) {
         // maxSize may be 0 when initialized by a .filter() copy-construction
         if (this.maxSize && (this.length === this.maxSize)) {
-            this.shift ()
+            this.removeAt (0)
         }
         this.push (item)
         if (this.clearAllUpdates) {
             this.clearAllUpdates = false
-            this.clearUpdatesBySymbol = {}
+            // the global poll consumes only the global scope: the symbol-scoped
+            // seen sets, counts and pending flags belong to the symbol consumers
+            // and survive until their own polls clear them
             this.allNewUpdates = 0
-            this.newUpdatesBySymbol = {}
-            this.seenUpdatesBySymbol = {}
+            this.seenUpdatesAll = {}
         }
         if (this.clearUpdatesBySymbol[item.symbol]) {
             this.clearUpdatesBySymbol[item.symbol] = false
@@ -188,7 +213,7 @@ class ArrayCacheByTimestamp extends BaseCache {
         } else {
             this.hashmap[item[0]] = item
             if (this.maxSize && (this.length === this.maxSize)) {
-                const deleteReference = this.shift ()
+                const deleteReference = this.removeAt (0)
                 delete this.hashmap[deleteReference[0]]
             }
             this.push (item)
@@ -227,21 +252,27 @@ class ArrayCacheBySymbolById extends ArrayCache {
                 }
             }
             item = reference
-            // match on both the key field (e.g. symbol) and id - different symbols
-            // can share an order id (exchanges like binance use per-symbol id
-            // sequences), and matching on id alone would splice out the wrong row
-            const index = this.findIndex ((x) => (x.id === item.id) && (x[this.keyField] === item[this.keyField]))
-            // move the order to the end of the array. Guard the miss: splice (-1, 1)
-            // deletes the LAST row, so a hashmap entry with no matching row would
-            // destroy an unrelated order instead of doing nothing.
-            if (index >= 0) {
-                this.splice (index, 1)
+            // move the order to the end of the array. Match on both the key field
+            // (e.g. symbol) and id - different symbols can share an order id
+            // (exchanges like binance use per-symbol id sequences), and matching on
+            // id alone would remove the wrong row. A hashmap entry with no matching
+            // row leaves the array untouched.
+            const itemId = item.id
+            const itemKey = item[this.keyField]
+            const keyField = this.keyField
+            const arrayLength = this.length
+            for (let i = 0; i < arrayLength; i++) {
+                const existing = this[i]
+                if ((existing.id === itemId) && (existing[keyField] === itemKey)) {
+                    this.removeAt (i)
+                    break
+                }
             }
         } else {
             byId[item.id] = item
         }
         if (this.maxSize && (this.length === this.maxSize)) {
-            const deleteReference = this.shift ()
+            const deleteReference = this.removeAt (0)
             const deleteKey = deleteReference[this.keyField]
             delete this.hashmap[deleteKey][deleteReference.id]
             // drop the outer bucket once its last id is gone, otherwise a stream with
@@ -249,14 +280,38 @@ class ArrayCacheBySymbolById extends ArrayCache {
             if (Object.keys (this.hashmap[deleteKey]).length === 0) {
                 delete this.hashmap[deleteKey]
             }
+            // the evicted id also leaves both seen scopes: a single-scope poller
+            // never fires the other scope's clear, so without this the seen sets
+            // grow by every distinct id for the process lifetime - the counts then
+            // mean distinct ids within the retained window, which is exactly what
+            // a consumer can slice anyway
+            if (this.seenUpdatesBySymbol[deleteKey] !== undefined) {
+                const droppedSymbolScope = this.seenUpdatesBySymbol[deleteKey].delete (deleteReference.id)
+                if (droppedSymbolScope) {
+                    this.newUpdatesBySymbol[deleteKey] = this.newUpdatesBySymbol[deleteKey] - 1
+                }
+                if (this.seenUpdatesBySymbol[deleteKey].size === 0) {
+                    delete this.seenUpdatesBySymbol[deleteKey]
+                }
+            }
+            if (this.seenUpdatesAll[deleteKey] !== undefined) {
+                const droppedGlobalScope = this.seenUpdatesAll[deleteKey].delete (deleteReference.id)
+                if (droppedGlobalScope) {
+                    this.allNewUpdates = this.allNewUpdates - 1
+                }
+                if (this.seenUpdatesAll[deleteKey].size === 0) {
+                    delete this.seenUpdatesAll[deleteKey]
+                }
+            }
         }
         this.push (item)
         if (this.clearAllUpdates) {
             this.clearAllUpdates = false
-            this.clearUpdatesBySymbol = {}
+            // the global poll consumes only the global scope: the symbol-scoped
+            // seen sets, counts and pending flags belong to the symbol consumers
+            // and survive until their own polls clear them
             this.allNewUpdates = 0
-            this.newUpdatesBySymbol = {}
-            this.seenUpdatesBySymbol = {}
+            this.seenUpdatesAll = {}
         }
         if (this.seenUpdatesBySymbol[key] === undefined) {
             this.seenUpdatesBySymbol[key] = new Set ()
@@ -267,11 +322,18 @@ class ArrayCacheBySymbolById extends ArrayCache {
         }
         // count distinct ids, in case an exchange updates the same order id twice
         const idSet = this.seenUpdatesBySymbol[key]
-        const beforeLength = idSet.size
         idSet.add (item.id)
-        const afterLength = idSet.size
-        this.newUpdatesBySymbol[key] = afterLength
-        this.allNewUpdates = (this.allNewUpdates || 0) + (afterLength - beforeLength)
+        this.newUpdatesBySymbol[key] = idSet.size
+        // the global scope keeps its own seen sets: the symbol-scoped poll clears
+        // the symbol set, and deriving the global count from that set double-counts
+        // an id that updates again after a symbol poll
+        if (this.seenUpdatesAll[key] === undefined) {
+            this.seenUpdatesAll[key] = new Set ()
+        }
+        const allIdSet = this.seenUpdatesAll[key]
+        const beforeAllLength = allIdSet.size
+        allIdSet.add (item.id)
+        this.allNewUpdates = (this.allNewUpdates || 0) + (allIdSet.size - beforeAllLength)
     }
 }
 
@@ -305,11 +367,17 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
                 }
             }
             item = reference
-            const index = this.findIndex ((x) => x.symbol === item.symbol && x.side === item.side)
-            // move the position to the end of the array, guarding the miss so a
-            // stale hashmap entry cannot splice (-1, 1) an unrelated row away
-            if (index >= 0) {
-                this.splice (index, 1)
+            // move the position to the end of the array; a stale hashmap entry
+            // with no matching row leaves the array untouched
+            const itemSymbol = item.symbol
+            const itemSide = item.side
+            const arrayLength = this.length
+            for (let i = 0; i < arrayLength; i++) {
+                const existing = this[i]
+                if ((existing.symbol === itemSymbol) && (existing.side === itemSide)) {
+                    this.removeAt (i)
+                    break
+                }
             }
         } else {
             bySide[item.side] = item
@@ -317,10 +385,11 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
         this.push (item)
         if (this.clearAllUpdates) {
             this.clearAllUpdates = false
-            this.clearUpdatesBySymbol = {}
+            // the global poll consumes only the global scope: the symbol-scoped
+            // seen sets, counts and pending flags belong to the symbol consumers
+            // and survive until their own polls clear them
             this.allNewUpdates = 0
-            this.newUpdatesBySymbol = {}
-            this.seenUpdatesBySymbol = {}
+            this.seenUpdatesAll = {}
         }
         if (this.seenUpdatesBySymbol[item.symbol] === undefined) {
             this.seenUpdatesBySymbol[item.symbol] = new Set ()
@@ -331,11 +400,16 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
         }
         // count distinct sides, in case an exchange updates the same side twice
         const sideSet = this.seenUpdatesBySymbol[item.symbol]
-        const beforeLength = sideSet.size
         sideSet.add (item.side)
-        const afterLength = sideSet.size
-        this.newUpdatesBySymbol[item.symbol] = afterLength
-        this.allNewUpdates = (this.allNewUpdates || 0) + (afterLength - beforeLength)
+        this.newUpdatesBySymbol[item.symbol] = sideSet.size
+        // independent global-scope memory, see ArrayCacheBySymbolById.append
+        if (this.seenUpdatesAll[item.symbol] === undefined) {
+            this.seenUpdatesAll[item.symbol] = new Set ()
+        }
+        const allSideSet = this.seenUpdatesAll[item.symbol]
+        const beforeAllLength = allSideSet.size
+        allSideSet.add (item.side)
+        this.allNewUpdates = (this.allNewUpdates || 0) + (allSideSet.size - beforeAllLength)
     }
 }
 

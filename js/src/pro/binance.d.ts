@@ -213,8 +213,6 @@ export default class binance extends binanceRest {
      * @returns {object} the raw stream subscription response
      */
     watchStockMarketStream(streams: string[], messageHashes: string[], params?: Dict): Promise<any>;
-    authenticateStock(params?: Dict): Promise<void>;
-    keepAliveStockListenKey(params?: Dict): Promise<void>;
     /**
      * @method
      * @name binance#watchLiquidations

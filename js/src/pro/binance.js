@@ -339,75 +339,6 @@ export default class binance extends binanceRest {
         };
         return await this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscribe);
     }
-    async authenticateStock(params = {}) {
-        const options = this.safeDict(this.options, 'stock', {});
-        const lastAuthenticatedTime = this.safeInteger(options, 'lastAuthenticatedTime', 0);
-        const listenKeyRefreshRate = this.safeInteger(this.options, 'stockListenKeyRefreshRate', 1200000);
-        const now = this.milliseconds();
-        const delay = this.sum(listenKeyRefreshRate, 10000);
-        if ((now - lastAuthenticatedTime) > delay) {
-            // the stock user stream url embeds this listenKey, so the future is parked
-            // on the listenKey-free market url of the same host
-            const client = this.client(this.getStockWsUrl('market'));
-            const messageHash = 'authenticate:stock';
-            if (messageHash in client.futures) {
-                // another caller is already fetching, wait for it instead of fetching again
-                await client.future(messageHash);
-                return;
-            }
-            client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
-            try {
-                const requestParams = this.omit(params, ['stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe']);
-                const response = await this.sapiPostEquityListenKey(requestParams);
-                const listenKey = this.safeString(response, 'listenKey');
-                this.options['stock'] = this.extend(options, {
-                    'listenKey': listenKey,
-                    'lastAuthenticatedTime': now,
-                });
-                this.delay(listenKeyRefreshRate, this.keepAliveStockListenKey, params);
-                client.resolve(listenKey, messageHash);
-            }
-            catch (e) {
-                client.reject(e, messageHash);
-                throw e;
-            }
-        }
-    }
-    async keepAliveStockListenKey(params = {}) {
-        try {
-            const options = this.safeDict(this.options, 'stock', {});
-            const requestParams = this.omit(params, ['stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe']);
-            const response = await this.sapiPostEquityListenKey(requestParams);
-            const listenKey = this.safeString(response, 'listenKey');
-            const now = this.milliseconds();
-            this.options['stock'] = this.extend(options, {
-                'listenKey': listenKey,
-                'lastAuthenticatedTime': now,
-            });
-        }
-        catch (error) {
-            const options = this.safeDict(this.options, 'stock', {});
-            this.options['stock'] = this.extend(options, {
-                'listenKey': undefined,
-                'lastAuthenticatedTime': 0,
-            });
-            return;
-        }
-        const clients = Object.values(this.clients);
-        const listenKeyRefreshRate = this.safeInteger(this.options, 'stockListenKeyRefreshRate', 1200000);
-        for (let i = 0; i < clients.length; i++) {
-            const client = clients[i];
-            const clientSubscriptions = this.safeDict(client, 'subscriptions', {});
-            const subscriptionKeys = Object.keys(clientSubscriptions);
-            for (let j = 0; j < subscriptionKeys.length; j++) {
-                const subscribeType = subscriptionKeys[j];
-                if (subscribeType === 'stock') {
-                    this.delay(listenKeyRefreshRate, this.keepAliveStockListenKey, params);
-                    return;
-                }
-            }
-        }
-    }
     /**
      * @method
      * @name binance#watchLiquidations
@@ -681,11 +612,16 @@ export default class binance extends binanceRest {
         [type, params] = this.handleMarketTypeAndParams('watchMyLiquidationsForSymbols', market, params);
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('watchMyLiquidationsForSymbols', market, params);
-        if (this.isLinear(type, subType)) {
-            type = 'future';
-        }
-        else if (this.isInverse(type, subType)) {
-            type = 'delivery';
+        // same guard authenticate carries: this local rewrite must agree with the
+        // bucket authenticate writes, or the listenKey read below dereferences an
+        // options bucket that was never seeded and throws
+        if (type !== 'option' && type !== 'stock') {
+            if (this.isLinear(type, subType)) {
+                type = 'future';
+            }
+            else if (this.isInverse(type, subType)) {
+                type = 'delivery';
+            }
         }
         await this.authenticate(params);
         const listenKey = this.options[type]['listenKey'];
@@ -3061,11 +2997,18 @@ export default class binance extends binanceRest {
         [subType, params] = this.handleSubTypeAndParams('authenticate', undefined, params);
         let isPortfolioMargin = undefined;
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'authenticate', 'papi', 'portfolioMargin', false);
-        if (this.isLinear(type, subType)) {
-            type = 'future';
-        }
-        else if (this.isInverse(type, subType)) {
-            type = 'delivery';
+        if (type !== 'option' && type !== 'stock') {
+            // guard option and stock from the rewrite: isLinear keys off subType alone
+            // when a subType is present - a defaultSubType of 'linear' would flip
+            // 'option' to 'future' and authenticate an option user stream with a
+            // FUTURES listen key stored in the future bucket. keepAliveListenKey
+            // carries the same guard; stock joins this path in the auth consolidation
+            if (this.isLinear(type, subType)) {
+                type = 'future';
+            }
+            else if (this.isInverse(type, subType)) {
+                type = 'delivery';
+            }
         }
         // For spot use WebSocket API signature subscription
         if (type === 'spot') {
@@ -3089,16 +3032,21 @@ export default class binance extends binanceRest {
             return;
         }
         params = this.omit(params, 'symbol');
+        const isStock = (type === 'stock');
         const options = this.safeValue(this.options, type, {});
         const lastAuthenticatedTime = this.safeInteger(options, 'lastAuthenticatedTime', 0);
-        const listenKeyRefreshRate = this.safeInteger(this.options, 'listenKeyRefreshRate', 1200000);
+        const refreshRateKey = isStock ? 'stockListenKeyRefreshRate' : 'listenKeyRefreshRate';
+        const listenKeyRefreshRate = this.safeInteger(this.options, refreshRateKey, 1200000);
         const delay = this.sum(listenKeyRefreshRate, 10000);
         if (time - lastAuthenticatedTime > delay) {
             // the private url embeds the listenKey that this request produces, so the future
             // is parked on the listenKey-free base url of that same stream - concurrent
             // callers wait for the leader instead of fetching a second listenKey, which
-            // would split the user-data subscriptions across two connections
-            const client = this.client(this.getWsUrl(type, 'private'));
+            // would split the user-data subscriptions across two connections. the stock
+            // stream parks on the listenKey-free market url of the same host for the
+            // same reason
+            const clientUrl = isStock ? this.getStockWsUrl('market') : this.getWsUrl(type, 'private');
+            const client = this.client(clientUrl);
             const messageHash = 'authenticate:' + type;
             if (messageHash in client.futures) {
                 // another caller is already fetching, wait for it instead of fetching again
@@ -3108,7 +3056,11 @@ export default class binance extends binanceRest {
             client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
             try {
                 let response = undefined;
-                if (isPortfolioMargin) {
+                if (isStock) {
+                    const requestParams = this.omit(params, ['stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe']);
+                    response = await this.sapiPostEquityListenKey(requestParams);
+                }
+                else if (isPortfolioMargin) {
                     response = await this.papiPostListenKey(params);
                     params = this.extend(params, { 'portfolioMargin': true });
                 }
@@ -3129,7 +3081,13 @@ export default class binance extends binanceRest {
                     'listenKey': listenKey,
                     'lastAuthenticatedTime': time,
                 });
-                this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
+                // hoisted out of the delay call: the transpilers garble an inline
+                // dict literal nested inside a delay argument
+                let delayParams = params;
+                if (isStock) {
+                    delayParams = this.extend(params, { 'type': 'stock', 'defaultType': 'stock' });
+                }
+                this.delay(listenKeyRefreshRate, this.keepAliveListenKey, delayParams);
                 client.resolve(listenKey, messageHash);
             }
             catch (e) {
@@ -3146,9 +3104,14 @@ export default class binance extends binanceRest {
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'keepAliveListenKey', 'papi', 'portfolioMargin', false);
         const subTypeInfo = this.handleSubTypeAndParams('keepAliveListenKey', undefined, params);
         const subType = subTypeInfo[0];
-        if (type !== 'option') {
+        if (type !== 'option' && type !== 'stock') {
             // guard options first: isLinear returns true for linear-settled options (subType='linear')
-            // which would incorrectly convert type='option' to 'future'
+            // which would incorrectly convert type='option' to 'future'.
+            // stock needs the same exemption: with a defaultSubType of 'linear' -
+            // always on binanceusdm, common on mixed instances - isLinear keys off
+            // subType alone and would flip 'stock' to 'future' - the stock branch
+            // below would never run, and the bucket lookup would renew the
+            // FUTURES listen key while the stock key silently expires
             if (this.isLinear(type, subType)) {
                 type = 'future';
             }
@@ -3160,17 +3123,27 @@ export default class binance extends binanceRest {
         if (type === 'margin') {
             return;
         }
+        const isStock = (type === 'stock');
         const options = this.safeValue(this.options, type, {});
         const listenKey = this.safeString(options, 'listenKey');
         if (listenKey === undefined) {
             // A network error happened: we can't renew a listen key that does not exist.
+            // this guard now covers stock too - the old stock path would POST here and
+            // resurrect a fresh key without reconnecting the dead stream, leaving the
+            // options bucket claiming a healthy auth over a broken user stream
             return;
         }
         const request = {};
         params = this.omit(params, ['type', 'symbol']);
         const time = this.milliseconds();
         try {
-            if (isPortfolioMargin) {
+            if (isStock) {
+                // the equity endpoint is create-or-renew: with an active key this
+                // POST extends the validity of that same key
+                const requestParams = this.omit(params, ['stock', 'name', 'callerMethodName', 'subType', 'timeframe']);
+                await this.sapiPostEquityListenKey(requestParams);
+            }
+            else if (isPortfolioMargin) {
                 await this.papiPutListenKey(this.extend(request, params));
                 params = this.extend(params, { 'portfolioMargin': true });
             }
@@ -3189,15 +3162,23 @@ export default class binance extends binanceRest {
             }
         }
         catch (error) {
-            let urlType = type;
-            if (isPortfolioMargin) {
-                urlType = 'papi';
+            let url = undefined;
+            if (isStock) {
+                // the stock user stream lives on a fixed url and subscribes to
+                // listenKey@orderReport, so the client is addressable without the key
+                url = this.getStockWsUrl('user');
             }
-            if (type === 'option') {
-                urlType = 'optionPrivate';
+            else {
+                let urlType = type;
+                if (isPortfolioMargin) {
+                    urlType = 'papi';
+                }
+                if (type === 'option') {
+                    urlType = 'optionPrivate';
+                }
+                const cachedListenKey = this.options[type]['listenKey'];
+                url = this.getPrivateWsUrl(urlType, cachedListenKey);
             }
-            const cachedListenKey = this.options[type]['listenKey'];
-            const url = this.getPrivateWsUrl(urlType, cachedListenKey);
             const client = this.client(url);
             const messageHashes = Object.keys(client.futures);
             for (let i = 0; i < messageHashes.length; i++) {
@@ -3216,7 +3197,13 @@ export default class binance extends binanceRest {
         });
         // whether or not to schedule another listenKey keepAlive request
         const clients = Object.values(this.clients);
-        const listenKeyRefreshRate = this.safeInteger(this.options, 'listenKeyRefreshRate', 1200000);
+        const refreshRateKey = isStock ? 'stockListenKeyRefreshRate' : 'listenKeyRefreshRate';
+        const listenKeyRefreshRate = this.safeInteger(this.options, refreshRateKey, 1200000);
+        let delayParams = params;
+        if (isStock) {
+            // params had type omitted above - restore it so the next cycle routes back here
+            delayParams = this.extend(params, { 'type': 'stock' });
+        }
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i];
             const clientSubscriptions = this.safeDict(client, 'subscriptions', {});
@@ -3224,7 +3211,7 @@ export default class binance extends binanceRest {
             for (let j = 0; j < subscriptionKeys.length; j++) {
                 const subscribeType = subscriptionKeys[j];
                 if (subscribeType === type) {
-                    this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
+                    this.delay(listenKeyRefreshRate, this.keepAliveListenKey, delayParams);
                     return;
                 }
             }
@@ -3502,11 +3489,17 @@ export default class binance extends binanceRest {
         [subType, params] = this.handleSubTypeAndParams('watchBalance', undefined, params);
         let isPortfolioMargin = undefined;
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'watchBalance', 'papi', 'portfolioMargin', false);
-        if (this.isLinear(type, subType)) {
-            type = 'future';
-        }
-        else if (this.isInverse(type, subType)) {
-            type = 'delivery';
+        // same guard authenticate carries: this local rewrite must agree with the
+        // bucket authenticate writes, or the listenKey read below dereferences an
+        // options bucket that was never seeded and throws - and the explicit
+        // urlType branch for option below would be unreachable
+        if (type !== 'option' && type !== 'stock') {
+            if (this.isLinear(type, subType)) {
+                type = 'future';
+            }
+            else if (this.isInverse(type, subType)) {
+                type = 'delivery';
+            }
         }
         let url = '';
         let urlType = type;
@@ -4305,7 +4298,9 @@ export default class binance extends binanceRest {
         let stock = false;
         [stock, params] = this.handleOptionAndParams(params, 'watchOrders', 'stock', false);
         if (stock) {
-            await this.authenticateStock(params);
+            // literal on top: a stray type in the caller params must not override
+            // the forced stock, the removed authenticateStock ignored it entirely
+            await this.authenticate(this.extend(params, { 'type': 'stock' }));
             const stockOptions = this.safeDict(this.options, 'stock', {});
             const stockListenKey = this.safeString(stockOptions, 'listenKey');
             if (stockListenKey === undefined) {

@@ -923,23 +923,30 @@ class extended extends \ccxt\async\extended {
                 $this->handle_ohlcv($client, $message);
             }
         } elseif ($data !== null) {
+            // an account frame may carry several sections at once, so these are
+            // not mutually exclusive and must not fall through to the order book
+            $isAccountUpdate = false;
             if (($type === 'ORDER') || (is_array($data) && array_key_exists('orders' ?? '', $data))) {
                 $this->handle_orders($client, $message);
+                $isAccountUpdate = true;
             }
             if (($type === 'TRADE') || (is_array($data) && array_key_exists('trades' ?? '', $data))) {
                 $this->handle_my_trades($client, $message);
+                $isAccountUpdate = true;
             }
             if (($type === 'POSITION') || (is_array($data) && array_key_exists('positions' ?? '', $data))) {
                 $this->handle_positions($client, $message);
+                $isAccountUpdate = true;
             }
             if (($type === 'BALANCE') || (is_array($data) && array_key_exists('balance' ?? '', $data)) || (is_array($data) && array_key_exists('spotBalances' ?? '', $data))) {
                 $this->handle_balance($client, $message);
+                $isAccountUpdate = true;
             }
             if ($type === 'MP') {
                 $this->handle_mark_price($client, $message);
             } elseif (is_array($data) && array_key_exists('f' ?? '', $data)) {
                 $this->handle_funding_rate($client, $message);
-            } else {
+            } elseif (!$isAccountUpdate) {
                 $this->handle_order_book($client, $message);
             }
         }
