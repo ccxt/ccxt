@@ -171,7 +171,6 @@ export default class poloniex extends Exchange {
                         'subaccounts/transfer': { 'cost': 20 } as Endpoint<List>,
                         'subaccounts/transfer/{id}': { 'cost': 4 } as Endpoint<Dict>,
                         'wallets/addresses': { 'cost': 20 } as Endpoint<Dict>,
-                        'wallets/addresses/{currency}': { 'cost': 20 } as Endpoint<Dict>,
                         'wallets/activity': { 'cost': 20 } as Endpoint<Dict>,
                         'margin/accountMargin': { 'cost': 4 } as Endpoint<Dict>,
                         'margin/borrowStatus': { 'cost': 4 } as Endpoint<List>,
@@ -2758,7 +2757,7 @@ export default class poloniex extends Exchange {
         networkCode = this.networkIdToCode (networkCode, code);
         const networkEntry = (networkCode === undefined) ? undefined : this.safeDict (currency['networks'], networkCode);
         if (networkEntry !== undefined) {
-            exchangeNetworkId = networkEntry['id'];
+            exchangeNetworkId = this.networkJunctionId (networkEntry);
         } else {
             exchangeNetworkId = networkCode;
         }
@@ -2768,10 +2767,22 @@ export default class poloniex extends Exchange {
         return [ request, params, currency, networkEntry ];
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description the wallets api is keyed by the currency-junction id (e.g. USDTTRON), which lives in the raw networkList entry as "coin", not by the blockchain id stored in networkEntry['id']
+     * @param {object} networkEntry a unified network entry from currency['networks']
+     * @returns {string} the exchange-specific currency-junction id
+     */
+    networkJunctionId (networkEntry: Dict): Str {
+        const networkInfo = this.safeDict (networkEntry, 'info', {});
+        return this.safeString (networkInfo, 'coin', this.safeString (networkEntry, 'id'));
+    }
+
     parseDepositAddressSpecial (response: any, currency: any, networkEntry: any): DepositAddress {
         let address = this.safeString (response, 'address');
         if (address === undefined) {
-            address = this.safeString (response, networkEntry['id']);
+            address = this.safeString (response, this.networkJunctionId (networkEntry));
         }
         let tag: Str = undefined;
         this.checkAddress (address);
@@ -2785,7 +2796,7 @@ export default class poloniex extends Exchange {
         return {
             'info': response,
             'currency': currency['code'],
-            'network': this.safeString (networkEntry, 'network'),
+            'network': this.safeString2 (networkEntry, 'network', 'code'),
             'address': address,
             'tag': tag,
         } as DepositAddress;
