@@ -4967,13 +4967,14 @@ export default class binance extends binanceRest {
         }
         const resolvedAuth: Dict = this.resolveAuthType ('watchPositions', market, params);
         let type = resolvedAuth['type'] as string;
-        const rawType = resolvedAuth['rawType'] as Str;
         const subType = resolvedAuth['subType'] as Str;
         params = resolvedAuth['params'] as Dict;
-        // spot and margin have no positions - fall through to the derivatives
-        // stream matching the subType, preserving the pre-helper behavior where
-        // the spot-to-future override happened before the inverse rewrite
-        if (rawType === 'spot' || rawType === 'margin') {
+        // spot and margin have no positions - whatever still RESOLVES to spot
+        // or margin after the helper falls through to the derivatives stream
+        // matching the subType. requests a defaultSubType already rewrote
+        // arrive here as future or delivery and pass untouched, which lands on
+        // the same stream the old raw-type ordering produced in every case
+        if (type === 'spot' || type === 'margin') {
             type = (subType === 'inverse') ? 'delivery' : 'future';
         }
         // 'option' stays as 'option', don't redirect to 'future' - the helper's
