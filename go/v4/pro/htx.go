@@ -1996,7 +1996,7 @@ func (this *HtxCore) HandlePositions(client any, message any) {
 	if ccxt.IsTrue(this.IsEmpty(rawPositions)) {
 		var prefixes any = []any{"cross:positions", "isolated:positions"}
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(prefixes)); i++ {
-			var messageHashes any = this.FindMessageHashes(client.(*ccxt.Client), ccxt.GetValue(prefixes, i))
+			var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), ccxt.GetValue(prefixes, i))
 			for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(messageHashes)); j++ {
 				client.(ccxt.ClientInterface).Resolve([]any{}, ccxt.GetValue(messageHashes, j))
 			}
@@ -2030,7 +2030,7 @@ func (this *HtxCore) HandlePositions(client any, message any) {
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(marginModes)); i++ {
 		var marginMode any = ccxt.GetValue(marginModes, i)
 		var marginModePositions any = this.SafeValue(positionsByMarginMode, marginMode, []any{})
-		var messageHashes any = this.FindMessageHashes(client.(*ccxt.Client), ccxt.Add(marginMode, ":positions::"))
+		var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), ccxt.Add(marginMode, ":positions::"))
 		for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(messageHashes)); j++ {
 			var messageHash any = ccxt.GetValue(messageHashes, j)
 			var parts any = ccxt.Split(messageHash, "::")
@@ -2485,7 +2485,7 @@ func (this *HtxCore) HandleUnSubscription(client any, subscription any) {
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var unsubHash any = ccxt.GetValue(messageHashes, i)
 		var subHash any = ccxt.GetValue(subMessageHashes, i)
-		this.CleanUnsubscription(client.(*ccxt.Client), subHash, unsubHash)
+		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 	}
 	this.CleanCache(subscription)
 }

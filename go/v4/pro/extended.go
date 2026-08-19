@@ -553,7 +553,7 @@ func (this *ExtendedCore) HandlePositions(client any, message any) {
 		ccxt.AppendToArray(&newPositions, position)
 		stored.(ccxt.Appender).Append(position)
 	}
-	var messageHashes any = this.FindMessageHashes(client.(*ccxt.Client), "positions::")
+	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "positions::")
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var parts any = ccxt.Split(messageHash, "::")
@@ -1056,23 +1056,30 @@ func (this *ExtendedCore) HandleMessage(client any, message any) {
 			this.HandleOHLCV(client, message)
 		}
 	} else if ccxt.IsTrue(!ccxt.IsEqual(data, nil)) {
+		// an account frame may carry several sections at once, so these are
+		// not mutually exclusive and must not fall through to the order book
+		var isAccountUpdate any = false
 		if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(typeVar, "ORDER"))) || ccxt.IsTrue((ccxt.InOp(data, "orders")))) {
 			this.HandleOrders(client, message)
+			isAccountUpdate = true
 		}
 		if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(typeVar, "TRADE"))) || ccxt.IsTrue((ccxt.InOp(data, "trades")))) {
 			this.HandleMyTrades(client, message)
+			isAccountUpdate = true
 		}
 		if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(typeVar, "POSITION"))) || ccxt.IsTrue((ccxt.InOp(data, "positions")))) {
 			this.HandlePositions(client, message)
+			isAccountUpdate = true
 		}
 		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(typeVar, "BALANCE"))) || ccxt.IsTrue((ccxt.InOp(data, "balance")))) || ccxt.IsTrue((ccxt.InOp(data, "spotBalances")))) {
 			this.HandleBalance(client, message)
+			isAccountUpdate = true
 		}
 		if ccxt.IsTrue(ccxt.IsEqual(typeVar, "MP")) {
 			this.HandleMarkPrice(client, message)
 		} else if ccxt.IsTrue(ccxt.InOp(data, "f")) {
 			this.HandleFundingRate(client, message)
-		} else {
+		} else if !ccxt.IsTrue(isAccountUpdate) {
 			this.HandleOrderBook(client, message)
 		}
 	}
