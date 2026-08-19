@@ -193,7 +193,7 @@ export default class poloniex extends Exchange {
                         'wallets/withdraw': { 'cost': 20 } as Endpoint<Dict>,
                         'v2/wallets/withdraw': { 'cost': 20 } as Endpoint<Dict>,
                         'orders': { 'cost': 4 } as Endpoint<Dict>,
-                        'orders/batch': { 'cost': 20 } as Endpoint<Dict>,
+                        'orders/batch': { 'cost': 20 } as Endpoint<List>,
                         'orders/killSwitch': { 'cost': 4 } as Endpoint<Dict>,
                         'smartorders': { 'cost': 4 } as Endpoint<Dict>,
                     },
@@ -2103,6 +2103,7 @@ export default class poloniex extends Exchange {
     override async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
         const ordersRequests = [];
+        const ordersMarkets = [];
         let market = undefined;
         let isContract = false;
         for (let i = 0; i < orders.length; i++) {
@@ -2144,8 +2145,9 @@ export default class poloniex extends Exchange {
                 }
             }
             ordersRequests.push (merged);
+            ordersMarkets.push (marketInner);
         }
-        let data = undefined;
+        let data = [];
         if (isContract) {
             const response = await this.swapPrivatePostV3TradeOrders (ordersRequests);
             //
@@ -2168,7 +2170,32 @@ export default class poloniex extends Exchange {
             //
             data = await this.privatePostOrdersBatch (ordersRequests);
         }
-        return this.parseOrders (data);
+        // the responses are positional, aligned with the submitted orders
+        const results = [];
+        const dataLength = data.length;
+        for (let i = 0; i < dataLength; i++) {
+            const entry = data[i];
+            const entryMarket = this.safeValue (ordersMarkets, i, market);
+            results.push (this.parseBatchOrder (entry, entryMarket));
+        }
+        return results;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description parse a single entry of a batch orders response, both endpoints report per-element failures with a code and a message instead of throwing
+     * @param {object} entry a single order entry from a batch create or cancel response
+     * @param {object} [market] the market of the corresponding request entry
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    parseBatchOrder (entry: Dict, market: Market = undefined): Order {
+        const order = this.parseOrder (entry, market);
+        const entryCode = this.safeInteger (entry, 'code');
+        if ((entryCode !== undefined) && (entryCode !== 200)) {
+            order['status'] = 'rejected';
+        }
+        return order;
     }
 
     orderRequest (symbol: any, type: any, side: any, amount: any, request: any, price: Num = undefined, params = {}) {
@@ -2405,7 +2432,7 @@ export default class poloniex extends Exchange {
             //     }
             //
             const data = this.safeList (responseRaw, 'data', []);
-            return this.parseOrders (data, market);
+            return this.parseBatchOrders (data, market);
         }
         if (idsLength > 0) {
             request['orderIds'] = ids;
@@ -2419,7 +2446,24 @@ export default class poloniex extends Exchange {
         //         { "orderId": "123456789", "clientOrderId": "", "state": "PENDING_CANCEL", "code": 200, "message": "" }
         //     ]
         //
-        return this.parseOrders (response, market);
+        return this.parseBatchOrders (response, market);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description parse a list of batch order response entries, marking the per-element failures as rejected
+     * @param {object[]} entries the order entries from a batch create or cancel response
+     * @param {object} [market] the market of the request
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    parseBatchOrders (entries: List, market: Market = undefined): Order[] {
+        const results = [];
+        const entriesLength = entries.length;
+        for (let i = 0; i < entriesLength; i++) {
+            results.push (this.parseBatchOrder (entries[i], market));
+        }
+        return results;
     }
 
     /**
