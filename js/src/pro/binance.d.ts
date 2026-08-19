@@ -726,6 +726,7 @@ export default class binance extends binanceRest {
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
     getAccountTypeFromSubscriptions(subscriptions: string[]): string;
+    resolveAuthType(methodName: string, market?: Market, params?: Dict): [string, Str, Dict];
     getMarketType(method: any, market: any, params?: {}): string;
     /**
      * @method
