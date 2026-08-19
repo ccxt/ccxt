@@ -1,13 +1,13 @@
-// Count watchTrades activity over a fixed window (default 30s) and report a few
-// coarse performance metrics (loadMarkets wall time, peak RSS). Used to
-// cross-check the Rust WS runtime against the Python ccxt.pro reference.
+// Count watchTrades activity over a fixed window (default 30s) via the TYPED WS
+// API and report loadMarkets wall time + peak RSS. Cross-checks the Rust WS
+// runtime against the Python ccxt.pro reference.
 //
-// Select the venue with CCXT_EXCHANGE (binance | hyperliquid), the symbol with
-// CCXT_SYMBOL, and the window with CCXT_SECS.
+// Select the venue with CCXT_EXCHANGE (binance | hyperliquid | …), the symbol
+// with CCXT_SYMBOL, and the window with CCXT_SECS.
 use std::time::{Duration, Instant};
 
-use ccxt::exchange_generated::ExchangeBase;
 use ccxt::Value;
+use ccxt_pro::{from_id, TypedExchange, TypedExchangeExt};
 
 fn secs() -> u64 {
     std::env::var("CCXT_SECS").ok().and_then(|s| s.parse().ok()).unwrap_or(30)
@@ -35,13 +35,22 @@ fn peak_rss_mb() -> f64 {
         .unwrap_or(0.0)
 }
 
-// Run the benchmark against an already-constructed, bound Core. Generic because
-// `ExchangeBase` is not object-safe (its methods return `impl Future`), so a
-// `&mut dyn ExchangeBase` is illegal — monomorphise per Core instead.
-async fn bench<E: ExchangeBase>(ex: &mut E, id: &str, sym: &str) {
+async fn run() {
+    let id = exchange();
+    // Typed WS wrapper picked by id — `ccxt_pro::from_id` returns a boxed
+    // `TypedExchange`; the `watch_*` methods come from `TypedExchangeExt`.
+    let mut ex: Box<dyn TypedExchange> = match from_id(&id, None) {
+        Some(e) => e,
+        None => {
+            eprintln!("unknown/unsupported WS exchange: {id}");
+            return;
+        }
+    };
+    let sym = symbol(if id == "hyperliquid" { "BTC/USDC:USDC" } else { "BTC/USDT" });
+
     let t0 = Instant::now();
-    let _ = ExchangeBase::call_dynamic(ex, "load_markets", vec![]).await;
-    let load_ms = t0.elapsed().as_secs_f64();
+    ex.load_markets(false).await;
+    let load_s = t0.elapsed().as_secs_f64();
 
     let window = Duration::from_secs(secs());
     let deadline = tokio::time::Instant::now() + window;
@@ -52,43 +61,20 @@ async fn bench<E: ExchangeBase>(ex: &mut E, id: &str, sym: &str) {
         if now >= deadline {
             break;
         }
-        let fut = ExchangeBase::call_dynamic(ex, "watch_trades", vec![Value::Str(sym.to_string())]);
+        // watch_trades(symbol, since, limit, params) -> Result<Vec<Trade>>
+        let fut = ex.watch_trades(&sym, None, None, Value::Null);
         match tokio::time::timeout(deadline - now, fut).await {
-            Ok(res) => {
+            Ok(Ok(tr)) => {
                 resolutions += 1;
-                trades += match &res {
-                    Value::Arr(a) => a.len() as u64,
-                    _ => 0,
-                };
+                trades += tr.len() as u64;
             }
-            Err(_) => break, // window elapsed mid-wait
+            Ok(Err(_)) | Err(_) => break, // stream error or window elapsed mid-wait
         }
     }
     println!(
         "RUST {} watchTrades [{}] {}s: loadMarkets={:.2}s resolutions={} trades={} peakRSS={:.0}MB",
-        id,
-        sym,
-        secs(),
-        load_ms,
-        resolutions,
-        trades,
-        peak_rss_mb()
+        id, sym, secs(), load_s, resolutions, trades, peak_rss_mb()
     );
-}
-
-async fn run() {
-    match exchange().as_str() {
-        "hyperliquid" => {
-            let mut ex = Box::new(ccxt_pro::pro::hyperliquid::HyperliquidCore::new(None));
-            ex.bind();
-            bench(&mut *ex, "hyperliquid", &symbol("BTC/USDC:USDC")).await;
-        }
-        _ => {
-            let mut ex = Box::new(ccxt_pro::pro::binance::BinanceCore::new(None));
-            ex.bind();
-            bench(&mut *ex, "binance", &symbol("BTC/USDT")).await;
-        }
-    }
 }
 
 fn main() {

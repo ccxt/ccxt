@@ -1,64 +1,27 @@
-// Smoke test for all transpiled exchanges. Runs each one's
-// fetch_markets() over the network and prints the result count.
-
+// Smoke test across a set of exchanges via the TYPED API. Each venue is built
+// by id with `ccxt::from_id` (which returns a boxed `TypedExchange`) and its
+// typed `fetch_markets()` is run over the network, printing the decoded count.
 use ccxt::Value;
-use ccxt::exchanges::{
-    binance::BinanceCore,
-    bybit::BybitCore,
-    okx::OkxCore,
-    kucoin::KucoinCore,
-    bitget::BitgetCore,
-    hyperliquid::HyperliquidCore,
-    gate::GateCore,
-};
-// Base methods (describe, fetch_markets, …) are trait methods after the
-// static-dispatch conversion (review #1) — bring the traits into scope.
-use ccxt::exchange_generated::ExchangeBase;
-use ccxt::exchange::ExchangeRuntime;
-use std::panic;
-use futures::FutureExt;
-
-fn populate(ex: &mut ccxt::exchange::Exchange, described: Value) {
-    ex.api      = ccxt::get_value(&described, &Value::Str("api".to_string()));
-    ex.urls     = ccxt::get_value(&described, &Value::Str("urls".to_string()));
-    ex.has      = ccxt::get_value(&described, &Value::Str("has".to_string()));
-    ex.options  = ccxt::get_value(&described, &Value::Str("options".to_string()));
-    ex.hostname = ccxt::get_value(&described, &Value::Str("hostname".to_string()));
-    ex.verbose  = Value::Bool(std::env::var("VERBOSE").is_ok());
-    ex.build_implicit_api();
-}
-
-fn count(v: &Value) -> String {
-    match v {
-        Value::Arr(a) => format!("Array[{}]", a.len()),
-        Value::Dict(m)   => format!("Map[{}]",   m.len()),
-        Value::Null     => "Null".to_string(),
-        other           => format!("{:?}", std::mem::discriminant(other)),
-    }
-}
-
-macro_rules! smoke {
-    ($name:literal, $core:ty) => {{
-        println!("\n=== {} ===", $name);
-        let mut ex = Box::new(<$core>::new(None));
-        let d = ex.describe();
-        populate(&mut ex.exchange, d);
-        print!("   fetch_markets … ");
-        let r = panic::AssertUnwindSafe(ex.fetch_markets(&[])).catch_unwind().await;
-        match r {
-            Ok(v)  => println!("{}", count(&v)),
-            Err(_) => println!("panicked"),
-        }
-    }};
-}
+use ccxt::{from_id, TypedExchange, TypedExchangeExt};
 
 #[tokio::main]
 async fn main() {
-    smoke!("binance",     BinanceCore);
-    smoke!("bybit",       BybitCore);
-    smoke!("okx",         OkxCore);
-    smoke!("kucoin",      KucoinCore);
-    smoke!("bitget",      BitgetCore);
-    smoke!("hyperliquid", HyperliquidCore);
-    smoke!("gate",        GateCore);
+    let ids = ["binance", "bybit", "okx", "kucoin", "bitget", "hyperliquid", "gate"];
+    for id in ids {
+        println!("\n=== {id} ===");
+        let mut ex: Box<dyn TypedExchange> = match from_id(id, None) {
+            Some(e) => e,
+            None => {
+                println!("   unknown id");
+                continue;
+            }
+        };
+        print!("   fetch_markets … ");
+        // Typed `fetch_markets() -> Result<Vec<Market>>` (implicit-API setup is
+        // handled lazily inside the Core, so no manual describe()/build needed).
+        match ex.fetch_markets(Value::Null).await {
+            Ok(markets) => println!("{} markets", markets.len()),
+            Err(e) => println!("error: {e}"),
+        }
+    }
 }

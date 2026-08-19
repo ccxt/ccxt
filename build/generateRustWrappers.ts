@@ -894,11 +894,25 @@ function generateDomain(cfg: DomainCfg, methods: MethodInfo[], baseMethods: Set<
         .map(f => f.replace(/_typed\.rs$/, ''))
         .sort();
     // Aggregator: the `TypedExchange` trait for this domain plus a re-export of
-    // every wrapper struct, so `use <crate>::Binance;` works.
+    // every wrapper struct, so `use <crate>::Binance;` works — and a `from_id`
+    // factory that builds a boxed wrapper by exchange id for dynamic selection.
     const aggLines: string[] = [genTypedExchangeTrait(domainMethods)];
     for (const id of allTyped) {
         aggLines.push(`pub use crate::${cfg.wrapperModule}::${id}_typed::${capitalize(id)};`);
     }
+    aggLines.push('');
+    aggLines.push('/// Construct a boxed typed wrapper by exchange id — the typed analog of');
+    aggLines.push('/// picking an exchange at runtime. `config` is the same optional settings');
+    aggLines.push('/// map `<Exchange>::new` takes (apiKey, secret, proxies, …). Returns `None`');
+    aggLines.push('/// for an unknown id.');
+    aggLines.push('pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn TypedExchange>> {');
+    aggLines.push('    match id {');
+    for (const id of allTyped) {
+        aggLines.push(`        ${JSON.stringify(id)} => Some(Box::new(${capitalize(id)}::new(config))),`);
+    }
+    aggLines.push('        _ => None,');
+    aggLines.push('    }');
+    aggLines.push('}');
     aggLines.push('');
     fs.writeFileSync(path.resolve(cfg.aggregator), aggLines.join('\n'), 'utf-8');
     console.log(`[${cfg.name}] wrote aggregator ${cfg.aggregator} with ${allTyped.length} re-exports`);

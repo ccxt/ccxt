@@ -990,3 +990,20 @@ pub use crate::prediction::limitless_typed::Limitless;
 pub use crate::prediction::myriad_typed::Myriad;
 pub use crate::prediction::opinion_typed::Opinion;
 pub use crate::prediction::polymarket_typed::Polymarket;
+
+/// Construct a boxed typed wrapper by exchange id — the typed analog of
+/// picking an exchange at runtime. `config` is the same optional settings
+/// map `<Exchange>::new` takes (apiKey, secret, proxies, …). Returns `None`
+/// for an unknown id.
+pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn TypedExchange>> {
+    match id {
+        "binance" => Some(Box::new(Binance::new(config))),
+        "hyperliquid" => Some(Box::new(Hyperliquid::new(config))),
+        "kalshi" => Some(Box::new(Kalshi::new(config))),
+        "limitless" => Some(Box::new(Limitless::new(config))),
+        "myriad" => Some(Box::new(Myriad::new(config))),
+        "opinion" => Some(Box::new(Opinion::new(config))),
+        "polymarket" => Some(Box::new(Polymarket::new(config))),
+        _ => None,
+    }
+}
