@@ -692,10 +692,10 @@ public partial class kraken : ccxt.kraken
         object ohlcvsLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, ohlcvsLength); postFixIncrement(ref i))
         {
-            object candle = getValue(data, subtract(subtract(ohlcvsLength, i), 1));
+            object candle = getValue(data, i);
             object datetime = this.safeString(candle, "interval_begin");
             object timestamp = this.parse8601(datetime);
-            object parsed = new List<object>() {timestamp, this.safeString(candle, "open"), this.safeString(candle, "high"), this.safeString(candle, "low"), this.safeString(candle, "close"), this.safeString(candle, "volume")};
+            object parsed = new List<object>() {timestamp, this.safeNumber(candle, "open"), this.safeNumber(candle, "high"), this.safeNumber(candle, "low"), this.safeNumber(candle, "close"), this.safeNumber(candle, "volume")};
             callDynamically(stored, "append", new object[] {parsed});
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});

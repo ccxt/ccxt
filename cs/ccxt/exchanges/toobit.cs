@@ -2179,6 +2179,11 @@ public partial class toobit : Exchange
         market = this.safeMarket(marketId, market);
         object rawType = this.safeString(order, "type");
         object rawSideLower = this.safeStringLower(order, "side");
+        if (isTrue(!isEqual(rawSideLower, null)))
+        {
+            // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like
+            rawSideLower = this.safeString(((string)rawSideLower).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>(), 0);
+        }
         object triggerPrice = this.omitZero(this.safeString(order, "stopPrice"));
         if (isTrue(isEqual(triggerPrice, "0.0")))
         {
