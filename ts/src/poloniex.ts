@@ -2393,7 +2393,7 @@ export default class poloniex extends Exchange {
             } else if (clientOrderIds !== undefined) {
                 request['clOrdIds'] = clientOrderIds;
             }
-            const response = await this.swapPrivateDeleteV3TradeBatchOrders (this.extend (request, params));
+            const responseRaw = await this.swapPrivateDeleteV3TradeBatchOrders (this.extend (request, params));
             //
             //     {
             //         "code": 200,
@@ -2404,7 +2404,7 @@ export default class poloniex extends Exchange {
             //         ]
             //     }
             //
-            const data = this.safeList (response, 'data', []);
+            const data = this.safeList (responseRaw, 'data', []);
             return this.parseOrders (data, market);
         }
         if (idsLength > 0) {
@@ -3818,6 +3818,7 @@ export default class poloniex extends Exchange {
     }
 
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+        const isArray = Array.isArray (params);
         let url = this.urls['api']['spot'];
         if (this.inArray (api, [ 'swapPublic', 'swapPrivate' ])) {
             url = this.urls['api']['swap'];
@@ -3840,7 +3841,7 @@ export default class poloniex extends Exchange {
             auth += '/' + implodedPath;
             if ((method === 'POST') || (method === 'PUT') || (method === 'DELETE')) {
                 auth += "\n"; // eslint-disable-line quotes
-                if (Object.keys (query).length) {
+                if (isArray || Object.keys (query).length) {
                     body = this.json (query);
                     auth += 'requestBody=' + body + '&';
                 }
