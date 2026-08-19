@@ -60,12 +60,16 @@ impl BingxCore {
         // after_construct left an EMPTY networksById), which would
         // otherwise clobber the manual mappings like binance BSC to BEP20.
         let __described_networks_by_id = crate::get_value(&__described_options, &crate::Value::Str("networksById".to_string()));
-        if let (crate::Value::Dict(existing), crate::Value::Dict(defaults)) =
+        if let (crate::Value::Dict(_), crate::Value::Dict(_)) =
             (&self.options.clone(), &__described_options)
         {
-            let mut merged = (**defaults).clone();
-            for (k, v) in existing.iter() { merged.insert(k.clone(), v.clone()); }
-            self.options = crate::Value::Map(merged);
+            // Deep-extend (CCXT deepExtend): describe() defaults as the base,
+            // existing (config + parent REST describe) winning on leaf conflicts,
+            // nested dicts merged rather than replaced — so e.g. a pro Core's
+            // flat options.timeframes unions with the parent REST's nested one
+            // instead of one clobbering the other.
+            self.options = crate::runtime::deep_merge_dict(
+                &__described_options, &self.options.clone());
         } else if !matches!(self.options, crate::Value::Dict(_)) {
             self.options = __described_options;
         }
@@ -123,6 +127,22 @@ impl BingxCore {
         // the constructor config (test runners pass them in via
         // Exchange::new(Some(config-with-markets)) — same as CCXT TS).
         // Don't reset them here.
+        // Apply hardcoded describe().markets. Venues like coincheck ship a
+        // static markets block and never fetchMarkets — CCXT sets this.markets
+        // from describe() at construction, and its base fetchMarkets just
+        // returns Object.values(this.markets). Mirror that here so loadMarkets
+        // resolves without a network fetch. Guarded on a non-empty describe()
+        // markets and an as-yet-unloaded self.markets, so fetch-based venues
+        // (empty describe markets) and config-injected markets are untouched.
+        {
+            let __described_markets = crate::get_value(&described, &crate::Value::Str("markets".to_string()));
+            if matches!(&__described_markets, crate::Value::Dict(mm) if !mm.is_empty())
+                && matches!(self.markets, crate::Value::Null)
+            {
+                let __markets_list = crate::runtime::object_values(&__described_markets);
+                <Self as crate::exchange_generated::ExchangeBase>::set_markets(self, __markets_list, &[crate::Value::Null]);
+            }
+        }
         self.build_implicit_api();
     }
 
@@ -979,8 +999,8 @@ impl BingxCore {
         }
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_88: bool = true;
-            while { if !__for_first_88 { j = add(&j, &Value::Int(1)); } __for_first_88 = false; is_less_than(&j, &get_array_length(&trades)) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { j = add(&j, &Value::Int(1)); } __for_first_0 = false; is_less_than(&j, &get_array_length(&trades)) } {
             stored.append(get_value(&trades, &j));
         }
         }
@@ -1362,8 +1382,8 @@ impl BingxCore {
         let mut stored: Value = get_value(&get_value(&self.ohlcvs, &symbol), &unifiedTimeframe);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_89: bool = true;
-            while { if !__for_first_89 { i = add(&i, &Value::Int(1)); } __for_first_89 = false; is_less_than(&i, &get_array_length(&candles)) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i = add(&i, &Value::Int(1)); } __for_first_1 = false; is_less_than(&i, &get_array_length(&candles)) } {
             let mut candle: Value = get_value(&candles, &i);
             let mut candle: Value = get_value(&candles, &i);
             let mut parsed: Value = self.parse_ws_ohlcv(candle.clone(), &[market.clone()]);
@@ -1869,8 +1889,8 @@ impl BingxCore {
         let mut cache: Value = self.positions.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_90: bool = true;
-            while { if !__for_first_90 { i = add(&i, &Value::Int(1)); } __for_first_90 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i = add(&i, &Value::Int(1)); } __for_first_2 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut position: Value = get_value(&positions, &i);
             let mut position: Value = get_value(&positions, &i);
             let mut contracts: Value = self.safe_number_k(position.clone(), "contracts", &[Value::Int(0)]);
@@ -1984,8 +2004,8 @@ impl BingxCore {
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_91: bool = true;
-            while { if !__for_first_91 { i = add(&i, &Value::Int(1)); } __for_first_91 = false; is_less_than(&i, &get_array_length(&rawPositions)) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i = add(&i, &Value::Int(1)); } __for_first_3 = false; is_less_than(&i, &get_array_length(&rawPositions)) } {
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut position: Value = self.parse_ws_position(rawPosition.clone(), &[]);
@@ -2003,8 +2023,8 @@ impl BingxCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str("swap:positions::".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_92: bool = true;
-            while { if !__for_first_92 { i = add(&i, &Value::Int(1)); } __for_first_92 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i = add(&i, &Value::Int(1)); } __for_first_4 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -2064,8 +2084,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut types: Value = Value::List(vec![Value::Str("spot".to_string()), Value::Str("linear".to_string()), Value::Str("inverse".to_string())]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_94: bool = true;
-                while { if !__for_first_94 { i = add(&i, &Value::Int(1)); } __for_first_94 = false; is_less_than(&i, &get_array_length(&types)) } {
+                let mut __for_first_6: bool = true;
+                while { if !__for_first_6 { i = add(&i, &Value::Int(1)); } __for_first_6 = false; is_less_than(&i, &get_array_length(&types)) } {
                 let mut type_var: Value = get_value(&types, &i);
                 let mut type_var: Value = get_value(&types, &i);
                 let mut baseUrl: Value = self.safe_string(get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), type_var.clone(), &[]);
@@ -2077,8 +2097,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 let mut messageHashes: Value = object_keys(&get_value(&client, &Value::Str("futures".to_string())));
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_93: bool = true;
-                    while { if !__for_first_93 { j = add(&j, &Value::Int(1)); } __for_first_93 = false; is_less_than(&j, &get_array_length(&messageHashes)) } {
+                    let mut __for_first_5: bool = true;
+                    while { if !__for_first_5 { j = add(&j, &Value::Int(1)); } __for_first_5 = false; is_less_than(&j, &get_array_length(&messageHashes)) } {
                     let mut messageHash: Value = get_value(&messageHashes, &j);
                     let mut messageHash: Value = get_value(&messageHashes, &j);
                     client.reject(&[Value::from(error.clone()), messageHash.clone()]);
@@ -2366,7 +2386,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         })]);
         let mut data: Value = self.safe_list_k(a.clone(), "B", &[Value::List(vec![])]);
         let mut timestamp: Value = self.safe_integer2(message.clone(), Value::Str("T".to_string()), Value::Str("E".to_string()), &[]);
-        let mut type_var: Value = ternary(is_true(&(Value::Bool(in_op(&a, &Value::Str("P".to_string()))))), Value::Str("swap".to_string()), Value::Str("spot".to_string()));
+        let mut spotUrl: Value = self.safe_string(get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), Value::Str("spot".to_string()), &[]);
+        let mut isSpot: Value = Value::Bool(is_true(&(!is_equal(&spotUrl, &Value::Null))) && is_true(&(is_equal(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &spotUrl), &Value::Int(0)))));
+        let mut type_var: Value = ternary(is_true(&isSpot), Value::Str("spot".to_string()), Value::Str("swap".to_string()));
         if !is_true(&(Value::Bool(in_op(&self.balance, &type_var)))) {
             add_element_to_object(&mut self.balance, &type_var, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2378,8 +2400,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &Value::Str("datetime".to_string()), __be_tmp); };
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_95: bool = true;
-            while { if !__for_first_95 { i = add(&i, &Value::Int(1)); } __for_first_95 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i = add(&i, &Value::Int(1)); } __for_first_7 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut balance: Value = get_value(&data, &i);
             let mut balance: Value = get_value(&data, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "a", &[]);
@@ -2491,8 +2513,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_96: bool = true;
-            while { if !__for_first_96 { i = add(&i, &Value::Int(1)); } __for_first_96 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_8: bool = true;
+            while { if !__for_first_8 { i = add(&i, &Value::Int(1)); } __for_first_8 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut unsubHash: Value = get_value(&messageHashes, &i);
             let mut unsubHash: Value = get_value(&messageHashes, &i);
             let mut subHash: Value = get_value(&subMessageHashes, &i);
