@@ -3704,22 +3704,17 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object delay = this.sum(listenKeyRefreshRate, 10000);
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), delay)))
             {
-                // the private url embeds the listenKey that this request produces, so the future
-                // is parked on the listenKey-free base url of that same stream - concurrent
-                // callers wait for the leader instead of fetching a second listenKey, which
-                // would split the user-data subscriptions across two connections. the stock
-                // stream parks on the listenKey-free market url of the same host for the
-                // same reason
-                Object clientUrl = ((Helpers.isTrue(isStock))) ? this.getStockWsUrl("market") : this.getWsUrl(type, "private");
-                Client client = this.client(clientUrl);
-                Object messageHash = Helpers.add("authenticate:", type);
-                if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
+                // single-flight leader election: the flight lives on the exchange,
+                // not parked on a ws client, so no client is instantiated just to
+                // carry the future and no listenKey-free parking url is needed -
+                // waiters wake when the leader settles and read the cached bucket
+                Object flightHash = Helpers.add("authenticate:", type);
+                Object isLeader = (this.singleFlightAcquire(flightHash)).join();
+                if (!Helpers.isTrue(isLeader))
                 {
-                    // another caller is already fetching, wait for it instead of fetching again
-                    client.future((String)messageHash).getFuture().join();
+                    // the leader settled the flight: the listenKey is in the bucket
                     return null;
                 }
-                client.future((String)messageHash); // created ahead of the request below, so concurrent callers can find it
                 try
                 {
                     Object response = null;
@@ -3763,10 +3758,10 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                         }});
                     }
                     this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", delayParams);
-                    client.resolve(listenKey, messageHash);
+                    this.singleFlightResolve(flightHash, listenKey);
                 } catch(Exception e)
                 {
-                    client.reject(e, messageHash);
+                    this.singleFlightReject(flightHash, e);
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
             }
