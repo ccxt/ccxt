@@ -3022,7 +3022,7 @@ class Transpiler {
 
         // ########### PHP ###########
         if (this.buildPHP) {
-            const phpReform = (cont: string) => {
+            const phpReform = (cont: string, isAsync: boolean) => {
                 // add exceptions
                 let exceptions = '';
                 for (const eType of Object.keys(errors)) {
@@ -3030,7 +3030,8 @@ class Transpiler {
                         exceptions += `use ccxt\\${eType};\n`;
                     }
                 }
-                let head = '<?php\n\n' + 'namespace ccxt;\n\n' + 'use \\React\\Async;\nuse \\React\\Promise;\n' + exceptions + '\nrequire_once __DIR__ . \'/tests_helpers.php\';\n\n';
+                const reactIncludes = isAsync ? 'use \\React\\Async;\nuse \\React\\Promise;\n' : '';
+                let head = '<?php\n\n' + 'namespace ccxt;\n\n' + reactIncludes + exceptions + '\n\n\n';
                 let newContent = head + cont;
                 newContent = newContent.
                     replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '').
@@ -3042,9 +3043,9 @@ class Transpiler {
                 newContent = this.phpReplaceException (newContent);
                 return newContent;
             }
-            let bodyPhpAsync = phpReform (phpAsync);
+            let bodyPhpAsync = phpReform (phpAsync, true);
             overwriteSafe (files.phpFileAsync, bodyPhpAsync);
-            let bodyPhpSync = phpReform (php);
+            let bodyPhpSync = phpReform (php, false);
             bodyPhpSync = bodyPhpSync.replace (/(?:\\React\\)?Promise\\all/g, '');
             overwriteSafe (files.phpFileSync, bodyPhpSync);
         }

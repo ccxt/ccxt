@@ -12,7 +12,6 @@ use ccxt\OperationFailed;
 use ccxt\ExchangeNotAvailable;
 use ccxt\OnMaintenance;
 
-require_once __DIR__ . '/tests_helpers.php';
 
 #[\AllowDynamicProperties]
 class testMainClass {
