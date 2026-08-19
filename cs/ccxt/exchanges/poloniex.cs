@@ -493,8 +493,8 @@ public partial class poloniex : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "BEP20", "BSC" },
                     { "ERC20", "ETH" },
-                    { "TRC20", "TRON" },
-                    { "TRX", "TRON" },
+                    { "TRC20", "TRX" },
+                    { "TRX", "TRX" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
                     { "TRX", "TRC20" },
@@ -735,6 +735,9 @@ public partial class poloniex : Exchange
                     { "25017", typeof(ExchangeError) },
                     { "25018", typeof(BadRequest) },
                     { "25019", typeof(BadSymbol) },
+                    { "820181", typeof(BadRequest) },
+                    { "820201", typeof(BadRequest) },
+                    { "830111", typeof(BadRequest) },
                     { "250", typeof(DuplicateOrderId) },
                     { "400", typeof(BadRequest) },
                     { "403", typeof(PermissionDenied) },
