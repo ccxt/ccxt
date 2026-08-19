@@ -3476,10 +3476,15 @@ export default class binance extends binanceRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        await this.authenticate (params);
+        // derive BEFORE authenticating and pass the result in: authenticate
+        // re-derives from its own method scope, so without this a method-scoped
+        // options.watchBalance.type seeds one bucket while the read below
+        // indexes another - the same derive-first shape watchOrders uses
         const resolvedAuth: Dict = this.resolveAuthType ('watchBalance', undefined, params);
         const type = resolvedAuth['type'] as string;
+        const subType = resolvedAuth['subType'] as Str;
         params = resolvedAuth['params'] as Dict;
+        await this.authenticate (this.extend ({ 'type': type, 'subType': subType }, params));
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchBalance', 'papi', 'portfolioMargin', false);
         let url = '';
@@ -3645,7 +3650,7 @@ export default class binance extends binanceRest {
         return accountType;
     }
 
-    resolveAuthType (methodName: string, market: Market, params: Dict = {}): Dict {
+    resolveAuthType (methodName: string, market: Market = undefined, params: Dict = {}): Dict {
         // the single home for user-data type derivation: market type, subType,
         // and the guarded linear/inverse rewrite. option and stock must keep
         // their own type, or the listenKey bucket, the endpoint dispatch and
