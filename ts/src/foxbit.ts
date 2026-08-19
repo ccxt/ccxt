@@ -42,7 +42,6 @@ export default class foxbit extends Exchange {
                 'createOrder': true,
                 'createOrders': true,
                 'editOrder': true,
-                'fecthOrderBook': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
