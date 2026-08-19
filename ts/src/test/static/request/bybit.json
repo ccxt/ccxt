@@ -56,7 +56,7 @@
                         "clientOrderId": "bybit1"
                     }
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"orderLinkId\":\"bybit1\",\"category\":\"spot\",\"qty\":\"0.22\",\"price\":\"73\",\"clientOrderId\":\"bybit1\"}"
+                "output": { "symbol": "LTCUSDT", "orderLinkId": "bybit1", "category": "spot", "qty": "0.22", "price": "73", "clientOrderId": "bybit1" }
             }
         ],
         "fetchCurrencies": [
@@ -83,7 +83,7 @@
                         "takeProfitPrice": 10000
                     }
                 ],
-                "output": "{\"symbol\":\"ETHUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"price\":\"10000\",\"category\":\"linear\",\"qty\":\"0.1\",\"triggerDirection\":1,\"triggerPrice\":\"10000\",\"reduceOnly\":true}"
+                "output": { "symbol": "ETHUSDT", "side": "Sell", "orderType": "Limit", "price": "10000", "category": "linear", "qty": "0.1", "triggerDirection": 1, "triggerPrice": "10000", "reduceOnly": true }
             },
             {
                 "description": "sl limit order",
@@ -99,7 +99,7 @@
                         "stopLossPrice": 4000
                     }
                 ],
-                "output": "{\"symbol\":\"ETHUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"price\":\"4000\",\"category\":\"linear\",\"qty\":\"0.1\",\"triggerDirection\":2,\"triggerPrice\":\"4000\",\"reduceOnly\":true}"
+                "output": { "symbol": "ETHUSDT", "side": "Sell", "orderType": "Limit", "price": "4000", "category": "linear", "qty": "0.1", "triggerDirection": 2, "triggerPrice": "4000", "reduceOnly": true }
             },
             {
                 "description": "sl market order",
@@ -115,7 +115,7 @@
                         "stopLossPrice": 4000
                     }
                 ],
-                "output": "{\"symbol\":\"ETHUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"linear\",\"qty\":\"0.1\",\"triggerDirection\":2,\"triggerPrice\":\"4000\",\"reduceOnly\":true}"
+                "output": { "symbol": "ETHUSDT", "side": "Sell", "orderType": "Market", "category": "linear", "qty": "0.1", "triggerDirection": 2, "triggerPrice": "4000", "reduceOnly": true }
             },
             {
                 "description": "protective oco order - limit",
@@ -134,7 +134,7 @@
                         "stopLossLimitPrice": 100123
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"stopLoss\":\"100000\",\"slOrderType\":\"Limit\",\"slLimitPrice\":\"100123\",\"slSize\":\"0.001\",\"takeProfit\":\"80123\",\"tpOrderType\":\"Limit\",\"tpLimitPrice\":\"80000\",\"tpSize\":\"0.001\",\"tpslMode\":\"Partial\",\"category\":\"linear\"}"
+                "output": { "symbol": "BTCUSDT", "stopLoss": "100000", "slOrderType": "Limit", "slLimitPrice": "100123", "slSize": "0.001", "takeProfit": "80123", "tpOrderType": "Limit", "tpLimitPrice": "80000", "tpSize": "0.001", "tpslMode": "Partial", "category": "linear" }
             },
             {
                 "description": "protective oco order - market with amount",
@@ -151,7 +151,7 @@
                         "stopLossPrice": 100000
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"stopLoss\":\"100000\",\"slOrderType\":\"Market\",\"slSize\":\"0.001\",\"takeProfit\":\"80123\",\"tpOrderType\":\"Market\",\"tpSize\":\"0.001\",\"tpslMode\":\"Partial\",\"category\":\"linear\"}"
+                "output": { "symbol": "BTCUSDT", "stopLoss": "100000", "slOrderType": "Market", "slSize": "0.001", "takeProfit": "80123", "tpOrderType": "Market", "tpSize": "0.001", "tpslMode": "Partial", "category": "linear" }
             },
             {
                 "description": "protective oco order - market without amount",
@@ -168,7 +168,7 @@
                         "stopLossPrice": 100000
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"stopLoss\":\"100000\",\"slOrderType\":\"Market\",\"takeProfit\":\"80123\",\"tpOrderType\":\"Market\",\"tpslMode\":\"Full\",\"category\":\"linear\"}"
+                "output": { "symbol": "BTCUSDT", "stopLoss": "100000", "slOrderType": "Market", "takeProfit": "80123", "tpOrderType": "Market", "tpslMode": "Full", "category": "linear" }
             },
             {
                 "description": "spot order with sl type 3",
@@ -186,7 +186,7 @@
                         }
                     }
                 ],
-                "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"price\":\"0.2\",\"category\":\"spot\",\"qty\":\"50\",\"stopLoss\":\"0.1\",\"slOrderType\":\"Market\"}"
+                "output": { "symbol": "ADAUSDT", "side": "Buy", "orderType": "Limit", "price": "0.2", "category": "spot", "qty": "50", "stopLoss": "0.1", "slOrderType": "Market" }
             },
             {
                 "description": "spot order with to/sl",
@@ -209,7 +209,7 @@
                         }
                     }
                 ],
-                "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"price\":\"0.2\",\"category\":\"spot\",\"qty\":\"50\",\"stopLoss\":\"0.1\",\"tpslMode\":\"Partial\",\"slOrderType\":\"Limit\",\"slLimitPrice\":\"0.1\",\"takeProfit\":\"5\",\"tpOrderType\":\"Limit\",\"tpLimitPrice\":\"5\"}"
+                "output": { "symbol": "ADAUSDT", "side": "Buy", "orderType": "Limit", "price": "0.2", "category": "spot", "qty": "50", "stopLoss": "0.1", "tpslMode": "Partial", "slOrderType": "Limit", "slLimitPrice": "0.1", "takeProfit": "5", "tpOrderType": "Limit", "tpLimitPrice": "5" }
             },
             {
                 "description": "spot stopLossPrice order",
@@ -226,7 +226,7 @@
                         "stopLossPrice": 90
                     }
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"orderFilter\":\"tpslOrder\",\"category\":\"spot\",\"marketUnit\":\"baseCoin\",\"qty\":\"0.2\",\"triggerDirection\":2,\"triggerPrice\":\"90\",\"reduceOnly\":true}"
+                "output": { "symbol": "LTCUSDT", "side": "Sell", "orderType": "Market", "orderFilter": "tpslOrder", "category": "spot", "marketUnit": "baseCoin", "qty": "0.2", "triggerDirection": 2, "triggerPrice": "90", "reduceOnly": true }
             },
             {
                 "description": "spot market buy order",
@@ -238,7 +238,7 @@
                     "buy",
                     10
                 ],
-                "output": "{\"symbol\":\"XRPUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"marketUnit\":\"baseCoin\",\"qty\":\"10\"}"
+                "output": { "symbol": "XRPUSDT", "side": "Buy", "orderType": "Market", "category": "spot", "marketUnit": "baseCoin", "qty": "10" }
             },
             {
                 "description": "spot market order with stopPrice",
@@ -254,7 +254,7 @@
                         "stopPrice": 55
                     }
                 ],
-                "output": "{\"symbol\":\"XRPUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"10\",\"triggerPrice\":\"55\",\"orderFilter\":\"StopOrder\"}"
+                "output": { "symbol": "XRPUSDT", "side": "Buy", "orderType": "Market", "category": "spot", "qty": "10", "triggerPrice": "55", "orderFilter": "StopOrder" }
             },
             {
                 "description": "spot limit buy with triggerPrice",
@@ -270,7 +270,7 @@
                         "triggerPrice": 36001
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"spot\",\"qty\":\"0.1\",\"price\":\"36000\",\"triggerPrice\":\"36001\",\"orderFilter\":\"StopOrder\"}"
+                "output": { "symbol": "BTCUSDT", "side": "Buy", "orderType": "Limit", "category": "spot", "qty": "0.1", "price": "36000", "triggerPrice": "36001", "orderFilter": "StopOrder" }
             },
             {
                 "description": "Swap limit order",
@@ -283,7 +283,7 @@
                     50,
                     0.1
                 ],
-                "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"50\",\"price\":\"0.1\"}"
+                "output": { "symbol": "ADAUSDT", "side": "Buy", "orderType": "Limit", "category": "linear", "qty": "50", "price": "0.1" }
             },
             {
                 "description": "Spot limit order",
@@ -296,7 +296,7 @@
                     50,
                     0.1
                 ],
-                "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"spot\",\"qty\":\"50\",\"price\":\"0.1\"}"
+                "output": { "symbol": "ADAUSDT", "side": "Buy", "orderType": "Limit", "category": "spot", "qty": "50", "price": "0.1" }
             },
             {
                 "description": "Spot market order",
@@ -309,7 +309,7 @@
                     1,
                     10
                 ],
-                "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"10\"}"
+                "output": { "symbol": "ADAUSDT", "side": "Buy", "orderType": "Market", "category": "spot", "qty": "10" }
             },
             {
                 "description": "swap limit buy with triggerPrice and triggerDirection above",
@@ -326,7 +326,7 @@
                         "triggerDirection": "above"
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.001\",\"price\":\"37000\",\"triggerDirection\":1,\"triggerPrice\":\"37000\"}"
+                "output": { "symbol": "BTCUSDT", "side": "Buy", "orderType": "Limit", "category": "linear", "qty": "0.001", "price": "37000", "triggerDirection": 1, "triggerPrice": "37000" }
             },
             {
                 "description": "swap limit buy with triggerPrice and triggerDirection below",
@@ -343,7 +343,7 @@
                         "triggerDirection": "below"
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.001\",\"price\":\"35000\",\"triggerDirection\":2,\"triggerPrice\":\"35000\"}"
+                "output": { "symbol": "BTCUSDT", "side": "Buy", "orderType": "Limit", "category": "linear", "qty": "0.001", "price": "35000", "triggerDirection": 2, "triggerPrice": "35000" }
             },
             {
                 "description": "Spot limit buy with postOnly",
@@ -359,7 +359,7 @@
                         "postOnly": true
                     }
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"spot\",\"qty\":\"0.1\",\"price\":\"60\",\"timeInForce\":\"PostOnly\"}"
+                "output": { "symbol": "LTCUSDT", "side": "Buy", "orderType": "Limit", "category": "spot", "qty": "0.1", "price": "60", "timeInForce": "PostOnly" }
             },
             {
                 "description": "Swap limit sell with reduceOnly and postOnly",
@@ -376,7 +376,7 @@
                         "postOnly": true
                     }
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.1\",\"price\":\"100\",\"timeInForce\":\"PostOnly\",\"reduceOnly\":true}"
+                "output": { "symbol": "LTCUSDT", "side": "Sell", "orderType": "Limit", "category": "linear", "qty": "0.1", "price": "100", "timeInForce": "PostOnly", "reduceOnly": true }
             },
             {
                 "description": "Swap limit sell with takeProfitPrice(Type2) while setting the endpoint to privatePostV5OrderCreate",
@@ -393,7 +393,7 @@
                         "method": "privatePostV5OrderCreate"
                     }
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.1\",\"price\":\"100\",\"triggerDirection\":1,\"triggerPrice\":\"110\",\"reduceOnly\":true}"
+                "output": { "symbol": "LTCUSDT", "side": "Sell", "orderType": "Limit", "category": "linear", "qty": "0.1", "price": "100", "triggerDirection": 1, "triggerPrice": "110", "reduceOnly": true }
             },
             {
                 "description": "Swap limit sell with stopLossPrice(Type2) while setting the endpoint to privatePostV5OrderCreate",  
@@ -410,7 +410,7 @@
                         "method": "privatePostV5OrderCreate"
                     }
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.1\",\"price\":\"51\",\"triggerDirection\":2,\"triggerPrice\":\"56\",\"reduceOnly\":true}"
+                "output": { "symbol": "LTCUSDT", "side": "Sell", "orderType": "Limit", "category": "linear", "qty": "0.1", "price": "51", "triggerDirection": 2, "triggerPrice": "56", "reduceOnly": true }
             },
             
             {
@@ -427,7 +427,7 @@
                         "stopLossPrice": 82000
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"price\":\"81000\",\"category\":\"linear\",\"qty\":\"0.001\",\"triggerDirection\":2,\"triggerPrice\":\"82000\",\"reduceOnly\":true}"
+                "output": { "symbol": "BTCUSDT", "side": "Sell", "orderType": "Limit", "price": "81000", "category": "linear", "qty": "0.001", "triggerDirection": 2, "triggerPrice": "82000", "reduceOnly": true }
             },
             {
                 "description": "swap limit sell takeProfitPrice",
@@ -443,7 +443,7 @@
                         "takeProfitPrice": 98000
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"price\":\"99000\",\"category\":\"linear\",\"qty\":\"0.001\",\"triggerDirection\":1,\"triggerPrice\":\"98000\",\"reduceOnly\":true}"
+                "output": { "symbol": "BTCUSDT", "side": "Sell", "orderType": "Limit", "price": "99000", "category": "linear", "qty": "0.001", "triggerDirection": 1, "triggerPrice": "98000", "reduceOnly": true }
             },
             {
                 "description": "protective oco order - market without amount, tradingStopEndpoint is true, only stopLossPrice is set",
@@ -460,7 +460,7 @@
                     "tradingStopEndpoint": true
                   }
                 ],
-                "output": "{\"symbol\":\"ETHUSDT\",\"stopLoss\":\"3999\",\"tpslMode\":\"Full\", \"slOrderType\":\"Market\",\"category\":\"linear\"}"
+                "output": { "symbol": "ETHUSDT", "stopLoss": "3999", "tpslMode": "Full", "slOrderType": "Market", "category": "linear" }
             },
             {
                 "description": "protective oco order - market without amount, tradingStopEndpoint is true, only takeProfitPrice is set",
@@ -477,7 +477,7 @@
                     "tradingStopEndpoint": true
                   }
                 ],
-                "output": "{\"symbol\":\"ETHUSDT\",\"takeProfit\":\"4000\",\"tpslMode\":\"Full\",\"tpOrderType\":\"Market\",\"category\":\"linear\"}"
+                "output": { "symbol": "ETHUSDT", "takeProfit": "4000", "tpslMode": "Full", "tpOrderType": "Market", "category": "linear" }
             },
             {
                 "description": "protective oco order - market with amount, tradingStopEndpoint is true, only stopLossPrice is set",
@@ -494,7 +494,7 @@
                     "tradingStopEndpoint": true
                   }
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"stopLoss\":\"3.9\",\"tpslMode\":\"Partial\",\"slOrderType\":\"Market\",\"slSize\":\"1\",\"category\":\"linear\"}"
+                "output": { "symbol": "LTCUSDT", "stopLoss": "3.9", "tpslMode": "Partial", "slOrderType": "Market", "slSize": "1", "category": "linear" }
             },
             {
                 "description": "protective oco order - market with amount, tradingStopEndpoint is true, only takeProfitPrice is set",
@@ -511,7 +511,7 @@
                     "tradingStopEndpoint": true
                   }
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"takeProfit\":\"2.2\",\"tpslMode\":\"Partial\",\"tpOrderType\":\"Market\",\"tpSize\":\"1\",\"category\":\"linear\"}"
+                "output": { "symbol": "LTCUSDT", "takeProfit": "2.2", "tpslMode": "Partial", "tpOrderType": "Market", "tpSize": "1", "category": "linear" }
             },
             {
                 "description": "Opening position with sl + tp attached (type 3)",
@@ -532,7 +532,7 @@
                         }
                     }
                 ],
-                "output": "{\"symbol\":\"TRXUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"linear\",\"qty\":\"1\",\"stopLoss\":\"0.04\",\"takeProfit\":\"1\"}"
+                "output": { "symbol": "TRXUSDT", "side": "Buy", "orderType": "Market", "category": "linear", "qty": "1", "stopLoss": "0.04", "takeProfit": "1" }
             },
             {
                 "description": "Create swap trigger order with stopLoss attached",
@@ -550,7 +550,7 @@
                         "stopLoss": "39500"
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.001\",\"price\":\"41000\",\"triggerDirection\":1,\"triggerPrice\":\"40000\",\"stopLoss\":\"39500\"}"
+                "output": { "symbol": "BTCUSDT", "side": "Buy", "orderType": "Limit", "category": "linear", "qty": "0.001", "price": "41000", "triggerDirection": 1, "triggerPrice": "40000", "stopLoss": "39500" }
             },
             {
                 "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to false on the testnet (classic only)",
@@ -569,7 +569,7 @@
                         "createMarketBuyOrderRequiresPrice": false
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"20\"}"
+                "output": { "symbol": "BTCUSDT", "side": "Buy", "orderType": "Market", "category": "spot", "qty": "20" }
             },
             {
                 "description": "Swap trailingAmount order",
@@ -585,7 +585,7 @@
                         "trailingAmount": "1000"
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"linear\",\"trailingStop\":\"1000\"}"
+                "output": { "symbol": "BTCUSDT", "category": "linear", "trailingStop": "1000" }
             },
             {
                 "description": "Swap inverse market buy order",
@@ -597,7 +597,7 @@
                     "buy",
                     1
                 ],
-                "output": "{\"symbol\":\"BTCUSD\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"inverse\",\"qty\":\"1\"}"
+                "output": { "symbol": "BTCUSD", "side": "Buy", "orderType": "Market", "category": "inverse", "qty": "1" }
             },
             {
                 "description": "Swap inverse market sell order",
@@ -613,7 +613,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSD\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"inverse\",\"qty\":\"1\",\"reduceOnly\":true}"
+                "output": { "symbol": "BTCUSD", "side": "Sell", "orderType": "Market", "category": "inverse", "qty": "1", "reduceOnly": true }
             },
             {
                 "description": "Create market buy with base amount (UTA only)",
@@ -625,7 +625,7 @@
                     "buy",
                     0.2
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"marketUnit\":\"baseCoin\",\"qty\":\"0.2\"}"
+                "output": { "symbol": "LTCUSDT", "side": "Buy", "orderType": "Market", "category": "spot", "marketUnit": "baseCoin", "qty": "0.2" }
             },
             {
                 "description": "Create market sell with cost (UTA only)",
@@ -638,7 +638,7 @@
                     0.2,
                     10
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"spot\",\"marketUnit\":\"quoteCoin\",\"qty\":\"2\"}"
+                "output": { "symbol": "LTCUSDT", "side": "Sell", "orderType": "Market", "category": "spot", "marketUnit": "quoteCoin", "qty": "2" }
             },
             {
                 "description": "market sell with cost in params (UTA only)",
@@ -654,7 +654,7 @@
                         "cost": 3
                     }
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"spot\",\"marketUnit\":\"quoteCoin\",\"qty\":\"3\"}"
+                "output": { "symbol": "LTCUSDT", "side": "Sell", "orderType": "Market", "category": "spot", "marketUnit": "quoteCoin", "qty": "3" }
             },
             {
                 "description": "Create swap limit order with tp+sl limit orders attached",
@@ -677,7 +677,7 @@
                         }
                     }
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"1\",\"price\":\"50\",\"stopLoss\":\"50\",\"tpslMode\":\"Partial\",\"slOrderType\":\"Limit\",\"slLimitPrice\":\"49\",\"takeProfit\":\"100\",\"tpOrderType\":\"Limit\",\"tpLimitPrice\":\"90\"}"
+                "output": { "symbol": "LTCUSDT", "side": "Buy", "orderType": "Limit", "category": "linear", "qty": "1", "price": "50", "stopLoss": "50", "tpslMode": "Partial", "slOrderType": "Limit", "slLimitPrice": "49", "takeProfit": "100", "tpOrderType": "Limit", "tpLimitPrice": "90" }
             },
             {
                 "description": "spot order with weird price and amount",
@@ -690,7 +690,7 @@
                   0.1444444234234234,
                   60.423423423
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"price\":\"60.42\",\"category\":\"spot\",\"qty\":\"0.14444\"}"
+                "output": { "symbol": "LTCUSDT", "side": "Buy", "orderType": "Limit", "price": "60.42", "category": "spot", "qty": "0.14444" }
             },
             {
                 "description": "swap order with weird price and amount",
@@ -703,7 +703,7 @@
                   1.1444444234234235,
                   60.423423423
                 ],
-                "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"price\":\"60.4234\",\"category\":\"linear\",\"qty\":\"1\"}"
+                "output": { "symbol": "ADAUSDT", "side": "Buy", "orderType": "Limit", "price": "60.4234", "category": "linear", "qty": "1" }
             },
             {
                 "description": "market option order",
@@ -715,7 +715,7 @@
                   "buy",
                   1
                 ],
-                "output": "{\"symbol\":\"BTC-25OCT24-46000-C\",\"side\":\"Buy\",\"orderType\":\"Market\",\"orderLinkId\":\"8b2c958a6470a4da\",\"category\":\"option\",\"qty\":\"1\"}"
+                "output": { "symbol": "BTC-25OCT24-46000-C", "side": "Buy", "orderType": "Market", "orderLinkId": "8b2c958a6470a4da", "category": "option", "qty": "1" }
             },
             {
                 "description": "limit option order",
@@ -728,7 +728,7 @@
                   1,
                   15000
                 ],
-                "output": "{\"symbol\":\"BTC-25OCT24-46000-C\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"orderLinkId\":\"1b152a3bc495b57c\",\"price\":\"15000\",\"category\":\"option\",\"qty\":\"1\"}"
+                "output": { "symbol": "BTC-25OCT24-46000-C", "side": "Buy", "orderType": "Limit", "orderLinkId": "1b152a3bc495b57c", "price": "15000", "category": "option", "qty": "1" }
             },
             {
                 "description": "swap market sell reduceOnly order",
@@ -744,7 +744,7 @@
                     "reduceOnly": true
                   }
                 ],
-                "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"linear\",\"qty\":\"81\",\"reduceOnly\":true}"
+                "output": { "symbol": "ADAUSDT", "side": "Sell", "orderType": "Market", "category": "linear", "qty": "81", "reduceOnly": true }
             },
             {
                 "description": "swap market buy hedged order",
@@ -760,7 +760,7 @@
                     "hedged": true
                   }
                 ],
-                "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"linear\",\"qty\":\"10\",\"positionIdx\":1}"
+                "output": { "symbol": "ADAUSDT", "side": "Buy", "orderType": "Market", "category": "linear", "qty": "10", "positionIdx": 1 }
             },
             {
                 "description": "swap market sell hedged order",
@@ -776,7 +776,7 @@
                     "hedged": true
                   }
                 ],
-                "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"linear\",\"qty\":\"10\",\"positionIdx\":2}"
+                "output": { "symbol": "ADAUSDT", "side": "Sell", "orderType": "Market", "category": "linear", "qty": "10", "positionIdx": 2 }
             },
             {
                 "description": "swap hedged reduceOnly sell order",
@@ -793,7 +793,7 @@
                     "reduceOnly": true
                   }
                 ],
-                "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"linear\",\"qty\":\"10\",\"positionIdx\":1}"
+                "output": { "symbol": "ADAUSDT", "side": "Sell", "orderType": "Market", "category": "linear", "qty": "10", "positionIdx": 1 }
             },
             {
                 "description": "swap hedged buy reduceOnly order",
@@ -810,7 +810,7 @@
                     "reduceOnly": true
                   }
                 ],
-                "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"linear\",\"qty\":\"10\",\"positionIdx\":2}"
+                "output": { "symbol": "ADAUSDT", "side": "Buy", "orderType": "Market", "category": "linear", "qty": "10", "positionIdx": 2 }
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -822,7 +822,7 @@
                     "DOGE/USDT",
                     12.45
                 ],
-                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"12.45\"}"
+                "output": { "symbol": "DOGEUSDT", "side": "Buy", "orderType": "Market", "category": "spot", "qty": "12.45" }
             },
             {
                 "description": "Spot market buy with createMarketBuyOrderWithCost",
@@ -832,7 +832,7 @@
                     "LTC/USDT",
                     10
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"10\"}"
+                "output": { "symbol": "LTCUSDT", "side": "Buy", "orderType": "Market", "category": "spot", "qty": "10" }
             }
         ],
         "createMarketSellOrderWithCost": [
@@ -844,7 +844,7 @@
                     "LTC/USDT",
                     5
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"spot\",\"marketUnit\":\"quoteCoin\",\"qty\":\"5\"}"
+                "output": { "symbol": "LTCUSDT", "side": "Sell", "orderType": "Market", "category": "spot", "marketUnit": "quoteCoin", "qty": "5" }
             }
         ],
         "createOrders": [
@@ -870,7 +870,7 @@
                         }
                     ]
                 ],
-                "output": "{\"category\":\"spot\",\"request\":[{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"qty\":\"0.1\",\"price\":\"50\"},{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"qty\":\"0.11\",\"price\":\"70\"}]}"
+                "output": { "category": "spot", "request": [ { "symbol": "LTCUSDT", "side": "Buy", "orderType": "Limit", "qty": "0.1", "price": "50" }, { "symbol": "LTCUSDT", "side": "Sell", "orderType": "Limit", "qty": "0.11", "price": "70" } ] }
             },
             {
                 "description": "Swap create orders",
@@ -894,7 +894,7 @@
                         }
                     ]
                 ],
-                "output": "{\"category\":\"linear\",\"request\":[{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"qty\":\"0.1\",\"price\":\"60\"},{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"qty\":\"0.1\",\"price\":\"61\"}]}"
+                "output": { "category": "linear", "request": [ { "symbol": "LTCUSDT", "side": "Buy", "orderType": "Limit", "qty": "0.1", "price": "60" }, { "symbol": "LTCUSDT", "side": "Buy", "orderType": "Limit", "qty": "0.1", "price": "61" } ] }
             }
         ],
         "cancelOrder": [
@@ -906,7 +906,7 @@
                     "8caeea8c-cf80-4b06-83e8-bb7df45fc122",
                     "LTC/USDT:USDT"
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"orderId\":\"8caeea8c-cf80-4b06-83e8-bb7df45fc122\",\"category\":\"linear\"}"
+                "output": { "symbol": "LTCUSDT", "orderId": "8caeea8c-cf80-4b06-83e8-bb7df45fc122", "category": "linear" }
             },
             {
                 "description": "Spot cancelOrder",
@@ -916,7 +916,7 @@
                     "1513125485218108928",
                     "LTC/USDT"
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"orderFilter\":\"Order\",\"orderId\":\"1513125485218108928\",\"category\":\"spot\"}"
+                "output": { "symbol": "LTCUSDT", "orderFilter": "Order", "orderId": "1513125485218108928", "category": "spot" }
             },
             {
                 "description": "Spot cancel a stop order",
@@ -929,7 +929,7 @@
                         "stop": true
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"orderFilter\":\"StopOrder\",\"orderId\":\"1599966662050972416\",\"category\":\"spot\"}"
+                "output": { "symbol": "BTCUSDT", "orderFilter": "StopOrder", "orderId": "1599966662050972416", "category": "spot" }
             }
         ],
         "cancelOrders": [
@@ -943,7 +943,7 @@
                     ],
                     "LTC/USDT:USDT"
                 ],
-                "output": "{\"category\":\"linear\",\"request\":[{\"symbol\":\"LTCUSDT\",\"orderId\":\"8caeea8c-cf80-4b06-83e8-bb7df45fc122\"}]}"
+                "output": { "category": "linear", "request": [ { "symbol": "LTCUSDT", "orderId": "8caeea8c-cf80-4b06-83e8-bb7df45fc122" } ] }
             },
             {
                 "description": "Spot cancelOrders",
@@ -955,7 +955,7 @@
                     ],
                     "LTC/USDT"
                 ],
-                "output": "{\"category\":\"spot\",\"request\":[{\"symbol\":\"LTCUSDT\",\"orderId\":\"1513125485218108928\"}]}"
+                "output": { "category": "spot", "request": [ { "symbol": "LTCUSDT", "orderId": "1513125485218108928" } ] }
             },
             {
                 "description": "cancelOrders by clientOrderId",
@@ -970,7 +970,7 @@
                         ]
                     }
                 ],
-                "output": "{\"category\":\"linear\",\"request\":[{\"symbol\":\"LTCUSDT\",\"orderLinkId\":\"test123\"}]}"
+                "output": { "category": "linear", "request": [ { "symbol": "LTCUSDT", "orderLinkId": "test123" } ] }
             }
         ],
         "cancelAllOrders": [
@@ -981,7 +981,7 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"linear\"}"
+                "output": { "symbol": "BTCUSDT", "category": "linear" }
             },
             {
                 "description": "Swap cancel all open stop orders",
@@ -993,7 +993,7 @@
                         "stop": true
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"linear\",\"orderFilter\":\"StopOrder\"}"
+                "output": { "symbol": "BTCUSDT", "category": "linear", "orderFilter": "StopOrder" }
             },
             {
                 "description": "Spot cancel all open stop orders",
@@ -1005,7 +1005,7 @@
                         "stop": true
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"spot\",\"orderFilter\":\"StopOrder\"}"
+                "output": { "symbol": "BTCUSDT", "category": "spot", "orderFilter": "StopOrder" }
             }
         ],
         "cancelOrdersForSymbols": [
@@ -1025,7 +1025,7 @@
                     }
                   ]
                 ],
-                "output": "{\"category\":\"linear\",\"request\":[{\"symbol\":\"LTCUSDT\",\"orderId\":\"da3d893d-8668-4482-a2ec-c3d1414695c3\"},{\"symbol\":\"ADAUSDT\",\"orderId\":\"da03221b-f231-49c2-9b93-e1d10ed470c2\"}]}"
+                "output": { "category": "linear", "request": [ { "symbol": "LTCUSDT", "orderId": "da3d893d-8668-4482-a2ec-c3d1414695c3" }, { "symbol": "ADAUSDT", "orderId": "da03221b-f231-49c2-9b93-e1d10ed470c2" } ] }
             }
         ],
         "editOrders": [
@@ -1053,7 +1053,7 @@
                         }
                     ]
                 ],
-                "output": "{\"category\":\"spot\",\"request\":[{\"orderId\":\"2e472521-031f-40f5-a8cb-bc3efb86ce0f\",\"symbol\":\"LTCUSDT\",\"qty\":\"0.1\",\"price\":\"50\"},{\"orderId\":\"3e472521-031f-40f5-a8cb-bc3efb86ce0f\",\"symbol\":\"LTCUSDT\",\"qty\":\"0.11\",\"price\":\"70\"}]}"
+                "output": { "category": "spot", "request": [ { "orderId": "2e472521-031f-40f5-a8cb-bc3efb86ce0f", "symbol": "LTCUSDT", "qty": "0.1", "price": "50" }, { "orderId": "3e472521-031f-40f5-a8cb-bc3efb86ce0f", "symbol": "LTCUSDT", "qty": "0.11", "price": "70" } ] }
             },
             {
                 "description": "Swap edit orders",
@@ -1079,7 +1079,7 @@
                         }
                     ]
                 ],
-                "output": "{\"category\":\"linear\",\"request\":[{\"orderId\":\"2e472521-031f-40f5-a8cb-bc3efb86ce0f\",\"symbol\":\"LTCUSDT\",\"qty\":\"0.1\",\"price\":\"60\"},{\"orderId\":\"3e472521-031f-40f5-a8cb-bc3efb86ce0f\",\"symbol\":\"LTCUSDT\",\"qty\":\"0.1\",\"price\":\"61\"}]}"
+                "output": { "category": "linear", "request": [ { "orderId": "2e472521-031f-40f5-a8cb-bc3efb86ce0f", "symbol": "LTCUSDT", "qty": "0.1", "price": "60" }, { "orderId": "3e472521-031f-40f5-a8cb-bc3efb86ce0f", "symbol": "LTCUSDT", "qty": "0.1", "price": "61" } ] }
             }
         ],
         "fetchOpenOrders": [
@@ -1250,7 +1250,7 @@
                     6,
                     "LTC/USDT:USDT"
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"buyLeverage\":\"6\",\"sellLeverage\":\"6\",\"category\":\"linear\"}"
+                "output": { "symbol": "LTCUSDT", "buyLeverage": "6", "sellLeverage": "6", "category": "linear" }
             },
             {
                 "description": "Set leverage inverse",
@@ -1260,7 +1260,7 @@
                     6,
                     "BTC/USD:BTC"
                 ],
-                "output": "{\"symbol\":\"BTCUSD\",\"buyLeverage\":\"6\",\"sellLeverage\":\"6\",\"category\":\"inverse\"}"
+                "output": { "symbol": "BTCUSD", "buyLeverage": "6", "sellLeverage": "6", "category": "inverse" }
             }
         ],
         "fetchDeposits": [
@@ -1385,7 +1385,7 @@
                     "unified",
                     "funding"
                 ],
-                "output": "{\"transferId\":\"22942eaa-4231-47a4-8f05-0a6a6d8d221e\",\"fromAccountType\":\"UNIFIED\",\"toAccountType\":\"FUND\",\"coin\":\"USDT\",\"amount\":\"1\"}"
+                "output": { "transferId": "22942eaa-4231-47a4-8f05-0a6a6d8d221e", "fromAccountType": "UNIFIED", "toAccountType": "FUND", "coin": "USDT", "amount": "1" }
             }
         ],
         "setPositionMode": [
@@ -1397,7 +1397,7 @@
                     true,
                     "BTC/USDT:USDT"
                 ],
-                "output": "{\"mode\":3,\"symbol\":\"BTCUSDT\",\"category\":\"linear\"}"
+                "output": { "mode": 3, "symbol": "BTCUSDT", "category": "linear" }
             },
             {
                 "description": "Set position mode to one-way mode",
@@ -1407,7 +1407,7 @@
                     false,
                     "BTC/USDT:USDT"
                 ],
-                "output": "{\"mode\":0,\"symbol\":\"BTCUSDT\",\"category\":\"linear\"}"
+                "output": { "mode": 0, "symbol": "BTCUSDT", "category": "linear" }
             }
         ],
         "setMarginMode": [
@@ -1419,7 +1419,7 @@
                     "isolated",
                     "BTC/USDT:USDT"
                 ],
-                "output": "{\"setMarginMode\":\"ISOLATED_MARGIN\"}"
+                "output": { "setMarginMode": "ISOLATED_MARGIN" }
             },
             {
                 "description": "Set margin mode to cross margin",
@@ -1429,7 +1429,7 @@
                     "cross",
                     "BTC/USDT:USDT"
                 ],
-                "output": "{\"setMarginMode\":\"REGULAR_MARGIN\"}"
+                "output": { "setMarginMode": "REGULAR_MARGIN" }
             }
         ],
         "fetchTickers": [
@@ -1823,7 +1823,7 @@
                         "network": "TRC20"
                     }
                 ],
-                "output": "{\"coin\":\"USDT\",\"amount\":\"4.34\",\"address\":\"TCb3SXELLBn81JWPNhTbGBEoXHtCX62eU6\",\"timestamp\":1758879504108,\"accountType\":\"UTA\",\"chain\":\"TRX\"}"
+                "output": { "coin": "USDT", "amount": "4.34", "address": "TCb3SXELLBn81JWPNhTbGBEoXHtCX62eU6", "timestamp": 1758879504108, "accountType": "UTA", "chain": "TRX" }
             },
             {
                 "description": "withdraw from fund account using UTA account",
@@ -1839,7 +1839,7 @@
                         "accountType": "FUND"
                     }
                 ],
-                "output": "{\"coin\":\"USDT\",\"amount\":\"4.34\",\"address\":\"TCb3SXELLBn81JWPNhTbGBEoXHtCX62eU6\",\"timestamp\":1758879459515,\"accountType\":\"FUND\",\"chain\":\"TRX\"}"
+                "output": { "coin": "USDT", "amount": "4.34", "address": "TCb3SXELLBn81JWPNhTbGBEoXHtCX62eU6", "timestamp": 1758879459515, "accountType": "FUND", "chain": "TRX" }
             },
             {
                 "description": "withdraw usdt on uta",
@@ -1854,7 +1854,7 @@
                     "network": "TRC20"
                   }
                 ],
-                "output": "{\"coin\":\"USDT\",\"amount\":\"10\",\"address\":\"TFC#SYyBLBnF1JWPAhTbGBEoXHtDX6rYT6\",\"timestamp\":1754478062727,\"accountType\":\"UTA\",\"chain\":\"TRX\"}"
+                "output": { "coin": "USDT", "amount": "10", "address": "TFC#SYyBLBnF1JWPAhTbGBEoXHtDX6rYT6", "timestamp": 1754478062727, "accountType": "UTA", "chain": "TRX" }
             },
             {
                 "description": "withdraw usdt on tron non uta",
@@ -1872,7 +1872,7 @@
                     "network": "TRC20"
                   }
                 ],
-                "output": "{\"coin\":\"USDT\",\"amount\":\"5\",\"address\":\"TReSxAuV3YvKQPTZoUuCVSFXxJUC432LMz\",\"timestamp\":1723663288607,\"accountType\":\"SPOT\",\"chain\":\"TRX\"}"
+                "output": { "coin": "USDT", "amount": "5", "address": "TReSxAuV3YvKQPTZoUuCVSFXxJUC432LMz", "timestamp": 1723663288607, "accountType": "SPOT", "chain": "TRX" }
             }
         ],
         "fetchConvertCurrencies": [
@@ -1893,7 +1893,7 @@
                   "BTC",
                   10
                 ],
-                "output": "{\"fromCoin\":\"USDT\",\"toCoin\":\"BTC\",\"requestAmount\":\"10\",\"requestCoin\":\"USDT\",\"accountType\":\"eb_convert_uta\"}"
+                "output": { "fromCoin": "USDT", "toCoin": "BTC", "requestAmount": "10", "requestCoin": "USDT", "accountType": "eb_convert_uta" }
             }
         ],
         "createConvertTrade": [
@@ -1907,7 +1907,7 @@
                   "BTC",
                   10
                 ],
-                "output": "{\"quoteTxId\":\"1010210067439483213403283456\"}"
+                "output": { "quoteTxId": "1010210067439483213403283456" }
             }
         ],
         "fetchConvertTrade": [
@@ -2005,7 +2005,7 @@
                     "BTC",
                     0.001
                 ],
-                "output": "{\"coin\":\"BTC\",\"amount\":\"0.001\"}"
+                "output": { "coin": "BTC", "amount": "0.001" }
             }
         ],
         "repayCrossMargin": [
@@ -2017,7 +2017,7 @@
                     "BTC",
                     0.001
                 ],
-                "output": "{\"coin\":\"BTC\",\"amount\":\"0.001\"}"
+                "output": { "coin": "BTC", "amount": "0.001" }
             }
         ],
         "fetchPositionADLRank": [

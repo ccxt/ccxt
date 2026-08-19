@@ -15,7 +15,7 @@
                     0.0001,
                     37000
                 ],
-                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"Limit\",\"text\":\"CCXT\",\"price\":37000}"
+                "output": { "symbol": "XBT_USDT", "side": "Buy", "orderQty": 10000, "ordType": "Limit", "text": "CCXT", "price": 37000 }
             },
             {
                 "description": "swap limit buy",
@@ -28,7 +28,7 @@
                     1000,
                     35000
                 ],
-                "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Buy\",\"orderQty\":1000,\"ordType\":\"Limit\",\"text\":\"CCXT\",\"price\":35000}"
+                "output": { "symbol": "XBTUSDT", "side": "Buy", "orderQty": 1000, "ordType": "Limit", "text": "CCXT", "price": 35000 }
             },
             {
                 "description": "spot limit sell",
@@ -41,7 +41,7 @@
                     0.0001,
                     36000
                 ],
-                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Sell\",\"orderQty\":10000,\"ordType\":\"Limit\",\"text\":\"CCXT\",\"price\":36000}"
+                "output": { "symbol": "XBT_USDT", "side": "Sell", "orderQty": 10000, "ordType": "Limit", "text": "CCXT", "price": 36000 }
             },
             {
                 "description": "spot market buy",
@@ -54,7 +54,7 @@
                     0.0001,
                     null
                 ],
-                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
+                "output": { "symbol": "XBT_USDT", "side": "Buy", "orderQty": 10000, "ordType": "Market", "text": "CCXT" }
             },
             {
                 "description": "swap market buy",
@@ -66,7 +66,7 @@
                     "buy",
                     1000
                 ],
-                "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Buy\",\"orderQty\":1000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
+                "output": { "symbol": "XBTUSDT", "side": "Buy", "orderQty": 1000, "ordType": "Market", "text": "CCXT" }
             },
             {
                 "description": "spot market buy with defined price",
@@ -79,7 +79,7 @@
                     0.0001,
                     37000
                 ],
-                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
+                "output": { "symbol": "XBT_USDT", "side": "Buy", "orderQty": 10000, "ordType": "Market", "text": "CCXT" }
             },
             {
                 "description": "spot market sell",
@@ -92,7 +92,7 @@
                     0.0001,
                     null
                 ],
-                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Sell\",\"orderQty\":10000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
+                "output": { "symbol": "XBT_USDT", "side": "Sell", "orderQty": 10000, "ordType": "Market", "text": "CCXT" }
             },
             {
                 "description": "spot market sell with defined price",
@@ -105,7 +105,7 @@
                     0.0001,
                     36000
                 ],
-                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Sell\",\"orderQty\":10000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
+                "output": { "symbol": "XBT_USDT", "side": "Sell", "orderQty": 10000, "ordType": "Market", "text": "CCXT" }
             },
             {
                 "description": "spot limit buy with PO and GTC",
@@ -122,7 +122,7 @@
                         "timeInForce": "GTC"
                     }
                 ],
-                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"Limit\",\"text\":\"CCXT\",\"price\":36000,\"timeInForce\":\"GTC\",\"execInst\":\"ParticipateDoNotInitiate\"}"
+                "output": { "symbol": "XBT_USDT", "side": "Buy", "orderQty": 10000, "ordType": "Limit", "text": "CCXT", "price": 36000, "timeInForce": "GTC", "execInst": "ParticipateDoNotInitiate" }
             },
             {
                 "description": "spot market buy with triggerPrice and triggerDirection below",
@@ -139,7 +139,7 @@
                         "triggerDirection": "below"
                     }
                 ],
-                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000000,\"ordType\":\"MarketIfTouched\",\"text\":\"CCXT\",\"stopPx\":35}"
+                "output": { "symbol": "XBT_USDT", "side": "Buy", "orderQty": 10000000, "ordType": "MarketIfTouched", "text": "CCXT", "stopPx": 35 }
             },
             {
                 "description": "spot market buy with triggerPrice and triggerDirection above",
@@ -156,7 +156,7 @@
                         "triggerDirection": "above"
                     }
                 ],
-                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000000,\"ordType\":\"Stop\",\"text\":\"CCXT\",\"stopPx\":37000}"
+                "output": { "symbol": "XBT_USDT", "side": "Buy", "orderQty": 10000000, "ordType": "Stop", "text": "CCXT", "stopPx": 37000 }
             },
             {
                 "description": "Spot limit buy with trigger direction infered from exchange-specific order type",
@@ -172,7 +172,7 @@
                         "triggerPrice": 36944
                     }
                 ],
-                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"LimitIfTouched\",\"text\":\"CCXT\",\"stopPx\":36944,\"price\":36000}"
+                "output": { "symbol": "XBT_USDT", "side": "Buy", "orderQty": 10000, "ordType": "LimitIfTouched", "text": "CCXT", "stopPx": 36944, "price": 36000 }
             },
             {
                 "description": "Swap market sell order with reduceOnly",
@@ -188,7 +188,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Sell\",\"orderQty\":1000,\"ordType\":\"Market\",\"text\":\"CCXT\",\"execInst\":\"ReduceOnly\"}"
+                "output": { "symbol": "XBTUSDT", "side": "Sell", "orderQty": 1000, "ordType": "Market", "text": "CCXT", "execInst": "ReduceOnly" }
             },
             {
                 "description": "Swap market trailing order",
@@ -205,7 +205,7 @@
                         "triggerDirection": "above"
                     }
                 ],
-                "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Sell\",\"orderQty\":1000,\"ordType\":\"MarketIfTouched\",\"text\":\"CCXT\",\"pegOffsetValue\":100,\"pegPriceType\":\"TrailingStopPeg\"}"
+                "output": { "symbol": "XBTUSDT", "side": "Sell", "orderQty": 1000, "ordType": "MarketIfTouched", "text": "CCXT", "pegOffsetValue": 100, "pegPriceType": "TrailingStopPeg" }
             },
             {
                 "description": "Swap limit trailing order",
@@ -222,7 +222,7 @@
                         "triggerDirection": "above"
                     }
                 ],
-                "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Sell\",\"orderQty\":1000,\"ordType\":\"LimitIfTouched\",\"text\":\"CCXT\",\"pegOffsetValue\":100,\"pegPriceType\":\"TrailingStopPeg\",\"price\":45000}"
+                "output": { "symbol": "XBTUSDT", "side": "Sell", "orderQty": 1000, "ordType": "LimitIfTouched", "text": "CCXT", "pegOffsetValue": 100, "pegPriceType": "TrailingStopPeg", "price": 45000 }
             }
         ],
         "fetchTrades": [
@@ -256,7 +256,7 @@
                     0.0001,
                     34000
                 ],
-                "output": "{\"orderID\":\"9a647c5c-59c7-43dc-94ca-d16f6628a7ad\",\"orderQty\":10000,\"price\":34000,\"text\":\"CCXT\"}"
+                "output": { "orderID": "9a647c5c-59c7-43dc-94ca-d16f6628a7ad", "orderQty": 10000, "price": 34000, "text": "CCXT" }
             },
             {
                 "description": "Swap edit order",
@@ -270,7 +270,7 @@
                     1000,
                     35000
                 ],
-                "output": "{\"orderID\":\"e9c8109c-1b6c-4526-b6b9-9619d95cba47\",\"orderQty\":1000,\"price\":35000,\"text\":\"CCXT\"}"
+                "output": { "orderID": "e9c8109c-1b6c-4526-b6b9-9619d95cba47", "orderQty": 1000, "price": 35000, "text": "CCXT" }
             },
             {
                 "description": "Swap edit trailing order",
@@ -288,7 +288,7 @@
                         "triggerDirection": "above"
                     }
                 ],
-                "output": "{\"pegOffsetValue\":11000,\"orderID\":\"f21aa11e-3857-4e39-9230-53cb15a04c3f\",\"orderQty\":1000,\"text\":\"CCXT\"}"
+                "output": { "pegOffsetValue": 11000, "orderID": "f21aa11e-3857-4e39-9230-53cb15a04c3f", "orderQty": 1000, "text": "CCXT" }
             }
         ],
         "fetchOrderBook": [
@@ -495,7 +495,7 @@
                 "input": [
                     "9a647c5c-59c7-43dc-94ca-d16f6628a7ad"
                 ],
-                "output": "{\"orderID\":\"9a647c5c-59c7-43dc-94ca-d16f6628a7ad\"}"
+                "output": { "orderID": "9a647c5c-59c7-43dc-94ca-d16f6628a7ad" }
             }
         ],
         "cancelOrders": [
@@ -508,7 +508,7 @@
                         "e9c8109c-1b6c-4526-b6b9-9619d95cba47"
                     ]
                 ],
-                "output": "{\"orderID\":[\"e9c8109c-1b6c-4526-b6b9-9619d95cba47\"]}"
+                "output": { "orderID": [ "e9c8109c-1b6c-4526-b6b9-9619d95cba47" ] }
             }
         ],
         "cancelAllOrders": [
@@ -519,7 +519,7 @@
                 "input": [
                     "BTC/USDT"
                 ],
-                "output": "{\"symbol\":\"XBT_USDT\"}"
+                "output": { "symbol": "XBT_USDT" }
             }
         ],
         "cancelAllOrdersAfter": [
@@ -530,7 +530,7 @@
                 "input": [
                     100000
                 ],
-                "output": "{\"timeout\":100}"
+                "output": { "timeout": 100 }
             },
             {
                 "description": "Close cancel all orders after",
@@ -539,7 +539,7 @@
                 "input": [
                     0
                 ],
-                "output": "{\"timeout\":0}"
+                "output": { "timeout": 0 }
             }
         ],
         "fetchFundingRates": [
@@ -582,7 +582,7 @@
                     25,
                     "BTC/USDT:USDT"
                 ],
-                "output": "{\"symbol\":\"XBTUSDT\",\"leverage\":25}"
+                "output": { "symbol": "XBTUSDT", "leverage": 25 }
             }
         ],
         "setMarginMode": [
@@ -594,7 +594,7 @@
                     "cross",
                     "BTC/USDT:USDT"
                 ],
-                "output": "{\"symbol\":\"XBTUSDT\",\"enabled\":false}"
+                "output": { "symbol": "XBTUSDT", "enabled": false }
             }
         ],
         "fetchLiquidations": [
@@ -721,7 +721,7 @@
                     "BTC/USDT:USDT",
                     "sell"
                 ],
-                "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Sell\",\"execInst\":\"Close\"}"
+                "output": { "symbol": "XBTUSDT", "side": "Sell", "execInst": "Close" }
             }
         ]
     }
