@@ -3162,21 +3162,16 @@ class binance extends \ccxt\async\binance {
         $listenKeyRefreshRate = $this->safe_integer($this->options, $refreshRateKey, 1200000);
         $delay = $this->sum($listenKeyRefreshRate, 10000);
         if ($time - $lastAuthenticatedTime > $delay) {
-            // the private url embeds the $listenKey that this request produces, so the future
-            // is parked on the $listenKey-free base url of that same stream - concurrent
-            // callers wait for the leader instead of fetching a second $listenKey, which
-            // would split the user-data subscriptions across two connections. the stock
-            // stream parks on the $listenKey-free market url of the same host for the
-            // same reason
-            $clientUrl = $isStock ? $this->get_stock_ws_url('market') : $this->get_ws_url($type, 'private');
-            $client = $this->client($clientUrl);
-            $messageHash = 'authenticate:' . $type;
-            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
-                // another caller is already fetching, wait for it instead of fetching again
-                Async\await($client->future($messageHash));
+            // single-flight leader election => the flight lives on the exchange,
+            // not parked on a ws client, so no client is instantiated just to
+            // carry the future and no $listenKey-free parking url is needed -
+            // waiters wake when the leader settles and read the cached bucket
+            $flightHash = 'authenticate:' . $type;
+            $isLeader = Async\await($this->single_flight_acquire($flightHash));
+            if (!$isLeader) {
+                // the leader settled the flight => the $listenKey is in the bucket
                 return;
             }
-            $client->future($messageHash); // created ahead of the request below, so concurrent callers can find it
             try {
                 $response = null;
                 if ($isStock) {
@@ -3206,9 +3201,9 @@ class binance extends \ccxt\async\binance {
                     $delayParams = $this->extend($params, array( 'type' => 'stock', 'defaultType' => 'stock' ));
                 }
                 $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $delayParams);
-                $client->resolve($listenKey, $messageHash);
+                $this->single_flight_resolve($flightHash, $listenKey);
             } catch (Exception $e) {
-                $client->reject($e, $messageHash);
+                $this->single_flight_reject($flightHash, $e);
                 throw $e;
             }
         }
