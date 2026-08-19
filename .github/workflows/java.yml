@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: [ self-hosted, linux, x64, java ]
+    runs-on: ubuntu-latest
     if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
     timeout-minutes: 30
     steps:
@@ -47,6 +47,7 @@ jobs:
     - uses: actions/setup-node@v5
       with:
         node-version: '22'
+        cache: 'npm'
     - name: Set up JDK
       uses: actions/setup-java@v5
       with:
