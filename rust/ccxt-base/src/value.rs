@@ -1701,6 +1701,46 @@ pub fn side_entries_as_value(v: &Value) -> Option<Value> {
     }
 }
 
+/// `[price, amount]` for one level row (`Value::Arr`), coercing Str/Int/Float.
+/// Returns `None` for a short/non-numeric row so it can be dropped.
+fn row_price_amount(row: &Value) -> Option<[f64; 2]> {
+    let r = match row { Value::Arr(a) => a, _ => return None };
+    let num = |cell: Option<&Value>| -> f64 {
+        match cell {
+            Some(Value::Float(f)) => *f,
+            Some(Value::Int(n)) => *n as f64,
+            Some(Value::Str(s)) => s.parse().unwrap_or(f64::NAN),
+            _ => f64::NAN,
+        }
+    };
+    let p = num(r.first());
+    let a = num(r.get(1));
+    if p.is_nan() || a.is_nan() { None } else { Some([p, a]) }
+}
+
+/// Read a side marker's levels as `[price, amount]` pairs straight from the
+/// shared side store — no intermediate `Value` list is materialised, so the
+/// typed `OrderBook::from_value` decode reads the book without cloning every
+/// level. Returns `None` when `v` is not a side marker (the caller then reads a
+/// plain `Value::Arr`). NaN/short rows are dropped (not valid book levels).
+pub fn side_price_amounts(v: &Value) -> Option<Vec<[f64; 2]>> {
+    let d = match v {
+        Value::Dict(d) if d.contains_key("__sideKind") => d,
+        _ => return None,
+    };
+    let out = match side_id_of(d) {
+        Some(id) => match SIDE_STORE.lock().unwrap().get(&id) {
+            Some(cell) => cell.entries.iter().filter_map(row_price_amount).collect(),
+            None => Vec::new(),
+        },
+        None => match d.get("_entries") {
+            Some(Value::Arr(a)) => a.iter().filter_map(row_price_amount).collect(),
+            _ => Vec::new(),
+        },
+    };
+    Some(out)
+}
+
 /// Build a fresh side marker Dict backed by a new (empty) shared cell.
 pub(crate) fn make_side_marker(side_kind: &str, is_bid: bool, depth: i64) -> Value {
     let sid = alloc_side_id();
@@ -1779,8 +1819,7 @@ fn side_store_array(side: &Value, delta: Value) {
             let size  = delta_field(&delta, 1, as_f64, 0.0);
             let target = if is_bid { -price } else { price };
             let entries = &mut cell.entries;
-            let entries_view: Vec<Value> = entries.iter().cloned().collect();
-            let idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(&entries_view));
+            let idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(entries));
             if size != 0.0 {
                 if idx < entries.len()
                     && {
@@ -1817,8 +1856,7 @@ fn side_store_array(side: &Value, delta: Value) {
             let store_it = if has_count { size != 0.0 && count != 0.0 } else { size != 0.0 };
             let target = if is_bid { -price } else { price };
             let entries = &mut cell.entries;
-            let entries_view: Vec<Value> = entries.iter().cloned().collect();
-            let idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(&entries_view));
+            let idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(entries));
             if store_it {
                 if idx < entries.len()
                     && {
@@ -1874,8 +1912,7 @@ fn side_store_array(side: &Value, delta: Value) {
                         // Find slot by walking from bisect_left
                         let target = old_price;
                         let entries = &mut cell.entries;
-                        let entries_view: Vec<Value> = entries.iter().cloned().collect();
-                        let mut idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(&entries_view));
+                        let mut idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(entries));
                         while idx < entries.len() && entry_id(entries, idx) != id { idx += 1; }
                         if idx < entries.len() { entries[idx] = delta; }
                         return;
@@ -1883,16 +1920,14 @@ fn side_store_array(side: &Value, delta: Value) {
                     // Different price — remove old slot
                     let target = old_price;
                     let entries = &mut cell.entries;
-                    let entries_view: Vec<Value> = entries.iter().cloned().collect();
-                    let mut old_idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(&entries_view));
+                    let mut old_idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(entries));
                     while old_idx < entries.len() && entry_id(entries, old_idx) != id { old_idx += 1; }
                     if old_idx < entries.len() { entries.remove(old_idx); }
                 }
                 let target = match index_price { Some(p) => p, None => return };
                 // Insert sorted with secondary id tiebreaker
                 let entries = &mut cell.entries;
-                let entries_view: Vec<Value> = entries.iter().cloned().collect();
-                let mut idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(&entries_view));
+                let mut idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(entries));
                 while idx < entries.len() {
                     let p = match &entries[idx] {
                         Value::Arr(a) => a.first().map(as_f64).unwrap_or(0.0),
@@ -1909,8 +1944,7 @@ fn side_store_array(side: &Value, delta: Value) {
                 // Delete by id
                 let target = old_price;
                 let entries = &mut cell.entries;
-                let entries_view: Vec<Value> = entries.iter().cloned().collect();
-                let mut idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(&entries_view));
+                let mut idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(entries));
                 while idx < entries.len() && entry_id(entries, idx) != id { idx += 1; }
                 if idx < entries.len() { entries.remove(idx); }
                 cell.hashmap.shift_remove(&id);

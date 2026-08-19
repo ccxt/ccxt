@@ -92,3 +92,8 @@ debug = 0
 [[bin]]
 name = "iexchange_demo"
 path = "src/iexchange_demo.rs"
+
+# Order-book update micro-benchmark (no network).
+[[bin]]
+name = "ob_bench"
+path = "src/ob_bench.rs"

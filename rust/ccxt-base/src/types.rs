@@ -200,6 +200,14 @@ impl OrderBook {
         // downstream (review #7).
         let extract_side = |key: &str| -> Vec<[f64; 2]> {
             let side = get_value(&v, &Value::Str(key.to_string()));
+            // A resolved WS book keeps its sides as shared markers (entries in
+            // the side store), not inline arrays — read those levels straight
+            // from the store as `[price, amount]` pairs (no intermediate Value
+            // clone). Without this the match below misses and the typed book
+            // comes back empty. Falls through to plain-array parsing otherwise.
+            if let Some(pairs) = crate::value::side_price_amounts(&side) {
+                return pairs;
+            }
             match side {
                 Value::Arr(rows) => rows.iter().filter_map(|row| {
                     let num = |cell: Option<&Value>| -> f64 {
