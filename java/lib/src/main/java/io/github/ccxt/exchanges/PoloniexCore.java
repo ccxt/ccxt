@@ -2422,6 +2422,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
@@ -2561,11 +2562,13 @@ public class PoloniexCore extends PoloniexApi
             Object priceKey = ((Helpers.isTrue(Helpers.GetValue(market, "spot")))) ? "price" : "px";
             Helpers.addElementToObject(request, priceKey, this.priceToPrecision(symbol, price));
         }
-        Object clientOrderId = this.safeString(parameters, "clientOrderId");
+        Object clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId");
         if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
         {
-            Helpers.addElementToObject(request, "clientOrderId", clientOrderId);
-            parameters = this.omit(parameters, "clientOrderId");
+            // the futures v3 api silently ignores the spot key and generates its own id
+            Object clientOrderIdKey = ((Helpers.isTrue(Helpers.GetValue(market, "spot")))) ? "clientOrderId" : "clOrdId";
+            Helpers.addElementToObject(request, clientOrderIdKey, clientOrderId);
+            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "clOrdId")));
         }
         // remember the timestamp before issuing the request
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(request, parameters));
@@ -2585,6 +2588,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
