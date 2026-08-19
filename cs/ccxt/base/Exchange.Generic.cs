@@ -16,7 +16,19 @@ public partial class BaseExchange
 
         if (value1.GetType() == typeof(string))
         {
-            var sortedList2 = list.OrderBy(x => ((dict)x)[(string)value1]).ToList();
+            // numeric keys arrive as mixed boxes (Double from parsers, Int32/Int64
+            // from literals and integer math) and Comparer<object> then throws
+            // ArgumentException from Double.CompareTo - normalize every numeric
+            // key to double before comparison, leave non-numerics untouched
+            var sortedList2 = list.OrderBy(x =>
+            {
+                var key = ((dict)x)[(string)value1];
+                if (key is sbyte || key is byte || key is short || key is ushort || key is int || key is uint || key is long || key is ulong || key is float || key is double || key is decimal)
+                {
+                    return (object)Convert.ToDouble(key);
+                }
+                return key;
+            }).ToList();
             if (desc)
                 sortedList2.Reverse();
             return sortedList2;
