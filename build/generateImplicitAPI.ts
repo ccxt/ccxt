@@ -226,8 +226,8 @@ const CSHARP_PATH = './cs/ccxt/api/';
 const PY_PATH = './python/ccxt/abstract/'
 const GO_PATH = './go/v4/'
 const JAVA_PATH = './java/lib/src/main/java/io/github/ccxt/api/'
-const RUST_PATH = './rust/ccxt/src/exchanges/'
-const RUST_PREDICTION_PATH = './rust/ccxt/src/prediction/'
+const RUST_PATH = './rust/ccxt-base/src/exchanges/'
+const RUST_PREDICTION_PATH = './rust/ccxt-base/src/prediction/'
 const IDEN = '    ';
 
 // -------------------------------------------------------------------------
