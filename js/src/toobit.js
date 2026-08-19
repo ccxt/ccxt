@@ -1951,7 +1951,11 @@ export default class toobit extends Exchange {
         const marketId = this.safeString(order, 'symbol');
         market = this.safeMarket(marketId, market);
         const rawType = this.safeString(order, 'type');
-        const rawSideLower = this.safeStringLower(order, 'side');
+        let rawSideLower = this.safeStringLower(order, 'side');
+        if (rawSideLower !== undefined) {
+            // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like
+            rawSideLower = this.safeString(rawSideLower.split('_'), 0);
+        }
         let triggerPrice = this.omitZero(this.safeString(order, 'stopPrice'));
         if (triggerPrice === '0.0') {
             triggerPrice = undefined;
