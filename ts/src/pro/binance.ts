@@ -403,7 +403,7 @@ export default class binance extends binanceRest {
             firstMarket = this.getMarketFromSymbols (symbols);
         }
         const resolvedAuth: Dict = this.resolveAuthType ('watchLiquidationsForSymbols', firstMarket, params);
-        let type = resolvedAuth['type'] as string;
+        const type = resolvedAuth['type'] as string;
         const rawType = resolvedAuth['rawType'] as Str;
         params = resolvedAuth['params'] as Dict;
         // policy checks run on rawType so the rewrite cannot smuggle a spot
@@ -4346,7 +4346,7 @@ export default class binance extends binanceRest {
             messageHash += ':' + symbol;
         }
         const resolvedAuth: Dict = this.resolveAuthType ('watchOrders', market, params);
-        let type = resolvedAuth['type'] as string;
+        const type = resolvedAuth['type'] as string;
         const subType = resolvedAuth['subType'] as Str;
         params = resolvedAuth['params'] as Dict;
         params = this.extend (params, { 'type': type, 'symbol': symbol, 'subType': subType }); // needed inside authenticate for isolated margin
