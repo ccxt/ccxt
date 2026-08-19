@@ -3013,21 +3013,16 @@ class binance extends binance$1["default"] {
         const listenKeyRefreshRate = this.safeInteger(this.options, refreshRateKey, 1200000);
         const delay = this.sum(listenKeyRefreshRate, 10000);
         if (time - lastAuthenticatedTime > delay) {
-            // the private url embeds the listenKey that this request produces, so the future
-            // is parked on the listenKey-free base url of that same stream - concurrent
-            // callers wait for the leader instead of fetching a second listenKey, which
-            // would split the user-data subscriptions across two connections. the stock
-            // stream parks on the listenKey-free market url of the same host for the
-            // same reason
-            const clientUrl = isStock ? this.getStockWsUrl('market') : this.getWsUrl(type, 'private');
-            const client = this.client(clientUrl);
-            const messageHash = 'authenticate:' + type;
-            if (messageHash in client.futures) {
-                // another caller is already fetching, wait for it instead of fetching again
-                await client.future(messageHash);
+            // single-flight leader election: the flight lives on the exchange,
+            // not parked on a ws client, so no client is instantiated just to
+            // carry the future and no listenKey-free parking url is needed -
+            // waiters wake when the leader settles and read the cached bucket
+            const flightHash = 'authenticate:' + type;
+            const isLeader = await this.singleFlightAcquire(flightHash);
+            if (!isLeader) {
+                // the leader settled the flight: the listenKey is in the bucket
                 return;
             }
-            client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
             try {
                 let response = undefined;
                 if (isStock) {
@@ -3062,10 +3057,10 @@ class binance extends binance$1["default"] {
                     delayParams = this.extend(params, { 'type': 'stock', 'defaultType': 'stock' });
                 }
                 this.delay(listenKeyRefreshRate, this.keepAliveListenKey, delayParams);
-                client.resolve(listenKey, messageHash);
+                this.singleFlightResolve(flightHash, listenKey);
             }
             catch (e) {
-                client.reject(e, messageHash);
+                this.singleFlightReject(flightHash, e);
                 throw e;
             }
         }
