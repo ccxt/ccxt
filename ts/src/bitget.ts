@@ -5314,6 +5314,7 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
      * @see https://www.bitget.com/api-doc/uta/trade/Place-Order
      * @see https://www.bitget.com/api-doc/uta/strategy/Place-Strategy-Order
+     * @see https://www.bitget.com/api-doc/uta/reality/trade/Place-Reality-Order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -5343,6 +5344,7 @@ export default class bitget extends Exchange {
      * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to place tokenized stock orders
      * @param {string} [params.posSide] *uta only* hedged two-way position side, long or short
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -5353,21 +5355,36 @@ export default class bitget extends Exchange {
         const market = this.market (symbol);
         const marginParams = this.handleMarginModeAndParams ('createOrder', params);
         const marginMode = marginParams[0];
+        const stockDefault = this.safeBool (market, 'stock', false);
+        let stock: Bool = undefined;
+        [ stock, params ] = this.handleOptionAndParams (params, 'createOrder', 'stock', stockDefault);
         const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
         const stopLossTriggerPrice = this.safeValue (params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeValue (params, 'takeProfitPrice');
+        const stopLoss = this.safeValue (params, 'stopLoss');
+        const takeProfit = this.safeValue (params, 'takeProfit');
         const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callbackRatio');
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isTriggerOrder = triggerPrice !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
+        const hasStopLoss = stopLoss !== undefined;
+        const hasTakeProfit = takeProfit !== undefined;
         let response = undefined;
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'createOrder', false);
+        uta = uta || stock;
+        if (stock) {
+            if (isTriggerOrder || isStopLossOrTakeProfitTrigger || hasStopLoss || hasTakeProfit || isTrailingPercentOrder) {
+                throw new InvalidOrder (this.id + ' createOrder() only supports market and limit orders for tokenized stock markets');
+            }
+        }
         if (uta) {
             const request = this.createUtaOrderRequest (symbol, type, side, amount, price, params);
-            if (isStopLossOrTakeProfitTrigger) {
+            if (stock) {
+                response = await this.privateUtaPostV3TradePlaceRealityOrder (request);
+            } else if (isStopLossOrTakeProfitTrigger) {
                 response = await this.privateUtaPostV3TradePlaceStrategyOrder (request);
             } else {
                 response = await this.privateUtaPostV3TradePlaceOrder (request);
@@ -6187,6 +6204,7 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Cancel-Order
      * @see https://www.bitget.com/api-doc/uta/trade/Cancel-Order
      * @see https://www.bitget.com/api-doc/uta/strategy/Cancel-Strategy-Order
+     * @see https://www.bitget.com/api-doc/uta/reality/trade/Cancel-Reality-Order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6195,6 +6213,7 @@ export default class bitget extends Exchange {
      * @param {string} [params.planType] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
      * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to cancel tokenized stock orders
      * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -6209,6 +6228,9 @@ export default class bitget extends Exchange {
         let marginMode: Str = undefined;
         let response: Dict = {};
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
+        const stockDefault = this.safeBool (market, 'stock', false);
+        let stock: Bool = undefined;
+        [ stock, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'stock', stockDefault);
         const request: Dict = {};
         const trailing = this.safeValue (params, 'trailing');
         const trigger = this.safeValue2 (params, 'stop', 'trigger');
@@ -6218,10 +6240,14 @@ export default class bitget extends Exchange {
         }
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'cancelOrder', false);
+        uta = uta || stock;
         const isPlanOrder = trigger || trailing;
         const isContract = market['swap'] || market['future'];
         const isContractTriggerEndpoint = isContract && isPlanOrder && !uta;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientOid');
+        if (stock && isPlanOrder) {
+            throw new InvalidOrder (this.id + ' cancelOrder() does not support trigger or trailing orders for tokenized stock markets');
+        }
         if (isContractTriggerEndpoint) {
             const orderIdList: List = [];
             const orderId: Dict = {};
@@ -6241,7 +6267,9 @@ export default class bitget extends Exchange {
                 request['orderId'] = id;
             }
         }
-        if (uta) {
+        if (stock) {
+            response = await this.privateUtaPostV3TradeCancelRealityOrder (this.extend (request, params));
+        } else if (uta) {
             if (trigger) {
                 response = await this.privateUtaPostV3TradeCancelStrategyOrder (this.extend (request, params));
             } else {
@@ -6278,7 +6306,7 @@ export default class bitget extends Exchange {
             throw new NotSupported (this.id + ' cancelOrder() does not support ' + market['type'] + ' orders');
         }
         //
-        // spot, swap, future and spot margin
+        // spot, swap, future, spot margin and tokenized stock
         //
         //     {
         //         "code": "00000",

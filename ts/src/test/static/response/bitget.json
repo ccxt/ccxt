@@ -1359,6 +1359,58 @@
                     "fees": [],
                     "stopPrice": null
                 }
+            },
+            {
+                "description": "tokenized stock create order",
+                "method": "createOrder",
+                "input": [
+                    "RGOOGL/USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    330
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1787139318015,
+                    "data": {
+                        "orderId": "1473934618137948160",
+                        "clientOid": "1473934618137948161"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "1473934618137948160",
+                        "clientOid": "1473934618137948161"
+                    },
+                    "id": "1473934618137948160",
+                    "clientOrderId": "1473934618137948161",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "RGOOGL/USDT",
+                    "type": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
             }
         ],
         "editOrder": [
@@ -7169,6 +7221,55 @@
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": null,
                     "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "tokenized stock cancel order",
+                "method": "cancelOrder",
+                "input": [
+                    "1473934618137948160",
+                    "RGOOGL/USDT"
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1787140585775,
+                    "data": {
+                        "orderId": "1473934618137948160",
+                        "clientOid": "1473934618137948161"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "1473934618137948160",
+                        "clientOid": "1473934618137948161"
+                    },
+                    "id": "1473934618137948160",
+                    "clientOrderId": "1473934618137948161",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "RGOOGL/USDT",
                     "type": null,
                     "side": null,
                     "price": null,

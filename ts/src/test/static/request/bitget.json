@@ -619,6 +619,19 @@
                     }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"orderType\":\"limit\",\"price\":\"100\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.2\",\"productType\":\"USDT-FUTURES\",\"presetStopLossPrice\":\"90\",\"presetStopLossExecutePrice\":\"89\",\"presetStopSurplusPrice\":\"120\",\"presetStopSurplusExecutePrice\":\"119\",\"marginMode\":\"crossed\",\"side\":\"buy\"}"
+            },
+            {
+                "description": "tokenized stock createOrder",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v3/trade/place-reality-order",
+                "input": [
+                    "RGOOGL/USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    330
+                ],
+                "output": "{\"category\":\"SPOT\",\"symbol\":\"RGOOGLUSDT\",\"qty\":\"1\",\"side\":\"buy\",\"price\":\"330\",\"orderType\":\"limit\",\"timeInForce\":\"gtc\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -1771,6 +1784,16 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"productType\":\"USDT-FUTURES\",\"orderIdList\":[{\"clientOid\":\"a1b2c3\"}],\"planType\":\"track_plan\"}"
+            },
+            {
+                "description": "tokenized stock cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://api.bitget.com/api/v3/trade/cancel-reality-order",
+                "input": [
+                    "1473934618137948160",
+                    "RGOOGL/USDT"
+                ],
+                "output": "{\"symbol\":\"RGOOGLUSDT\",\"orderId\":\"1473934618137948160\"}"
             }
         ],
         "cancelOrders": [
