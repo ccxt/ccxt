@@ -2027,6 +2027,10 @@ class toobit extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $rawType = $this->safe_string($order, 'type');
         $rawSideLower = $this->safe_string_lower($order, 'side');
+        if ($rawSideLower !== null) {
+            // contract orders arrive, SELL_CLOSE and the like
+            $rawSideLower = $this->safe_string(explode('_', $rawSideLower), 0);
+        }
         $triggerPrice = $this->omit_zero($this->safe_string($order, 'stopPrice'));
         if ($triggerPrice === '0.0') {
             $triggerPrice = null;

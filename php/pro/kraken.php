@@ -654,16 +654,16 @@ class kraken extends \ccxt\async\kraken {
         }
         $ohlcvsLength = count($data);
         for ($i = 0; $i < $ohlcvsLength; $i++) {
-            $candle = $data[$ohlcvsLength - $i - 1];
+            $candle = $data[$i];
             $datetime = $this->safe_string($candle, 'interval_begin');
             $timestamp = $this->parse8601($datetime);
             $parsed = array(
                 $timestamp,
-                $this->safe_string($candle, 'open'),
-                $this->safe_string($candle, 'high'),
-                $this->safe_string($candle, 'low'),
-                $this->safe_string($candle, 'close'),
-                $this->safe_string($candle, 'volume'),
+                $this->safe_number($candle, 'open'),
+                $this->safe_number($candle, 'high'),
+                $this->safe_number($candle, 'low'),
+                $this->safe_number($candle, 'close'),
+                $this->safe_number($candle, 'volume'),
             );
             $stored->append($parsed);
         }
