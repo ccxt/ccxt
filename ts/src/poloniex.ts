@@ -1773,7 +1773,12 @@ export default class poloniex extends Exchange {
         const price = this.safeStringN (order, [ 'price', 'rate', 'px' ]);
         const amount = this.safeString2 (order, 'quantity', 'sz');
         const filled = this.safeString2 (order, 'filledQuantity', 'execQty');
-        const status = this.parseOrderStatus (this.safeString (order, 'state'));
+        let status = this.parseOrderStatus (this.safeString (order, 'state'));
+        const errorCode = this.safeInteger (order, 'code');
+        if ((status === undefined) && (errorCode !== undefined) && (errorCode !== 200)) {
+            // the batch endpoints report per-element failures with an error code instead of throwing
+            status = 'rejected';
+        }
         const side = this.safeStringLower (order, 'side');
         const rawType = this.safeString (order, 'type');
         const type = this.parseOrderType (rawType);
@@ -2105,33 +2110,27 @@ export default class poloniex extends Exchange {
         const ordersRequests = [];
         const ordersMarkets = [];
         let market = undefined;
-        let isContract = false;
+        let isContract: Bool = false;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const symbol = this.safeString (rawOrder, 'symbol');
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrders() requires a symbol for each order');
-            }
             const marketInner = this.market (symbol);
             if (market === undefined) {
                 market = marketInner;
-                isContract = (marketInner['contract'] === true);
+                isContract = marketInner['contract'];
             } else if (market['type'] !== marketInner['type']) {
                 throw new BadRequest (this.id + ' createOrders() requires all orders to be of the same market type, either spot or swap');
             }
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
-            if (side === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrders() requires a side for each order');
-            }
-            const amount = this.safeNumber (rawOrder, 'amount');
-            const price = this.safeNumber (rawOrder, 'price');
+            const amount = this.safeString (rawOrder, 'amount');
+            const price = this.safeString (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             // the request body is a bare list, so there is no room for common params - extend each order with them instead
             let extendedParams = this.extend (orderParams, params);
             let request: Dict = {
                 'symbol': marketInner['id'],
-                'side': side.toUpperCase (),
+                'side': this.safeStringUpper (rawOrder, 'side'),
             };
             [ request, extendedParams ] = this.orderRequest (symbol, type, side, amount, request, price, extendedParams);
             const merged = this.extend (request, extendedParams);
@@ -2175,30 +2174,13 @@ export default class poloniex extends Exchange {
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             const entry = data[i];
-            const entryMarket = this.safeValue (ordersMarkets, i, market);
-            results.push (this.parseBatchOrder (entry, entryMarket));
+            const entryMarket = ordersMarkets[i];
+            results.push (this.parseOrder (entry, entryMarket));
         }
         return results;
     }
 
-    /**
-     * @ignore
-     * @method
-     * @description parse a single entry of a batch orders response, both endpoints report per-element failures with a code and a message instead of throwing
-     * @param {object} entry a single order entry from a batch create or cancel response
-     * @param {object} [market] the market of the corresponding request entry
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    parseBatchOrder (entry: Dict, market: Market = undefined): Order {
-        const order = this.parseOrder (entry, market);
-        const entryCode = this.safeInteger (entry, 'code');
-        if ((entryCode !== undefined) && (entryCode !== 200)) {
-            order['status'] = 'rejected';
-        }
-        return order;
-    }
-
-    orderRequest (symbol: any, type: any, side: any, amount: any, request: any, price: Num = undefined, params = {}) {
+    orderRequest (symbol: any, type: any, side: any, amount: any, request: any, price: any = undefined, params = {}) {
         const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
         const market = this.market (symbol);
         if (market['contract']) {
@@ -2432,7 +2414,7 @@ export default class poloniex extends Exchange {
             //     }
             //
             const data = this.safeList (responseRaw, 'data', []);
-            return this.parseBatchOrders (data, market);
+            return this.parseOrders (data, market);
         }
         if (idsLength > 0) {
             request['orderIds'] = ids;
@@ -2446,24 +2428,7 @@ export default class poloniex extends Exchange {
         //         { "orderId": "123456789", "clientOrderId": "", "state": "PENDING_CANCEL", "code": 200, "message": "" }
         //     ]
         //
-        return this.parseBatchOrders (response, market);
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @description parse a list of batch order response entries, marking the per-element failures as rejected
-     * @param {object[]} entries the order entries from a batch create or cancel response
-     * @param {object} [market] the market of the request
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    parseBatchOrders (entries: List, market: Market = undefined): Order[] {
-        const results = [];
-        const entriesLength = entries.length;
-        for (let i = 0; i < entriesLength; i++) {
-            results.push (this.parseBatchOrder (entries[i], market));
-        }
-        return results;
+        return this.parseOrders (response, market);
     }
 
     /**
