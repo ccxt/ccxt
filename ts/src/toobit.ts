@@ -1835,9 +1835,9 @@ export default class toobit extends Exchange {
         let reduceOnly: Bool = undefined;
         [ reduceOnly, params ] = this.handleParamBool (params, 'reduceOnly');
         if (side === 'buy') {
-            side = reduceOnly ? 'SELL_CLOSE' : 'BUY_OPEN';
+            side = reduceOnly ? 'BUY_CLOSE' : 'BUY_OPEN';
         } else if (side === 'sell') {
-            side = reduceOnly ? 'BUY_CLOSE' : 'SELL_OPEN';
+            side = reduceOnly ? 'SELL_CLOSE' : 'SELL_OPEN';
         }
         request['side'] = side;
         if (price !== undefined) {
