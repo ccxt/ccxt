@@ -63,6 +63,73 @@ public partial class BaseExchange
         return new ccxt.pro.CountedOrderBook(snapshot, depth);
     }
 
+    // single-flight guards for check-then-fetch auth flows
+    // see https://github.com/ccxt/ccxt/issues/29393
+    public ConcurrentDictionary<string, Future> authenticationFlights = new ConcurrentDictionary<string, Future>();
+
+    public async Task<object> singleFlightAcquire(object flightHash2)
+    {
+        // leader election - returns true when the caller must perform the
+        // fetch and settle the flight, false after awaiting an in-progress one
+        var flightHash = (string)flightHash2;
+        while (true)
+        {
+            Future flight = null;
+            if (this.authenticationFlights.TryGetValue(flightHash, out flight))
+            {
+                await flight.task;
+                return false;
+            }
+            var created = new Future();
+            // an alone leader may reject before any waiter awaits the flight -
+            // observe the task exception so a waiterless rejection can never
+            // surface as an unobserved task exception
+            created.task.ContinueWith((t) => { var _ = t.Exception; }, TaskContinuationOptions.OnlyOnFaulted);
+            if (this.authenticationFlights.TryAdd(flightHash, created))
+            {
+                return true;
+            }
+            // lost the add race - loop: either the winner's flight is visible on
+            // the next pass and gets awaited, or it already settled and vanished,
+            // in which case this caller is elected the fresh leader instead of
+            // silently returning as if a flight had completed
+        }
+    }
+
+    public async Task singleFlightWait(object flightHash2)
+    {
+        // awaits an in-progress flight without electing a leader
+        var flightHash = (string)flightHash2;
+        Future flight = null;
+        if (this.authenticationFlights.TryGetValue(flightHash, out flight))
+        {
+            await flight.task;
+        }
+    }
+
+    public void singleFlightResolve(object flightHash2, object result = null)
+    {
+        // settles a flight successfully and wakes all waiters
+        var flightHash = (string)flightHash2;
+        Future flight = null;
+        if (this.authenticationFlights.TryRemove(flightHash, out flight))
+        {
+            flight.resolve(result);
+        }
+    }
+
+    public void singleFlightReject(object flightHash2, object error)
+    {
+        // settles a flight with an error - all waiters throw
+        var flightHash = (string)flightHash2;
+        Future flight = null;
+        if (this.authenticationFlights.TryRemove(flightHash, out flight))
+        {
+            flight.reject(error);
+        }
+    }
+
+
     public virtual void onClose(WebSocketClient client, object error = null)
     {
         if (client.error)
