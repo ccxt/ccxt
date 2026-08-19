@@ -3662,11 +3662,9 @@ export default class binance extends binanceRest {
         // the stream selection all silently degrade to futures - the guarded
         // sites used to carry seven inline copies of this dance, and the
         // unguarded copies were the bug class behind the option keepalive and
-        // stock keepalive fixes. rawType is the pre-rewrite market type, for
-        // callers whose policy checks must not see the rewrite
+        // stock keepalive fixes
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
-        const rawType = type;
         let subType: Str = undefined;
         [ subType, params ] = this.handleSubTypeAndParams (methodName, market, params);
         if (type !== 'option' && type !== 'stock') {
@@ -3678,7 +3676,7 @@ export default class binance extends binanceRest {
         }
         // a dict, not a positional tuple: call sites read only the keys they
         // consume, so no receiver variable is ever declared-but-unread
-        return { 'type': type, 'rawType': rawType, 'subType': subType, 'params': params };
+        return { 'type': type, 'subType': subType, 'params': params };
     }
 
     getMarketType (method: any, market: any, params = {}) {
