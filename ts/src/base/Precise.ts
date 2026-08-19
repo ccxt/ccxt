@@ -3,6 +3,29 @@ import { Str, Int } from './types.js';
 const zero = BigInt (0);
 const minusOne = BigInt (-1);
 const base = BigInt (10);
+
+// cache of powers of ten, since base ** BigInt (n) is expensive and
+// the same small exponents are requested over and over again
+const POW10_CACHE_LIMIT = 512;
+const pow10Cache: bigint[] = [ BigInt (1) ];
+
+function pow10 (exponent: number): bigint {
+    if (exponent < POW10_CACHE_LIMIT) {
+        let length = pow10Cache.length;
+        if (exponent < length) {
+            return pow10Cache[exponent];
+        }
+        let last = pow10Cache[length - 1];
+        while (length <= exponent) {
+            last = last * base;
+            pow10Cache.push (last);
+            length++;
+        }
+        return last;
+    }
+    return base ** BigInt (exponent);
+}
+
 class Precise {
     decimals: number;
 
@@ -12,18 +35,25 @@ class Precise {
 
     constructor (number: bigint | string, decimals: Int = undefined) {
         if (decimals === undefined) {
+            let str = number as string;
             let modifier = 0;
-            number = (number as string).toLowerCase ();
-            if (number.indexOf ('e') > -1) {
-                let modifierString = '0';
-                [ number, modifierString ] = number.split ('e');
-                modifier = parseInt (modifierString);
+            // avoid toLowerCase () unless there is scientific notation
+            let eIndex = str.indexOf ('e');
+            if (eIndex === -1) {
+                eIndex = str.indexOf ('E');
             }
-            const decimalIndex = number.indexOf ('.');
-            this.decimals = (decimalIndex > -1) ? number.length - decimalIndex - 1 : 0;
-            const integerString = number.replace ('.', '');
-            this.integer = BigInt (integerString);
-            this.decimals = this.decimals - modifier;
+            if (eIndex > -1) {
+                modifier = parseInt (str.slice (eIndex + 1));
+                str = str.slice (0, eIndex);
+            }
+            const decimalIndex = str.indexOf ('.');
+            if (decimalIndex > -1) {
+                this.decimals = str.length - decimalIndex - 1 - modifier;
+                this.integer = BigInt (str.slice (0, decimalIndex) + str.slice (decimalIndex + 1));
+            } else {
+                this.decimals = -modifier;
+                this.integer = BigInt (str);
+            }
         } else {
             this.integer = number as bigint;
             this.decimals = decimals;
@@ -42,11 +72,9 @@ class Precise {
         if (distance === 0) {
             numerator = this.integer;
         } else if (distance < 0) {
-            const exponent = base ** BigInt (-distance);
-            numerator = this.integer / exponent;
+            numerator = this.integer / pow10 (-distance);
         } else {
-            const exponent = base ** BigInt (distance);
-            numerator = this.integer * exponent;
+            numerator = this.integer * pow10 (distance);
         }
         const result = numerator / other.integer;
         return new Precise (result, precision);
@@ -59,7 +87,7 @@ class Precise {
         } else {
             const [ smaller, bigger ] = (this.decimals > other.decimals) ? [ other, this ] : [ this, other ];
             const exponent = bigger.decimals - smaller.decimals;
-            const normalised = smaller.integer * (base ** BigInt (exponent));
+            const normalised = smaller.integer * pow10 (exponent);
             const result = normalised + bigger.integer;
             return new Precise (result, bigger.decimals);
         }
@@ -67,16 +95,24 @@ class Precise {
 
     mod (other: Precise) {
         const rationizerNumerator = Math.max (-this.decimals + other.decimals, 0);
-        const numerator = this.integer * (base ** BigInt (rationizerNumerator));
+        const numerator = this.integer * pow10 (rationizerNumerator);
         const rationizerDenominator = Math.max (-other.decimals + this.decimals, 0);
-        const denominator = other.integer * (base ** BigInt (rationizerDenominator));
+        const denominator = other.integer * pow10 (rationizerDenominator);
         const result = numerator % denominator;
         return new Precise (result, rationizerDenominator + other.decimals);
     }
 
     sub (other: Precise) {
-        const negative = new Precise (-other.integer, other.decimals);
-        return this.add (negative);
+        // inlined addition of the negation, avoiding an intermediate Precise allocation
+        if (this.decimals === other.decimals) {
+            return new Precise (this.integer - other.integer, this.decimals);
+        } else if (this.decimals > other.decimals) {
+            const normalised = other.integer * pow10 (this.decimals - other.decimals);
+            return new Precise (this.integer - normalised, this.decimals);
+        } else {
+            const normalised = this.integer * pow10 (other.decimals - this.decimals);
+            return new Precise (normalised - other.integer, other.decimals);
+        }
     }
 
     abs () {
@@ -92,22 +128,33 @@ class Precise {
         return new Precise (integerResult, this.decimals);
     }
 
+    // compares without allocating intermediate Precise instances
+    // returns a negative number if this < other, 0 if equal, positive if this > other
+    private cmp (other: Precise): number {
+        let thisInteger = this.integer;
+        let otherInteger = other.integer;
+        if (this.decimals > other.decimals) {
+            otherInteger = otherInteger * pow10 (this.decimals - other.decimals);
+        } else if (this.decimals < other.decimals) {
+            thisInteger = thisInteger * pow10 (other.decimals - this.decimals);
+        }
+        return (thisInteger < otherInteger) ? -1 : ((thisInteger > otherInteger) ? 1 : 0);
+    }
+
     min (other: Precise) {
-        return this.lt (other) ? this : other;
+        return (this.cmp (other) < 0) ? this : other;
     }
 
     max (other: Precise) {
-        return this.gt (other) ? this : other;
+        return (this.cmp (other) > 0) ? this : other;
     }
 
     gt (other: Precise) {
-        const sum = this.sub (other);
-        return sum.integer > 0;
+        return this.cmp (other) > 0;
     }
 
     ge (other: Precise) {
-        const sum = this.sub (other);
-        return sum.integer >= 0;
+        return this.cmp (other) >= 0;
     }
 
     lt (other: Precise) {
@@ -129,7 +176,7 @@ class Precise {
         }
         let i;
         for (i = start; i >= 0; i--) {
-            if (string.charAt (i) !== '0') {
+            if (string.charCodeAt (i) !== 48) { // '0'
                 break;
             }
         }
@@ -158,21 +205,18 @@ class Precise {
             sign = '';
             abs = this.integer;
         }
-        const integerArray = Array.from (abs.toString (Number (base)).padStart (this.decimals, '0'));
-        const index = integerArray.length - this.decimals;
-        let item;
-        if (index === 0) {
-            // if we are adding to the front
-            item = '0.';
-        } else if (this.decimals < 0) {
-            item = '0'.repeat (-this.decimals);
-        } else if (this.decimals === 0) {
-            item = '';
-        } else {
-            item = '.';
+        const string = abs.toString ();
+        const decimals = this.decimals;
+        if (decimals === 0) {
+            return sign + string;
+        } else if (decimals < 0) {
+            return sign + string + '0'.repeat (-decimals);
         }
-        integerArray.splice (index, 0, item);
-        return sign + integerArray.join ('');
+        const length = string.length;
+        if (length > decimals) {
+            return sign + string.slice (0, length - decimals) + '.' + string.slice (length - decimals);
+        }
+        return sign + '0.' + ((length < decimals) ? ('0'.repeat (decimals - length) + string) : string);
     }
 
     static stringMul (string1: Str, string2: Str) {

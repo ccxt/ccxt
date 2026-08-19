@@ -187,6 +187,79 @@ function testPrecise () {
     assert (Precise.stringLe (undefined, '1') === false);
     assert (Precise.stringLe ('1', undefined) === false);
     assert (Precise.stringLe (undefined, undefined) === false);
+
+    // scientific notation parsing (lowercase / uppercase / signed exponents)
+    assert (Precise.stringAdd ('1E8', '0') === '100000000');
+    assert (Precise.stringAdd ('1e+8', '0') === '100000000');
+    assert (Precise.stringAdd ('-1.123E-6', '0') === '-0.000001123');
+    assert (Precise.stringAdd ('1.5e3', '0') === '1500');
+    assert (Precise.stringAdd ('2.5E-3', '0') === '0.0025');
+    assert (Precise.stringMul ('1E8', '1e-8') === '1');
+    assert (Precise.stringEquals ('1e2', '100'));
+    assert (Precise.stringEquals ('1E2', '100.00'));
+
+    // integers without a decimal point (constructor fast path)
+    assert (Precise.stringAdd ('123', '877') === '1000');
+    assert (Precise.stringSub ('-5', '-5') === '0');
+    assert (Precise.stringMul ('-7', '8') === '-56');
+
+    // negative-decimals toString path (trailing zero expansion)
+    assert (Precise.stringMul ('1e5', '1e5') === '10000000000');
+    assert (Precise.stringDiv ('69696900000', '1e8', -1) === '690');
+    assert (Precise.stringDiv ('1000', '1', -2) === '1000');
+
+    // subtraction with unequal decimals in both directions
+    assert (Precise.stringSub ('1.0001', '1') === '0.0001');
+    assert (Precise.stringSub ('1', '1.0001') === '-0.0001');
+    assert (Precise.stringSub ('0.00000002', '0.000000020') === '0');
+
+    // division edge cases
+    assert (Precise.stringDiv ('1', '0') === undefined); // division by zero
+    assert (Precise.stringDiv ('0', '5') === '0');
+    assert (Precise.stringDiv ('1', '3', 5) === '0.33333');
+    assert (Precise.stringDiv ('-1', '3', 5) === '-0.33333');
+    // very high precision (exercises exponents beyond typical cached powers)
+    const oneThird = Precise.stringDiv ('1', '3', 600);
+    assert (Precise.stringEquals (oneThird, Precise.stringDiv ('10', '30', 600)));
+    assert (Precise.stringGt ('0.34', oneThird));
+    assert (Precise.stringGt (oneThird, '0.333333333333333333'));
+
+    // mod with mixed decimals and negatives
+    assert (Precise.stringMod ('10.1', '3') === '1.1');
+    assert (Precise.stringMod ('0.7', '0.2') === '0.1');
+    assert (Precise.stringMod ('-5', '3') === '-2');
+
+    // comparisons across different decimal counts
+    assert (Precise.stringGt ('1.10', '1.1') === false);
+    assert (Precise.stringGe ('1.10', '1.1') === true);
+    assert (Precise.stringLt ('0.999999999999999999999', '1'));
+    assert (Precise.stringGt ('1.000000000000000000001', '1'));
+    assert (Precise.stringGt ('0', '-0.000000000000000001'));
+    assert (Precise.stringLt ('-1e-18', '0'));
+    assert (Precise.stringGe ('-0', '0'));
+    assert (Precise.stringLe ('-0', '0'));
+
+    // min/max tie-breaking and mixed decimals
+    assert (Precise.stringMin ('1.0', '1.00') === '1');
+    assert (Precise.stringMax ('1.0', '1.00') === '1');
+    assert (Precise.stringMin ('-1e-8', '-1e-7') === '-0.0000001');
+    assert (Precise.stringMax ('-1e-8', '-1e-7') === '-0.00000001');
+
+    // equals / reduce edge cases
+    assert (Precise.stringEquals ('0.000', '0'));
+    assert (Precise.stringEquals ('100', '1e2'));
+    assert (Precise.stringEquals ('-100.000', '-1e2'));
+    assert (!Precise.stringEquals ('100', '100.1'));
+    assert (Precise.stringAdd ('0.10', '0.10') === '0.2'); // trailing zeros reduced
+
+    // large number round-trips
+    assert (Precise.stringAdd ('123456789012345678901234567890.123456789', '0') === '123456789012345678901234567890.123456789');
+    assert (Precise.stringMul ('123456789012345678901234567890', '1') === '123456789012345678901234567890');
+    assert (Precise.stringSub ('123456789012345678901234567890.1', '0.1') === '123456789012345678901234567890');
+
+    // abs/neg on scientific notation inputs
+    assert (Precise.stringAbs ('-1.123e-6') === '0.000001123');
+    assert (Precise.stringNeg ('1e-3') === '-0.001');
 }
 
 export default testPrecise;
