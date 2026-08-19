@@ -403,7 +403,7 @@ export default class binance extends binanceRest {
             firstMarket = this.getMarketFromSymbols (symbols);
         }
         const resolvedAuth: Dict = this.resolveAuthType ('watchLiquidationsForSymbols', firstMarket, params);
-        let type = resolvedAuth['type'] as Str;
+        let type = resolvedAuth['type'] as string;
         const rawType = resolvedAuth['rawType'] as Str;
         params = resolvedAuth['params'] as Dict;
         // policy checks run on rawType so the rewrite cannot smuggle a spot
@@ -622,7 +622,7 @@ export default class binance extends binanceRest {
             }
         }
         const resolvedAuth: Dict = this.resolveAuthType ('watchMyLiquidationsForSymbols', market, params);
-        const type = resolvedAuth['type'] as Str;
+        const type = resolvedAuth['type'] as string;
         params = resolvedAuth['params'] as Dict;
         await this.authenticate (params);
         const listenKey = this.options[type]['listenKey'];
@@ -3006,7 +3006,7 @@ export default class binance extends binanceRest {
     async authenticate (params = {}) {
         const time = this.milliseconds ();
         const resolvedAuth: Dict = this.resolveAuthType ('authenticate', undefined, params);
-        const type = resolvedAuth['type'] as Str;
+        const type = resolvedAuth['type'] as string;
         params = resolvedAuth['params'] as Dict;
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'authenticate', 'papi', 'portfolioMargin', false);
@@ -3478,7 +3478,7 @@ export default class binance extends binanceRest {
         }
         await this.authenticate (params);
         const resolvedAuth: Dict = this.resolveAuthType ('watchBalance', undefined, params);
-        const type = resolvedAuth['type'] as Str;
+        const type = resolvedAuth['type'] as string;
         params = resolvedAuth['params'] as Dict;
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchBalance', 'papi', 'portfolioMargin', false);
@@ -4346,7 +4346,7 @@ export default class binance extends binanceRest {
             messageHash += ':' + symbol;
         }
         const resolvedAuth: Dict = this.resolveAuthType ('watchOrders', market, params);
-        let type = resolvedAuth['type'] as Str;
+        let type = resolvedAuth['type'] as string;
         const subType = resolvedAuth['subType'] as Str;
         params = resolvedAuth['params'] as Dict;
         params = this.extend (params, { 'type': type, 'symbol': symbol, 'subType': subType }); // needed inside authenticate for isolated margin
@@ -4956,7 +4956,7 @@ export default class binance extends binanceRest {
             messageHash = '::' + symbols.join (',');
         }
         const resolvedAuth: Dict = this.resolveAuthType ('watchPositions', market, params);
-        let type = resolvedAuth['type'] as Str;
+        let type = resolvedAuth['type'] as string;
         const rawType = resolvedAuth['rawType'] as Str;
         const subType = resolvedAuth['subType'] as Str;
         params = resolvedAuth['params'] as Dict;
@@ -5397,7 +5397,7 @@ export default class binance extends binanceRest {
             symbol = market['symbol'];
         }
         const resolvedAuth: Dict = this.resolveAuthType ('watchMyTrades', market, params);
-        type = resolvedAuth['type'] as Str;
+        type = resolvedAuth['type'] as string;
         const subType = resolvedAuth['subType'] as Str;
         params = resolvedAuth['params'] as Dict;
         let messageHash = 'myTrades';
