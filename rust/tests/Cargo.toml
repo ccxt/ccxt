@@ -22,12 +22,11 @@ transpiled-tests = []
 exchange-tests = []
 
 [dependencies]
-ccxt = { path = "../ccxt", features = ["transpiled-base"] }
-# The transpiled WS (pro) venues and the typed unified-method wrappers each live
-# in their own crate now (split out of `ccxt` so each `rustc` invocation stays
-# under the CI memory ceiling).
+# `ccxt` is the typed API crate; it re-exports the whole `ccxt-base` engine at
+# its root, so `ccxt::Value` / `ccxt::exchanges::…` / `ccxt::runtime::…` resolve
+# here alongside the typed `ccxt::Binance`. The WS venues live in `ccxt-pro`.
+ccxt = { path = "../ccxt" }
 ccxt-pro = { path = "../ccxt-pro" }
-ccxt-typed = { path = "../ccxt-typed" }
 serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
 tokio = { version = "1", features = ["full"] }
 futures = "0.3"

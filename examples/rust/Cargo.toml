@@ -5,12 +5,11 @@ edition = "2021"
 publish = false
 
 [dependencies]
-ccxt = { path = "../../rust/ccxt", features = ["transpiled-base"] }
-# The per-exchange typed unified-method wrappers (`ccxt_typed::Binance`, …) live
-# in their own crate now. `iexchange_demo` uses them.
-ccxt-typed = { path = "../../rust/ccxt-typed" }
-# The transpiled pro/ WebSocket venues live in their own crate now. Optional so
-# the default examples build (and CI) stays on the lighter transpiled-base set.
+# `ccxt` is the typed API crate; it re-exports the whole `ccxt-base` engine at
+# its root, so `ccxt::Value` etc. resolve here alongside the typed `ccxt::Binance`.
+ccxt = { path = "../../rust/ccxt" }
+# The transpiled pro/ WebSocket venues live in their own crate. Optional so the
+# default examples build (and CI) stays on the lighter set.
 ccxt-pro = { path = "../../rust/ccxt-pro", optional = true }
 tokio = { version = "1", features = ["full"] }
 futures = "0.3"

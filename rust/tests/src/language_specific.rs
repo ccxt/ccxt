@@ -16,7 +16,7 @@
 #![allow(unused_must_use, unused_variables, dead_code)]
 
 use ccxt::Value;
-use ccxt_typed::{Binance, Myokx, Binanceusdm};
+use ccxt::{Binance, Myokx, Binanceusdm};
 use ccxt::types::*;
 
 /// Compile-time assertion that `f` resolves to `ccxt::Result<T>`. The future

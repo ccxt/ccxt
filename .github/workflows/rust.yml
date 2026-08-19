@@ -144,8 +144,8 @@ jobs:
       # default/no-default-features consumer build (review P0-A).
       - name: Check ccxt package (isolated feature sets)
         run: |
-          cargo check --manifest-path rust/ccxt/Cargo.toml --no-default-features
-          cargo check --manifest-path rust/ccxt/Cargo.toml --all-features
+          cargo check --manifest-path rust/ccxt-base/Cargo.toml --no-default-features
+          cargo check --manifest-path rust/ccxt-base/Cargo.toml --all-features
       # Clippy on the hand-written runtime with the noisy style/complexity/perf
       # groups allowed but `correctness`/`suspicious` denied (review #11).
       # Generated files self-allow clippy::all, so this gates the code that
@@ -153,7 +153,7 @@ jobs:
       - name: Clippy (ccxt lib)
         run: |
           rustup component add clippy
-          cargo clippy --manifest-path rust/ccxt/Cargo.toml --features transpiled-base -- -D warnings
+          cargo clippy --manifest-path rust/ccxt-base/Cargo.toml --features transpiled-base -- -D warnings
       # Build the standalone consumer examples so they can't drift from the API
       # (review #10).
       - name: Build Rust examples
@@ -173,7 +173,7 @@ jobs:
       # crate at a time (the dev build proves a single one fits).
       - name: Cargo test
         run: |
-          cargo test --jobs 1 --manifest-path rust/ccxt/Cargo.toml --features transpiled-base
+          cargo test --jobs 1 --manifest-path rust/ccxt-base/Cargo.toml --features transpiled-base
           cargo test --jobs 1 --manifest-path rust/Cargo.toml -p ccxt_tests --bin ti-rust cargo_test_gate
       # - name: Test GO Types
       #   if: env.important_modified == 'true'

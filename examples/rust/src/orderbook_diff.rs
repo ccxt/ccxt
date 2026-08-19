@@ -17,7 +17,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use ccxt::Value;
-use ccxt_typed::Binance;
+use ccxt::Binance;
 use tokio::sync::RwLock;
 use tokio::time::MissedTickBehavior;
 

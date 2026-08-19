@@ -34,13 +34,13 @@ import * as path from 'path';
 
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
 // The base REST/prediction Cores are READ from here (parents, method surface).
-const EXCHANGES_FOLDER = './rust/ccxt/src/exchanges/';
+const EXCHANGES_FOLDER = './rust/ccxt-base/src/exchanges/';
 // The typed wrappers are WRITTEN into the sibling `ccxt-typed` crate — split out
 // of `ccxt` so the base crate's single `rustc` invocation stays under the CI
 // runner's memory ceiling. `crate::exchanges::*` inside the wrappers resolves
 // via `ccxt-typed/src/exchanges/mod.rs`'s `pub use ccxt::exchanges::*;`.
-const TYPED_FOLDER = './rust/ccxt-typed/src/exchanges/';
-const TYPED_AGGREGATOR = './rust/ccxt-typed/src/typed.rs';
+const TYPED_FOLDER = './rust/ccxt/src/exchanges/';
+const TYPED_AGGREGATOR = './rust/ccxt/src/typed.rs';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Type mapping
@@ -744,8 +744,8 @@ function discoverReachableMethods(
     return result;
 }
 
-const BASE_RS = './rust/ccxt/src/exchange_generated.rs';
-const STUBS_RS = './rust/ccxt/src/exchange_stubs.rs';
+const BASE_RS = './rust/ccxt-base/src/exchange_generated.rs';
+const STUBS_RS = './rust/ccxt-base/src/exchange_stubs.rs';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Main
@@ -866,7 +866,7 @@ function writeTypedModFile(ids: string[]) {
         "// Re-export the base crate's REST/prediction Cores so the wrapper files'",
         '// `crate::exchanges::<id>::<Id>Core` paths resolve. The `<id>_typed`',
         '// wrapper modules themselves live in this crate.',
-        'pub use ccxt::exchanges::*;',
+        'pub use ccxt_base::exchanges::*;',
         '',
         ...[...ids].sort().map(id => `pub mod ${id}_typed;`),
         '',

@@ -193,6 +193,23 @@ name = "ccxt"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "ccxt-base",
+ "chrono",
+ "futures",
+ "indexmap",
+ "num-bigint",
+ "num-traits",
+ "rust_decimal",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "ccxt-base"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
  "base64",
  "chrono",
  "ed25519-dalek",
@@ -232,7 +249,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "base64",
- "ccxt",
+ "ccxt-base",
  "chrono",
  "ed25519-dalek",
  "flate2",
@@ -266,29 +283,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "ccxt-typed"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "ccxt",
- "chrono",
- "futures",
- "indexmap",
- "num-bigint",
- "num-traits",
- "rust_decimal",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
 name = "ccxt_tests"
 version = "0.1.0"
 dependencies = [
  "ccxt",
  "ccxt-pro",
- "ccxt-typed",
  "futures",
  "indexmap",
  "serde_json",

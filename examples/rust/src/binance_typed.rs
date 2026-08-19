@@ -15,7 +15,7 @@
 // alongside the other Rust transpiler outputs.
 
 use ccxt::Value;
-use ccxt_typed::Binance;
+use ccxt::Binance;
 
 #[tokio::main]
 async fn main() {

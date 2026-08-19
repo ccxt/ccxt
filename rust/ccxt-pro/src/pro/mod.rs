@@ -5,7 +5,7 @@
 // ws_client and their public items) from the base crate so the
 // venue files' `crate::pro::*` paths resolve. The venue modules
 // themselves live in this crate.
-pub use ccxt::pro::*;
+pub use ccxt_base::pro::*;
 
 pub mod alpaca;
 pub mod apex;

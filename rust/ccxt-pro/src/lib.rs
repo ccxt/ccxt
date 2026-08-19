@@ -7,11 +7,11 @@
 // `crate::<module>` paths; the re-exports below make those paths resolve
 // unchanged now that the files live in this crate instead of `ccxt`.
 
-pub use ccxt::{
+pub use ccxt_base::{
     error, value, types, exchange, precise, runtime, exchange_errors, exchange_stubs,
     exchange_generated, exchanges,
 };
-pub use ccxt::{
+pub use ccxt_base::{
     Value, get_value, set_value, safe_string, safe_number, safe_integer, safe_bool,
     ExchangeError, Exchange, Result,
 };

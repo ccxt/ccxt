@@ -20,7 +20,7 @@ path = "src/lib.rs"
 # REST cores, runtime helpers and hand-written pro infra (cache / order_book /
 # ws_client) that live in `ccxt`. Splitting the WS venues into their own crate
 # keeps each `rustc` invocation well under the CI runner's memory limit.
-ccxt = { path = "../ccxt", features = ["transpiled-base"] }
+ccxt-base = { path = "../ccxt-base", features = ["transpiled-base"] }
 
 # HTTP client (async) — some venues sign REST sub-requests directly.
 reqwest = { version = "0.12", features = ["json", "rustls-tls", "socks", "gzip"], default-features = false }

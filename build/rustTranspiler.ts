@@ -44,7 +44,7 @@ function toSnakeCase(s: string): string {
 }
 
 // ── output paths ─────────────────────────────────────────────────────────────
-const RUST_BASE              = './rust/ccxt/src';
+const RUST_BASE              = './rust/ccxt-base/src';
 const BASE_METHODS_FILE      = `${RUST_BASE}/exchange_generated.rs`;
 const PREDICTION_BASE_FILE   = `${RUST_BASE}/prediction_exchange_generated.rs`;
 const ERRORS_FILE            = `${RUST_BASE}/exchange_errors.rs`;
@@ -4499,7 +4499,7 @@ class RustTranspilerBuilder {
         if (id in this._variadicsByExchange) return this._variadicsByExchange[id];
         const base = this.discoveredVariadics();
         const perExchange = this.extractVariadicsFromFile(
-            `./rust/ccxt/src/exchanges/${id}.rs`,
+            `./rust/ccxt-base/src/exchanges/${id}.rs`,
         );
         const merged = { ...base, ...perExchange };
         this._variadicsByExchange[id] = merged;
@@ -4509,10 +4509,10 @@ class RustTranspilerBuilder {
         if (this._discoveredVariadicsCache) return this._discoveredVariadicsCache;
         const out: Record<string, number> = {};
         const baseFiles = [
-            './rust/ccxt/src/exchange_generated.rs',
-            './rust/ccxt/src/exchange_stubs.rs',
+            './rust/ccxt-base/src/exchange_generated.rs',
+            './rust/ccxt-base/src/exchange_stubs.rs',
             // ExchangeRuntime dispatchers + super_* shims (review #1).
-            './rust/ccxt/src/exchange.rs',
+            './rust/ccxt-base/src/exchange.rs',
         ];
         for (const f of baseFiles) {
             const m = this.extractVariadicsFromFile(f);
@@ -4538,14 +4538,14 @@ class RustTranspilerBuilder {
         const id = exchangeId.toLowerCase();
         if (!this._predictionVariadicsCache) {
             this._predictionVariadicsCache = this.extractVariadicsFromFile(
-                './rust/ccxt/src/prediction_exchange_generated.rs',
+                './rust/ccxt-base/src/prediction_exchange_generated.rs',
             );
         }
         return {
             ...this.discoveredVariadics(),
             ...this._predictionVariadicsCache,
-            ...this.extractVariadicsFromFile(`./rust/ccxt/src/prediction/${id}_api.rs`),
-            ...this.extractVariadicsFromFile(`./rust/ccxt/src/prediction/${id}.rs`),
+            ...this.extractVariadicsFromFile(`./rust/ccxt-base/src/prediction/${id}_api.rs`),
+            ...this.extractVariadicsFromFile(`./rust/ccxt-base/src/prediction/${id}.rs`),
         };
     }
 
@@ -4948,7 +4948,7 @@ class RustTranspilerBuilder {
         return s;
     }
 
-    /** `crate::pro::kucoin::KucoinCore` → `./rust/ccxt/src/pro/kucoin` (no ext). */
+    /** `crate::pro::kucoin::KucoinCore` → `./rust/ccxt-base/src/pro/kucoin` (no ext). */
     private coreModuleToFileBase(mod: string): string | null {
         const parts = mod.split('::');
         if (parts[0] !== 'crate' || parts.length < 3) return null;
@@ -5849,8 +5849,8 @@ ${arms.join('\n')}
             // futures never get `.await`ed (E0308 "expected Value, found future").
             const predAsync: string[] = isPrediction
                 ? Object.keys({
-                    ...this.extractAsyncFnNames(`./rust/ccxt/src/prediction/${className}_api.rs`),
-                    ...this.extractAsyncFnNames('./rust/ccxt/src/prediction_exchange_generated.rs'),
+                    ...this.extractAsyncFnNames(`./rust/ccxt-base/src/prediction/${className}_api.rs`),
+                    ...this.extractAsyncFnNames('./rust/ccxt-base/src/prediction_exchange_generated.rs'),
                   })
                 : [];
             let currentSet = new Set([...asyncSnake, ...this.asyncBaseMethods(), ...predAsync, 'call_method', 'fetch', 'load_markets', 'throttle']);
@@ -6595,7 +6595,7 @@ impl std::ops::DerefMut for ${coreName} {
                 '// ws_client and their public items) from the base crate so the',
                 "// venue files' `crate::pro::*` paths resolve. The venue modules",
                 '// themselves live in this crate.',
-                'pub use ccxt::pro::*;',
+                'pub use ccxt_base::pro::*;',
                 '',
                 ...venues.map(n => `pub mod ${n};`),
             ];
