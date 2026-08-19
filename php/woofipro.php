@@ -26,7 +26,7 @@ class woofipro extends Exchange {
                 'swap' => true,
                 'future' => false,
                 'option' => false,
-                'addMargin' => false,
+                'addMargin' => true,
                 'borrowCrossMargin' => false,
                 'borrowIsolatedMargin' => false,
                 'borrowMargin' => false,
@@ -88,7 +88,8 @@ class woofipro extends Exchange {
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
                 'fetchMarginAdjustmentHistory' => false,
-                'fetchMarginMode' => false,
+                'fetchMarginMode' => true,
+                'fetchMarginModes' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -119,11 +120,12 @@ class woofipro extends Exchange {
                 'fetchTransfers' => false,
                 'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
-                'reduceMargin' => false,
+                'reduceMargin' => true,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
                 'setLeverage' => true,
                 'setMargin' => false,
+                'setMarginMode' => true,
                 'setPositionMode' => false,
                 'transfer' => false,
                 'withdraw' => true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#token-withdraw
@@ -253,6 +255,7 @@ class woofipro extends Exchange {
                             'broker/user_info' => array( 'cost' => 10 ),
                             'orderbook/{symbol}' => array( 'cost' => 1 ),
                             'kline' => array( 'cost' => 1 ),
+                            'client/margin_modes' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
                             'orderly_key' => array( 'cost' => 1 ),
@@ -268,6 +271,8 @@ class woofipro extends Exchange {
                             'notification/inbox/mark_read' => array( 'cost' => 60 ),
                             'notification/inbox/mark_read_all' => array( 'cost' => 60 ),
                             'client/leverage' => array( 'cost' => 120 ),
+                            'client/margin_mode' => array( 'cost' => 1 ),
+                            'position_margin' => array( 'cost' => 1 ),
                             'client/maintenance_config' => array( 'cost' => 60 ),
                             'delegate_signer' => array( 'cost' => 10 ),
                             'delegate_orderly_key' => array( 'cost' => 10 ),
@@ -2991,6 +2996,197 @@ class woofipro extends Exchange {
         //
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_transaction($data, $currency);
+    }
+
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol" => "PERP_BTC_USDC",
+        //         "default_margin_mode" => "CROSS"
+        //     }
+        //
+        $marketId = $this->safe_string($marginMode, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        return array(
+            'info' => $marginMode,
+            'symbol' => $market['symbol'],
+            'marginMode' => $this->safe_string_lower($marginMode, 'default_margin_mode'),
+        );
+    }
+
+    public function fetch_margin_modes(?array $symbols = null, $params = array()): array {
+        /**
+         * fetches the set margin mode of every contract market
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+         *
+         * @param {string[]} [$symbols] a list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structures~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $symbols = $this->market_symbols($symbols);
+        $response = $this->v1PrivateGetClientMarginModes($params);
+        //
+        // {
+        //     "success" => true,
+        //     "timestamp" => 1702989203989,
+        //     "data" => {
+        //         "rows" => [array(
+        //             "symbol" => "PERP_BTC_USDC",
+        //             "default_margin_mode" => "CROSS"
+        //         )]
+        //     }
+        // }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $rows = $this->safe_list($data, 'rows', array());
+        return $this->parse_margin_modes($rows, $symbols, 'symbol');
+    }
+
+    public function fetch_margin_mode(string $symbol, $params = array()): array {
+        /**
+         * fetches the set margin mode of a contract $market
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+         *
+         * @param {string} $symbol unified $symbol of the $market
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structure~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $market = $this->market($symbol);
+        $marginModes = $this->fetch_margin_modes(array( $market['symbol'] ), $params);
+        $marginMode = $this->safe_dict($marginModes, $market['symbol']);
+        if ($marginMode === null) {
+            throw new BadSymbol($this->id . ' fetchMarginMode() did not return a margin mode for ' . $market['symbol']);
+        }
+        return $marginMode;
+    }
+
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
+        /**
+         * set margin mode to 'cross' or 'isolated' for a $market
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-margin-mode
+         *
+         * @param {string} $marginMode 'cross' or 'isolated'
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} response from the exchange
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $marginMode = strtolower($marginMode);
+        if ($marginMode !== 'cross' && $marginMode !== 'isolated') {
+            throw new BadRequest($this->id . ' setMarginMode() $marginMode must be either cross or isolated');
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'default_margin_mode' => strtoupper($marginMode),
+        );
+        //
+        // {
+        //     "success" => true,
+        //     "timestamp" => 1702989203989
+        // }
+        //
+        return $this->v1PrivatePostClientMarginMode($this->extend($request, $params));
+    }
+
+    public function parse_margin_modification(array $data, ?array $market = null): array {
+        //
+        //     {
+        //         "success" => true,
+        //         "timestamp" => 1702989203989
+        //     }
+        //
+        $timestamp = $this->safe_integer($data, 'timestamp');
+        $success = $this->safe_bool($data, 'success', false);
+        return array(
+            'info' => $data,
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'type' => null,
+            'marginMode' => 'isolated',
+            'amount' => null,
+            'total' => null,
+            'code' => $this->safe_string($market, 'settle'),
+            'status' => ($success) ? 'ok' : 'failed',
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function modify_margin_helper(string $symbol, mixed $amount, string $type, $params = array()): array {
+        /**
+         * @ignore
+         * add or reduce isolated position margin
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {float} $amount amount of margin to add or reduce
+         * @param {string} $type 'ADD' or 'REDUCE'
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'amount' => $this->number_to_string($amount),
+            'type' => $type,
+        );
+        $response = $this->v1PrivatePostPositionMargin($this->extend($request, $params));
+        //
+        // {
+        //     "success" => true,
+        //     "timestamp" => 1702989203989
+        // }
+        //
+        $modification = $this->parse_margin_modification($response, $market);
+        $modification['type'] = ($type === 'ADD') ? 'add' : 'reduce';
+        $modification['amount'] = $this->parse_number($this->number_to_string($amount));
+        return $modification;
+    }
+
+    public function add_margin(string $symbol, float $amount, $params = array()): array {
+        /**
+         * add margin to an isolated position
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {float} $amount amount of margin to add
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+         */
+        return $this->modify_margin_helper($symbol, $amount, 'ADD', $params);
+    }
+
+    public function reduce_margin(string $symbol, float $amount, $params = array()): array {
+        /**
+         * remove margin from an isolated position
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {float} $amount amount of margin to remove
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=reduce-margin-structure margin structure~
+         */
+        return $this->modify_margin_helper($symbol, $amount, 'REDUCE', $params);
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {

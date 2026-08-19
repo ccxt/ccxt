@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     history_get_api_tw_history_pairname_resolution = historyGetApiTwHistoryPairNameResolution = Entry[_Dict]('api/tw/history/{pairName}/{resolution}', 'history', 'GET', {'cost': 1})

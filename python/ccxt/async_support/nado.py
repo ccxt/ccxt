@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.nado import ImplicitAPI
 import asyncio
-from ccxt.base.types import Any, Balances, Currencies, Currency, FundingHistory, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, FundingHistory, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -36,7 +35,7 @@ from ccxt.base.precise import Precise
 
 class nado(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(nado, self).describe(), {
             'id': 'nado',
             'name': 'Nado',
@@ -637,7 +636,7 @@ class nado(Exchange, ImplicitAPI):
         orders = await self.cancel_orders([id], symbol, params)
         return self.safe_dict(orders, 0)
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}) -> List[Order]:
+    async def cancel_all_orders(self, symbol: Str = None, params={}) -> list[Order]:
         """
         cancel all open orders
 
@@ -744,7 +743,7 @@ class nado(Exchange, ImplicitAPI):
         }
         return self.extend(request, params)
 
-    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}) -> List[Order]:
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}) -> list[Order]:
         """
         cancel multiple orders
 
@@ -811,7 +810,7 @@ class nado(Exchange, ImplicitAPI):
             result.append(self.parse_order(self.extend({'status': 'canceled'}, cancelledOrders[i]), market))
         return result
 
-    async def cancel_orders_request(self, ids: List[str], symbol: Str = None, params={}) -> dict:
+    async def cancel_orders_request(self, ids: list[str], symbol: Str = None, params={}) -> dict:
         """
  @ignore
         build and sign the cancel_orders execute payload
@@ -905,7 +904,7 @@ class nado(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -984,7 +983,7 @@ class nado(Exchange, ImplicitAPI):
         orders = self.safe_list(data, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1052,7 +1051,7 @@ class nado(Exchange, ImplicitAPI):
         orders = self.safe_list(data, 'orders', [])
         return self.parse_orders(orders, market, since, limit, {'status': 'open'})
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -1144,7 +1143,7 @@ class nado(Exchange, ImplicitAPI):
             ],
         }))
 
-    async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
@@ -1163,7 +1162,7 @@ class nado(Exchange, ImplicitAPI):
             ],
         }))
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -1280,7 +1279,7 @@ class nado(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_balance(data)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -1296,7 +1295,7 @@ class nado(Exchange, ImplicitAPI):
         """
         return await self.query_transactions_by_event_type('deposit_collateral', 'deposit', 'fetchDeposits', code, since, limit, params)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -1312,7 +1311,7 @@ class nado(Exchange, ImplicitAPI):
         """
         return await self.query_transactions_by_event_type('withdraw_collateral', 'withdrawal', 'fetchWithdrawals', code, since, limit, params)
 
-    async def query_transactions_by_event_type(self, eventType: str, transactionType: str, methodName: str, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def query_transactions_by_event_type(self, eventType: str, transactionType: str, methodName: str, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         if self.walletAddress is None:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires walletAddress')
         await self.load_markets()
@@ -1392,7 +1391,7 @@ class nado(Exchange, ImplicitAPI):
             transactions.append(self.parse_transaction(transaction, currency))
         return self.filter_by_currency_since_limit(transactions, code, since, limit)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -1514,7 +1513,7 @@ class nado(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for nado
 
@@ -1773,7 +1772,7 @@ class nado(Exchange, ImplicitAPI):
         data = self.safe_dict(response, tickerId, {})
         return self.parse_funding_rate(data, market)
 
-    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingHistory]:
+    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[FundingHistory]:
         """
         fetch the history of funding payments paid and received on self account
 
@@ -1998,7 +1997,7 @@ class nado(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, market['symbol'], timestamp)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of the most recent trades for a particular symbol
 
@@ -2036,7 +2035,7 @@ class nado(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -2085,7 +2084,7 @@ class nado(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'candlesticks', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     {
         #         "product_id": 1,
@@ -2206,7 +2205,7 @@ class nado(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         #     {
         #         "product_id": 1,
@@ -2277,7 +2276,7 @@ class nado(Exchange, ImplicitAPI):
             'amount': self.parse_x18(self.safe_string(funding, 'amount')),
         }
 
-    def parse_open_interest(self, interest: Any, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None):
         #
         #     {
         #         "product_id": 1,
@@ -2368,7 +2367,7 @@ class nado(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         #
         #     {
         #         "subaccount": "0x8d7d64d6cf1d4f018dd101482ac71ad49e30c56064656661756c740000000000",
@@ -2742,16 +2741,16 @@ class nado(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' convertToX18() requires a value')
         return Precise.string_div(Precise.string_mul(value, '1000000000000000000'), '1', 0)
 
-    def parse_x18(self, value: Any):
+    def parse_x18(self, value: object):
         if value is None:
             return None
         return self.parse_number(Precise.string_div(value, '1000000000000000000'))
 
-    def create_order_nonce(self, recvWindow: Any):
+    def create_order_nonce(self, recvWindow: object):
         expires = self.sum(self.milliseconds(), recvWindow)
         return Precise.string_mul(self.number_to_string(expires), '1048576')
 
-    def create_order_appendix(self, isTriggerOrder: Any, params={}):
+    def create_order_appendix(self, isTriggerOrder: object, params={}):
         # | value   | builder | builder fee rate | reserved | trigger | reduce only | order type | isolated | version |
         # | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         # | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
@@ -2820,7 +2819,7 @@ class nado(Exchange, ImplicitAPI):
             return padded[start:len(padded)]
         return padded[0:length]
 
-    def sign_order(self, order: Any, productId: Int, chainId: Any):
+    def sign_order(self, order: object, productId: Int, chainId: object):
         domain = {
             'name': 'Nado',
             'version': '0.0.1',
@@ -2841,7 +2840,7 @@ class nado(Exchange, ImplicitAPI):
         hash = '0x' + self.hash(encoded, 'keccak', 'hex')
         return self.sign_hash(hash, self.privateKey)
 
-    def sign_cancellation(self, cancellation: Any, chainId: Any, endpointAddress: str):
+    def sign_cancellation(self, cancellation: object, chainId: object, endpointAddress: str):
         domain = {
             'name': 'Nado',
             'version': '0.0.1',
@@ -2860,7 +2859,7 @@ class nado(Exchange, ImplicitAPI):
         hash = '0x' + self.hash(encoded, 'keccak', 'hex')
         return self.sign_hash(hash, self.privateKey)
 
-    def sign_cancellation_products(self, cancellation: Any, chainId: Any, endpointAddress: str):
+    def sign_cancellation_products(self, cancellation: object, chainId: object, endpointAddress: str):
         domain = {
             'name': 'Nado',
             'version': '0.0.1',
@@ -2878,7 +2877,7 @@ class nado(Exchange, ImplicitAPI):
         hash = '0x' + self.hash(encoded, 'keccak', 'hex')
         return self.sign_hash(hash, self.privateKey)
 
-    def sign_fetch_trigger_orders(self, tx: Any, chainId: Any, endpointAddress: Any):
+    def sign_fetch_trigger_orders(self, tx: object, chainId: object, endpointAddress: object):
         domain = {
             'name': 'Nado',
             'version': '0.0.1',
@@ -2904,14 +2903,14 @@ class nado(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v'])).lower()
         return '0x' + self.pad_hex(r, 64) + self.pad_hex(s, 64) + v
 
-    def remove_market_suffix(self, marketId: Any):
+    def remove_market_suffix(self, marketId: object):
         if marketId is None:
             return None
         if marketId.endswith('-PERP'):
             return marketId[0:-5]
         return marketId
 
-    def sign(self, path: Any, api: Any = [], method='GET', params={}, headers: Any = None, body: Any = None):
+    def sign(self, path: object, api: object = [], method='GET', params={}, headers: object = None, body: object = None):
         endpoint = api[0]
         if isinstance(api, str):
             endpoint = api
@@ -2930,7 +2929,7 @@ class nado(Exchange, ImplicitAPI):
             body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: Int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: Int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if not response:
             return None  # fallback to default error handler
         #

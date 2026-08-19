@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, ADL, Balances, BorrowInterest, Currencies, Currency, CurrencyInterface, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import Account, ADL, Balances, BorrowInterest, Currencies, Currency, CurrencyInterface, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -32,7 +31,7 @@ from ccxt.base.precise import Precise
 
 class htx(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(htx, self).describe(), {
             'id': 'htx',
             'name': 'HTX',
@@ -180,17 +179,6 @@ class htx(Exchange, ImplicitAPI):
                 'hostnames': {
                     'contract': 'api.hbdm.vn',  # alternatively use api.hbdm.com
                     'spot': 'api.huobi.pro',
-                    'status': {
-                        'spot': 'status.huobigroup.com',
-                        'future': {
-                            'inverse': 'status-dm.huobigroup.com',
-                            'linear': 'status-linear-swap.huobigroup.com',  # USDT-Margined Contracts
-                        },
-                        'swap': {
-                            'inverse': 'status-swap.huobigroup.com',
-                            'linear': 'status-linear-swap.huobigroup.com',  # USDT-Margined Contracts
-                        },
-                    },
                     # recommended for AWS
                     # 'contract': 'api.hbdm.vn',
                     # 'spot': 'api-aws.huobi.pro',
@@ -352,43 +340,6 @@ class htx(Exchange, ImplicitAPI):
                 },
                 # ------------------------------------------------------------
                 # new api definitions
-                # 'https://status.huobigroup.com/api/v2/summary.json': 1,
-                # 'https://status-dm.huobigroup.com/api/v2/summary.json': 1,
-                # 'https://status-swap.huobigroup.com/api/v2/summary.json': 1,
-                # 'https://status-linear-swap.huobigroup.com/api/v2/summary.json': 1,
-                'status': {
-                    'public': {
-                        'spot': {
-                            'get': {
-                                'api/v2/summary.json': {'cost': 1},
-                            },
-                        },
-                        'future': {
-                            'inverse': {
-                                'get': {
-                                    'api/v2/summary.json': {'cost': 1},
-                                },
-                            },
-                            'linear': {
-                                'get': {
-                                    'api/v2/summary.json': {'cost': 1},
-                                },
-                            },
-                        },
-                        'swap': {
-                            'inverse': {
-                                'get': {
-                                    'api/v2/summary.json': {'cost': 1},
-                                },
-                            },
-                            'linear': {
-                                'get': {
-                                    'api/v2/summary.json': {'cost': 1},
-                                },
-                            },
-                        },
-                    },
-                },
                 'spot': {
                     'public': {
                         'get': {
@@ -1325,221 +1276,74 @@ class htx(Exchange, ImplicitAPI):
         """
         the latest known information on the availability of the exchange API
 
-        https://huobiapi.github.io/docs/spot/v1/en/#get-system-status
-        https://huobiapi.github.io/docs/dm/v1/en/#get-system-status
-        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-system-status
-        https://huobiapi.github.io/docs/usdt_swap/v1/en/#get-system-status
+        https://huobiapi.github.io/docs/spot/v1/en/#get-market-status
         https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available  # contractPublicGetHeartbeat
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
         """
-        if self.markets is None:
-            self.load_markets()
+        # the former statuspage endpoints(status*.huobigroup.com) were
+        # decommissioned after the huobi -> htx rebrand and no longer resolve,
+        # so self method uses the live native endpoints instead
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchStatus', None, params)
-        enabledForContracts = self.handle_option('fetchStatus', 'enableForContracts', False)  # temp fix for: https://status-linear-swap.huobigroup.com/api/v2/summary.json
-        response = None
-        if marketType != 'spot' and enabledForContracts:
-            subType = self.safe_string(params, 'subType', self.options['defaultSubType'])
-            if marketType == 'swap':
-                if subType == 'linear':
-                    response = self.statusPublicSwapLinearGetApiV2SummaryJson()
-                elif subType == 'inverse':
-                    response = self.statusPublicSwapInverseGetApiV2SummaryJson()
-            elif marketType == 'future':
-                if subType == 'linear':
-                    response = self.statusPublicFutureLinearGetApiV2SummaryJson()
-                elif subType == 'inverse':
-                    response = self.statusPublicFutureInverseGetApiV2SummaryJson()
-            elif marketType == 'contract':
-                response = self.contractPublicGetHeartbeat()
-        elif marketType == 'spot':
-            response = self.statusPublicSpotGetApiV2SummaryJson()
-        #
-        # statusPublicSpotGetApiV2SummaryJson, statusPublicSwapInverseGetApiV2SummaryJson, statusPublicFutureLinearGetApiV2SummaryJson, statusPublicFutureInverseGetApiV2SummaryJson
-        #
-        #      {
-        #          "page": {
-        #              "id":"mn7l2lw8pz4p",
-        #              "name":"Huobi Futures-USDT-margined Swaps",
-        #              "url":"https://status-linear-swap.huobigroup.com",
-        #              "time_zone":"Asia/Singapore",
-        #              "updated_at":"2022-04-29T12:47:21.319+08:00"},
-        #              "components": [
-        #                  {
-        #                      "id":"lrv093qk3yp5",
-        #                      "name":"market data",
-        #                      "status":"operational",
-        #                      "created_at":"2020-10-29T14:08:59.427+08:00",
-        #                      "updated_at":"2020-10-29T14:08:59.427+08:00",
-        #                      "position":1,"description":null,
-        #                      "showcase":false,
-        #                      "start_date":null,
-        #                      "group_id":null,
-        #                      "page_id":"mn7l2lw8pz4p",
-        #                      "group":true,
-        #                      "only_show_if_degraded":false,
-        #                      "components": [
-        #                          "82k5jxg7ltxd"  # list of related components
-        #                      ]
-        #                  },
-        #              ],
-        #              "incidents": [ # empty array if there are no issues
-        #                  {
-        #                      "id": "rclfxz2g21ly",  # incident id
-        #                      "name": "Market data is delayed",  # incident name
-        #                      "status": "investigating",  # incident status
-        #                      "created_at": "2020-02-11T03:15:01.913Z",  # incident create time
-        #                      "updated_at": "2020-02-11T03:15:02.003Z",   # incident update time
-        #                      "monitoring_at": null,
-        #                      "resolved_at": null,
-        #                      "impact": "minor",  # incident impact
-        #                      "shortlink": "http://stspg.io/pkvbwp8jppf9",
-        #                      "started_at": "2020-02-11T03:15:01.906Z",
-        #                      "page_id": "p0qjfl24znv5",
-        #                      "incident_updates": [
-        #                          {
-        #                              "id": "dwfsk5ttyvtb",
-        #                              "status": "investigating",
-        #                              "body": "Market data is delayed",
-        #                              "incident_id": "rclfxz2g21ly",
-        #                              "created_at": "2020-02-11T03:15:02.000Z",
-        #                              "updated_at": "2020-02-11T03:15:02.000Z",
-        #                              "display_at": "2020-02-11T03:15:02.000Z",
-        #                              "affected_components": [
-        #                                  {
-        #                                      "code": "nctwm9tghxh6",
-        #                                      "name": "Market data",
-        #                                      "old_status": "operational",
-        #                                      "new_status": "degraded_performance"
-        #                                  }
-        #                              ],
-        #                              "deliver_notifications": True,
-        #                              "custom_tweet": null,
-        #                              "tweet_id": null
-        #                          }
-        #                      ],
-        #                      "components": [
-        #                          {
-        #                              "id": "nctwm9tghxh6",
-        #                              "name": "Market data",
-        #                              "status": "degraded_performance",
-        #                              "created_at": "2020-01-13T09:34:48.284Z",
-        #                              "updated_at": "2020-02-11T03:15:01.951Z",
-        #                              "position": 8,
-        #                              "description": null,
-        #                              "showcase": False,
-        #                              "group_id": null,
-        #                              "page_id": "p0qjfl24znv5",
-        #                              "group": False,
-        #                              "only_show_if_degraded": False
-        #                          }
-        #                      ]
-        #                  }, ...
-        #              ],
-        #              "scheduled_maintenances":[ # empty array if there are no scheduled maintenances
-        #                  {
-        #                      "id": "k7g299zl765l",  # incident id
-        #                      "name": "Schedule maintenance",  # incident name
-        #                      "status": "scheduled",  # incident status
-        #                      "created_at": "2020-02-11T03:16:31.481Z",  # incident create time
-        #                      "updated_at": "2020-02-11T03:16:31.530Z",  # incident update time
-        #                      "monitoring_at": null,
-        #                      "resolved_at": null,
-        #                      "impact": "maintenance",  # incident impact
-        #                      "shortlink": "http://stspg.io/md4t4ym7nytd",
-        #                      "started_at": "2020-02-11T03:16:31.474Z",
-        #                      "page_id": "p0qjfl24znv5",
-        #                      "incident_updates": [
-        #                          {
-        #                              "id": "8whgr3rlbld8",
-        #                              "status": "scheduled",
-        #                              "body": "We will be undergoing scheduled maintenance during self time.",
-        #                              "incident_id": "k7g299zl765l",
-        #                              "created_at": "2020-02-11T03:16:31.527Z",
-        #                              "updated_at": "2020-02-11T03:16:31.527Z",
-        #                              "display_at": "2020-02-11T03:16:31.527Z",
-        #                              "affected_components": [
-        #                                  {
-        #                                      "code": "h028tnzw1n5l",
-        #                                      "name": "Deposit And Withdraw - Deposit",
-        #                                      "old_status": "operational",
-        #                                      "new_status": "operational"
-        #                                  }
-        #                              ],
-        #                              "deliver_notifications": True,
-        #                              "custom_tweet": null,
-        #                              "tweet_id": null
-        #                          }
-        #                      ],
-        #                      "components": [
-        #                          {
-        #                              "id": "h028tnzw1n5l",
-        #                              "name": "Deposit",
-        #                              "status": "operational",
-        #                              "created_at": "2019-12-05T02:07:12.372Z",
-        #                              "updated_at": "2020-02-10T12:34:52.970Z",
-        #                              "position": 1,
-        #                              "description": null,
-        #                              "showcase": False,
-        #                              "group_id": "gtd0nyr3pf0k",
-        #                              "page_id": "p0qjfl24znv5",
-        #                              "group": False,
-        #                              "only_show_if_degraded": False
-        #                          }
-        #                      ],
-        #                      "scheduled_for": "2020-02-15T00:00:00.000Z",  # scheduled maintenance start time
-        #                      "scheduled_until": "2020-02-15T01:00:00.000Z"  # scheduled maintenance end time
-        #                  }
-        #              ],
-        #              "status": {
-        #                  "indicator":"none",  # none, minor, major, critical, maintenance
-        #                  "description":"all systems operational"  # All Systems Operational, Minor Service Outage, Partial System Outage, Partially Degraded Service, Service Under Maintenance
-        #              }
-        #          }
-        #
-        #
-        # contractPublicGetHeartbeat
-        #
-        #      {
-        #          "status": "ok",  # 'ok', 'error'
-        #          "data": {
-        #              "heartbeat": 1,  # future 1: available, 0: maintenance with service suspended
-        #              "estimated_recovery_time": null,  # estimated recovery time in milliseconds
-        #              "swap_heartbeat": 1,
-        #              "swap_estimated_recovery_time": null,
-        #              "option_heartbeat": 1,
-        #              "option_estimated_recovery_time": null,
-        #              "linear_swap_heartbeat": 1,
-        #              "linear_swap_estimated_recovery_time": null
-        #          },
-        #          "ts": 1557714418033
-        #      }
-        #
         status = None
-        updated = None
-        url = None
-        if marketType == 'contract':
-            statusRaw = self.safe_string(response, 'status')
-            if statusRaw is None:
-                status = None
-            else:
-                status = 'ok' if (statusRaw == 'ok') else 'maintenance'  # 'ok', 'error'
-            updated = self.safe_integer(response, 'ts')
+        eta = None
+        response = None
+        if marketType == 'spot':
+            response = self.spotPublicGetV2MarketStatus(params)
+            #
+            #     {
+            #         "code": 200,
+            #         "message": "success",
+            #         "data": {
+            #             "marketStatus": 1,  # 1 normal, 2 halted, 3 cancel-only
+            #             "haltStartTime": 1614852011000,  # only when halted
+            #             "haltEndTime": 1614852400000  # only when the end time is estimable
+            #         }
+            #     }
+            #
+            data = self.safe_dict(response, 'data', {})
+            marketStatus = self.safe_integer(data, 'marketStatus')
+            status = 'ok' if (marketStatus == 1) else 'maintenance'
+            eta = self.safe_integer(data, 'haltEndTime')
         else:
-            statusData = self.safe_value(response, 'status', {})
-            statusRaw = self.safe_string(statusData, 'indicator')
-            status = 'ok' if (statusRaw == 'none') else 'maintenance'  # none, minor, major, critical, maintenance
-            pageData = self.safe_value(response, 'page', {})
-            datetime = self.safe_string(pageData, 'updated_at')
-            updated = self.parse8601(datetime)
-            url = self.safe_string(pageData, 'url')
+            subType = None
+            subType, params = self.handle_sub_type_and_params('fetchStatus', None, params)
+            response = self.contractPublicGetHeartbeat(params)
+            #
+            #     {
+            #         "status": "ok",
+            #         "data": {
+            #             "heartbeat": 1,  # 1 available, 0 unavailable
+            #             "estimated_recovery_time": null,
+            #             "swap_heartbeat": 1,
+            #             "swap_estimated_recovery_time": null,
+            #             "option_heartbeat": 1,
+            #             "option_estimated_recovery_time": null,
+            #             "linear_swap_heartbeat": 1,
+            #             "linear_swap_estimated_recovery_time": null
+            #         },
+            #         "ts": 1557714418033  # stale on the exchange side, do not trust update time
+            #     }
+            #
+            data = self.safe_dict(response, 'data', {})
+            heartbeatKey = 'heartbeat'
+            etaKey = 'estimated_recovery_time'
+            if subType == 'linear':
+                heartbeatKey = 'linear_swap_heartbeat'
+                etaKey = 'linear_swap_estimated_recovery_time'
+            elif marketType == 'swap':
+                heartbeatKey = 'swap_heartbeat'
+                etaKey = 'swap_estimated_recovery_time'
+            heartbeat = self.safe_integer(data, heartbeatKey)
+            status = 'ok' if (heartbeat == 1) else 'maintenance'
+            eta = self.safe_integer(data, etaKey)
         return {
             'status': status,
-            'updated': updated,
-            'eta': None,
-            'url': url,
+            'updated': None,
+            'eta': eta,
+            'url': None,
             'info': response,
         }
 
@@ -1677,7 +1481,7 @@ class htx(Exchange, ImplicitAPI):
         #
         return self.parse_trading_limits(self.safe_value(response, 'data', {}))
 
-    def parse_trading_limits(self, limits: Any, symbol: Str = None, params={}):
+    def parse_trading_limits(self, limits: object, symbol: Str = None, params={}):
         #
         #   {                               "symbol": "aidocbtc",
         #                  "buy-limit-must-less-than":  1.1,
@@ -1703,10 +1507,10 @@ class htx(Exchange, ImplicitAPI):
             },
         }
 
-    def cost_to_precision(self, symbol: Str, cost: Any):
+    def cost_to_precision(self, symbol: Str, cost: object):
         return self.decimal_to_precision(cost, TRUNCATE, self.market(symbol)['precision']['cost'], self.precisionMode)
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for huobi
 
@@ -2453,7 +2257,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_list(tick, 'data', [])
         return self.parse_last_prices(data, symbols)
 
-    def parse_last_price(self, entry: Any, market: Market = None):
+    def parse_last_price(self, entry: object, market: Market = None):
         # example responses are documented in fetchLastPrices
         marketId = self.safe_string_2(entry, 'symbol', 'contract_code')
         market = self.safe_market(marketId, market)
@@ -2951,7 +2755,7 @@ class htx(Exchange, ImplicitAPI):
             trades = self.safe_value(trades, 'trades')
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = 1000, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = 1000, params={}) -> list[Trade]:
         """
 
         https://huobiapi.github.io/docs/spot/v1/en/#get-the-most-recent-trades
@@ -3026,7 +2830,7 @@ class htx(Exchange, ImplicitAPI):
         result = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     {
         #         "amount":1.2082,
@@ -3048,7 +2852,7 @@ class htx(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'amount'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -3178,7 +2982,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def fetch_accounts(self, params={}) -> List[Account]:
+    def fetch_accounts(self, params={}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -3202,7 +3006,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_accounts(data)
 
-    def parse_account(self, account: Any):
+    def parse_account(self, account: object):
         #
         #     {
         #         "id": 5202591,
@@ -3863,7 +3667,7 @@ class htx(Exchange, ImplicitAPI):
             order = self.safe_value(order, 0)
         return self.parse_order(order, market)
 
-    def parse_margin_balance_helper(self, balance: Any, code: Any, result: Any):
+    def parse_margin_balance_helper(self, balance: object, code: object, result: object):
         account = None
         if code in result:
             account = result[code]
@@ -3879,7 +3683,7 @@ class htx(Exchange, ImplicitAPI):
             account['used'] = self.safe_string(balance, 'balance')
         return account
 
-    def fetch_spot_orders_by_states(self, states: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_spot_orders_by_states(self, states: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         method = self.safe_string(self.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders')  # spot_private_get_v1_order_history
         if method == 'spot_private_get_v1_order_orders':
             if symbol is None:
@@ -4118,7 +3922,7 @@ class htx(Exchange, ImplicitAPI):
             request['status'] = '6'
         return self.fetch_contract_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -4156,7 +3960,7 @@ class htx(Exchange, ImplicitAPI):
         else:
             return self.fetch_spot_orders(symbol, since, limit, params)
 
-    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
@@ -4207,7 +4011,7 @@ class htx(Exchange, ImplicitAPI):
                 request['status'] = '5,7'  # comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
             return self.fetch_contract_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -4242,7 +4046,7 @@ class htx(Exchange, ImplicitAPI):
         else:
             return self.fetch_closed_contract_orders(symbol, since, limit, params)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -5427,7 +5231,7 @@ class htx(Exchange, ImplicitAPI):
             raise NullResponse(self.id + ' parseOrder() returned empty response')
         return self.parse_order(result, market)
 
-    def create_orders(self, orders: List[OrderRequest], params={}):
+    def create_orders(self, orders: list[OrderRequest], params={}):
         """
         create a list of trade orders
 
@@ -5732,7 +5536,7 @@ class htx(Exchange, ImplicitAPI):
             'status': 'canceled',
         })
 
-    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -5900,7 +5704,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_cancel_orders(data)
 
-    def parse_cancel_orders(self, orders: Any):
+    def parse_cancel_orders(self, orders: object):
         #
         #    {
         #        "success": [
@@ -6133,7 +5937,7 @@ class htx(Exchange, ImplicitAPI):
         #
         return response
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None):
         #
         #     {
         #         "currency": "usdt",
@@ -6159,7 +5963,7 @@ class htx(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
-    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
+    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> list[DepositAddress]:
         """
 
         https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
@@ -6244,7 +6048,7 @@ class htx(Exchange, ImplicitAPI):
                 addresses.append(address)
         return addresses
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
 
         https://www.htx.com/en-us/opend/newApiPages/?id=7ec4f050-7773-11ed-9966-0242ac110003
@@ -6302,7 +6106,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -6689,7 +6493,7 @@ class htx(Exchange, ImplicitAPI):
             raise NullResponse(self.id + ' parseTransfer() returned empty response')
         return self.parse_transfer(response, currency)
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -6946,7 +6750,7 @@ class htx(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         # inverse swap
         #
@@ -7000,7 +6804,7 @@ class htx(Exchange, ImplicitAPI):
             'interval': self.parse_funding_interval(millisecondsInterval),
         }
 
-    def parse_funding_interval(self, interval: Any):
+    def parse_funding_interval(self, interval: object):
         intervals = {
             '3600000': '1h',
             '14400000': '4h',
@@ -7126,7 +6930,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_funding_rates(data, symbols)
 
-    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
+    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
 
@@ -7250,7 +7054,7 @@ class htx(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
         url = '/'
         isArrayParams = isinstance(params, list)
         query = None
@@ -7379,7 +7183,7 @@ class htx(Exchange, ImplicitAPI):
             }) + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         if 'status' in response:
@@ -7572,7 +7376,7 @@ class htx(Exchange, ImplicitAPI):
             raise NullResponse(self.id + ' setLeverage() returned empty response')
         return response
 
-    def parse_income(self, income: Any, market: Market = None):
+    def parse_income(self, income: object, market: Market = None):
         #
         #     {
         #       "id": "1667161118",
@@ -7748,7 +7552,7 @@ class htx(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -8047,7 +7851,7 @@ class htx(Exchange, ImplicitAPI):
         parsed['datetime'] = self.iso8601(timestamp)
         return parsed
 
-    def parse_ledger_entry_type(self, type: Any):
+    def parse_ledger_entry_type(self, type: object):
         types = {
             'trade': 'trade',
             'etf': 'trade',
@@ -8105,7 +7909,7 @@ class htx(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -8223,7 +8027,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_leverage_tiers(data, symbols, 'contract_code')
 
-    def parse_market_leverage_tiers(self, info: Any, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: object, market: Market = None) -> list[LeverageTier]:
         currencyId = self.safe_string(info, 'trade_partition')
         marketId = self.safe_string(info, 'contract_code')
         tiers = []
@@ -8534,7 +8338,7 @@ class htx(Exchange, ImplicitAPI):
         openInterest['datetime'] = self.iso8601(timestamp)
         return openInterest
 
-    def parse_open_interest(self, interest: Any, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None):
         #
         # fetchOpenInterestHistory
         #
@@ -8746,7 +8550,7 @@ class htx(Exchange, ImplicitAPI):
             'amount': amount,
         })
 
-    def parse_margin_loan(self, info: Any, currency: Currency = None) -> MarginLoan:
+    def parse_margin_loan(self, info: object, currency: Currency = None) -> MarginLoan:
         #
         # borrowMargin cross
         #
@@ -8779,7 +8583,7 @@ class htx(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[dict]:
+    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         """
         Fetches historical settlement records
 
@@ -8950,7 +8754,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    def parse_deposit_withdraw_fee(self, fee: Any, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
         #
         #            {
         #              "currency": "sxp",
@@ -9015,7 +8819,7 @@ class htx(Exchange, ImplicitAPI):
             result = self.assign_default_deposit_withdraw_fees(result, currency)
         return result
 
-    def parse_settlements(self, settlements: Any, market: Any):
+    def parse_settlements(self, settlements: object, market: object):
         #
         # coin-m swap, fetchSettlementHistory
         #
@@ -9085,7 +8889,7 @@ class htx(Exchange, ImplicitAPI):
                 result.append(self.parse_settlement(settlements[i], market))
         return result
 
-    def parse_settlement(self, settlement: Any, market: Any):
+    def parse_settlement(self, settlement: object, market: object):
         #
         # coin-m swap, fetchSettlementHistory
         #
@@ -9217,7 +9021,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_liquidations(data, market, since, limit)
 
-    def parse_liquidation(self, liquidation: Any, market: Market = None):
+    def parse_liquidation(self, liquidation: object, market: Market = None):
         #
         #     {
         #         "query_id": 452057,
@@ -9367,7 +9171,7 @@ class htx(Exchange, ImplicitAPI):
         #
         return response
 
-    def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
+    def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> list[ADL]:
         """
         fetches the auto deleveraging rank and risk percentage for a list of symbols
 

@@ -454,7 +454,14 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object cache = this.positions;
-        Object rawPositions = this.safeValue(message, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object rawPositions = this.safeList(message, "positions");
+        if (Helpers.isTrue(Helpers.isEqual(rawPositions, null)))
+        {
+            // an open_positions frame without the positions key is malformed;
+            // do not resolve with a fabricated empty list (the caller cannot
+            // distinguish it from a genuinely flat account)
+            return;
+        }
         Object newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
         {

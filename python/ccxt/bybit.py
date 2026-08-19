@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, ADL, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Liquidation, LongShortRatio, MarginMode, MarginLoan, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
-from typing import List
+from ccxt.base.types import ADL, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Liquidation, LongShortRatio, MarginMode, MarginLoan, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -32,7 +31,7 @@ from ccxt.base.precise import Precise
 
 class bybit(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bybit, self).describe(), {
             'id': 'bybit',
             'name': 'Bybit',
@@ -129,7 +128,6 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchOptionChain': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositionADLRank': True,
@@ -1433,7 +1431,7 @@ class bybit(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def add_pagination_cursor_to_result(self, response: Any):
+    def add_pagination_cursor_to_result(self, response: object):
         result = self.safe_dict(response, 'result', {})
         data = self.safe_list_n(result, ['list', 'rows', 'data', 'dataList'], [])
         paginationCursor = self.safe_string_2(result, 'nextPageCursor', 'cursor')
@@ -1641,7 +1639,7 @@ class bybit(Exchange, ImplicitAPI):
             return self.create_expired_option_market(marketId)
         return super(bybit, self).safe_market(marketId, market, delimiter, marketType)
 
-    def get_bybit_type(self, method: Any, market: Any, params={}) -> list:
+    def get_bybit_type(self, method: object, market: object, params={}) -> list:
         type = None
         type, params = self.handle_market_type_and_params(method, market, params)
         subType = None
@@ -1866,7 +1864,7 @@ class bybit(Exchange, ImplicitAPI):
             'type': 'crypto',  # atm exchange api provides only cryptos
         })
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for bybit
 
@@ -1919,7 +1917,7 @@ class bybit(Exchange, ImplicitAPI):
         # return self.array_concat(spotMarkets, derivativeMarkets)
         return result
 
-    def fetch_spot_markets(self, params: Any) -> List[Market]:
+    def fetch_spot_markets(self, params: object) -> list[Market]:
         request = {
             'category': 'spot',
         }
@@ -2034,7 +2032,7 @@ class bybit(Exchange, ImplicitAPI):
             }))
         return result
 
-    def fetch_future_markets(self, params: dict = {}) -> List[Market]:
+    def fetch_future_markets(self, params: dict = {}) -> list[Market]:
         params = self.extend(params, {})
         params['limit'] = 1000  # minimize number of requests
         preLaunchMarkets = []
@@ -2217,7 +2215,7 @@ class bybit(Exchange, ImplicitAPI):
             result.append(parsedMarket)
         return result
 
-    def fetch_option_markets(self, params: Any) -> List[Market]:
+    def fetch_option_markets(self, params: object) -> list[Market]:
         request = {
             'category': 'option',
         }
@@ -2659,7 +2657,7 @@ class bybit(Exchange, ImplicitAPI):
         """
         return self.fetch_tickers(symbols, params)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     [
         #         "1621162800",
@@ -2682,7 +2680,7 @@ class bybit(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, volumeIndex),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -2794,7 +2792,7 @@ class bybit(Exchange, ImplicitAPI):
         ohlcvs = self.safe_list(result, 'list', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_funding_rate(self, ticker: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, ticker: object, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -3238,7 +3236,7 @@ class bybit(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -3361,7 +3359,7 @@ class bybit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(result, 'ts')
         return self.parse_order_book(result, symbol, timestamp, 'b', 'a')
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         #
         # cross
         #     {
@@ -4296,7 +4294,7 @@ class bybit(Exchange, ImplicitAPI):
         params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice', 'hedged'])
         return self.extend(request, params)
 
-    def create_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
+    def create_orders(self, orders: list[OrderRequest], params={}) -> list[Order]:
         """
         create a list of trade orders
 
@@ -4502,7 +4500,7 @@ class bybit(Exchange, ImplicitAPI):
             'clientOrderId': self.safe_string(result, 'orderLinkId'),
         }, market)
 
-    def edit_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
+    def edit_orders(self, orders: list[OrderRequest], params={}) -> list[Order]:
         """
         edit a list of trade orders
 
@@ -4645,7 +4643,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
-    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}) -> List[Order]:
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params={}) -> list[Order]:
         """
         cancel multiple orders
 
@@ -4763,7 +4761,7 @@ class bybit(Exchange, ImplicitAPI):
         #
         return response
 
-    def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
+    def cancel_orders_for_symbols(self, orders: list[CancellationRequest], params={}):
         """
         cancel multiple orders for multiple symbols
 
@@ -4941,7 +4939,7 @@ class bybit(Exchange, ImplicitAPI):
         request = {
             'orderId': id,
         }
-        result = self.fetch_orders(symbol, None, None, self.extend(request, params))
+        result = self.fetch_orders_classic(symbol, None, None, self.extend(request, params))
         length = len(result)
         if length == 0:
             isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
@@ -5046,30 +5044,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         order = self.safe_dict(innerList, 0, {})
         return self.parse_order(order, market)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
-        res = self.is_unified_enabled()
-        """
-        *classic accounts only/ spot not supported* fetches information on multiple orders made by the user *classic accounts only/ spot not supported*
-        https://bybit-exchange.github.io/docs/v5/order/order-list
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of order structures to retrieve
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.trigger]: True if trigger order
-        :param boolean [params.stop]: alias for trigger
-        :param str [params.type]: market type, ['swap', 'option']
-        :param str [params.subType]: market subType, ['linear', 'inverse']
-        :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
-        :param int [params.until]: the latest time in ms to fetch entries for
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
-        """
-        enableUnifiedAccount = self.safe_bool(res, 1)
-        if enableUnifiedAccount:
-            raise NotSupported(self.id + ' fetchOrders() is not supported after the 5/02 update for UTA accounts, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders')
-        return self.fetch_orders_classic(symbol, since, limit, params)
-
-    def fetch_orders_classic(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders_classic(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user *classic accounts only*
 
@@ -5091,18 +5066,18 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        paginate, params = self.handle_option_and_params(params, 'fetchOrdersClassic', 'paginate')
         if paginate:
-            return self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
+            return self.fetch_paginated_call_cursor('fetchOrdersClassic', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
         request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         type = None
-        type, params = self.get_bybit_type('fetchOrders', market, params)
+        type, params = self.get_bybit_type('fetchOrdersClassic', market, params)
         if type == 'spot':
-            raise NotSupported(self.id + ' fetchOrders() is not supported for spot markets')
+            raise NotSupported(self.id + ' fetchOrdersClassic() is not supported for spot markets')
         request['category'] = type
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         params = self.omit(params, ['trigger', 'stop'])
@@ -5235,7 +5210,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             raise InvalidOrder(self.id + ' returned more than one order')
         return self.safe_value(result, 0)
 
-    def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple canceled and closed orders made by the user
 
@@ -5349,7 +5324,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -5375,7 +5350,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
         return self.fetch_canceled_and_closed_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
@@ -5401,7 +5376,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
         return self.fetch_canceled_and_closed_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -5515,7 +5490,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         fetch all the trades made from a single order
 
@@ -5537,7 +5512,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         params = self.omit(params, ['clientOrderId', 'orderLinkId'])
         return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -5617,7 +5592,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         trades = self.add_pagination_cursor_to_result(response)
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "chainType": "ERC20",
@@ -5638,7 +5613,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'tag': tag,
         }
 
-    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
+    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> list[DepositAddress]:
         """
         fetch a dictionary of addresses for a currency, indexed by network
 
@@ -5705,7 +5680,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         selectedNetworkCode = self.select_network_code_from_unified_networks(currency['code'], networkCode, indexedAddresses)
         return self.safe_value(indexedAddresses, selectedNetworkCode)
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -5772,7 +5747,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_transactions(data, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -5948,7 +5923,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'comment': None,
         }
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -6195,7 +6170,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             },
         }, currency)
 
-    def parse_ledger_entry_type(self, type: Any):
+    def parse_ledger_entry_type(self, type: object):
         types = {
             'Deposit': 'transaction',
             'Withdraw': 'transaction',
@@ -6345,7 +6320,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         position['datetime'] = self.iso8601(timestamp)
         return position
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -7024,7 +6999,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             request['limit'] = limit
         return self.fetch_derivatives_open_interest_history(symbol, timeframe, since, limit, params)
 
-    def parse_open_interest(self, interest: Any, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None):
         #
         #    {
         #        "openInterest": 64757.62400000,
@@ -7049,46 +7024,68 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         fetch the rate of interest to borrow a currency for margin trading
 
-        https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota
+        https://bybit-exchange.github.io/docs/v5/spot-margin-uta/vip-margin
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.vipLevel]: the vip level to fetch the borrow rate for, defaults to 'No VIP'
         :returns dict: a `borrow rate structure <https://docs.ccxt.com/?id=borrow-rate-structure>`
         """
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
         request = {
-            'coin': currency['id'],
+            'currency': currency['id'],
+            'vipLevel': 'No VIP',
         }
-        response = self.privateGetV5SpotCrossMarginTradeLoanInfo(self.extend(request, params))
+        response = self.publicGetV5SpotMarginTradeData(self.extend(request, params))
         #
-        #    {
-        #         "retCode": "0",
+        #     {
+        #         "retCode": 0,
         #         "retMsg": "success",
         #         "result": {
-        #             "coin": "USDT",
-        #             "interestRate": "0.000107000000",
-        #             "loanAbleAmount": "",
-        #             "maxLoanAmount": "79999.999"
+        #             "vipCoinList": [
+        #                 {
+        #                     "list": [
+        #                         {
+        #                             "borrowable": True,
+        #                             "collateralRatio": "0.98",
+        #                             "currency": "BTC",
+        #                             "hourlyBorrowRate": "0.0000005030430000",
+        #                             "liquidationOrder": "3",
+        #                             "marginCollateral": True,
+        #                             "maxBorrowingAmount": "300"
+        #                         }
+        #                     ],
+        #                     "vipLevel": "No VIP"
+        #                 }
+        #             ]
         #         },
-        #         "retExtInfo": null,
-        #         "time": "1666734490778"
+        #         "retExtInfo": "{}",
+        #         "time": 1786958191900
         #     }
         #
         timestamp = self.safe_integer(response, 'time')
         data = self.safe_dict(response, 'result', {})
-        data['timestamp'] = timestamp
-        return self.parse_borrow_rate(data, currency)
+        vipCoinList = self.safe_list(data, 'vipCoinList', [])
+        firstVip = self.safe_dict(vipCoinList, 0, {})
+        coins = self.safe_list(firstVip, 'list', [])
+        coin = self.safe_dict(coins, 0, {})
+        coin['timestamp'] = timestamp
+        return self.parse_borrow_rate(coin, currency)
 
-    def parse_borrow_rate(self, info: Any, currency: Currency = None):
+    def parse_borrow_rate(self, info: object, currency: Currency = None):
         #
+        # fetchCrossBorrowRate
         #     {
-        #         "coin": "USDT",
-        #         "interestRate": "0.000107000000",
-        #         "loanAbleAmount": "",
-        #         "maxLoanAmount": "79999.999",
-        #         "timestamp": 1666734490778
+        #         "borrowable": True,
+        #         "collateralRatio": "0.98",
+        #         "currency": "BTC",
+        #         "hourlyBorrowRate": "0.0000005030430000",
+        #         "liquidationOrder": "3",
+        #         "marginCollateral": True,
+        #         "maxBorrowingAmount": "300",
+        #         "timestamp": 1786958191900
         #     }
         #
         # fetchBorrowRateHistory
@@ -7112,7 +7109,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'info': info,
         }
 
-    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
+    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
 
@@ -7286,7 +7283,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'status': status,
         })
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -7412,7 +7409,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'amount': amount,
         })
 
-    def parse_margin_loan(self, info: Any, currency: Currency = None) -> MarginLoan:
+    def parse_margin_loan(self, info: object, currency: Currency = None) -> MarginLoan:
         #
         # borrowCrossMargin
         #
@@ -7485,7 +7482,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'status': self.parse_transfer_status(self.safe_string(transfer, 'status')),
         }
 
-    def fetch_derivatives_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
+    def fetch_derivatives_market_leverage_tiers(self, symbol: str, params={}) -> list[LeverageTier]:
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -7524,7 +7521,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         tiers = self.safe_list(result, 'list')
         return self.parse_market_leverage_tiers(tiers, market)
 
-    def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
+    def fetch_market_leverage_tiers(self, symbol: str, params={}) -> list[LeverageTier]:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
 
@@ -7650,7 +7647,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 result[symbol] = fee
         return result
 
-    def parse_deposit_withdraw_fee(self, fee: Any, currency: Currency = None) -> Any:
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
         #
         #    {
         #        "name": "BTC",
@@ -7749,7 +7746,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         rows = self.safe_list(data, 'rows', [])
         return self.parse_deposit_withdraw_fees(rows, codes, 'coin')
 
-    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[dict]:
+    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         """
         fetches historical settlement records
 
@@ -7862,7 +7859,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
-    def parse_settlement(self, settlement: Any, market: Any):
+    def parse_settlement(self, settlement: object, market: object):
         #
         # fetchSettlementHistory
         #
@@ -7895,7 +7892,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'datetime': self.iso8601(timestamp),
         }
 
-    def parse_settlements(self, settlements: Any, market: Any):
+    def parse_settlements(self, settlements: object, market: object):
         #
         # fetchSettlementHistory
         #
@@ -7963,7 +7960,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         volatility = self.safe_list(response, 'result', [])
         return self.parse_volatility_history(volatility)
 
-    def parse_volatility_history(self, volatility: Any):
+    def parse_volatility_history(self, volatility: object):
         #
         #     {
         #         "period": 7,
@@ -8050,7 +8047,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'datetime': self.iso8601(timestamp),
         })
 
-    def fetch_all_greeks(self, symbols: Strings = None, params={}) -> List[Greeks]:
+    def fetch_all_greeks(self, symbols: Strings = None, params={}) -> list[Greeks]:
         """
         fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
@@ -8174,7 +8171,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'info': greeks,
         }
 
-    def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
+    def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Liquidation]:
         """
         retrieves the users liquidated positions
 
@@ -8254,7 +8251,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         liquidations = self.add_pagination_cursor_to_result(response)
         return self.parse_liquidations(liquidations, market, since, limit)
 
-    def parse_liquidation(self, liquidation: Any, market: Market = None) -> Liquidation:
+    def parse_liquidation(self, liquidation: object, market: Market = None) -> Liquidation:
         #
         #     {
         #         "symbol": "ETHPERP",
@@ -8355,7 +8352,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_leverage_tiers(self, response: Any, symbols: Strings = None, marketIdKey: Str = None) -> LeverageTiers:
+    def parse_leverage_tiers(self, response: object, symbols: Strings = None, marketIdKey: Str = None) -> LeverageTiers:
         #
         #  [
         #      {
@@ -8386,7 +8383,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             tiers[symbol] = self.parse_market_leverage_tiers(self.sort_by(entry, 'id'), market)
         return tiers
 
-    def parse_market_leverage_tiers(self, info: Any, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: object, market: Market = None) -> list[LeverageTier]:
         #
         #  [
         #      {
@@ -8420,7 +8417,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             })
         return tiers
 
-    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingHistory]:
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[FundingHistory]:
         """
         fetch the history of funding payments paid and received on self account
 
@@ -8462,7 +8459,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         fundings = self.add_pagination_cursor_to_result(response)
         return self.parse_incomes(fundings, market, since, limit)
 
-    def parse_income(self, income: Any, market: Market = None) -> object:
+    def parse_income(self, income: object, market: Market = None) -> object:
         #
         # {
         #     "symbol": "XMRUSDT",
@@ -8691,7 +8688,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'quoteVolume': None,
         }
 
-    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
         fetches historical positions
 
@@ -9015,7 +9012,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             toCurrency = self.currency(toCurrencyId)
         return self.parse_conversion(result, fromCurrency, toCurrency)
 
-    def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Conversion]:
+    def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Conversion]:
         """
         fetch the users history of conversion trades
 
@@ -9125,7 +9122,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'fee': None,
         }
 
-    def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LongShortRatio]:
+    def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LongShortRatio]:
         """
         fetches the long short ratio history for a unified market symbol
 
@@ -9199,7 +9196,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'longShortRatio': self.parse_to_numeric(Precise.string_div(longString, shortString)),
         }
 
-    def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
+    def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> list[ADL]:
         """
         fetches the auto deleveraging rank and risk percentage for a list of symbols
 
@@ -9380,7 +9377,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
         return self.safe_string(marginModes, marginMode, marginMode)
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path
         if api == 'public':
             if params:
@@ -9470,7 +9467,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 headers['Referer'] = brokerId
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if not response:
             return None  # fallback to default error handler
         #

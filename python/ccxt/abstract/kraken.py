@@ -1,7 +1,6 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict
+_Dict = dict[str, object]
 
-_Dict = Dict[str, PythonAny]
 
 class ImplicitAPI:
     zendesk_get_201893608 = zendeskGet201893608 = Entry[_Dict]('201893608', 'zendesk', 'GET', {'cost': 1})

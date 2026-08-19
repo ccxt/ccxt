@@ -1,14 +1,13 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List, Union
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     public_get_openapi_v1_ping = publicGetOpenapiV1Ping = Entry[_Dict]('openapi/v1/ping', 'public', 'GET', {'cost': 1})
     public_get_openapi_v1_time = publicGetOpenapiV1Time = Entry[_Dict]('openapi/v1/time', 'public', 'GET', {'cost': 1})
     public_get_openapi_v1_user_ip = publicGetOpenapiV1UserIp = Entry[_Dict]('openapi/v1/user/ip', 'public', 'GET', {'cost': 1})
-    public_get_openapi_quote_v1_ticker_24hr = publicGetOpenapiQuoteV1Ticker24hr = Entry[Union[_Dict, _List]]('openapi/quote/v1/ticker/24hr', 'public', 'GET', {'cost': 1, 'noSymbolAndNoSymbols': 40, 'byNumberOfSymbols': [[101, 40], [21, 20], [0, 1]]})
+    public_get_openapi_quote_v1_ticker_24hr = publicGetOpenapiQuoteV1Ticker24hr = Entry[_Dict | _List]('openapi/quote/v1/ticker/24hr', 'public', 'GET', {'cost': 1, 'noSymbolAndNoSymbols': 40, 'byNumberOfSymbols': [[101, 40], [21, 20], [0, 1]]})
     public_get_openapi_quote_v1_ticker_price = publicGetOpenapiQuoteV1TickerPrice = Entry[_Dict]('openapi/quote/v1/ticker/price', 'public', 'GET', {'cost': 1, 'noSymbol': 2})
     public_get_openapi_quote_v1_ticker_bookticker = publicGetOpenapiQuoteV1TickerBookTicker = Entry[_List]('openapi/quote/v1/ticker/bookTicker', 'public', 'GET', {'cost': 1, 'noSymbol': 2})
     public_get_openapi_v1_exchangeinfo = publicGetOpenapiV1ExchangeInfo = Entry[_Dict]('openapi/v1/exchangeInfo', 'public', 'GET', {'cost': 10})

@@ -341,7 +341,13 @@ export default class krakenfutures extends krakenfuturesRest {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions;
-        const rawPositions = this.safeValue (message, 'positions', []);
+        const rawPositions = this.safeList (message, 'positions');
+        if (rawPositions === undefined) {
+            // an open_positions frame without the positions key is malformed;
+            // do not resolve with a fabricated empty list (the caller cannot
+            // distinguish it from a genuinely flat account)
+            return;
+        }
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];

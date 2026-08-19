@@ -7,8 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Any, ADL, Balances, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import ADL, Balances, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -29,7 +28,7 @@ from ccxt.base.precise import Precise
 
 class phemex(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(phemex, self).describe(), {
             'id': 'phemex',
             'name': 'Phemex',
@@ -897,7 +896,7 @@ class phemex(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for phemex
 
@@ -1190,7 +1189,7 @@ class phemex(Exchange, ImplicitAPI):
             'type': 'crypto',
         })
 
-    def custom_parse_bid_ask(self, bidask: Any, priceKey=0, amountKey=1, market: Market = None):
+    def custom_parse_bid_ask(self, bidask: object, priceKey=0, amountKey=1, market: Market = None):
         if market is None:
             raise ArgumentsRequired(self.id + ' customParseBidAsk() requires a market argument')
         amount = self.safe_string(bidask, amountKey)
@@ -1201,7 +1200,7 @@ class phemex(Exchange, ImplicitAPI):
             self.parse_number(amount),
         ]
 
-    def custom_parse_order_book(self, orderbook: Any, symbol: Any, timestamp: Int = None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1, market: Market = None):
+    def custom_parse_order_book(self, orderbook: object, symbol: object, timestamp: Int = None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1, market: Market = None):
         result = {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1279,7 +1278,7 @@ class phemex(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(result, 'sequence')
         return orderbook
 
-    def to_en(self, n: Any, scale: Any):
+    def to_en(self, n: object, scale: object):
         stringN = self.number_to_string(n)
         precise = Precise(stringN)
         precise.decimals = precise.decimals - scale
@@ -1287,17 +1286,17 @@ class phemex(Exchange, ImplicitAPI):
         preciseString = str(precise)
         return self.parse_to_numeric(preciseString)
 
-    def to_ev(self, amount: Any, market: dict | None = None):
+    def to_ev(self, amount: object, market: dict | None = None):
         if (amount is None) or (market is None):
             return amount
         return self.to_en(amount, market['valueScale'])
 
-    def to_ep(self, price: Any, market: Market = None):
+    def to_ep(self, price: object, market: Market = None):
         if (price is None) or (market is None):
             return price
         return self.to_en(price, self.safe_value(market, 'priceScale'))
 
-    def from_en(self, en: Any, scale: Any):
+    def from_en(self, en: object, scale: object):
         if en is None or scale is None:
             return None
         precise = Precise(en)
@@ -1305,22 +1304,22 @@ class phemex(Exchange, ImplicitAPI):
         precise.reduce()
         return str(precise)
 
-    def from_ep(self, ep: Any, market: Market = None):
+    def from_ep(self, ep: object, market: Market = None):
         if (ep is None) or (market is None):
             return ep
         return self.from_en(ep, self.safe_integer(market, 'priceScale'))
 
-    def from_ev(self, ev: Any, market: Market = None):
+    def from_ev(self, ev: object, market: Market = None):
         if (ev is None) or (market is None):
             return ev
         return self.from_en(ev, self.safe_integer(market, 'valueScale'))
 
-    def from_er(self, er: Any, market: Market = None):
+    def from_er(self, er: object, market: Market = None):
         if (er is None) or (market is None):
             return er
         return self.from_en(er, self.safe_integer(market, 'ratioScale'))
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     [
         #         1592467200,  # timestamp
@@ -1348,7 +1347,7 @@ class phemex(Exchange, ImplicitAPI):
             baseVolume,
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1622,7 +1621,7 @@ class phemex(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_tickers(result, symbols)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1951,7 +1950,7 @@ class phemex(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def parse_spot_balance(self, response: Any):
+    def parse_spot_balance(self, response: object):
         #
         #     {
         #         "code":0,
@@ -2002,7 +2001,7 @@ class phemex(Exchange, ImplicitAPI):
         result['datetime'] = self.iso8601(timestamp)
         return self.safe_balance(result)
 
-    def parse_swap_balance(self, response: Any):
+    def parse_swap_balance(self, response: object):
         # usdt
         #   {
         #       "info": {
@@ -2372,14 +2371,14 @@ class phemex(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def parse_order_side(self, side: Any):
+    def parse_order_side(self, side: object):
         sides = {
             '1': 'buy',
             '2': 'sell',
         }
         return self.safe_string(sides, side, side)
 
-    def parse_swap_order(self, order: Any, market: Market = None):
+    def parse_swap_order(self, order: object, market: Market = None):
         #
         #     {
         #         "bizError":0,
@@ -3047,7 +3046,7 @@ class phemex(Exchange, ImplicitAPI):
             order = self.safe_dict(rows, 0, {})
         return self.parse_order(order, market)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -3083,7 +3082,7 @@ class phemex(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', data)
         return self.parse_orders(rows, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -3126,7 +3125,7 @@ class phemex(Exchange, ImplicitAPI):
             rows = self.safe_list(data, 'rows', [])
             return self.parse_orders(rows, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -3413,7 +3412,7 @@ class phemex(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -3451,7 +3450,7 @@ class phemex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -3624,7 +3623,7 @@ class phemex(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -3759,7 +3758,7 @@ class phemex(Exchange, ImplicitAPI):
             result.append(self.parse_position(position))
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
         fetches historical positions
 
@@ -4057,7 +4056,7 @@ class phemex(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_funding_fee_to_precision(self, value: Any, market: Market = None, currencyCode: Str = None):
+    def parse_funding_fee_to_precision(self, value: object, market: Market = None, currencyCode: Str = None):
         if value is None or currencyCode is None or market is None:
             return value
         # it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
@@ -4115,7 +4114,7 @@ class phemex(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_funding_rate(result, market)
 
-    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         #     {
         #         "askEp": 2332500,
@@ -4211,7 +4210,7 @@ class phemex(Exchange, ImplicitAPI):
             'amount': amount,
         })
 
-    def parse_margin_status(self, status: Any):
+    def parse_margin_status(self, status: object):
         statuses = {
             '0': 'ok',
         }
@@ -4403,7 +4402,7 @@ class phemex(Exchange, ImplicitAPI):
         riskLimits = self.safe_list(data, 'riskLimits')
         return self.parse_leverage_tiers(riskLimits, symbols, 'symbol')
 
-    def parse_market_leverage_tiers(self, info: Any, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: object, market: Market = None) -> list[LeverageTier]:
         """
         :param dict info: Exchange market response for 1 market
         :param dict market: CCXT market
@@ -4441,7 +4440,7 @@ class phemex(Exchange, ImplicitAPI):
             minNotional = maxNotional
         return tiers
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
         query = self.omit(params, self.extract_params(path))
         requestPath = '/' + self.implode_params(path, params)
         url = requestPath
@@ -4600,7 +4599,7 @@ class phemex(Exchange, ImplicitAPI):
                 transfer['currency'] = code
         return transfer
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -4900,7 +4899,7 @@ class phemex(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result')
         return self.parse_open_interest(result, market)
 
-    def parse_open_interest(self, interest: Any, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None):
         #
         #    {
         #        closeRp: '67550.1',
@@ -5023,7 +5022,7 @@ class phemex(Exchange, ImplicitAPI):
         to = self.safe_currency(toCurrencyId, toCurrency)
         return self.parse_conversion(data, fromResult, to)
 
-    def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Conversion]:
+    def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Conversion]:
         """
         fetch the users history of conversion trades
 
@@ -5146,7 +5145,7 @@ class phemex(Exchange, ImplicitAPI):
             'fee': None,
         }
 
-    def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
+    def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> list[ADL]:
         """
         fetches the auto deleveraging rank and risk percentage for a list of symbols
 
@@ -5480,7 +5479,7 @@ class phemex(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         #

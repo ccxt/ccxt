@@ -386,7 +386,33 @@ export default class bit2c extends Exchange {
             'pair': market['id'],
         };
         const orderbook = await this.publicGetExchangesPairOrderbook (this.extend (request, params));
-        return this.parseOrderBook (orderbook, symbol);
+        // the full orderbook.json snapshot can contain dead orders - rows
+        // published with a zero amount at their limit price, hours-stable and
+        // sometimes crossing the real market. per the api docs the endpoint
+        // contains open orders only, and the venue's own orderbook-top.json ui
+        // feed filters these rows out, so a non-positive amount is a dead order
+        // their full snapshot failed to purge - it is removed here, which also
+        // uncrosses the book. rows are positional price and amount pairs
+        const rawBids = this.safeList (orderbook, 'bids', []);
+        const rawAsks = this.safeList (orderbook, 'asks', []);
+        const bids = [];
+        const asks = [];
+        for (let i = 0; i < rawBids.length; i++) {
+            const bidRow = rawBids[i];
+            const bidAmount = this.safeString (bidRow, 1);
+            if (Precise.stringGt (bidAmount, '0')) {
+                bids.push (bidRow);
+            }
+        }
+        for (let i = 0; i < rawAsks.length; i++) {
+            const askRow = rawAsks[i];
+            const askAmount = this.safeString (askRow, 1);
+            if (Precise.stringGt (askAmount, '0')) {
+                asks.push (askRow);
+            }
+        }
+        const filtered: Dict = { 'bids': bids, 'asks': asks };
+        return this.parseOrderBook (filtered, symbol);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {

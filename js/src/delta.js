@@ -1087,9 +1087,16 @@ export default class delta extends Exchange {
         //
         const timestamp = this.safeIntegerProduct(ticker, 'timestamp', 0.001);
         const marketId = this.safeString(ticker, 'symbol');
-        const symbol = this.safeSymbol(marketId, market);
+        market = this.safeMarket(marketId, market);
+        const symbol = market['symbol'];
         const last = this.safeString(ticker, 'close');
         const quotes = this.safeDict(ticker, 'quotes', {});
+        // turnover_symbol names the currency turnover is denominated in, and on
+        // spot markets that is the base currency rather than the quote
+        const turnoverSymbol = this.safeStringUpper(ticker, 'turnover_symbol');
+        const quoteId = this.safeStringUpper(market, 'quoteId');
+        const baseDenominated = (turnoverSymbol !== undefined) && (quoteId !== undefined) && (turnoverSymbol !== quoteId);
+        const quoteVolume = baseDenominated ? this.safeNumber(ticker, 'turnover_usd') : this.safeNumber(ticker, 'turnover');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1109,7 +1116,7 @@ export default class delta extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeNumber(ticker, 'volume'),
-            'quoteVolume': this.safeNumber(ticker, 'turnover'),
+            'quoteVolume': quoteVolume,
             'markPrice': this.safeNumber(ticker, 'mark_price'),
             'indexPrice': this.safeNumber(ticker, 'spot_price'),
             'info': ticker,

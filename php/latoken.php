@@ -661,7 +661,34 @@ class latoken extends Exchange {
         //         "totalBid":"112216.9029791"
         //     }
         //
-        return $this->parse_order_book($response, $symbol, null, 'bid', 'ask', 'price', 'quantity');
+        // latoken's rest book is an absolute snapshot - price, quantity, cost,
+        // accumulated - with no signed fields, unlike their websocket stream
+        // which carries signed quantityChange deltas. during venue incidents a
+        // signed internal aggregate leaks into the rest quantity and a deleted
+        // level shows up with a zero or negative quantity for long stretches,
+        // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
+        // for over half an hour - such a level is a deleted level their
+        // aggregation failed to drop, so it is removed here
+        $rawAsks = $this->safe_list($response, 'ask', array());
+        $rawBids = $this->safe_list($response, 'bid', array());
+        $asks = array();
+        $bids = array();
+        for ($i = 0; $i < count($rawAsks); $i++) {
+            $askEntry = $rawAsks[$i];
+            $askQuantity = $this->safe_string($askEntry, 'quantity');
+            if (Precise::string_gt($askQuantity, '0')) {
+                $asks[] = $askEntry;
+            }
+        }
+        for ($i = 0; $i < count($rawBids); $i++) {
+            $bidEntry = $rawBids[$i];
+            $bidQuantity = $this->safe_string($bidEntry, 'quantity');
+            if (Precise::string_gt($bidQuantity, '0')) {
+                $bids[] = $bidEntry;
+            }
+        }
+        $filtered = array( 'ask' => $asks, 'bid' => $bids );
+        return $this->parse_order_book($filtered, $symbol, null, 'bid', 'ask', 'price', 'quantity');
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {

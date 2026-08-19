@@ -382,7 +382,13 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $this->positions = new ArrayCacheBySymbolBySide();
         }
         $cache = $this->positions;
-        $rawPositions = $this->safe_value($message, 'positions', array());
+        $rawPositions = $this->safe_list($message, 'positions');
+        if ($rawPositions === null) {
+            // an open_positions frame without the $positions key is malformed;
+            // do not resolve with a fabricated empty list (the caller cannot
+            // distinguish it from a genuinely flat account)
+            return;
+        }
         $newPositions = array();
         for ($i = 0; $i < count($rawPositions); $i++) {
             $rawPosition = $rawPositions[$i];

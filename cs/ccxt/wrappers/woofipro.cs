@@ -1140,6 +1140,66 @@ public partial class woofipro
         return new Transaction(res);
     }
     /// <summary>
+    /// fetches the set margin mode of every contract market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}.</returns>
+    public async Task<MarginModes> FetchMarginModes(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarginModes(symbols, parameters);
+        return new MarginModes(res);
+    }
+    /// <summary>
+    /// fetches the set margin mode of a contract market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}.</returns>
+    public async Task<MarginMode> FetchMarginMode(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarginMode(symbol, parameters);
+        return new MarginMode(res);
+    }
+    /// <summary>
+    /// set margin mode to 'cross' or 'isolated' for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/private/update-margin-mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
+    public async Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setMarginMode(marginMode, symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// fetch the set leverage for a market
     /// </summary>
     /// <remarks>

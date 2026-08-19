@@ -5,14 +5,13 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Any, Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
+from ccxt.base.types import Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 
 
 class paradex(ccxt.async_support.paradex):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(paradex, self).describe(), {
             'has': {
                 'ws': True,
@@ -68,7 +67,7 @@ class paradex(ccxt.async_support.paradex):
             self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
         return await future
 
-    def handle_authentication_message(self, client: Client, message: Any):
+    def handle_authentication_message(self, client: Client, message: object):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -83,7 +82,7 @@ class paradex(ccxt.async_support.paradex):
             if future is not None:
                 future.resolve(True)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -116,7 +115,7 @@ class paradex(ccxt.async_support.paradex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trade(self, client: Client, message: Any):
+    def handle_trade(self, client: Client, message: object):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -174,7 +173,7 @@ class paradex(ccxt.async_support.paradex):
         orderbook = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message: Any):
+    def handle_order_book(self, client: Client, message: object):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -294,7 +293,7 @@ class paradex(ccxt.async_support.paradex):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -331,7 +330,7 @@ class paradex(ccxt.async_support.paradex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message: Any):
+    def handle_order(self, client: Client, message: object):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -373,7 +372,7 @@ class paradex(ccxt.async_support.paradex):
             symbolMessageHash = messageHash + ':' + symbol
             client.resolve(self.orders, symbolMessageHash)
 
-    def handle_ticker(self, client: Client, message: Any):
+    def handle_ticker(self, client: Client, message: object):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -476,7 +475,7 @@ class paradex(ccxt.async_support.paradex):
             return result
         return self.filter_by_array(self.fundingRates, 'symbol', symbols)
 
-    def handle_funding_rate(self, client: Client, message: Any):
+    def handle_funding_rate(self, client: Client, message: object):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -504,7 +503,7 @@ class paradex(ccxt.async_support.paradex):
         messageHash = channel + '.' + symbol
         client.resolve(fundingRate, messageHash)
 
-    def parse_funding_rate_ws(self, contract: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate_ws(self, contract: object, market: Market = None) -> FundingRate:
         #
         #     {
         #         "market": "TRUMP-USD-PERP",
@@ -541,7 +540,7 @@ class paradex(ccxt.async_support.paradex):
             'interval': fundingPeriod + 'h',
         }
 
-    def handle_error_message(self, client: Client, message: Any) -> Bool:
+    def handle_error_message(self, client: Client, message: object) -> Bool:
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -569,7 +568,7 @@ class paradex(ccxt.async_support.paradex):
                     self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
             return False
 
-    def handle_message(self, client: Client, message: Any):
+    def handle_message(self, client: Client, message: object):
         if not self.handle_error_message(client, message):
             return
         #

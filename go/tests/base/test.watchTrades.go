@@ -13,9 +13,12 @@ func TestWatchTrades(exchange ccxt.ICoreExchange, skippedProperties any, symbol 
 		var method any = "watchTrades"
 		var now any = exchange.Milliseconds()
 		var ends any = Add(now, 15000)
-		for IsLessThan(now, ends) {
+		var maxIdleTime any = 5000
+		var idle any = false
+		for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
 			var response any = []any{}
 			var success any = true
+			var startTime any = exchange.Milliseconds()
 
 			{
 				func() (ret_ any) {
@@ -29,8 +32,6 @@ func TestWatchTrades(exchange ccxt.ICoreExchange, skippedProperties any, symbol 
 								if !IsTrue(IsTemporaryFailure(e)) {
 									panic(e)
 								}
-								now = exchange.Milliseconds()
-								// continue;
 								success = false
 								return nil
 							}()
@@ -44,15 +45,21 @@ func TestWatchTrades(exchange ccxt.ICoreExchange, skippedProperties any, symbol 
 				}()
 
 			}
+			now = exchange.Milliseconds()
 			if IsTrue(IsEqual(success, true)) {
 				AssertNonEmtpyArray(exchange, skippedProperties, method, response)
-				now = exchange.Milliseconds()
 				for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 					TestTrade(exchange, skippedProperties, method, GetValue(response, i), symbol, now)
 				}
+				if IsTrue(IsGreaterThan((Subtract(now, startTime)), maxIdleTime)) {
+					idle = true
+				}
 			}
 		}
+
+		ch <- true
 		return nil
+
 	}()
 	return ch
 }

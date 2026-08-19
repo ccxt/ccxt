@@ -1694,7 +1694,9 @@ class bingx extends bingx$1["default"] {
         const a = this.safeDict(message, 'a', {});
         const data = this.safeList(a, 'B', []);
         const timestamp = this.safeInteger2(message, 'T', 'E');
-        const type = ('P' in a) ? 'swap' : 'spot';
+        const spotUrl = this.safeString(this.urls['api']['ws'], 'spot');
+        const isSpot = (spotUrl !== undefined) && (client.url.indexOf(spotUrl) === 0);
+        const type = isSpot ? 'spot' : 'swap';
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }

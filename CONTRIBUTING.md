@@ -231,6 +231,22 @@ The module entry points are:
 
 Generated versions and docs are transpiled from the source `ts/src` folder by the `npm run build` command.
 
+### Base WS Runtime Changes Require Their Mirrors
+
+The files under `ts/src/base/ws/` (caches, orderbooks, futures, client plumbing) are **not** transpiled - each language carries a hand-written mirror:
+
+| ts source | mirrors |
+|---|---|
+| `ts/src/base/ws/Cache.ts` | `python/ccxt/async_support/base/ws/cache.py`, `php/pro/ArrayCache*.php`, `cs/ccxt/ws/ArrayCache.cs`, `go/v4/exchange_cache.go`, `java/lib/src/main/java/io/github/ccxt/ws/ArrayCache.java` |
+| `ts/src/base/ws/OrderBook.ts` + `OrderBookSide.ts` | `python/ccxt/async_support/base/ws/order_book*.py`, `php/pro/OrderBook*.php` + `Asks/Bids`, `cs/ccxt/ws/OrderBook*.cs`, `go/v4/exchange_ws_orderbook*.go`, `java/lib/src/main/java/io/github/ccxt/ws/*OrderBook*.java` |
+| `ts/src/base/ws/Future.ts` / `Client.ts` | the per-language `Future` / client files (`php/pro/Future.php`, `php/pro/ClientTrait.php`, `cs/ccxt/ws/Future.cs`, ...) |
+
+Two rules:
+
+1. **A PR that changes base WS behavior in ts must change the mirrors in the same PR.** The shared base ws tests (`ts/src/pro/test/base/*.ts`) are regenerated per language on every CI run, so a ts-only behavioral merge ships assertions the other runtimes cannot satisfy and breaks every subsequent PR's build gates. Genuinely non-behavioral ts changes (comments, type annotations, formatting) are exempt - say so in the PR description.
+
+2. **Native (non-transpiled) base WS tests state ts-derived expectations only.** Write expected values by reading the ts source or running the shared js test - never by running the local implementation and recording what it produces. A mirror bug must never certify itself.
+
 ### Transpiled (generated) files
 
 - All derived exchange classes are transpiled by `tsc` from TypeScript to JavaScript and by our custom transpiler from TypeScript to PHP and Python. The source files are language-agnostic, easily mapped line-to-line to any other language and written in a cross-language-compatible way. Any coder can read it (by design).

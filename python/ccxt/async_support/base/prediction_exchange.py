@@ -6,7 +6,6 @@
 # transpiled from ts/src/base/PredictionExchange.ts
 # ----------------------------------------------------------------------------
 
-from typing import Any, List
 from ccxt.async_support.base.exchange import BaseExchange
 from ccxt.base.types import Str, Strings, Int, Num, Market, OrderType, OrderSide, PredictionOrderRequest, fetchEventsParams
 from ccxt.base.precise import Precise
@@ -26,7 +25,7 @@ class PredictionExchange(BaseExchange):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(PredictionExchange, self).describe(), {
             'has': {
                 'prediction': True,
@@ -118,7 +117,7 @@ class PredictionExchange(BaseExchange):
             extraNames = extraNames + ', ' + scopeKey
         raise ArgumentsRequired(self.id + ' fetchEvents() requires at least one of query, queries, tags, eventId, slug' + extraNames + ' to scope the search')
 
-    def apply_event_fetch_params(self, events: List[Any], params={}, queries: Strings = None):
+    def apply_event_fetch_params(self, events: list[object], params={}, queries: Strings = None):
         # applies the unified fetchEvents options client-side(eventId/slug/status/searchIn/sort/limit)
         # so exchanges whose API can't filter natively still support them consistently.
         # every fetched event lands in the cache before filtering, so loadEvents()/event()
@@ -172,7 +171,7 @@ class PredictionExchange(BaseExchange):
             result = self.array_slice(result, 0, sliceEnd)
         return result
 
-    def filter_events_by_status(self, events: List[Any], status: Str = None):
+    def filter_events_by_status(self, events: list[object], status: Str = None):
         # 'active' | 'inactive' | 'closed' | 'all' — 'inactive' and 'closed' are interchangeable
         if (status is None) or (status == 'all'):
             return events
@@ -186,7 +185,7 @@ class PredictionExchange(BaseExchange):
                 result.append(event)
         return result
 
-    def filter_events_by_search_in(self, events: List[Any], queries: Strings, searchIn: Str = None):
+    def filter_events_by_search_in(self, events: list[object], queries: Strings, searchIn: Str = None):
         # keep events whose title and/or description contains one of the queries(searchIn defaults to 'both')
         # own-line length read so the regex transpiler uses count()(array) not strlen()(string)
         queriesLength = 0
@@ -240,7 +239,7 @@ class PredictionExchange(BaseExchange):
                 pendingSep = True
         return s
 
-    def filter_events_by_tags(self, events: List[Any], tags: Strings = None):
+    def filter_events_by_tags(self, events: list[object], tags: Strings = None):
         # keep events carrying one of the requested tags; tolerant to string tags and to
         # object tags({slug, title, ...}) since venues differ. no-op when no tags requested
         if (tags is None) or (len(tags) == 0):
@@ -281,7 +280,7 @@ class PredictionExchange(BaseExchange):
     async def fetch_event(self, id: str, params={}):
         raise NotSupported(self.id + ' fetchEvent() is not supported yet')
 
-    def set_events(self, events: List[Any]):
+    def set_events(self, events: list[object]):
         # merge(not reset) so successive scoped fetchEvents calls accumulate into the cache.
         # index by the unified `event` handle too(that's the identifier every outcome's `event`
         # field carries), so getEvent(handle) resolves without each exchange hand-writing it
@@ -302,7 +301,7 @@ class PredictionExchange(BaseExchange):
                 self.events_by_slug[slug] = event
         return self.events
 
-    def events_list(self) -> List[Any]:
+    def events_list(self) -> list[object]:
         # the cached events list; empty on a cold instance(self.events is keyed by both
         # id and handle, so de-duplicate by identity before returning)
         if self.events is None:
@@ -365,7 +364,7 @@ class PredictionExchange(BaseExchange):
             return True
         return False
 
-    def safe_outcome(self, outcomeIdOrSymbol: Str, outcomeObj: Any = None):
+    def safe_outcome(self, outcomeIdOrSymbol: Str, outcomeObj: object = None):
         if outcomeIdOrSymbol is not None:
             if (self.outcomes is not None) and (outcomeIdOrSymbol in self.outcomes):
                 return self.outcomes[outcomeIdOrSymbol]
@@ -375,7 +374,7 @@ class PredictionExchange(BaseExchange):
             return outcomeObj
         return {'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': None, 'label': None, 'event': None, 'info': {}}
 
-    def safe_outcome_symbol(self, outcomeIdOrSymbol: Str, outcomeObj: Any = None):
+    def safe_outcome_symbol(self, outcomeIdOrSymbol: Str, outcomeObj: object = None):
         outcomeObj = self.safe_outcome(outcomeIdOrSymbol, outcomeObj)
         return outcomeObj['outcome']
 
@@ -484,7 +483,7 @@ class PredictionExchange(BaseExchange):
             label = upper
         return self.slug_to_market_symbol(eventSlug, marketSlug) + ':' + label
 
-    def set_markets(self, markets: Any, currencies=None):
+    def set_markets(self, markets: object, currencies=None):
         # prediction market rows carry only the unified `market` handle — `symbol` is
         # deprecated there. the base indexer keys self.markets/self.symbols by 'symbol',
         # so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free
@@ -506,7 +505,7 @@ class PredictionExchange(BaseExchange):
         self.populate_outcomes()
         return stored
 
-    def index_market_outcomes(self, market: Any):
+    def index_market_outcomes(self, market: object):
         # index one market's outcome tokens into self.outcomes / self.outcomes_by_id,
         # normalizing each to the canonical identity keys(outcome / outcomeId / market) so
         # consumers and the safe* helpers stay uniform even when an exchange's parseMarket
@@ -561,7 +560,7 @@ class PredictionExchange(BaseExchange):
         for i in range(0, len(marketKeys)):
             self.index_market_outcomes(self.markets[marketKeys[i]])
 
-    def index_event_outcomes(self, event: Any):
+    def index_event_outcomes(self, event: object):
         # register a single event's markets into self.markets and rebuild the outcome cache so the
         # handles fetchEvent() returns resolve immediately in outcome-addressed methods(fetchTicker,
         # createOrder, ...). without self, on a cold instance or a loadAllOutcomes:false venue
@@ -615,7 +614,7 @@ class PredictionExchange(BaseExchange):
         self.populate_outcomes()
         return self.outcomes
 
-    async def fetch_outcomes(self, outcomeSymbols: List[str]):
+    async def fetch_outcomes(self, outcomeSymbols: list[str]):
         """
  @ignore
         resolves several uncached outcomes. the base has no batch by-id endpoint, so it fetches them one by one through fetchOutcome(which throws BadSymbol for an unresolvable one); venues with a batch endpoint(kalshi, polymarket) override self to collapse the list into one request
@@ -917,7 +916,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
 
-    async def create_orders(self, orders: List[PredictionOrderRequest], params={}):
+    async def create_orders(self, orders: list[PredictionOrderRequest], params={}):
         """
         create a list of trade orders
         :param dict[] orders: a list of PredictionOrderRequest objects, each carrying an `outcome` handle
@@ -926,7 +925,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' createOrders() is not supported yet')
 
-    async def cancel_orders(self, ids: List[str], outcome: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], outcome: Str = None, params={}):
         """
         cancel multiple orders
         :param str[] ids: order ids
@@ -1266,7 +1265,7 @@ class PredictionExchange(BaseExchange):
     def parse_prediction_open_interest(self, interest: dict, market: Market = None):
         raise NotSupported(self.id + ' parsePredictionOpenInterest() is not supported yet')
 
-    def parse_prediction_trades(self, trades: List[Any], outcomeObj: Any = None, since: Int = None, limit: Int = None, params={}):
+    def parse_prediction_trades(self, trades: list[object], outcomeObj: object = None, since: Int = None, limit: Int = None, params={}):
         """
  @ignore
         parses a list of raw trades with the exchange's parsePredictionTrade, sorts them and filters by the outcome handle — the prediction analogue of the base parseTrades
@@ -1291,7 +1290,7 @@ class PredictionExchange(BaseExchange):
         outcomeHandle = self.safe_string(outcomeObj, 'outcome')
         return self.filter_by_outcome_since_limit(results, outcomeHandle, since, limit)
 
-    def parse_prediction_orders(self, orders: List[Any], outcomeObj: Any = None, since: Int = None, limit: Int = None, params={}):
+    def parse_prediction_orders(self, orders: list[object], outcomeObj: object = None, since: Int = None, limit: Int = None, params={}):
         """
  @ignore
         parses a list of raw orders with the exchange's parsePredictionOrder, sorts them and filters by the outcome handle — the prediction analogue of the base parseOrders
@@ -1313,7 +1312,7 @@ class PredictionExchange(BaseExchange):
         outcomeHandle = self.safe_string(outcomeObj, 'outcome')
         return self.filter_by_outcome_since_limit(results, outcomeHandle, since, limit)
 
-    def parse_prediction_positions(self, positions: List[Any], params={}):
+    def parse_prediction_positions(self, positions: list[object], params={}):
         """
  @ignore
         parses a list of raw positions with the exchange's parsePredictionPosition — the prediction analogue of the base parsePositions
@@ -1333,24 +1332,24 @@ class PredictionExchange(BaseExchange):
             results.append(position)
         return results
 
-    def filter_by_outcome_since_limit(self, array: Any, outcome: Str = None, since: Int = None, limit: Int = None, tail=False):
+    def filter_by_outcome_since_limit(self, array: object, outcome: Str = None, since: Int = None, limit: Int = None, tail=False):
         return self.filter_by_value_since_limit(array, 'outcome', outcome, since, limit, 'timestamp', tail)
 
-    def filter_by_outcomes_since_limit(self, array: Any, outcomes: Strings = None, since: Int = None, limit: Int = None, tail=False):
+    def filter_by_outcomes_since_limit(self, array: object, outcomes: Strings = None, since: Int = None, limit: Int = None, tail=False):
         result = self.filter_by_array(array, 'outcome', outcomes, False)
         return self.filter_by_since_limit(result, since, limit, 'timestamp', tail)
 
-    def amount_to_prediction_precision(self, outcome: Str, amount: Any):
+    def amount_to_prediction_precision(self, outcome: Str, amount: object):
         outcomeObj = self.outcome(outcome)
         marketSymbol = self.safe_string(outcomeObj, 'market')
         return self.amount_to_precision(marketSymbol, amount)
 
-    def price_to_prediction_precision(self, outcome: Str, price: Any):
+    def price_to_prediction_precision(self, outcome: Str, price: object):
         outcomeObj = self.outcome(outcome)
         marketSymbol = self.safe_string(outcomeObj, 'market')
         return self.price_to_precision(marketSymbol, price)
 
-    def cost_to_prediction_precision(self, outcome: Str, cost: Any):
+    def cost_to_prediction_precision(self, outcome: Str, cost: object):
         outcomeObj = self.outcome(outcome)
         marketSymbol = self.safe_string(outcomeObj, 'market')
         return self.cost_to_precision(marketSymbol, cost)
@@ -1387,7 +1386,7 @@ class PredictionExchange(BaseExchange):
         lengthOfLength = self.parse_to_int(len(lengthHex) / 2)
         return self.int_to_base16(183 + lengthOfLength) + lengthHex + hex
 
-    def rlp_encode_list(self, items: List[str]):
+    def rlp_encode_list(self, items: list[str]):
         concatenated = ''
         for i in range(0, len(items)):
             concatenated = concatenated + items[i]
@@ -1430,7 +1429,7 @@ class PredictionExchange(BaseExchange):
         # sendEvmTransaction below can call it; a call on the base itself is unsupported
         raise NotSupported(self.id + ' signEvmTransaction() must be overridden by the exchange')
 
-    async def eth_rpc(self, rpcUrl: Str, method: str, rpcParams: List[Any]):
+    async def eth_rpc(self, rpcUrl: Str, method: str, rpcParams: list[object]):
         payload = {'jsonrpc': '2.0', 'id': 1, 'method': method, 'params': rpcParams}
         headers = {'Content-Type': 'application/json'}
         response = await self.fetch(rpcUrl, 'POST', headers, self.json(payload))

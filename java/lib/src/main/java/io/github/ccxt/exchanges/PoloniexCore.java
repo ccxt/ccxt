@@ -505,8 +505,8 @@ public class PoloniexCore extends PoloniexApi
                 put( "networks", new java.util.HashMap<String, Object>() {{
                     put( "BEP20", "BSC" );
                     put( "ERC20", "ETH" );
-                    put( "TRC20", "TRON" );
-                    put( "TRX", "TRON" );
+                    put( "TRC20", "TRX" );
+                    put( "TRX", "TRX" );
                 }} );
                 put( "networksById", new java.util.HashMap<String, Object>() {{
                     put( "TRX", "TRC20" );
@@ -722,10 +722,10 @@ public class PoloniexCore extends PoloniexApi
                     put( "21356", BadRequest.class );
                     put( "21721", InsufficientFunds.class );
                     put( "24101", BadSymbol.class );
-                    put( "24102", InvalidOrder.class );
-                    put( "24103", InvalidOrder.class );
-                    put( "24104", InvalidOrder.class );
-                    put( "24105", InvalidOrder.class );
+                    put( "24102", BadRequest.class );
+                    put( "24103", BadRequest.class );
+                    put( "24104", BadRequest.class );
+                    put( "24105", BadRequest.class );
                     put( "25020", InvalidOrder.class );
                     put( "25000", InvalidOrder.class );
                     put( "25001", InvalidOrder.class );
@@ -747,6 +747,44 @@ public class PoloniexCore extends PoloniexApi
                     put( "25017", ExchangeError.class );
                     put( "25018", BadRequest.class );
                     put( "25019", BadSymbol.class );
+                    put( "820181", BadRequest.class );
+                    put( "820201", BadRequest.class );
+                    put( "830111", BadRequest.class );
+                    put( "250", DuplicateOrderId.class );
+                    put( "400", BadRequest.class );
+                    put( "403", PermissionDenied.class );
+                    put( "404", BadRequest.class );
+                    put( "429", RateLimitExceeded.class );
+                    put( "503", ExchangeNotAvailable.class );
+                    put( "1000", AuthenticationError.class );
+                    put( "1001", ExchangeError.class );
+                    put( "1002", OnMaintenance.class );
+                    put( "1003", AccountSuspended.class );
+                    put( "10000", MarketClosed.class );
+                    put( "10001", BadSymbol.class );
+                    put( "10002", InvalidOrder.class );
+                    put( "10003", InvalidOrder.class );
+                    put( "10004", InvalidOrder.class );
+                    put( "10005", MarketClosed.class );
+                    put( "10006", OperationRejected.class );
+                    put( "10007", OperationRejected.class );
+                    put( "10008", AccountSuspended.class );
+                    put( "10009", OperationRejected.class );
+                    put( "10010", InvalidOrder.class );
+                    put( "10011", InvalidOrder.class );
+                    put( "10012", InvalidOrder.class );
+                    put( "10013", InvalidOrder.class );
+                    put( "10014", BadRequest.class );
+                    put( "10015", OperationRejected.class );
+                    put( "10016", BadRequest.class );
+                    put( "10017", BadRequest.class );
+                    put( "10018", OperationRejected.class );
+                    put( "10019", OperationRejected.class );
+                    put( "11003", BadRequest.class );
+                    put( "11004", OperationRejected.class );
+                    put( "11008", OrderNotFound.class );
+                    put( "12004", PermissionDenied.class );
+                    put( "21001", OperationRejected.class );
                 }} );
                 put( "broad", new java.util.HashMap<String, Object>() {{}} );
             }} );
@@ -855,10 +893,6 @@ public class PoloniexCore extends PoloniexApi
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
             {
-                if (Helpers.isTrue(this.inArray(timeframe, new java.util.ArrayList<Object>(java.util.Arrays.asList("10m", "1M")))))
-                {
-                    throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), timeframe), " "), Helpers.GetValue(market, "type")), " fetchOHLCV is not supported")) ;
-                }
                 Object responseRaw = (this.swapPublicGetV3MarketCandles(this.extend(request, parameters))).join();
                 //
                 //     {
@@ -1299,9 +1333,16 @@ public class PoloniexCore extends PoloniexApi
         Object timestamp = this.safeInteger2(ticker, "ts", "cT");
         Object marketId = this.safeString2(ticker, "symbol", "s");
         market = this.safeMarket(marketId);
+        Object baseVolume = this.safeString2(ticker, "quantity", "qty");
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "contract")) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "contractSize"), null)))))
+        {
+            // 'quantity' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.stringMul(baseVolume, this.numberToString(Helpers.GetValue(market, "contractSize")));
+        }
         Object relativeChange = this.safeString2(ticker, "dailyChange", "dc");
         Object percentage = Precise.stringMul(relativeChange, "100");
         final Object finalMarket = market;
+        final Object finalBaseVolume = baseVolume;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "id", marketId );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
@@ -1320,7 +1361,7 @@ public class PoloniexCore extends PoloniexApi
             put( "change", null );
             put( "percentage", percentage );
             put( "average", null );
-            put( "baseVolume", PoloniexCore.this.safeString2(ticker, "quantity", "qty") );
+            put( "baseVolume", finalBaseVolume );
             put( "quoteVolume", PoloniexCore.this.safeString2(ticker, "amount", "amt") );
             put( "markPrice", PoloniexCore.this.safeString2(ticker, "markPrice", "mPx") );
             put( "indexPrice", PoloniexCore.this.safeString(ticker, "iPx") );
@@ -4463,10 +4504,9 @@ public class PoloniexCore extends PoloniexApi
         Object responseCode = this.safeString(response, "code");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(responseCode, null))) && Helpers.isTrue((!Helpers.isEqual(responseCode, "200")))))
         {
-            Object codeInner = Helpers.GetValue(response, "code");
-            Object message = this.safeString(response, "message");
+            Object message = this.safeString2(response, "message", "msg");
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
-            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), codeInner, feedback);
+            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), responseCode, feedback);
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError((String)feedback) ;
         }

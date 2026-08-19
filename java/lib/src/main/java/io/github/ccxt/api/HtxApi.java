@@ -1142,61 +1142,6 @@ public class HtxApi extends Exchange
     }
 
     /**
-     * Calls the statusPublicSpotGetApiV2SummaryJson endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  statusPublicSpotGetApiV2SummaryJson (Object... optionalArgs)
-    {
-        return this.callAsync ("statusPublicSpotGetApiV2SummaryJson", optionalArgs);
-    }
-
-    /**
-     * Calls the statusPublicFutureInverseGetApiV2SummaryJson endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  statusPublicFutureInverseGetApiV2SummaryJson (Object... optionalArgs)
-    {
-        return this.callAsync ("statusPublicFutureInverseGetApiV2SummaryJson", optionalArgs);
-    }
-
-    /**
-     * Calls the statusPublicFutureLinearGetApiV2SummaryJson endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  statusPublicFutureLinearGetApiV2SummaryJson (Object... optionalArgs)
-    {
-        return this.callAsync ("statusPublicFutureLinearGetApiV2SummaryJson", optionalArgs);
-    }
-
-    /**
-     * Calls the statusPublicSwapInverseGetApiV2SummaryJson endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  statusPublicSwapInverseGetApiV2SummaryJson (Object... optionalArgs)
-    {
-        return this.callAsync ("statusPublicSwapInverseGetApiV2SummaryJson", optionalArgs);
-    }
-
-    /**
-     * Calls the statusPublicSwapLinearGetApiV2SummaryJson endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  statusPublicSwapLinearGetApiV2SummaryJson (Object... optionalArgs)
-    {
-        return this.callAsync ("statusPublicSwapLinearGetApiV2SummaryJson", optionalArgs);
-    }
-
-    /**
      * Calls the spotPublicGetV2MarketStatus endpoint.
      *
      * @param optionalArgs the request parameters

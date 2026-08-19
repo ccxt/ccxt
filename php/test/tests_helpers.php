@@ -455,6 +455,22 @@ function ws_client_has_pending_futures($exchange, $url) {
     return count($client->futures) > 0;
 }
 
+$ws_completed_tests = array();
+
+function mark_ws_test_completed($exchange, $url) {
+    // the watch side of a static ws test flags completion here so the frame
+    // injector's rejection loop knows it can stop
+    global $ws_completed_tests;
+    $client = $exchange->client($url);
+    $ws_completed_tests[spl_object_id($client)] = true;
+}
+
+function is_ws_test_completed($exchange, $url) {
+    global $ws_completed_tests;
+    $client = $exchange->client($url);
+    return isset($ws_completed_tests[spl_object_id($client)]);
+}
+
 function reject_pending_ws_futures($exchange, $url) {
     // reject any futures the injected frames did not resolve, so a broken
     // fixture fails the test instead of hanging it; resolved futures are

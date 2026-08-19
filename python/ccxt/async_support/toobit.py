@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.toobit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -26,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class toobit(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(toobit, self).describe(), {
             'id': 'toobit',
             'name': 'Toobit',
@@ -797,7 +796,7 @@ class toobit(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    async def fetch_markets(self, params={}) -> List[MarketInterface]:
+    async def fetch_markets(self, params={}) -> list[MarketInterface]:
         """
         retrieves data on all markets for toobit
 
@@ -1074,7 +1073,7 @@ class toobit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 't')
         return self.parse_order_book(response, market['symbol'], timestamp, 'b', 'a')
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get a list of the most recent trades for a particular symbol
 
@@ -1200,7 +1199,7 @@ class toobit(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1306,7 +1305,7 @@ class toobit(Exchange, ImplicitAPI):
             candles = response
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         return [
             self.safe_integer_n(ohlcv, [0, 'time', 't']),
             self.safe_number_n(ohlcv, [1, 'open', 'o']),
@@ -1369,6 +1368,10 @@ class toobit(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(ticker, 't')
         last = self.safe_string(ticker, 'c')
+        baseVolume = self.safe_string(ticker, 'v')
+        if market['contract'] and (market['contractSize'] is not None):
+            # 'v' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.string_mul(baseVolume, self.number_to_string(market['contractSize']))
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -1385,9 +1388,10 @@ class toobit(Exchange, ImplicitAPI):
             'last': last,
             'previousClose': None,
             'change': self.safe_string(ticker, 'pc'),
-            'percentage': self.safe_string(ticker, 'pcp'),
+            # 'pcp' is a ratio, and a ticker reports a percentage
+            'percentage': Precise.string_mul(self.safe_string(ticker, 'pcp'), '100'),
             'average': None,
-            'baseVolume': self.safe_string(ticker, 'v'),
+            'baseVolume': baseVolume,
             'quoteVolume': self.safe_string(ticker, 'qv'),
             'info': ticker,
         }, market)
@@ -1423,7 +1427,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_last_prices(response, symbols)
 
-    def parse_last_price(self, entry: Any, market: Market = None):
+    def parse_last_price(self, entry: object, market: Market = None):
         marketId = self.safe_string(entry, 's')
         market = self.safe_market(marketId, market)
         return {
@@ -1469,7 +1473,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_bids_asks_custom(response, symbols)
 
-    def parse_bids_asks_custom(self, tickers: Any, symbols: Strings = None, params={}) -> Tickers:
+    def parse_bids_asks_custom(self, tickers: object, symbols: Strings = None, params={}) -> Tickers:
         results = []
         for i in range(0, len(tickers)):
             parsedTicker = self.parse_bid_ask_custom(tickers[i])
@@ -1478,7 +1482,7 @@ class toobit(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.filter_by_array(results, 'symbol', symbols)
 
-    def parse_bid_ask_custom(self, ticker: Any):
+    def parse_bid_ask_custom(self, ticker: object):
         return {
             'timestamp': self.safe_string(ticker, 't'),
             'symbol': self.safe_string(ticker, 's'),
@@ -1519,7 +1523,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rates(response, symbols)
 
-    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         nextFundingRate = self.safe_number(contract, 'rate')
@@ -1585,7 +1589,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate_histories(response, market, since, limit)
 
-    def parse_funding_rate_history(self, contract: Any, market: Market = None):
+    def parse_funding_rate_history(self, contract: object, market: Market = None):
         timestamp = self.safe_integer(contract, 'settleTime')
         marketId = self.safe_string(contract, 'symbol')
         return {
@@ -1644,7 +1648,7 @@ class toobit(Exchange, ImplicitAPI):
             #
         return self.parse_balance(response)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1675,6 +1679,7 @@ class toobit(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1728,11 +1733,10 @@ class toobit(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         cost = None
         cost, params = self.handle_param_string(params, 'cost')
-        if type == 'market':
-            if cost is None and side == 'buy':
+        if type == 'market' and side == 'buy':
+            if cost is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires params["cost"] for market buy order')
-            else:
-                request['quantity'] = self.cost_to_precision(symbol, cost)
+            request['quantity'] = self.cost_to_precision(symbol, cost)
         else:
             request['quantity'] = self.amount_to_precision(symbol, amount)
         isPostOnly = None
@@ -1919,7 +1923,7 @@ class toobit(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, status: Any):
+    def parse_order_type(self, status: object):
         statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -2002,7 +2006,7 @@ class toobit(Exchange, ImplicitAPI):
             }),
         ]
 
-    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -2109,7 +2113,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2167,7 +2171,7 @@ class toobit(Exchange, ImplicitAPI):
             response = await self.privateGetApiV1FuturesOpenOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2227,7 +2231,7 @@ class toobit(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchOrders() is not supported for ' + marketType + ' markets')
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -2424,7 +2428,7 @@ class toobit(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -2505,7 +2509,7 @@ class toobit(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ledger_type(self, type: Any):
+    def parse_ledger_type(self, type: object):
         types = {
             'USER_ACCOUNT_TRANSFER': 'transfer',
             'AIRDROP': 'rebate',
@@ -2555,7 +2559,7 @@ class toobit(Exchange, ImplicitAPI):
         result[market['symbol']] = fee
         return result
 
-    def parse_trading_fee(self, data: Any, market: Market = None):
+    def parse_trading_fee(self, data: object, market: Market = None):
         marketId = self.safe_string(data, 'symbol')
         return {
             'info': data,
@@ -2566,7 +2570,7 @@ class toobit(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2580,7 +2584,7 @@ class toobit(Exchange, ImplicitAPI):
         """
         return await self.fetch_deposits_or_withdrawals_helper('deposits', code, since, limit, params)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2594,7 +2598,7 @@ class toobit(Exchange, ImplicitAPI):
         """
         return await self.fetch_deposits_or_withdrawals_helper('withdrawals', code, since, limit, params)
 
-    async def fetch_deposits_or_withdrawals_helper(self, type: Any, code: Any, since: Any, limit: Any, params={}):
+    async def fetch_deposits_or_withdrawals_helper(self, type: object, code: object, since: object, limit: object, params={}):
         if self.markets is None:
             await self.load_markets()
         currency = None
@@ -2788,7 +2792,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         address = self.safe_string(depositAddress, 'address')
         self.check_address(address)
         return {
@@ -2825,7 +2829,7 @@ class toobit(Exchange, ImplicitAPI):
             'coin': currency['id'],
             'address': address,
             'quantity': self.currency_to_precision(currency['code'], amount),
-            'chainType': networkCode,
+            'chainType': self.network_code_to_id(networkCode, code),
             'clientOrderId': self.milliseconds(),
         }
         if tag is not None:
@@ -2917,20 +2921,20 @@ class toobit(Exchange, ImplicitAPI):
         #
         # [
         #     {
-        #         "symbol":"BTC-SWAP-USDT",  #symbol
-        #         "leverage":"20",  # leverage
+        #         "symbolId":"ETH-SWAP-USDT",
+        #         "leverage":"50",
         #         "marginType":"CROSS"  # CROSS;ISOLATED
         #     }
         # ]
         #
-        data = self.safe_dict(response, 'data', {})
+        data = self.safe_dict(response, 0, {})
         return self.parse_leverage(data, market)
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
-        marketId = self.safe_string(leverage, 'symbol')
+        marketId = self.safe_string_2(leverage, 'symbolId', 'symbol')
         leverageValue = self.safe_integer(leverage, 'leverage')
-        marginType = self.safe_string(leverage, 'marginType')
-        marginMode = 'cross' if (marginType == 'crossed') else 'isolated'
+        marginType = self.safe_string_lower(leverage, 'marginType')
+        marginMode = 'cross' if (marginType == 'cross') else 'isolated'
         return {
             'info': leverage,
             'symbol': self.safe_symbol(marketId, market),
@@ -2939,7 +2943,7 @@ class toobit(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -3020,7 +3024,7 @@ class toobit(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         isPost = method == 'POST'
         isDelete = method == 'DELETE'
@@ -3065,7 +3069,7 @@ class toobit(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         errorCode = self.safe_string(response, 'code')

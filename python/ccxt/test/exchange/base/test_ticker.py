@@ -12,6 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
+from ccxt.base.decimal_to_precision import number_to_string  # noqa E402
 from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
@@ -134,6 +135,19 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
             # because of exchange engines might not rounding numbers propertly, we add some tolerance of calculated 24hr high/low
             base_low = Precise.string_div(base_low, tolerance)
             base_high = Precise.string_mul(base_high, tolerance)
+            # some exchanges round quoteVolume before reporting it - aster,
+            # for example, returns 8.07 when the true traded value is 8.0651,
+            # which on micro-price contracts (1000WOJAK etc) is enough to
+            # break the quoteVolume <= baseVolume * high sanity check below.
+            # the reported string reveals its own rounding step (trailing
+            # zeros are padding, so 8.07000000 -> 2 real decimals -> step
+            # 0.01), so we widen the acceptance window by one such step on
+            # each side - big enough to forgive rounding, far too small to
+            # hide a real bug like mismatched units or a wrong-field parse
+            quote_volume_decimals = exchange.precision_from_string(quote_volume)
+            quote_quantum = exchange.parse_precision(exchange.number_to_string(quote_volume_decimals))
+            base_low = Precise.string_sub(base_low, quote_quantum)
+            base_high = Precise.string_add(base_high, quote_quantum)
             assert Precise.string_ge(quote_volume, base_low), 'quoteVolume should be => baseVolume * low' + log_text
             assert Precise.string_le(quote_volume, base_high), 'quoteVolume should be <= baseVolume * high' + log_text
     # open and close should be between High & Low

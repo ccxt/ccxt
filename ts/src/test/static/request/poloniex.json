@@ -21,6 +21,21 @@
                     }
                 ],
                 "output": "{\"coin\":\"USDT\",\"amount\":\"5\",\"address\":\"0x883b79D31EA07AA200A4a83c50d444470A212eEE\",\"network\":\"ETH\"}"
+            },
+            {
+                "description": "tron network id must be TRX, TRON is rejected by the api",
+                "method": "withdraw",
+                "url": "https://api.poloniex.com/v2/wallets/withdraw",
+                "input": [
+                    "USDT",
+                    5,
+                    "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD",
+                    null,
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "output": "{\"coin\":\"USDT\",\"amount\":\"5\",\"address\":\"TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD\",\"network\":\"TRX\"}"
             }
         ],
         "fetchDepositAddress": [
@@ -576,6 +591,36 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            },
+            {
+                "description": "swap 10m candles",
+                "method": "fetchOHLCV",
+                "url": "https://api.poloniex.com/v3/market/candles?symbol=BTC_USDT_PERP&interval=MINUTE_10",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "10m"
+                ],
+                "output": null
+            },
+            {
+                "description": "swap 6h candles",
+                "method": "fetchOHLCV",
+                "url": "https://api.poloniex.com/v3/market/candles?symbol=BTC_USDT_PERP&interval=HOUR_6",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "6h"
+                ],
+                "output": null
+            },
+            {
+                "description": "swap 1M candles",
+                "method": "fetchOHLCV",
+                "url": "https://api.poloniex.com/v3/market/candles?symbol=BTC_USDT_PERP&interval=MONTH_1",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1M"
+                ],
+                "output": null
             }
         ]
     }

@@ -377,7 +377,14 @@ public partial class krakenfutures : ccxt.krakenfutures
             this.positions = new ArrayCacheBySymbolBySide();
         }
         object cache = this.positions;
-        object rawPositions = this.safeValue(message, "positions", new List<object>() {});
+        object rawPositions = this.safeList(message, "positions");
+        if (isTrue(isEqual(rawPositions, null)))
+        {
+            // an open_positions frame without the positions key is malformed;
+            // do not resolve with a fabricated empty list (the caller cannot
+            // distinguish it from a genuinely flat account)
+            return;
+        }
         object newPositions = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {

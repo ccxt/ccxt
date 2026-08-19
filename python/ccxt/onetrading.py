@@ -5,8 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.onetrading import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
-from typing import List
+from ccxt.base.types import Balances, Currencies, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -25,7 +24,7 @@ from ccxt.base.precise import Precise
 
 class onetrading(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(onetrading, self).describe(), {
             'id': 'onetrading',
             'name': 'One Trading',
@@ -470,7 +469,7 @@ class onetrading(Exchange, ImplicitAPI):
             'networks': {},
         })
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for onetrading
 
@@ -758,7 +757,7 @@ class onetrading(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_fee_tiers(self, feeTiers: Any, market: Market = None):
+    def parse_fee_tiers(self, feeTiers: object, market: Market = None):
         takerFees = []
         makerFees = []
         for i in range(0, len(feeTiers)):
@@ -991,7 +990,7 @@ class onetrading(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(response, 'time'))
         return self.parse_order_book(response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount')
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     {
         #         "instrument_code":"BTC_EUR",
@@ -1037,7 +1036,7 @@ class onetrading(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, volumeField),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1165,7 +1164,7 @@ class onetrading(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         balances = self.safe_value(response, 'balances', [])
         result = {'info': response}
         for i in range(0, len(balances)):
@@ -1475,7 +1474,7 @@ class onetrading(Exchange, ImplicitAPI):
         #
         return [self.safe_order({'info': response})]
 
-    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -1560,7 +1559,7 @@ class onetrading(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1678,7 +1677,7 @@ class onetrading(Exchange, ImplicitAPI):
         orderHistory = self.safe_list(response, 'order_history', [])
         return self.parse_orders(orderHistory, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -1820,7 +1819,7 @@ class onetrading(Exchange, ImplicitAPI):
         tradeHistory = self.safe_list(response, 'trade_history', [])
         return self.parse_trades(tradeHistory, market, since, limit)
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -1840,7 +1839,7 @@ class onetrading(Exchange, ImplicitAPI):
                     url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         #

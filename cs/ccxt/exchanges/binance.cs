@@ -4944,7 +4944,7 @@ public partial class binance : Exchange
                     ((IList<object>)promisesRaw).Add(this.sapiGetMarginAllPairs(parameters));
                     ((IList<object>)promisesRaw).Add(this.sapiGetMarginIsolatedAllPairs(parameters));
                 }
-                if (isTrue(!isTrue(isDemoEnv) && isTrue((!isEqual(this.apiKey, null)))))
+                if (isTrue(!isTrue(isDemoEnv) && isTrue((isTrue(!isEqual(this.apiKey, null)) && isTrue(!isEqual(this.apiKey, ""))))))
                 {
                     ((IList<object>)promisesRaw).Add(this.sapiGetEquityMarketExchangeInfo(parameters));
                 }

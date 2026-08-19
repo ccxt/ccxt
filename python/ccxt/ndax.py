@@ -7,8 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.ndax import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, Transaction
-from typing import List
+from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadSymbol
@@ -20,7 +19,7 @@ from ccxt.base.precise import Precise
 
 class ndax(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(ndax, self).describe(), {
             'id': 'ndax',
             'name': 'NDAX',
@@ -551,7 +550,7 @@ class ndax(Exchange, ImplicitAPI):
             'margin': self.safe_bool(rawCurrency, 'MarginEnabled'),
         })
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for ndax
 
@@ -673,7 +672,7 @@ class ndax(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def parse_order_book(self, orderbook: Any, symbol: Any, timestamp: Int = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 6, amountKey: IndexType = 8, countOrIdKey: IndexType = 2):
+    def parse_order_book(self, orderbook: object, symbol: object, timestamp: Int = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 6, amountKey: IndexType = 8, countOrIdKey: IndexType = 2):
         nonce = None
         result = {
             'symbol': symbol,
@@ -919,7 +918,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     [
         #         1501603632000,  # 0 DateTime
@@ -942,7 +941,7 @@ class ndax(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1154,7 +1153,7 @@ class ndax(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1183,7 +1182,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_accounts(self, params={}) -> List[Account]:
+    def fetch_accounts(self, params={}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -1216,7 +1215,7 @@ class ndax(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1290,7 +1289,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_ledger_entry_type(self, type: Any):
+    def parse_ledger_entry_type(self, type: object):
         types = {
             'Trade': 'trade',
             'Deposit': 'transaction',
@@ -1362,7 +1361,7 @@ class ndax(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -1818,7 +1817,7 @@ class ndax(Exchange, ImplicitAPI):
             'clientOrderId': clientOrderId,
         })
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1897,7 +1896,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2186,7 +2185,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         # fetchDepositAddress, createDepositAddress
         #
@@ -2232,7 +2231,7 @@ class ndax(Exchange, ImplicitAPI):
         }
         return self.fetch_deposit_address(code, self.extend(request, params))
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2291,7 +2290,7 @@ class ndax(Exchange, ImplicitAPI):
             return self.parse_transactions(json.loads(response), currency, since, limit)
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2580,7 +2579,7 @@ class ndax(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -2626,7 +2625,7 @@ class ndax(Exchange, ImplicitAPI):
                     url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if code == 404:
             raise AuthenticationError(self.id + ' ' + body)
         if response is None:

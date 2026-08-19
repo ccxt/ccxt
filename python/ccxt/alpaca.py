@@ -5,8 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.alpaca import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -22,7 +21,7 @@ from ccxt.base.precise import Precise
 
 class alpaca(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(alpaca, self).describe(), {
             'id': 'alpaca',
             'name': 'Alpaca',
@@ -461,7 +460,7 @@ class alpaca(Exchange, ImplicitAPI):
         iso = self.parse_to_int(self.parse8601(localTime)) - self.parse_to_numeric(jetlag) * 3600 * 1000
         return iso
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for alpaca
 
@@ -589,7 +588,7 @@ class alpaca(Exchange, ImplicitAPI):
             'info': asset,
         })
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -729,7 +728,7 @@ class alpaca(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(rawOrderbook, 't'))
         return self.parse_order_book(rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's')
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -820,7 +819,7 @@ class alpaca(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchOHLCV() does not support ' + method + ', marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported')
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     {
         #        "c":22895,
@@ -969,12 +968,13 @@ class alpaca(Exchange, ImplicitAPI):
                 'percentage': None,
                 'average': None,
                 'baseVolume': self.safe_string(dailyBar, 'v'),
-                'quoteVolume': self.safe_string(dailyBar, 'n'),
+                # 'n' is the trade count; the quote volume is the daily volume at the daily vwap
+                'quoteVolume': Precise.string_mul(self.safe_string(dailyBar, 'v'), self.safe_string(dailyBar, 'vw')),
             }, market)
             results.append(ticker)
         return self.filter_by_array(results, 'symbol', symbols)
 
-    def generate_client_order_id(self, params: Any):
+    def generate_client_order_id(self, params: object):
         clientOrderIdprefix = self.safe_string(self.options, 'clientOrderId')
         uuid = self.uuid()
         parts = uuid.split('-')
@@ -1191,7 +1191,7 @@ class alpaca(Exchange, ImplicitAPI):
         market = self.safe_market(marketId)
         return self.parse_order(order, market)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1264,7 +1264,7 @@ class alpaca(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1282,7 +1282,7 @@ class alpaca(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -1580,7 +1580,7 @@ class alpaca(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
@@ -1648,7 +1648,7 @@ class alpaca(Exchange, ImplicitAPI):
         super(alpaca, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
-    def fetch_transactions_helper(self, type: Any, code: Any, since: Any, limit: Any, params: Any) -> List[Transaction]:
+    def fetch_transactions_helper(self, type: object, code: object, since: object, limit: object, params: object) -> list[Transaction]:
         if self.markets is None:
             self.load_markets()
         currency = None
@@ -1718,7 +1718,7 @@ class alpaca(Exchange, ImplicitAPI):
                 results.append(entry)
         return self.parse_transactions(results, currency, since, limit, params)
 
-    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -1732,7 +1732,7 @@ class alpaca(Exchange, ImplicitAPI):
         """
         return self.fetch_transactions_helper('BOTH', code, since, limit, params)
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -1746,7 +1746,7 @@ class alpaca(Exchange, ImplicitAPI):
         """
         return self.fetch_transactions_helper('INCOMING', code, since, limit, params)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -1881,7 +1881,7 @@ class alpaca(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction_type(self, type: Any):
+    def parse_transaction_type(self, type: object):
         types = {
             'INCOMING': 'deposit',
             'OUTGOING': 'withdrawal',
@@ -1950,7 +1950,7 @@ class alpaca(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         account = self.account()
         currencyId = self.safe_string(response, 'currency')
@@ -1961,7 +1961,7 @@ class alpaca(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = '/' + self.implode_params(path, params)
         url = self.implode_hostname(self.urls['api'][api[0]])
         headers = headers if (headers is not None) else {}
@@ -1979,7 +1979,7 @@ class alpaca(Exchange, ImplicitAPI):
         url = url + endpoint
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # default error handler
         # {

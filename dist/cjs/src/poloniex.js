@@ -103,18 +103,18 @@ class poloniex extends poloniex$1["default"] {
             'timeframes': {
                 '1m': 'MINUTE_1',
                 '5m': 'MINUTE_5',
-                '10m': 'MINUTE_10', // not in swap
+                '10m': 'MINUTE_10',
                 '15m': 'MINUTE_15',
                 '30m': 'MINUTE_30',
                 '1h': 'HOUR_1',
                 '2h': 'HOUR_2',
                 '4h': 'HOUR_4',
-                '6h': 'HOUR_6', // not in swap
+                '6h': 'HOUR_6',
                 '12h': 'HOUR_12',
                 '1d': 'DAY_1',
                 '3d': 'DAY_3',
                 '1w': 'WEEK_1',
-                '1M': 'MONTH_1', // not in swap
+                '1M': 'MONTH_1',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
@@ -312,8 +312,9 @@ class poloniex extends poloniex$1["default"] {
                 'networks': {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
-                    'TRC20': 'TRON',
-                    'TRX': 'TRON',
+                    // v2 withdraw accepts only the blockchain id: 'TRX' passes validation, 'TRON' is rejected with 830111 (live-verified)
+                    'TRC20': 'TRX',
+                    'TRX': 'TRX',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
@@ -533,10 +534,10 @@ class poloniex extends poloniex$1["default"] {
                     '21356': errors.BadRequest, // Order size would cause too much price movement. Reduce order size.
                     '21721': errors.InsufficientFunds,
                     '24101': errors.BadSymbol, // Invalid symbol
-                    '24102': errors.InvalidOrder, // Invalid K-line type
-                    '24103': errors.InvalidOrder, // Invalid endTime
-                    '24104': errors.InvalidOrder, // Invalid amount
-                    '24105': errors.InvalidOrder, // Invalid startTime
+                    '24102': errors.BadRequest, // Invalid K-line type
+                    '24103': errors.BadRequest, // Invalid endTime
+                    '24104': errors.BadRequest, // Invalid limit
+                    '24105': errors.BadRequest, // Invalid startTime
                     '25020': errors.InvalidOrder, // No active kill switch
                     // Smartorders
                     '25000': errors.InvalidOrder, // Invalid userId
@@ -559,6 +560,46 @@ class poloniex extends poloniex$1["default"] {
                     '25017': errors.ExchangeError, // No orders were canceled
                     '25018': errors.BadRequest, // Invalid accountType
                     '25019': errors.BadSymbol, // Invalid symbol
+                    // Wallets v2 (undocumented codes, live-verified via validation probes)
+                    '820181': errors.BadRequest, // {"code":820181,"message":"amount must be greater than the transaction fee."}
+                    '820201': errors.BadRequest, // {"code":820201,"message":"blockchain param check error"} — network param missing
+                    '830111': errors.BadRequest, // {"code":830111,"message":"Currency or Network does not exist"}
+                    // Futures v3 (https://api-docs.poloniex.com/v3/futures/error)
+                    '250': errors.DuplicateOrderId, // {"code":250,"msg":"Client order id already exists"} — live-verified on v3/trade/order
+                    '400': errors.BadRequest, // ILLEGAL_PARAM
+                    '403': errors.PermissionDenied, // ACCESS_DENY
+                    '404': errors.BadRequest, // NOT_FOUND
+                    '429': errors.RateLimitExceeded, // TOO_MANY_REQUEST
+                    '503': errors.ExchangeNotAvailable, // DEGRADE_ERROR
+                    '1000': errors.AuthenticationError, // USER_NOT_EXITS
+                    '1001': errors.ExchangeError, // SYSTEM_CONFIG_ERROR
+                    '1002': errors.OnMaintenance, // SYSTEM_MAINTENANCE
+                    '1003': errors.AccountSuspended, // USER_IS_FROZEN
+                    '10000': errors.MarketClosed, // SYMBOL_NOT_IN_TRADING_STATUS
+                    '10001': errors.BadSymbol, // SYMBOL_NOT_EXISTS
+                    '10002': errors.InvalidOrder, // PRICE_LIMIT
+                    '10003': errors.InvalidOrder, // NO_BID
+                    '10004': errors.InvalidOrder, // NO_ASK
+                    '10005': errors.MarketClosed, // SYMBOL_STATUS_PAUSED
+                    '10006': errors.OperationRejected, // SYMBOL_STATUS_CANCEL_ONLY
+                    '10007': errors.OperationRejected, // SYMBOL_STATUS_NOT_ALLOWED
+                    '10008': errors.AccountSuspended, // USER_STATUS_ABNORMAL
+                    '10009': errors.OperationRejected, // ALREADY_EXISTS_GRID_STRATEGY
+                    '10010': errors.InvalidOrder, // PRICE_HIGHER_THAN_BANKRUPT_PRICE
+                    '10011': errors.InvalidOrder, // PRICE_LOWER_THAN_BANKRUPT_PRICE
+                    '10012': errors.InvalidOrder, // PRICE_HIGHER_THAN_LIQUIDATION_PRICE
+                    '10013': errors.InvalidOrder, // PRICE_LOWER_THAN_LIQUIDATION_PRICE
+                    '10014': errors.BadRequest, // PRICE_LIMIT_PARAM
+                    '10015': errors.OperationRejected, // SYMBOL_STATUS_CLOSE_POSITION_ONLY
+                    '10016': errors.BadRequest, // BATCH_PLACE_ORDER_SIZE_OVER_LIMIT
+                    '10017': errors.BadRequest, // BATCH_CANCEL_ORDER_SIZE_OVER_LIMIT
+                    '10018': errors.OperationRejected, // NO_POSITION_TO_CLOSE_ORDER
+                    '10019': errors.OperationRejected, // ACCOUNT_STATE_OPEN_LIMIT
+                    '11003': errors.BadRequest, // UNKNOWN_SOURCE
+                    '11004': errors.OperationRejected, // ORDER_NOT_CANCELABLE
+                    '11008': errors.OrderNotFound, // ORDER_NOT_EXISTS
+                    '12004': errors.PermissionDenied, // NOT_KYC_VERIFIED
+                    '21001': errors.OperationRejected, // POSITION_NOT_EXIST
                 },
                 'broad': {},
             },
@@ -660,9 +701,6 @@ class poloniex extends poloniex$1["default"] {
         }
         [request, params] = this.handleUntilOption(keyEnd, request, params);
         if (market['contract']) {
-            if (this.inArray(timeframe, ['10m', '1M'])) {
-                throw new errors.NotSupported(this.id + ' ' + timeframe + ' ' + market['type'] + ' fetchOHLCV is not supported');
-            }
             const responseRaw = await this.swapPublicGetV3MarketCandles(this.extend(request, params));
             //
             //     {
@@ -1042,6 +1080,11 @@ class poloniex extends poloniex$1["default"] {
         const timestamp = this.safeInteger2(ticker, 'ts', 'cT');
         const marketId = this.safeString2(ticker, 'symbol', 's');
         market = this.safeMarket(marketId);
+        let baseVolume = this.safeString2(ticker, 'quantity', 'qty');
+        if (market['contract'] && (market['contractSize'] !== undefined)) {
+            // 'quantity' counts contracts, and a ticker reports base volume
+            baseVolume = Precise["default"].stringMul(baseVolume, this.numberToString(market['contractSize']));
+        }
         const relativeChange = this.safeString2(ticker, 'dailyChange', 'dc');
         const percentage = Precise["default"].stringMul(relativeChange, '100');
         return this.safeTicker({
@@ -1062,7 +1105,7 @@ class poloniex extends poloniex$1["default"] {
             'change': undefined,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeString2(ticker, 'quantity', 'qty'),
+            'baseVolume': baseVolume,
             'quoteVolume': this.safeString2(ticker, 'amount', 'amt'),
             'markPrice': this.safeString2(ticker, 'markPrice', 'mPx'),
             'indexPrice': this.safeString(ticker, 'iPx'),
@@ -3637,10 +3680,9 @@ class poloniex extends poloniex$1["default"] {
         //
         const responseCode = this.safeString(response, 'code');
         if ((responseCode !== undefined) && (responseCode !== '200')) {
-            const codeInner = response['code'];
-            const message = this.safeString(response, 'message');
+            const message = this.safeString2(response, 'message', 'msg');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions['exact'], codeInner, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], responseCode, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }

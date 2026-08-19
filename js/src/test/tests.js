@@ -12,7 +12,7 @@ AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, O
 // shared
 getCliArgValue, 
 //
-getRootDir, isSync, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, getRootException, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFilesSync, getTestFiles, setFetchResponse, setupWsMockTransport, injectWsMessage, rejectPendingWsFutures, wsClientHasPendingFutures, getWsSentMessages, isNullValue, close, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, } from './tests.helpers.js';
+getRootDir, isSync, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, getRootException, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFilesSync, getTestFiles, setFetchResponse, setupWsMockTransport, injectWsMessage, rejectPendingWsFutures, wsClientHasPendingFutures, markWsTestCompleted, isWsTestCompleted, getWsSentMessages, isNullValue, close, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, } from './tests.helpers.js';
 class testMainClass {
     constructor() {
         this.idTests = false;
@@ -692,6 +692,101 @@ class testMainClass {
         }
         return symbol;
     }
+    getTickerVolume(exchange, ticker) {
+        // all candidates compared with this helper share the same quote currency,
+        // so `quoteVolume` is directly comparable between them. fall back to the
+        // base volume converted with the last price, then to the raw base volume,
+        // because not every exchange populates `quoteVolume`.
+        const quoteVolume = exchange.safeNumber(ticker, 'quoteVolume');
+        if (quoteVolume !== undefined) {
+            return quoteVolume;
+        }
+        const baseVolume = exchange.safeNumber(ticker, 'baseVolume');
+        if (baseVolume === undefined) {
+            return 0;
+        }
+        const last = exchange.safeNumber(ticker, 'last');
+        if (last !== undefined) {
+            return baseVolume * last;
+        }
+        return baseVolume;
+    }
+    async getMostActiveSymbols(exchange, defaultSymbols) {
+        // `watch*` methods only resolve when the exchange pushes an update, so a
+        // thinly traded market makes the ws tests hang until the harness timeout
+        // kills them. the 24h volume is our proxy for "how often does this book
+        // change", so rank the markets by it and watch the busiest ones instead.
+        // the ranking is restricted to markets sharing the type/quote/settle of
+        // the statically chosen symbol, which keeps the volumes comparable (quote
+        // volumes denominated in different quote currencies are not) and keeps a
+        // per-exchange `preferredSpotSymbol`/`preferredSwapSymbol` meaningful.
+        const defaultSymbol = defaultSymbols[0];
+        const defaultMarket = exchange.safeDict(exchange.markets, defaultSymbol);
+        if (defaultMarket === undefined) {
+            return defaultSymbols;
+        }
+        // an explicit per-exchange pin is a deliberate maintainer choice (it usually
+        // works around a venue-specific quirk), so never rank around it
+        const isSpot = exchange.safeBool(defaultMarket, 'spot', false);
+        const preferredKey = (isSpot) ? 'preferredSpotSymbol' : 'preferredSwapSymbol';
+        const preferredSymbol = exchange.safeString(this.skippedSettingsForExchange, preferredKey);
+        if (preferredSymbol !== undefined) {
+            return defaultSymbols;
+        }
+        if (!exchange.safeBool(exchange.has, 'fetchTickers', false)) {
+            return defaultSymbols;
+        }
+        let tickers = undefined;
+        try {
+            // dynamic dispatch: `fetchTickers` is not on the base exchange type in
+            // the statically typed ports (c#/go/java), same as the other call sites
+            tickers = await callExchangeMethodDynamically(exchange, 'fetchTickers', []);
+        }
+        catch (e) {
+            // choosing a symbol must never fail the run, keep the static choice
+            tickers = undefined;
+        }
+        if (tickers === undefined) {
+            return defaultSymbols;
+        }
+        const marketType = exchange.safeString(defaultMarket, 'type');
+        const quote = exchange.safeString(defaultMarket, 'quote');
+        const settle = exchange.safeString(defaultMarket, 'settle');
+        const candidates = [];
+        const tickerSymbols = Object.keys(tickers);
+        for (let i = 0; i < tickerSymbols.length; i++) {
+            const tickerSymbol = tickerSymbols[i];
+            const market = exchange.safeDict(exchange.markets, tickerSymbol);
+            if (market !== undefined) {
+                // exchanges keep returning tickers for delisted markets, and those
+                // never push a websocket update at all, so skip inactive markets
+                const isActive = exchange.safeBool(market, 'active', true);
+                const sameType = exchange.safeString(market, 'type') === marketType;
+                const sameQuote = exchange.safeString(market, 'quote') === quote;
+                const sameSettle = exchange.safeString(market, 'settle') === settle;
+                if (isActive && sameType && sameQuote && sameSettle) {
+                    const ticker = exchange.safeDict(tickers, tickerSymbol, {});
+                    const volume = this.getTickerVolume(exchange, ticker);
+                    if (volume > 0) {
+                        const entry = {};
+                        entry['symbol'] = tickerSymbol;
+                        entry['volume'] = volume;
+                        candidates.push(entry);
+                    }
+                }
+            }
+        }
+        const ranked = exchange.sortBy(candidates, 'volume', true);
+        const rankedLength = ranked.length;
+        if (rankedLength === 0) {
+            return defaultSymbols;
+        }
+        const result = [exchange.safeString(ranked[0], 'symbol')];
+        if (rankedLength > 1) {
+            result.push(exchange.safeString(ranked[1], 'symbol'));
+        }
+        return result;
+    }
     async testExchange(exchange, providedSymbol = undefined) {
         // prediction-market exchanges have no spot/swap markets and address methods by an
         // outcome handle (not a market symbol), so they take a dedicated test flow
@@ -728,6 +823,17 @@ class testMainClass {
                 if (primarySymbol !== undefined) {
                     const secondarySymbol = primarySymbol.replaceAll('BTC', 'ETH'); // this should work any exchange
                     swapSymbols = [primarySymbol, secondarySymbol];
+                }
+            }
+            // ws tests subscribe with `watch*`, which only resolves on an update,
+            // so re-target them at the most actively traded markets to avoid the
+            // harness timing out on a quiet book. rest tests keep the static choice.
+            if (this.wsTests) {
+                if (spotSymbols !== undefined) {
+                    spotSymbols = await this.getMostActiveSymbols(exchange, spotSymbols);
+                }
+                if (swapSymbols !== undefined) {
+                    swapSymbols = await this.getMostActiveSymbols(exchange, swapSymbols);
                 }
             }
         }
@@ -1687,7 +1793,7 @@ class testMainClass {
         setFetchResponse(exchange, undefined); // reset state
         return true;
     }
-    async injectWsMessages(exchange, url, messages) {
+    async injectWsMessages(exchange, url, messages, sequential = false) {
         // before every frame, wait until the watch flow is actually awaiting
         // something — a fixed head-start sleep is not enough on slow ci
         // runners and the frame's resolution would be dropped
@@ -1698,16 +1804,39 @@ class testMainClass {
                 waited = waited + 50;
             }
             injectWsMessage(exchange, url, messages[i]);
-            // yield between frames so the handlers run in arrival order
-            await exchange.sleep(20);
+            // threaded runtimes resolve futures on another thread — wait for
+            // the consumed frame to settle so the pending check above does not
+            // observe a stale future and burn the next frame early; frames
+            // that resolve nothing (e.g. subscribe acks) fall through on the
+            // timeout
+            let settled = 0;
+            while (wsClientHasPendingFutures(exchange, url) && (settled < 500)) {
+                await exchange.sleep(20);
+                settled = settled + 20;
+            }
         }
         await exchange.sleep(50);
+        if (sequential) {
+            // a watch call of a sequence can register its future after every
+            // frame was already consumed — keep rejecting until the watch side
+            // reports completion (the rejections force it to finish). the time
+            // bound is a backstop for threaded runtimes where this task can be
+            // executed inline on a stack that blocks the watch side (forkjoin
+            // work stealing): give up eventually so the stack unwinds instead
+            // of deadlocking
+            let waitedDone = 0;
+            while (!isWsTestCompleted(exchange, url) && (waitedDone < 30000)) {
+                rejectPendingWsFutures(exchange, url);
+                await exchange.sleep(50);
+                waitedDone = waitedDone + 50;
+            }
+        }
         // reject anything still pending so a wrong fixture fails fast
         // instead of hanging the test run forever
         rejectPendingWsFutures(exchange, url);
         return true; // c# methods used with promiseAll need to return something
     }
-    async watchAndAssertSequence(exchange, method, input, skipKeys, expectedResults) {
+    async watchAndAssertSequence(exchange, url, method, input, skipKeys, expectedResults) {
         // await the watch method once per expected result: each injected frame
         // resolves the pending future, so successive awaits observe the
         // successive states (e.g. an order going from open to closed)
@@ -1722,10 +1851,13 @@ class testMainClass {
             }
         }
         catch (e) {
-            // rethrow for the caller to report — the explicit try/catch also
-            // keeps the java transpilation compilable (checked exceptions)
+            // let the injector's rejection loop exit before the caller reports
+            // — the explicit try/catch also keeps the java transpilation
+            // compilable (checked exceptions)
+            markWsTestCompleted(exchange, url);
             throw e;
         }
+        markWsTestCompleted(exchange, url);
         return true; // c# methods used with promiseAll need to return something
     }
     assertWsSentMessages(exchange, url, data) {
@@ -1765,9 +1897,14 @@ class testMainClass {
             if (expectedResults !== undefined) {
                 // 'parsedResponses' asserts one result per successive watch
                 // resolution (e.g. an order going from open to closed)
+                // start the injector before the watch side: it must never sit
+                // queued while the watch chain blocks on a join — a forkjoin
+                // worker could execute it inline on the blocked stack and the
+                // rejection loop would then wait on the very watch side it is
+                // buried on top of
                 const promises = [
-                    this.watchAndAssertSequence(exchange, method, input, skipKeys, expectedResults),
-                    this.injectWsMessages(exchange, url, messages),
+                    this.injectWsMessages(exchange, url, messages, true),
+                    this.watchAndAssertSequence(exchange, url, method, input, skipKeys, expectedResults),
                 ];
                 await Promise.all(promises);
                 this.assertWsSentMessages(exchange, url, data);

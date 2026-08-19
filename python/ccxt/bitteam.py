@@ -5,8 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitteam import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -21,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class bitteam(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bitteam, self).describe(), {
             'id': 'bitteam',
             'name': 'BIT.TEAM',
@@ -362,7 +361,7 @@ class bitteam(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for bitteam
 
@@ -746,7 +745,7 @@ class bitteam(Exchange, ImplicitAPI):
             'networks': networks,
         })
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -796,7 +795,7 @@ class bitteam(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     {
         #         "t": 1669680000,
@@ -865,7 +864,7 @@ class bitteam(Exchange, ImplicitAPI):
         orderbook = self.parse_order_book(response, symbol, timestamp)
         return orderbook
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1037,7 +1036,7 @@ class bitteam(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1056,7 +1055,7 @@ class bitteam(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -1361,14 +1360,14 @@ class bitteam(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, status: Any):
+    def parse_order_type(self, status: object):
         statuses = {
             'market': 'market',
             'limit': 'limit',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_value_to_pricision(self, valueObject: Any, valueKey: Any, preciseObject: Any, precisionKey: Any):
+    def parse_value_to_pricision(self, valueObject: object, valueKey: object, preciseObject: object, precisionKey: object):
         valueRawString = self.safe_string(valueObject, valueKey)
         precisionRawString = self.safe_string(preciseObject, precisionKey)
         if valueRawString is None or precisionRawString is None:
@@ -1760,7 +1759,7 @@ class bitteam(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -2078,7 +2077,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = self.privateGetTradeApiCcxtBalance(params)
         return self.parse_balance(response)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         #
         #     {
         #         "ok": True,
@@ -2144,7 +2143,7 @@ class bitteam(Exchange, ImplicitAPI):
                 }
         return self.safe_balance(balance)
 
-    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
 
@@ -2347,7 +2346,7 @@ class bitteam(Exchange, ImplicitAPI):
             'internal': False,
         }
 
-    def parse_transaction_type(self, type: Any):
+    def parse_transaction_type(self, type: object):
         types = {
             'deposit': 'deposit',
             'withdraw': 'withdrawal',
@@ -2361,7 +2360,7 @@ class bitteam(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint
@@ -2383,7 +2382,7 @@ class bitteam(Exchange, ImplicitAPI):
             url += '?' + query
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         if code != 200:
