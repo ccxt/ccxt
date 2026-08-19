@@ -402,17 +402,15 @@ export default class binance extends binanceRest {
         if (!this.isEmpty (symbols)) {
             firstMarket = this.getMarketFromSymbols (symbols);
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchLiquidationsForSymbols', firstMarket, params);
+        const resolvedAuth = this.resolveAuthType ('watchLiquidationsForSymbols', firstMarket, params);
+        const type = resolvedAuth[0];
+        params = resolvedAuth[2];
+        // the spot check runs on the RESOLVED type: a spot default combined
+        // with a linear or inverse defaultSubType means the caller wants the
+        // matching derivatives stream, so the rewrite is allowed to route it
+        // there and only a request that still resolves to spot throws
         if (type === 'spot') {
             throw new BadRequest (this.id + ' watchLiquidationsForSymbols is not supported for spot symbols');
-        }
-        let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchLiquidationsForSymbols', firstMarket, params);
-        if (this.isLinear (type, subType)) {
-            type = 'future';
-        } else if (this.isInverse (type, subType)) {
-            type = 'delivery';
         }
         if (type === 'option') {
             throw new NotSupported (this.id + ' watchLiquidationsForSymbols() does not support options markets, there is no public liquidation stream for eOptions');
@@ -624,20 +622,13 @@ export default class binance extends binanceRest {
             }
         }
         let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchMyLiquidationsForSymbols', market, params);
         let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchMyLiquidationsForSymbols', market, params);
-        // same guard authenticate carries: this local rewrite must agree with the
-        // bucket authenticate writes, or the listenKey read below dereferences an
-        // options bucket that was never seeded and throws
-        if (type !== 'option' && type !== 'stock') {
-            if (this.isLinear (type, subType)) {
-                type = 'future';
-            } else if (this.isInverse (type, subType)) {
-                type = 'delivery';
-            }
-        }
-        await this.authenticate (params);
+        [ type, subType, params ] = this.resolveAuthType ('watchMyLiquidationsForSymbols', market, params);
+        // hand the resolved type forward: the helper already omitted type and
+        // subType from params, so a bare authenticate would re-derive from
+        // options.defaultType and seed a different bucket than the listenKey
+        // read below indexes - the derive-first shape watchBalance uses
+        await this.authenticate (this.extend ({ 'type': type, 'subType': subType }, params));
         const listenKey = this.options[type]['listenKey'];
         const url = this.getPrivateWsUrl (type, listenKey);
         const message = undefined;
@@ -3018,24 +3009,11 @@ export default class binance extends binanceRest {
 
     async authenticate (params = {}) {
         const time = this.milliseconds ();
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
-        let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('authenticate', undefined, params);
+        const resolvedAuth = this.resolveAuthType ('authenticate', undefined, params);
+        const type = resolvedAuth[0];
+        params = resolvedAuth[2];
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'authenticate', 'papi', 'portfolioMargin', false);
-        if (type !== 'option' && type !== 'stock') {
-            // guard option and stock from the rewrite: isLinear keys off subType alone
-            // when a subType is present - a defaultSubType of 'linear' would flip
-            // 'option' to 'future' and authenticate an option user stream with a
-            // FUTURES listen key stored in the future bucket. keepAliveListenKey
-            // carries the same guard; stock joins this path in the auth consolidation
-            if (this.isLinear (type, subType)) {
-                type = 'future';
-            } else if (this.isInverse (type, subType)) {
-                type = 'delivery';
-            }
-        }
         // For spot use WebSocket API signature subscription
         if (type === 'spot') {
             await this.ensureUserDataStreamWsSubscribeSignature ('spot');
@@ -3502,24 +3480,16 @@ export default class binance extends binanceRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        await this.authenticate (params);
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        let type = this.safeString (params, 'type', defaultType);
+        // derive BEFORE authenticating and pass the result in: authenticate
+        // re-derives from its own method scope, so without this a method-scoped
+        // options.watchBalance.type seeds one bucket while the read below
+        // indexes another - the same derive-first shape watchOrders uses
+        let type: Str = undefined;
         let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params);
+        [ type, subType, params ] = this.resolveAuthType ('watchBalance', undefined, params);
+        await this.authenticate (this.extend ({ 'type': type, 'subType': subType }, params));
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchBalance', 'papi', 'portfolioMargin', false);
-        // same guard authenticate carries: this local rewrite must agree with the
-        // bucket authenticate writes, or the listenKey read below dereferences an
-        // options bucket that was never seeded and throws - and the explicit
-        // urlType branch for option below would be unreachable
-        if (type !== 'option' && type !== 'stock') {
-            if (this.isLinear (type, subType)) {
-                type = 'future';
-            } else if (this.isInverse (type, subType)) {
-                type = 'delivery';
-            }
-        }
         let url = '';
         let urlType = type;
         if (type === 'spot' || type === 'margin') {
@@ -3681,6 +3651,30 @@ export default class binance extends binanceRest {
             }
         }
         return accountType;
+    }
+
+    resolveAuthType (methodName: string, market: Market = undefined, params: Dict = {}): [string, Str, Dict] {
+        // the single home for user-data type derivation: market type, subType,
+        // and the guarded linear/inverse rewrite. option and stock must keep
+        // their own type, or the listenKey bucket, the endpoint dispatch and
+        // the stream selection all silently degrade to futures - the guarded
+        // sites used to carry seven inline copies of this dance, and the
+        // unguarded copies were the bug class behind the option keepalive and
+        // stock keepalive fixes
+        let type: Str = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
+        let subType: Str = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams (methodName, market, params);
+        if (type !== 'option' && type !== 'stock') {
+            if (this.isLinear (type, subType)) {
+                type = 'future';
+            } else if (this.isInverse (type, subType)) {
+                type = 'delivery';
+            }
+        }
+        // sites consuming every element unpack this; the two that skip subType
+        // index it positionally instead, so no receiver is declared-but-unread
+        return [ type, subType, params ];
     }
 
     getMarketType (method: any, market: any, params = {}) {
@@ -4358,14 +4352,8 @@ export default class binance extends binanceRest {
             messageHash += ':' + symbol;
         }
         let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchOrders', market, params);
-        if (this.isLinear (type, subType)) {
-            type = 'future';
-        } else if (this.isInverse (type, subType)) {
-            type = 'delivery';
-        }
+        [ type, subType, params ] = this.resolveAuthType ('watchOrders', market, params);
         params = this.extend (params, { 'type': type, 'symbol': symbol, 'subType': subType }); // needed inside authenticate for isolated margin
         await this.authenticate (params);
         let marginMode: Str = undefined;
@@ -4973,18 +4961,18 @@ export default class binance extends binanceRest {
             messageHash = '::' + symbols.join (',');
         }
         let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
-        if (type === 'spot' || type === 'margin') {
-            type = 'future';
-        }
         let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchPositions', market, params);
-        if (this.isLinear (type, subType)) {
-            type = 'future';
-        } else if (this.isInverse (type, subType)) {
-            type = 'delivery';
+        [ type, subType, params ] = this.resolveAuthType ('watchPositions', market, params);
+        // spot and margin have no positions - whatever still RESOLVES to spot
+        // or margin after the helper falls through to the derivatives stream
+        // matching the subType. requests a defaultSubType already rewrote
+        // arrive here as future or delivery and pass untouched, which lands on
+        // the same stream the old raw-type ordering produced in every case
+        if (type === 'spot' || type === 'margin') {
+            type = (subType === 'inverse') ? 'delivery' : 'future';
         }
-        // 'option' stays as 'option', don't redirect to 'future'
+        // 'option' stays as 'option', don't redirect to 'future' - the helper's
+        // guard finally makes this comment true
         const marketTypeObject: Dict = {};
         marketTypeObject['type'] = type;
         marketTypeObject['subType'] = subType;
@@ -5413,14 +5401,8 @@ export default class binance extends binanceRest {
             market = marketResolved;
             symbol = market['symbol'];
         }
-        [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchMyTrades', market, params);
-        if (this.isLinear (type, subType)) {
-            type = 'future';
-        } else if (this.isInverse (type, subType)) {
-            type = 'delivery';
-        }
+        [ type, subType, params ] = this.resolveAuthType ('watchMyTrades', market, params);
         let messageHash = 'myTrades';
         if ((symbol !== undefined) && (market !== undefined)) {
             symbol = this.symbol (symbol);
