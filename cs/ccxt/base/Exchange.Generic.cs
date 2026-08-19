@@ -16,19 +16,7 @@ public partial class BaseExchange
 
         if (value1.GetType() == typeof(string))
         {
-            // numeric keys arrive as mixed boxes (Double from parsers, Int32/Int64
-            // from literals and integer math) and Comparer<object> then throws
-            // ArgumentException from Double.CompareTo - normalize every numeric
-            // key to double before comparison, leave non-numerics untouched
-            var sortedList2 = list.OrderBy(x =>
-            {
-                var key = ((dict)x)[(string)value1];
-                if (key is sbyte || key is byte || key is short || key is ushort || key is int || key is uint || key is long || key is ulong || key is float || key is double || key is decimal)
-                {
-                    return (object)Convert.ToDouble(key);
-                }
-                return key;
-            }).ToList();
+            var sortedList2 = list.OrderBy(x => normalizeSortKey(((dict)x)[(string)value1])).ToList();
             if (desc)
                 sortedList2.Reverse();
             return sortedList2;
@@ -40,7 +28,7 @@ public partial class BaseExchange
             {
                 if (x.GetType() == typeof(list))
                 {
-                    return ((list)x)[value];
+                    return normalizeSortKey(((list)x)[value]);
                 }
                 return defaultValue;
             }).ToList();
@@ -50,6 +38,21 @@ public partial class BaseExchange
 
             return sortedList;
         }
+    }
+
+    // numeric sort keys arrive as mixed boxes (Double from parsers, Int32/Int64
+    // from literals and integer math) and Comparer<object> then throws
+    // ArgumentException from Double.CompareTo - normalize every numeric key to
+    // double before comparison, leave non-numeric keys untouched. shared by
+    // both sortBy branches and sortBy2; go and java normalize centrally the
+    // same way via compareSortValues / compareJsLike
+    private static object normalizeSortKey(object key)
+    {
+        if (key is sbyte || key is byte || key is short || key is ushort || key is int || key is uint || key is long || key is ulong || key is float || key is double || key is decimal)
+        {
+            return Convert.ToDouble(key);
+        }
+        return key;
     }
 
     public List<object> sortBy2(object array, object key1, object key2, object desc2 = null)
@@ -62,7 +65,7 @@ public partial class BaseExchange
         if (key1.GetType() == typeof(string))
         {
             var orderByResult = (from s in list
-                                 orderby ((dict)s)[(string)key1], ((dict)s)[(string)key2]
+                                 orderby normalizeSortKey(((dict)s)[(string)key1]), normalizeSortKey(((dict)s)[(string)key2])
                                  select s).ToList();
             if (desc)
                 orderByResult.Reverse();

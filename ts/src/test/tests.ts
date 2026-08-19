@@ -755,10 +755,7 @@ class testMainClass {
         }
         const last = exchange.safeNumber (ticker, 'last');
         if (last !== undefined) {
-            // parseToNumeric keeps every return path the same boxed numeric type
-            // in the static runtimes - a multiply here can box differently from
-            // safeNumber's return, and the volume keys later feed one sort
-            return exchange.parseToNumeric (baseVolume * last);
+            return baseVolume * last;
         }
         return baseVolume;
     }
