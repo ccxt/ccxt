@@ -19,6 +19,7 @@ use ccxt::exchanges::{
     bittrade::BittradeCore, bitvavo::BitvavoCore,
     blockchaincom::BlockchaincomCore, blofin::BlofinCore,
     btcbox::BtcboxCore, btcmarkets::BtcmarketsCore, btcturk::BtcturkCore,
+    btse::BtseCore,
     bullish::BullishCore, bybit::BybitCore, bydfi::BydfiCore, cex::CexCore,
     coinbase::CoinbaseCore,
     coinbaseexchange::CoinbaseexchangeCore,
@@ -107,6 +108,7 @@ macro_rules! for_each_core {
         $cb!(btcbox, BtcboxCore);
         $cb!(btcmarkets, BtcmarketsCore);
         $cb!(btcturk, BtcturkCore);
+        $cb!(btse, BtseCore);
         $cb!(bullish, BullishCore);
         $cb!(bybit, BybitCore);
         $cb!(bydfi, BydfiCore);
