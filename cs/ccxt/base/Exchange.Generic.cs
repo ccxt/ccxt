@@ -10,13 +10,13 @@ public partial class BaseExchange
     public List<object> sortBy(object array, object value1, object desc2 = null, object defaultValue2 = null)
     {
         desc2 ??= false;
-        var defaultValue = defaultValue2 ?? "";
+        var defaultValue = defaultValue2 ?? 0; // ts parity: generic.ts defaults the sort fallback to 0, not the empty string
         var desc = (bool)desc2;
         var list = (IList<object>)array;
 
         if (value1.GetType() == typeof(string))
         {
-            var sortedList2 = list.OrderBy(x => normalizeSortKey(((dict)x)[(string)value1])).ToList();
+            var sortedList2 = list.OrderBy(x => ((dict)x)[(string)value1], sortKeyComparer).ToList();
             if (desc)
                 sortedList2.Reverse();
             return sortedList2;
@@ -28,10 +28,10 @@ public partial class BaseExchange
             {
                 if (x.GetType() == typeof(list))
                 {
-                    return normalizeSortKey(((list)x)[value]);
+                    return ((list)x)[value];
                 }
                 return defaultValue;
-            }).ToList();
+            }, sortKeyComparer).ToList();
 
             if (desc)
                 sortedList.Reverse();
@@ -40,20 +40,35 @@ public partial class BaseExchange
         }
     }
 
-    // numeric sort keys arrive as mixed boxes (Double from parsers, Int32/Int64
-    // from literals and integer math) and Comparer<object> then throws
-    // ArgumentException from Double.CompareTo - normalize every numeric key to
-    // double before comparison, leave non-numeric keys untouched. shared by
-    // both sortBy branches and sortBy2; go and java normalize centrally the
-    // same way via compareSortValues / compareJsLike
-    private static object normalizeSortKey(object key)
+    // a TOTAL comparator for sort keys, matching go's compareSortValues and
+    // java's compareJsLike: numeric pairs compare as double regardless of how
+    // they were boxed (Double from parsers next to Int32/Int64 from literals
+    // and integer math used to throw ArgumentException out of
+    // Double.CompareTo), and anything else falls back to ordinal string
+    // comparison, so no key mix can throw. caveat shared with the double
+    // route in go and java: integral keys above 2^53 can collide in double
+    // space and settle on input order - ccxt's real keys (ms timestamps,
+    // prices) sit well inside the exact range
+    private class SortKeyComparer : IComparer<object>
     {
-        if (key is sbyte || key is byte || key is short || key is ushort || key is int || key is uint || key is long || key is ulong || key is float || key is double || key is decimal)
+        private static bool isNumeric(object key)
         {
-            return Convert.ToDouble(key);
+            return key is sbyte || key is byte || key is short || key is ushort || key is int || key is uint || key is long || key is ulong || key is float || key is double || key is decimal;
         }
-        return key;
+
+        public int Compare(object a, object b)
+        {
+            if (isNumeric(a) && isNumeric(b))
+            {
+                return Convert.ToDouble(a).CompareTo(Convert.ToDouble(b));
+            }
+            var sa = (a == null) ? "" : a.ToString();
+            var sb = (b == null) ? "" : b.ToString();
+            return string.CompareOrdinal(sa, sb);
+        }
     }
+
+    private static readonly SortKeyComparer sortKeyComparer = new SortKeyComparer();
 
     public List<object> sortBy2(object array, object key1, object key2, object desc2 = null)
     {
@@ -64,9 +79,9 @@ public partial class BaseExchange
 
         if (key1.GetType() == typeof(string))
         {
-            var orderByResult = (from s in list
-                                 orderby normalizeSortKey(((dict)s)[(string)key1]), normalizeSortKey(((dict)s)[(string)key2])
-                                 select s).ToList();
+            var orderByResult = list.OrderBy(s => ((dict)s)[(string)key1], sortKeyComparer)
+                                    .ThenBy(s => ((dict)s)[(string)key2], sortKeyComparer)
+                                    .ToList();
             if (desc)
                 orderByResult.Reverse();
             return orderByResult;
