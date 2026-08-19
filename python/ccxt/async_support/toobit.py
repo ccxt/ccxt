@@ -1877,6 +1877,9 @@ class toobit(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         rawType = self.safe_string(order, 'type')
         rawSideLower = self.safe_string_lower(order, 'side')
+        if rawSideLower is not None:
+            # contract orders arrive, SELL_CLOSE and the like
+            rawSideLower = self.safe_string(rawSideLower.split('_'), 0)
         triggerPrice = self.omit_zero(self.safe_string(order, 'stopPrice'))
         if triggerPrice == '0.0':
             triggerPrice = None

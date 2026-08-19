@@ -598,16 +598,16 @@ class kraken(ccxt.async_support.kraken):
             self.ohlcvs[symbol][timeframe] = stored
         ohlcvsLength = len(data)
         for i in range(0, ohlcvsLength):
-            candle = data[ohlcvsLength - i - 1]
+            candle = data[i]
             datetime = self.safe_string(candle, 'interval_begin')
             timestamp = self.parse8601(datetime)
             parsed = [
                 timestamp,
-                self.safe_string(candle, 'open'),
-                self.safe_string(candle, 'high'),
-                self.safe_string(candle, 'low'),
-                self.safe_string(candle, 'close'),
-                self.safe_string(candle, 'volume'),
+                self.safe_number(candle, 'open'),
+                self.safe_number(candle, 'high'),
+                self.safe_number(candle, 'low'),
+                self.safe_number(candle, 'close'),
+                self.safe_number(candle, 'volume'),
             ]
             stored.append(parsed)
         client.resolve(stored, messageHash)
