@@ -406,9 +406,11 @@ export default class binance extends binanceRest {
         const type = resolvedAuth['type'] as string;
         const rawType = resolvedAuth['rawType'] as Str;
         params = resolvedAuth['params'] as Dict;
-        // policy checks run on rawType so the rewrite cannot smuggle a spot
-        // request past them - previously a linear defaultSubType rewrote spot
-        // to future before this check and the throw was unreachable
+        // the spot check keeps its pre-helper semantics: on master it ran
+        // before the subType derivation and rewrite, so it always saw the raw
+        // type - rawType preserves that, it does not fix anything here. the
+        // throw the unguarded rewrite genuinely made unreachable is the
+        // option one below, which the helper's guard restores
         if (rawType === 'spot') {
             throw new BadRequest (this.id + ' watchLiquidationsForSymbols is not supported for spot symbols');
         }
@@ -623,8 +625,13 @@ export default class binance extends binanceRest {
         }
         const resolvedAuth: Dict = this.resolveAuthType ('watchMyLiquidationsForSymbols', market, params);
         const type = resolvedAuth['type'] as string;
+        const subType = resolvedAuth['subType'] as Str;
         params = resolvedAuth['params'] as Dict;
-        await this.authenticate (params);
+        // hand the resolved type forward: the helper already omitted type and
+        // subType from params, so a bare authenticate would re-derive from
+        // options.defaultType and seed a different bucket than the listenKey
+        // read below indexes - the derive-first shape watchBalance uses
+        await this.authenticate (this.extend ({ 'type': type, 'subType': subType }, params));
         const listenKey = this.options[type]['listenKey'];
         const url = this.getPrivateWsUrl (type, listenKey);
         const message = undefined;
