@@ -313,8 +313,9 @@ export default class poloniex extends Exchange {
                 'networks': {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
-                    'TRC20': 'TRON',
-                    'TRX': 'TRON',
+                    // v2 withdraw accepts only the blockchain id: 'TRX' passes validation, 'TRON' is rejected with 830111 (live-verified)
+                    'TRC20': 'TRX',
+                    'TRX': 'TRX',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
@@ -560,6 +561,10 @@ export default class poloniex extends Exchange {
                     '25017': ExchangeError, // No orders were canceled
                     '25018': BadRequest, // Invalid accountType
                     '25019': BadSymbol, // Invalid symbol
+                    // Wallets v2 (undocumented codes, live-verified via validation probes)
+                    '820181': BadRequest, // {"code":820181,"message":"amount must be greater than the transaction fee."}
+                    '820201': BadRequest, // {"code":820201,"message":"blockchain param check error"} — network param missing
+                    '830111': BadRequest, // {"code":830111,"message":"Currency or Network does not exist"}
                     // Futures v3 (https://api-docs.poloniex.com/v3/futures/error)
                     '250': DuplicateOrderId, // {"code":250,"msg":"Client order id already exists"} — live-verified on v3/trade/order
                     '400': BadRequest, // ILLEGAL_PARAM
