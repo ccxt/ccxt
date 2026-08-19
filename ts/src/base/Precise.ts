@@ -3,11 +3,11 @@ import { Str, Int } from './types.js';
 const zero = BigInt (0);
 const minusOne = BigInt (-1);
 const base = BigInt (10);
-// static bounded lookup table for 10^n, n in [0, 64] — order-independent,
+// static bounded lookup table for 10^n, n in [0, 128] — order-independent,
 // never invalidated, uniform O(1) cost for any input (falls back to
 // exponentiation for exponents beyond the table)
 const powersOfTen: bigint[] = [ BigInt (1) ];
-for (let i = 1; i <= 64; i++) {
+for (let i = 1; i <= 128; i++) {
     powersOfTen.push (powersOfTen[ i - 1 ] * base);
 }
 
@@ -28,22 +28,28 @@ class Precise {
 
     constructor (number: bigint | string, decimals: Int = undefined) {
         if (decimals === undefined) {
+            let str = number as string;
             let modifier = 0;
-            number = (number as string).toLowerCase ();
-            if (number.indexOf ('e') > -1) {
-                let modifierString = '0';
-                [ number, modifierString ] = number.split ('e');
-                modifier = parseInt (modifierString);
+            // scientific notation is rare — only locate an exponent marker
+            // when one is present, instead of lowercasing every input
+            let eIndex = str.indexOf ('e');
+            if (eIndex === -1) {
+                eIndex = str.indexOf ('E');
             }
-            const decimalIndex = number.indexOf ('.');
+            if (eIndex > -1) {
+                modifier = parseInt (str.slice (eIndex + 1));
+                str = str.slice (0, eIndex);
+            }
+            const decimalIndex = str.indexOf ('.');
             if (decimalIndex > -1) {
-                this.decimals = number.length - decimalIndex - 1;
-                this.integer = BigInt (number.slice (0, decimalIndex) + number.slice (decimalIndex + 1));
+                this.decimals = str.length - decimalIndex - 1 - modifier;
+                this.integer = BigInt (str.slice (0, decimalIndex) + str.slice (decimalIndex + 1));
             } else {
-                this.decimals = 0;
-                this.integer = BigInt (number);
+                // note: 0 - modifier (not -modifier) keeps decimals +0 for
+                // integer inputs instead of negative zero
+                this.decimals = 0 - modifier;
+                this.integer = BigInt (str);
             }
-            this.decimals = this.decimals - modifier;
         } else {
             this.integer = number as bigint;
             this.decimals = decimals;
