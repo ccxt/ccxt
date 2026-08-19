@@ -187,6 +187,7 @@ class BaseExchange {
         this.clients = {};
         this.newUpdates = true;
         this.streaming = {};
+        this.authenticationFlights = {}; // single-flight guards for check-then-fetch auth flows, see singleFlightAcquire
         // INTERNAL METHODS
         this.sleep = sleep;
         this.deepExtend = deepExtend;
@@ -1403,6 +1404,51 @@ class BaseExchange {
     ping(client) {
         return undefined;
     }
+    async singleFlightAcquire(flightHash) {
+        // leader election for check-then-fetch authentication flows such as
+        // listenKey and token fetches - https://github.com/ccxt/ccxt/issues/29393
+        // returns true when the caller is elected leader and must perform the
+        // fetch itself, then settle the flight with singleFlightResolve on
+        // success or singleFlightReject on failure
+        // returns false when another flight is already in progress - in that
+        // case the call awaits the in-progress flight and the caller must
+        // re-read the cached credential after it returns
+        // a rejected flight throws into all waiters so nothing deadlocks
+        if (flightHash in this.authenticationFlights) {
+            await this.authenticationFlights[flightHash];
+            return false;
+        }
+        const flight = Future.Future();
+        // an alone leader may reject before any waiter awaits the flight - a
+        // native promise rejection with no handler kills the process, so the
+        // flight carries the same silent handler Future.subscribe attaches
+        flight.catch(() => { });
+        this.authenticationFlights[flightHash] = flight;
+        return true;
+    }
+    async singleFlightWait(flightHash) {
+        // awaits an in-progress flight without electing a leader
+        // returns immediately when no flight is in progress
+        if (flightHash in this.authenticationFlights) {
+            await this.authenticationFlights[flightHash];
+        }
+    }
+    singleFlightResolve(flightHash, result = undefined) {
+        // settles a flight successfully and wakes all waiters
+        if (flightHash in this.authenticationFlights) {
+            const future = this.authenticationFlights[flightHash];
+            delete this.authenticationFlights[flightHash];
+            future.resolve(result);
+        }
+    }
+    singleFlightReject(flightHash, error) {
+        // settles a flight with an error - all waiters throw
+        if (flightHash in this.authenticationFlights) {
+            const future = this.authenticationFlights[flightHash];
+            delete this.authenticationFlights[flightHash];
+            future.reject(error);
+        }
+    }
     client(url) {
         if (url === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' client() requires a url argument');
@@ -1687,6 +1733,15 @@ class BaseExchange {
         }
     }
     async close(cleanInstanceCache = false) {
+        // settle any in-flight auth flights so their waiters do not hang
+        // across a close - same idea as Client.reset
+        const flightHashes = Object.keys(this.authenticationFlights);
+        for (let i = 0; i < flightHashes.length; i++) {
+            const flightHash = flightHashes[i];
+            const flight = this.authenticationFlights[flightHash];
+            delete this.authenticationFlights[flightHash];
+            flight.reject(new errors.ExchangeClosedByUser(this.id + ' close() was called'));
+        }
         // [WS]
         await this.sleep(0); // allow other futures to run
         const clients = Object.values(this.clients || {});
