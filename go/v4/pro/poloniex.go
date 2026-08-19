@@ -1337,7 +1337,7 @@ func (this *PoloniexCore) HandleTicker(client any, message any) any {
 			}
 		}
 	}
-	var messageHashes any = this.FindMessageHashes(client.(*ccxt.Client), "ticker::")
+	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "ticker::")
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var parts any = ccxt.Split(messageHash, "::")
