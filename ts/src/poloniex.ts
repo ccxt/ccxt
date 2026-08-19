@@ -6,7 +6,7 @@ import Exchange from './abstract/poloniex.js';
 import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest, RateLimitExceeded, MarketClosed, OperationRejected, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Int, Bool, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, FeeString, List, DepositWithdrawFees, PositionModeInfo, Endpoint } from './base/types.js';
+import type { TransferEntry, Int, Bool, Leverage, OrderSide, OrderType, OrderRequest, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, FeeString, List, DepositWithdrawFees, PositionModeInfo, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -34,13 +34,13 @@ export default class poloniex extends Exchange {
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': undefined, // not yet implemented, because RL is worse than cancelOrder
+                'cancelOrders': true,
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
-                'createOrders': undefined, // not yet implemented, because RL is worse than createOrder
+                'createOrders': true,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
@@ -2088,6 +2088,89 @@ export default class poloniex extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    /**
+     * @method
+     * @name poloniex#createOrders
+     * @description create a list of trade orders, all orders must be of the same market type, either spot or swap
+     * @see https://api-docs.poloniex.com/spot/api/private/order#create-multiple-orders
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/place-multiple-orders
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, applied to every order
+     * @param {string} [params.marginMode] *swap only* 'cross' or 'isolated', defaults to 'cross'
+     * @param {string} [params.posSide] *swap only* 'LONG', 'SHORT' or 'BOTH', defaults to 'BOTH', the batch endpoint requires it explicitly
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async createOrders (orders: OrderRequest[], params = {}) {
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        let market = undefined;
+        let isContract = false;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const symbol = this.safeString (rawOrder, 'symbol');
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrders() requires a symbol for each order');
+            }
+            const marketInner = this.market (symbol);
+            if (market === undefined) {
+                market = marketInner;
+                isContract = (marketInner['contract'] === true);
+            } else if (market['type'] !== marketInner['type']) {
+                throw new BadRequest (this.id + ' createOrders() requires all orders to be of the same market type, either spot or swap');
+            }
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            if (side === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrders() requires a side for each order');
+            }
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
+            const orderParams = this.safeDict (rawOrder, 'params', {});
+            // the request body is a bare list, so there is no room for common params - extend each order with them instead
+            let extendedParams = this.extend (orderParams, params);
+            let request: Dict = {
+                'symbol': marketInner['id'],
+                'side': side.toUpperCase (),
+            };
+            [ request, extendedParams ] = this.orderRequest (symbol, type, side, amount, request, price, extendedParams);
+            const merged = this.extend (request, extendedParams);
+            if (isContract) {
+                // unlike the single-order endpoint, the batch endpoint refuses to apply server-side defaults: "Param error mgnMode and posSide must be present and not empty"
+                if (!('mgnMode' in merged)) {
+                    merged['mgnMode'] = 'CROSS';
+                }
+                if (!('posSide' in merged)) {
+                    merged['posSide'] = 'BOTH';
+                }
+            }
+            ordersRequests.push (merged);
+        }
+        let data = undefined;
+        if (isContract) {
+            const response = await this.swapPrivatePostV3TradeOrders (ordersRequests);
+            //
+            //     {
+            //         "code": 200,
+            //         "msg": "Success",
+            //         "data": [
+            //             { "code": 200, "msg": "", "ordId": "613155521545418752", "clOrdId": "batch-swap-1" },
+            //             { "code": 10014, "msg": "Order price exceeds the limit", "ordId": "", "clOrdId": "" }
+            //         ]
+            //     }
+            //
+            data = this.safeList (response, 'data', []);
+        } else {
+            //
+            //     [
+            //         { "id": "613155521545418752", "clientOrderId": "batch-1" },
+            //         { "code": 21709, "message": "Low available balance", "clientOrderId": "" }
+            //     ]
+            //
+            data = await this.privatePostOrdersBatch (ordersRequests);
+        }
+        return this.parseOrders (data);
+    }
+
     orderRequest (symbol: any, type: any, side: any, amount: any, request: any, price: Num = undefined, params = {}) {
         const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
         const market = this.market (symbol);
@@ -2273,6 +2356,70 @@ export default class poloniex extends Exchange {
         //   }
         //
         return this.parseOrder (response);
+    }
+
+    /**
+     * @method
+     * @name poloniex#cancelOrders
+     * @description cancel multiple orders
+     * @see https://api-docs.poloniex.com/spot/api/private/order#cancel-multiple-orders-by-ids
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/cancel-multiple-orders
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol, required for swap markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] alternative to ids, cancel by client order ids
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
+        const clientOrderIds = this.safeList2 (params, 'clientOrderIds', 'clOrdIds');
+        params = this.omit (params, [ 'clientOrderIds', 'clOrdIds' ]);
+        const request: Dict = {};
+        const idsLength = ids.length;
+        if (marketType !== 'spot') {
+            if (market === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument for ' + marketType + ' markets');
+            }
+            request['symbol'] = market['id'];
+            // the api ignores clOrdIds when ordIds are also present
+            if (idsLength > 0) {
+                request['ordIds'] = ids;
+            } else if (clientOrderIds !== undefined) {
+                request['clOrdIds'] = clientOrderIds;
+            }
+            const response = await this.swapPrivateDeleteV3TradeBatchOrders (this.extend (request, params));
+            //
+            //     {
+            //         "code": 200,
+            //         "msg": "Success",
+            //         "data": [
+            //             { "code": "200", "msg": "Success", "ordId": "613143856837730304", "clOrdId": "" },
+            //             { "code": "11008", "msg": "ORDER_NOT_EXISTS", "ordId": "613144005890699264", "clOrdId": "" }
+            //         ]
+            //     }
+            //
+            const data = this.safeList (response, 'data', []);
+            return this.parseOrders (data, market);
+        }
+        if (idsLength > 0) {
+            request['orderIds'] = ids;
+        }
+        if (clientOrderIds !== undefined) {
+            request['clientOrderIds'] = clientOrderIds;
+        }
+        const response = await this.privateDeleteOrdersCancelByIds (this.extend (request, params));
+        //
+        //     [
+        //         { "orderId": "123456789", "clientOrderId": "", "state": "PENDING_CANCEL", "code": 200, "message": "" }
+        //     ]
+        //
+        return this.parseOrders (response, market);
     }
 
     /**
