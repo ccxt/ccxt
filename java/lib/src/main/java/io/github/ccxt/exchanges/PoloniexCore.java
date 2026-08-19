@@ -505,8 +505,8 @@ public class PoloniexCore extends PoloniexApi
                 put( "networks", new java.util.HashMap<String, Object>() {{
                     put( "BEP20", "BSC" );
                     put( "ERC20", "ETH" );
-                    put( "TRC20", "TRON" );
-                    put( "TRX", "TRON" );
+                    put( "TRC20", "TRX" );
+                    put( "TRX", "TRX" );
                 }} );
                 put( "networksById", new java.util.HashMap<String, Object>() {{
                     put( "TRX", "TRC20" );
@@ -747,6 +747,9 @@ public class PoloniexCore extends PoloniexApi
                     put( "25017", ExchangeError.class );
                     put( "25018", BadRequest.class );
                     put( "25019", BadSymbol.class );
+                    put( "820181", BadRequest.class );
+                    put( "820201", BadRequest.class );
+                    put( "830111", BadRequest.class );
                     put( "250", DuplicateOrderId.class );
                     put( "400", BadRequest.class );
                     put( "403", PermissionDenied.class );
