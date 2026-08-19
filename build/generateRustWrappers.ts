@@ -160,6 +160,10 @@ interface MethodInfo {
 const ALLOWED_PREFIXES = [
     'fetch', 'create', 'edit', 'cancel', 'close',
     'setP', 'setM', 'setL', 'transfer', 'withdraw',
+    // WS (`watch*`) methods — emitted only into the `ccxt_pro` typed layer;
+    // the REST / prediction passes filter them out (they'd never be reachable
+    // on a REST/prediction Core anyway).
+    'watch',
 ];
 // Internal helpers we don't want to emit even though they match a prefix.
 const BLACKLIST = new Set([
@@ -168,17 +172,21 @@ const BLACKLIST = new Set([
     'setMarketsFromExchange', 'setProperty', 'setProxyAgents',
     'createContractOrder', 'createSpotOrder', 'createSwapOrder', 'createVault',
     'fetchRestOrderBookSafe', 'fetchPortfolioDetails',
-    // WS variants intentionally skipped — WS layer not in scope for the
-    // initial typed-REST wrappers.
 ]);
 
 function shouldCreateWrapper(name: string): boolean {
-    if (name.startsWith('watch') || name.startsWith('unWatch')) return false;
+    // `unWatch*` (typed unsubscribe) and `*Ws` REST-over-WS helpers stay out.
+    if (name.startsWith('unWatch')) return false;
     if (name.endsWith('Ws')) return false;
     if (BLACKLIST.has(name)) return false;
     if (name.toLowerCase().includes('uta')) return false;
     if (name.includes('Snapshot') || name.includes('Subscription') || name.includes('Cache')) return false;
     return ALLOWED_PREFIXES.some(p => name.startsWith(p));
+}
+
+// Is this a WS `watch*` method (routed to the `ccxt_pro` typed layer)?
+function isWatchMethod(name: string): boolean {
+    return name.startsWith('watch');
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -600,7 +608,7 @@ function genTypedExchangeImpl(className: string): string {
     ].join('\n');
 }
 
-function generateTypedWrapper(exchangeId: string, methods: MethodInfo[], directlyCallable?: Set<string>): string {
+function generateTypedWrapper(exchangeId: string, methods: MethodInfo[], directlyCallable?: Set<string>, modulePath: string = 'exchanges'): string {
     const className = capitalize(exchangeId);
     const coreClassName = className + 'Core';
 
@@ -622,7 +630,7 @@ function generateTypedWrapper(exchangeId: string, methods: MethodInfo[], directl
         '#![allow(unused, non_snake_case, clippy::all)]',
         '',
         'use crate::Value;',
-        `use crate::exchanges::${exchangeId}::${coreClassName};`,
+        `use crate::${modulePath}::${exchangeId}::${coreClassName};`,
         'use crate::types::*;',
         // Base methods are trait methods now (review #1: static dispatch); bring
         // the traits into scope so `self.core_mut().fetch_balance(...)` etc.
@@ -712,9 +720,9 @@ function discoverDefinedMethods(filePath: string): Set<string> {
 // binance, …). NB: after the static-dispatch conversion (review #1) every Core
 // `Deref`s directly to `crate::exchange::Exchange`, so parentage is NO LONGER
 // visible in the `type Target = …` line; it lives in the `parent` field.
-function parseParents(folder: string): Map<string, string> {
+function parseParents(folder: string, modulePath: string = 'exchanges'): Map<string, string> {
     const parents = new Map<string, string>();
-    const re = /\bpub\s+parent:\s*crate::exchanges::([a-z0-9_]+)::[A-Za-z0-9_]+Core\b/;
+    const re = new RegExp(`\\bpub\\s+parent:\\s*crate::${modulePath}::([a-z0-9_]+)::[A-Za-z0-9_]+Core\\b`);
     for (const f of fs.readdirSync(folder)) {
         if (!f.endsWith('.rs') || f.endsWith('_api.rs') || f.endsWith('_typed.rs') || f === 'mod.rs') continue;
         const id = f.replace(/\.rs$/, '');
@@ -760,13 +768,6 @@ function main() {
         console.log(`  ${m.rustName}(${paramStr}) -> ${m.rustReturn}`);
     }
 
-    if (!fs.existsSync(EXCHANGES_FOLDER)) {
-        console.error(`Exchanges folder not found: ${EXCHANGES_FOLDER}`);
-        process.exit(1);
-    }
-    // The typed wrappers are written into the sibling `ccxt-typed` crate.
-    fs.mkdirSync(TYPED_FOLDER, { recursive: true });
-
     // Methods defined on the base `Exchange` — these are reachable via
     // `Deref<Target = Exchange>` from any `<Exchange>Core` and don't need
     // per-exchange definition. The hand-written stubs file is included
@@ -777,100 +778,155 @@ function main() {
     ]);
     console.log(`Discovered ${baseMethods.size} base methods (Exchange + stubs)`);
 
-    // Discover exchanges by their primary file `<id>.rs`. We deliberately
-    // skip the auto-generated `_api.rs` siblings and any prior
-    // `_typed.rs` files (we overwrite them below).
+    // Optional single-id filter, applied within each domain that has it.
     const onlyId = process.argv[2];
-    const all = fs.readdirSync(EXCHANGES_FOLDER)
+
+    // Three typed layers, one per domain. `ccxt` holds the REST typed API,
+    // `ccxt-prediction` the prediction one, `ccxt-pro` the WS (`watch*`) one.
+    // Each wrapper crate re-exports `ccxt-base`, so `crate::<coreModule>::…`
+    // resolves to the engine's Cores (except `ccxt-pro`, whose venue Cores are
+    // local to `crate::pro`).
+    for (const cfg of DOMAINS) {
+        generateDomain(cfg, methods, baseMethods, onlyId);
+    }
+}
+
+interface DomainCfg {
+    name: string;
+    coresFolder: string;   // where the `<id>.rs` Cores are read from
+    outFolder: string;     // where `<id>_typed.rs` wrappers are written
+    aggregator: string;    // the crate's `typed.rs` (trait + re-exports)
+    coreModule: string;    // wrapper's `use crate::<coreModule>::<id>::<Core>`
+    wrapperModule: string; // aggregator's `crate::<wrapperModule>::<id>_typed`
+    modReExport: string | null; // wrapper mod.rs `pub use <modReExport>;` (Core re-export) or null
+    watch: boolean;        // true → emit only `watch*` methods; false → only non-watch
+}
+
+const DOMAINS: DomainCfg[] = [
+    // REST — the `ccxt` typed crate. Wrappers sit next to the re-exported base
+    // Cores in `ccxt/src/exchanges/`.
+    {
+        name: 'rest',
+        coresFolder: EXCHANGES_FOLDER,        // ./rust/ccxt-base/src/exchanges/
+        outFolder: TYPED_FOLDER,              // ./rust/ccxt/src/exchanges/
+        aggregator: TYPED_AGGREGATOR,         // ./rust/ccxt/src/typed.rs
+        coreModule: 'exchanges',
+        wrapperModule: 'exchanges',
+        modReExport: 'ccxt_base::exchanges::*',
+        watch: false,
+    },
+    // Prediction markets — the `ccxt-prediction` typed crate. Same shape as
+    // REST but over the engine's `prediction/` Cores.
+    {
+        name: 'prediction',
+        coresFolder: './rust/ccxt-base/src/prediction/',
+        outFolder: './rust/ccxt-prediction/src/prediction/',
+        aggregator: './rust/ccxt-prediction/src/typed.rs',
+        coreModule: 'prediction',
+        wrapperModule: 'prediction',
+        modReExport: 'ccxt_base::prediction::*',
+        watch: false,
+    },
+    // WS `watch*` — the `ccxt-pro` typed layer. The venue Cores already live in
+    // `ccxt-pro/src/pro/`, so the wrappers reference `crate::pro::<id>::<Core>`
+    // and live in a separate `pro_typed/` module (the `pro/mod.rs` is authored
+    // by the transpiler and must stay venue-only).
+    {
+        name: 'pro',
+        coresFolder: './rust/ccxt-pro/src/pro/',
+        outFolder: './rust/ccxt-pro/src/pro_typed/',
+        aggregator: './rust/ccxt-pro/src/typed.rs',
+        coreModule: 'pro',
+        wrapperModule: 'pro_typed',
+        modReExport: null,
+        watch: true,
+    },
+];
+
+function generateDomain(cfg: DomainCfg, methods: MethodInfo[], baseMethods: Set<string>, onlyId?: string) {
+    if (!fs.existsSync(cfg.coresFolder)) {
+        console.log(`[${cfg.name}] cores folder ${cfg.coresFolder} not found — skipping`);
+        return;
+    }
+    fs.mkdirSync(cfg.outFolder, { recursive: true });
+
+    // REST/prediction take the non-`watch*` surface; the pro layer takes only
+    // `watch*`. (`reachable` also filters by what the Core actually exposes, so
+    // this is belt-and-braces — a REST Core never has a `watch_*` method.)
+    const domainMethods = methods.filter(m => cfg.watch === isWatchMethod(m.tsName));
+
+    const all = fs.readdirSync(cfg.coresFolder)
         .filter(f => f.endsWith('.rs')
                   && !f.endsWith('_api.rs')
                   && !f.endsWith('_typed.rs')
                   && f !== 'mod.rs');
-    const targets = onlyId
-        ? all.filter(f => f === `${onlyId}.rs`)
-        : all;
+    const targets = onlyId ? all.filter(f => f === `${onlyId}.rs`) : all;
 
-    // Pre-build the parent map so alias exchanges (myokx → okx,
-    // binanceusdm → binance, …) inherit their parent's typed surface.
-    const parents = parseParents(EXCHANGES_FOLDER);
+    const parents = parseParents(cfg.coresFolder, cfg.coreModule);
     const methodCache = new Map<string, Set<string>>();
-    if (parents.size > 0) {
-        console.log(`Found ${parents.size} alias/derived exchanges (Deref-based inheritance)`);
-    }
 
     const generatedIds: string[] = [];
     let totalEmittedMethods = 0;
     for (const f of targets) {
         const id = f.replace(/\.rs$/, '');
-        const ownAndInherited = discoverReachableMethods(id, EXCHANGES_FOLDER, parents, methodCache);
+        const ownAndInherited = discoverReachableMethods(id, cfg.coresFolder, parents, methodCache);
         const reachable = new Set<string>([...baseMethods, ...ownAndInherited]);
-        // Filter the global method list to those the core (including its
-        // Deref-parent chain) actually exposes.
-        const exchangeMethods = methods.filter(m => reachable.has(m.coreCall));
+        const exchangeMethods = domainMethods.filter(m => reachable.has(m.coreCall));
+        // A pro venue with no typed `watch*` surface gets no wrapper at all.
+        if (cfg.watch && exchangeMethods.length === 0) continue;
         totalEmittedMethods += exchangeMethods.length;
-        // Methods callable DIRECTLY on this Core = its own inherent methods plus
-        // the base trait surface. Anything else in `exchangeMethods` is a
-        // parent-inherited method that must route via call_dynamic (a Core no
-        // longer Derefs to its parent under static dispatch — review #1).
         const directlyCallable = new Set<string>([
             ...baseMethods,
-            ...discoverDefinedMethods(path.join(EXCHANGES_FOLDER, `${id}.rs`)),
+            ...discoverDefinedMethods(path.join(cfg.coresFolder, `${id}.rs`)),
         ]);
-        const out = path.join(TYPED_FOLDER, `${id}_typed.rs`);
-        const content = generateTypedWrapper(id, exchangeMethods, directlyCallable);
+        const out = path.join(cfg.outFolder, `${id}_typed.rs`);
+        const content = generateTypedWrapper(id, exchangeMethods, directlyCallable, cfg.coreModule);
         fs.writeFileSync(out, content, 'utf-8');
         generatedIds.push(id);
     }
     const generated = generatedIds.length;
-    console.log(`Generated ${generated} typed wrappers (avg ${(totalEmittedMethods / Math.max(1, generated)).toFixed(1)} methods/exchange) in ${TYPED_FOLDER}`);
+    console.log(`[${cfg.name}] generated ${generated} typed wrappers (avg ${(totalEmittedMethods / Math.max(1, generated)).toFixed(1)} methods) in ${cfg.outFolder}`);
 
-    // When generating the full set (no single-exchange filter), also emit
-    // the aggregator `rust/ccxt/src/typed.rs` that re-exports every
-    // `<Capitalized>` typed wrapper. `lib.rs` does `pub use typed::*;`
-    // so users can write `use ccxt::Binance;` directly.
-    if (!onlyId) {
-        const aggregator = path.resolve(TYPED_AGGREGATOR);
-        // Read the on-disk listing so the aggregator includes every typed
-        // file present, not just those we just wrote (handles partial-build
-        // states where the per-exchange generator was run for one id).
-        const allTyped = fs.readdirSync(TYPED_FOLDER)
-            .filter(f => f.endsWith('_typed.rs'))
-            .map(f => f.replace(/_typed\.rs$/, ''));
-        // Header + the `TypedExchange` trait declaration, then the re-exports.
-        // `crate::exchanges::<id>_typed` resolves within `ccxt-typed` (its
-        // `exchanges/mod.rs` declares the wrapper modules).
-        const lines: string[] = [genTypedExchangeTrait(methods)];
-        for (const id of allTyped) {
-            lines.push(`pub use crate::exchanges::${id}_typed::${capitalize(id)};`);
-        }
-        lines.push('');
-        fs.writeFileSync(aggregator, lines.join('\n'), 'utf-8');
-        console.log(`Wrote aggregator ${aggregator} with ${allTyped.length} re-exports`);
+    if (onlyId) return; // single-id runs skip the aggregator/mod.rs rewrite
 
-        // Author `ccxt-typed/src/exchanges/mod.rs` in full: re-export the base
-        // crate's Cores (so the wrappers' `crate::exchanges::<id>::<Id>Core`
-        // paths resolve) and declare one `pub mod <id>_typed;` per wrapper.
-        writeTypedModFile(allTyped);
+    const allTyped = fs.readdirSync(cfg.outFolder)
+        .filter(f => f.endsWith('_typed.rs'))
+        .map(f => f.replace(/_typed\.rs$/, ''))
+        .sort();
+    // Aggregator: the `TypedExchange` trait for this domain plus a re-export of
+    // every wrapper struct, so `use <crate>::Binance;` works.
+    const aggLines: string[] = [genTypedExchangeTrait(domainMethods)];
+    for (const id of allTyped) {
+        aggLines.push(`pub use crate::${cfg.wrapperModule}::${id}_typed::${capitalize(id)};`);
     }
+    aggLines.push('');
+    fs.writeFileSync(path.resolve(cfg.aggregator), aggLines.join('\n'), 'utf-8');
+    console.log(`[${cfg.name}] wrote aggregator ${cfg.aggregator} with ${allTyped.length} re-exports`);
+
+    writeTypedModFile(cfg.outFolder, allTyped, cfg.modReExport);
 }
 
-// Author `ccxt-typed/src/exchanges/mod.rs` — the wrappers live in this crate,
-// but reference the base Cores via `crate::exchanges::<id>::<Id>Core`, so the
-// module re-exports `ccxt::exchanges::*` and declares each `<id>_typed` module.
-function writeTypedModFile(ids: string[]) {
-    const modPath = path.join(TYPED_FOLDER, 'mod.rs');
+// Author a wrapper folder's `mod.rs`: optionally re-export the engine's Cores
+// (so the wrappers' `crate::<coreModule>::<id>::<Core>` paths resolve) and
+// declare one `pub mod <id>_typed;` per wrapper. For the pro layer the Cores
+// are local to `crate::pro`, so no re-export is emitted (modReExport = null).
+function writeTypedModFile(outFolder: string, ids: string[], modReExport: string | null) {
+    const modPath = path.join(outFolder, 'mod.rs');
     const lines: string[] = [
         '// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:',
         '// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code',
         '//',
-        "// Re-export the base crate's REST/prediction Cores so the wrapper files'",
-        '// `crate::exchanges::<id>::<Id>Core` paths resolve. The `<id>_typed`',
-        '// wrapper modules themselves live in this crate.',
-        'pub use ccxt_base::exchanges::*;',
-        '',
-        ...[...ids].sort().map(id => `pub mod ${id}_typed;`),
-        '',
+        '// Typed unified-method wrappers. Each `<id>_typed` module owns a venue',
+        "// Core and exposes the typed surface. `crate::<module>::<id>::<Core>`",
+        '// inside the wrappers resolves via the re-export below (or, for the pro',
+        '// layer, via this crate\'s own `pro` module).',
     ];
+    if (modReExport) {
+        lines.push(`pub use ${modReExport};`);
+    }
+    lines.push('');
+    lines.push(...[...ids].sort().map(id => `pub mod ${id}_typed;`));
+    lines.push('');
     fs.writeFileSync(modPath, lines.join('\n'), 'utf-8');
     console.log(`Wrote ${modPath} with ${ids.length} 'pub mod <id>_typed;' decl(s)`);
 }
