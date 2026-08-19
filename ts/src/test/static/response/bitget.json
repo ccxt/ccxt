@@ -3836,6 +3836,229 @@
                         "USDT": 0
                     }
                 }
+            },
+            {
+                "description": "tokenized stock fetch balance",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "stock": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1787130960675,
+                    "data": {
+                        "accountEquity": "320510.10949171",
+                        "usdtEquity": "320814.57440907",
+                        "btcEquity": "4.98238044",
+                        "unrealisedPnl": "12.90873749",
+                        "usdtUnrealisedPnl": "12.921",
+                        "btcUnrealizedPnl": "0.00020066",
+                        "effEquity": "253940.16616236",
+                        "mmr": "0.51",
+                        "imr": "3.91",
+                        "mgnRatio": "0",
+                        "positionMgnRatio": "0",
+                        "positionValue": "77.38049328",
+                        "leverage": "0",
+                        "assets": [
+                            {
+                                "coin": "USDC",
+                                "equity": "105000",
+                                "usdValue": "104998.79976711",
+                                "balance": "105000",
+                                "available": "105000",
+                                "debt": "0",
+                                "locked": "0",
+                                "bonus": ""
+                            },
+                            {
+                                "coin": "WBTC",
+                                "equity": "1",
+                                "usdValue": "64407.67682635",
+                                "balance": "1",
+                                "available": "1",
+                                "debt": "0",
+                                "locked": "0",
+                                "bonus": ""
+                            },
+                            {
+                                "coin": "BTC",
+                                "equity": "1",
+                                "usdValue": "64328.71050495",
+                                "balance": "1",
+                                "available": "1",
+                                "debt": "0",
+                                "locked": "0",
+                                "bonus": ""
+                            },
+                            {
+                                "coin": "USDT",
+                                "equity": "59894.14531913",
+                                "usdValue": "59837.30355613",
+                                "balance": "59881.22431913",
+                                "available": "59894.14531913",
+                                "debt": "0",
+                                "locked": "0",
+                                "bonus": "0"
+                            },
+                            {
+                                "coin": "ETH",
+                                "equity": "10",
+                                "usdValue": "19206.24829103",
+                                "balance": "10",
+                                "available": "10",
+                                "debt": "0",
+                                "locked": "0",
+                                "bonus": ""
+                            },
+                            {
+                                "coin": "SOL",
+                                "equity": "100",
+                                "usdValue": "7731.37054612",
+                                "balance": "100",
+                                "available": "100",
+                                "debt": "0",
+                                "locked": "0",
+                                "bonus": ""
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "coin": "USDC",
+                            "equity": "105000",
+                            "usdValue": "104998.79976711",
+                            "balance": "105000",
+                            "available": "105000",
+                            "debt": "0",
+                            "locked": "0",
+                            "bonus": ""
+                        },
+                        {
+                            "coin": "WBTC",
+                            "equity": "1",
+                            "usdValue": "64407.67682635",
+                            "balance": "1",
+                            "available": "1",
+                            "debt": "0",
+                            "locked": "0",
+                            "bonus": ""
+                        },
+                        {
+                            "coin": "BTC",
+                            "equity": "1",
+                            "usdValue": "64328.71050495",
+                            "balance": "1",
+                            "available": "1",
+                            "debt": "0",
+                            "locked": "0",
+                            "bonus": ""
+                        },
+                        {
+                            "coin": "USDT",
+                            "equity": "59894.14531913",
+                            "usdValue": "59837.30355613",
+                            "balance": "59881.22431913",
+                            "available": "59894.14531913",
+                            "debt": "0",
+                            "locked": "0",
+                            "bonus": "0"
+                        },
+                        {
+                            "coin": "ETH",
+                            "equity": "10",
+                            "usdValue": "19206.24829103",
+                            "balance": "10",
+                            "available": "10",
+                            "debt": "0",
+                            "locked": "0",
+                            "bonus": ""
+                        },
+                        {
+                            "coin": "SOL",
+                            "equity": "100",
+                            "usdValue": "7731.37054612",
+                            "balance": "100",
+                            "available": "100",
+                            "debt": "0",
+                            "locked": "0",
+                            "bonus": ""
+                        }
+                    ],
+                    "USDC": {
+                        "free": 105000,
+                        "used": 0,
+                        "total": 105000,
+                        "debt": 0
+                    },
+                    "WBTC": {
+                        "free": 1,
+                        "used": 0,
+                        "total": 1,
+                        "debt": 0
+                    },
+                    "BTC": {
+                        "free": 1,
+                        "used": 0,
+                        "total": 1,
+                        "debt": 0
+                    },
+                    "USDT": {
+                        "free": 59894.14531913,
+                        "used": 0,
+                        "total": 59881.22431913,
+                        "debt": 0
+                    },
+                    "ETH": {
+                        "free": 10,
+                        "used": 0,
+                        "total": 10,
+                        "debt": 0
+                    },
+                    "SOL": {
+                        "free": 100,
+                        "used": 0,
+                        "total": 100,
+                        "debt": 0
+                    },
+                    "free": {
+                        "USDC": 105000,
+                        "WBTC": 1,
+                        "BTC": 1,
+                        "USDT": 59894.14531913,
+                        "ETH": 10,
+                        "SOL": 100
+                    },
+                    "used": {
+                        "USDC": 0,
+                        "WBTC": 0,
+                        "BTC": 0,
+                        "USDT": 0,
+                        "ETH": 0,
+                        "SOL": 0
+                    },
+                    "total": {
+                        "USDC": 105000,
+                        "WBTC": 1,
+                        "BTC": 1,
+                        "USDT": 59881.22431913,
+                        "ETH": 10,
+                        "SOL": 100
+                    },
+                    "debt": {
+                        "USDC": 0,
+                        "WBTC": 0,
+                        "BTC": 0,
+                        "USDT": 0,
+                        "ETH": 0,
+                        "SOL": 0
+                    }
+                }
             }
         ],
         "fetchPositions": [
@@ -4299,6 +4522,76 @@
                         105963.5,
                         105963.5,
                         46.172
+                    ]
+                ]
+            },
+            {
+                "description": "tokenized stock fetch OHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "RGOOGL/USDT",
+                    "1m",
+                    null,
+                    3
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1787130821578,
+                    "data": [
+                        [
+                            "1787130660000",
+                            "342.82",
+                            "342.82",
+                            "342.82",
+                            "342.82",
+                            "1",
+                            "342.82"
+                        ],
+                        [
+                            "1787130720000",
+                            "342.66",
+                            "342.66",
+                            "342.66",
+                            "342.66",
+                            "19",
+                            "6510.54"
+                        ],
+                        [
+                            "1787130780000",
+                            "342.82",
+                            "342.82",
+                            "342.7341",
+                            "342.7341",
+                            "8",
+                            "2742.3882"
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1787130660000,
+                        342.82,
+                        342.82,
+                        342.82,
+                        342.82,
+                        1
+                    ],
+                    [
+                        1787130720000,
+                        342.66,
+                        342.66,
+                        342.66,
+                        342.66,
+                        19
+                    ],
+                    [
+                        1787130780000,
+                        342.82,
+                        342.82,
+                        342.7341,
+                        342.7341,
+                        8
                     ]
                 ]
             }
@@ -5657,6 +5950,77 @@
                         "deliveryStatus": ""
                     }
                 }
+            },
+            {
+                "description": "tokenized stock fetch ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "RGOOGL/USDT"
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1787130543866,
+                    "data": [
+                        {
+                            "category": "SPOT",
+                            "symbol": "RGOOGLUSDT",
+                            "ts": "1787130543206",
+                            "lastPrice": "342.73",
+                            "openPrice24h": "343.038",
+                            "highPrice24h": "344.83",
+                            "lowPrice24h": "340.93",
+                            "ask1Price": "342.97",
+                            "bid1Price": "342.65",
+                            "bid1Size": "2",
+                            "ask1Size": "22",
+                            "price24hPcnt": "-0.0009",
+                            "volume24h": "13762276.8358",
+                            "turnover24h": "4723663400.3097",
+                            "platformTurnover24h": ""
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "RGOOGL/USDT",
+                    "timestamp": 1787130543206,
+                    "datetime": "2026-08-19T09:09:03.206Z",
+                    "high": 344.83,
+                    "low": 340.93,
+                    "bid": 342.65,
+                    "bidVolume": 2,
+                    "ask": 342.97,
+                    "askVolume": 22,
+                    "vwap": 343.2326973703922,
+                    "open": 343.038,
+                    "close": 342.73,
+                    "last": 342.73,
+                    "previousClose": null,
+                    "change": -0.308,
+                    "percentage": -0.0009,
+                    "average": 342.88,
+                    "baseVolume": 13762276.8358,
+                    "quoteVolume": 4723663400.3097,
+                    "indexPrice": null,
+                    "markPrice": null,
+                    "info": {
+                        "category": "SPOT",
+                        "symbol": "RGOOGLUSDT",
+                        "ts": "1787130543206",
+                        "lastPrice": "342.73",
+                        "openPrice24h": "343.038",
+                        "highPrice24h": "344.83",
+                        "lowPrice24h": "340.93",
+                        "ask1Price": "342.97",
+                        "bid1Price": "342.65",
+                        "bid1Size": "2",
+                        "ask1Size": "22",
+                        "price24hPcnt": "-0.0009",
+                        "volume24h": "13762276.8358",
+                        "turnover24h": "4723663400.3097",
+                        "platformTurnover24h": ""
+                    }
+                }
             }
         ],
         "fetchTickers": [
@@ -5822,6 +6186,81 @@
                             "deliveryStartTime": "",
                             "deliveryTime": "",
                             "deliveryStatus": ""
+                        }
+                    }
+                }
+            },
+            {
+                "description": "tokenized stock fetch tickers",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "RGOOGL/USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1787130670044,
+                    "data": [
+                        {
+                            "category": "SPOT",
+                            "symbol": "RGOOGLUSDT",
+                            "ts": "1787130668495",
+                            "lastPrice": "342.71",
+                            "openPrice24h": "343.11",
+                            "highPrice24h": "344.83",
+                            "lowPrice24h": "340.93",
+                            "ask1Price": "342.85",
+                            "bid1Price": "342.66",
+                            "bid1Size": "10",
+                            "ask1Size": "100",
+                            "price24hPcnt": "-0.00117",
+                            "volume24h": "13760845.8299",
+                            "turnover24h": "4723172435.2045",
+                            "platformTurnover24h": ""
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "RGOOGL/USDT": {
+                        "symbol": "RGOOGL/USDT",
+                        "timestamp": 1787130668495,
+                        "datetime": "2026-08-19T09:11:08.495Z",
+                        "high": 344.83,
+                        "low": 340.93,
+                        "bid": 342.66,
+                        "bidVolume": 10,
+                        "ask": 342.85,
+                        "askVolume": 100,
+                        "vwap": 343.23271211583824,
+                        "open": 343.11,
+                        "close": 342.71,
+                        "last": 342.71,
+                        "previousClose": null,
+                        "change": -0.4,
+                        "percentage": -0.00117,
+                        "average": 342.91,
+                        "baseVolume": 13760845.8299,
+                        "quoteVolume": 4723172435.2045,
+                        "indexPrice": null,
+                        "markPrice": null,
+                        "info": {
+                            "category": "SPOT",
+                            "symbol": "RGOOGLUSDT",
+                            "ts": "1787130668495",
+                            "lastPrice": "342.71",
+                            "openPrice24h": "343.11",
+                            "highPrice24h": "344.83",
+                            "lowPrice24h": "340.93",
+                            "ask1Price": "342.85",
+                            "bid1Price": "342.66",
+                            "bid1Size": "10",
+                            "ask1Size": "100",
+                            "price24hPcnt": "-0.00117",
+                            "volume24h": "13760845.8299",
+                            "turnover24h": "4723172435.2045",
+                            "platformTurnover24h": ""
                         }
                     }
                 }

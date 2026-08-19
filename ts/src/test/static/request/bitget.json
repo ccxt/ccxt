@@ -1390,6 +1390,17 @@
                         "type": "funding"
                     }
                 ]
+            },
+            {
+                "description": "tokenized stock fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://api.bitget.com/api/v3/account/assets",
+                "input": [
+                    {
+                        "stock": true
+                    }
+                ],
+                "output": null
             }
         ],
         "transfer": [
@@ -2345,6 +2356,18 @@
                         "uta": true
                     }
                 ]
+            },
+            {
+                "description": "tokenized stock fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v3/market/candles?symbol=RGOOGLUSDT&interval=1m&limit=3&category=SPOT",
+                "input": [
+                    "RGOOGL/USDT",
+                    "1m",
+                    null,
+                    3
+                ],
+                "output": null
             }
         ],
         "fetchCanceledAndClosedOrders": [
@@ -2677,6 +2700,15 @@
                         "uta": true
                     }
                 ]
+            },
+            {
+                "description": "tokenized stock fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://api.bitget.com/api/v3/market/tickers?symbol=RGOOGLUSDT&category=SPOT",
+                "input": [
+                    "RGOOGL/USDT"
+                ],
+                "output": null
             }
         ],
         "fetchTickers": [
@@ -2773,6 +2805,17 @@
                         "subType": "linear"
                     }
                 ]
+            },
+            {
+                "description": "tokenized stock fetchTickers",
+                "method": "fetchTickers",
+                "url": "https://api.bitget.com/api/v3/market/tickers?symbol=RGOOGLUSDT&category=SPOT",
+                "input": [
+                    [
+                        "RGOOGL/USDT"
+                    ]
+                ],
+                "output": null
             }
         ],
         "fetchFundingRateHistory": [

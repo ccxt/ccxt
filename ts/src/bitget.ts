@@ -2010,14 +2010,18 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/uta/public/Instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock markets
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params = {}): Promise<Market[]> {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
+        let stock: Bool = undefined;
+        [ stock, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'stock', false);
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchMarkets', false);
+        uta = uta || stock;
         if (uta) {
             return await this.fetchUtaMarkets (params);
         }
@@ -3475,6 +3479,7 @@ export default class bitget extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -3489,7 +3494,11 @@ export default class bitget extends Exchange {
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         let response = undefined;
         let uta: Bool = undefined;
+        let stock: Bool = undefined;
+        const stockDefault = this.safeBool (market, 'stock', false);
+        [ stock, params ] = this.handleOptionAndParams (params, 'fetchTicker', 'stock', stockDefault);
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTicker', false);
+        uta = uta || stock;
         if (uta) {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketTickers (this.extend (request, params));
@@ -3666,6 +3675,7 @@ export default class bitget extends Exchange {
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock tickers
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -3675,9 +3685,11 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
+        let stockDefault: Bool = undefined;
         if (symbols !== undefined) {
             const symbol = this.safeValue (symbols, 0);
             market = this.market (symbol);
+            stockDefault = this.safeBool (market, 'stock', false);
         }
         let response = undefined;
         const request: Dict = {};
@@ -3689,9 +3701,12 @@ export default class bitget extends Exchange {
         const passedSubType = this.safeString (params, 'subType');
         let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        let stock: Bool = undefined;
+        [ stock, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'stock', stockDefault);
         // only if passedSubType && productType is undefined, then use spot
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTickers', false);
+        uta = uta || stock;
         if (uta) {
             if (symbols !== undefined) {
                 const symbolsLength = symbols.length;
@@ -3699,13 +3714,32 @@ export default class bitget extends Exchange {
                     request['symbol'] = this.safeString (market, 'id');
                 }
             }
-            request['category'] = productType;
+            if (stock) {
+                request['category'] = 'SPOT';
+            } else if (!('category' in request)) {
+                request['category'] = productType;
+            }
             response = await this.publicUtaGetV3MarketTickers (this.extend (request, params));
         } else if (type === 'spot' && passedSubType === undefined) {
             response = await this.publicSpotGetV2SpotMarketTickers (this.extend (request, params));
         } else {
             request['productType'] = productType;
             response = await this.publicMixGetV2MixMarketTickers (this.extend (request, params));
+        }
+        if (stock && (symbols === undefined)) {
+            // for returning only tokenized stock symbols
+            const marketEntries = await this.fetchUtaMarkets ({});
+            symbols = [];
+            for (let i = 0; i < marketEntries.length; i++) {
+                const entry = marketEntries[i];
+                const isStock = this.safeBool (entry, 'stock', false);
+                if (isStock) {
+                    const symbol = this.safeString (entry, 'symbol');
+                    if (symbol !== undefined) {
+                        symbols.push (symbol);
+                    }
+                }
+            }
         }
         //
         // spot
@@ -4344,6 +4378,7 @@ export default class bitget extends Exchange {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock candlesticks
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200)
      * @param {boolean} [params.useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
@@ -4370,11 +4405,15 @@ export default class bitget extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
+        const stockDefault = this.safeBool (market, 'stock', false);
+        let stock: Bool = undefined;
+        [ stock, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'stock', stockDefault);
         let marketType: Str = undefined;
         let timeframes: NullableDict = undefined;
         const timeframesOption = this.handleOption ('fetchOHLCV', 'timeframes');
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOHLCV', false);
+        uta = uta || stock;
         if (uta) {
             timeframes = timeframesOption['uta'];
             request['interval'] = this.safeString (timeframes, timeframe, timeframe);
@@ -4461,6 +4500,9 @@ export default class bitget extends Exchange {
         let priceType: Str = undefined;
         [ priceType, params ] = this.handleParamString (params, 'price');
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        if (stock && (priceType !== undefined)) {
+            throw new BadRequest (this.id + ' fetchOHLCV() for stock markets supports only market-price candles');
+        }
         if (uta) {
             if (priceType !== undefined) {
                 if (priceType === 'mark') {
@@ -4538,6 +4580,7 @@ export default class bitget extends Exchange {
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.type] 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot')
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock account balances
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     override async fetchBalance (params = {}): Promise<Balances> {
@@ -4548,8 +4591,11 @@ export default class bitget extends Exchange {
         let marketType: Str = undefined;
         let marginMode: Str = undefined;
         let response = undefined;
+        let stock: Bool = undefined;
+        [ stock, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'stock', false);
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchBalance', false);
+        uta = uta || stock;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         if (uta) {
