@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, linux, x64, go ]
     if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
     timeout-minutes: 30
     steps:
@@ -33,12 +33,6 @@ jobs:
           fetch-depth: 2
           clean: false
           token: ${{ github.ref == 'refs/heads/master' && steps.app-token.outputs.token || github.token }}
-      # ubuntu-latest is ephemeral: install the toolchain and cache the module/build caches
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '~1.26'
-          cache-dependency-path: go/v4/go.sum
       - name: Install dependencies
         run: go mod download
         working-directory: ./go
@@ -231,7 +225,7 @@ jobs:
 
   live-tests:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, linux, x64, go ]
     steps:
       - uses: actions/checkout@v5
         with:
