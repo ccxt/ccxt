@@ -457,24 +457,16 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             {
                 firstMarket = this.getMarketFromSymbols(symbols);
             }
-            Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchLiquidationsForSymbols", firstMarket, parameters);
-            type = ((java.util.List<Object>) typeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
+            Object resolvedAuth = this.resolveAuthType("watchLiquidationsForSymbols", firstMarket, parameters);
+            Object type = Helpers.GetValue(resolvedAuth, 0);
+            parameters = Helpers.GetValue(resolvedAuth, 2);
+            // the spot check runs on the RESOLVED type: a spot default combined
+            // with a linear or inverse defaultSubType means the caller wants the
+            // matching derivatives stream, so the rewrite is allowed to route it
+            // there and only a request that still resolves to spot throws
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " watchLiquidationsForSymbols is not supported for spot symbols")) ;
-            }
-            Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("watchLiquidationsForSymbols", firstMarket, parameters);
-            subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            if (Helpers.isTrue(this.isLinear(type, subType)))
-            {
-                type = "future";
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
-            {
-                type = "delivery";
             }
             if (Helpers.isTrue(Helpers.isEqual(type, "option")))
             {
@@ -714,27 +706,21 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 }
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, parameters);
-            type = ((java.util.List<Object>) typeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("watchMyLiquidationsForSymbols", market, parameters);
-            subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            // same guard authenticate carries: this local rewrite must agree with the
-            // bucket authenticate writes, or the listenKey read below dereferences an
-            // options bucket that was never seeded and throws
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "option")) && Helpers.isTrue(!Helpers.isEqual(type, "stock"))))
-            {
-                if (Helpers.isTrue(this.isLinear(type, subType)))
-                {
-                    type = "future";
-                } else if (Helpers.isTrue(this.isInverse(type, subType)))
-                {
-                    type = "delivery";
-                }
-            }
-            (this.authenticate(parameters)).join();
+            var typesubTypeparametersVariable = this.resolveAuthType("watchMyLiquidationsForSymbols", market, parameters);
+            type = ((java.util.List<Object>) typesubTypeparametersVariable).get(0);
+            subType = ((java.util.List<Object>) typesubTypeparametersVariable).get(1);
+            parameters = ((java.util.List<Object>) typesubTypeparametersVariable).get(2);
+            // hand the resolved type forward: the helper already omitted type and
+            // subType from params, so a bare authenticate would re-derive from
+            // options.defaultType and seed a different bucket than the listenKey
+            // read below indexes - the derive-first shape watchBalance uses
+            final Object finalType = type;
+            final Object finalSubType = subType;
+            (this.authenticate(this.extend(new java.util.HashMap<String, Object>() {{
+                put( "finalType", finalType );
+                put( "finalSubType", finalSubType );
+            }}, parameters))).join();
             Object listenKey = Helpers.GetValue(Helpers.GetValue(this.options, type), "listenKey");
             Object url = this.getPrivateWsUrl(type, listenKey);
             Object message = null;
@@ -3675,33 +3661,13 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object time = this.milliseconds();
-            Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("authenticate", null, parameters);
-            type = ((java.util.List<Object>) typeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("authenticate", null, parameters);
-            subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
+            Object resolvedAuth = this.resolveAuthType("authenticate", null, parameters);
+            Object type = Helpers.GetValue(resolvedAuth, 0);
+            parameters = Helpers.GetValue(resolvedAuth, 2);
             Object isPortfolioMargin = null;
             var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "authenticate", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(1);
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "option")) && Helpers.isTrue(!Helpers.isEqual(type, "stock"))))
-            {
-                // guard option and stock from the rewrite: isLinear keys off subType alone
-                // when a subType is present - a defaultSubType of 'linear' would flip
-                // 'option' to 'future' and authenticate an option user stream with a
-                // FUTURES listen key stored in the future bucket. keepAliveListenKey
-                // carries the same guard; stock joins this path in the auth consolidation
-                if (Helpers.isTrue(this.isLinear(type, subType)))
-                {
-                    type = "future";
-                } else if (Helpers.isTrue(this.isInverse(type, subType)))
-                {
-                    type = "delivery";
-                }
-            }
             // For spot use WebSocket API signature subscription
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
@@ -4304,31 +4270,26 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             {
                 (this.loadMarkets()).join();
             }
-            (this.authenticate(parameters)).join();
-            Object defaultType = this.safeString(this.options, "defaultType", "spot");
-            Object type = this.safeString(parameters, "type", defaultType);
+            // derive BEFORE authenticating and pass the result in: authenticate
+            // re-derives from its own method scope, so without this a method-scoped
+            // options.watchBalance.type seeds one bucket while the read below
+            // indexes another - the same derive-first shape watchOrders uses
+            Object type = null;
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("watchBalance", null, parameters);
-            subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
+            var typesubTypeparametersVariable = this.resolveAuthType("watchBalance", null, parameters);
+            type = ((java.util.List<Object>) typesubTypeparametersVariable).get(0);
+            subType = ((java.util.List<Object>) typesubTypeparametersVariable).get(1);
+            parameters = ((java.util.List<Object>) typesubTypeparametersVariable).get(2);
+            final Object finalType = type;
+            final Object finalSubType = subType;
+            (this.authenticate(this.extend(new java.util.HashMap<String, Object>() {{
+                put( "finalType", finalType );
+                put( "finalSubType", finalSubType );
+            }}, parameters))).join();
             Object isPortfolioMargin = null;
             var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "watchBalance", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(1);
-            // same guard authenticate carries: this local rewrite must agree with the
-            // bucket authenticate writes, or the listenKey read below dereferences an
-            // options bucket that was never seeded and throws - and the explicit
-            // urlType branch for option below would be unreachable
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "option")) && Helpers.isTrue(!Helpers.isEqual(type, "stock"))))
-            {
-                if (Helpers.isTrue(this.isLinear(type, subType)))
-                {
-                    type = "future";
-                } else if (Helpers.isTrue(this.isInverse(type, subType)))
-                {
-                    type = "delivery";
-                }
-            }
             Object url = "";
             Object urlType = type;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "spot")) || Helpers.isTrue(Helpers.isEqual(type, "margin"))))
@@ -4512,6 +4473,40 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
         }
         return accountType;
+    }
+
+    public Object resolveAuthType(Object methodName, Object... optionalArgs)
+    {
+        // the single home for user-data type derivation: market type, subType,
+        // and the guarded linear/inverse rewrite. option and stock must keep
+        // their own type, or the listenKey bucket, the endpoint dispatch and
+        // the stream selection all silently degrade to futures - the guarded
+        // sites used to carry seven inline copies of this dance, and the
+        // unguarded copies were the bug class behind the option keepalive and
+        // stock keepalive fixes
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        Object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams(methodName, market, parameters);
+        type = ((java.util.List<Object>) typeparametersVariable).get(0);
+        parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
+        Object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams(methodName, market, parameters);
+        subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
+        parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
+        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "option")) && Helpers.isTrue(!Helpers.isEqual(type, "stock"))))
+        {
+            if (Helpers.isTrue(this.isLinear(type, subType)))
+            {
+                type = "future";
+            } else if (Helpers.isTrue(this.isInverse(type, subType)))
+            {
+                type = "delivery";
+            }
+        }
+        // sites consuming every element unpack this; the two that skip subType
+        // index it positionally instead, so no receiver is declared-but-unread
+        return new java.util.ArrayList<Object>(java.util.Arrays.asList(type, subType, parameters));
     }
 
     public Object getMarketType(Object method, Object market, Object... optionalArgs)
@@ -5358,20 +5353,11 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters);
-            type = ((java.util.List<Object>) typeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("watchOrders", market, parameters);
-            subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            if (Helpers.isTrue(this.isLinear(type, subType)))
-            {
-                type = "future";
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
-            {
-                type = "delivery";
-            }
+            var typesubTypeparametersVariable = this.resolveAuthType("watchOrders", market, parameters);
+            type = ((java.util.List<Object>) typesubTypeparametersVariable).get(0);
+            subType = ((java.util.List<Object>) typesubTypeparametersVariable).get(1);
+            parameters = ((java.util.List<Object>) typesubTypeparametersVariable).get(2);
             final Object finalType = type;
             final Object finalSymbol = symbol;
             final Object finalSubType = subType;
@@ -6049,25 +6035,22 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 messageHash = Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols));
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchPositions", market, parameters);
-            type = ((java.util.List<Object>) typeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
+            Object subType = null;
+            var typesubTypeparametersVariable = this.resolveAuthType("watchPositions", market, parameters);
+            type = ((java.util.List<Object>) typesubTypeparametersVariable).get(0);
+            subType = ((java.util.List<Object>) typesubTypeparametersVariable).get(1);
+            parameters = ((java.util.List<Object>) typesubTypeparametersVariable).get(2);
+            // spot and margin have no positions - whatever still RESOLVES to spot
+            // or margin after the helper falls through to the derivatives stream
+            // matching the subType. requests a defaultSubType already rewrote
+            // arrive here as future or delivery and pass untouched, which lands on
+            // the same stream the old raw-type ordering produced in every case
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "spot")) || Helpers.isTrue(Helpers.isEqual(type, "margin"))))
             {
-                type = "future";
+                type = ((Helpers.isTrue((Helpers.isEqual(subType, "inverse"))))) ? "delivery" : "future";
             }
-            Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("watchPositions", market, parameters);
-            subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            if (Helpers.isTrue(this.isLinear(type, subType)))
-            {
-                type = "future";
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
-            {
-                type = "delivery";
-            }
-            // 'option' stays as 'option', don't redirect to 'future'
+            // 'option' stays as 'option', don't redirect to 'future' - the helper's
+            // guard finally makes this comment true
             Object marketTypeObject = new java.util.HashMap<String, Object>() {{}};
             Helpers.addElementToObject(marketTypeObject, "type", type);
             Helpers.addElementToObject(marketTypeObject, "subType", subType);
@@ -6596,20 +6579,11 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 market = marketResolved;
                 symbol = Helpers.GetValue(market, "symbol");
             }
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
-            type = ((java.util.List<Object>) typeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("watchMyTrades", market, parameters);
-            subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            if (Helpers.isTrue(this.isLinear(type, subType)))
-            {
-                type = "future";
-            } else if (Helpers.isTrue(this.isInverse(type, subType)))
-            {
-                type = "delivery";
-            }
+            var typesubTypeparametersVariable = this.resolveAuthType("watchMyTrades", market, parameters);
+            type = ((java.util.List<Object>) typesubTypeparametersVariable).get(0);
+            subType = ((java.util.List<Object>) typesubTypeparametersVariable).get(1);
+            parameters = ((java.util.List<Object>) typesubTypeparametersVariable).get(2);
             Object messageHash = "myTrades";
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && Helpers.isTrue((!Helpers.isEqual(market, null)))))
             {
