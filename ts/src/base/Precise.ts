@@ -176,10 +176,10 @@ class Precise {
         return this.compare (other) <= 0;
     }
 
-    // strips trailing zero digits from the integer representation and
-    // returns the reduced digit string (sign included) so callers that
+    // internal: strips trailing zero digits from the integer representation
+    // and returns the reduced digit string (sign included) so callers that
     // immediately stringify avoid a second integer-to-string conversion
-    reduce () {
+    reduceDigits () {
         const string = this.integer.toString ();
         const start = string.length - 1;
         if (start === 0) {
@@ -204,6 +204,13 @@ class Precise {
         return reduced;
     }
 
+    // reduces the representation in place, returns the instance so calls
+    // can be chained (precise.reduce ().toString ())
+    reduce () {
+        this.reduceDigits ();
+        return this;
+    }
+
     equals (other: any) {
         this.reduce ();
         other.reduce ();
@@ -211,7 +218,7 @@ class Precise {
     }
 
     toString () {
-        let digits = this.reduce ();
+        let digits = this.reduceDigits ();
         let sign = '';
         if (digits.charCodeAt (0) === 45) { // '-'
             sign = '-';
