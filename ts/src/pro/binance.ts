@@ -3043,16 +3043,24 @@ export default class binance extends binanceRest {
         const listenKeyRefreshRate = this.safeInteger (this.options, refreshRateKey, 1200000);
         const delay = this.sum (listenKeyRefreshRate, 10000);
         if (time - lastAuthenticatedTime > delay) {
-            // single-flight leader election: the flight lives on the exchange,
-            // not parked on a ws client, so no client is instantiated just to
-            // carry the future and no listenKey-free parking url is needed -
-            // waiters wake when the leader settles and read the cached bucket
-            const flightHash = 'authenticate:' + type;
-            const isLeader = await this.singleFlightAcquire (flightHash);
-            if (!isLeader) {
-                // the leader settled the flight: the listenKey is in the bucket
+            // the private url embeds the listenKey this request produces, so the future is
+            // parked on the listenKey-free base url of that same stream - client () only
+            // memoizes a container, it never dials, so nothing is connected here. concurrent
+            // callers wait for the leader instead of fetching a second listenKey, which would
+            // split the user-data subscriptions across two connections. the stock stream parks
+            // on the listenKey-free market url of the same host for the same reason
+            const clientUrl = isStock ? this.getStockWsUrl ('market') : this.getWsUrl (type, 'private');
+            const client = this.client (clientUrl);
+            const messageHash = 'authenticate:' + type;
+            if (messageHash in client.futures) {
+                // another caller is already fetching, wait for it and read the cached bucket
+                await client.future (messageHash);
                 return;
             }
+            // created ahead of the request below so concurrent callers find it, and captured
+            // so an alone leader's rejection always has a handler attached - a waiterless
+            // reject on a native promise would otherwise kill the process
+            const future = client.future (messageHash);
             try {
                 let response = undefined;
                 if (isStock) {
@@ -3091,11 +3099,12 @@ export default class binance extends binanceRest {
                     delayParams = this.extend (params, { 'type': 'stock', 'defaultType': 'stock' });
                 }
                 this.delay (listenKeyRefreshRate, this.keepAliveListenKey, delayParams);
-                this.singleFlightResolve (flightHash, listenKey);
+                client.resolve (listenKey, messageHash);
             } catch (e) {
-                this.singleFlightReject (flightHash, e);
-                throw e;
+                client.reject (e, messageHash);
             }
+            // rethrows a failed flight into the leader and marks the rejection handled
+            await future;
         }
     }
 

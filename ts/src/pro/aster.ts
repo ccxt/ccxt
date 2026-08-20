@@ -1278,17 +1278,25 @@ export default class aster extends asterRest {
         const listenKeyRefreshRateOptions = this.safeDict (this.options, 'listenKeyRefreshRate', {});
         const listenKeyRefreshRate = this.safeInteger (listenKeyRefreshRateOptions, type, 3600000); // 1 hour
         if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
-            // single-flight leader election on the exchange-level flight map:
-            // concurrent watch calls on a cold instance each passed the
-            // staleness check and fetched their own listenKey (last write
-            // wins, earlier keys orphan) - now one leader fetches per type
-            // and waiters wake when the flight settles, see #29393
-            const flightHash = 'authenticate:' + type;
-            const isLeader = await this.singleFlightAcquire (flightHash);
-            if (!isLeader) {
-                // the leader settled the flight: the listenKey is in the bucket
+            // concurrent watch calls on a cold instance each passed the staleness check and
+            // fetched their own listenKey (last write wins, earlier keys orphan). the private
+            // url of this stream is the base url plus the listenKey this request produces, so
+            // the future is parked on that listenKey-free base url - client () only memoizes
+            // a container, it never dials, and the bare form is never connected because every
+            // private watcher appends the key. one leader fetches per type, waiters wake on
+            // the settle and read the cached bucket, see #29393
+            const clientUrl = this.urls['api']['ws']['private'][type];
+            const client = this.client (clientUrl);
+            const messageHash = 'authenticate:' + type;
+            if (messageHash in client.futures) {
+                // another caller is already fetching, wait for it and read the cached bucket
+                await client.future (messageHash);
                 return;
             }
+            // created ahead of the request below so concurrent callers find it, and captured
+            // so an alone leader's rejection always has a handler attached - a waiterless
+            // reject on a native promise would otherwise kill the process
+            const future = client.future (messageHash);
             try {
                 let response: Dict = {};
                 if (type === 'spot') {
@@ -1306,11 +1314,12 @@ export default class aster extends asterRest {
                 this.options['lastAuthenticatedTime'][type] = time;
                 params = this.extend ({ 'type': type }, params);
                 this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
-                this.singleFlightResolve (flightHash, listenKey);
+                client.resolve (listenKey, messageHash);
             } catch (e) {
-                this.singleFlightReject (flightHash, e);
-                throw e;
+                client.reject (e, messageHash);
             }
+            // rethrows a failed flight into the leader and marks the rejection handled
+            await future;
         }
     }
 

@@ -1454,13 +1454,22 @@ export default class bingx extends bingxRest {
         const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3600000); // 1 hour
         if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
-            // single-flight leader election, see #29393: racing fetches mint
-            // different keys and the key rides the private url, so losers
-            // connect their watchers to an orphaned stream
-            const isLeader = await this.singleFlightAcquire ('authenticate');
-            if (!isLeader) {
-                return; // the leader settled: the listenKey is in the bucket
+            // racing fetches mint different keys and the key rides the private url, so losers
+            // connect their watchers to an orphaned stream. the future is parked on the spot
+            // ws base url, the same rendezvous mexc authenticate () uses - client () only
+            // memoizes a container, it never dials. one leader fetches, waiters wake on the
+            // settle and read the cached bucket, see #29393
+            const client = this.client (this.urls['api']['ws']['spot']);
+            const messageHash = 'authenticate';
+            if (messageHash in client.futures) {
+                // another caller is already fetching, wait for it and read the cached bucket
+                await client.future (messageHash);
+                return;
             }
+            // created ahead of the request below so concurrent callers find it, and captured
+            // so an alone leader's rejection always has a handler attached - a waiterless
+            // reject on a native promise would otherwise kill the process
+            const future = client.future (messageHash);
             try {
                 const response = await this.userAuthPrivatePostUserDataStream ();
                 const listenKey = this.safeString (response, 'listenKey');
@@ -1472,11 +1481,12 @@ export default class bingx extends bingxRest {
                 this.options['listenKey'] = listenKey;
                 this.options['lastAuthenticatedTime'] = time;
                 this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
-                this.singleFlightResolve ('authenticate', listenKey);
+                client.resolve (listenKey, messageHash);
             } catch (e) {
-                this.singleFlightReject ('authenticate', e);
-                throw e;
+                client.reject (e, messageHash);
             }
+            // rethrows a failed flight into the leader and marks the rejection handled
+            await future;
         }
     }
 
