@@ -2101,9 +2101,13 @@ class NewTranspiler {
         content = content.replace(/Object\s+future\s*=\s*Helpers\.GetValue\(client\.futures,\s*(\w+)\)/gm,
             'io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, $1)');
 
-        // ── Pattern 3: (String) cast on messageHash for client.future() / reusableFuture() ──
-        // client.future(messageHash) where messageHash is Object
-        content = content.replace(/client\.(future|reusableFuture)\(messageHash\)/gm, 'client.$1((String)messageHash)');
+        // ── Pattern 3: (String) cast on the hash argument of client.future() / reusableFuture() ──
+        // client.future(messageHash) where the hash local is Object-typed. any
+        // identifier is accepted, not just `messageHash`: the single-flight
+        // helpers on binance/aster/bingx pass `flightHash`
+        content = content.replace(/client\.(future|reusableFuture)\((\w+)\)/gm, 'client.$1((String)$2)');
+        // idempotence guard: never cast an already-cast argument
+        content = content.replace(/client\.(future|reusableFuture)\(\(String\)\(String\)/gm, 'client.$1((String)');
 
         // ── Pattern 2: future.join() → future.getFuture().join() ──
         // Only for local `future` variables (not this.xxx)

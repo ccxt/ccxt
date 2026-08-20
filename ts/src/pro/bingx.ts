@@ -1480,6 +1480,78 @@ export default class bingx extends bingxRest {
         }
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name bingx#singleFlightAcquire
+     * @description leader election for the check-then-fetch listenKey flow, see https://github.com/ccxt/ccxt/issues/29393 - the flight is registered on a never-dialed client because the user-data url embeds the listenKey, so no real client exists before the fetch. the registration flag lives in client.subscriptions and the shared future is only minted by the first waiter, so an alone leader can reject without any unhandled rejection
+     * @param {string} flightHash the flight identifier
+     * @returns {boolean} true when the caller is elected leader and must perform the fetch itself, false after awaiting an in-progress flight - the caller then re-reads the cached credential
+     */
+    async singleFlightAcquire (flightHash: string): Promise<boolean> {
+        const client = this.client ('authenticationFlights');
+        if (flightHash in client.subscriptions) {
+            await client.future (flightHash);
+            return false;
+        }
+        client.subscriptions[flightHash] = true;
+        return true;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name bingx#singleFlightWait
+     * @description awaits an in-progress flight without electing a leader, returns immediately when no flight is in progress
+     * @param {string} flightHash the flight identifier
+     */
+    async singleFlightWait (flightHash: string) {
+        const client = this.client ('authenticationFlights');
+        if (flightHash in client.subscriptions) {
+            await client.future (flightHash);
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name bingx#singleFlightResolve
+     * @description settles a flight successfully and wakes all waiters
+     * @param {string} flightHash the flight identifier
+     * @param {any} [result] the value handed to the waiters
+     */
+    singleFlightResolve (flightHash: string, result: any = undefined) {
+        const client = this.client ('authenticationFlights');
+        if (flightHash in client.subscriptions) {
+            delete client.subscriptions[flightHash];
+        }
+        if (flightHash in client.futures) {
+            const future = client.futures[flightHash];
+            delete client.futures[flightHash];
+            future.resolve (result);
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name bingx#singleFlightReject
+     * @description settles a flight with an error - all waiters throw
+     * @param {string} flightHash the flight identifier
+     * @param {any} error the error handed to the waiters
+     */
+    singleFlightReject (flightHash: string, error: any) {
+        const client = this.client ('authenticationFlights');
+        if (flightHash in client.subscriptions) {
+            delete client.subscriptions[flightHash];
+        }
+        if (flightHash in client.futures) {
+            const future = client.futures[flightHash];
+            delete client.futures[flightHash];
+            future.reject (error);
+        }
+    }
+
     async pong (client: Client, message: any) {
         //
         // spot

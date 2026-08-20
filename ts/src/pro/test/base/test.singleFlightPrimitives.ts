@@ -2,14 +2,34 @@ import assert from 'assert';
 import { ExchangeClosedByUser } from '../../../base/errors.js';
 import ccxt from '../../../../ccxt.js';
 
-// native ts test, intentionally not transpiled - exercises the base
-// single-flight authentication primitives added for
+// native ts test, intentionally not transpiled - exercises the single-flight
+// authentication primitives added for
 // https://github.com/ccxt/ccxt/issues/29393
+// the primitives live on the exchanges that wire them (binance/aster/bingx),
+// not on the Exchange base, so this test drives them through a real venue
+// class. the flights are parked in the futures map of a never-dialed
+// this.client ('authenticationFlights') client
 // language-native siblings should follow the pattern established by
-// test.clientRetention.ts once the per-language base mirrors land
+// test.clientRetention.ts once the per-language mirrors land
 
 function sleep (ms: number) {
     return new Promise ((resolve) => setTimeout (resolve, ms));
+}
+
+function makeExchange () {
+    // any of the three wired exchanges exposes the same primitives, binance is
+    // the reference implementation from #29903
+    return new ccxt.pro.binance ({ 'apiKey': 'test-api-key', 'secret': 'test-secret' });
+}
+
+function flightCount (exchange: any) {
+    // the flight registration flag lives in client.subscriptions, the shared
+    // future is only minted once a waiter actually awaits the flight
+    const clients = exchange.clients;
+    if (!('authenticationFlights' in clients)) {
+        return 0;
+    }
+    return Object.keys (clients['authenticationFlights'].subscriptions).length;
 }
 
 async function testWsSingleFlightPrimitives () {
@@ -17,7 +37,7 @@ async function testWsSingleFlightPrimitives () {
     // one leader, waiters share the leader's result: two concurrent
     // check-then-fetch flows must produce exactly one fetch and both
     // callers must end up with the same cached credential
-    let exchange = new ccxt.Exchange ({ 'id': 'test' });
+    let exchange = makeExchange ();
     const state: { fetches: number, cached: any } = { 'fetches': 0, 'cached': undefined };
     const flow = async () => {
         const isLeader = await exchange.singleFlightAcquire ('auth:test');
@@ -33,13 +53,13 @@ async function testWsSingleFlightPrimitives () {
     const results = await Promise.all ([ flow (), flow (), flow () ]);
     assert (state.fetches === 1, 'concurrent flows must elect exactly one leader');
     assert (results[0] === 'KEY-1' && results[1] === 'KEY-1' && results[2] === 'KEY-1', 'all callers must observe the leader result');
-    assert (!('auth:test' in exchange.authenticationFlights), 'a resolved flight must be cleared');
+    assert (flightCount (exchange) === 0, 'a resolved flight must be cleared');
 
     // leader failure rejects all waiters and clears the flight so the
     // next caller can retry - nothing deadlocks, and NOTHING is written to
     // the credential cache by a failed flight (regression guard for the
     // cache-before-confirm staleness bypass found in review)
-    exchange = new ccxt.Exchange ({ 'id': 'test' });
+    exchange = makeExchange ();
     const cache = { 'credential': undefined, 'lastAuthenticatedTime': 0 };
     const error = new Error ('fetch failed');
     const failingFlow = async () => {
@@ -56,13 +76,13 @@ async function testWsSingleFlightPrimitives () {
     const outcomes = await Promise.allSettled ([ failingFlow (), failingFlow () ]);
     assert (outcomes[0].status === 'rejected' && outcomes[1].status === 'rejected', 'leader failure must throw into all waiters');
     assert (cache.credential === undefined && cache.lastAuthenticatedTime === 0, 'a failed flight must leave the credential cache untouched');
-    assert (!('auth:fail' in exchange.authenticationFlights), 'a rejected flight must be cleared');
+    assert (flightCount (exchange) === 0, 'a rejected flight must be cleared');
     const retryLeader = await exchange.singleFlightAcquire ('auth:fail');
     assert (retryLeader === true, 'the next caller after a rejected flight must become leader');
     exchange.singleFlightResolve ('auth:fail');
 
     // singleFlightWait: returns immediately when idle, blocks during a flight
-    exchange = new ccxt.Exchange ({ 'id': 'test' });
+    exchange = makeExchange ();
     await exchange.singleFlightWait ('auth:idle'); // must not hang
     const gotLead = await exchange.singleFlightAcquire ('auth:wait');
     assert (gotLead === true, 'first acquire must lead');
@@ -101,7 +121,7 @@ async function testCloseSettlesInFlight () {
     // close() must reject in-flight waiters with ExchangeClosedByUser and leave
     // no slot behind - a shutdown never strands an auth waiter. a FRESH instance,
     // so this pins close-while-in-flight rather than reusing a closed exchange
-    const exchange = new ccxt.Exchange ({ 'id': 'test' });
+    const exchange = makeExchange ();
     const acquired = await exchange.singleFlightAcquire ('inflight');
     assert (acquired === true);
     let waiterError: any = undefined;
@@ -111,9 +131,7 @@ async function testCloseSettlesInFlight () {
     await exchange.close ();
     await waiter;
     assert (waiterError instanceof ExchangeClosedByUser);
-    const flightHashes = Object.keys (exchange.authenticationFlights);
-    const flightCount = flightHashes.length;
-    assert (flightCount === 0); // the slot is gone
+    assert (flightCount (exchange) === 0); // the slot is gone
 }
 
 export default testWsSingleFlightPrimitives;
