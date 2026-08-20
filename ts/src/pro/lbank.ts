@@ -971,31 +971,31 @@ export default class lbank extends lbankRest {
 
     async authenticate (params = {}) {
         // single-flight leader election, see
-        // https://github.com/ccxt/ccxt/issues/29393: both branches below check
-        // then await then write, so concurrent watchOrders/watchBalance calls
-        // on a cold instance each POST subscribe/get_key, and concurrent
-        // callers past the expiry each POST subscribe/refresh_key - every
-        // loser burns rate limit on a subscribeKey that is immediately
-        // overwritten. the registration flag is parked on this exchange's own
-        // ws client under a key that is not one of its messageHashes, and the
-        // shared future is only minted by the first waiter, so an alone leader
-        // can reject without any unhandled rejection
+        // https://github.com/ccxt/ccxt/issues/29393: both branches below read
+        // the cache, then fetch, then write it back, so concurrent
+        // watchOrders/watchBalance calls on a cold instance each POST
+        // subscribe/get_key, and concurrent callers past the expiry each POST
+        // subscribe/refresh_key - every loser burns rate limit on a
+        // subscribeKey that is immediately overwritten. the flight is parked
+        // on this exchange's own ws client - the same one that carries
+        // subscriptions['authenticated'] - under a key that is not one of its
+        // messageHashes, registered in client.futures before the first fetch
+        // and settled through client.resolve / client.reject so that every
+        // write to the futures map goes through the client itself
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const now = this.milliseconds ();
-        const messageHash = 'authenticated';
-        const flightHash = 'authenticateFlight';
-        if (flightHash in client.subscriptions) {
+        const messageHash = 'authenticateFlight';
+        if (messageHash in client.futures) {
             // a flight is already in progress - wake when the leader settles
             // it: the subscribeKey is then in the bucket
-            const future = client.future (flightHash);
-            await future;
+            await client.future (messageHash);
             return client.subscriptions['authenticated']['key'];
         }
-        client.subscriptions[flightHash] = true;
+        const future = client.reusableFuture (messageHash);
         try {
-            const authenticated = this.safeValue (client.subscriptions, messageHash);
+            const authenticated = this.safeValue (client.subscriptions, 'authenticated');
             if (authenticated === undefined) {
                 const response = await this.spotPrivatePostSubscribeGetKey (params);
                 //
@@ -1026,29 +1026,17 @@ export default class lbank extends lbankRest {
                     client['subscriptions']['authenticated']['expires'] = this.sum (now, 3300000); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
                 }
             }
-            // settle the flight: clear the registration flag and wake the
-            // waiters that minted the shared future
-            if (flightHash in client.subscriptions) {
-                delete client.subscriptions[flightHash];
-            }
-            if (flightHash in client.futures) {
-                const future = client.futures[flightHash];
-                delete client.futures[flightHash];
-                future.resolve (client.subscriptions['authenticated']['key']);
-            }
+            // settle the flight through the client so that every write to the
+            // futures map happens inside the base class
+            client.resolve (client.subscriptions['authenticated']['key'], messageHash);
         } catch (e) {
             // reject the flight - all waiters throw and the next caller
             // re-leads instead of deadlocking on a dead flight
-            if (flightHash in client.subscriptions) {
-                delete client.subscriptions[flightHash];
-            }
-            if (flightHash in client.futures) {
-                const future = client.futures[flightHash];
-                delete client.futures[flightHash];
-                future.reject (e);
-            }
-            throw e;
+            client.reject (e, messageHash);
         }
+        // rethrows a rejected flight to the leader and attaches the handler
+        // that keeps an alone leader from crashing on an unhandled rejection
+        await future;
         return client.subscriptions['authenticated']['key'];
     }
 }

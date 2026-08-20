@@ -16,6 +16,12 @@ import ccxt from '../../../../ccxt.js';
 // a dummy 'authenticationFlights' client, and BOTH the cold-acquire and the
 // expired-refresh branch are covered by the one flight
 //
+// the flight is registered in client.futures and settled through
+// client.resolve / client.reject, so every mutation of the futures map happens
+// inside Client itself - the tests below therefore count client.futures and
+// also assert that a settled flight parks nothing in client.pendingResults or
+// client.rejections
+//
 // none of the cases below dial a socket: this.client (url) only constructs the
 // WsClient, and the tests assert startedConnecting stays false
 
@@ -38,24 +44,45 @@ function wsClient (exchange: any) {
 }
 
 function flightCount (exchange: any) {
-    // the registration flag lives in client.subscriptions under FLIGHT_HASH -
-    // a settled flight must leave none behind. counted by key so a leftover
-    // real subscription ('authenticated') is never mistaken for a flight
-    const client = wsClient (exchange);
-    if (client === undefined) {
-        return 0;
-    }
-    return (FLIGHT_HASH in client.subscriptions) ? 1 : 0;
-}
-
-function futureCount (exchange: any) {
-    // the shared future is minted lazily by the first waiter - a settled
-    // flight must leave none behind
+    // the flight is registered in client.futures under FLIGHT_HASH - a settled
+    // flight must leave none behind, because client.resolve / client.reject
+    // delete the entry themselves. counted by key so a leftover real future is
+    // never mistaken for a flight
     const client = wsClient (exchange);
     if (client === undefined) {
         return 0;
     }
     return (FLIGHT_HASH in client.futures) ? 1 : 0;
+}
+
+function futureCount (exchange: any) {
+    // same registry - kept as a distinct name so the assertions below read as
+    // "no flight registered" and "no future left behind" separately
+    return flightCount (exchange);
+}
+
+function residueCount (exchange: any) {
+    // client.resolve parks its value in pendingResults and client.reject parks
+    // its error in rejections whenever no future exists at settle time. with
+    // the leader always holding a live future neither may ever happen, and a
+    // parked rejection would poison the FIRST waiter of the NEXT flight
+    const client = wsClient (exchange);
+    if (client === undefined) {
+        return 0;
+    }
+    let count = 0;
+    if (FLIGHT_HASH in client.pendingResults) {
+        count = count + 1;
+    }
+    if (FLIGHT_HASH in client.rejections) {
+        count = count + 1;
+    }
+    return count;
+}
+
+function assertSettled (exchange: any, context: string) {
+    assert (flightCount (exchange) === 0, context + ': a settled flight must leave no future behind');
+    assert (residueCount (exchange) === 0, context + ': a settled flight must park nothing in pendingResults or rejections');
 }
 
 function assertNotDialed (exchange: any, context: string) {
@@ -118,15 +145,14 @@ async function testLbankAuthenticateColdSingleFlight () {
     }
     const client = wsClient (exchange);
     assert (client.subscriptions['authenticated']['key'] === 'LBANK-KEY-1', 'the leader subscribeKey must be cached');
-    assert (flightCount (exchange) === 0, 'settled flights must be cleared');
-    assert (futureCount (exchange) === 0, 'settled flights must leave no future behind');
+    assertSettled (exchange, 'cold single-flight');
     assertNotDialed (exchange, 'cold single-flight');
     // a fresh call inside the expiry window is a no-op: no new fetch of any kind
     const warmKey = await exchange.authenticate ();
     assert (warmKey === 'LBANK-KEY-1', 'a warm authenticate must return the cached subscribeKey');
     assert (state.getKeyFetches === 1, 'a warm authenticate inside the expiry window must not fetch');
     assert (state.refreshFetches === 0, 'a warm authenticate inside the expiry window must not refresh');
-    assert (flightCount (exchange) === 0, 'a warm authenticate must leave no flight behind');
+    assertSettled (exchange, 'warm authenticate');
 }
 
 async function testLbankAuthenticateRefreshSingleFlight () {
@@ -152,8 +178,7 @@ async function testLbankAuthenticateRefreshSingleFlight () {
     }
     const client = wsClient (exchange);
     assert (client.subscriptions['authenticated']['expires'] > exchange.milliseconds (), 'a successful refresh must extend the expiry');
-    assert (flightCount (exchange) === 0, 'a settled refresh flight must be cleared');
-    assert (futureCount (exchange) === 0, 'a settled refresh flight must leave no future behind');
+    assertSettled (exchange, 'refresh single-flight');
     assertNotDialed (exchange, 'refresh single-flight');
 }
 
@@ -182,8 +207,7 @@ async function testLbankAuthenticateFailedGetKeyRejection () {
     assert ((outcomes[1] as any).reason instanceof ExchangeError, 'the lbank waiter must observe the same ExchangeError');
     const client = wsClient (exchange);
     assert (!('authenticated' in client.subscriptions), 'a failed get_key must never cache a subscribeKey');
-    assert (flightCount (exchange) === 0, 'a rejected flight must be cleared');
-    assert (futureCount (exchange) === 0, 'a rejected flight must leave no future behind');
+    assertSettled (exchange, 'failed get_key rejection');
     // recovery: the next caller re-leads instead of hanging on the dead flight
     const fetchesBeforeRetry: number = state.getKeyFetches;
     (exchange as any).spotPrivatePostSubscribeGetKey = async () => {
@@ -198,10 +222,11 @@ async function testLbankAuthenticateFailedGetKeyRejection () {
 
 async function testLbankAuthenticateSoloLeaderRejection () {
     // an alone leader - the fetch fails before any waiter arrives, so no
-    // shared future was ever minted - must throw to its own caller, clear the
-    // slot, and NOT produce an unhandled promise rejection (which would kill
-    // the process on the tick below). regression guard for minting the future
-    // eagerly in the leader
+    // other caller ever awaits the flight - must throw to its own caller,
+    // clear the slot, and NOT produce an unhandled promise rejection (which
+    // would kill the process on the tick below). the leader always registers
+    // the future itself and ends the method with await future, which both
+    // rethrows and attaches the handler that keeps node alive
     const state = { 'getKeyFetches': 0, 'refreshFetches': 0 };
     const exchange = makeStubbedLbank (state);
     (exchange as any).spotPrivatePostSubscribeGetKey = async () => {
@@ -217,8 +242,7 @@ async function testLbankAuthenticateSoloLeaderRejection () {
     assert (soloError instanceof ExchangeError, 'a solo leader must throw its own error');
     // give the microtask queue a tick - an unhandled rejection fires here
     await sleep (20);
-    assert (flightCount (exchange) === 0, 'a solo rejected flight must be cleared');
-    assert (futureCount (exchange) === 0, 'a solo leader must never mint a future');
+    assertSettled (exchange, 'solo leader rejection');
     assertNotDialed (exchange, 'solo leader rejection');
 }
 
@@ -245,8 +269,7 @@ async function testLbankAuthenticateFailedRefreshRejection () {
     assert ((outcomes[1] as any).reason instanceof ExchangeError, 'the lbank refresh waiter must observe the same ExchangeError');
     const client = wsClient (exchange);
     assert (client.subscriptions['authenticated']['expires'] === 0, 'a failed refresh must not extend the expiry');
-    assert (flightCount (exchange) === 0, 'a rejected refresh flight must be cleared');
-    assert (futureCount (exchange) === 0, 'a rejected refresh flight must leave no future behind');
+    assertSettled (exchange, 'failed refresh rejection');
     // recovery: the next caller re-leads the refresh
     const refreshesBeforeRetry: number = state.refreshFetches;
     (exchange as any).spotPrivatePostSubscribeRefreshKey = async () => {
@@ -278,7 +301,8 @@ async function testLbankAuthenticateMissingCredentials () {
     assert (credentialsError instanceof AuthenticationError, 'a credential-less authenticate must throw AuthenticationError');
     assert (state.getKeyFetches === 0, 'a credential-less authenticate must not fetch');
     assert (flightCount (exchange) === 0, 'a credential-less authenticate must not register a flight');
-    assert (futureCount (exchange) === 0, 'a credential-less authenticate must not mint a future');
+    assert (futureCount (exchange) === 0, 'a credential-less authenticate must not register a future');
+    assert (residueCount (exchange) === 0, 'a credential-less authenticate must park nothing');
 }
 
 async function testLbankSingleFlightWiring () {
