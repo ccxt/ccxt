@@ -356,7 +356,7 @@ export default class woo extends wooRest {
         try {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
-            const params = this.safeValue (subscription, 'params');
+            const params = this.safeDict (subscription, 'params');
             const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
             if (this.safeValue (this.orderbooks, symbol) === undefined) {
                 // if the orderbook is dropped before the snapshot is received
@@ -392,8 +392,8 @@ export default class woo extends wooRest {
 
     handleOrderBookMessage (client: Client, message: any, orderbook: any) {
         const data = this.safeDict (message, 'data');
-        this.handleDeltas (orderbook['asks'], this.safeValue (data, 'asks', []));
-        this.handleDeltas (orderbook['bids'], this.safeValue (data, 'bids', []));
+        this.handleDeltas (orderbook['asks'], this.safeList (data, 'asks', []));
+        this.handleDeltas (orderbook['bids'], this.safeList (data, 'bids', []));
         const timestamp = this.safeInteger (data, 'ts');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
@@ -513,10 +513,8 @@ export default class woo extends wooRest {
         const topic = this.safeString (message, 'topic');
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
-        if (!('ts' in data)) {
-            data['ts'] = this.safeInteger (message, 'ts');
-        }
-        const ticker = this.parseWsTicker (data, market);
+        // the envelope timestamp is only a fallback, the payload carries its own
+        const ticker = this.parseWsTicker (this.extend ({ 'ts': this.safeInteger (message, 'ts') }, data), market);
         this.tickers[market['symbol']] = ticker;
         client.resolve (ticker, topic);
         return message;
@@ -659,10 +657,8 @@ export default class woo extends wooRest {
         //
         const topic = this.safeString (message, 'topic');
         const data = this.safeDict (message, 'data', {});
-        if (!('ts' in data)) {
-            data['ts'] = this.safeInteger (message, 'ts');
-        }
-        const parsedTicker = this.parseWsBidAsk (data);
+        // the envelope timestamp is only a fallback, the payload carries its own
+        const parsedTicker = this.parseWsBidAsk (this.extend ({ 'ts': this.safeInteger (message, 'ts') }, data));
         const symbol = parsedTicker['symbol'];
         if (symbol === undefined) {
             return;
@@ -849,13 +845,11 @@ export default class woo extends wooRest {
         //
         const topic = this.safeString (message, 'topic');
         const data = this.safeDict (message, 'data', {});
-        if (!('ts' in data)) {
-            data['ts'] = this.safeInteger (message, 'ts');
-        }
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const trade = this.parseWsTrade (data, market);
+        // the envelope timestamp is only a fallback, the payload carries its own
+        const trade = this.parseWsTrade (this.extend ({ 'ts': this.safeInteger (message, 'ts') }, data), market);
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1277,18 +1271,18 @@ export default class woo extends wooRest {
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const cachedOrders = this.orders;
-            const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
-            const order = this.safeValue (orders, orderId);
+            const orders = this.safeDict (cachedOrders.hashmap, symbol, {});
+            const order = this.safeDict (orders, orderId);
             if (order !== undefined) {
-                const fee = this.safeValue (order, 'fee');
+                const fee = this.safeValue (order, 'fee'); // assigned into the typed Fee field
                 if (fee !== undefined) {
                     parsed['fee'] = fee;
                 }
-                const fees = this.safeValue (order, 'fees');
+                const fees = this.safeList (order, 'fees');
                 if (fees !== undefined) {
                     (parsed as Dict)['fees'] = fees;
                 }
-                parsed['trades'] = this.safeValue (order, 'trades');
+                parsed['trades'] = this.safeValue (order, 'trades'); // assigned into the typed Trade[] field
                 parsed['timestamp'] = this.safeInteger (order, 'timestamp');
                 parsed['datetime'] = this.safeString (order, 'datetime');
             }
@@ -1577,13 +1571,8 @@ export default class woo extends wooRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data');
-        let balances = undefined;
-        if (Array.isArray (data)) {
-            balances = data;
-        } else {
-            balances = this.safeList (data, 'balances', []);
-        }
+        const data = this.safeDict (message, 'data', {});
+        const balances = this.safeList (data, 'balances', []);
         const ts = this.safeInteger (message, 'ts');
         this.balance['info'] = data;
         this.balance['timestamp'] = ts;
