@@ -2457,6 +2457,15 @@
                         "uta": true
                     }
                 ]
+            },
+            {
+                "description": "tokenized stock fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitget.com/api/v3/account/reality-orderbook?symbol=RGOOGLUSDT",
+                "input": [
+                    "RGOOGL/USDT"
+                ],
+                "output": null
             }
         ],
         "fetchTrades": [
@@ -2535,6 +2544,17 @@
                         "marginMode": "cross"
                     }
                 ]
+            },
+            {
+                "description": "tokenized stocks fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.bitget.com/api/v3/account/reality-fills?limit=3&symbol=RGOOGLUSDT",
+                "input": [
+                    "RGOOGL/USDT",
+                    null,
+                    3
+                ],
+                "output": null
             }
         ],
         "fetchTradingFee": [
