@@ -999,15 +999,15 @@ impl ApexCore {
         let mut chains: Value = get_value(&self.options, &Value::Str("_temp_currencies_chains".to_string()));
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_215: bool = true;
-            while { if !__for_first_215 { j = add(&j, &Value::Int(1)); } __for_first_215 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_216: bool = true;
+            while { if !__for_first_216 { j = add(&j, &Value::Int(1)); } __for_first_216 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             let mut tokens: Value = self.safe_list_k(chain.clone(), "tokens", &[Value::List(vec![])]);
             {
                                 let mut f: Value = Value::Int(0);
-                let mut __for_first_214: bool = true;
-                while { if !__for_first_214 { f = add(&f, &Value::Int(1)); } __for_first_214 = false; is_less_than(&f, &get_array_length(&tokens)) } {
+                let mut __for_first_215: bool = true;
+                while { if !__for_first_215 { f = add(&f, &Value::Int(1)); } __for_first_215 = false; is_less_than(&f, &get_array_length(&tokens)) } {
                 let mut token: Value = get_value(&tokens, &f);
                 let mut token: Value = get_value(&tokens, &f);
                 let mut tokenName: Value = self.safe_string_k(token.clone(), "token", &[]);
@@ -1701,8 +1701,8 @@ impl ApexCore {
         let mut resultList: Value = self.safe_list_k(data.clone(), "historyFunds", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_216: bool = true;
-            while { if !__for_first_216 { i = add(&i, &Value::Int(1)); } __for_first_216 = false; is_less_than(&i, &get_array_length(&resultList)) } {
+            let mut __for_first_217: bool = true;
+            while { if !__for_first_217 { i = add(&i, &Value::Int(1)); } __for_first_217 = false; is_less_than(&i, &get_array_length(&resultList)) } {
             let mut entry: Value = get_value(&resultList, &i);
             let mut entry: Value = get_value(&resultList, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "fundingTimestamp", &[]);
@@ -2156,8 +2156,8 @@ impl ApexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_217: bool = true;
-            while { if !__for_first_217 { i = add(&i, &Value::Int(1)); } __for_first_217 = false; is_less_than(&i, &get_array_length(&assets)) } {
+            let mut __for_first_218: bool = true;
+            while { if !__for_first_218 { i = add(&i, &Value::Int(1)); } __for_first_218 = false; is_less_than(&i, &get_array_length(&assets)) } {
             if is_equal(&self.safe_string_k(get_value(&assets, &i), "token", &[Value::Str("".to_string())]), &code) {
                 currency = get_value(&assets, &i);
             }

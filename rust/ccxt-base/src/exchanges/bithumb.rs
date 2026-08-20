@@ -712,8 +712,8 @@ impl BithumbCore {
         let mut promises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_359: bool = true;
-            while { if !__for_first_359 { i = add(&i, &Value::Int(1)); } __for_first_359 = false; is_less_than(&i, &get_array_length(&quotes)) } {
+            let mut __for_first_360: bool = true;
+            while { if !__for_first_360 { i = add(&i, &Value::Int(1)); } __for_first_360 = false; is_less_than(&i, &get_array_length(&quotes)) } {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("quoteId".to_string(), get_value(&quotes, &i));
@@ -726,8 +726,8 @@ impl BithumbCore {
         let mut results: Value = promise_all(&promises).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_361: bool = true;
-            while { if !__for_first_361 { i = add(&i, &Value::Int(1)); } __for_first_361 = false; is_less_than(&i, &get_array_length(&quotes)) } {
+            let mut __for_first_362: bool = true;
+            while { if !__for_first_362 { i = add(&i, &Value::Int(1)); } __for_first_362 = false; is_less_than(&i, &get_array_length(&quotes)) } {
             let mut quote: Value = get_value(&quotes, &i);
             let mut quote: Value = get_value(&quotes, &i);
             let mut quoteId: Value = quote.clone();
@@ -744,8 +744,8 @@ impl BithumbCore {
             let mut currencyIds: Value = object_keys(&data);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_360: bool = true;
-                while { if !__for_first_360 { j = add(&j, &Value::Int(1)); } __for_first_360 = false; is_less_than(&j, &get_array_length(&currencyIds)) } {
+                let mut __for_first_361: bool = true;
+                while { if !__for_first_361 { j = add(&j, &Value::Int(1)); } __for_first_361 = false; is_less_than(&j, &get_array_length(&currencyIds)) } {
                 let mut currencyId: Value = get_value(&currencyIds, &j);
                 let mut currencyId: Value = get_value(&currencyIds, &j);
                 if is_equal(&currencyId, &Value::Str("date".to_string())) {
@@ -842,8 +842,8 @@ impl BithumbCore {
         let mut codes: Value = object_keys(&self.currencies);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_362: bool = true;
-            while { if !__for_first_362 { i = add(&i, &Value::Int(1)); } __for_first_362 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_363: bool = true;
+            while { if !__for_first_363 { i = add(&i, &Value::Int(1)); } __for_first_363 = false; is_less_than(&i, &get_array_length(&codes)) } {
             let mut code: Value = get_value(&codes, &i);
             let mut code: Value = get_value(&codes, &i);
             let mut account: Value = self.account();
@@ -1033,8 +1033,8 @@ impl BithumbCore {
         let mut promises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_363: bool = true;
-            while { if !__for_first_363 { i = add(&i, &Value::Int(1)); } __for_first_363 = false; is_less_than(&i, &get_array_length(&quotes)) } {
+            let mut __for_first_364: bool = true;
+            while { if !__for_first_364 { i = add(&i, &Value::Int(1)); } __for_first_364 = false; is_less_than(&i, &get_array_length(&quotes)) } {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("quoteId".to_string(), get_value(&quotes, &i));
@@ -1047,8 +1047,8 @@ impl BithumbCore {
         let mut responses: Value = promise_all(&promises).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_365: bool = true;
-            while { if !__for_first_365 { i = add(&i, &Value::Int(1)); } __for_first_365 = false; is_less_than(&i, &get_array_length(&quotes)) } {
+            let mut __for_first_366: bool = true;
+            while { if !__for_first_366 { i = add(&i, &Value::Int(1)); } __for_first_366 = false; is_less_than(&i, &get_array_length(&quotes)) } {
             let mut quote: Value = get_value(&quotes, &i);
             let mut quote: Value = get_value(&quotes, &i);
             let mut response: Value = get_value(&responses, &i);
@@ -1083,8 +1083,8 @@ impl BithumbCore {
             let mut currencyIds: Value = object_keys(&tickers);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_364: bool = true;
-                while { if !__for_first_364 { j = add(&j, &Value::Int(1)); } __for_first_364 = false; is_less_than(&j, &get_array_length(&currencyIds)) } {
+                let mut __for_first_365: bool = true;
+                while { if !__for_first_365 { j = add(&j, &Value::Int(1)); } __for_first_365 = false; is_less_than(&j, &get_array_length(&currencyIds)) } {
                 let mut currencyId: Value = get_value(&currencyIds, &j);
                 let mut currencyId: Value = get_value(&currencyIds, &j);
                 let mut ticker: Value = get_value(&data, &currencyId);

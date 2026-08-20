@@ -399,8 +399,7 @@ impl ToobitCore {
         m.insert("doc".to_string(), Value::List(vec![Value::Str("https://api-docs.toobit.com/".to_string())]));
         m.insert("referral".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::Str("https://www.toobit.com/en-US/r?i=IFFPy0".to_string()));
-        m.insert("discount".to_string(), Value::Float(0.1));
+        m.insert("url".to_string(), Value::Str("https://www.toobit.com/en-US/r?i=dvCpJj".to_string()));
     m
 }));
         m.insert("fees".to_string(), Value::Str("https://www.toobit.com/fee".to_string()));
@@ -1453,8 +1452,8 @@ impl ToobitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1055: bool = true;
-            while { if !__for_first_1055 { i = add(&i, &Value::Int(1)); } __for_first_1055 = false; is_less_than(&i, &get_array_length(&coins)) } {
+            let mut __for_first_1056: bool = true;
+            while { if !__for_first_1056 { i = add(&i, &Value::Int(1)); } __for_first_1056 = false; is_less_than(&i, &get_array_length(&coins)) } {
             let mut coin: Value = get_value(&coins, &i);
             let mut coin: Value = get_value(&coins, &i);
             let mut parsed: Value = self.parse_currency(coin.clone());
@@ -1479,8 +1478,8 @@ impl ToobitCore {
         let mut rawNetworks: Value = self.safe_list_k(rawCurrency.clone(), "chainTypes", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1056: bool = true;
-            while { if !__for_first_1056 { j = add(&j, &Value::Int(1)); } __for_first_1056 = false; is_less_than(&j, &get_array_length(&rawNetworks)) } {
+            let mut __for_first_1057: bool = true;
+            while { if !__for_first_1057 { j = add(&j, &Value::Int(1)); } __for_first_1057 = false; is_less_than(&j, &get_array_length(&rawNetworks)) } {
             let mut rawNetwork: Value = get_value(&rawNetworks, &j);
             let mut rawNetwork: Value = get_value(&rawNetworks, &j);
             let mut networkId: Value = self.safe_string_k(rawNetwork.clone(), "chainType", &[]);
@@ -1707,8 +1706,8 @@ impl ToobitCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1057: bool = true;
-            while { if !__for_first_1057 { i = add(&i, &Value::Int(1)); } __for_first_1057 = false; is_less_than(&i, &get_array_length(&all)) } {
+            let mut __for_first_1058: bool = true;
+            while { if !__for_first_1058 { i = add(&i, &Value::Int(1)); } __for_first_1058 = false; is_less_than(&i, &get_array_length(&all)) } {
             let mut market: Value = get_value(&all, &i);
             let mut market: Value = get_value(&all, &i);
             let mut parsed: Value = self.parse_market(market.clone());
@@ -2295,8 +2294,8 @@ impl ToobitCore {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1058: bool = true;
-            while { if !__for_first_1058 { i = add(&i, &Value::Int(1)); } __for_first_1058 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_1059: bool = true;
+            while { if !__for_first_1059 { i = add(&i, &Value::Int(1)); } __for_first_1059 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut parsedTicker: Value = self.parse_bid_ask_custom(get_value(&tickers, &i));
             let mut ticker: Value = self.extend(parsedTicker.clone(), &[params.clone()]);
             append_to_array(&mut results, ticker.clone());
@@ -2499,8 +2498,8 @@ impl ToobitCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[response.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1059: bool = true;
-            while { if !__for_first_1059 { i = add(&i, &Value::Int(1)); } __for_first_1059 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1060: bool = true;
+            while { if !__for_first_1060 { i = add(&i, &Value::Int(1)); } __for_first_1060 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "asset", &[]), &[]);
@@ -2632,9 +2631,9 @@ impl ToobitCore {
         let mut reduceOnly: Value = Value::Null;
         { let __destr_tmp = self.handle_param_bool(params.clone(), Value::Str("reduceOnly".to_string()), &[]); reduceOnly = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&side, &Value::Str("buy".to_string())) {
-            side = ternary(is_true(&reduceOnly), Value::Str("SELL_CLOSE".to_string()), Value::Str("BUY_OPEN".to_string()));
+            side = ternary(is_true(&reduceOnly), Value::Str("BUY_CLOSE".to_string()), Value::Str("BUY_OPEN".to_string()));
         }  else if is_equal(&side, &Value::Str("sell".to_string())) {
-            side = ternary(is_true(&reduceOnly), Value::Str("BUY_CLOSE".to_string()), Value::Str("SELL_OPEN".to_string()));
+            side = ternary(is_true(&reduceOnly), Value::Str("SELL_CLOSE".to_string()), Value::Str("SELL_OPEN".to_string()));
         }
         add_element_to_object(&mut request, &Value::Str("side".to_string()), side.clone());
         if !is_equal(&price, &Value::Null) {
@@ -2767,6 +2766,18 @@ impl ToobitCore {
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut rawType: Value = self.safe_string_k(order.clone(), "type", &[]);
         let mut rawSideLower: Value = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]);
+        let mut reduceOnly: Value = Value::Null;
+        if !is_equal(&rawSideLower, &Value::Null) {
+            // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
+            // the suffix is the only signal that carries reduceOnly, so read
+            // it before discarding it (spot sides have no suffix: undefined)
+            let mut sideParts: Value = split(&rawSideLower, &Value::Str("_".to_string()));
+            let mut sideSuffix: Value = self.safe_string(sideParts.clone(), Value::Int(1), &[]);
+            if !is_equal(&sideSuffix, &Value::Null) {
+                reduceOnly = Value::Bool(is_equal(&sideSuffix, &Value::Str("close".to_string())));
+            }
+            rawSideLower = self.safe_string(sideParts.clone(), Value::Int(0), &[]);
+        }
         let mut triggerPrice: Value = self.omit_zero(self.safe_string_k(order.clone(), "stopPrice", &[]));
         if is_equal(&triggerPrice, &Value::Str("0.0".to_string())) {
             triggerPrice = Value::Null;
@@ -2796,7 +2807,7 @@ impl ToobitCore {
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);
-        m.insert("reduceOnly".to_string(), Value::Null);
+        m.insert("reduceOnly".to_string(), reduceOnly.clone());
         m.insert("leverage".to_string(), Value::Null);
         m.insert("hedged".to_string(), Value::Null);
     m
@@ -3192,8 +3203,8 @@ impl ToobitCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1060: bool = true;
-            while { if !__for_first_1060 { i = add(&i, &Value::Int(1)); } __for_first_1060 = false; is_less_than(&i, &get_array_length(&responseList)) } {
+            let mut __for_first_1061: bool = true;
+            while { if !__for_first_1061 { i = add(&i, &Value::Int(1)); } __for_first_1061 = false; is_less_than(&i, &get_array_length(&responseList)) } {
             append_to_array(&mut ordersList, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), get_value(&responseList, &i));

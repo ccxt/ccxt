@@ -207,24 +207,35 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
     }
     let mut percentage: Value = exchange.safe_string(entry.clone(), Value::Str("percentage".to_string()), &[]);
     let mut change: Value = exchange.safe_string(entry.clone(), Value::Str("change".to_string()), &[]);
+    // option markets are exempt from the UPPER percentage/change caps only:
+    // expiry-day convexity makes any finite cap wrong - a formerly-OTM
+    // contract moving into the money legitimately gains 1000x+ (observed: a
+    // paradex call at +109055% on its expiry date, mark price equal to
+    // intrinsic). the floors stay: a long option cannot lose more than its
+    // premium, so percentage >= -100 and change >= -open hold for options too
+    let mut isOptionMarket: Value = exchange.safe_bool(market.clone(), Value::Str("option".to_string()), &[Value::Bool(false)]);
     if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("maxIncrease".to_string()))))) && !is_true(&isUnrecognizedSymbol) {
         //
         // percentage
         //
         let mut maxIncrease: Value = Value::Str("1000".to_string()); // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
         if !is_equal(&percentage, &Value::Null) {
-            // - should be above -100 and below MAX
+            // - should be above -100 and (for non-options) below MAX
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&percentage, &Value::Str("-100".to_string())))));
-            assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&percentage, &ccxt::precise::Precise::stringMul(&Value::Str("+100".to_string()), &maxIncrease)))));
+            if !is_true(&isOptionMarket) {
+                assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&percentage, &ccxt::precise::Precise::stringMul(&Value::Str("+100".to_string()), &maxIncrease)))));
+            }
         }
         //
         // change
         //
         let mut approxValue: Value = exchange.safe_string_n(entry.clone(), Value::List(vec![Value::Str("open".to_string()), Value::Str("close".to_string()), Value::Str("average".to_string()), Value::Str("bid".to_string()), Value::Str("ask".to_string()), Value::Str("vwap".to_string()), Value::Str("previousClose".to_string())]), &[]);
         if !is_equal(&change, &Value::Null) {
-            // - should be between -price & +price*100
+            // - should be above -price and (for non-options) below +price*maxIncrease
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&change, &ccxt::precise::Precise::stringNeg(&approxValue)))));
-            assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&change, &ccxt::precise::Precise::stringMul(&approxValue, &maxIncrease)))));
+            if !is_true(&isOptionMarket) {
+                assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&change, &ccxt::precise::Precise::stringMul(&approxValue, &maxIncrease)))));
+            }
         }
     }
     //

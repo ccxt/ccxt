@@ -15,8 +15,8 @@ pub async fn testFetchFundingRateHistory(mut exchange: Value, mut skippedPropert
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), fundingRatesHistory.clone(), symbol.clone()]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1417: bool = true;
-        while { if !__for_first_1417 { i = add(&i, &Value::Int(1)); } __for_first_1417 = false; is_less_than(&i, &get_array_length(&fundingRatesHistory)) } {
+        let mut __for_first_1418: bool = true;
+        while { if !__for_first_1418 { i = add(&i, &Value::Int(1)); } __for_first_1418 = false; is_less_than(&i, &get_array_length(&fundingRatesHistory)) } {
         testFundingRateHistory(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&fundingRatesHistory, &i), symbol.clone());
     }
     }

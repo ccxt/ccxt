@@ -389,13 +389,13 @@ pub fn testWsOrderBook() {
     let mut desyncSides: Value = Value::List(vec![get_value(&desyncBook, &Value::Str("bids".to_string())), get_value(&desyncBook, &Value::Str("asks".to_string()))]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1394: bool = true;
-        while { if !__for_first_1394 { i = add(&i, &Value::Int(1)); } __for_first_1394 = false; is_less_than(&i, &get_array_length(&desyncSides)) } {
+        let mut __for_first_1395: bool = true;
+        while { if !__for_first_1395 { i = add(&i, &Value::Int(1)); } __for_first_1395 = false; is_less_than(&i, &get_array_length(&desyncSides)) } {
         let mut side: Value = get_value(&desyncSides, &i);
         {
                         let mut k: Value = Value::Int(0);
-            let mut __for_first_1393: bool = true;
-            while { if !__for_first_1393 { k = add(&k, &Value::Int(1)); } __for_first_1393 = false; is_less_than(&k, &get_array_length(&side)) } {
+            let mut __for_first_1394: bool = true;
+            while { if !__for_first_1394 { k = add(&k, &Value::Int(1)); } __for_first_1394 = false; is_less_than(&k, &get_array_length(&side)) } {
             let mut row: Value = get_value(&side, &k);
             assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than_or_equal(&get_array_length(&row), &Value::Int(2))))));
             assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&get_value(&row, &Value::Int(0)), &Value::Null)))));
