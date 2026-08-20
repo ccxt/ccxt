@@ -2798,6 +2798,14 @@ class binance(ccxt.async_support.binance):
                 else:
                     response = await self.publicPostUserDataStream(params)
                 listenKey = self.safe_string(response, 'listenKey')
+                if listenKey is None:
+                    # reject the flight BEFORE any cache write: a hollow 200
+                    # otherwise caches an empty credential AND stamps
+                    # lastAuthenticatedTime, parking every caller on
+                    # .../ws/None with no retry until the staleness
+                    # window reopens - the catch below rejects the flight so
+                    # waiters retry and the next caller re-leads
+                    raise AuthenticationError(self.id + ' authenticate() received an empty listenKey')
                 self.options[type] = self.extend(options, {
                     'listenKey': listenKey,
                     'lastAuthenticatedTime': time,
