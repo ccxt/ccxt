@@ -1,4 +1,5 @@
 import assert from 'assert';
+import { AuthenticationError } from '../../../base/errors.js';
 import ccxt from '../../../../ccxt.js';
 
 // native ts test, intentionally not transpiled - pins the EXCHANGE wiring of
@@ -78,7 +79,12 @@ async function testAsterAuthenticateEmptyKeyRejection () {
         exchange.authenticate ('spot'),
         exchange.authenticate ('spot'),
     ]);
-    assert (outcomes[0].status === 'rejected', 'the leader must throw on an empty listenKey');
+    // allSettled keeps input order but leader election does not: assert BOTH
+    // entries reject with the typed error, so a waiter that swallows the
+    // flight rejection and returns cannot pass silently
+    assert (outcomes[0].status === 'rejected' && outcomes[1].status === 'rejected', 'both the leader and the waiter must throw on an empty listenKey');
+    assert ((outcomes[0] as any).reason instanceof AuthenticationError, 'the leader must reject with AuthenticationError');
+    assert ((outcomes[1] as any).reason instanceof AuthenticationError, 'the waiter must observe the same AuthenticationError');
     const cachedKey = exchange.safeString (exchange.options['listenKey'], 'spot');
     assert (cachedKey === undefined, 'an empty listenKey must never be cached');
     const lastTime = exchange.safeInteger (exchange.options['lastAuthenticatedTime'], 'spot', 0);
