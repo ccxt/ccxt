@@ -4714,6 +4714,7 @@ export default class binance extends Exchange {
      * @name binance#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
      * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker   // spot
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/market-data#latest-quote             // stock
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // swap
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // future
      * @see https://developers.binance.com/docs/derivatives/options-trading/market-data/24hr-Ticker-Price-Change-Statistics      // option
@@ -4765,6 +4766,7 @@ export default class binance extends Exchange {
                 response = await this.publicGetTickerBookTicker (this.extend (request, params));
                 result = this.parseTickers (response, spotRequestSymbols);
             }
+            // Binance's equity quote endpoint accepts one stock symbol per request
             for (let i = 0; i < stockSymbols.length; i++) {
                 const symbol = stockSymbols[i];
                 const ticker = await this.fetchTicker (symbol, params);
@@ -4887,6 +4889,7 @@ export default class binance extends Exchange {
      * @name binance#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#24hr-ticker-price-change-statistics    // spot
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/market-data#latest-quote             // stock
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // swap
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // future
      * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                          // option
@@ -4951,6 +4954,7 @@ export default class binance extends Exchange {
                     result = this.parseTickers (response, spotRequestSymbols);
                 }
             }
+            // Binance's equity quote endpoint accepts one stock symbol per request
             for (let i = 0; i < stockSymbols.length; i++) {
                 const symbol = stockSymbols[i];
                 const ticker = await this.fetchTicker (symbol, params);
