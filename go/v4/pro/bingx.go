@@ -1812,12 +1812,48 @@ func (this *BingxCore) Authenticate(optionalArgs ...any) <-chan any {
 		var lastAuthenticatedTime any = this.SafeInteger(this.Options, "lastAuthenticatedTime", 0)
 		var listenKeyRefreshRate any = this.SafeInteger(this.Options, "listenKeyRefreshRate", 3600000) // 1 hour
 		if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.Subtract(time, lastAuthenticatedTime), listenKeyRefreshRate)) {
+			// single-flight leader election, see #29393: racing fetches mint
+			// different keys and the key rides the private url, so losers
+			// connect their watchers to an orphaned stream
 
-			response := (<-this.UserAuthPrivatePostUserDataStream())
-			ccxt.PanicOnError(response)
-			ccxt.AddElementToObject(this.Options, "listenKey", this.SafeString(response, "listenKey"))
-			ccxt.AddElementToObject(this.Options, "lastAuthenticatedTime", time)
-			this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, params)
+			isLeader := (<-this.SingleFlightAcquire("authenticate"))
+			ccxt.PanicOnError(isLeader)
+			if !ccxt.IsTrue(isLeader) {
+
+				return nil
+			}
+
+			{
+				func(this *BingxCore) (ret_ any) {
+					defer func() {
+						if e := recover(); e != nil {
+							if e == "break" {
+								return
+							}
+							ret_ = func(this *BingxCore) any {
+								// catch block:
+								this.SingleFlightReject("authenticate", e)
+								panic(e)
+
+							}(this)
+						}
+					}()
+					// try block:
+
+					response := (<-this.UserAuthPrivatePostUserDataStream())
+					ccxt.PanicOnError(response)
+					var listenKey any = this.SafeString(response, "listenKey")
+					if ccxt.IsTrue(ccxt.IsEqual(listenKey, nil)) {
+						panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " authenticate() received an empty listenKey")))
+					}
+					ccxt.AddElementToObject(this.Options, "listenKey", listenKey)
+					ccxt.AddElementToObject(this.Options, "lastAuthenticatedTime", time)
+					this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, params)
+					this.SingleFlightResolve("authenticate", listenKey)
+					return nil
+				}(this)
+
+			}
 		}
 		return nil
 	}()
@@ -1847,17 +1883,17 @@ func (this *BingxCore) Pong(client any, message any) <-chan any {
 				// try block:
 				if ccxt.IsTrue(ccxt.IsEqual(message, "Ping")) {
 
-					retRes147516 := (<-client.(ccxt.ClientInterface).Send("Pong"))
-					ccxt.PanicOnError(retRes147516)
+					retRes149416 := (<-client.(ccxt.ClientInterface).Send("Pong"))
+					ccxt.PanicOnError(retRes149416)
 				} else {
 					var ping any = this.SafeString(message, "ping")
 					var time any = this.SafeString(message, "time")
 
-					retRes147916 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
+					retRes149816 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
 						"pong": ping,
 						"time": time,
 					}))
-					ccxt.PanicOnError(retRes147916)
+					ccxt.PanicOnError(retRes149816)
 				}
 				return nil
 			}(this)
