@@ -2004,19 +2004,26 @@ func promiseAll(tasksInterface any) <-chan any {
 					}
 				}()
 
-				// Assert the task is a channel
-				if chanTask, ok := task.(<-chan any); ok {
-					// Receive the result from the channel
-					result := <-chanTask
-					resultsLock.Lock()
-					results[i] = result
-					resultsLock.Unlock()
-				} else {
-					// If the task is not a channel, set the result to nil
-					resultsLock.Lock()
-					results[i] = nil
-					resultsLock.Unlock()
+				// Await the task. A task is normally a `<-chan any` -- either a core
+				// called directly, or `Spawn(...).Await()` for a call that was started
+				// concurrently. A bare `*Future` (a Spawn result that was not awaited)
+				// is accepted too: without this case it fell into the default below and
+				// was silently recorded as nil, losing the value with no error.
+				var result any
+				switch typedTask := task.(type) {
+				case <-chan any:
+					result = <-typedTask
+				case chan any:
+					result = <-typedTask
+				case *Future:
+					result = <-typedTask.Await()
+				default:
+					// not awaitable: keep the historical nil rather than panicking
+					result = nil
 				}
+				resultsLock.Lock()
+				results[i] = result
+				resultsLock.Unlock()
 			}(i, task)
 		}
 
