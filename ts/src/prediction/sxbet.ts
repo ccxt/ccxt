@@ -960,6 +960,16 @@ export default class sxbet extends Exchange {
         if (price === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a price - the implied probability of the requested outcome');
         }
+        // the venue has no post-only or trigger mechanics - reject the unified params instead
+        // of forwarding fields the exchange would silently ignore
+        const postOnly = this.safeBool (params, 'postOnly', false);
+        if (postOnly) {
+            throw new NotSupported (this.id + ' createOrder() does not support postOnly - GTC orders may cross on entry');
+        }
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        if (triggerPrice !== undefined) {
+            throw new NotSupported (this.id + ' createOrder() does not support trigger, stop-loss or take-profit orders');
+        }
         const marketHash = this.safeString (outcomeObj['info'], 'marketHash', '');
         const outcomeId = this.safeString (outcomeObj, 'outcomeId');
         const isOutcomeOne = (outcomeId === marketHash);
@@ -1227,8 +1237,7 @@ export default class sxbet extends Exchange {
         //
         const orderId = this.safeString2 (order, 'id', 'orderId');
         const marketHash = this.safeString (order, 'marketHash', '');
-        // websocket v2-era rows carry isMakerBettingOutcomeOne - accept both spellings
-        const isBettingOutcomeOne = this.safeBool2 (order, 'isBettingOutcomeOne', 'isMakerBettingOutcomeOne', true);
+        const isBettingOutcomeOne = this.safeBool (order, 'isBettingOutcomeOne', true);
         const outcomeId = (isBettingOutcomeOne) ? marketHash : (marketHash + '-2');
         const outcomeObj = this.safeOutcome (outcomeId, market as any);
         const oneDenom = '100000000000000000000';
@@ -1515,7 +1524,9 @@ export default class sxbet extends Exchange {
         if (since !== undefined) {
             request['startDate'] = this.iso8601 (since);
         }
-        if (limit !== undefined) {
+        if ((limit !== undefined) && (outcome === undefined)) {
+            // with an outcome filter the rows are narrowed client-side - a server-side page
+            // size would truncate the page before the filter and under-fill the result
             request['perPage'] = limit;
         }
         const response = await this.sxbetPrivateGetFillsV3 (this.extend (request, params));
@@ -1751,7 +1762,9 @@ export default class sxbet extends Exchange {
         if (since !== undefined) {
             request['startDate'] = this.iso8601 (since);
         }
-        if (limit !== undefined) {
+        if ((limit !== undefined) && (outcome === undefined)) {
+            // the outcome scope narrows rows client-side (the venue filter is per market, not
+            // per side) - a server-side page size would under-fill the filtered result
             request['perPage'] = limit;
         }
         const response = await this.sxbetPrivateGetTradesV3 (this.extend (request, params));
