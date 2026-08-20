@@ -1352,6 +1352,7 @@ export default class binance extends Exchange {
                     'loadAllOptions': false,
                 },
                 'fetchCurrencies': true, // this is a private call and it requires API keys // todo: reorganize
+                'fetchStockMarkets': true, // whether fetchMarkets also loads tokenized equities, binance.com only
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
                 // 'repayCrossMarginMethod': 'papiPostRepayLoan', // papiPostMarginRepayDebt
                 'createOrder': {
@@ -3437,6 +3438,7 @@ export default class binance extends Exchange {
             fetchMarkets.push (type);
         }
         const fetchMargins = this.safeBool (this.options, 'fetchMargins', false);
+        const fetchStockMarkets = this.safeBool (this.options, 'fetchStockMarkets', true);
         for (let i = 0; i < fetchMarkets.length; i++) {
             const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
@@ -3445,7 +3447,7 @@ export default class binance extends Exchange {
                     promisesRaw.push (this.sapiGetMarginAllPairs (params));
                     promisesRaw.push (this.sapiGetMarginIsolatedAllPairs (params));
                 }
-                if (!isDemoEnv && (this.apiKey !== undefined && this.apiKey !== '')) {
+                if (fetchStockMarkets && !isDemoEnv && (this.apiKey !== undefined && this.apiKey !== '')) {
                     promisesRaw.push (this.sapiGetEquityMarketExchangeInfo (params));
                 }
             } else if (marketType === 'linear') {

@@ -47,6 +47,7 @@ export default class binanceus extends binance {
                 'fetchMargins': false,
                 'quoteOrderQty': false,
                 'fetchCurrencies': false,
+                'fetchStockMarkets': false, // binance.us does not host /sapi/v1/equity/market/exchangeInfo
             },
             'has': {
                 'CORS': undefined,
