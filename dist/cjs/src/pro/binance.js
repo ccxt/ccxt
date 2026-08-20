@@ -3046,6 +3046,15 @@ class binance extends binance$1["default"] {
                     response = await this.publicPostUserDataStream(params);
                 }
                 const listenKey = this.safeString(response, 'listenKey');
+                if (listenKey === undefined) {
+                    // reject the flight BEFORE any cache write: a hollow 200
+                    // otherwise caches an empty credential AND stamps
+                    // lastAuthenticatedTime, parking every caller on
+                    // .../ws/undefined with no retry until the staleness
+                    // window reopens - the catch below rejects the flight so
+                    // waiters retry and the next caller re-leads
+                    throw new errors.AuthenticationError(this.id + ' authenticate() received an empty listenKey');
+                }
                 this.options[type] = this.extend(options, {
                     'listenKey': listenKey,
                     'lastAuthenticatedTime': time,
