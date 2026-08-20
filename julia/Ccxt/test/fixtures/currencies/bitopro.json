@@ -1,0 +1,218 @@
+{
+ "BTC": {
+  "info": {
+   "currency": "BTC",
+   "withdrawFee": "0.00004",
+   "minWithdraw": "0.0001",
+   "maxWithdraw": "10",
+   "maxDailyWithdraw": "20",
+   "withdraw": true,
+   "deposit": true,
+   "depositConfirmation": "3"
+  },
+  "id": "BTC",
+  "code": "BTC",
+  "type": "crypto",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.00004,
+  "fees": {},
+  "limits": {
+   "withdraw": {
+    "min": 0.0001,
+    "max": 10
+   },
+   "amount": {}
+  }
+ },
+ "ETH": {
+  "info": {
+   "currency": "ETH",
+   "withdrawFee": "0.0003",
+   "minWithdraw": "0.001",
+   "maxWithdraw": "100",
+   "maxDailyWithdraw": "200",
+   "withdraw": true,
+   "deposit": true,
+   "depositConfirmation": "64"
+  },
+  "id": "ETH",
+  "code": "ETH",
+  "type": "crypto",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.0003,
+  "fees": {},
+  "limits": {
+   "withdraw": {
+    "min": 0.001,
+    "max": 100
+   },
+   "amount": {}
+  }
+ },
+ "ADA": {
+  "info": {
+   "currency": "ADA",
+   "withdrawFee": "1",
+   "minWithdraw": "3",
+   "maxWithdraw": "100000",
+   "maxDailyWithdraw": "200000",
+   "withdraw": true,
+   "deposit": true,
+   "depositConfirmation": "35"
+  },
+  "id": "ADA",
+  "code": "ADA",
+  "type": "crypto",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 1,
+  "fees": {},
+  "limits": {
+   "withdraw": {
+    "min": 3,
+    "max": 100000
+   },
+   "amount": {}
+  }
+ },
+ "APE (ERC20)": {
+  "info": {
+   "currency": "APE (ERC20)",
+   "withdrawFee": "5",
+   "minWithdraw": "8",
+   "maxWithdraw": "150000",
+   "maxDailyWithdraw": "300000",
+   "withdraw": true,
+   "deposit": true,
+   "depositConfirmation": "12"
+  },
+  "id": "APE (ERC20)",
+  "code": "APE (ERC20)",
+  "type": "crypto",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 5,
+  "fees": {},
+  "limits": {
+   "withdraw": {
+    "min": 8,
+    "max": 150000
+   },
+   "amount": {}
+  }
+ },
+ "BCH": {
+  "info": {
+   "currency": "BCH",
+   "withdrawFee": "0.00025",
+   "minWithdraw": "0.001",
+   "maxWithdraw": "100",
+   "maxDailyWithdraw": "200",
+   "withdraw": true,
+   "deposit": true,
+   "depositConfirmation": "20"
+  },
+  "id": "BCH",
+  "code": "BCH",
+  "type": "crypto",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.00025,
+  "fees": {},
+  "limits": {
+   "withdraw": {
+    "min": 0.001,
+    "max": 100
+   },
+   "amount": {}
+  }
+ },
+ "BITO (ERC20)": {
+  "info": {
+   "currency": "BITO (ERC20)",
+   "withdrawFee": "20",
+   "minWithdraw": "200",
+   "maxWithdraw": "100000",
+   "maxDailyWithdraw": "200000",
+   "withdraw": true,
+   "deposit": true,
+   "depositConfirmation": "64"
+  },
+  "id": "BITO (ERC20)",
+  "code": "BITO (ERC20)",
+  "type": "crypto",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 20,
+  "fees": {},
+  "limits": {
+   "withdraw": {
+    "min": 200,
+    "max": 100000
+   },
+   "amount": {}
+  }
+ },
+ "BNB": {
+  "info": {
+   "currency": "BNB",
+   "withdrawFee": "0.00016",
+   "minWithdraw": "0.001",
+   "maxWithdraw": "50",
+   "maxDailyWithdraw": "100",
+   "withdraw": false,
+   "deposit": false,
+   "depositConfirmation": "1"
+  },
+  "id": "BNB",
+  "code": "BNB",
+  "type": "crypto",
+  "active": false,
+  "deposit": false,
+  "withdraw": false,
+  "fee": 0.00016,
+  "fees": {},
+  "limits": {
+   "withdraw": {
+    "min": 0.001,
+    "max": 50
+   },
+   "amount": {}
+  }
+ },
+ "BNB (BEP20)": {
+  "info": {
+   "currency": "BNB (BEP20)",
+   "withdrawFee": "0.0001",
+   "minWithdraw": "0.001",
+   "maxWithdraw": "50",
+   "maxDailyWithdraw": "100",
+   "withdraw": true,
+   "deposit": true,
+   "depositConfirmation": "1"
+  },
+  "id": "BNB (BEP20)",
+  "code": "BNB (BEP20)",
+  "type": "crypto",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.0001,
+  "fees": {},
+  "limits": {
+   "withdraw": {
+    "min": 0.001,
+    "max": 50
+   },
+   "amount": {}
+  }
+ }
+}

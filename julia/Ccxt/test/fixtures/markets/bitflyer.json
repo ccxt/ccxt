@@ -1,0 +1,96 @@
+{
+ "BTC/USD": {
+  "id": "BTC_USD",
+  "symbol": "BTC/USD",
+  "base": "BTC",
+  "quote": "USD",
+  "baseId": "BTC",
+  "quoteId": "USD",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.002,
+  "maker": 0.002,
+  "precision": {},
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "product_code": "BTC_USD",
+   "market_type": "Spot"
+  }
+ },
+ "BTC/JPY:JPY": {
+  "id": "FX_BTC_JPY",
+  "symbol": "BTC/JPY:JPY",
+  "base": "BTC",
+  "quote": "JPY",
+  "settle": "JPY",
+  "baseId": "BTC",
+  "quoteId": "JPY",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0,
+  "maker": 0,
+  "precision": {},
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "product_code": "FX_BTC_JPY",
+   "market_type": "FX"
+  }
+ },
+ "ETH/USD": {
+  "id": "ETH_USD",
+  "symbol": "ETH/USD",
+  "base": "ETH",
+  "quote": "USD",
+  "baseId": "ETH",
+  "quoteId": "USD",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.002,
+  "maker": 0.002,
+  "precision": {},
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "product_code": "ETH_USD",
+   "market_type": "Spot"
+  }
+ }
+}

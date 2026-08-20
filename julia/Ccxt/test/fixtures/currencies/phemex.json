@@ -1,0 +1,274 @@
+{
+ "BTC": {
+  "info": {
+   "currency": "BTC",
+   "name": "Bitcoin",
+   "code": "1",
+   "valueScale": "8",
+   "minValueEv": "1",
+   "maxValueEv": "5000000000000000000",
+   "needAddrTag": "0",
+   "status": "Listed",
+   "displayCurrency": "BTC",
+   "inAssetsDisplay": "1",
+   "perpetual": "0",
+   "stableCoin": "0",
+   "assetsPrecision": "8",
+   "spotInnoStatus": "0",
+   "timestamp": "1760495531"
+  },
+  "id": "BTC",
+  "code": "BTC",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Bitcoin",
+  "active": true,
+  "fees": {},
+  "limits": {
+   "amount": {
+    "min": 1e-8,
+    "max": 50000000000
+   },
+   "withdraw": {}
+  },
+  "valueScale": 8
+ },
+ "ETH": {
+  "info": {
+   "currency": "ETH",
+   "name": "Ethereum",
+   "code": "4",
+   "valueScale": "8",
+   "minValueEv": "1",
+   "maxValueEv": "5000000000000000000",
+   "needAddrTag": "0",
+   "status": "Listed",
+   "displayCurrency": "ETH",
+   "inAssetsDisplay": "1",
+   "perpetual": "0",
+   "stableCoin": "0",
+   "assetsPrecision": "8",
+   "spotInnoStatus": "0",
+   "timestamp": "1760495526"
+  },
+  "id": "ETH",
+  "code": "ETH",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Ethereum",
+  "active": true,
+  "fees": {},
+  "limits": {
+   "amount": {
+    "min": 1e-8,
+    "max": 50000000000
+   },
+   "withdraw": {}
+  },
+  "valueScale": 8
+ },
+ "USDT": {
+  "info": {
+   "currency": "USDT",
+   "name": "TetherUS",
+   "code": "3",
+   "valueScale": "8",
+   "minValueEv": "1",
+   "maxValueEv": "5000000000000000000",
+   "needAddrTag": "0",
+   "status": "Listed",
+   "displayCurrency": "USDT",
+   "inAssetsDisplay": "1",
+   "perpetual": "2",
+   "stableCoin": "1",
+   "assetsPrecision": "8",
+   "spotInnoStatus": "0",
+   "timestamp": "1778207726"
+  },
+  "id": "USDT",
+  "code": "USDT",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "TetherUS",
+  "active": true,
+  "fees": {},
+  "limits": {
+   "amount": {
+    "min": 1e-8,
+    "max": 50000000000
+   },
+   "withdraw": {}
+  },
+  "valueScale": 8
+ },
+ "0G": {
+  "info": {
+   "currency": "0G",
+   "name": "Zero Gravity",
+   "code": "1014",
+   "valueScale": "8",
+   "minValueEv": "1",
+   "maxValueEv": "5000000000000000000",
+   "needAddrTag": "0",
+   "status": "Listed",
+   "displayCurrency": "0G",
+   "inAssetsDisplay": "1",
+   "perpetual": "0",
+   "stableCoin": "0",
+   "assetsPrecision": "8",
+   "spotInnoStatus": "0",
+   "timestamp": "1764988398"
+  },
+  "id": "0G",
+  "code": "0G",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Zero Gravity",
+  "active": true,
+  "fees": {},
+  "limits": {
+   "amount": {
+    "min": 1e-8,
+    "max": 50000000000
+   },
+   "withdraw": {}
+  },
+  "valueScale": 8
+ },
+ "1000000BABYDOGE": {
+  "info": {
+   "currency": "1000000BABYDOGE",
+   "name": "Baby Doge Coin",
+   "code": "306",
+   "valueScale": "4",
+   "minValueEv": "1",
+   "maxValueEv": "5000000000000000000",
+   "needAddrTag": "0",
+   "status": "Listed",
+   "displayCurrency": "1000000BABYDOGE",
+   "inAssetsDisplay": "1",
+   "perpetual": "0",
+   "stableCoin": "0",
+   "assetsPrecision": "4",
+   "spotInnoStatus": "0",
+   "timestamp": "1778294128"
+  },
+  "id": "1000000BABYDOGE",
+  "code": "1000000BABYDOGE",
+  "precision": 0.0001,
+  "type": "crypto",
+  "name": "Baby Doge Coin",
+  "active": true,
+  "fees": {},
+  "limits": {
+   "amount": {
+    "min": 0.0001,
+    "max": 500000000000000
+   },
+   "withdraw": {}
+  },
+  "valueScale": 4
+ },
+ "1000000PIT": {
+  "info": {
+   "currency": "1000000PIT",
+   "name": "Pitbull",
+   "code": "335",
+   "valueScale": "3",
+   "minValueEv": "1",
+   "maxValueEv": "5000000000000000000",
+   "needAddrTag": "0",
+   "status": "Listed",
+   "displayCurrency": "PIT(1M)",
+   "inAssetsDisplay": "1",
+   "perpetual": "0",
+   "stableCoin": "0",
+   "assetsPrecision": "3",
+   "spotInnoStatus": "0",
+   "timestamp": "1760495525"
+  },
+  "id": "1000000PIT",
+  "code": "1000000PIT",
+  "precision": 0.001,
+  "type": "crypto",
+  "name": "Pitbull",
+  "active": true,
+  "fees": {},
+  "limits": {
+   "amount": {
+    "min": 0.001,
+    "max": 5000000000000000
+   },
+   "withdraw": {}
+  },
+  "valueScale": 3
+ },
+ "10000LADYS": {
+  "info": {
+   "currency": "10000LADYS",
+   "name": "Milady Meme Coin",
+   "code": "406",
+   "valueScale": "4",
+   "minValueEv": "1",
+   "maxValueEv": "5000000000000000000",
+   "needAddrTag": "0",
+   "status": "Listed",
+   "displayCurrency": "LADYS(10K)",
+   "inAssetsDisplay": "1",
+   "perpetual": "0",
+   "stableCoin": "0",
+   "assetsPrecision": "4",
+   "spotInnoStatus": "0",
+   "timestamp": "1760495528"
+  },
+  "id": "10000LADYS",
+  "code": "10000LADYS",
+  "precision": 0.0001,
+  "type": "crypto",
+  "name": "Milady Meme Coin",
+  "active": true,
+  "fees": {},
+  "limits": {
+   "amount": {
+    "min": 0.0001,
+    "max": 500000000000000
+   },
+   "withdraw": {}
+  },
+  "valueScale": 4
+ },
+ "1000BONK": {
+  "info": {
+   "currency": "1000BONK",
+   "name": "Bonk",
+   "code": "367",
+   "valueScale": "4",
+   "minValueEv": "1",
+   "maxValueEv": "5000000000000000000",
+   "needAddrTag": "1",
+   "status": "Listed",
+   "displayCurrency": "BONK(1K)",
+   "inAssetsDisplay": "1",
+   "perpetual": "0",
+   "stableCoin": "0",
+   "assetsPrecision": "4",
+   "spotInnoStatus": "0",
+   "timestamp": "1766802834"
+  },
+  "id": "1000BONK",
+  "code": "1000BONK",
+  "precision": 0.0001,
+  "type": "crypto",
+  "name": "Bonk",
+  "active": true,
+  "fees": {},
+  "limits": {
+   "amount": {
+    "min": 0.0001,
+    "max": 500000000000000
+   },
+   "withdraw": {}
+  },
+  "valueScale": 4
+ }
+}

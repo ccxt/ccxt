@@ -1,0 +1,234 @@
+{
+ "BTC/USDT": {
+  "id": "BTC-USDT",
+  "symbol": "BTC/USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.001,
+  "maker": 0.001,
+  "precision": {
+   "amount": 0.000001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {
+    "min": 0.5,
+    "max": 7588825.16352942
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "symbol": "BTC-USDT",
+   "minQty": 0.0001826,
+   "maxQty": 18.2663756,
+   "minNotional": 0.5,
+   "maxNotional": 7588825.16352942,
+   "maxMarketNotional": 7588825.16352942,
+   "status": 1,
+   "tickSize": 0.01,
+   "stepSize": 0.000001,
+   "apiStateSell": true,
+   "apiStateBuy": true,
+   "timeOnline": 0,
+   "offTime": 0,
+   "maintainTime": 0,
+   "displayName": "BTC-USDT"
+  },
+  "feeSide": "get"
+ },
+ "BTC/USDT:USDT": {
+  "id": "BTC-USDT",
+  "symbol": "BTC/USDT:USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.0005,
+  "maker": 0.0002,
+  "contractSize": 1,
+  "precision": {
+   "amount": 0.0001,
+   "price": 0.1
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.0001
+   },
+   "price": {},
+   "cost": {
+    "min": 2
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "contractId": "100",
+   "symbol": "BTC-USDT",
+   "size": "0.0001",
+   "quantityPrecision": 4,
+   "pricePrecision": 1,
+   "feeRate": 0.0005,
+   "makerFeeRate": 0.0002,
+   "takerFeeRate": 0.0005,
+   "tradeMinLimit": 0,
+   "tradeMinQuantity": 0.0001,
+   "tradeMinUSDT": 2,
+   "currency": "USDT",
+   "asset": "BTC",
+   "status": 1,
+   "apiStateOpen": "true",
+   "apiStateClose": "true",
+   "ensureTrigger": true,
+   "triggerFeeRate": "0.00050000",
+   "brokerState": false,
+   "launchTime": 1586275200000,
+   "maintainTime": 0,
+   "offTime": 0,
+   "displayName": "BTC-USDT"
+  },
+  "feeSide": "quote"
+ },
+ "ETH/USDT": {
+  "id": "ETH-USDT",
+  "symbol": "ETH/USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.001,
+  "maker": 0.001,
+  "precision": {
+   "amount": 0.0001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {
+    "min": 1,
+    "max": 8667861.18076081
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "symbol": "ETH-USDT",
+   "minQty": 0.002736,
+   "maxQty": 273.684672,
+   "minNotional": 1,
+   "maxNotional": 8667861.18076081,
+   "maxMarketNotional": 8667861.18076081,
+   "status": 1,
+   "tickSize": 0.01,
+   "stepSize": 0.0001,
+   "apiStateSell": true,
+   "apiStateBuy": true,
+   "timeOnline": 0,
+   "offTime": 0,
+   "maintainTime": 0,
+   "displayName": "ETH-USDT"
+  },
+  "feeSide": "get"
+ },
+ "ETH/USDT:USDT": {
+  "id": "ETH-USDT",
+  "symbol": "ETH/USDT:USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.0005,
+  "maker": 0.0002,
+  "contractSize": 1,
+  "precision": {
+   "amount": 0.01,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.01
+   },
+   "price": {},
+   "cost": {
+    "min": 2
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "contractId": "101",
+   "symbol": "ETH-USDT",
+   "size": "0.01",
+   "quantityPrecision": 2,
+   "pricePrecision": 2,
+   "feeRate": 0.0005,
+   "makerFeeRate": 0.0002,
+   "takerFeeRate": 0.0005,
+   "tradeMinLimit": 0,
+   "tradeMinQuantity": 0.01,
+   "tradeMinUSDT": 2,
+   "currency": "USDT",
+   "asset": "ETH",
+   "status": 1,
+   "apiStateOpen": "true",
+   "apiStateClose": "true",
+   "ensureTrigger": true,
+   "triggerFeeRate": "0.00050000",
+   "brokerState": false,
+   "launchTime": 1586275200000,
+   "maintainTime": 0,
+   "offTime": 0,
+   "displayName": "ETH-USDT"
+  },
+  "feeSide": "quote"
+ }
+}

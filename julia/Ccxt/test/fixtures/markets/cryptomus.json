@@ -1,0 +1,108 @@
+{
+ "BTC/USDT": {
+  "id": "BTC_USDT",
+  "symbol": "BTC/USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.02,
+  "maker": 0.02,
+  "precision": {
+   "amount": 0.000001,
+   "price": 1e-8
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.645594,
+    "max": 99999999
+   },
+   "price": {
+    "min": 0.00001,
+    "max": 10000000000
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "id": "01HSBPVS17CT2GN2FV34K3AMP9",
+   "symbol": "BTC_USDT",
+   "baseCurrency": "BTC",
+   "quoteCurrency": "USDT",
+   "baseMinSize": "0.0000100000000000",
+   "quoteMinSize": "0.6455940000000000",
+   "baseMaxSize": "10000000000.0000000000000000",
+   "quoteMaxSize": "99999999.0000000000000000",
+   "basePrec": "8",
+   "quotePrec": "6",
+   "pricePrec": "1",
+   "baseCurrencyFullName": "Bitcoin",
+   "quoteCurrencyFullName": "Tether USD"
+  },
+  "percentage": true,
+  "feeSide": "get"
+ },
+ "ETH/USDT": {
+  "id": "ETH_USDT",
+  "symbol": "ETH/USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.02,
+  "maker": 0.02,
+  "precision": {
+   "amount": 0.000001,
+   "price": 1e-7
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.17569,
+    "max": 999999999
+   },
+   "price": {
+    "min": 0.0001,
+    "max": 10000000000
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "id": "01HSBPVS17CT2GN2FV34K3AMPW",
+   "symbol": "ETH_USDT",
+   "baseCurrency": "ETH",
+   "quoteCurrency": "USDT",
+   "baseMinSize": "0.0001000000000000",
+   "quoteMinSize": "0.1756900000000000",
+   "baseMaxSize": "10000000000.0000000000000000",
+   "quoteMaxSize": "999999999.0000000000000000",
+   "basePrec": "7",
+   "quotePrec": "6",
+   "pricePrec": "2",
+   "baseCurrencyFullName": "Ethereum",
+   "quoteCurrencyFullName": "Tether USD"
+  },
+  "percentage": true,
+  "feeSide": "get"
+ }
+}

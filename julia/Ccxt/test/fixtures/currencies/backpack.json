@@ -1,0 +1,1076 @@
+{
+ "BTC": {
+  "info": {
+   "coingeckoId": "bitcoin",
+   "displayName": "Bitcoin",
+   "symbol": "BTC",
+   "tokens": [
+    {
+     "blockchain": "Bitcoin",
+     "contractAddress": "bc1",
+     "depositEnabled": true,
+     "displayName": "Bitcoin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.000031",
+     "minimumWithdrawal": "0.000062",
+     "nativeDecimals": 8,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.000031"
+    },
+    {
+     "blockchain": "Solana",
+     "contractAddress": "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
+     "depositEnabled": true,
+     "displayName": "Bitcoin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.000008",
+     "minimumWithdrawal": "0.000016",
+     "nativeDecimals": 8,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.000008"
+    }
+   ]
+  },
+  "id": "BTC",
+  "code": "BTC",
+  "type": "crypto",
+  "name": "Bitcoin",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.000008,
+  "fees": {},
+  "networks": {
+   "BTC": {
+    "id": "Bitcoin",
+    "network": "BTC",
+    "limits": {
+     "withdraw": {
+      "min": 0.000062
+     },
+     "deposit": {
+      "min": 0.000031
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.000031,
+    "info": {
+     "blockchain": "Bitcoin",
+     "contractAddress": "bc1",
+     "depositEnabled": true,
+     "displayName": "Bitcoin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.000031",
+     "minimumWithdrawal": "0.000062",
+     "nativeDecimals": 8,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.000031"
+    }
+   },
+   "SOL": {
+    "id": "Solana",
+    "network": "SOL",
+    "limits": {
+     "withdraw": {
+      "min": 0.000016
+     },
+     "deposit": {
+      "min": 0.000008
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.000008,
+    "info": {
+     "blockchain": "Solana",
+     "contractAddress": "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
+     "depositEnabled": true,
+     "displayName": "Bitcoin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.000008",
+     "minimumWithdrawal": "0.000016",
+     "nativeDecimals": 8,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.000008"
+    }
+   }
+  },
+  "limits": {
+   "deposit": {
+    "min": 0.000008
+   },
+   "withdraw": {
+    "min": 0.000016
+   }
+  }
+ },
+ "ETH": {
+  "info": {
+   "coingeckoId": "ethereum",
+   "displayName": "Ethereum",
+   "symbol": "ETH",
+   "tokens": [
+    {
+     "blockchain": "Ethereum",
+     "contractAddress": "0x0",
+     "depositEnabled": true,
+     "displayName": "Ethereum",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.0014",
+     "minimumWithdrawal": "0.0028",
+     "nativeDecimals": 18,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.0014"
+    },
+    {
+     "blockchain": "Arbitrum",
+     "contractAddress": "0x0",
+     "depositEnabled": true,
+     "displayName": "Ethereum",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.0002",
+     "minimumWithdrawal": "0.0004",
+     "nativeDecimals": 18,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.0002"
+    },
+    {
+     "blockchain": "Base",
+     "contractAddress": "0x0",
+     "depositEnabled": true,
+     "displayName": "Ethereum",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.0002",
+     "minimumWithdrawal": "0.0004",
+     "nativeDecimals": 18,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.0002"
+    },
+    {
+     "blockchain": "Optimism",
+     "contractAddress": "0x0",
+     "depositEnabled": true,
+     "displayName": "Ethereum",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.0002",
+     "minimumWithdrawal": "0.0004",
+     "nativeDecimals": 18,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.0002"
+    }
+   ]
+  },
+  "id": "ETH",
+  "code": "ETH",
+  "type": "crypto",
+  "name": "Ethereum",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.0002,
+  "fees": {},
+  "networks": {
+   "ETH": {
+    "id": "Ethereum",
+    "network": "ETH",
+    "limits": {
+     "withdraw": {
+      "min": 0.0028
+     },
+     "deposit": {
+      "min": 0.0014
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.0014,
+    "info": {
+     "blockchain": "Ethereum",
+     "contractAddress": "0x0",
+     "depositEnabled": true,
+     "displayName": "Ethereum",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.0014",
+     "minimumWithdrawal": "0.0028",
+     "nativeDecimals": 18,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.0014"
+    }
+   },
+   "ARB": {
+    "id": "Arbitrum",
+    "network": "ARB",
+    "limits": {
+     "withdraw": {
+      "min": 0.0004
+     },
+     "deposit": {
+      "min": 0.0002
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.0002,
+    "info": {
+     "blockchain": "Arbitrum",
+     "contractAddress": "0x0",
+     "depositEnabled": true,
+     "displayName": "Ethereum",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.0002",
+     "minimumWithdrawal": "0.0004",
+     "nativeDecimals": 18,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.0002"
+    }
+   },
+   "BASE": {
+    "id": "Base",
+    "network": "BASE",
+    "limits": {
+     "withdraw": {
+      "min": 0.0004
+     },
+     "deposit": {
+      "min": 0.0002
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.0002,
+    "info": {
+     "blockchain": "Base",
+     "contractAddress": "0x0",
+     "depositEnabled": true,
+     "displayName": "Ethereum",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.0002",
+     "minimumWithdrawal": "0.0004",
+     "nativeDecimals": 18,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.0002"
+    }
+   },
+   "OPTIMISM": {
+    "id": "Optimism",
+    "network": "OPTIMISM",
+    "limits": {
+     "withdraw": {
+      "min": 0.0004
+     },
+     "deposit": {
+      "min": 0.0002
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.0002,
+    "info": {
+     "blockchain": "Optimism",
+     "contractAddress": "0x0",
+     "depositEnabled": true,
+     "displayName": "Ethereum",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.0002",
+     "minimumWithdrawal": "0.0004",
+     "nativeDecimals": 18,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.0002"
+    }
+   }
+  },
+  "limits": {
+   "deposit": {
+    "min": 0.0002
+   },
+   "withdraw": {
+    "min": 0.0004
+   }
+  }
+ },
+ "USDC": {
+  "info": {
+   "coingeckoId": "usd-coin",
+   "displayName": "USD Coin",
+   "symbol": "USDC",
+   "tokens": [
+    {
+     "blockchain": "Solana",
+     "contractAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.5",
+     "minimumWithdrawal": "1",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.5"
+    },
+    {
+     "blockchain": "Ethereum",
+     "contractAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "2.5",
+     "minimumWithdrawal": "5",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "2.5"
+    },
+    {
+     "blockchain": "Sui",
+     "contractAddress": "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.1",
+     "minimumWithdrawal": "0.2",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.1"
+    },
+    {
+     "blockchain": "Arbitrum",
+     "contractAddress": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.4",
+     "minimumWithdrawal": "0.8",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.4"
+    },
+    {
+     "blockchain": "Base",
+     "contractAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.4",
+     "minimumWithdrawal": "0.8",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.4"
+    },
+    {
+     "blockchain": "Optimism",
+     "contractAddress": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.4",
+     "minimumWithdrawal": "0.8",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.4"
+    },
+    {
+     "blockchain": "Polygon",
+     "contractAddress": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.1",
+     "minimumWithdrawal": "0.2",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.1"
+    },
+    {
+     "blockchain": "Sei",
+     "contractAddress": "0xe15fC38F6D8c56aF07bbCBe3BAf5708A2Bf42392",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.1",
+     "minimumWithdrawal": "0.2",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.1"
+    },
+    {
+     "blockchain": "Aptos",
+     "contractAddress": "0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.1",
+     "minimumWithdrawal": "0.2",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.1"
+    },
+    {
+     "blockchain": "HyperEVM",
+     "contractAddress": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.1",
+     "minimumWithdrawal": "0.2",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.1"
+    },
+    {
+     "blockchain": "Monad",
+     "contractAddress": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.1",
+     "minimumWithdrawal": "0.2",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.1"
+    }
+   ]
+  },
+  "id": "USDC",
+  "code": "USDC",
+  "type": "crypto",
+  "name": "USD Coin",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.1,
+  "fees": {},
+  "networks": {
+   "SOL": {
+    "id": "Solana",
+    "network": "SOL",
+    "limits": {
+     "withdraw": {
+      "min": 1
+     },
+     "deposit": {
+      "min": 0.5
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.5,
+    "info": {
+     "blockchain": "Solana",
+     "contractAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.5",
+     "minimumWithdrawal": "1",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.5"
+    }
+   },
+   "ERC20": {
+    "id": "Ethereum",
+    "network": "ERC20",
+    "limits": {
+     "withdraw": {
+      "min": 5
+     },
+     "deposit": {
+      "min": 2.5
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "fee": 2.5,
+    "info": {
+     "blockchain": "Ethereum",
+     "contractAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "2.5",
+     "minimumWithdrawal": "5",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "2.5"
+    }
+   },
+   "SUI": {
+    "id": "Sui",
+    "network": "SUI",
+    "limits": {
+     "withdraw": {
+      "min": 0.2
+     },
+     "deposit": {
+      "min": 0.1
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.1,
+    "info": {
+     "blockchain": "Sui",
+     "contractAddress": "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.1",
+     "minimumWithdrawal": "0.2",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.1"
+    }
+   },
+   "ARB": {
+    "id": "Arbitrum",
+    "network": "ARB",
+    "limits": {
+     "withdraw": {
+      "min": 0.8
+     },
+     "deposit": {
+      "min": 0.4
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.4,
+    "info": {
+     "blockchain": "Arbitrum",
+     "contractAddress": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.4",
+     "minimumWithdrawal": "0.8",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.4"
+    }
+   },
+   "BASE": {
+    "id": "Base",
+    "network": "BASE",
+    "limits": {
+     "withdraw": {
+      "min": 0.8
+     },
+     "deposit": {
+      "min": 0.4
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.4,
+    "info": {
+     "blockchain": "Base",
+     "contractAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.4",
+     "minimumWithdrawal": "0.8",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.4"
+    }
+   },
+   "OPTIMISM": {
+    "id": "Optimism",
+    "network": "OPTIMISM",
+    "limits": {
+     "withdraw": {
+      "min": 0.8
+     },
+     "deposit": {
+      "min": 0.4
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.4,
+    "info": {
+     "blockchain": "Optimism",
+     "contractAddress": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.4",
+     "minimumWithdrawal": "0.8",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.4"
+    }
+   },
+   "MATIC": {
+    "id": "Polygon",
+    "network": "MATIC",
+    "limits": {
+     "withdraw": {
+      "min": 0.2
+     },
+     "deposit": {
+      "min": 0.1
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.1,
+    "info": {
+     "blockchain": "Polygon",
+     "contractAddress": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.1",
+     "minimumWithdrawal": "0.2",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.1"
+    }
+   },
+   "SEI": {
+    "id": "Sei",
+    "network": "SEI",
+    "limits": {
+     "withdraw": {
+      "min": 0.2
+     },
+     "deposit": {
+      "min": 0.1
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.1,
+    "info": {
+     "blockchain": "Sei",
+     "contractAddress": "0xe15fC38F6D8c56aF07bbCBe3BAf5708A2Bf42392",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.1",
+     "minimumWithdrawal": "0.2",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.1"
+    }
+   },
+   "APT": {
+    "id": "Aptos",
+    "network": "APT",
+    "limits": {
+     "withdraw": {
+      "min": 0.2
+     },
+     "deposit": {
+      "min": 0.1
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.1,
+    "info": {
+     "blockchain": "Aptos",
+     "contractAddress": "0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.1",
+     "minimumWithdrawal": "0.2",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.1"
+    }
+   },
+   "hyperevm": {
+    "id": "HyperEVM",
+    "network": "hyperevm",
+    "limits": {
+     "withdraw": {
+      "min": 0.2
+     },
+     "deposit": {
+      "min": 0.1
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.1,
+    "info": {
+     "blockchain": "HyperEVM",
+     "contractAddress": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.1",
+     "minimumWithdrawal": "0.2",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.1"
+    }
+   },
+   "monad": {
+    "id": "Monad",
+    "network": "monad",
+    "limits": {
+     "withdraw": {
+      "min": 0.2
+     },
+     "deposit": {
+      "min": 0.1
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.1,
+    "info": {
+     "blockchain": "Monad",
+     "contractAddress": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
+     "depositEnabled": true,
+     "displayName": "USD Coin",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.1",
+     "minimumWithdrawal": "0.2",
+     "nativeDecimals": 6,
+     "withdrawEnabled": true,
+     "withdrawalFee": "0.1"
+    }
+   }
+  },
+  "limits": {
+   "deposit": {
+    "min": 0.1
+   },
+   "withdraw": {
+    "min": 0.2
+   }
+  }
+ },
+ "0G": {
+  "info": {
+   "coingeckoId": "zero-gravity",
+   "displayName": "0G",
+   "symbol": "0G",
+   "tokens": [
+    {
+     "blockchain": "0G",
+     "contractAddress": "0g",
+     "depositEnabled": true,
+     "displayName": "0G",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "1",
+     "minimumWithdrawal": "2",
+     "nativeDecimals": 18,
+     "withdrawEnabled": true,
+     "withdrawalFee": "1"
+    }
+   ]
+  },
+  "id": "0G",
+  "code": "0G",
+  "type": "crypto",
+  "name": "0G",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 1,
+  "fees": {},
+  "networks": {
+   "0g": {
+    "id": "0G",
+    "network": "0g",
+    "limits": {
+     "withdraw": {
+      "min": 2
+     },
+     "deposit": {
+      "min": 1
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "fee": 1,
+    "info": {
+     "blockchain": "0G",
+     "contractAddress": "0g",
+     "depositEnabled": true,
+     "displayName": "0G",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "1",
+     "minimumWithdrawal": "2",
+     "nativeDecimals": 18,
+     "withdrawEnabled": true,
+     "withdrawalFee": "1"
+    }
+   }
+  },
+  "limits": {
+   "deposit": {
+    "min": 1
+   },
+   "withdraw": {
+    "min": 2
+   }
+  }
+ },
+ "2Z": {
+  "info": {
+   "coingeckoId": "doublezero",
+   "displayName": "2Z",
+   "symbol": "2Z",
+   "tokens": [
+    {
+     "blockchain": "Solana",
+     "contractAddress": "J6pQQ3FAcJQeWPPGppWRb4nM8jU3wLyYbRrLh7feMfvd",
+     "depositEnabled": true,
+     "displayName": "2Z",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "10",
+     "minimumWithdrawal": "20",
+     "nativeDecimals": 8,
+     "withdrawEnabled": true,
+     "withdrawalFee": "10"
+    }
+   ]
+  },
+  "id": "2Z",
+  "code": "2Z",
+  "type": "crypto",
+  "name": "2Z",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 10,
+  "fees": {},
+  "networks": {
+   "SOL": {
+    "id": "Solana",
+    "network": "SOL",
+    "limits": {
+     "withdraw": {
+      "min": 20
+     },
+     "deposit": {
+      "min": 10
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "fee": 10,
+    "info": {
+     "blockchain": "Solana",
+     "contractAddress": "J6pQQ3FAcJQeWPPGppWRb4nM8jU3wLyYbRrLh7feMfvd",
+     "depositEnabled": true,
+     "displayName": "2Z",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "10",
+     "minimumWithdrawal": "20",
+     "nativeDecimals": 8,
+     "withdrawEnabled": true,
+     "withdrawalFee": "10"
+    }
+   }
+  },
+  "limits": {
+   "deposit": {
+    "min": 10
+   },
+   "withdraw": {
+    "min": 20
+   }
+  }
+ },
+ "A.US": {
+  "info": {
+   "coingeckoId": null,
+   "displayName": "Agilent Technologies, Inc.",
+   "symbol": "A.US",
+   "tokens": [
+    {
+     "blockchain": "Solana",
+     "contractAddress": "A1V8bP3YJYBw5pz9rh8aG6d9nVUku9QFXQZp6mTzLt6v",
+     "depositEnabled": false,
+     "displayName": "Agilent Technologies, Inc.",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.004",
+     "minimumWithdrawal": "0.008",
+     "nativeDecimals": 9,
+     "withdrawEnabled": false,
+     "withdrawalFee": "0.004"
+    }
+   ]
+  },
+  "id": "A.US",
+  "code": "A.US",
+  "type": "crypto",
+  "name": "Agilent Technologies, Inc.",
+  "deposit": false,
+  "withdraw": false,
+  "fee": 0.004,
+  "fees": {},
+  "networks": {
+   "SOL": {
+    "id": "Solana",
+    "network": "SOL",
+    "limits": {
+     "withdraw": {
+      "min": 0.008
+     },
+     "deposit": {
+      "min": 0.004
+     }
+    },
+    "deposit": false,
+    "withdraw": false,
+    "fee": 0.004,
+    "info": {
+     "blockchain": "Solana",
+     "contractAddress": "A1V8bP3YJYBw5pz9rh8aG6d9nVUku9QFXQZp6mTzLt6v",
+     "depositEnabled": false,
+     "displayName": "Agilent Technologies, Inc.",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.004",
+     "minimumWithdrawal": "0.008",
+     "nativeDecimals": 9,
+     "withdrawEnabled": false,
+     "withdrawalFee": "0.004"
+    }
+   }
+  },
+  "limits": {
+   "deposit": {
+    "min": 0.004
+   },
+   "withdraw": {
+    "min": 0.008
+   }
+  }
+ },
+ "AA.US": {
+  "info": {
+   "coingeckoId": null,
+   "displayName": "Alcoa Corporation",
+   "symbol": "AA.US",
+   "tokens": [
+    {
+     "blockchain": "Solana",
+     "contractAddress": "AAgGxYVcSKm5qPQtAXxCTm99dzK5bnknkMbCHppBuYji",
+     "depositEnabled": false,
+     "displayName": "Alcoa Corporation",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.01",
+     "minimumWithdrawal": "0.02",
+     "nativeDecimals": 9,
+     "withdrawEnabled": false,
+     "withdrawalFee": "0.01"
+    }
+   ]
+  },
+  "id": "AA.US",
+  "code": "AA.US",
+  "type": "crypto",
+  "name": "Alcoa Corporation",
+  "deposit": false,
+  "withdraw": false,
+  "fee": 0.01,
+  "fees": {},
+  "networks": {
+   "SOL": {
+    "id": "Solana",
+    "network": "SOL",
+    "limits": {
+     "withdraw": {
+      "min": 0.02
+     },
+     "deposit": {
+      "min": 0.01
+     }
+    },
+    "deposit": false,
+    "withdraw": false,
+    "fee": 0.01,
+    "info": {
+     "blockchain": "Solana",
+     "contractAddress": "AAgGxYVcSKm5qPQtAXxCTm99dzK5bnknkMbCHppBuYji",
+     "depositEnabled": false,
+     "displayName": "Alcoa Corporation",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0.01",
+     "minimumWithdrawal": "0.02",
+     "nativeDecimals": 9,
+     "withdrawEnabled": false,
+     "withdrawalFee": "0.01"
+    }
+   }
+  },
+  "limits": {
+   "deposit": {
+    "min": 0.01
+   },
+   "withdraw": {
+    "min": 0.02
+   }
+  }
+ },
+ "AACB.US": {
+  "info": {
+   "coingeckoId": null,
+   "displayName": "AACB.US",
+   "symbol": "AACB.US",
+   "tokens": [
+    {
+     "blockchain": "Solana",
+     "contractAddress": "AACXc4xchRygPuNJ516exoW7mmm5jrzfFdTjma7UuGDT",
+     "depositEnabled": false,
+     "displayName": "AACB.US",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0",
+     "minimumWithdrawal": "0",
+     "nativeDecimals": 9,
+     "withdrawEnabled": false,
+     "withdrawalFee": "0"
+    }
+   ]
+  },
+  "id": "AACB.US",
+  "code": "AACB.US",
+  "type": "crypto",
+  "name": "AACB.US",
+  "deposit": false,
+  "withdraw": false,
+  "fee": 0,
+  "fees": {},
+  "networks": {
+   "SOL": {
+    "id": "Solana",
+    "network": "SOL",
+    "limits": {
+     "withdraw": {
+      "min": 0
+     },
+     "deposit": {
+      "min": 0
+     }
+    },
+    "deposit": false,
+    "withdraw": false,
+    "fee": 0,
+    "info": {
+     "blockchain": "Solana",
+     "contractAddress": "AACXc4xchRygPuNJ516exoW7mmm5jrzfFdTjma7UuGDT",
+     "depositEnabled": false,
+     "displayName": "AACB.US",
+     "maximumWithdrawal": null,
+     "minimumDeposit": "0",
+     "minimumWithdrawal": "0",
+     "nativeDecimals": 9,
+     "withdrawEnabled": false,
+     "withdrawalFee": "0"
+    }
+   }
+  },
+  "limits": {
+   "deposit": {
+    "min": 0
+   },
+   "withdraw": {
+    "min": 0
+   }
+  }
+ }
+}

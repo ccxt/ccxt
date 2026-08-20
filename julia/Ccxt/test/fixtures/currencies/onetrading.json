@@ -1,0 +1,153 @@
+{
+ "BTC": {
+  "info": {
+   "code": "BTC",
+   "precision": 8,
+   "unified_cryptoasset_id": 1,
+   "name": "Bitcoin",
+   "collateral_percentage": 0
+  },
+  "id": "BTC",
+  "code": "BTC",
+  "precision": 1e-8,
+  "name": "Bitcoin",
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "ETH": {
+  "info": {
+   "code": "ETH",
+   "precision": 8,
+   "unified_cryptoasset_id": 1027,
+   "name": "Ethereum",
+   "collateral_percentage": 0
+  },
+  "id": "ETH",
+  "code": "ETH",
+  "precision": 1e-8,
+  "name": "Ethereum",
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "EUR": {
+  "info": {
+   "code": "EUR",
+   "precision": 2,
+   "unified_cryptoasset_id": 0,
+   "name": "Euro",
+   "collateral_percentage": 99
+  },
+  "id": "EUR",
+  "code": "EUR",
+  "precision": 0.01,
+  "name": "Euro",
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "USD": {
+  "info": {
+   "code": "USD",
+   "precision": 2,
+   "unified_cryptoasset_id": 0,
+   "name": "United States dollar",
+   "collateral_percentage": 100
+  },
+  "id": "USD",
+  "code": "USD",
+  "precision": 0.01,
+  "name": "United States dollar",
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "1INCH": {
+  "info": {
+   "code": "1INCH",
+   "precision": 8,
+   "unified_cryptoasset_id": 8104,
+   "name": "1inch Network",
+   "collateral_percentage": 0
+  },
+  "id": "1INCH",
+  "code": "1INCH",
+  "precision": 1e-8,
+  "name": "1inch Network",
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "AAVE": {
+  "info": {
+   "code": "AAVE",
+   "precision": 8,
+   "unified_cryptoasset_id": 7278,
+   "name": "Aave",
+   "collateral_percentage": 0
+  },
+  "id": "AAVE",
+  "code": "AAVE",
+  "precision": 1e-8,
+  "name": "Aave",
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "ACH": {
+  "info": {
+   "code": "ACH",
+   "precision": 8,
+   "unified_cryptoasset_id": 6958,
+   "name": "Alchemy Pay"
+  },
+  "id": "ACH",
+  "code": "ACH",
+  "precision": 1e-8,
+  "name": "Alchemy Pay",
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "ADA": {
+  "info": {
+   "code": "ADA",
+   "precision": 8,
+   "unified_cryptoasset_id": 2010,
+   "name": "Cardano",
+   "collateral_percentage": 0
+  },
+  "id": "ADA",
+  "code": "ADA",
+  "precision": 1e-8,
+  "name": "Cardano",
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ }
+}

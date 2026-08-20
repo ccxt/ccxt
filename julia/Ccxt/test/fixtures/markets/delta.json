@@ -1,0 +1,2109 @@
+{
+ "BTC/USDT": {
+  "id": "B-C-BTC-65000-1008260445",
+  "symbol": "BTC/USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "binary_call_options",
+  "spot": false,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0,
+  "maker": 0,
+  "contractSize": 1,
+  "expiry": 1786337100000,
+  "expiryDatetime": "2026-08-10T04:45:00.000Z",
+  "strike": 65000,
+  "precision": {
+   "amount": 1,
+   "price": 0.0001
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 1,
+    "max": 10000
+   },
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "created": 1786335902000,
+  "info": {
+   "spot_index": {
+    "id": 2,
+    "config": {
+     "impact_size": {
+      "max_impact_size": 150000,
+      "min_impact_size": 5000,
+      "step_value": 5000
+     },
+     "price_alert_enabled": true,
+     "quoting_asset": "USDT",
+     "service_id": 1,
+     "underlying_asset": "BTC"
+    },
+    "description": "Bitcoin spot price index quoted in USDT",
+    "symbol": ".DEXBTUSDT",
+    "tick_size": "0.500000000000000000",
+    "quoting_asset_id": 5,
+    "underlying_asset_id": 2,
+    "impact_size": "1.000000000000000000",
+    "constituent_exchanges": [
+     {
+      "exchange": "binance",
+      "health_interval": 60,
+      "health_priority": 1,
+      "weight": 1
+     },
+     {
+      "exchange": "okex",
+      "health_interval": 60,
+      "health_priority": 2,
+      "weight": 1
+     },
+     {
+      "exchange": "bybit",
+      "health_interval": 60,
+      "health_priority": 3,
+      "weight": 1
+     }
+    ],
+    "constituent_indices": null,
+    "health_interval": 300,
+    "index_type": "spot_pair",
+    "is_composite": false,
+    "price_method": "orderbook"
+   },
+   "barrier_price": null,
+   "maker_commission_rate": "0",
+   "settlement_time": "2026-08-10T04:45:00Z",
+   "price_band": "2",
+   "initial_margin_scaling_factor": "0",
+   "funding_method": "mark_price",
+   "product_specs": {
+    "backup_vol_expiry_time": 31536000,
+    "isolated_liq_penalty_factor": 0.001,
+    "isolated_liq_premium_penalty_factor": 0.2,
+    "max_deviation_from_external_vol": 0.75,
+    "max_lower_deviation_from_external_vol": 0.75,
+    "max_upper_deviation_from_external_vol": 0.5,
+    "max_volatility": 3,
+    "min_volatility": 0.1,
+    "premium_commission_rate": 0.075,
+    "vol_calculation_method": "orderbook",
+    "vol_expiry_time": 31536000
+   },
+   "liquidation_penalty_factor": "0.5",
+   "underlying_asset": {
+    "id": 2,
+    "name": "Bitcoin",
+    "networks": [],
+    "symbol": "BTC",
+    "precision": 8,
+    "sort_priority": 2,
+    "base_withdrawal_fee": "0.000500000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "10.000000000000000000",
+    "kyc_withdrawal_limit": "0.500000000000000000",
+    "min_withdrawal_amount": "0.001000000000000000",
+    "minimum_precision": 4,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "quoting_asset": {
+    "id": 5,
+    "name": "Tether",
+    "networks": [],
+    "symbol": "USDT",
+    "precision": 8,
+    "sort_priority": 1,
+    "base_withdrawal_fee": "10.000000000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "100000.000000000000000000",
+    "kyc_withdrawal_limit": "10000.000000000000000000",
+    "min_withdrawal_amount": "30.000000000000000000",
+    "minimum_precision": 3,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "short_description": "BTC 15m Binary Call",
+   "taker_commission_rate": "0",
+   "default_leverage": "100.000000000000000000",
+   "strike_price": "65000",
+   "settling_asset": {
+    "id": 5,
+    "name": "Tether",
+    "networks": [],
+    "symbol": "USDT",
+    "precision": 8,
+    "sort_priority": 1,
+    "base_withdrawal_fee": "10.000000000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "100000.000000000000000000",
+    "kyc_withdrawal_limit": "10000.000000000000000000",
+    "min_withdrawal_amount": "30.000000000000000000",
+    "minimum_precision": 3,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "settlement_price": null,
+   "description": "BTC binary call option expiring on 10-8-2026 04:45 UTC",
+   "max_leverage_notional": "200000",
+   "insurance_fund_margin_contribution": "1",
+   "maintenance_margin_scaling_factor": "0",
+   "contract_value": "1",
+   "contract_type": "binary_call_options",
+   "trading_status": "disrupted_post_only",
+   "notional_type": "vanilla",
+   "launch_time": "2026-08-10T04:25:02Z",
+   "contract_unit_currency": "BTC",
+   "position_size_limit": 10000,
+   "is_quanto": false,
+   "id": 324740,
+   "annualized_funding": "10.95",
+   "ui_config": {
+    "default_trading_view_candle": "15",
+    "leverage_slider_values": [
+     1,
+     2,
+     5,
+     10,
+     25,
+     50,
+     100
+    ],
+    "price_clubbing_values": [
+     0.1,
+     0.5,
+     1,
+     5,
+     10
+    ],
+    "show_bracket_orders": false,
+    "sort_priority": 30,
+    "tags": []
+   },
+   "impact_notional": "10000",
+   "tick_size": "0.0001",
+   "auction_start_time": "2026-08-10T04:25:02Z",
+   "state": "live",
+   "disruption_reason": "New Contract Launched",
+   "symbol": "B-C-BTC-65000-1008260445",
+   "initial_margin": "0.5",
+   "impact_size": 200,
+   "auction_finish_time": "2026-08-10T04:30:02Z",
+   "maintenance_margin": "0.25",
+   "basis_factor_max_limit": "10.95"
+  },
+  "tierBased": true,
+  "percentage": true,
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.0015
+    ],
+    [
+     100,
+     0.0013
+    ],
+    [
+     250,
+     0.0013
+    ],
+    [
+     1000,
+     0.001
+    ],
+    [
+     5000,
+     0.0009
+    ],
+    [
+     10000,
+     0.00075
+    ],
+    [
+     20000,
+     0.00065
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.001
+    ],
+    [
+     100,
+     0.001
+    ],
+    [
+     250,
+     0.0009
+    ],
+    [
+     1000,
+     0.00075
+    ],
+    [
+     5000,
+     0.0006
+    ],
+    [
+     10000,
+     0.0005
+    ],
+    [
+     20000,
+     0.0005
+    ]
+   ]
+  },
+  "numericId": 324740
+ },
+ "BTC/USDT:USDT-260810-63200-C": {
+  "id": "C-BTC-63200-100826",
+  "symbol": "BTC/USDT:USDT-260810-63200-C",
+  "base": "BTC",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "option",
+  "spot": false,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": true,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.00015,
+  "maker": 0.00015,
+  "contractSize": 0.001,
+  "expiry": 1786363200000,
+  "expiryDatetime": "2026-08-10T12:00:00.000Z",
+  "strike": 63200,
+  "optionType": "call",
+  "precision": {
+   "amount": 1,
+   "price": 0.1
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 1,
+    "max": 30000
+   },
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "created": 1786123801000,
+  "info": {
+   "spot_index": {
+    "id": 2,
+    "config": {
+     "impact_size": {
+      "max_impact_size": 150000,
+      "min_impact_size": 5000,
+      "step_value": 5000
+     },
+     "price_alert_enabled": true,
+     "quoting_asset": "USDT",
+     "service_id": 1,
+     "underlying_asset": "BTC"
+    },
+    "description": "Bitcoin spot price index quoted in USDT",
+    "symbol": ".DEXBTUSDT",
+    "tick_size": "0.500000000000000000",
+    "quoting_asset_id": 5,
+    "underlying_asset_id": 2,
+    "impact_size": "1.000000000000000000",
+    "constituent_exchanges": [
+     {
+      "exchange": "binance",
+      "health_interval": 60,
+      "health_priority": 1,
+      "weight": 1
+     },
+     {
+      "exchange": "okex",
+      "health_interval": 60,
+      "health_priority": 2,
+      "weight": 1
+     },
+     {
+      "exchange": "bybit",
+      "health_interval": 60,
+      "health_priority": 3,
+      "weight": 1
+     }
+    ],
+    "constituent_indices": null,
+    "health_interval": 300,
+    "index_type": "spot_pair",
+    "is_composite": false,
+    "price_method": "orderbook"
+   },
+   "barrier_price": null,
+   "maker_commission_rate": "0.00015",
+   "settlement_time": "2026-08-10T12:00:00Z",
+   "price_band": "2",
+   "initial_margin_scaling_factor": "0.000002",
+   "funding_method": "mark_price",
+   "product_specs": {
+    "backup_vol_expiry_time": 31536000,
+    "isolated_liq_penalty_factor": 0.001,
+    "isolated_liq_premium_penalty_factor": 0.2,
+    "max_deviation_from_external_vol": 0.75,
+    "max_lower_deviation_from_external_vol": 0.75,
+    "max_upper_deviation_from_external_vol": 0.5,
+    "max_volatility": 3,
+    "min_volatility": 0.1,
+    "premium_commission_rate": 0.075,
+    "vol_calculation_method": "orderbook",
+    "vol_expiry_time": 31536000
+   },
+   "liquidation_penalty_factor": "0.5",
+   "underlying_asset": {
+    "id": 2,
+    "name": "Bitcoin",
+    "networks": [],
+    "symbol": "BTC",
+    "precision": 8,
+    "sort_priority": 2,
+    "base_withdrawal_fee": "0.000500000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "10.000000000000000000",
+    "kyc_withdrawal_limit": "0.500000000000000000",
+    "min_withdrawal_amount": "0.001000000000000000",
+    "minimum_precision": 4,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "quoting_asset": {
+    "id": 5,
+    "name": "Tether",
+    "networks": [],
+    "symbol": "USDT",
+    "precision": 8,
+    "sort_priority": 1,
+    "base_withdrawal_fee": "10.000000000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "100000.000000000000000000",
+    "kyc_withdrawal_limit": "10000.000000000000000000",
+    "min_withdrawal_amount": "30.000000000000000000",
+    "minimum_precision": 3,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "short_description": "BTC  Call",
+   "taker_commission_rate": "0.00015",
+   "default_leverage": "100.000000000000000000",
+   "strike_price": "63200",
+   "settling_asset": {
+    "id": 5,
+    "name": "Tether",
+    "networks": [],
+    "symbol": "USDT",
+    "precision": 8,
+    "sort_priority": 1,
+    "base_withdrawal_fee": "10.000000000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "100000.000000000000000000",
+    "kyc_withdrawal_limit": "10000.000000000000000000",
+    "min_withdrawal_amount": "30.000000000000000000",
+    "minimum_precision": 3,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "settlement_price": null,
+   "description": "BTC call option expiring on 10-8-2026",
+   "max_leverage_notional": "200000",
+   "insurance_fund_margin_contribution": "1",
+   "maintenance_margin_scaling_factor": "0.000001",
+   "contract_value": "0.001",
+   "contract_type": "call_options",
+   "trading_status": "operational",
+   "notional_type": "vanilla",
+   "launch_time": "2026-08-07T17:30:01Z",
+   "contract_unit_currency": "BTC",
+   "position_size_limit": 30000,
+   "is_quanto": false,
+   "id": 321818,
+   "annualized_funding": "10.95",
+   "ui_config": {
+    "default_trading_view_candle": "60",
+    "leverage_slider_values": [
+     1,
+     2,
+     5,
+     10,
+     25,
+     50,
+     100
+    ],
+    "price_clubbing_values": [
+     0.1,
+     0.5,
+     1,
+     5,
+     10
+    ],
+    "show_bracket_orders": false,
+    "sort_priority": 30,
+    "tags": []
+   },
+   "impact_notional": "10000",
+   "tick_size": "0.1",
+   "auction_start_time": "2026-08-08T09:24:12Z",
+   "state": "live",
+   "disruption_reason": null,
+   "symbol": "C-BTC-63200-100826",
+   "initial_margin": "1",
+   "impact_size": 200,
+   "auction_finish_time": null,
+   "maintenance_margin": "0.5",
+   "basis_factor_max_limit": "10.95"
+  },
+  "tierBased": true,
+  "percentage": true,
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.0015
+    ],
+    [
+     100,
+     0.0013
+    ],
+    [
+     250,
+     0.0013
+    ],
+    [
+     1000,
+     0.001
+    ],
+    [
+     5000,
+     0.0009
+    ],
+    [
+     10000,
+     0.00075
+    ],
+    [
+     20000,
+     0.00065
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.001
+    ],
+    [
+     100,
+     0.001
+    ],
+    [
+     250,
+     0.0009
+    ],
+    [
+     1000,
+     0.00075
+    ],
+    [
+     5000,
+     0.0006
+    ],
+    [
+     10000,
+     0.0005
+    ],
+    [
+     20000,
+     0.0005
+    ]
+   ]
+  },
+  "numericId": 321818
+ },
+ "SOL/USDT": {
+  "id": "SOL_USDT",
+  "symbol": "SOL/USDT",
+  "base": "SOL",
+  "quote": "USDT",
+  "baseId": "SOL",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.00075,
+  "maker": 0.00075,
+  "precision": {
+   "amount": 0.01,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 1,
+    "max": 10000000
+   },
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "created": 1643883491000,
+  "info": {
+   "spot_index": {
+    "id": 105,
+    "config": {
+     "price_alert_enabled": true,
+     "quoting_asset": "USDT",
+     "service_id": 8,
+     "underlying_asset": "SOL"
+    },
+    "description": "Solana spot index quoted in USDT",
+    "symbol": ".DESOLUSDT",
+    "tick_size": "0.000100000000000000",
+    "quoting_asset_id": 5,
+    "underlying_asset_id": 66,
+    "impact_size": "40.000000000000000000",
+    "constituent_exchanges": [
+     {
+      "exchange": "binance",
+      "health_interval": 60,
+      "health_priority": 1,
+      "weight": 1
+     },
+     {
+      "exchange": "okex",
+      "health_interval": 60,
+      "health_priority": 2,
+      "weight": 1
+     }
+    ],
+    "constituent_indices": null,
+    "health_interval": 300,
+    "index_type": "spot_pair",
+    "is_composite": false,
+    "price_method": "ltp"
+   },
+   "barrier_price": null,
+   "maker_commission_rate": "0.00075",
+   "settlement_time": null,
+   "price_band": "100",
+   "initial_margin_scaling_factor": "2",
+   "funding_method": "mark_price",
+   "product_specs": {
+    "kyc_required": false,
+    "max_order_size": 2000,
+    "min_order_size": 0.01,
+    "only_reduce_only_orders_allowed": false,
+    "only_spot_sell_allowed": true,
+    "quoting_precision": 4,
+    "underlying_precision": 2
+   },
+   "liquidation_penalty_factor": "1",
+   "underlying_asset": {
+    "id": 66,
+    "name": "Solana",
+    "networks": [],
+    "symbol": "SOL",
+    "precision": 8,
+    "sort_priority": 7,
+    "base_withdrawal_fee": "0.000000000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "0.000000000000000000",
+    "kyc_withdrawal_limit": "0.000000000000000000",
+    "min_withdrawal_amount": "0.020000000000000000",
+    "minimum_precision": 4,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "quoting_asset": {
+    "id": 5,
+    "name": "Tether",
+    "networks": [],
+    "symbol": "USDT",
+    "precision": 8,
+    "sort_priority": 1,
+    "base_withdrawal_fee": "10.000000000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "100000.000000000000000000",
+    "kyc_withdrawal_limit": "10000.000000000000000000",
+    "min_withdrawal_amount": "30.000000000000000000",
+    "minimum_precision": 3,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "short_description": "SOL-USDT spot market",
+   "taker_commission_rate": "0.00075",
+   "default_leverage": "1.000000000000000000",
+   "strike_price": null,
+   "settling_asset": null,
+   "settlement_price": null,
+   "description": "Solana tether spot market",
+   "max_leverage_notional": "10000000",
+   "insurance_fund_margin_contribution": "1",
+   "maintenance_margin_scaling_factor": "1",
+   "contract_value": "1",
+   "contract_type": "spot",
+   "trading_status": "operational",
+   "notional_type": "vanilla",
+   "launch_time": "2022-02-03T10:18:11Z",
+   "contract_unit_currency": "SOL",
+   "position_size_limit": 10000000,
+   "is_quanto": false,
+   "id": 32258,
+   "annualized_funding": "0",
+   "ui_config": {
+    "chart": "trade",
+    "default_trading_view_candle": "240",
+    "leverage_slider_values": [],
+    "price_clubbing_values": [
+     0.01,
+     0.05,
+     0.1,
+     0.5,
+     1,
+     2.5,
+     5
+    ],
+    "show_bracket_orders": false,
+    "sort_priority": 2,
+    "tags": []
+   },
+   "impact_notional": "10000",
+   "tick_size": "0.01",
+   "auction_start_time": "2026-08-08T09:24:12Z",
+   "state": "live",
+   "disruption_reason": null,
+   "symbol": "SOL_USDT",
+   "initial_margin": "10",
+   "impact_size": 10,
+   "auction_finish_time": null,
+   "maintenance_margin": "5",
+   "basis_factor_max_limit": "10000"
+  },
+  "tierBased": true,
+  "percentage": true,
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.0015
+    ],
+    [
+     100,
+     0.0013
+    ],
+    [
+     250,
+     0.0013
+    ],
+    [
+     1000,
+     0.001
+    ],
+    [
+     5000,
+     0.0009
+    ],
+    [
+     10000,
+     0.00075
+    ],
+    [
+     20000,
+     0.00065
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.001
+    ],
+    [
+     100,
+     0.001
+    ],
+    [
+     250,
+     0.0009
+    ],
+    [
+     1000,
+     0.00075
+    ],
+    [
+     5000,
+     0.0006
+    ],
+    [
+     10000,
+     0.0005
+    ],
+    [
+     20000,
+     0.0005
+    ]
+   ]
+  },
+  "numericId": 32258
+ },
+ "BTC/USDT:USDT": {
+  "id": "BTCUSDT",
+  "symbol": "BTC/USDT:USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.0001,
+  "maker": 0.0001,
+  "contractSize": 0.001,
+  "precision": {
+   "amount": 1,
+   "price": 0.5
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 1,
+    "max": 229167
+   },
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "created": 1586011758000,
+  "info": {
+   "spot_index": {
+    "id": 2,
+    "config": {
+     "impact_size": {
+      "max_impact_size": 150000,
+      "min_impact_size": 5000,
+      "step_value": 5000
+     },
+     "price_alert_enabled": true,
+     "quoting_asset": "USDT",
+     "service_id": 1,
+     "underlying_asset": "BTC"
+    },
+    "description": "Bitcoin spot price index quoted in USDT",
+    "symbol": ".DEXBTUSDT",
+    "tick_size": "0.500000000000000000",
+    "quoting_asset_id": 5,
+    "underlying_asset_id": 2,
+    "impact_size": "1.000000000000000000",
+    "constituent_exchanges": [
+     {
+      "exchange": "binance",
+      "health_interval": 60,
+      "health_priority": 1,
+      "weight": 1
+     },
+     {
+      "exchange": "okex",
+      "health_interval": 60,
+      "health_priority": 2,
+      "weight": 1
+     },
+     {
+      "exchange": "bybit",
+      "health_interval": 60,
+      "health_priority": 3,
+      "weight": 1
+     }
+    ],
+    "constituent_indices": null,
+    "health_interval": 300,
+    "index_type": "spot_pair",
+    "is_composite": false,
+    "price_method": "orderbook"
+   },
+   "barrier_price": null,
+   "maker_commission_rate": "0.0001",
+   "settlement_time": null,
+   "price_band": "5",
+   "initial_margin_scaling_factor": "0.000002",
+   "funding_method": "mark_price",
+   "product_specs": {
+    "api_maker_commission_rate": "0.0003",
+    "api_taker_commission_rate": "0.0003",
+    "expiry_interval": 28800,
+    "funding_clamp_value": 0.05,
+    "funding_twap_linear_weighted_enabled": true,
+    "isolated_liq_penalty_factor": 0.001,
+    "only_reduce_only_orders_allowed": false,
+    "rate_exchange_interval": 28800,
+    "tags": [
+     "layer_1"
+    ]
+   },
+   "liquidation_penalty_factor": "0.2",
+   "underlying_asset": {
+    "id": 2,
+    "name": "Bitcoin",
+    "networks": [],
+    "symbol": "BTC",
+    "precision": 8,
+    "sort_priority": 2,
+    "base_withdrawal_fee": "0.000500000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "10.000000000000000000",
+    "kyc_withdrawal_limit": "0.500000000000000000",
+    "min_withdrawal_amount": "0.001000000000000000",
+    "minimum_precision": 4,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "quoting_asset": {
+    "id": 5,
+    "name": "Tether",
+    "networks": [],
+    "symbol": "USDT",
+    "precision": 8,
+    "sort_priority": 1,
+    "base_withdrawal_fee": "10.000000000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "100000.000000000000000000",
+    "kyc_withdrawal_limit": "10000.000000000000000000",
+    "min_withdrawal_amount": "30.000000000000000000",
+    "minimum_precision": 3,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "short_description": "Bitcoin Perpetual",
+   "taker_commission_rate": "0.0001",
+   "default_leverage": "100.000000000000000000",
+   "strike_price": null,
+   "settling_asset": {
+    "id": 5,
+    "name": "Tether",
+    "networks": [],
+    "symbol": "USDT",
+    "precision": 8,
+    "sort_priority": 1,
+    "base_withdrawal_fee": "10.000000000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "100000.000000000000000000",
+    "kyc_withdrawal_limit": "10000.000000000000000000",
+    "min_withdrawal_amount": "30.000000000000000000",
+    "minimum_precision": 3,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "settlement_price": null,
+   "description": "Bitcoin Perpetual futures, quoted,settled & margined in Tether",
+   "max_leverage_notional": "200000",
+   "insurance_fund_margin_contribution": "5",
+   "maintenance_margin_scaling_factor": "0.000001",
+   "contract_value": "0.001",
+   "contract_type": "perpetual_futures",
+   "trading_status": "operational",
+   "notional_type": "vanilla",
+   "launch_time": "2020-04-04T14:49:18Z",
+   "contract_unit_currency": "BTC",
+   "position_size_limit": 229167,
+   "is_quanto": false,
+   "id": 139,
+   "annualized_funding": "10.95",
+   "ui_config": {
+    "chart": "mark",
+    "default_trading_view_candle": "60",
+    "leverage_slider_values": [
+     1,
+     2,
+     5,
+     10,
+     25,
+     50,
+     100
+    ],
+    "price_clubbing_values": [
+     0.5,
+     1,
+     10,
+     50
+    ],
+    "show_bracket_orders": false,
+    "sort_priority": 1,
+    "tags": []
+   },
+   "impact_notional": "400000",
+   "tick_size": "0.5",
+   "auction_start_time": "2026-08-08T09:24:12Z",
+   "state": "live",
+   "disruption_reason": null,
+   "symbol": "BTCUSDT",
+   "initial_margin": "1",
+   "impact_size": 10000,
+   "auction_finish_time": null,
+   "maintenance_margin": "0.5",
+   "basis_factor_max_limit": "10.95"
+  },
+  "tierBased": true,
+  "percentage": true,
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.0015
+    ],
+    [
+     100,
+     0.0013
+    ],
+    [
+     250,
+     0.0013
+    ],
+    [
+     1000,
+     0.001
+    ],
+    [
+     5000,
+     0.0009
+    ],
+    [
+     10000,
+     0.00075
+    ],
+    [
+     20000,
+     0.00065
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.001
+    ],
+    [
+     100,
+     0.001
+    ],
+    [
+     250,
+     0.0009
+    ],
+    [
+     1000,
+     0.00075
+    ],
+    [
+     5000,
+     0.0006
+    ],
+    [
+     10000,
+     0.0005
+    ],
+    [
+     20000,
+     0.0005
+    ]
+   ]
+  },
+  "numericId": 139
+ },
+ "ETH/USDT": {
+  "id": "B-C-ETH-1925-1008260430",
+  "symbol": "ETH/USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "binary_call_options",
+  "spot": false,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0,
+  "maker": 0,
+  "contractSize": 1,
+  "expiry": 1786336200000,
+  "expiryDatetime": "2026-08-10T04:30:00.000Z",
+  "strike": 1925,
+  "precision": {
+   "amount": 1,
+   "price": 0.0001
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 1,
+    "max": 10000
+   },
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "created": 1786335003000,
+  "info": {
+   "spot_index": {
+    "id": 49,
+    "config": {
+     "impact_size": {
+      "max_impact_size": 150000,
+      "min_impact_size": 5000,
+      "step_value": 5000
+     },
+     "price_alert_enabled": true,
+     "quoting_asset": "USDT",
+     "service_id": 1,
+     "underlying_asset": "ETH"
+    },
+    "description": "ETH/USDT price on Binance, Okex and Bybit",
+    "symbol": ".DEETHUSDT",
+    "tick_size": "0.050000000000000000",
+    "quoting_asset_id": 5,
+    "underlying_asset_id": 1,
+    "impact_size": "10.000000000000000000",
+    "constituent_exchanges": [
+     {
+      "exchange": "binance",
+      "health_interval": 60,
+      "health_priority": 1,
+      "weight": 1
+     },
+     {
+      "exchange": "okex",
+      "health_interval": 60,
+      "health_priority": 2,
+      "weight": 1
+     },
+     {
+      "exchange": "bybit",
+      "health_interval": 60,
+      "health_priority": 3,
+      "weight": 1
+     }
+    ],
+    "constituent_indices": null,
+    "health_interval": 300,
+    "index_type": "spot_pair",
+    "is_composite": false,
+    "price_method": "orderbook"
+   },
+   "barrier_price": null,
+   "maker_commission_rate": "0",
+   "settlement_time": "2026-08-10T04:30:00Z",
+   "price_band": "2",
+   "initial_margin_scaling_factor": "0",
+   "funding_method": "mark_price",
+   "product_specs": {
+    "backup_vol_expiry_time": 31536000,
+    "isolated_liq_penalty_factor": 0.001,
+    "isolated_liq_premium_penalty_factor": 0.2,
+    "max_deviation_from_external_vol": 0.75,
+    "max_lower_deviation_from_external_vol": 0.75,
+    "max_upper_deviation_from_external_vol": 0.5,
+    "max_volatility": 3,
+    "min_volatility": 0.1,
+    "premium_commission_rate": 0.075,
+    "vol_calculation_method": "orderbook",
+    "vol_expiry_time": 31536000
+   },
+   "liquidation_penalty_factor": "0.5",
+   "underlying_asset": {
+    "id": 1,
+    "name": "Ethereum",
+    "networks": [],
+    "symbol": "ETH",
+    "precision": 18,
+    "sort_priority": 3,
+    "base_withdrawal_fee": "0.005000000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "0.000000000000000000",
+    "kyc_withdrawal_limit": "0.000000000000000000",
+    "min_withdrawal_amount": "0.010000000000000000",
+    "minimum_precision": 4,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "quoting_asset": {
+    "id": 5,
+    "name": "Tether",
+    "networks": [],
+    "symbol": "USDT",
+    "precision": 8,
+    "sort_priority": 1,
+    "base_withdrawal_fee": "10.000000000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "100000.000000000000000000",
+    "kyc_withdrawal_limit": "10000.000000000000000000",
+    "min_withdrawal_amount": "30.000000000000000000",
+    "minimum_precision": 3,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "short_description": "ETH 15m Binary Call",
+   "taker_commission_rate": "0",
+   "default_leverage": "100.000000000000000000",
+   "strike_price": "1925",
+   "settling_asset": {
+    "id": 5,
+    "name": "Tether",
+    "networks": [],
+    "symbol": "USDT",
+    "precision": 8,
+    "sort_priority": 1,
+    "base_withdrawal_fee": "10.000000000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "100000.000000000000000000",
+    "kyc_withdrawal_limit": "10000.000000000000000000",
+    "min_withdrawal_amount": "30.000000000000000000",
+    "minimum_precision": 3,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "settlement_price": null,
+   "description": "ETH binary call option expiring on 10-8-2026 04:30 UTC",
+   "max_leverage_notional": "200000",
+   "insurance_fund_margin_contribution": "1",
+   "maintenance_margin_scaling_factor": "0",
+   "contract_value": "1",
+   "contract_type": "binary_call_options",
+   "trading_status": "disrupted_cancel_only",
+   "notional_type": "vanilla",
+   "launch_time": "2026-08-10T04:10:03Z",
+   "contract_unit_currency": "ETH",
+   "position_size_limit": 10000,
+   "is_quanto": false,
+   "id": 324736,
+   "annualized_funding": "10.95",
+   "ui_config": {
+    "default_trading_view_candle": "15",
+    "leverage_slider_values": [
+     1,
+     2,
+     5,
+     10,
+     25,
+     50,
+     100
+    ],
+    "price_clubbing_values": [
+     0.1,
+     0.5,
+     1,
+     5,
+     10
+    ],
+    "show_bracket_orders": false,
+    "sort_priority": 30,
+    "tags": []
+   },
+   "impact_notional": "10000",
+   "tick_size": "0.0001",
+   "auction_start_time": "2026-08-10T04:10:03Z",
+   "state": "live",
+   "disruption_reason": "Pre-settlement freeze",
+   "symbol": "B-C-ETH-1925-1008260430",
+   "initial_margin": "0.5",
+   "impact_size": 200,
+   "auction_finish_time": null,
+   "maintenance_margin": "0.25",
+   "basis_factor_max_limit": "10.95"
+  },
+  "tierBased": true,
+  "percentage": true,
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.0015
+    ],
+    [
+     100,
+     0.0013
+    ],
+    [
+     250,
+     0.0013
+    ],
+    [
+     1000,
+     0.001
+    ],
+    [
+     5000,
+     0.0009
+    ],
+    [
+     10000,
+     0.00075
+    ],
+    [
+     20000,
+     0.00065
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.001
+    ],
+    [
+     100,
+     0.001
+    ],
+    [
+     250,
+     0.0009
+    ],
+    [
+     1000,
+     0.00075
+    ],
+    [
+     5000,
+     0.0006
+    ],
+    [
+     10000,
+     0.0005
+    ],
+    [
+     20000,
+     0.0005
+    ]
+   ]
+  },
+  "numericId": 324736
+ },
+ "BTC/USDT:USDT-260810-63600-C": {
+  "id": "C-BTC-63600-100826",
+  "symbol": "BTC/USDT:USDT-260810-63600-C",
+  "base": "BTC",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "option",
+  "spot": false,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": true,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.00015,
+  "maker": 0.00015,
+  "contractSize": 0.001,
+  "expiry": 1786363200000,
+  "expiryDatetime": "2026-08-10T12:00:00.000Z",
+  "strike": 63600,
+  "optionType": "call",
+  "precision": {
+   "amount": 1,
+   "price": 0.1
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 1,
+    "max": 30000
+   },
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "created": 1786105802000,
+  "info": {
+   "spot_index": {
+    "id": 2,
+    "config": {
+     "impact_size": {
+      "max_impact_size": 150000,
+      "min_impact_size": 5000,
+      "step_value": 5000
+     },
+     "price_alert_enabled": true,
+     "quoting_asset": "USDT",
+     "service_id": 1,
+     "underlying_asset": "BTC"
+    },
+    "description": "Bitcoin spot price index quoted in USDT",
+    "symbol": ".DEXBTUSDT",
+    "tick_size": "0.500000000000000000",
+    "quoting_asset_id": 5,
+    "underlying_asset_id": 2,
+    "impact_size": "1.000000000000000000",
+    "constituent_exchanges": [
+     {
+      "exchange": "binance",
+      "health_interval": 60,
+      "health_priority": 1,
+      "weight": 1
+     },
+     {
+      "exchange": "okex",
+      "health_interval": 60,
+      "health_priority": 2,
+      "weight": 1
+     },
+     {
+      "exchange": "bybit",
+      "health_interval": 60,
+      "health_priority": 3,
+      "weight": 1
+     }
+    ],
+    "constituent_indices": null,
+    "health_interval": 300,
+    "index_type": "spot_pair",
+    "is_composite": false,
+    "price_method": "orderbook"
+   },
+   "barrier_price": null,
+   "maker_commission_rate": "0.00015",
+   "settlement_time": "2026-08-10T12:00:00Z",
+   "price_band": "2",
+   "initial_margin_scaling_factor": "0.000002",
+   "funding_method": "mark_price",
+   "product_specs": {
+    "backup_vol_expiry_time": 31536000,
+    "isolated_liq_penalty_factor": 0.001,
+    "isolated_liq_premium_penalty_factor": 0.2,
+    "max_deviation_from_external_vol": 0.75,
+    "max_lower_deviation_from_external_vol": 0.75,
+    "max_upper_deviation_from_external_vol": 0.5,
+    "max_volatility": 3,
+    "min_volatility": 0.1,
+    "premium_commission_rate": 0.075,
+    "vol_calculation_method": "orderbook",
+    "vol_expiry_time": 31536000
+   },
+   "liquidation_penalty_factor": "0.5",
+   "underlying_asset": {
+    "id": 2,
+    "name": "Bitcoin",
+    "networks": [],
+    "symbol": "BTC",
+    "precision": 8,
+    "sort_priority": 2,
+    "base_withdrawal_fee": "0.000500000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "10.000000000000000000",
+    "kyc_withdrawal_limit": "0.500000000000000000",
+    "min_withdrawal_amount": "0.001000000000000000",
+    "minimum_precision": 4,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "quoting_asset": {
+    "id": 5,
+    "name": "Tether",
+    "networks": [],
+    "symbol": "USDT",
+    "precision": 8,
+    "sort_priority": 1,
+    "base_withdrawal_fee": "10.000000000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "100000.000000000000000000",
+    "kyc_withdrawal_limit": "10000.000000000000000000",
+    "min_withdrawal_amount": "30.000000000000000000",
+    "minimum_precision": 3,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "short_description": "BTC  Call",
+   "taker_commission_rate": "0.00015",
+   "default_leverage": "100.000000000000000000",
+   "strike_price": "63600",
+   "settling_asset": {
+    "id": 5,
+    "name": "Tether",
+    "networks": [],
+    "symbol": "USDT",
+    "precision": 8,
+    "sort_priority": 1,
+    "base_withdrawal_fee": "10.000000000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "100000.000000000000000000",
+    "kyc_withdrawal_limit": "10000.000000000000000000",
+    "min_withdrawal_amount": "30.000000000000000000",
+    "minimum_precision": 3,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "settlement_price": null,
+   "description": "BTC call option expiring on 10-8-2026",
+   "max_leverage_notional": "200000",
+   "insurance_fund_margin_contribution": "1",
+   "maintenance_margin_scaling_factor": "0.000001",
+   "contract_value": "0.001",
+   "contract_type": "call_options",
+   "trading_status": "operational",
+   "notional_type": "vanilla",
+   "launch_time": "2026-08-07T12:30:02Z",
+   "contract_unit_currency": "BTC",
+   "position_size_limit": 30000,
+   "is_quanto": false,
+   "id": 321558,
+   "annualized_funding": "10.95",
+   "ui_config": {
+    "default_trading_view_candle": "60",
+    "leverage_slider_values": [
+     1,
+     2,
+     5,
+     10,
+     25,
+     50,
+     100
+    ],
+    "price_clubbing_values": [
+     0.1,
+     0.5,
+     1,
+     5,
+     10
+    ],
+    "show_bracket_orders": false,
+    "sort_priority": 30,
+    "tags": []
+   },
+   "impact_notional": "10000",
+   "tick_size": "0.1",
+   "auction_start_time": "2026-08-08T09:24:12Z",
+   "state": "live",
+   "disruption_reason": null,
+   "symbol": "C-BTC-63600-100826",
+   "initial_margin": "1",
+   "impact_size": 200,
+   "auction_finish_time": null,
+   "maintenance_margin": "0.5",
+   "basis_factor_max_limit": "10.95"
+  },
+  "tierBased": true,
+  "percentage": true,
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.0015
+    ],
+    [
+     100,
+     0.0013
+    ],
+    [
+     250,
+     0.0013
+    ],
+    [
+     1000,
+     0.001
+    ],
+    [
+     5000,
+     0.0009
+    ],
+    [
+     10000,
+     0.00075
+    ],
+    [
+     20000,
+     0.00065
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.001
+    ],
+    [
+     100,
+     0.001
+    ],
+    [
+     250,
+     0.0009
+    ],
+    [
+     1000,
+     0.00075
+    ],
+    [
+     5000,
+     0.0006
+    ],
+    [
+     10000,
+     0.0005
+    ],
+    [
+     20000,
+     0.0005
+    ]
+   ]
+  },
+  "numericId": 321558
+ },
+ "XRP/USDT": {
+  "id": "XRP_USDT",
+  "symbol": "XRP/USDT",
+  "base": "XRP",
+  "quote": "USDT",
+  "baseId": "XRP",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.00075,
+  "maker": 0.00075,
+  "precision": {
+   "amount": 1,
+   "price": 0.0001
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 1,
+    "max": 10000000
+   },
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "created": 1640763768000,
+  "info": {
+   "spot_index": {
+    "id": 50,
+    "config": {
+     "impact_size": {
+      "max_impact_size": 50000,
+      "min_impact_size": 5000,
+      "step_value": 5000
+     },
+     "price_alert_enabled": true,
+     "quoting_asset": "USDT",
+     "service_id": 3,
+     "underlying_asset": "XRP"
+    },
+    "description": "XRP index",
+    "symbol": ".DEXRPUSDT",
+    "tick_size": "0.000100000000000000",
+    "quoting_asset_id": 5,
+    "underlying_asset_id": 4,
+    "impact_size": "10000.000000000000000000",
+    "constituent_exchanges": [
+     {
+      "exchange": "binance",
+      "health_interval": 60,
+      "health_priority": 1,
+      "weight": 1
+     },
+     {
+      "exchange": "okex",
+      "health_interval": 60,
+      "health_priority": 2,
+      "weight": 1
+     }
+    ],
+    "constituent_indices": null,
+    "health_interval": 300,
+    "index_type": "spot_pair",
+    "is_composite": false,
+    "price_method": "orderbook"
+   },
+   "barrier_price": null,
+   "maker_commission_rate": "0.00075",
+   "settlement_time": null,
+   "price_band": "100",
+   "initial_margin_scaling_factor": "0",
+   "funding_method": "mark_price",
+   "product_specs": {
+    "kyc_required": false,
+    "max_order_size": 500000,
+    "min_order_size": 1,
+    "only_reduce_only_orders_allowed": false,
+    "only_spot_sell_allowed": true,
+    "quoting_precision": 4,
+    "underlying_precision": 0
+   },
+   "liquidation_penalty_factor": "1",
+   "underlying_asset": {
+    "id": 4,
+    "name": "Ripple",
+    "networks": [],
+    "symbol": "XRP",
+    "precision": 6,
+    "sort_priority": 5,
+    "base_withdrawal_fee": "0.000000000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "0.000000000000000000",
+    "kyc_withdrawal_limit": "0.000000000000000000",
+    "min_withdrawal_amount": "30.000000000000000000",
+    "minimum_precision": 4,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "quoting_asset": {
+    "id": 5,
+    "name": "Tether",
+    "networks": [],
+    "symbol": "USDT",
+    "precision": 8,
+    "sort_priority": 1,
+    "base_withdrawal_fee": "10.000000000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "100000.000000000000000000",
+    "kyc_withdrawal_limit": "10000.000000000000000000",
+    "min_withdrawal_amount": "30.000000000000000000",
+    "minimum_precision": 3,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "short_description": "XRP-USDT spot market",
+   "taker_commission_rate": "0.00075",
+   "default_leverage": "1.000000000000000000",
+   "strike_price": null,
+   "settling_asset": null,
+   "settlement_price": null,
+   "description": "Ripple tether spot market",
+   "max_leverage_notional": "10000000",
+   "insurance_fund_margin_contribution": "1",
+   "maintenance_margin_scaling_factor": "0",
+   "contract_value": "1",
+   "contract_type": "spot",
+   "trading_status": "operational",
+   "notional_type": "vanilla",
+   "launch_time": "2021-12-29T07:42:48Z",
+   "contract_unit_currency": "XRP",
+   "position_size_limit": 10000000,
+   "is_quanto": false,
+   "id": 24124,
+   "annualized_funding": "0",
+   "ui_config": {
+    "chart": "trade",
+    "default_trading_view_candle": "240",
+    "leverage_slider_values": [],
+    "price_clubbing_values": [
+     0.0001,
+     0.0005,
+     0.001,
+     0.005,
+     0.01,
+     0.05,
+     0.1,
+     0.5
+    ],
+    "show_bracket_orders": false,
+    "sort_priority": 2,
+    "tags": []
+   },
+   "impact_notional": "10000",
+   "tick_size": "0.0001",
+   "auction_start_time": "2026-08-08T09:24:12Z",
+   "state": "live",
+   "disruption_reason": null,
+   "symbol": "XRP_USDT",
+   "initial_margin": "1",
+   "impact_size": 1000,
+   "auction_finish_time": null,
+   "maintenance_margin": "0",
+   "basis_factor_max_limit": "10000"
+  },
+  "tierBased": true,
+  "percentage": true,
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.0015
+    ],
+    [
+     100,
+     0.0013
+    ],
+    [
+     250,
+     0.0013
+    ],
+    [
+     1000,
+     0.001
+    ],
+    [
+     5000,
+     0.0009
+    ],
+    [
+     10000,
+     0.00075
+    ],
+    [
+     20000,
+     0.00065
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.001
+    ],
+    [
+     100,
+     0.001
+    ],
+    [
+     250,
+     0.0009
+    ],
+    [
+     1000,
+     0.00075
+    ],
+    [
+     5000,
+     0.0006
+    ],
+    [
+     10000,
+     0.0005
+    ],
+    [
+     20000,
+     0.0005
+    ]
+   ]
+  },
+  "numericId": 24124
+ },
+ "ETH/USDT:USDT": {
+  "id": "ETHUSDT",
+  "symbol": "ETH/USDT:USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.0001,
+  "maker": 0.0001,
+  "contractSize": 0.01,
+  "precision": {
+   "amount": 1,
+   "price": 0.05
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 1,
+    "max": 162683
+   },
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "created": 1587564812000,
+  "info": {
+   "spot_index": {
+    "id": 49,
+    "config": {
+     "impact_size": {
+      "max_impact_size": 150000,
+      "min_impact_size": 5000,
+      "step_value": 5000
+     },
+     "price_alert_enabled": true,
+     "quoting_asset": "USDT",
+     "service_id": 1,
+     "underlying_asset": "ETH"
+    },
+    "description": "ETH/USDT price on Binance, Okex and Bybit",
+    "symbol": ".DEETHUSDT",
+    "tick_size": "0.050000000000000000",
+    "quoting_asset_id": 5,
+    "underlying_asset_id": 1,
+    "impact_size": "10.000000000000000000",
+    "constituent_exchanges": [
+     {
+      "exchange": "binance",
+      "health_interval": 60,
+      "health_priority": 1,
+      "weight": 1
+     },
+     {
+      "exchange": "okex",
+      "health_interval": 60,
+      "health_priority": 2,
+      "weight": 1
+     },
+     {
+      "exchange": "bybit",
+      "health_interval": 60,
+      "health_priority": 3,
+      "weight": 1
+     }
+    ],
+    "constituent_indices": null,
+    "health_interval": 300,
+    "index_type": "spot_pair",
+    "is_composite": false,
+    "price_method": "orderbook"
+   },
+   "barrier_price": null,
+   "maker_commission_rate": "0.0001",
+   "settlement_time": null,
+   "price_band": "5",
+   "initial_margin_scaling_factor": "0.000004",
+   "funding_method": "mark_price",
+   "product_specs": {
+    "api_maker_commission_rate": "0.0003",
+    "api_taker_commission_rate": "0.0003",
+    "expiry_interval": 28800,
+    "funding_clamp_value": 0.05,
+    "funding_twap_linear_weighted_enabled": true,
+    "isolated_liq_penalty_factor": 0.002,
+    "only_reduce_only_orders_allowed": false,
+    "rate_exchange_interval": 28800,
+    "tags": [
+     "smart_contracts",
+     "layer_1"
+    ]
+   },
+   "liquidation_penalty_factor": "0.2",
+   "underlying_asset": {
+    "id": 1,
+    "name": "Ethereum",
+    "networks": [],
+    "symbol": "ETH",
+    "precision": 18,
+    "sort_priority": 3,
+    "base_withdrawal_fee": "0.005000000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "0.000000000000000000",
+    "kyc_withdrawal_limit": "0.000000000000000000",
+    "min_withdrawal_amount": "0.010000000000000000",
+    "minimum_precision": 4,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "quoting_asset": {
+    "id": 5,
+    "name": "Tether",
+    "networks": [],
+    "symbol": "USDT",
+    "precision": 8,
+    "sort_priority": 1,
+    "base_withdrawal_fee": "10.000000000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "100000.000000000000000000",
+    "kyc_withdrawal_limit": "10000.000000000000000000",
+    "min_withdrawal_amount": "30.000000000000000000",
+    "minimum_precision": 3,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "short_description": "Ether Perpetual",
+   "taker_commission_rate": "0.0001",
+   "default_leverage": "100.000000000000000000",
+   "strike_price": null,
+   "settling_asset": {
+    "id": 5,
+    "name": "Tether",
+    "networks": [],
+    "symbol": "USDT",
+    "precision": 8,
+    "sort_priority": 1,
+    "base_withdrawal_fee": "10.000000000000000000",
+    "interest_credit": false,
+    "kyc_deposit_limit": "100000.000000000000000000",
+    "kyc_withdrawal_limit": "10000.000000000000000000",
+    "min_withdrawal_amount": "30.000000000000000000",
+    "minimum_precision": 3,
+    "variable_withdrawal_fee": "0.000000000000000000",
+    "interest_slabs": null
+   },
+   "settlement_price": null,
+   "description": "Ethereum Perpetual futures, quoted,settled & margined in Tether",
+   "max_leverage_notional": "100000",
+   "insurance_fund_margin_contribution": "5",
+   "maintenance_margin_scaling_factor": "0.000002",
+   "contract_value": "0.01",
+   "contract_type": "perpetual_futures",
+   "trading_status": "operational",
+   "notional_type": "vanilla",
+   "launch_time": "2020-04-22T14:13:32Z",
+   "contract_unit_currency": "ETH",
+   "position_size_limit": 162683,
+   "is_quanto": false,
+   "id": 176,
+   "annualized_funding": "10.95",
+   "ui_config": {
+    "chart": "mark",
+    "default_trading_view_candle": "60",
+    "leverage_slider_values": [
+     1,
+     2,
+     5,
+     10,
+     25,
+     50,
+     100
+    ],
+    "price_clubbing_values": [
+     0.05,
+     0.1,
+     1,
+     10
+    ],
+    "show_bracket_orders": false,
+    "sort_priority": 3,
+    "tags": []
+   },
+   "impact_notional": "100000",
+   "tick_size": "0.05",
+   "auction_start_time": "2026-08-08T09:24:12Z",
+   "state": "live",
+   "disruption_reason": null,
+   "symbol": "ETHUSDT",
+   "initial_margin": "1",
+   "impact_size": 8000,
+   "auction_finish_time": null,
+   "maintenance_margin": "0.5",
+   "basis_factor_max_limit": "10.95"
+  },
+  "tierBased": true,
+  "percentage": true,
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.0015
+    ],
+    [
+     100,
+     0.0013
+    ],
+    [
+     250,
+     0.0013
+    ],
+    [
+     1000,
+     0.001
+    ],
+    [
+     5000,
+     0.0009
+    ],
+    [
+     10000,
+     0.00075
+    ],
+    [
+     20000,
+     0.00065
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.001
+    ],
+    [
+     100,
+     0.001
+    ],
+    [
+     250,
+     0.0009
+    ],
+    [
+     1000,
+     0.00075
+    ],
+    [
+     5000,
+     0.0006
+    ],
+    [
+     10000,
+     0.0005
+    ],
+    [
+     20000,
+     0.0005
+    ]
+   ]
+  },
+  "numericId": 176
+ }
+}

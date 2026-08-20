@@ -1,0 +1,284 @@
+{
+ "BTC/USDC": {
+  "id": "BTC-USDC",
+  "symbol": "BTC/USDC",
+  "base": "BTC",
+  "quote": "USDC",
+  "baseId": "BTC",
+  "quoteId": "USDC",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.0025,
+  "maker": 0.002,
+  "precision": {
+   "amount": 1e-8,
+   "price": 1,
+   "cost": 0.000001
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.00007838,
+    "max": 15675.90859757
+   },
+   "price": {},
+   "cost": {
+    "min": 5,
+    "max": 1000000000
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "market": "BTC-USDC",
+   "status": "trading",
+   "base": "BTC",
+   "quote": "USDC",
+   "pricePrecision": null,
+   "minOrderInBaseAsset": "0.00007838",
+   "minOrderInQuoteAsset": "5.000000",
+   "maxOrderInBaseAsset": "15675.90859757",
+   "maxOrderInQuoteAsset": "1000000000.000000",
+   "quantityDecimals": 8,
+   "notionalDecimals": 6,
+   "tickSize": "1.00",
+   "maxOpenOrders": 100,
+   "feeCategory": "D",
+   "orderTypes": [
+    "market",
+    "limit",
+    "stopLoss",
+    "stopLossLimit",
+    "takeProfit",
+    "takeProfitLimit"
+   ]
+  },
+  "tierBased": true,
+  "percentage": true,
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.0025
+    ],
+    [
+     100000,
+     0.002
+    ],
+    [
+     250000,
+     0.0016
+    ],
+    [
+     500000,
+     0.0012
+    ],
+    [
+     1000000,
+     0.001
+    ],
+    [
+     2500000,
+     0.0008
+    ],
+    [
+     5000000,
+     0.0006
+    ],
+    [
+     10000000,
+     0.0005
+    ],
+    [
+     25000000,
+     0.0004
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.0015
+    ],
+    [
+     100000,
+     0.001
+    ],
+    [
+     250000,
+     0.0008
+    ],
+    [
+     500000,
+     0.0006
+    ],
+    [
+     1000000,
+     0.0005
+    ],
+    [
+     2500000,
+     0.0004
+    ],
+    [
+     5000000,
+     0.0004
+    ],
+    [
+     10000000,
+     0.0003
+    ],
+    [
+     25000000,
+     0.0003
+    ]
+   ]
+  }
+ },
+ "ETH/USDC": {
+  "id": "ETH-USDC",
+  "symbol": "ETH/USDC",
+  "base": "ETH",
+  "quote": "USDC",
+  "baseId": "ETH",
+  "quoteId": "USDC",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.0025,
+  "maker": 0.002,
+  "precision": {
+   "amount": 1e-8,
+   "price": 0.01,
+   "cost": 0.000001
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.00263984,
+    "max": 527967.62731284
+   },
+   "price": {},
+   "cost": {
+    "min": 5,
+    "max": 1000000000
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "market": "ETH-USDC",
+   "status": "trading",
+   "base": "ETH",
+   "quote": "USDC",
+   "pricePrecision": null,
+   "minOrderInBaseAsset": "0.00263984",
+   "minOrderInQuoteAsset": "5.000000",
+   "maxOrderInBaseAsset": "527967.62731284",
+   "maxOrderInQuoteAsset": "1000000000.000000",
+   "quantityDecimals": 8,
+   "notionalDecimals": 6,
+   "tickSize": "0.010",
+   "maxOpenOrders": 100,
+   "feeCategory": "D",
+   "orderTypes": [
+    "market",
+    "limit",
+    "stopLoss",
+    "stopLossLimit",
+    "takeProfit",
+    "takeProfitLimit"
+   ]
+  },
+  "tierBased": true,
+  "percentage": true,
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.0025
+    ],
+    [
+     100000,
+     0.002
+    ],
+    [
+     250000,
+     0.0016
+    ],
+    [
+     500000,
+     0.0012
+    ],
+    [
+     1000000,
+     0.001
+    ],
+    [
+     2500000,
+     0.0008
+    ],
+    [
+     5000000,
+     0.0006
+    ],
+    [
+     10000000,
+     0.0005
+    ],
+    [
+     25000000,
+     0.0004
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.0015
+    ],
+    [
+     100000,
+     0.001
+    ],
+    [
+     250000,
+     0.0008
+    ],
+    [
+     500000,
+     0.0006
+    ],
+    [
+     1000000,
+     0.0005
+    ],
+    [
+     2500000,
+     0.0004
+    ],
+    [
+     5000000,
+     0.0004
+    ],
+    [
+     10000000,
+     0.0003
+    ],
+    [
+     25000000,
+     0.0003
+    ]
+   ]
+  }
+ }
+}

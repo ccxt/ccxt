@@ -1,0 +1,939 @@
+{
+ "BTC": {
+  "info": [
+   {
+    "currency_code": "BTC",
+    "network_code": "btc",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "0.00010000",
+    "max_withdraw": "100.00000000",
+    "max_deposit": "100.00000000",
+    "min_deposit": "0.00100000"
+   },
+   {
+    "currency_code": "BTC",
+    "network_code": "btc",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "0.00010000",
+    "max_withdraw": "100.00000000",
+    "max_deposit": "100.00000000",
+    "min_deposit": "0.00100000"
+   }
+  ],
+  "id": "BTC",
+  "code": "BTC",
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {
+   "BTC": {
+    "id": "btc",
+    "network": "BTC",
+    "limits": {
+     "withdraw": {
+      "min": 0.0001,
+      "max": 100
+     },
+     "deposit": {
+      "min": 0.001,
+      "max": 100
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "info": {
+     "currency_code": "BTC",
+     "network_code": "btc",
+     "can_withdraw": true,
+     "can_deposit": true,
+     "min_withdraw": "0.00010000",
+     "max_withdraw": "100.00000000",
+     "max_deposit": "100.00000000",
+     "min_deposit": "0.00100000"
+    }
+   }
+  },
+  "limits": {
+   "deposit": {
+    "min": 0.001,
+    "max": 100
+   },
+   "withdraw": {
+    "min": 0.0001,
+    "max": 100
+   }
+  }
+ },
+ "ETH": {
+  "info": [
+   {
+    "currency_code": "ETH",
+    "network_code": "arbitrum",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "0.01000000",
+    "max_withdraw": "1000000.00000000",
+    "max_deposit": "1000.00000000",
+    "min_deposit": "0.01000000"
+   },
+   {
+    "currency_code": "ETH",
+    "network_code": "eth",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "0.00100000",
+    "max_withdraw": "10000.00000000",
+    "max_deposit": "1000.00000000",
+    "min_deposit": "0.00100000"
+   },
+   {
+    "currency_code": "ETH",
+    "network_code": "bsc",
+    "can_withdraw": false,
+    "can_deposit": true,
+    "min_withdraw": null,
+    "max_withdraw": null,
+    "max_deposit": "1000.00000000",
+    "min_deposit": "0.01000000"
+   },
+   {
+    "currency_code": "ETH",
+    "network_code": "eth",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "0.00100000",
+    "max_withdraw": "10000.00000000",
+    "max_deposit": "1000.00000000",
+    "min_deposit": "0.00100000"
+   },
+   {
+    "currency_code": "ETH",
+    "network_code": "arbitrum",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "0.01000000",
+    "max_withdraw": "1000000.00000000",
+    "max_deposit": "1000.00000000",
+    "min_deposit": "0.01000000"
+   }
+  ],
+  "id": "ETH",
+  "code": "ETH",
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {
+   "ARB": {
+    "id": "arbitrum",
+    "network": "ARB",
+    "limits": {
+     "withdraw": {
+      "min": 0.01,
+      "max": 1000000
+     },
+     "deposit": {
+      "min": 0.01,
+      "max": 1000
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "info": {
+     "currency_code": "ETH",
+     "network_code": "arbitrum",
+     "can_withdraw": true,
+     "can_deposit": true,
+     "min_withdraw": "0.01000000",
+     "max_withdraw": "1000000.00000000",
+     "max_deposit": "1000.00000000",
+     "min_deposit": "0.01000000"
+    }
+   },
+   "ETH": {
+    "id": "eth",
+    "network": "ETH",
+    "limits": {
+     "withdraw": {
+      "min": 0.001,
+      "max": 10000
+     },
+     "deposit": {
+      "min": 0.001,
+      "max": 1000
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "info": {
+     "currency_code": "ETH",
+     "network_code": "eth",
+     "can_withdraw": true,
+     "can_deposit": true,
+     "min_withdraw": "0.00100000",
+     "max_withdraw": "10000.00000000",
+     "max_deposit": "1000.00000000",
+     "min_deposit": "0.00100000"
+    }
+   },
+   "BEP20": {
+    "id": "bsc",
+    "network": "BEP20",
+    "limits": {
+     "withdraw": {},
+     "deposit": {
+      "min": 0.01,
+      "max": 1000
+     }
+    },
+    "deposit": true,
+    "withdraw": false,
+    "info": {
+     "currency_code": "ETH",
+     "network_code": "bsc",
+     "can_withdraw": false,
+     "can_deposit": true,
+     "min_withdraw": null,
+     "max_withdraw": null,
+     "max_deposit": "1000.00000000",
+     "min_deposit": "0.01000000"
+    }
+   }
+  },
+  "limits": {
+   "deposit": {
+    "min": 0.001,
+    "max": 1000
+   },
+   "withdraw": {
+    "min": 0.001,
+    "max": 1000000
+   }
+  }
+ },
+ "USDT": {
+  "info": [
+   {
+    "currency_code": "USDT",
+    "network_code": "polygon",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "0.50000000",
+    "max_withdraw": "1000000.00000000",
+    "max_deposit": "1000000.00000000",
+    "min_deposit": "0.50000000"
+   },
+   {
+    "currency_code": "USDT",
+    "network_code": "avalanche",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "1.00000000",
+    "max_withdraw": "1000000.00000000",
+    "max_deposit": "1000000.00000000",
+    "min_deposit": "1.00000000"
+   },
+   {
+    "currency_code": "USDT",
+    "network_code": "tron",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "1.00000000",
+    "max_withdraw": "1000000.00000000",
+    "max_deposit": "1000000.00000000",
+    "min_deposit": "1.00000000"
+   },
+   {
+    "currency_code": "USDT",
+    "network_code": "sol",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "10.00000000",
+    "max_withdraw": "1000000.00000000",
+    "max_deposit": "1000000.00000000",
+    "min_deposit": "1.00000000"
+   },
+   {
+    "currency_code": "USDT",
+    "network_code": "bsc",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "1.00000000",
+    "max_withdraw": "1000000.00000000",
+    "max_deposit": "1000000.00000000",
+    "min_deposit": "0.50000000"
+   },
+   {
+    "currency_code": "USDT",
+    "network_code": "arbitrum",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "1.00000000",
+    "max_withdraw": "1000000.00000000",
+    "max_deposit": "1000000.00000000",
+    "min_deposit": "1.00000000"
+   },
+   {
+    "currency_code": "USDT",
+    "network_code": "ton",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "1.00000000",
+    "max_withdraw": "10000000.00000000",
+    "max_deposit": "10000000.00000000",
+    "min_deposit": "1.00000000"
+   },
+   {
+    "currency_code": "USDT",
+    "network_code": "eth",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "10.00000000",
+    "max_withdraw": "1000000.00000000",
+    "max_deposit": "1000000.00000000",
+    "min_deposit": "1.00000000"
+   },
+   {
+    "currency_code": "USDT",
+    "network_code": "tron",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "1.00000000",
+    "max_withdraw": "1000000.00000000",
+    "max_deposit": "1000000.00000000",
+    "min_deposit": "1.00000000"
+   },
+   {
+    "currency_code": "USDT",
+    "network_code": "eth",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "10.00000000",
+    "max_withdraw": "1000000.00000000",
+    "max_deposit": "1000000.00000000",
+    "min_deposit": "1.00000000"
+   },
+   {
+    "currency_code": "USDT",
+    "network_code": "avalanche",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "1.00000000",
+    "max_withdraw": "1000000.00000000",
+    "max_deposit": "1000000.00000000",
+    "min_deposit": "1.00000000"
+   },
+   {
+    "currency_code": "USDT",
+    "network_code": "polygon",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "0.50000000",
+    "max_withdraw": "1000000.00000000",
+    "max_deposit": "1000000.00000000",
+    "min_deposit": "0.50000000"
+   },
+   {
+    "currency_code": "USDT",
+    "network_code": "ton",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "1.00000000",
+    "max_withdraw": "10000000.00000000",
+    "max_deposit": "10000000.00000000",
+    "min_deposit": "1.00000000"
+   },
+   {
+    "currency_code": "USDT",
+    "network_code": "bsc",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "1.00000000",
+    "max_withdraw": "1000000.00000000",
+    "max_deposit": "1000000.00000000",
+    "min_deposit": "0.50000000"
+   },
+   {
+    "currency_code": "USDT",
+    "network_code": "sol",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "10.00000000",
+    "max_withdraw": "1000000.00000000",
+    "max_deposit": "1000000.00000000",
+    "min_deposit": "1.00000000"
+   },
+   {
+    "currency_code": "USDT",
+    "network_code": "arbitrum",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "1.00000000",
+    "max_withdraw": "1000000.00000000",
+    "max_deposit": "1000000.00000000",
+    "min_deposit": "1.00000000"
+   }
+  ],
+  "id": "USDT",
+  "code": "USDT",
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {
+   "POLYGON": {
+    "id": "polygon",
+    "network": "POLYGON",
+    "limits": {
+     "withdraw": {
+      "min": 0.5,
+      "max": 1000000
+     },
+     "deposit": {
+      "min": 0.5,
+      "max": 1000000
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "info": {
+     "currency_code": "USDT",
+     "network_code": "polygon",
+     "can_withdraw": true,
+     "can_deposit": true,
+     "min_withdraw": "0.50000000",
+     "max_withdraw": "1000000.00000000",
+     "max_deposit": "1000000.00000000",
+     "min_deposit": "0.50000000"
+    }
+   },
+   "AVAX": {
+    "id": "avalanche",
+    "network": "AVAX",
+    "limits": {
+     "withdraw": {
+      "min": 1,
+      "max": 1000000
+     },
+     "deposit": {
+      "min": 1,
+      "max": 1000000
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "info": {
+     "currency_code": "USDT",
+     "network_code": "avalanche",
+     "can_withdraw": true,
+     "can_deposit": true,
+     "min_withdraw": "1.00000000",
+     "max_withdraw": "1000000.00000000",
+     "max_deposit": "1000000.00000000",
+     "min_deposit": "1.00000000"
+    }
+   },
+   "TRC20": {
+    "id": "tron",
+    "network": "TRC20",
+    "limits": {
+     "withdraw": {
+      "min": 1,
+      "max": 1000000
+     },
+     "deposit": {
+      "min": 1,
+      "max": 1000000
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "info": {
+     "currency_code": "USDT",
+     "network_code": "tron",
+     "can_withdraw": true,
+     "can_deposit": true,
+     "min_withdraw": "1.00000000",
+     "max_withdraw": "1000000.00000000",
+     "max_deposit": "1000000.00000000",
+     "min_deposit": "1.00000000"
+    }
+   },
+   "SOL": {
+    "id": "sol",
+    "network": "SOL",
+    "limits": {
+     "withdraw": {
+      "min": 10,
+      "max": 1000000
+     },
+     "deposit": {
+      "min": 1,
+      "max": 1000000
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "info": {
+     "currency_code": "USDT",
+     "network_code": "sol",
+     "can_withdraw": true,
+     "can_deposit": true,
+     "min_withdraw": "10.00000000",
+     "max_withdraw": "1000000.00000000",
+     "max_deposit": "1000000.00000000",
+     "min_deposit": "1.00000000"
+    }
+   },
+   "BEP20": {
+    "id": "bsc",
+    "network": "BEP20",
+    "limits": {
+     "withdraw": {
+      "min": 1,
+      "max": 1000000
+     },
+     "deposit": {
+      "min": 0.5,
+      "max": 1000000
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "info": {
+     "currency_code": "USDT",
+     "network_code": "bsc",
+     "can_withdraw": true,
+     "can_deposit": true,
+     "min_withdraw": "1.00000000",
+     "max_withdraw": "1000000.00000000",
+     "max_deposit": "1000000.00000000",
+     "min_deposit": "0.50000000"
+    }
+   },
+   "ARB": {
+    "id": "arbitrum",
+    "network": "ARB",
+    "limits": {
+     "withdraw": {
+      "min": 1,
+      "max": 1000000
+     },
+     "deposit": {
+      "min": 1,
+      "max": 1000000
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "info": {
+     "currency_code": "USDT",
+     "network_code": "arbitrum",
+     "can_withdraw": true,
+     "can_deposit": true,
+     "min_withdraw": "1.00000000",
+     "max_withdraw": "1000000.00000000",
+     "max_deposit": "1000000.00000000",
+     "min_deposit": "1.00000000"
+    }
+   },
+   "TON": {
+    "id": "ton",
+    "network": "TON",
+    "limits": {
+     "withdraw": {
+      "min": 1,
+      "max": 10000000
+     },
+     "deposit": {
+      "min": 1,
+      "max": 10000000
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "info": {
+     "currency_code": "USDT",
+     "network_code": "ton",
+     "can_withdraw": true,
+     "can_deposit": true,
+     "min_withdraw": "1.00000000",
+     "max_withdraw": "10000000.00000000",
+     "max_deposit": "10000000.00000000",
+     "min_deposit": "1.00000000"
+    }
+   },
+   "ERC20": {
+    "id": "eth",
+    "network": "ERC20",
+    "limits": {
+     "withdraw": {
+      "min": 10,
+      "max": 1000000
+     },
+     "deposit": {
+      "min": 1,
+      "max": 1000000
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "info": {
+     "currency_code": "USDT",
+     "network_code": "eth",
+     "can_withdraw": true,
+     "can_deposit": true,
+     "min_withdraw": "10.00000000",
+     "max_withdraw": "1000000.00000000",
+     "max_deposit": "1000000.00000000",
+     "min_deposit": "1.00000000"
+    }
+   }
+  },
+  "limits": {
+   "deposit": {
+    "min": 0.5,
+    "max": 10000000
+   },
+   "withdraw": {
+    "min": 0.5,
+    "max": 10000000
+   }
+  }
+ },
+ "AAVE": {
+  "info": [
+   {
+    "currency_code": "AAVE",
+    "network_code": "eth",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "0.05920000",
+    "max_withdraw": "120000.00000000",
+    "max_deposit": "1000.00000000",
+    "min_deposit": "0.02200000"
+   },
+   {
+    "currency_code": "AAVE",
+    "network_code": "eth",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "0.05920000",
+    "max_withdraw": "120000.00000000",
+    "max_deposit": "1000.00000000",
+    "min_deposit": "0.02200000"
+   }
+  ],
+  "id": "AAVE",
+  "code": "AAVE",
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {
+   "ERC20": {
+    "id": "eth",
+    "network": "ERC20",
+    "limits": {
+     "withdraw": {
+      "min": 0.0592,
+      "max": 120000
+     },
+     "deposit": {
+      "min": 0.022,
+      "max": 1000
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "info": {
+     "currency_code": "AAVE",
+     "network_code": "eth",
+     "can_withdraw": true,
+     "can_deposit": true,
+     "min_withdraw": "0.05920000",
+     "max_withdraw": "120000.00000000",
+     "max_deposit": "1000.00000000",
+     "min_deposit": "0.02200000"
+    }
+   }
+  },
+  "limits": {
+   "deposit": {
+    "min": 0.022,
+    "max": 1000
+   },
+   "withdraw": {
+    "min": 0.0592,
+    "max": 120000
+   }
+  }
+ },
+ "ACH": {
+  "info": [
+   {
+    "currency_code": "ACH",
+    "network_code": "eth",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "412.00000000",
+    "max_withdraw": "10000000000.00000000",
+    "max_deposit": "10000000000.00000000",
+    "min_deposit": "180.00000000"
+   },
+   {
+    "currency_code": "ACH",
+    "network_code": "eth",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "412.00000000",
+    "max_withdraw": "10000000000.00000000",
+    "max_deposit": "10000000000.00000000",
+    "min_deposit": "180.00000000"
+   }
+  ],
+  "id": "ACH",
+  "code": "ACH",
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {
+   "ERC20": {
+    "id": "eth",
+    "network": "ERC20",
+    "limits": {
+     "withdraw": {
+      "min": 412,
+      "max": 10000000000
+     },
+     "deposit": {
+      "min": 180,
+      "max": 10000000000
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "info": {
+     "currency_code": "ACH",
+     "network_code": "eth",
+     "can_withdraw": true,
+     "can_deposit": true,
+     "min_withdraw": "412.00000000",
+     "max_withdraw": "10000000000.00000000",
+     "max_deposit": "10000000000.00000000",
+     "min_deposit": "180.00000000"
+    }
+   }
+  },
+  "limits": {
+   "deposit": {
+    "min": 180,
+    "max": 10000000000
+   },
+   "withdraw": {
+    "min": 412,
+    "max": 10000000000
+   }
+  }
+ },
+ "AIOZ": {
+  "info": [
+   {
+    "currency_code": "AIOZ",
+    "network_code": "eth",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "26.00000000",
+    "max_withdraw": "99999999.00000000",
+    "max_deposit": "10000000000.00000000",
+    "min_deposit": "9.00000000"
+   },
+   {
+    "currency_code": "AIOZ",
+    "network_code": "eth",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "26.00000000",
+    "max_withdraw": "99999999.00000000",
+    "max_deposit": "10000000000.00000000",
+    "min_deposit": "9.00000000"
+   }
+  ],
+  "id": "AIOZ",
+  "code": "AIOZ",
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {
+   "ERC20": {
+    "id": "eth",
+    "network": "ERC20",
+    "limits": {
+     "withdraw": {
+      "min": 26,
+      "max": 99999999
+     },
+     "deposit": {
+      "min": 9,
+      "max": 10000000000
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "info": {
+     "currency_code": "AIOZ",
+     "network_code": "eth",
+     "can_withdraw": true,
+     "can_deposit": true,
+     "min_withdraw": "26.00000000",
+     "max_withdraw": "99999999.00000000",
+     "max_deposit": "10000000000.00000000",
+     "min_deposit": "9.00000000"
+    }
+   }
+  },
+  "limits": {
+   "deposit": {
+    "min": 9,
+    "max": 10000000000
+   },
+   "withdraw": {
+    "min": 26,
+    "max": 99999999
+   }
+  }
+ },
+ "ALICE": {
+  "info": [
+   {
+    "currency_code": "ALICE",
+    "network_code": "bsc",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "3.00000000",
+    "max_withdraw": "10000000000.00000000",
+    "max_deposit": "10000000000.00000000",
+    "min_deposit": "0.01000000"
+   },
+   {
+    "currency_code": "ALICE",
+    "network_code": "bsc",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "3.00000000",
+    "max_withdraw": "10000000000.00000000",
+    "max_deposit": "10000000000.00000000",
+    "min_deposit": "0.01000000"
+   }
+  ],
+  "id": "ALICE",
+  "code": "ALICE",
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {
+   "BEP20": {
+    "id": "bsc",
+    "network": "BEP20",
+    "limits": {
+     "withdraw": {
+      "min": 3,
+      "max": 10000000000
+     },
+     "deposit": {
+      "min": 0.01,
+      "max": 10000000000
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "info": {
+     "currency_code": "ALICE",
+     "network_code": "bsc",
+     "can_withdraw": true,
+     "can_deposit": true,
+     "min_withdraw": "3.00000000",
+     "max_withdraw": "10000000000.00000000",
+     "max_deposit": "10000000000.00000000",
+     "min_deposit": "0.01000000"
+    }
+   }
+  },
+  "limits": {
+   "deposit": {
+    "min": 0.01,
+    "max": 10000000000
+   },
+   "withdraw": {
+    "min": 3,
+    "max": 10000000000
+   }
+  }
+ },
+ "AMP": {
+  "info": [
+   {
+    "currency_code": "AMP",
+    "network_code": "eth",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "2520.00000000",
+    "max_withdraw": "10000000000.00000000",
+    "max_deposit": "10000000000.00000000",
+    "min_deposit": "950.00000000"
+   },
+   {
+    "currency_code": "AMP",
+    "network_code": "eth",
+    "can_withdraw": true,
+    "can_deposit": true,
+    "min_withdraw": "2520.00000000",
+    "max_withdraw": "10000000000.00000000",
+    "max_deposit": "10000000000.00000000",
+    "min_deposit": "950.00000000"
+   }
+  ],
+  "id": "AMP",
+  "code": "AMP",
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {
+   "ERC20": {
+    "id": "eth",
+    "network": "ERC20",
+    "limits": {
+     "withdraw": {
+      "min": 2520,
+      "max": 10000000000
+     },
+     "deposit": {
+      "min": 950,
+      "max": 10000000000
+     }
+    },
+    "deposit": true,
+    "withdraw": true,
+    "info": {
+     "currency_code": "AMP",
+     "network_code": "eth",
+     "can_withdraw": true,
+     "can_deposit": true,
+     "min_withdraw": "2520.00000000",
+     "max_withdraw": "10000000000.00000000",
+     "max_deposit": "10000000000.00000000",
+     "min_deposit": "950.00000000"
+    }
+   }
+  },
+  "limits": {
+   "deposit": {
+    "min": 950,
+    "max": 10000000000
+   },
+   "withdraw": {
+    "min": 2520,
+    "max": 10000000000
+   }
+  }
+ }
+}

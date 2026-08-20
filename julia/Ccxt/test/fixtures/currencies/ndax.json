@@ -1,0 +1,258 @@
+{
+ "BTC": {
+  "info": {
+   "OMSId": 1,
+   "ProductId": 1,
+   "Product": "BTC",
+   "ProductFullName": "Bitcoin",
+   "MasterDataUniqueProductSymbol": "",
+   "ProductType": "CryptoCurrency",
+   "DecimalPlaces": 8,
+   "TickSize": 1e-8,
+   "DepositEnabled": true,
+   "WithdrawEnabled": true,
+   "NoFees": false,
+   "IsDisabled": false,
+   "MarginEnabled": false
+  },
+  "id": "1",
+  "code": "BTC",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Bitcoin",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  },
+  "margin": false
+ },
+ "USD": {
+  "info": {
+   "OMSId": 1,
+   "ProductId": 6,
+   "Product": "USD",
+   "ProductFullName": "United States Dollar",
+   "MasterDataUniqueProductSymbol": "",
+   "ProductType": "NationalCurrency",
+   "DecimalPlaces": 8,
+   "TickSize": 1e-8,
+   "DepositEnabled": true,
+   "WithdrawEnabled": true,
+   "NoFees": false,
+   "IsDisabled": false,
+   "MarginEnabled": false
+  },
+  "id": "6",
+  "code": "USD",
+  "precision": 1e-8,
+  "type": "fiat",
+  "name": "United States Dollar",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  },
+  "margin": false
+ },
+ "USDT": {
+  "info": {
+   "OMSId": 1,
+   "ProductId": 16,
+   "Product": "USDT",
+   "ProductFullName": "Tether",
+   "MasterDataUniqueProductSymbol": "",
+   "ProductType": "CryptoCurrency",
+   "DecimalPlaces": 2,
+   "TickSize": 0.01,
+   "DepositEnabled": true,
+   "WithdrawEnabled": true,
+   "NoFees": false,
+   "IsDisabled": false,
+   "MarginEnabled": false
+  },
+  "id": "16",
+  "code": "USDT",
+  "precision": 0.01,
+  "type": "crypto",
+  "name": "Tether",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  },
+  "margin": false
+ },
+ "A": {
+  "info": {
+   "OMSId": 1,
+   "ProductId": 75,
+   "Product": "A",
+   "ProductFullName": "Vaulta",
+   "MasterDataUniqueProductSymbol": "",
+   "ProductType": "CryptoCurrency",
+   "DecimalPlaces": 4,
+   "TickSize": 0.0001,
+   "DepositEnabled": true,
+   "WithdrawEnabled": true,
+   "NoFees": false,
+   "IsDisabled": false,
+   "MarginEnabled": false
+  },
+  "id": "75",
+  "code": "A",
+  "precision": 0.0001,
+  "type": "crypto",
+  "name": "Vaulta",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  },
+  "margin": false
+ },
+ "AAVE": {
+  "info": {
+   "OMSId": 1,
+   "ProductId": 22,
+   "Product": "AAVE",
+   "ProductFullName": "Aave",
+   "MasterDataUniqueProductSymbol": "",
+   "ProductType": "CryptoCurrency",
+   "DecimalPlaces": 4,
+   "TickSize": 0.0001,
+   "DepositEnabled": true,
+   "WithdrawEnabled": true,
+   "NoFees": false,
+   "IsDisabled": false,
+   "MarginEnabled": false
+  },
+  "id": "22",
+  "code": "AAVE",
+  "precision": 0.0001,
+  "type": "crypto",
+  "name": "Aave",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  },
+  "margin": false
+ },
+ "ADA": {
+  "info": {
+   "OMSId": 1,
+   "ProductId": 14,
+   "Product": "ADA",
+   "ProductFullName": "Cardano",
+   "MasterDataUniqueProductSymbol": "",
+   "ProductType": "CryptoCurrency",
+   "DecimalPlaces": 5,
+   "TickSize": 0.00001,
+   "DepositEnabled": true,
+   "WithdrawEnabled": true,
+   "NoFees": false,
+   "IsDisabled": false,
+   "MarginEnabled": false
+  },
+  "id": "14",
+  "code": "ADA",
+  "precision": 0.00001,
+  "type": "crypto",
+  "name": "Cardano",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  },
+  "margin": false
+ },
+ "ALGO": {
+  "info": {
+   "OMSId": 1,
+   "ProductId": 35,
+   "Product": "ALGO",
+   "ProductFullName": "Algorand",
+   "MasterDataUniqueProductSymbol": "",
+   "ProductType": "CryptoCurrency",
+   "DecimalPlaces": 4,
+   "TickSize": 0.0001,
+   "DepositEnabled": true,
+   "WithdrawEnabled": true,
+   "NoFees": false,
+   "IsDisabled": false,
+   "MarginEnabled": false
+  },
+  "id": "35",
+  "code": "ALGO",
+  "precision": 0.0001,
+  "type": "crypto",
+  "name": "Algorand",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  },
+  "margin": false
+ },
+ "APT": {
+  "info": {
+   "OMSId": 1,
+   "ProductId": 70,
+   "Product": "APT",
+   "ProductFullName": "Aptos",
+   "MasterDataUniqueProductSymbol": "",
+   "ProductType": "CryptoCurrency",
+   "DecimalPlaces": 6,
+   "TickSize": 0.000001,
+   "DepositEnabled": true,
+   "WithdrawEnabled": true,
+   "NoFees": false,
+   "IsDisabled": false,
+   "MarginEnabled": false
+  },
+  "id": "70",
+  "code": "APT",
+  "precision": 0.000001,
+  "type": "crypto",
+  "name": "Aptos",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  },
+  "margin": false
+ }
+}

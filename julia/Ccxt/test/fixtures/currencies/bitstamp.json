@@ -1,0 +1,268 @@
+{
+ "BTC": {
+  "id": "BTC",
+  "code": "BTC",
+  "info": {
+   "name": "BTC/USD",
+   "market_symbol": "btcusd",
+   "base_currency": "BTC",
+   "base_decimals": 8,
+   "counter_currency": "USD",
+   "counter_decimals": 2,
+   "minimum_order_value": "10.00",
+   "trading": "Enabled",
+   "instant_order_counter_decimals": 2,
+   "instant_and_market_orders": "Enabled",
+   "description": "Bitcoin / U.S. dollar",
+   "market_type": "SPOT"
+  },
+  "type": "crypto",
+  "name": "Bitcoin",
+  "active": true,
+  "precision": 1e-8,
+  "limits": {
+   "amount": {
+    "min": 1e-8
+   },
+   "price": {
+    "min": 1e-8
+   },
+   "cost": {},
+   "withdraw": {}
+  },
+  "networks": {}
+ },
+ "ETH": {
+  "id": "ETH",
+  "code": "ETH",
+  "info": {
+   "name": "ETH/USD",
+   "market_symbol": "ethusd",
+   "base_currency": "ETH",
+   "base_decimals": 6,
+   "counter_currency": "USD",
+   "counter_decimals": 2,
+   "minimum_order_value": "10.00",
+   "trading": "Enabled",
+   "instant_order_counter_decimals": 2,
+   "instant_and_market_orders": "Enabled",
+   "description": "Ethereum / U.S. dollar",
+   "market_type": "SPOT"
+  },
+  "type": "crypto",
+  "name": "Ethereum",
+  "active": true,
+  "precision": 0.000001,
+  "limits": {
+   "amount": {
+    "min": 0.000001
+   },
+   "price": {
+    "min": 0.000001
+   },
+   "cost": {},
+   "withdraw": {}
+  },
+  "networks": {}
+ },
+ "USD": {
+  "id": "USD",
+  "code": "USD",
+  "info": {
+   "name": "EUR/USD",
+   "market_symbol": "eurusd",
+   "base_currency": "EUR",
+   "base_decimals": 5,
+   "counter_currency": "USD",
+   "counter_decimals": 5,
+   "minimum_order_value": "10.00000",
+   "trading": "Enabled",
+   "instant_order_counter_decimals": 5,
+   "instant_and_market_orders": "Enabled",
+   "description": "Euro / U.S. dollar",
+   "market_type": "SPOT"
+  },
+  "type": "fiat",
+  "name": "U.S. dollar",
+  "active": true,
+  "precision": 0.00001,
+  "limits": {
+   "amount": {
+    "min": 0.00001
+   },
+   "price": {
+    "min": 0.00001
+   },
+   "cost": {
+    "min": 10
+   },
+   "withdraw": {}
+  },
+  "networks": {}
+ },
+ "USDT": {
+  "id": "USDT",
+  "code": "USDT",
+  "info": {
+   "name": "USDT/USD",
+   "market_symbol": "usdtusd",
+   "base_currency": "USDT",
+   "base_decimals": 5,
+   "counter_currency": "USD",
+   "counter_decimals": 5,
+   "minimum_order_value": "10.00000",
+   "trading": "Enabled",
+   "instant_order_counter_decimals": 5,
+   "instant_and_market_orders": "Enabled",
+   "description": "Tether / U.S. dollar",
+   "market_type": "SPOT"
+  },
+  "type": "crypto",
+  "name": "Tether",
+  "active": true,
+  "precision": 0.00001,
+  "limits": {
+   "amount": {
+    "min": 0.00001
+   },
+   "price": {
+    "min": 0.00001
+   },
+   "cost": {},
+   "withdraw": {}
+  },
+  "networks": {}
+ },
+ "AAVE": {
+  "id": "AAVE",
+  "code": "AAVE",
+  "info": {
+   "name": "AAVE/USD",
+   "market_symbol": "aaveusd",
+   "base_currency": "AAVE",
+   "base_decimals": 5,
+   "counter_currency": "USD",
+   "counter_decimals": 3,
+   "minimum_order_value": "10.000",
+   "trading": "Enabled",
+   "instant_order_counter_decimals": 3,
+   "instant_and_market_orders": "Enabled",
+   "description": "Aave / U.S. dollar",
+   "market_type": "SPOT"
+  },
+  "type": "crypto",
+  "name": "Aave",
+  "active": true,
+  "precision": 0.00001,
+  "limits": {
+   "amount": {
+    "min": 0.00001
+   },
+   "price": {
+    "min": 0.00001
+   },
+   "cost": {},
+   "withdraw": {}
+  },
+  "networks": {}
+ },
+ "ADA": {
+  "id": "ADA",
+  "code": "ADA",
+  "info": {
+   "name": "ADA/USD",
+   "market_symbol": "adausd",
+   "base_currency": "ADA",
+   "base_decimals": 8,
+   "counter_currency": "USD",
+   "counter_decimals": 5,
+   "minimum_order_value": "10.00000",
+   "trading": "Enabled",
+   "instant_order_counter_decimals": 5,
+   "instant_and_market_orders": "Enabled",
+   "description": "Cardano / U.S. dollar",
+   "market_type": "SPOT"
+  },
+  "type": "crypto",
+  "name": "Cardano",
+  "active": true,
+  "precision": 1e-8,
+  "limits": {
+   "amount": {
+    "min": 1e-8
+   },
+   "price": {
+    "min": 1e-8
+   },
+   "cost": {},
+   "withdraw": {}
+  },
+  "networks": {}
+ },
+ "AERO": {
+  "id": "AERO",
+  "code": "AERO",
+  "info": {
+   "name": "AERO/USD",
+   "market_symbol": "aerousd",
+   "base_currency": "AERO",
+   "base_decimals": 2,
+   "counter_currency": "USD",
+   "counter_decimals": 5,
+   "minimum_order_value": "10.00000",
+   "trading": "Enabled",
+   "instant_order_counter_decimals": 5,
+   "instant_and_market_orders": "Enabled",
+   "description": "Aerodrome Finance / U.S. dollar",
+   "market_type": "SPOT"
+  },
+  "type": "crypto",
+  "name": "Aerodrome Finance",
+  "active": true,
+  "precision": 0.01,
+  "limits": {
+   "amount": {
+    "min": 0.01
+   },
+   "price": {
+    "min": 0.01
+   },
+   "cost": {},
+   "withdraw": {}
+  },
+  "networks": {}
+ },
+ "ALGO": {
+  "id": "ALGO",
+  "code": "ALGO",
+  "info": {
+   "name": "ALGO/USD",
+   "market_symbol": "algousd",
+   "base_currency": "ALGO",
+   "base_decimals": 8,
+   "counter_currency": "USD",
+   "counter_decimals": 5,
+   "minimum_order_value": "10.00000",
+   "trading": "Enabled",
+   "instant_order_counter_decimals": 5,
+   "instant_and_market_orders": "Enabled",
+   "description": "Algorand / U.S. dollar",
+   "market_type": "SPOT"
+  },
+  "type": "crypto",
+  "name": "Algorand",
+  "active": true,
+  "precision": 1e-8,
+  "limits": {
+   "amount": {
+    "min": 1e-8
+   },
+   "price": {
+    "min": 1e-8
+   },
+   "cost": {},
+   "withdraw": {}
+  },
+  "networks": {}
+ }
+}

@@ -1,0 +1,1388 @@
+@kwdef mutable struct Coincheck <: CcxtExchange
+    parent::Union{Exchange, Nothing} = Exchange()
+    describe::Function = describe
+    parseBalance::Function = parseBalance
+    fetchStatus::Function = fetchStatus
+    fetchBalance::Function = fetchBalance
+    fetchOpenOrders::Function = fetchOpenOrders
+    parseOrder::Function = parseOrder
+    fetchOrderBook::Function = fetchOrderBook
+    parseTicker::Function = parseTicker
+    fetchTicker::Function = fetchTicker
+    parseTrade::Function = parseTrade
+    fetchMyTrades::Function = fetchMyTrades
+    fetchTrades::Function = fetchTrades
+    fetchTradingFees::Function = fetchTradingFees
+    createOrder::Function = createOrder
+    cancelOrder::Function = cancelOrder
+    fetchDeposits::Function = fetchDeposits
+    fetchWithdrawals::Function = fetchWithdrawals
+    parseTransactionStatus::Function = parseTransactionStatus
+    parseTransaction::Function = parseTransaction
+    nonce::Function = nonce
+    sign::Function = sign
+    handleErrors::Function = handleErrors
+
+# Generated REST endpoint fields
+    publicGetExchangeOrdersRate::Function = publicGetExchangeOrdersRate
+    publicGetExchangeStatus::Function = publicGetExchangeStatus
+    publicGetOrderBooks::Function = publicGetOrderBooks
+    publicGetRatePair::Function = publicGetRatePair
+    publicGetTicker::Function = publicGetTicker
+    publicGetTrades::Function = publicGetTrades
+    privateGetAccounts::Function = privateGetAccounts
+    privateGetAccountsBalance::Function = privateGetAccountsBalance
+    privateGetAccountsLeverageBalance::Function = privateGetAccountsLeverageBalance
+    privateGetBankAccounts::Function = privateGetBankAccounts
+    privateGetDepositMoney::Function = privateGetDepositMoney
+    privateGetExchangeOrdersId::Function = privateGetExchangeOrdersId
+    privateGetExchangeOrdersOpens::Function = privateGetExchangeOrdersOpens
+    privateGetExchangeOrdersCancelStatus::Function = privateGetExchangeOrdersCancelStatus
+    privateGetExchangeOrdersTransactions::Function = privateGetExchangeOrdersTransactions
+    privateGetExchangeOrdersTransactionsPagination::Function = privateGetExchangeOrdersTransactionsPagination
+    privateGetExchangeLeveragePositions::Function = privateGetExchangeLeveragePositions
+    privateGetLendingBorrowsMatches::Function = privateGetLendingBorrowsMatches
+    privateGetSendMoney::Function = privateGetSendMoney
+    privateGetWithdraws::Function = privateGetWithdraws
+    privatePostBankAccounts::Function = privatePostBankAccounts
+    privatePostDepositMoneyIdFast::Function = privatePostDepositMoneyIdFast
+    privatePostExchangeOrders::Function = privatePostExchangeOrders
+    privatePostExchangeTransfersToLeverage::Function = privatePostExchangeTransfersToLeverage
+    privatePostExchangeTransfersFromLeverage::Function = privatePostExchangeTransfersFromLeverage
+    privatePostLendingBorrows::Function = privatePostLendingBorrows
+    privatePostLendingBorrowsIdRepay::Function = privatePostLendingBorrowsIdRepay
+    privatePostSendMoney::Function = privatePostSendMoney
+    privatePostWithdraws::Function = privatePostWithdraws
+    privateDeleteBankAccountsId::Function = privateDeleteBankAccountsId
+    privateDeleteExchangeOrdersId::Function = privateDeleteExchangeOrdersId
+    privateDeleteWithdrawsId::Function = privateDeleteWithdrawsId
+
+end
+function describe(self::Coincheck, )
+    return deepExtend(describe(self.parent), Dict{Symbol, Any}(
+    Symbol("id") => "coincheck",
+    Symbol("name") => "Coincheck",
+    Symbol("countries") => ["JP", "ID"],
+    Symbol("rateLimit") => 1500,
+    Symbol("has") => Dict{Symbol, Any}(
+        Symbol("CORS") => nothing,
+        Symbol("spot") => true,
+        Symbol("margin") => false,
+        Symbol("swap") => false,
+        Symbol("future") => false,
+        Symbol("option") => false,
+        Symbol("addMargin") => false,
+        Symbol("borrowCrossMargin") => false,
+        Symbol("borrowIsolatedMargin") => false,
+        Symbol("borrowMargin") => false,
+        Symbol("cancelOrder") => true,
+        Symbol("closeAllPositions") => false,
+        Symbol("closePosition") => false,
+        Symbol("createOrder") => true,
+        Symbol("createOrderWithTakeProfitAndStopLoss") => false,
+        Symbol("createOrderWithTakeProfitAndStopLossWs") => false,
+        Symbol("createPostOnlyOrder") => false,
+        Symbol("createReduceOnlyOrder") => false,
+        Symbol("fetchBalance") => true,
+        Symbol("fetchBorrowInterest") => false,
+        Symbol("fetchBorrowRate") => false,
+        Symbol("fetchBorrowRateHistories") => false,
+        Symbol("fetchBorrowRateHistory") => false,
+        Symbol("fetchBorrowRates") => false,
+        Symbol("fetchBorrowRatesPerSymbol") => false,
+        Symbol("fetchCrossBorrowRate") => false,
+        Symbol("fetchCrossBorrowRates") => false,
+        Symbol("fetchDeposits") => true,
+        Symbol("fetchFundingHistory") => false,
+        Symbol("fetchFundingInterval") => false,
+        Symbol("fetchFundingIntervals") => false,
+        Symbol("fetchFundingRate") => false,
+        Symbol("fetchFundingRateHistory") => false,
+        Symbol("fetchFundingRates") => false,
+        Symbol("fetchGreeks") => false,
+        Symbol("fetchIndexOHLCV") => false,
+        Symbol("fetchIsolatedBorrowRate") => false,
+        Symbol("fetchIsolatedBorrowRates") => false,
+        Symbol("fetchIsolatedPositions") => false,
+        Symbol("fetchLeverage") => false,
+        Symbol("fetchLeverages") => false,
+        Symbol("fetchLeverageTiers") => false,
+        Symbol("fetchLiquidations") => false,
+        Symbol("fetchLongShortRatio") => false,
+        Symbol("fetchLongShortRatioHistory") => false,
+        Symbol("fetchMarginAdjustmentHistory") => false,
+        Symbol("fetchMarginMode") => false,
+        Symbol("fetchMarginModes") => false,
+        Symbol("fetchMarketLeverageTiers") => false,
+        Symbol("fetchMarkOHLCV") => false,
+        Symbol("fetchMarkPrices") => false,
+        Symbol("fetchMyLiquidations") => false,
+        Symbol("fetchMySettlementHistory") => false,
+        Symbol("fetchMyTrades") => true,
+        Symbol("fetchOpenInterest") => false,
+        Symbol("fetchOpenInterestHistory") => false,
+        Symbol("fetchOpenInterests") => false,
+        Symbol("fetchOpenOrders") => true,
+        Symbol("fetchOption") => false,
+        Symbol("fetchOptionChain") => false,
+        Symbol("fetchOrderBook") => true,
+        Symbol("fetchPosition") => false,
+        Symbol("fetchPositionHistory") => false,
+        Symbol("fetchPositionMode") => false,
+        Symbol("fetchPositions") => false,
+        Symbol("fetchPositionsForSymbol") => false,
+        Symbol("fetchPositionsHistory") => false,
+        Symbol("fetchPositionsRisk") => false,
+        Symbol("fetchPremiumIndexOHLCV") => false,
+        Symbol("fetchSettlementHistory") => false,
+        Symbol("fetchStatus") => true,
+        Symbol("fetchTicker") => true,
+        Symbol("fetchTrades") => true,
+        Symbol("fetchTradingFee") => false,
+        Symbol("fetchTradingFees") => true,
+        Symbol("fetchVolatilityHistory") => false,
+        Symbol("fetchWithdrawals") => true,
+        Symbol("reduceMargin") => false,
+        Symbol("repayCrossMargin") => false,
+        Symbol("repayIsolatedMargin") => false,
+        Symbol("repayMargin") => false,
+        Symbol("setLeverage") => false,
+        Symbol("setMargin") => false,
+        Symbol("setMarginMode") => false,
+        Symbol("setPositionMode") => false,
+        Symbol("ws") => true
+    ),
+    Symbol("urls") => Dict{Symbol, Any}(
+        Symbol("logo") => "https://user-images.githubusercontent.com/51840849/87182088-1d6d6380-c2ec-11ea-9c64-8ab9f9b289f5.jpg",
+        Symbol("api") => Dict{Symbol, Any}(
+            Symbol("rest") => "https://coincheck.com/api"
+        ),
+        Symbol("www") => "https://coincheck.com",
+        Symbol("doc") => "https://coincheck.com/documents/exchange/api",
+        Symbol("fees") => ["https://coincheck.com/exchange/fee", "https://coincheck.com/info/fee"]
+    ),
+    Symbol("api") => Dict{Symbol, Any}(
+        Symbol("public") => Dict{Symbol, Any}(
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("exchange/orders/rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange_status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order_books") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("rate/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
+        ),
+        Symbol("private") => Dict{Symbol, Any}(
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("accounts/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("accounts/leverage_balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("bank_accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deposit_money") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/orders/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/orders/opens") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/orders/cancel_status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/orders/transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/orders/transactions_pagination") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/leverage/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lending/borrows/matches") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("send_money") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdraws") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("bank_accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deposit_money/{id}/fast") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/transfers/to_leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/transfers/from_leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lending/borrows") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lending/borrows/{id}/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("send_money") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdraws") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
+            Symbol("delete") => Dict{Symbol, Any}(
+                Symbol("bank_accounts/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/orders/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdraws/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
+        )
+    ),
+    Symbol("markets") => Dict{Symbol, Any}(
+        Symbol("BTC/JPY") => self.safeMarketStructure(market = Dict{Symbol, Any}(
+    Symbol("id") => "btc_jpy",
+    Symbol("symbol") => "BTC/JPY",
+    Symbol("base") => "BTC",
+    Symbol("quote") => "JPY",
+    Symbol("baseId") => "btc",
+    Symbol("quoteId") => "jpy",
+    Symbol("type") => "spot",
+    Symbol("spot") => true
+)),
+        Symbol("ETC/JPY") => self.safeMarketStructure(market = Dict{Symbol, Any}(
+    Symbol("id") => "etc_jpy",
+    Symbol("symbol") => "ETC/JPY",
+    Symbol("base") => "ETC",
+    Symbol("quote") => "JPY",
+    Symbol("baseId") => "etc",
+    Symbol("quoteId") => "jpy",
+    Symbol("type") => "spot",
+    Symbol("spot") => true
+)),
+        Symbol("FCT/JPY") => self.safeMarketStructure(market = Dict{Symbol, Any}(
+    Symbol("id") => "fct_jpy",
+    Symbol("symbol") => "FCT/JPY",
+    Symbol("base") => "FCT",
+    Symbol("quote") => "JPY",
+    Symbol("baseId") => "fct",
+    Symbol("quoteId") => "jpy",
+    Symbol("type") => "spot",
+    Symbol("spot") => true
+)),
+        Symbol("MONA/JPY") => self.safeMarketStructure(market = Dict{Symbol, Any}(
+    Symbol("id") => "mona_jpy",
+    Symbol("symbol") => "MONA/JPY",
+    Symbol("base") => "MONA",
+    Symbol("quote") => "JPY",
+    Symbol("baseId") => "mona",
+    Symbol("quoteId") => "jpy",
+    Symbol("type") => "spot",
+    Symbol("spot") => true
+)),
+        Symbol("ETC/BTC") => self.safeMarketStructure(market = Dict{Symbol, Any}(
+    Symbol("id") => "etc_btc",
+    Symbol("symbol") => "ETC/BTC",
+    Symbol("base") => "ETC",
+    Symbol("quote") => "BTC",
+    Symbol("baseId") => "etc",
+    Symbol("quoteId") => "btc",
+    Symbol("type") => "spot",
+    Symbol("spot") => true
+))
+    ),
+    Symbol("features") => Dict{Symbol, Any}(
+        Symbol("spot") => Dict{Symbol, Any}(
+            Symbol("sandbox") => false,
+            Symbol("createOrder") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("triggerPrice") => false,
+                Symbol("triggerPriceType") => nothing,
+                Symbol("triggerDirection") => false,
+                Symbol("stopLossPrice") => false,
+                Symbol("takeProfitPrice") => false,
+                Symbol("attachedStopLossTakeProfit") => nothing,
+                Symbol("timeInForce") => Dict{Symbol, Any}(
+                    Symbol("IOC") => false,
+                    Symbol("FOK") => false,
+                    Symbol("PO") => true,
+                    Symbol("GTD") => false
+                ),
+                Symbol("hedged") => false,
+                Symbol("trailing") => false,
+                Symbol("leverage") => false,
+                Symbol("marketBuyByCost") => false,
+                Symbol("marketBuyRequiresPrice") => false,
+                Symbol("selfTradePrevention") => false,
+                Symbol("iceberg") => false
+            ),
+            Symbol("createOrders") => nothing,
+            Symbol("fetchMyTrades") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("limit") => nothing,
+                Symbol("daysBack") => nothing,
+                Symbol("untilDays") => nothing,
+                Symbol("symbolRequired") => true
+            ),
+            Symbol("fetchOrder") => nothing,
+            Symbol("fetchOpenOrders") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("limit") => nothing,
+                Symbol("trigger") => false,
+                Symbol("trailing") => false,
+                Symbol("symbolRequired") => false
+            ),
+            Symbol("fetchOrders") => nothing,
+            Symbol("fetchClosedOrders") => nothing,
+            Symbol("fetchOHLCV") => nothing
+        ),
+        Symbol("swap") => Dict{Symbol, Any}(
+            Symbol("linear") => nothing,
+            Symbol("inverse") => nothing
+        ),
+        Symbol("future") => Dict{Symbol, Any}(
+            Symbol("linear") => nothing,
+            Symbol("inverse") => nothing
+        )
+    ),
+    Symbol("fees") => Dict{Symbol, Any}(
+        Symbol("trading") => Dict{Symbol, Any}(
+            Symbol("tierBased") => false,
+            Symbol("percentage") => true,
+            Symbol("maker") => self.parseNumber("0"),
+            Symbol("taker") => self.parseNumber("0")
+        )
+    ),
+    Symbol("precisionMode") => TICK_SIZE,
+    Symbol("exceptions") => Dict{Symbol, Any}(
+        Symbol("exact") => Dict{Symbol, Any}(
+            Symbol("disabled API Key") => AuthenticationError,
+            Symbol("invalid authentication") => AuthenticationError
+        ),
+        Symbol("broad") => Dict{Symbol, Any}()
+    )
+))
+
+end
+function parseBalance(self::Coincheck, response)
+    result = Dict{Symbol, Any}(
+        Symbol("info") => response
+    );
+    codes = objectKeys(self.currencies);
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(codes)))
+        code = get(codes, i + 1, nothing);
+        currency = self.currency(code);
+        currencyId = get(currency, Symbol("id"), nothing);
+        if functions.ccxtruthy(ccxt_in(currencyId, response))
+            account = self.account();
+            reserved = string(currencyId, "_reserved");
+            account[Symbol("free")] = safeString(response, currencyId);
+            account[Symbol("used")] = safeString(response, reserved);
+            result[Symbol(code)] = account;
+        end
+        i += 1
+    end
+    return self.safeBalance(result)
+
+end
+"""
+the latest known information on the availability of the exchange API
+see: https://coincheck.com/documents/exchange/api#status-retrieval
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+function fetchStatus(self::Coincheck; params=Dict())
+    response = Base.fetch(self.publicGetExchangeStatus(params));
+    exchangeStatuses = self.safeList(response, "exchange_status", defaultValue = []);
+    status = "ok";
+    updated = nothing;
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(exchangeStatuses)))
+        exchangeStatus = get(exchangeStatuses, i + 1, nothing);
+        rawStatus = safeString(exchangeStatus, "status");
+        if functions.ccxtruthy(updated == nothing)
+            updated = safeTimestamp(exchangeStatus, "timestamp");
+        end
+        if functions.ccxtruthy(rawStatus != "available")
+            status = "maintenance";
+        end
+        i += 1
+    end
+    return Dict{Symbol, Any}(
+    Symbol("status") => status,
+    Symbol("updated") => updated,
+    Symbol("eta") => nothing,
+    Symbol("url") => nothing,
+    Symbol("info") => response
+)
+
+end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://coincheck.com/documents/exchange/api#order-transactions-pagination
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+function fetchBalance(self::Coincheck; params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    response = Base.fetch(self.privateGetAccountsBalance(params));
+    return self.parseBalance(response)
+
+end
+"""
+fetch all unfilled currently open orders
+see: https://coincheck.com/documents/exchange/api#order-opens
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function fetchOpenOrders(self::Coincheck; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    market = nothing;
+    if functions.ccxtruthy(symbol != nothing)
+        market = self.market(symbol);
+    end
+    response = Base.fetch(self.privateGetExchangeOrdersOpens(params));
+    rawOrders = safeValue(response, "orders", []);
+    parsedOrders = self.parseOrders(rawOrders, market = market, since = since, limit = limit);
+    result = [];
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(parsedOrders)))
+        push!(result, extend(get(parsedOrders, i + 1, nothing), Dict{Symbol, Any}(
+    Symbol("status") => "open"
+)));
+        i += 1
+    end
+    return result
+
+end
+function parseOrder(self::Coincheck, order; market=nothing)
+    id = safeString(order, "id");
+    side = safeString(order, "order_type");
+    timestamp = self.parse8601(safeString(order, "created_at"));
+    amount = safeString(order, "pending_amount");
+    remaining = safeString(order, "pending_amount");
+    price = safeString(order, "rate");
+    status = nothing;
+    marketId = safeString(order, "pair");
+    symbol = self.safeSymbol(marketId, market = market, delimiter = "_");
+    return self.safeOrder(Dict{Symbol, Any}(
+    Symbol("id") => id,
+    Symbol("clientOrderId") => nothing,
+    Symbol("timestamp") => timestamp,
+    Symbol("datetime") => self.iso8601(timestamp),
+    Symbol("lastTradeTimestamp") => nothing,
+    Symbol("amount") => amount,
+    Symbol("remaining") => remaining,
+    Symbol("filled") => nothing,
+    Symbol("side") => side,
+    Symbol("type") => nothing,
+    Symbol("timeInForce") => nothing,
+    Symbol("postOnly") => nothing,
+    Symbol("status") => status,
+    Symbol("symbol") => symbol,
+    Symbol("price") => price,
+    Symbol("triggerPrice") => nothing,
+    Symbol("cost") => nothing,
+    Symbol("fee") => nothing,
+    Symbol("info") => order,
+    Symbol("average") => nothing,
+    Symbol("trades") => nothing
+), market = market)
+
+end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://coincheck.com/documents/exchange/api#order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+function fetchOrderBook(self::Coincheck, symbol; limit=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    market = self.market(symbol);
+    request = Dict{Symbol, Any}(
+        Symbol("pair") => get(market, Symbol("id"), nothing)
+    );
+    response = Base.fetch(self.publicGetOrderBooks(extend(request, params)));
+    return self.parseOrderBook(response, get(market, Symbol("symbol"), nothing))
+
+end
+function parseTicker(self::Coincheck, ticker; market=nothing)
+    symbol = self.safeSymbol(nothing, market = market);
+    timestamp = safeTimestamp(ticker, "timestamp");
+    last_var = safeString(ticker, "last");
+    return self.safeTicker(Dict{Symbol, Any}(
+    Symbol("symbol") => symbol,
+    Symbol("timestamp") => timestamp,
+    Symbol("datetime") => self.iso8601(timestamp),
+    Symbol("high") => safeString(ticker, "high"),
+    Symbol("low") => safeString(ticker, "low"),
+    Symbol("bid") => safeString(ticker, "bid"),
+    Symbol("bidVolume") => nothing,
+    Symbol("ask") => safeString(ticker, "ask"),
+    Symbol("askVolume") => nothing,
+    Symbol("vwap") => nothing,
+    Symbol("open") => nothing,
+    Symbol("close") => last_var,
+    Symbol("last") => last_var,
+    Symbol("previousClose") => nothing,
+    Symbol("change") => nothing,
+    Symbol("percentage") => nothing,
+    Symbol("average") => nothing,
+    Symbol("baseVolume") => safeString(ticker, "volume"),
+    Symbol("quoteVolume") => nothing,
+    Symbol("info") => ticker
+), market = market)
+
+end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://coincheck.com/documents/exchange/api#ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+function fetchTicker(self::Coincheck, symbol; params=Dict())
+    if functions.ccxtruthy(symbol != "BTC/JPY")
+        throw(BadSymbol(string(self.id, " fetchTicker() supports BTC/JPY only")));
+    end
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    market = self.market(symbol);
+    request = Dict{Symbol, Any}(
+        Symbol("pair") => get(market, Symbol("id"), nothing)
+    );
+    ticker = Base.fetch(self.publicGetTicker(extend(request, params)));
+    return self.parseTicker(ticker, market = market)
+
+end
+function parseTrade(self::Coincheck, trade; market=nothing)
+    timestamp = self.parse8601(safeString(trade, "created_at"));
+    id = safeString(trade, "id");
+    priceString = safeString(trade, "rate");
+    marketId = safeString(trade, "pair");
+    market = self.safeMarket(marketId = marketId, market = market, delimiter = "_");
+    baseId = get(market, Symbol("baseId"), nothing);
+    quoteId = get(market, Symbol("quoteId"), nothing);
+    symbol = get(market, Symbol("symbol"), nothing);
+    takerOrMaker = nothing;
+    amountString = nothing;
+    costString = nothing;
+    side = nothing;
+    fee = nothing;
+    orderId = nothing;
+    if functions.ccxtruthy(ccxt_in("liquidity", trade))
+        if functions.ccxtruthy(safeString(trade, "liquidity") == "T")
+            takerOrMaker = "taker";
+        elseif functions.ccxtruthy(safeString(trade, "liquidity") == "M")
+            takerOrMaker = "maker";
+        end
+        funds = safeValue(trade, "funds", Dict{Symbol, Any}());
+        amountString = safeString(funds, baseId);
+        costString = safeString(funds, quoteId);
+        fee = Dict{Symbol, Any}(
+            Symbol("currency") => safeString(trade, "fee_currency"),
+            Symbol("cost") => safeString(trade, "fee")
+        );
+        side = safeString(trade, "side");
+        orderId = safeString(trade, "order_id");
+    else
+        amountString = safeString(trade, "amount");
+        side = safeString(trade, "order_type");
+    end
+    return self.safeTrade(Dict{Symbol, Any}(
+    Symbol("id") => id,
+    Symbol("info") => trade,
+    Symbol("datetime") => self.iso8601(timestamp),
+    Symbol("timestamp") => timestamp,
+    Symbol("symbol") => symbol,
+    Symbol("type") => nothing,
+    Symbol("side") => side,
+    Symbol("order") => orderId,
+    Symbol("takerOrMaker") => takerOrMaker,
+    Symbol("price") => priceString,
+    Symbol("amount") => amountString,
+    Symbol("cost") => costString,
+    Symbol("fee") => fee
+), market = market)
+
+end
+"""
+fetch all trades made by the user
+see: https://coincheck.com/documents/exchange/api#order-transactions-pagination
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+function fetchMyTrades(self::Coincheck; symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    market = self.market(symbol);
+    request = Dict{Symbol, Any}();
+    if functions.ccxtruthy(limit != nothing)
+        request[Symbol("limit")] = limit;
+    end
+    response = Base.fetch(self.privateGetExchangeOrdersTransactionsPagination(extend(request, params)));
+    transactions = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(transactions, market = market, since = since, limit = limit)
+
+end
+"""
+get the list of most recent trades for a particular symbol
+see: https://coincheck.com/documents/exchange/api#public-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+function fetchTrades(self::Coincheck, symbol; since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    market = self.market(symbol);
+    request = Dict{Symbol, Any}(
+        Symbol("pair") => get(market, Symbol("id"), nothing)
+    );
+    if functions.ccxtruthy(limit != nothing)
+        request[Symbol("limit")] = limit;
+    end
+    response = Base.fetch(self.publicGetTrades(extend(request, params)));
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTrades(data, market = market, since = since, limit = limit)
+
+end
+"""
+fetch the trading fees for multiple markets
+see: https://coincheck.com/documents/exchange/api#account-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+function fetchTradingFees(self::Coincheck; params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    response = Base.fetch(self.privateGetAccounts(params));
+    fees = safeValue(response, "exchange_fees", Dict{Symbol, Any}());
+    result = Dict{Symbol, Any}();
+    symbols = self.symbols;
+    if functions.ccxtruthy(symbols == nothing)
+            return result
+    end
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
+        symbol = get(symbols, i + 1, nothing);
+        market = self.market(symbol);
+        fee = safeValue(fees, get(market, Symbol("id"), nothing), Dict{Symbol, Any}());
+        result[Symbol(symbol)] = Dict{Symbol, Any}(
+            Symbol("info") => fee,
+            Symbol("symbol") => symbol,
+            Symbol("maker") => self.safeNumber(fee, "maker_fee"),
+            Symbol("taker") => self.safeNumber(fee, "taker_fee"),
+            Symbol("percentage") => true,
+            Symbol("tierBased") => false
+        );
+        i += 1
+    end
+    return result
+
+end
+"""
+create a trade order
+see: https://coincheck.com/documents/exchange/api#order-new
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function createOrder(self::Coincheck, symbol, type_var, side, amount; price=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    market = self.market(symbol);
+    request = Dict{Symbol, Any}(
+        Symbol("pair") => get(market, Symbol("id"), nothing)
+    );
+    if functions.ccxtruthy(type_var == "market")
+        request[Symbol("order_type")] = string(type_var, "_", side);
+        if functions.ccxtruthy(side == "sell")
+            request[Symbol("amount")] = amount;
+        else
+            cost = self.safeNumber(params, "cost");
+            params = omit(params, "cost");
+            if functions.ccxtruthy(cost != nothing)
+                throw(ArgumentsRequired(string(self.id, " createOrder() : you should use \"cost\" parameter instead of \"amount\" argument to create market buy orders")));
+            end
+            request[Symbol("market_buy_amount")] = cost;
+        end
+    else
+        request[Symbol("order_type")] = side;
+        request[Symbol("rate")] = price;
+        request[Symbol("amount")] = amount;
+    end
+    response = Base.fetch(self.privatePostExchangeOrders(extend(request, params)));
+    id = safeString(response, "id");
+    return self.safeOrder(Dict{Symbol, Any}(
+    Symbol("id") => id,
+    Symbol("info") => response
+), market = market)
+
+end
+"""
+cancels an open order
+see: https://coincheck.com/documents/exchange/api#order-cancel
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+function cancelOrder(self::Coincheck, id; symbol=nothing, params=Dict())
+    request = Dict{Symbol, Any}(
+        Symbol("id") => id
+    );
+    response = Base.fetch(self.privateDeleteExchangeOrdersId(extend(request, params)));
+    return self.parseOrder(response)
+
+end
+"""
+fetch all deposits made to an account
+see: https://coincheck.com/documents/exchange/api#account-deposits
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchDeposits(self::Coincheck; code=nothing, since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    currency = nothing;
+    request = Dict{Symbol, Any}();
+    if functions.ccxtruthy(code != nothing)
+        currency = self.currency(code);
+        request[Symbol("currency")] = get(currency, Symbol("id"), nothing);
+    end
+    if functions.ccxtruthy(limit != nothing)
+        request[Symbol("limit")] = limit;
+    end
+    response = Base.fetch(self.privateGetDepositMoney(extend(request, params)));
+    data = self.safeList(response, "deposits", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit, params = Dict{Symbol, Any}(
+    Symbol("type") => "deposit"
+))
+
+end
+"""
+fetch all withdrawals made from an account
+see: https://coincheck.com/documents/exchange/api#withdraws
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+function fetchWithdrawals(self::Coincheck; code=nothing, since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    currency = nothing;
+    if functions.ccxtruthy(code != nothing)
+        currency = self.currency(code);
+    end
+    request = Dict{Symbol, Any}();
+    if functions.ccxtruthy(limit != nothing)
+        request[Symbol("limit")] = limit;
+    end
+    response = Base.fetch(self.privateGetWithdraws(extend(request, params)));
+    data = self.safeList(response, "data", defaultValue = []);
+    return self.parseTransactions(data, currency = currency, since = since, limit = limit, params = Dict{Symbol, Any}(
+    Symbol("type") => "withdrawal"
+))
+
+end
+function parseTransactionStatus(self::Coincheck, status)
+    statuses = Dict{Symbol, Any}(
+        Symbol("pending") => "pending",
+        Symbol("processing") => "pending",
+        Symbol("finished") => "ok",
+        Symbol("canceled") => "canceled",
+        Symbol("confirmed") => "pending",
+        Symbol("received") => "ok"
+    );
+    return safeString(statuses, status, status)
+
+end
+function parseTransaction(self::Coincheck, transaction; currency=nothing)
+    id = safeString(transaction, "id");
+    timestamp = self.parse8601(safeString(transaction, "created_at"));
+    address = safeString(transaction, "address");
+    amount = self.safeNumber(transaction, "amount");
+    currencyId = safeString(transaction, "currency");
+    code = self.safeCurrencyCode(currencyId, currency = currency);
+    status = self.parseTransactionStatus(safeString(transaction, "status"));
+    updated = self.parse8601(safeString(transaction, "confirmed_at"));
+    fee = nothing;
+    feeCost = self.safeNumber(transaction, "fee");
+    if functions.ccxtruthy(feeCost != nothing)
+        fee = Dict{Symbol, Any}(
+            Symbol("cost") => feeCost,
+            Symbol("currency") => code
+        );
+    end
+    return Dict{Symbol, Any}(
+    Symbol("info") => transaction,
+    Symbol("id") => id,
+    Symbol("txid") => nothing,
+    Symbol("timestamp") => timestamp,
+    Symbol("datetime") => self.iso8601(timestamp),
+    Symbol("network") => nothing,
+    Symbol("address") => address,
+    Symbol("addressTo") => address,
+    Symbol("addressFrom") => nothing,
+    Symbol("tag") => nothing,
+    Symbol("tagTo") => nothing,
+    Symbol("tagFrom") => nothing,
+    Symbol("type") => nothing,
+    Symbol("amount") => amount,
+    Symbol("currency") => code,
+    Symbol("status") => status,
+    Symbol("updated") => updated,
+    Symbol("comment") => nothing,
+    Symbol("internal") => nothing,
+    Symbol("fee") => fee
+)
+
+end
+function nonce(self::Coincheck, )
+    return milliseconds()
+
+end
+function sign(self::Coincheck, path; api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
+    url = string(get(get(self.urls, Symbol("api"), nothing), Symbol("rest"), nothing), "/", self.implodeParams(path, params));
+    query = omit(params, self.extractParams(path));
+    if functions.ccxtruthy(api == "public")
+        if functions.ccxtruthy(length(objectKeys(query)))
+            url += string("?", self.urlencode(query));
+        end
+    else
+        self.checkRequiredCredentials();
+        nonce = string(self.nonce());
+        queryString = "";
+        if functions.ccxtruthy(method == "GET")
+            if functions.ccxtruthy(length(objectKeys(query)))
+                url += string("?", self.urlencode(keysort(query)));
+            end
+        else
+            if functions.ccxtruthy(length(objectKeys(query)))
+                body = self.urlencode(keysort(query));
+                queryString = body;
+            end
+        end
+        auth = string(nonce, url, queryString);
+        headers = Dict{Symbol, Any}(
+            Symbol("Content-Type") => "application/x-www-form-urlencoded",
+            Symbol("ACCESS-KEY") => self.apiKey,
+            Symbol("ACCESS-NONCE") => nonce,
+            Symbol("ACCESS-SIGNATURE") => self.hmac(self.encode(auth), self.encode(self.secret), sha256)
+        );
+    end
+    return Dict{Symbol, Any}(
+    Symbol("url") => url,
+    Symbol("method") => method,
+    Symbol("body") => body,
+    Symbol("headers") => headers
+)
+
+end
+function handleErrors(self::Coincheck, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody)
+    if functions.ccxtruthy(response == nothing)
+            return nothing
+    end
+    success = self.safeBool(response, "success", defaultValue = true);
+    if functions.ccxtruthy(!functions.ccxtruthy(success))
+        error = safeString(response, "error");
+        feedback = string(self.id, " ", json(response));
+        self.throwExactlyMatchedException(get(self.exceptions, Symbol("exact"), nothing), error, feedback);
+        self.throwBroadlyMatchedException(get(self.exceptions, Symbol("broad"), nothing), body, feedback);
+        throw(ExchangeError(string(self.id, " ", json(response))));
+    end
+    return nothing
+
+end
+
+# Property resolution is centralised so every exchange shares one order; see
+# `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
+Base.getproperty(self::Coincheck, name::Symbol) = ccxt_getproperty(self, name)
+
+# Implicit REST endpoint methods (generated from describe().api)
+function publicGetExchangeOrdersRate(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "exchange/orders/rate"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function publicGetExchangeStatus(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "exchange_status"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function publicGetOrderBooks(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "order_books"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function publicGetRatePair(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "rate/{pair}"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function publicGetTicker(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "ticker"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function publicGetTrades(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "trades"; api="public", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privateGetAccounts(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "accounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privateGetAccountsBalance(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "accounts/balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privateGetAccountsLeverageBalance(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "accounts/leverage_balance"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privateGetBankAccounts(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "bank_accounts"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privateGetDepositMoney(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "deposit_money"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privateGetExchangeOrdersId(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "exchange/orders/{id}"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privateGetExchangeOrdersOpens(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "exchange/orders/opens"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privateGetExchangeOrdersCancelStatus(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "exchange/orders/cancel_status"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privateGetExchangeOrdersTransactions(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "exchange/orders/transactions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privateGetExchangeOrdersTransactionsPagination(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "exchange/orders/transactions_pagination"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privateGetExchangeLeveragePositions(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "exchange/leverage/positions"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privateGetLendingBorrowsMatches(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "lending/borrows/matches"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privateGetSendMoney(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "send_money"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privateGetWithdraws(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "withdraws"; api="private", method="GET", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privatePostBankAccounts(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "bank_accounts"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privatePostDepositMoneyIdFast(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "deposit_money/{id}/fast"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privatePostExchangeOrders(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "exchange/orders"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privatePostExchangeTransfersToLeverage(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "exchange/transfers/to_leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privatePostExchangeTransfersFromLeverage(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "exchange/transfers/from_leverage"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privatePostLendingBorrows(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "lending/borrows"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privatePostLendingBorrowsIdRepay(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "lending/borrows/{id}/repay"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privatePostSendMoney(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "send_money"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privatePostWithdraws(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "withdraws"; api="private", method="POST", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privateDeleteBankAccountsId(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "bank_accounts/{id}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privateDeleteExchangeOrdersId(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "exchange/orders/{id}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function privateDeleteWithdrawsId(self::Coincheck, params=Dict(), context=Dict())
+    return request(self, "withdraws/{id}"; api="private", method="DELETE", params=params, headers=nothing, body=nothing, config=Dict())
+end
+
+function Coincheck(; kwargs...)
+    inst = Coincheck(Exchange(), describe, parseBalance, fetchStatus, fetchBalance, fetchOpenOrders, parseOrder, fetchOrderBook, parseTicker, fetchTicker, parseTrade, fetchMyTrades, fetchTrades, fetchTradingFees, createOrder, cancelOrder, fetchDeposits, fetchWithdrawals, parseTransactionStatus, parseTransaction, nonce, sign, handleErrors, publicGetExchangeOrdersRate, publicGetExchangeStatus, publicGetOrderBooks, publicGetRatePair, publicGetTicker, publicGetTrades, privateGetAccounts, privateGetAccountsBalance, privateGetAccountsLeverageBalance, privateGetBankAccounts, privateGetDepositMoney, privateGetExchangeOrdersId, privateGetExchangeOrdersOpens, privateGetExchangeOrdersCancelStatus, privateGetExchangeOrdersTransactions, privateGetExchangeOrdersTransactionsPagination, privateGetExchangeLeveragePositions, privateGetLendingBorrowsMatches, privateGetSendMoney, privateGetWithdraws, privatePostBankAccounts, privatePostDepositMoneyIdFast, privatePostExchangeOrders, privatePostExchangeTransfersToLeverage, privatePostExchangeTransfersFromLeverage, privatePostLendingBorrows, privatePostLendingBorrowsIdRepay, privatePostSendMoney, privatePostWithdraws, privateDeleteBankAccountsId, privateDeleteExchangeOrdersId, privateDeleteWithdrawsId)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
+    desc = inst.describe()
+    for (k, v) in desc
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
+    end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
+    return inst
+end
+
+
+# Per-exchange docstring holders (see build/juliaTranspileCLI.ts buildDocRegistrySource).
+function __ccxt_doc_Coincheck_fetchStatus() end
+"""
+the latest known information on the availability of the exchange API
+see: https://coincheck.com/documents/exchange/api#status-retrieval
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+"""
+__ccxt_doc_Coincheck_fetchStatus
+
+function __ccxt_doc_Coincheck_fetchBalance() end
+"""
+query for balance and get the amount of funds available for trading or funds locked in orders
+see: https://coincheck.com/documents/exchange/api#order-transactions-pagination
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+"""
+__ccxt_doc_Coincheck_fetchBalance
+
+function __ccxt_doc_Coincheck_fetchOpenOrders() end
+"""
+fetch all unfilled currently open orders
+see: https://coincheck.com/documents/exchange/api#order-opens
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch open orders for
+- `limit`::int, optional: the maximum number of  open orders structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coincheck_fetchOpenOrders
+
+function __ccxt_doc_Coincheck_fetchOrderBook() end
+"""
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+see: https://coincheck.com/documents/exchange/api#order-book
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the order book for
+- `limit`::int, optional: the maximum amount of order book entries to return
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+"""
+__ccxt_doc_Coincheck_fetchOrderBook
+
+function __ccxt_doc_Coincheck_fetchTicker() end
+"""
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+see: https://coincheck.com/documents/exchange/api#ticker
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch the ticker for
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+"""
+__ccxt_doc_Coincheck_fetchTicker
+
+function __ccxt_doc_Coincheck_fetchMyTrades() end
+"""
+fetch all trades made by the user
+see: https://coincheck.com/documents/exchange/api#order-transactions-pagination
+
+# Arguments
+- `symbol`::string: unified market symbol
+- `since`::int, optional: the earliest time in ms to fetch trades for
+- `limit`::int, optional: the maximum number of trades structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+"""
+__ccxt_doc_Coincheck_fetchMyTrades
+
+function __ccxt_doc_Coincheck_fetchTrades() end
+"""
+get the list of most recent trades for a particular symbol
+see: https://coincheck.com/documents/exchange/api#public-trades
+
+# Arguments
+- `symbol`::string: unified symbol of the market to fetch trades for
+- `since`::int, optional: timestamp in ms of the earliest trade to fetch
+- `limit`::int, optional: the maximum amount of trades to fetch
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+"""
+__ccxt_doc_Coincheck_fetchTrades
+
+function __ccxt_doc_Coincheck_fetchTradingFees() end
+"""
+fetch the trading fees for multiple markets
+see: https://coincheck.com/documents/exchange/api#account-info
+
+# Arguments
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+"""
+__ccxt_doc_Coincheck_fetchTradingFees
+
+function __ccxt_doc_Coincheck_createOrder() end
+"""
+create a trade order
+see: https://coincheck.com/documents/exchange/api#order-new
+
+# Arguments
+- `symbol`::string: unified symbol of the market to create an order in
+- `type`::string: 'market' or 'limit'
+- `side`::string: 'buy' or 'sell'
+- `amount`::float: how much of currency you want to trade in units of base currency
+- `price`::float, optional: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coincheck_createOrder
+
+function __ccxt_doc_Coincheck_cancelOrder() end
+"""
+cancels an open order
+see: https://coincheck.com/documents/exchange/api#order-cancel
+
+# Arguments
+- `id`::string: order id
+- `symbol`::string: not used by cancelOrder ()
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+"""
+__ccxt_doc_Coincheck_cancelOrder
+
+function __ccxt_doc_Coincheck_fetchDeposits() end
+"""
+fetch all deposits made to an account
+see: https://coincheck.com/documents/exchange/api#account-deposits
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch deposits for
+- `limit`::int, optional: the maximum number of deposits structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Coincheck_fetchDeposits
+
+function __ccxt_doc_Coincheck_fetchWithdrawals() end
+"""
+fetch all withdrawals made from an account
+see: https://coincheck.com/documents/exchange/api#withdraws
+
+# Arguments
+- `code`::string: unified currency code
+- `since`::int, optional: the earliest time in ms to fetch withdrawals for
+- `limit`::int, optional: the maximum number of withdrawals structures to retrieve
+- `params`::object, optional: extra parameters specific to the exchange API endpoint
+
+# Returns
+- a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+"""
+__ccxt_doc_Coincheck_fetchWithdrawals

@@ -1,7 +1,7 @@
 # CCXT – CryptoCurrency eXchange Trading Library (Full Reference)
 
 > Unified cryptocurrency trading API for 100+ exchanges.
-> JavaScript/TypeScript, Python, PHP, C#, Go, Java. REST and WebSocket.
+> JavaScript/TypeScript, Python, PHP, C#, Go, Java and Julia. REST and WebSocket.
 
 CCXT provides a single, consistent API to interact with cryptocurrency exchanges for market data, trading, and account management. The same code structure works across all supported languages and exchanges.
 
@@ -59,6 +59,28 @@ go get github.com/ccxt/ccxt/go/v4
 dependencies {
     implementation("io.github.ccxt:ccxt:4.5.52")
 }
+```
+
+### Julia
+The Julia port is generated from the TypeScript source and lives under [`julia/Ccxt`](https://github.com/ccxt/ccxt/tree/master/julia/Ccxt) in this repo (no package-registry release yet). Add it to your environment from a local clone with `Pkg.develop`:
+
+```shell
+git clone https://github.com/ccxt/ccxt.git --depth 1
+cd ccxt/julia/Ccxt
+julia --project=. -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()))'
+```
+
+```julia
+using Ccxt
+import InteractiveUtils: subtypes
+using Ccxt: CcxtExchange
+
+# list every generated exchange type
+println(length(subtypes(CcxtExchange)))
+
+# instantiate an exchange (unified camelCase API, e.g. fetchTicker)
+exchange = Ccxt.Binance(; enableRateLimit = true)
+println(exchange.id)  # "binance"
 ```
 
 Both REST and WebSocket APIs are included in the same package for all languages.
@@ -270,6 +292,17 @@ exchange.loadMarkets(false);
 
 Ticker ticker = exchange.fetchTicker("BTC/USDT");
 System.out.println(ticker.symbol + " " + ticker.last);
+```
+
+### Julia (REST)
+
+```julia
+using Ccxt
+
+exchange = Ccxt.Binance(; enableRateLimit = true)
+exchange.loadMarkets()
+ticker = exchange.fetchTicker("BTC/USDT")
+println(ticker["last"])
 ```
 
 ---
@@ -753,12 +786,12 @@ if exchange.has['fetchOHLCV']:
 
 ### Language-specific naming:
 
-| JavaScript/TypeScript | Python | PHP | C# | Go |
-|----------------------|--------|-----|-----|-----|
-| `fetchTicker` | `fetch_ticker` | `fetch_ticker` | `FetchTicker` | `FetchTicker` |
-| `createOrder` | `create_order` | `create_order` | `CreateOrder` | `CreateOrder` |
-| `watchOrderBook` | `watch_order_book` | `watch_order_book` | `WatchOrderBook` | `WatchOrderBook` |
-| `loadMarkets` | `load_markets` | `load_markets` | `LoadMarkets` | `LoadMarkets` |
+| JavaScript/TypeScript | Python | PHP | C# | Go | Julia |
+|----------------------|--------|-----|-----|-----|-------|
+| `fetchTicker` | `fetch_ticker` | `fetch_ticker` | `FetchTicker` | `FetchTicker` | `fetchTicker` |
+| `createOrder` | `create_order` | `create_order` | `CreateOrder` | `CreateOrder` | `createOrder` |
+| `watchOrderBook` | `watch_order_book` | `watch_order_book` | `WatchOrderBook` | `WatchOrderBook` | `watchOrderBook` |
+| `loadMarkets` | `load_markets` | `load_markets` | `LoadMarkets` | `LoadMarkets` | `loadMarkets` |
 
 ---
 

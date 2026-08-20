@@ -1,0 +1,48 @@
+{
+ "BTC/USDT": {
+  "id": "btc",
+  "symbol": "BTC/USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "baseId": "btc",
+  "quoteId": "usdt",
+  "type": "spot",
+  "spot": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "contract": false,
+  "precision": {},
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {}
+ },
+ "BTC/AUD": {
+  "id": "btc",
+  "symbol": "BTC/AUD",
+  "base": "BTC",
+  "quote": "AUD",
+  "baseId": "btc",
+  "quoteId": "aud",
+  "type": "spot",
+  "spot": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "contract": false,
+  "precision": {},
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {}
+ }
+}

@@ -1,0 +1,90 @@
+{
+ "BTC": {
+  "id": "btc",
+  "code": "BTC",
+  "precision": 0.00001,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "ETH": {
+  "id": "eth",
+  "code": "ETH",
+  "precision": 0.0001,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "USDC": {
+  "id": "usdc",
+  "code": "USDC",
+  "precision": 0.000001,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "2Z": {
+  "id": "2z",
+  "code": "2Z",
+  "precision": 1,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "AAVE": {
+  "id": "aave",
+  "code": "AAVE",
+  "precision": 0.01,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "ADA": {
+  "id": "ada",
+  "code": "ADA",
+  "precision": 0.1,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "ARB": {
+  "id": "arb",
+  "code": "ARB",
+  "precision": 0.1,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "ASTER": {
+  "id": "aster",
+  "code": "ASTER",
+  "precision": 0.01,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ }
+}

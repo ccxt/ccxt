@@ -1,0 +1,23 @@
+authors = ["CCXT Contributors"]
+name = "Ccxt"
+uuid = "12345678-1234-1234-1234-123456789abc"
+version = "0.1.0"
+
+[compat]
+Base64 = "1.11.0"
+Dates = "1.11.0"
+HTTP = "1.0"
+JSON3 = "1.14.3"
+SHA = "0.7.0"
+Test = "1.11.0"
+
+[deps]
+Base64 = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
+JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+SHA = "ea8e919c-243c-51af-8825-aaa63cd721ce"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[extras]
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"

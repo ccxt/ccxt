@@ -1,0 +1,100 @@
+{
+ "BTC": {
+  "id": "BTC",
+  "code": "BTC",
+  "precision": 1e-10,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "ETH": {
+  "id": "ETH",
+  "code": "ETH",
+  "precision": 1e-9,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "USDT": {
+  "id": "USDT",
+  "code": "USDT",
+  "precision": 9.999999999999999e-11,
+  "fees": {},
+  "networks": {
+   "ARBITRUM": {
+    "id": "ARBITRUM",
+    "network": "ARBITRUM",
+    "limits": {
+     "withdraw": {},
+     "deposit": {}
+    },
+    "info": {}
+   }
+  },
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "AUD": {
+  "id": "AUD",
+  "code": "AUD",
+  "precision": 0.00001,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "BNB": {
+  "id": "BNB",
+  "code": "BNB",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "EUR": {
+  "id": "EUR",
+  "code": "EUR",
+  "precision": 0.00001,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "GBP": {
+  "id": "GBP",
+  "code": "GBP",
+  "precision": 0.00001,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "HYPE": {
+  "id": "HYPE",
+  "code": "HYPE",
+  "precision": 1e-7,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ }
+}

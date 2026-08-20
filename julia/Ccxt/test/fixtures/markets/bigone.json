@@ -1,0 +1,230 @@
+{
+ "BTC/USDT": {
+  "id": "BTC-USDT",
+  "symbol": "BTC/USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "precision": {
+   "amount": 0.000001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {
+    "min": 10,
+    "max": 1000000
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "id": "550b34db-696e-4434-a126-196f827d9172",
+   "name": "BTC-USDT",
+   "quote_scale": 2,
+   "quote_asset": {
+    "id": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+    "symbol": "USDT",
+    "name": "TetherUS"
+   },
+   "base_asset": {
+    "id": "0df9c3c3-255a-46d7-ab82-dedae169fba9",
+    "symbol": "BTC",
+    "name": "Bitcoin"
+   },
+   "base_scale": 6,
+   "min_quote_value": "10",
+   "max_quote_value": "1000000"
+  },
+  "uuid": "550b34db-696e-4434-a126-196f827d9172"
+ },
+ "BTC/USDT:USDT": {
+  "id": "BTCUSDT",
+  "symbol": "BTC/USDT:USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "contractSize": 0.001,
+  "precision": {
+   "amount": 0.0001,
+   "price": 0.1
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {
+    "min": 0.1,
+    "max": 1000000
+   },
+   "cost": {
+    "min": 0.01
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "baseCurrency": "BTC",
+   "multiplier": 0.001,
+   "enable": true,
+   "priceStep": 0.1,
+   "maxRiskLimit": 10000000,
+   "pricePrecision": 1,
+   "maintenanceMargin": 0.005,
+   "symbol": "BTCUSDT",
+   "valuePrecision": 4,
+   "minRiskLimit": 1000000,
+   "type": "CRYPTO",
+   "baseNameZh": "比特币",
+   "riskLimit": 1000000,
+   "isInverse": false,
+   "riskStep": 10000,
+   "settleCurrency": "USDT",
+   "baseName": "Bitcoin",
+   "displayName": "BTCUSDT",
+   "feePrecision": 8,
+   "baseDisplayName": "BTC",
+   "priceMin": 0.1,
+   "priceMax": 1000000,
+   "initialMargin": 0.01,
+   "quoteCurrency": "USDT"
+  }
+ },
+ "ETH/USDT": {
+  "id": "ETH-USDT",
+  "symbol": "ETH/USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "precision": {
+   "amount": 0.00001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {
+    "min": 10,
+    "max": 1000000
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "id": "2dab8bcf-cfdd-496b-8181-d670568d1daa",
+   "name": "ETH-USDT",
+   "quote_scale": 2,
+   "quote_asset": {
+    "id": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+    "symbol": "USDT",
+    "name": "TetherUS"
+   },
+   "base_asset": {
+    "id": "c98f5d90-c619-4de2-b643-3d429f622239",
+    "symbol": "ETH",
+    "name": "Ethereum"
+   },
+   "base_scale": 5,
+   "min_quote_value": "10",
+   "max_quote_value": "1000000"
+  },
+  "uuid": "2dab8bcf-cfdd-496b-8181-d670568d1daa"
+ },
+ "ETH/USDT:USDT": {
+  "id": "ETHUSDT",
+  "symbol": "ETH/USDT:USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "contractSize": 0.1,
+  "precision": {
+   "amount": 0.0001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {
+    "min": 0.01,
+    "max": 1000000
+   },
+   "cost": {
+    "min": 0.01
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "baseCurrency": "ETH",
+   "multiplier": 0.1,
+   "enable": true,
+   "priceStep": 0.01,
+   "maxRiskLimit": 500000,
+   "pricePrecision": 2,
+   "maintenanceMargin": 0.005,
+   "symbol": "ETHUSDT",
+   "valuePrecision": 4,
+   "minRiskLimit": 50000,
+   "type": "CRYPTO",
+   "baseNameZh": "以太坊",
+   "riskLimit": 50000,
+   "isInverse": false,
+   "riskStep": 500,
+   "settleCurrency": "USDT",
+   "baseName": "Ethereum",
+   "displayName": "ETHUSDT",
+   "feePrecision": 8,
+   "baseDisplayName": "ETH",
+   "priceMin": 0.01,
+   "priceMax": 1000000,
+   "initialMargin": 0.01,
+   "quoteCurrency": "USDT"
+  }
+ }
+}

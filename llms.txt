@@ -1,7 +1,7 @@
 # CCXT – CryptoCurrency eXchange Trading Library
 
 > Unified cryptocurrency trading API for 100+ exchanges.
-> JavaScript/TypeScript, Python, PHP, C#, Go and Java. REST and WebSocket.
+> JavaScript/TypeScript, Python, PHP, C#, Go, Java and Julia. REST and WebSocket.
 
 CCXT provides a single, consistent API to interact with cryptocurrency exchanges for market data, trading, and account management. The same code structure works across all supported languages and exchanges.
 
@@ -35,6 +35,13 @@ go get github.com/ccxt/ccxt/go/v4
 dependencies {
     implementation("io.github.ccxt:ccxt:4.5.52")
 }
+
+# Julia
+# The Julia port is generated from the TypeScript source and lives under julia/Ccxt in this repo.
+# Add it to your environment from a local clone (no registry package yet):
+git clone https://github.com/ccxt/ccxt.git --depth 1
+cd ccxt/julia/Ccxt
+julia --project=. -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()))'
 
 ```
 
@@ -106,6 +113,17 @@ exchange.loadMarkets(false);
 
 Ticker ticker = exchange.fetchTicker("BTC/USDT");
 System.out.println(ticker.symbol + " " + ticker.last);
+```
+
+### Julia
+
+```julia
+using Ccxt
+
+exchange = Ccxt.Binance(; enableRateLimit = true)
+exchange.loadMarkets()
+ticker = exchange.fetchTicker("BTC/USDT")
+println(ticker["last"])
 ```
 
 

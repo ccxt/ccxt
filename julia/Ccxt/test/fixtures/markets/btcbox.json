@@ -1,0 +1,76 @@
+{
+ "BTC/JPY": {
+  "id": "btc",
+  "symbol": "BTC/JPY",
+  "base": "BTC",
+  "quote": "JPY",
+  "baseId": "btc",
+  "quoteId": "jpy",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.001,
+  "maker": 0.001,
+  "precision": {
+   "price": 1
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "high": 10328834,
+   "low": 10232469,
+   "buy": 10291582,
+   "sell": 10293621,
+   "last": 10295253,
+   "vol": 0.33875
+  }
+ },
+ "ETH/JPY": {
+  "id": "eth",
+  "symbol": "ETH/JPY",
+  "base": "ETH",
+  "quote": "JPY",
+  "baseId": "eth",
+  "quoteId": "jpy",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.001,
+  "maker": 0.001,
+  "precision": {
+   "price": 1
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "high": 305693,
+   "low": 301617,
+   "buy": 303847,
+   "sell": 303848,
+   "last": 303743,
+   "vol": 6.8348
+  }
+ }
+}

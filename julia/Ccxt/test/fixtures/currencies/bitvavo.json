@@ -1,0 +1,522 @@
+{
+ "BTC": {
+  "info": {
+   "symbol": "BTC",
+   "name": "Bitcoin",
+   "decimals": 8,
+   "depositFee": "0",
+   "depositConfirmations": 2,
+   "depositStatus": "OK",
+   "withdrawalFee": "0.000023",
+   "withdrawalMinAmount": "0.000023",
+   "withdrawalStatus": "OK",
+   "networks": [
+    "BTC"
+   ],
+   "message": ""
+  },
+  "id": "BTC",
+  "code": "BTC",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Bitcoin",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.000023,
+  "fees": {},
+  "networks": {
+   "BTC": {
+    "info": {
+     "symbol": "BTC",
+     "name": "Bitcoin",
+     "decimals": 8,
+     "depositFee": "0",
+     "depositConfirmations": 2,
+     "depositStatus": "OK",
+     "withdrawalFee": "0.000023",
+     "withdrawalMinAmount": "0.000023",
+     "withdrawalStatus": "OK",
+     "networks": [
+      "BTC"
+     ],
+     "message": ""
+    },
+    "id": "BTC",
+    "network": "BTC",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.000023,
+    "precision": 1e-8,
+    "limits": {
+     "withdraw": {
+      "min": 0.000023
+     }
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "deposit": {},
+   "withdraw": {
+    "min": 0.000023
+   }
+  }
+ },
+ "ETH": {
+  "info": {
+   "symbol": "ETH",
+   "name": "Ethereum",
+   "decimals": 8,
+   "depositFee": "0",
+   "depositConfirmations": 32,
+   "depositStatus": "OK",
+   "withdrawalFee": "0.00043",
+   "withdrawalMinAmount": "0.00061",
+   "withdrawalStatus": "OK",
+   "networks": [
+    "ETH"
+   ],
+   "message": ""
+  },
+  "id": "ETH",
+  "code": "ETH",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Ethereum",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.00043,
+  "fees": {},
+  "networks": {
+   "ETH": {
+    "info": {
+     "symbol": "ETH",
+     "name": "Ethereum",
+     "decimals": 8,
+     "depositFee": "0",
+     "depositConfirmations": 32,
+     "depositStatus": "OK",
+     "withdrawalFee": "0.00043",
+     "withdrawalMinAmount": "0.00061",
+     "withdrawalStatus": "OK",
+     "networks": [
+      "ETH"
+     ],
+     "message": ""
+    },
+    "id": "ETH",
+    "network": "ETH",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.00043,
+    "precision": 1e-8,
+    "limits": {
+     "withdraw": {
+      "min": 0.00061
+     }
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "deposit": {},
+   "withdraw": {
+    "min": 0.00061
+   }
+  }
+ },
+ "USDC": {
+  "info": {
+   "symbol": "USDC",
+   "name": "USD Coin",
+   "decimals": 6,
+   "depositFee": "0",
+   "depositConfirmations": 32,
+   "depositStatus": "OK",
+   "withdrawalFee": "1.1",
+   "withdrawalMinAmount": "1.2",
+   "withdrawalStatus": "OK",
+   "networks": [
+    "ETH"
+   ],
+   "message": ""
+  },
+  "id": "USDC",
+  "code": "USDC",
+  "precision": 0.000001,
+  "type": "crypto",
+  "name": "USD Coin",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 1.1,
+  "fees": {},
+  "networks": {
+   "ERC20": {
+    "info": {
+     "symbol": "USDC",
+     "name": "USD Coin",
+     "decimals": 6,
+     "depositFee": "0",
+     "depositConfirmations": 32,
+     "depositStatus": "OK",
+     "withdrawalFee": "1.1",
+     "withdrawalMinAmount": "1.2",
+     "withdrawalStatus": "OK",
+     "networks": [
+      "ETH"
+     ],
+     "message": ""
+    },
+    "id": "ETH",
+    "network": "ERC20",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 1.1,
+    "precision": 0.000001,
+    "limits": {
+     "withdraw": {
+      "min": 1.2
+     }
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "deposit": {},
+   "withdraw": {
+    "min": 1.2
+   }
+  }
+ },
+ "0G": {
+  "info": {
+   "symbol": "0G",
+   "name": "Zero Gravity",
+   "decimals": 5,
+   "depositFee": "0",
+   "depositConfirmations": 128,
+   "depositStatus": "OK",
+   "withdrawalFee": "2.3",
+   "withdrawalMinAmount": "7.5",
+   "withdrawalStatus": "OK",
+   "networks": [
+    "0G"
+   ],
+   "message": ""
+  },
+  "id": "0G",
+  "code": "0G",
+  "precision": 0.00001,
+  "type": "crypto",
+  "name": "Zero Gravity",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 2.3,
+  "fees": {},
+  "networks": {
+   "0G": {
+    "info": {
+     "symbol": "0G",
+     "name": "Zero Gravity",
+     "decimals": 5,
+     "depositFee": "0",
+     "depositConfirmations": 128,
+     "depositStatus": "OK",
+     "withdrawalFee": "2.3",
+     "withdrawalMinAmount": "7.5",
+     "withdrawalStatus": "OK",
+     "networks": [
+      "0G"
+     ],
+     "message": ""
+    },
+    "id": "0G",
+    "network": "0G",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 2.3,
+    "precision": 0.00001,
+    "limits": {
+     "withdraw": {
+      "min": 7.5
+     }
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "deposit": {},
+   "withdraw": {
+    "min": 7.5
+   }
+  }
+ },
+ "1INCH": {
+  "info": {
+   "symbol": "1INCH",
+   "name": "1inch",
+   "decimals": 8,
+   "depositFee": "0",
+   "depositConfirmations": 32,
+   "depositStatus": "OK",
+   "withdrawalFee": "13",
+   "withdrawalMinAmount": "14",
+   "withdrawalStatus": "OK",
+   "networks": [
+    "ETH"
+   ],
+   "message": ""
+  },
+  "id": "1INCH",
+  "code": "1INCH",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "1inch",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 13,
+  "fees": {},
+  "networks": {
+   "ERC20": {
+    "info": {
+     "symbol": "1INCH",
+     "name": "1inch",
+     "decimals": 8,
+     "depositFee": "0",
+     "depositConfirmations": 32,
+     "depositStatus": "OK",
+     "withdrawalFee": "13",
+     "withdrawalMinAmount": "14",
+     "withdrawalStatus": "OK",
+     "networks": [
+      "ETH"
+     ],
+     "message": ""
+    },
+    "id": "ETH",
+    "network": "ERC20",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 13,
+    "precision": 1e-8,
+    "limits": {
+     "withdraw": {
+      "min": 14
+     }
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "deposit": {},
+   "withdraw": {
+    "min": 14
+   }
+  }
+ },
+ "2Z": {
+  "info": {
+   "symbol": "2Z",
+   "name": "DoubleZero",
+   "decimals": 5,
+   "depositFee": "0",
+   "depositConfirmations": 100,
+   "depositStatus": "OK",
+   "withdrawalFee": "12",
+   "withdrawalMinAmount": "22",
+   "withdrawalStatus": "OK",
+   "networks": [
+    "SOL"
+   ],
+   "message": ""
+  },
+  "id": "2Z",
+  "code": "2Z",
+  "precision": 0.00001,
+  "type": "crypto",
+  "name": "DoubleZero",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 12,
+  "fees": {},
+  "networks": {
+   "SOL": {
+    "info": {
+     "symbol": "2Z",
+     "name": "DoubleZero",
+     "decimals": 5,
+     "depositFee": "0",
+     "depositConfirmations": 100,
+     "depositStatus": "OK",
+     "withdrawalFee": "12",
+     "withdrawalMinAmount": "22",
+     "withdrawalStatus": "OK",
+     "networks": [
+      "SOL"
+     ],
+     "message": ""
+    },
+    "id": "SOL",
+    "network": "SOL",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 12,
+    "precision": 0.00001,
+    "limits": {
+     "withdraw": {
+      "min": 22
+     }
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "deposit": {},
+   "withdraw": {
+    "min": 22
+   }
+  }
+ },
+ "A": {
+  "info": {
+   "symbol": "A",
+   "name": "Vaulta",
+   "decimals": 4,
+   "depositFee": "0",
+   "depositConfirmations": 400,
+   "depositStatus": "MAINTENANCE",
+   "withdrawalFee": "1",
+   "withdrawalMinAmount": "1",
+   "withdrawalStatus": "MAINTENANCE",
+   "networks": [
+    "A"
+   ],
+   "message": ""
+  },
+  "id": "A",
+  "code": "A",
+  "precision": 0.0001,
+  "type": "crypto",
+  "name": "Vaulta",
+  "active": false,
+  "deposit": false,
+  "withdraw": false,
+  "fee": 1,
+  "fees": {},
+  "networks": {
+   "A": {
+    "info": {
+     "symbol": "A",
+     "name": "Vaulta",
+     "decimals": 4,
+     "depositFee": "0",
+     "depositConfirmations": 400,
+     "depositStatus": "MAINTENANCE",
+     "withdrawalFee": "1",
+     "withdrawalMinAmount": "1",
+     "withdrawalStatus": "MAINTENANCE",
+     "networks": [
+      "A"
+     ],
+     "message": ""
+    },
+    "id": "A",
+    "network": "A",
+    "active": false,
+    "deposit": false,
+    "withdraw": false,
+    "fee": 1,
+    "precision": 0.0001,
+    "limits": {
+     "withdraw": {
+      "min": 1
+     }
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "deposit": {},
+   "withdraw": {
+    "min": 1
+   }
+  }
+ },
+ "AAVE": {
+  "info": {
+   "symbol": "AAVE",
+   "name": "Aave",
+   "decimals": 8,
+   "depositFee": "0",
+   "depositConfirmations": 32,
+   "depositStatus": "OK",
+   "withdrawalFee": "0.012",
+   "withdrawalMinAmount": "0.013",
+   "withdrawalStatus": "OK",
+   "networks": [
+    "ETH"
+   ],
+   "message": ""
+  },
+  "id": "AAVE",
+  "code": "AAVE",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Aave",
+  "active": true,
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.012,
+  "fees": {},
+  "networks": {
+   "ERC20": {
+    "info": {
+     "symbol": "AAVE",
+     "name": "Aave",
+     "decimals": 8,
+     "depositFee": "0",
+     "depositConfirmations": 32,
+     "depositStatus": "OK",
+     "withdrawalFee": "0.012",
+     "withdrawalMinAmount": "0.013",
+     "withdrawalStatus": "OK",
+     "networks": [
+      "ETH"
+     ],
+     "message": ""
+    },
+    "id": "ETH",
+    "network": "ERC20",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.012,
+    "precision": 1e-8,
+    "limits": {
+     "withdraw": {
+      "min": 0.013
+     }
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "deposit": {},
+   "withdraw": {
+    "min": 0.013
+   }
+  }
+ }
+}

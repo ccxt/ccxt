@@ -1,0 +1,1298 @@
+{
+ "1": {
+  "info": {
+   "coin": "1",
+   "coinFulName": "just buy $1 worth of this coin",
+   "chains": [
+    "SOL"
+   ],
+   "chainDetail": [
+    {
+     "originCoin": "1",
+     "tagType": "",
+     "chain": "SOL",
+     "enableWithdraw": false,
+     "enableDeposit": false,
+     "withdrawFee": "189.000000",
+     "minWithdraw": "378.000000",
+     "maxWithdraw": "1000000000000000.000000"
+    }
+   ]
+  },
+  "id": "1",
+  "code": "1",
+  "type": "crypto",
+  "name": "just buy $1 worth of this coin",
+  "deposit": false,
+  "withdraw": false,
+  "fee": 189,
+  "networks": {
+   "SOL": {
+    "info": {
+     "originCoin": "1",
+     "tagType": "",
+     "chain": "SOL",
+     "enableWithdraw": false,
+     "enableDeposit": false,
+     "withdrawFee": "189.000000",
+     "minWithdraw": "378.000000",
+     "maxWithdraw": "1000000000000000.000000"
+    },
+    "id": "SOL",
+    "network": "SOL",
+    "deposit": false,
+    "withdraw": false,
+    "fee": 189,
+    "limits": {
+     "withdraw": {
+      "min": 378,
+      "max": 1000000000000000
+     }
+    }
+   }
+  },
+  "limits": {
+   "withdraw": {
+    "min": 378,
+    "max": 1000000000000000
+   },
+   "deposit": {}
+  }
+ },
+ "BTC": {
+  "info": {
+   "coin": "btc",
+   "coinFulName": "Bitcoin",
+   "chains": [
+    "BTC"
+   ],
+   "chainDetail": [
+    {
+     "originCoin": "btc",
+     "tagType": "",
+     "chain": "BTC",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00010000",
+     "minWithdraw": "0.00100000",
+     "maxWithdraw": "100.00000000"
+    }
+   ]
+  },
+  "id": "btc",
+  "code": "BTC",
+  "type": "crypto",
+  "name": "Bitcoin",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.0001,
+  "networks": {
+   "BTC": {
+    "info": {
+     "originCoin": "btc",
+     "tagType": "",
+     "chain": "BTC",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00010000",
+     "minWithdraw": "0.00100000",
+     "maxWithdraw": "100.00000000"
+    },
+    "id": "BTC",
+    "network": "BTC",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.0001,
+    "limits": {
+     "withdraw": {
+      "min": 0.001,
+      "max": 100
+     }
+    }
+   }
+  },
+  "limits": {
+   "withdraw": {
+    "min": 0.001,
+    "max": 100
+   },
+   "deposit": {}
+  }
+ },
+ "ETH": {
+  "info": {
+   "coin": "eth",
+   "coinFulName": "Ethereum",
+   "chains": [
+    "ETH",
+    "BSC",
+    "OPTIMISM",
+    "Arbitrum",
+    "zkSync",
+    "LINEA",
+    "Starknet",
+    "BASE",
+    "SCROLL",
+    "MA"
+   ],
+   "chainDetail": [
+    {
+     "originCoin": "eth",
+     "tagType": "",
+     "chain": "ETH",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00029000",
+     "minWithdraw": "0.00058000",
+     "maxWithdraw": "200.00000000"
+    },
+    {
+     "originCoin": "eth_bep20",
+     "tagType": "",
+     "chain": "BSC",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00005000",
+     "minWithdraw": "0.00010000",
+     "maxWithdraw": "1000000000000000.00000000"
+    },
+    {
+     "originCoin": "eth_op",
+     "tagType": "",
+     "chain": "OPTIMISM",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00020000",
+     "minWithdraw": "0.00040000",
+     "maxWithdraw": "1000000000000000.00000000"
+    },
+    {
+     "originCoin": "eth_arb",
+     "tagType": "",
+     "chain": "Arbitrum",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.0003",
+     "minWithdraw": "0.0006",
+     "maxWithdraw": "1000000000000000.0000"
+    },
+    {
+     "originCoin": "eth_zk",
+     "tagType": "",
+     "chain": "zkSync",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00050000",
+     "minWithdraw": "0.01000000",
+     "maxWithdraw": "10000000000.00000000"
+    },
+    {
+     "originCoin": "eth_linea",
+     "tagType": "",
+     "chain": "LINEA",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00020000",
+     "minWithdraw": "0.00040000",
+     "maxWithdraw": "1000000000000000.00000000"
+    },
+    {
+     "originCoin": "eth_strk",
+     "tagType": "",
+     "chain": "Starknet",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00020000",
+     "minWithdraw": "0.00040000",
+     "maxWithdraw": "1000000000000000.00000000"
+    },
+    {
+     "originCoin": "eth_base",
+     "tagType": "",
+     "chain": "BASE",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00020000",
+     "minWithdraw": "0.00040000",
+     "maxWithdraw": "1000000000000000.00000000"
+    },
+    {
+     "originCoin": "eth_scroll",
+     "tagType": "",
+     "chain": "SCROLL",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00100000",
+     "minWithdraw": "0.00200000",
+     "maxWithdraw": "1000000000000000.00000000"
+    },
+    {
+     "originCoin": "eth_manta",
+     "tagType": "",
+     "chain": "MA",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00100000",
+     "minWithdraw": "0.00200000",
+     "maxWithdraw": "1000000000000000.00000000"
+    }
+   ]
+  },
+  "id": "eth",
+  "code": "ETH",
+  "type": "crypto",
+  "name": "Ethereum",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.00005,
+  "networks": {
+   "ETH": {
+    "info": {
+     "originCoin": "eth",
+     "tagType": "",
+     "chain": "ETH",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00029000",
+     "minWithdraw": "0.00058000",
+     "maxWithdraw": "200.00000000"
+    },
+    "id": "ETH",
+    "network": "ETH",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.00029,
+    "limits": {
+     "withdraw": {
+      "min": 0.00058,
+      "max": 200
+     }
+    }
+   },
+   "BSC": {
+    "info": {
+     "originCoin": "eth_bep20",
+     "tagType": "",
+     "chain": "BSC",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00005000",
+     "minWithdraw": "0.00010000",
+     "maxWithdraw": "1000000000000000.00000000"
+    },
+    "id": "BSC",
+    "network": "BSC",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.00005,
+    "limits": {
+     "withdraw": {
+      "min": 0.0001,
+      "max": 1000000000000000
+     }
+    }
+   },
+   "OPTIMISM": {
+    "info": {
+     "originCoin": "eth_op",
+     "tagType": "",
+     "chain": "OPTIMISM",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00020000",
+     "minWithdraw": "0.00040000",
+     "maxWithdraw": "1000000000000000.00000000"
+    },
+    "id": "OPTIMISM",
+    "network": "OPTIMISM",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.0002,
+    "limits": {
+     "withdraw": {
+      "min": 0.0004,
+      "max": 1000000000000000
+     }
+    }
+   },
+   "Arbitrum": {
+    "info": {
+     "originCoin": "eth_arb",
+     "tagType": "",
+     "chain": "Arbitrum",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.0003",
+     "minWithdraw": "0.0006",
+     "maxWithdraw": "1000000000000000.0000"
+    },
+    "id": "Arbitrum",
+    "network": "Arbitrum",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.0003,
+    "limits": {
+     "withdraw": {
+      "min": 0.0006,
+      "max": 1000000000000000
+     }
+    }
+   },
+   "zkSync": {
+    "info": {
+     "originCoin": "eth_zk",
+     "tagType": "",
+     "chain": "zkSync",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00050000",
+     "minWithdraw": "0.01000000",
+     "maxWithdraw": "10000000000.00000000"
+    },
+    "id": "zkSync",
+    "network": "zkSync",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.0005,
+    "limits": {
+     "withdraw": {
+      "min": 0.01,
+      "max": 10000000000
+     }
+    }
+   },
+   "LINEA": {
+    "info": {
+     "originCoin": "eth_linea",
+     "tagType": "",
+     "chain": "LINEA",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00020000",
+     "minWithdraw": "0.00040000",
+     "maxWithdraw": "1000000000000000.00000000"
+    },
+    "id": "LINEA",
+    "network": "LINEA",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.0002,
+    "limits": {
+     "withdraw": {
+      "min": 0.0004,
+      "max": 1000000000000000
+     }
+    }
+   },
+   "Starknet": {
+    "info": {
+     "originCoin": "eth_strk",
+     "tagType": "",
+     "chain": "Starknet",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00020000",
+     "minWithdraw": "0.00040000",
+     "maxWithdraw": "1000000000000000.00000000"
+    },
+    "id": "Starknet",
+    "network": "Starknet",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.0002,
+    "limits": {
+     "withdraw": {
+      "min": 0.0004,
+      "max": 1000000000000000
+     }
+    }
+   },
+   "BASE": {
+    "info": {
+     "originCoin": "eth_base",
+     "tagType": "",
+     "chain": "BASE",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00020000",
+     "minWithdraw": "0.00040000",
+     "maxWithdraw": "1000000000000000.00000000"
+    },
+    "id": "BASE",
+    "network": "BASE",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.0002,
+    "limits": {
+     "withdraw": {
+      "min": 0.0004,
+      "max": 1000000000000000
+     }
+    }
+   },
+   "SCROLL": {
+    "info": {
+     "originCoin": "eth_scroll",
+     "tagType": "",
+     "chain": "SCROLL",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00100000",
+     "minWithdraw": "0.00200000",
+     "maxWithdraw": "1000000000000000.00000000"
+    },
+    "id": "SCROLL",
+    "network": "SCROLL",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.001,
+    "limits": {
+     "withdraw": {
+      "min": 0.002,
+      "max": 1000000000000000
+     }
+    }
+   },
+   "MA": {
+    "info": {
+     "originCoin": "eth_manta",
+     "tagType": "",
+     "chain": "MA",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00100000",
+     "minWithdraw": "0.00200000",
+     "maxWithdraw": "1000000000000000.00000000"
+    },
+    "id": "MA",
+    "network": "MA",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.001,
+    "limits": {
+     "withdraw": {
+      "min": 0.002,
+      "max": 1000000000000000
+     }
+    }
+   }
+  },
+  "limits": {
+   "withdraw": {
+    "min": 0.0001,
+    "max": 1000000000000000
+   },
+   "deposit": {}
+  }
+ },
+ "USDT": {
+  "info": {
+   "coin": "usdt",
+   "coinFulName": "Tether USDt",
+   "chains": [
+    "OMNI",
+    "AVAXC",
+    "ETH",
+    "TRX",
+    "Polygon",
+    "BSC",
+    "SOL",
+    "Arbitrum",
+    "OPTIMISM",
+    "NEAR",
+    "TON",
+    "SCROLL",
+    "KAIA",
+    "XPL",
+    "MON",
+    "Stable"
+   ],
+   "chainDetail": [
+    {
+     "originCoin": "usdt",
+     "tagType": "",
+     "chain": "OMNI",
+     "enableWithdraw": false,
+     "enableDeposit": false,
+     "withdrawFee": "1.28",
+     "minWithdraw": "2.56",
+     "maxWithdraw": "1000.00"
+    },
+    {
+     "originCoin": "usdt_avax",
+     "tagType": "",
+     "chain": "AVAXC",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.00",
+     "minWithdraw": "2.00",
+     "maxWithdraw": "1000000000000000.00"
+    },
+    {
+     "originCoin": "usdt_erc20",
+     "tagType": "",
+     "chain": "ETH",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.79",
+     "minWithdraw": "1.58",
+     "maxWithdraw": "2000000.00"
+    },
+    {
+     "originCoin": "usdt_trc20",
+     "tagType": "",
+     "chain": "TRX",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.00",
+     "minWithdraw": "2.00",
+     "maxWithdraw": "2000000.00"
+    },
+    {
+     "originCoin": "usdt_poly",
+     "tagType": "",
+     "chain": "Polygon",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.00",
+     "minWithdraw": "2.00",
+     "maxWithdraw": "1000000000000000.00"
+    },
+    {
+     "originCoin": "usdt_bep20",
+     "tagType": "",
+     "chain": "BSC",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.08",
+     "minWithdraw": "0.17",
+     "maxWithdraw": "2000000.00"
+    },
+    {
+     "originCoin": "usdt_sol",
+     "tagType": "",
+     "chain": "SOL",
+     "enableWithdraw": false,
+     "enableDeposit": false,
+     "withdrawFee": "1.00",
+     "minWithdraw": "2.00",
+     "maxWithdraw": "2000000.00"
+    },
+    {
+     "originCoin": "usdt_arb",
+     "tagType": "",
+     "chain": "Arbitrum",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.000000",
+     "minWithdraw": "2.000000",
+     "maxWithdraw": "1000000000000000.000000"
+    },
+    {
+     "originCoin": "usdt_op",
+     "tagType": "",
+     "chain": "OPTIMISM",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.000000",
+     "minWithdraw": "2.000000",
+     "maxWithdraw": "1000000000000.000000"
+    },
+    {
+     "originCoin": "usdt_near",
+     "tagType": "",
+     "chain": "NEAR",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.000000",
+     "minWithdraw": "2.000000",
+     "maxWithdraw": "1000000000000000.000000"
+    },
+    {
+     "originCoin": "usdt_ton",
+     "tagType": "Tag",
+     "chain": "TON",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.0000",
+     "minWithdraw": "2.0000",
+     "maxWithdraw": "1000000000000000.0000"
+    },
+    {
+     "originCoin": "usdt_scr",
+     "tagType": "",
+     "chain": "SCROLL",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.0000",
+     "minWithdraw": "2.0000",
+     "maxWithdraw": "1000000000000000.0000"
+    },
+    {
+     "originCoin": "usdt_kaia",
+     "tagType": "",
+     "chain": "KAIA",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.00000",
+     "minWithdraw": "2.00000",
+     "maxWithdraw": "1000000000000000.00000"
+    },
+    {
+     "originCoin": "usdt_xpl",
+     "tagType": "",
+     "chain": "XPL",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.000000",
+     "minWithdraw": "2.000000",
+     "maxWithdraw": "1000000000000000.000000"
+    },
+    {
+     "originCoin": "usdt_mon",
+     "tagType": "",
+     "chain": "MON",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.000000",
+     "minWithdraw": "2.000000",
+     "maxWithdraw": "100000000.000000"
+    },
+    {
+     "originCoin": "usdt_stabl",
+     "tagType": "",
+     "chain": "Stable",
+     "enableWithdraw": false,
+     "enableDeposit": true,
+     "withdrawFee": "1.000000",
+     "minWithdraw": "2.000000",
+     "maxWithdraw": "1000000000000000.000000"
+    }
+   ]
+  },
+  "id": "usdt",
+  "code": "USDT",
+  "type": "crypto",
+  "name": "Tether USDt",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.08,
+  "networks": {
+   "OMNI": {
+    "info": {
+     "originCoin": "usdt",
+     "tagType": "",
+     "chain": "OMNI",
+     "enableWithdraw": false,
+     "enableDeposit": false,
+     "withdrawFee": "1.28",
+     "minWithdraw": "2.56",
+     "maxWithdraw": "1000.00"
+    },
+    "id": "OMNI",
+    "network": "OMNI",
+    "deposit": false,
+    "withdraw": false,
+    "fee": 1.28,
+    "limits": {
+     "withdraw": {
+      "min": 2.56,
+      "max": 1000
+     }
+    }
+   },
+   "AVAXC": {
+    "info": {
+     "originCoin": "usdt_avax",
+     "tagType": "",
+     "chain": "AVAXC",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.00",
+     "minWithdraw": "2.00",
+     "maxWithdraw": "1000000000000000.00"
+    },
+    "id": "AVAXC",
+    "network": "AVAXC",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 1,
+    "limits": {
+     "withdraw": {
+      "min": 2,
+      "max": 1000000000000000
+     }
+    }
+   },
+   "ERC20": {
+    "info": {
+     "originCoin": "usdt_erc20",
+     "tagType": "",
+     "chain": "ETH",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.79",
+     "minWithdraw": "1.58",
+     "maxWithdraw": "2000000.00"
+    },
+    "id": "ETH",
+    "network": "ERC20",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.79,
+    "limits": {
+     "withdraw": {
+      "min": 1.58,
+      "max": 2000000
+     }
+    }
+   },
+   "TRC20": {
+    "info": {
+     "originCoin": "usdt_trc20",
+     "tagType": "",
+     "chain": "TRX",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.00",
+     "minWithdraw": "2.00",
+     "maxWithdraw": "2000000.00"
+    },
+    "id": "TRX",
+    "network": "TRC20",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 1,
+    "limits": {
+     "withdraw": {
+      "min": 2,
+      "max": 2000000
+     }
+    }
+   },
+   "Polygon": {
+    "info": {
+     "originCoin": "usdt_poly",
+     "tagType": "",
+     "chain": "Polygon",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.00",
+     "minWithdraw": "2.00",
+     "maxWithdraw": "1000000000000000.00"
+    },
+    "id": "Polygon",
+    "network": "Polygon",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 1,
+    "limits": {
+     "withdraw": {
+      "min": 2,
+      "max": 1000000000000000
+     }
+    }
+   },
+   "BSC": {
+    "info": {
+     "originCoin": "usdt_bep20",
+     "tagType": "",
+     "chain": "BSC",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.08",
+     "minWithdraw": "0.17",
+     "maxWithdraw": "2000000.00"
+    },
+    "id": "BSC",
+    "network": "BSC",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.08,
+    "limits": {
+     "withdraw": {
+      "min": 0.17,
+      "max": 2000000
+     }
+    }
+   },
+   "SOL": {
+    "info": {
+     "originCoin": "usdt_sol",
+     "tagType": "",
+     "chain": "SOL",
+     "enableWithdraw": false,
+     "enableDeposit": false,
+     "withdrawFee": "1.00",
+     "minWithdraw": "2.00",
+     "maxWithdraw": "2000000.00"
+    },
+    "id": "SOL",
+    "network": "SOL",
+    "deposit": false,
+    "withdraw": false,
+    "fee": 1,
+    "limits": {
+     "withdraw": {
+      "min": 2,
+      "max": 2000000
+     }
+    }
+   },
+   "Arbitrum": {
+    "info": {
+     "originCoin": "usdt_arb",
+     "tagType": "",
+     "chain": "Arbitrum",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.000000",
+     "minWithdraw": "2.000000",
+     "maxWithdraw": "1000000000000000.000000"
+    },
+    "id": "Arbitrum",
+    "network": "Arbitrum",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 1,
+    "limits": {
+     "withdraw": {
+      "min": 2,
+      "max": 1000000000000000
+     }
+    }
+   },
+   "OPTIMISM": {
+    "info": {
+     "originCoin": "usdt_op",
+     "tagType": "",
+     "chain": "OPTIMISM",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.000000",
+     "minWithdraw": "2.000000",
+     "maxWithdraw": "1000000000000.000000"
+    },
+    "id": "OPTIMISM",
+    "network": "OPTIMISM",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 1,
+    "limits": {
+     "withdraw": {
+      "min": 2,
+      "max": 1000000000000
+     }
+    }
+   },
+   "NEAR": {
+    "info": {
+     "originCoin": "usdt_near",
+     "tagType": "",
+     "chain": "NEAR",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.000000",
+     "minWithdraw": "2.000000",
+     "maxWithdraw": "1000000000000000.000000"
+    },
+    "id": "NEAR",
+    "network": "NEAR",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 1,
+    "limits": {
+     "withdraw": {
+      "min": 2,
+      "max": 1000000000000000
+     }
+    }
+   },
+   "TON": {
+    "info": {
+     "originCoin": "usdt_ton",
+     "tagType": "Tag",
+     "chain": "TON",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.0000",
+     "minWithdraw": "2.0000",
+     "maxWithdraw": "1000000000000000.0000"
+    },
+    "id": "TON",
+    "network": "TON",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 1,
+    "limits": {
+     "withdraw": {
+      "min": 2,
+      "max": 1000000000000000
+     }
+    }
+   },
+   "SCROLL": {
+    "info": {
+     "originCoin": "usdt_scr",
+     "tagType": "",
+     "chain": "SCROLL",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.0000",
+     "minWithdraw": "2.0000",
+     "maxWithdraw": "1000000000000000.0000"
+    },
+    "id": "SCROLL",
+    "network": "SCROLL",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 1,
+    "limits": {
+     "withdraw": {
+      "min": 2,
+      "max": 1000000000000000
+     }
+    }
+   },
+   "KAIA": {
+    "info": {
+     "originCoin": "usdt_kaia",
+     "tagType": "",
+     "chain": "KAIA",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.00000",
+     "minWithdraw": "2.00000",
+     "maxWithdraw": "1000000000000000.00000"
+    },
+    "id": "KAIA",
+    "network": "KAIA",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 1,
+    "limits": {
+     "withdraw": {
+      "min": 2,
+      "max": 1000000000000000
+     }
+    }
+   },
+   "XPL": {
+    "info": {
+     "originCoin": "usdt_xpl",
+     "tagType": "",
+     "chain": "XPL",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.000000",
+     "minWithdraw": "2.000000",
+     "maxWithdraw": "1000000000000000.000000"
+    },
+    "id": "XPL",
+    "network": "XPL",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 1,
+    "limits": {
+     "withdraw": {
+      "min": 2,
+      "max": 1000000000000000
+     }
+    }
+   },
+   "MON": {
+    "info": {
+     "originCoin": "usdt_mon",
+     "tagType": "",
+     "chain": "MON",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "1.000000",
+     "minWithdraw": "2.000000",
+     "maxWithdraw": "100000000.000000"
+    },
+    "id": "MON",
+    "network": "MON",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 1,
+    "limits": {
+     "withdraw": {
+      "min": 2,
+      "max": 100000000
+     }
+    }
+   },
+   "Stable": {
+    "info": {
+     "originCoin": "usdt_stabl",
+     "tagType": "",
+     "chain": "Stable",
+     "enableWithdraw": false,
+     "enableDeposit": true,
+     "withdrawFee": "1.000000",
+     "minWithdraw": "2.000000",
+     "maxWithdraw": "1000000000000000.000000"
+    },
+    "id": "Stable",
+    "network": "Stable",
+    "deposit": true,
+    "withdraw": false,
+    "fee": 1,
+    "limits": {
+     "withdraw": {
+      "min": 2,
+      "max": 1000000000000000
+     }
+    }
+   }
+  },
+  "limits": {
+   "withdraw": {
+    "min": 0.17,
+    "max": 1000000000000000
+   },
+   "deposit": {}
+  }
+ },
+ "0G": {
+  "info": {
+   "coin": "0g",
+   "coinFulName": "0G",
+   "chains": [
+    "0G"
+   ],
+   "chainDetail": [
+    {
+     "originCoin": "0g",
+     "tagType": "",
+     "chain": "0G",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00100",
+     "minWithdraw": "0.00200",
+     "maxWithdraw": "1000000000000000.00000"
+    }
+   ]
+  },
+  "id": "0g",
+  "code": "0G",
+  "type": "crypto",
+  "name": "0G",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.001,
+  "networks": {
+   "0G": {
+    "info": {
+     "originCoin": "0g",
+     "tagType": "",
+     "chain": "0G",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "0.00100",
+     "minWithdraw": "0.00200",
+     "maxWithdraw": "1000000000000000.00000"
+    },
+    "id": "0G",
+    "network": "0G",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.001,
+    "limits": {
+     "withdraw": {
+      "min": 0.002,
+      "max": 1000000000000000
+     }
+    }
+   }
+  },
+  "limits": {
+   "withdraw": {
+    "min": 0.002,
+    "max": 1000000000000000
+   },
+   "deposit": {}
+  }
+ },
+ "1CAT": {
+  "info": {
+   "coin": "1cat",
+   "coinFulName": "Bitcoin Cats",
+   "chains": [
+    "ETH"
+   ],
+   "chainDetail": [
+    {
+     "originCoin": "1cat",
+     "tagType": "",
+     "chain": "ETH",
+     "enableWithdraw": false,
+     "enableDeposit": false,
+     "withdrawFee": "6269.00000000",
+     "minWithdraw": "12538.00000000",
+     "maxWithdraw": "1000000000000.00000000"
+    }
+   ]
+  },
+  "id": "1cat",
+  "code": "1CAT",
+  "type": "crypto",
+  "name": "Bitcoin Cats",
+  "deposit": false,
+  "withdraw": false,
+  "fee": 6269,
+  "networks": {
+   "ERC20": {
+    "info": {
+     "originCoin": "1cat",
+     "tagType": "",
+     "chain": "ETH",
+     "enableWithdraw": false,
+     "enableDeposit": false,
+     "withdrawFee": "6269.00000000",
+     "minWithdraw": "12538.00000000",
+     "maxWithdraw": "1000000000000.00000000"
+    },
+    "id": "ETH",
+    "network": "ERC20",
+    "deposit": false,
+    "withdraw": false,
+    "fee": 6269,
+    "limits": {
+     "withdraw": {
+      "min": 12538,
+      "max": 1000000000000
+     }
+    }
+   }
+  },
+  "limits": {
+   "withdraw": {
+    "min": 12538,
+    "max": 1000000000000
+   },
+   "deposit": {}
+  }
+ },
+ "1INCH": {
+  "info": {
+   "coin": "1inch",
+   "coinFulName": "1INCH",
+   "chains": [
+    "ETH"
+   ],
+   "chainDetail": [
+    {
+     "originCoin": "1inch",
+     "tagType": "",
+     "chain": "ETH",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "8.900",
+     "minWithdraw": "17.800",
+     "maxWithdraw": "99999999999999.000"
+    }
+   ]
+  },
+  "id": "1inch",
+  "code": "1INCH",
+  "type": "crypto",
+  "name": "1INCH",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 8.9,
+  "networks": {
+   "ERC20": {
+    "info": {
+     "originCoin": "1inch",
+     "tagType": "",
+     "chain": "ETH",
+     "enableWithdraw": true,
+     "enableDeposit": true,
+     "withdrawFee": "8.900",
+     "minWithdraw": "17.800",
+     "maxWithdraw": "99999999999999.000"
+    },
+    "id": "ETH",
+    "network": "ERC20",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 8.9,
+    "limits": {
+     "withdraw": {
+      "min": 17.8,
+      "max": 99999999999999
+     }
+    }
+   }
+  },
+  "limits": {
+   "withdraw": {
+    "min": 17.8,
+    "max": 99999999999999
+   },
+   "deposit": {}
+  }
+ },
+ "2LC": {
+  "info": {
+   "coin": "2lc",
+   "coinFulName": "2local",
+   "chains": [
+    "BSC"
+   ],
+   "chainDetail": [
+    {
+     "originCoin": "2lc",
+     "tagType": "",
+     "chain": "BSC",
+     "enableWithdraw": false,
+     "enableDeposit": false,
+     "withdrawFee": "1183.00000000",
+     "minWithdraw": "2366.00000000",
+     "maxWithdraw": "999999999999999.00000000"
+    }
+   ]
+  },
+  "id": "2lc",
+  "code": "2LC",
+  "type": "crypto",
+  "name": "2local",
+  "deposit": false,
+  "withdraw": false,
+  "fee": 1183,
+  "networks": {
+   "BSC": {
+    "info": {
+     "originCoin": "2lc",
+     "tagType": "",
+     "chain": "BSC",
+     "enableWithdraw": false,
+     "enableDeposit": false,
+     "withdrawFee": "1183.00000000",
+     "minWithdraw": "2366.00000000",
+     "maxWithdraw": "999999999999999.00000000"
+    },
+    "id": "BSC",
+    "network": "BSC",
+    "deposit": false,
+    "withdraw": false,
+    "fee": 1183,
+    "limits": {
+     "withdraw": {
+      "min": 2366,
+      "max": 999999999999999
+     }
+    }
+   }
+  },
+  "limits": {
+   "withdraw": {
+    "min": 2366,
+    "max": 999999999999999
+   },
+   "deposit": {}
+  }
+ }
+}

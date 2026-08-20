@@ -1,0 +1,142 @@
+{
+ "BTC/USDT": {
+  "id": "BTCUSDT",
+  "symbol": "BTC/USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.0025,
+  "maker": 0.0025,
+  "precision": {
+   "amount": 1e-8,
+   "price": 0.0001
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.00001563,
+    "max": 20
+   },
+   "price": {
+    "min": 38391.594,
+    "max": 89580.386
+   },
+   "cost": {
+    "min": 1,
+    "max": 1791607.72
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "id": "BTCUSDT",
+   "symbol": "BTC/USDT",
+   "base": "BTC",
+   "quote": "USDT",
+   "baseId": "BTC",
+   "quoteId": "USDT",
+   "active": true,
+   "limits": {
+    "amount": {
+     "min": "0.00001563",
+     "max": "20"
+    },
+    "price": {
+     "min": "38391.594",
+     "max": "89580.386"
+    },
+    "cost": {
+     "min": "1",
+     "max": "1791607.72"
+    }
+   },
+   "precision": {
+    "amount": "8",
+    "price": "4"
+   },
+   "info": {}
+  },
+  "tierBased": false,
+  "percentage": true,
+  "feeSide": "quote",
+  "uppercaseId": "BTC_USDT"
+ },
+ "ETH/USDT": {
+  "id": "ETHUSDT",
+  "symbol": "ETH/USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.0025,
+  "maker": 0.0025,
+  "precision": {
+   "amount": 0.0001,
+   "price": 0.0001
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.0006,
+    "max": 200
+   },
+   "price": {
+    "min": 960,
+    "max": 2240
+   },
+   "cost": {
+    "min": 1,
+    "max": 448000
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "id": "ETHUSDT",
+   "symbol": "ETH/USDT",
+   "base": "ETH",
+   "quote": "USDT",
+   "baseId": "ETH",
+   "quoteId": "USDT",
+   "active": true,
+   "limits": {
+    "amount": {
+     "min": "0.0006",
+     "max": "200"
+    },
+    "price": {
+     "min": "960",
+     "max": "2240"
+    },
+    "cost": {
+     "min": "1",
+     "max": "448000"
+    }
+   },
+   "precision": {
+    "amount": "4",
+    "price": "4"
+   },
+   "info": {}
+  },
+  "tierBased": false,
+  "percentage": true,
+  "feeSide": "quote",
+  "uppercaseId": "ETH_USDT"
+ }
+}

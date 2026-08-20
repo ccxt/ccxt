@@ -1,0 +1,493 @@
+{
+  "total": 97,
+  "success": 97,
+  "failed": 0,
+  "failed_ids": [],
+  "items": {
+    "alpaca": {
+      "id": "alpaca",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/alpaca.jl"
+    },
+    "apex": {
+      "id": "apex",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/apex.jl"
+    },
+    "aster": {
+      "id": "aster",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/aster.jl"
+    },
+    "backpack": {
+      "id": "backpack",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/backpack.jl"
+    },
+    "bequant": {
+      "id": "bequant",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bequant.jl"
+    },
+    "bigone": {
+      "id": "bigone",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bigone.jl"
+    },
+    "binance": {
+      "id": "binance",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/binance.jl"
+    },
+    "binancecoinm": {
+      "id": "binancecoinm",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/binancecoinm.jl"
+    },
+    "binanceus": {
+      "id": "binanceus",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/binanceus.jl"
+    },
+    "binanceusdm": {
+      "id": "binanceusdm",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/binanceusdm.jl"
+    },
+    "bingx": {
+      "id": "bingx",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bingx.jl"
+    },
+    "bit2c": {
+      "id": "bit2c",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bit2c.jl"
+    },
+    "bitbank": {
+      "id": "bitbank",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bitbank.jl"
+    },
+    "bitbns": {
+      "id": "bitbns",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bitbns.jl"
+    },
+    "bitfinex": {
+      "id": "bitfinex",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bitfinex.jl"
+    },
+    "bitflyer": {
+      "id": "bitflyer",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bitflyer.jl"
+    },
+    "bitget": {
+      "id": "bitget",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bitget.jl"
+    },
+    "bithumb": {
+      "id": "bithumb",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bithumb.jl"
+    },
+    "bitmart": {
+      "id": "bitmart",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bitmart.jl"
+    },
+    "bitmex": {
+      "id": "bitmex",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bitmex.jl"
+    },
+    "bitopro": {
+      "id": "bitopro",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bitopro.jl"
+    },
+    "bitrue": {
+      "id": "bitrue",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bitrue.jl"
+    },
+    "bitso": {
+      "id": "bitso",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bitso.jl"
+    },
+    "bitstamp": {
+      "id": "bitstamp",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bitstamp.jl"
+    },
+    "bitteam": {
+      "id": "bitteam",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bitteam.jl"
+    },
+    "bittrade": {
+      "id": "bittrade",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bittrade.jl"
+    },
+    "bitvavo": {
+      "id": "bitvavo",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bitvavo.jl"
+    },
+    "blockchaincom": {
+      "id": "blockchaincom",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/blockchaincom.jl"
+    },
+    "blofin": {
+      "id": "blofin",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/blofin.jl"
+    },
+    "btcbox": {
+      "id": "btcbox",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/btcbox.jl"
+    },
+    "btcmarkets": {
+      "id": "btcmarkets",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/btcmarkets.jl"
+    },
+    "btcturk": {
+      "id": "btcturk",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/btcturk.jl"
+    },
+    "bullish": {
+      "id": "bullish",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bullish.jl"
+    },
+    "bybit": {
+      "id": "bybit",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bybit.jl"
+    },
+    "bydfi": {
+      "id": "bydfi",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/bydfi.jl"
+    },
+    "cex": {
+      "id": "cex",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/cex.jl"
+    },
+    "coinbase": {
+      "id": "coinbase",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/coinbase.jl"
+    },
+    "coinbaseexchange": {
+      "id": "coinbaseexchange",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/coinbaseexchange.jl"
+    },
+    "coinbaseinternational": {
+      "id": "coinbaseinternational",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/coinbaseinternational.jl"
+    },
+    "coincheck": {
+      "id": "coincheck",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/coincheck.jl"
+    },
+    "coinex": {
+      "id": "coinex",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/coinex.jl"
+    },
+    "coinmate": {
+      "id": "coinmate",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/coinmate.jl"
+    },
+    "coinone": {
+      "id": "coinone",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/coinone.jl"
+    },
+    "coinsph": {
+      "id": "coinsph",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/coinsph.jl"
+    },
+    "coinspot": {
+      "id": "coinspot",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/coinspot.jl"
+    },
+    "cryptocom": {
+      "id": "cryptocom",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/cryptocom.jl"
+    },
+    "cryptomus": {
+      "id": "cryptomus",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/cryptomus.jl"
+    },
+    "deepcoin": {
+      "id": "deepcoin",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/deepcoin.jl"
+    },
+    "delta": {
+      "id": "delta",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/delta.jl"
+    },
+    "deribit": {
+      "id": "deribit",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/deribit.jl"
+    },
+    "derive": {
+      "id": "derive",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/derive.jl"
+    },
+    "digifinex": {
+      "id": "digifinex",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/digifinex.jl"
+    },
+    "dydx": {
+      "id": "dydx",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/dydx.jl"
+    },
+    "exmo": {
+      "id": "exmo",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/exmo.jl"
+    },
+    "fmfwio": {
+      "id": "fmfwio",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/fmfwio.jl"
+    },
+    "foxbit": {
+      "id": "foxbit",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/foxbit.jl"
+    },
+    "gate": {
+      "id": "gate",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/gate.jl"
+    },
+    "gemini": {
+      "id": "gemini",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/gemini.jl"
+    },
+    "grvt": {
+      "id": "grvt",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/grvt.jl"
+    },
+    "hashkey": {
+      "id": "hashkey",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/hashkey.jl"
+    },
+    "hibachi": {
+      "id": "hibachi",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/hibachi.jl"
+    },
+    "hitbtc": {
+      "id": "hitbtc",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/hitbtc.jl"
+    },
+    "hollaex": {
+      "id": "hollaex",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/hollaex.jl"
+    },
+    "htx": {
+      "id": "htx",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/htx.jl"
+    },
+    "hyperliquid": {
+      "id": "hyperliquid",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/hyperliquid.jl"
+    },
+    "independentreserve": {
+      "id": "independentreserve",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/independentreserve.jl"
+    },
+    "indodax": {
+      "id": "indodax",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/indodax.jl"
+    },
+    "kraken": {
+      "id": "kraken",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/kraken.jl"
+    },
+    "krakenfutures": {
+      "id": "krakenfutures",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/krakenfutures.jl"
+    },
+    "kucoin": {
+      "id": "kucoin",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/kucoin.jl"
+    },
+    "kucoinfutures": {
+      "id": "kucoinfutures",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/kucoinfutures.jl"
+    },
+    "latoken": {
+      "id": "latoken",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/latoken.jl"
+    },
+    "lbank": {
+      "id": "lbank",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/lbank.jl"
+    },
+    "lighter": {
+      "id": "lighter",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/lighter.jl"
+    },
+    "luno": {
+      "id": "luno",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/luno.jl"
+    },
+    "mercado": {
+      "id": "mercado",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/mercado.jl"
+    },
+    "mexc": {
+      "id": "mexc",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/mexc.jl"
+    },
+    "modetrade": {
+      "id": "modetrade",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/modetrade.jl"
+    },
+    "myokx": {
+      "id": "myokx",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/myokx.jl"
+    },
+    "ndax": {
+      "id": "ndax",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/ndax.jl"
+    },
+    "okx": {
+      "id": "okx",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/okx.jl"
+    },
+    "okxus": {
+      "id": "okxus",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/okxus.jl"
+    },
+    "onetrading": {
+      "id": "onetrading",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/onetrading.jl"
+    },
+    "p2b": {
+      "id": "p2b",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/p2b.jl"
+    },
+    "paradex": {
+      "id": "paradex",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/paradex.jl"
+    },
+    "paymium": {
+      "id": "paymium",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/paymium.jl"
+    },
+    "phemex": {
+      "id": "phemex",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/phemex.jl"
+    },
+    "poloniex": {
+      "id": "poloniex",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/poloniex.jl"
+    },
+    "tokocrypto": {
+      "id": "tokocrypto",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/tokocrypto.jl"
+    },
+    "toobit": {
+      "id": "toobit",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/toobit.jl"
+    },
+    "upbit": {
+      "id": "upbit",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/upbit.jl"
+    },
+    "whitebit": {
+      "id": "whitebit",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/whitebit.jl"
+    },
+    "woo": {
+      "id": "woo",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/woo.jl"
+    },
+    "woofipro": {
+      "id": "woofipro",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/woofipro.jl"
+    },
+    "xt": {
+      "id": "xt",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/xt.jl"
+    },
+    "zaif": {
+      "id": "zaif",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/zaif.jl"
+    },
+    "zebpay": {
+      "id": "zebpay",
+      "success": true,
+      "output": "/ccxt/julia/Ccxt/src/exchanges/zebpay.jl"
+    }
+  }
+}
