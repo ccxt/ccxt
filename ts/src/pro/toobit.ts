@@ -1025,6 +1025,7 @@ export default class toobit extends toobitRest {
             await this.loadMarkets ();
         }
         await this.authenticate ();
+        const type = 'swap'; // the only account type that carries positions here
         let messageHash = '';
         if (!this.isEmpty (symbols)) {
             symbols = this.marketSymbols (symbols);
@@ -1033,13 +1034,14 @@ export default class toobit extends toobitRest {
             }
             messageHash = '::' + symbols.join (',');
         }
+        messageHash = type + ':positions' + messageHash;
         const url = this.getUserStreamUrl ();
         const client = this.client (url);
         await this.authenticate (url);
-        this.setPositionsCache (client, symbols);
-        const cache = this.positions;
+        this.setPositionsCache (client, type, symbols);
+        const cache = this.safeValue (this.positions, type);
         if (cache === undefined) {
-            const snapshot = await client.future ('fetchPositionsSnapshot');
+            const snapshot = await client.future (type + ':fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
         }
         const newPositions = await this.watch (url, messageHash, undefined, messageHash);
@@ -1112,8 +1114,7 @@ export default class toobit extends toobitRest {
         //     }
         // ]
         //
-        const subscriptions = Object.keys (client.subscriptions);
-        const accountType = subscriptions[0];
+        const accountType = 'swap';
         if (this.positions === undefined) {
             this.positions = {};
         }
@@ -1121,9 +1122,11 @@ export default class toobit extends toobitRest {
             this.positions[accountType] = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions[accountType];
+        // handleMessage's fallback dispatches one item at a time
+        const rawPositions = Array.isArray (message) ? message : [ message ];
         const newPositions: List = [];
-        for (let i = 0; i < message.length; i++) {
-            const rawPosition = message[i];
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
             const position = this.parseWsPosition (rawPosition);
             const timestamp = this.safeInteger (rawPosition, 'E');
             position['timestamp'] = timestamp;
@@ -1176,9 +1179,6 @@ export default class toobit extends toobitRest {
     }
 
     async authenticate (params = {}) {
-        // the listen key has to exist before the client does: getUserStreamUrl builds
-        // the url out of it, so fetching it afterwards registered the future on a
-        // client at `.../ws/undefined` that nothing ever subscribes to
         const messageHash = 'authenticated';
         const time = this.milliseconds ();
         const listenKeyRefreshRate = this.safeInteger (this.options['ws'], 'listenKeyRefreshRate', 1200000);
@@ -1193,9 +1193,6 @@ export default class toobit extends toobitRest {
                 this.options['ws']['lastAuthenticatedTime'] = time;
                 this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
             } catch (e) {
-                // no client here: the url still reads an absent listen key, so
-                // taking one would register the rejection at `.../ws/undefined`,
-                // which nothing subscribes to
                 throw new AuthenticationError (this.id + ' ' + this.exceptionMessage (e));
             }
         }
