@@ -1135,7 +1135,14 @@ public partial class coinbaseexchange : Exchange
         };
         // publicGetProductsIdTicker or publicGetProductsIdStats
         object method = this.safeString(this.options, "fetchTickerMethod", "publicGetProductsIdTicker");
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = null;
+        if (isTrue(isEqual(method, "publicGetProductsIdStats")))
+        {
+            response = await this.publicGetProductsIdStats(this.extend(request, parameters));
+        } else
+        {
+            response = await this.publicGetProductsIdTicker(this.extend(request, parameters));
+        }
         //
         // publicGetProductsIdTicker
         //
@@ -1601,18 +1608,17 @@ public partial class coinbaseexchange : Exchange
         }
         object request = new Dictionary<string, object>() {};
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_oid");
-        object method = null;
+        object response = null;
         if (isTrue(isEqual(clientOrderId, null)))
         {
-            method = "privateGetOrdersId";
             ((IDictionary<string,object>)request)["id"] = id;
+            response = await this.privateGetOrdersId(this.extend(request, parameters));
         } else
         {
-            method = "privateGetOrdersClientClientOid";
             ((IDictionary<string,object>)request)["client_oid"] = clientOrderId;
             parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_oid"});
+            response = await this.privateGetOrdersClientClientOid(this.extend(request, parameters));
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         return this.parseOrder(response);
     }
 
@@ -1855,14 +1861,11 @@ public partial class coinbaseexchange : Exchange
         }
         object request = new Dictionary<string, object>() {};
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_oid");
-        object method = null;
         if (isTrue(isEqual(clientOrderId, null)))
         {
-            method = "privateDeleteOrdersId";
             ((IDictionary<string,object>)request)["id"] = id;
         } else
         {
-            method = "privateDeleteOrdersClientClientOid";
             ((IDictionary<string,object>)request)["client_oid"] = clientOrderId;
             parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_oid"});
         }
@@ -1872,7 +1875,14 @@ public partial class coinbaseexchange : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["product_id"] = getValue(market, "symbol"); // the request will be more performant if you include it
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = null;
+        if (isTrue(isEqual(clientOrderId, null)))
+        {
+            response = await this.privateDeleteOrdersId(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privateDeleteOrdersClientClientOid(this.extend(request, parameters));
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
         });
@@ -1942,23 +1952,22 @@ public partial class coinbaseexchange : Exchange
             { "currency", getValue(currency, "id") },
             { "amount", amount },
         };
-        object method = "privatePostWithdrawals";
+        object response = null;
         if (isTrue(inOp(parameters, "payment_method_id")))
         {
-            method = add(method, "PaymentMethod");
+            response = await this.privatePostWithdrawalsPaymentMethod(this.extend(request, parameters));
         } else if (isTrue(inOp(parameters, "coinbase_account_id")))
         {
-            method = add(method, "CoinbaseAccount");
+            response = await this.privatePostWithdrawalsCoinbaseAccount(this.extend(request, parameters));
         } else
         {
-            method = add(method, "Crypto");
             ((IDictionary<string,object>)request)["crypto_address"] = address;
             if (isTrue(!isEqual(tag, null)))
             {
                 ((IDictionary<string,object>)request)["destination_tag"] = tag;
             }
+            response = await this.privatePostWithdrawalsCrypto(this.extend(request, parameters));
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         if (!isTrue(response))
         {
             throw new ExchangeError ((string)add(add(this.id, " withdraw() error: "), this.json(response))) ;

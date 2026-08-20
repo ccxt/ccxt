@@ -728,7 +728,14 @@ public partial class bittrade : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object method = this.handleOption("fetchMarkets", "method", "publicGetCommonSymbols");
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { parameters }));
+        object response = null;
+        if (isTrue(isEqual(method, "publicGetCommonSymbols")))
+        {
+            response = await this.publicGetCommonSymbols(parameters);
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " fetchMarkets() does not support the "), method), " method")) ;
+        }
         //
         //    {
         //        "status": "ok",
@@ -1536,7 +1543,14 @@ public partial class bittrade : Exchange
         object request = new Dictionary<string, object>() {
             { "id", getValue(getValue(this.accounts, 0), "id") },
         };
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = null;
+        if (isTrue(isEqual(method, "privateGetAccountAccountsIdBalance")))
+        {
+            response = await this.privateGetAccountAccountsIdBalance(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " fetchBalance() does not support the "), method), " method")) ;
+        }
         return this.parseBalance(response);
     }
 
@@ -1557,7 +1571,14 @@ public partial class bittrade : Exchange
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
         object method = this.handleOption("fetchOrdersByStates", "method", "private_get_order_orders");
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = null;
+        if (isTrue(isTrue((isEqual(method, "private_get_order_history"))) || isTrue((isEqual(method, "privateGetOrderHistory")))))
+        {
+            response = await this.privateGetOrderHistory(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privateGetOrderOrders(this.extend(request, parameters));
+        }
         //
         //     { "status":   "ok",
         //         "data": [ {                  id:  13997833016,
@@ -1632,7 +1653,11 @@ public partial class bittrade : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object method = ((string)this.handleOption("fetchOpenOrders", "method", "fetch_open_orders_v1"));
-        return await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, limit, parameters }));
+        if (isTrue(isTrue((isEqual(method, "fetch_open_orders_v2"))) || isTrue((isEqual(method, "fetchOpenOrdersV2")))))
+        {
+            return await this.fetchOpenOrdersV2(symbol, since, limit, parameters);
+        }
+        return await this.fetchOpenOrdersV1(symbol, since, limit, parameters);
     }
 
     public async virtual Task<object> fetchOpenOrdersV1(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -1928,8 +1953,15 @@ public partial class bittrade : Exchange
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
-        object method = getValue(this.options, "createOrderMethod");
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object method = this.handleOption("createOrder", "method", "privatePostOrderOrdersPlace");
+        object response = null;
+        if (isTrue(isEqual(method, "privatePostOrderOrdersPlace")))
+        {
+            response = await this.privatePostOrderOrdersPlace(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " createOrder() does not support the "), method), " method")) ;
+        }
         object id = this.safeString(response, "data");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
