@@ -1,0 +1,516 @@
+{
+    "exchange": "sxbet",
+    "asyncOnly": true,
+    "skipKeys": [
+        "timestamp",
+        "datetime"
+    ],
+    "outputType": "json",
+    "walletAddress": "0xabababababababababababababababababababab",
+    "privateKey": "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "options": {
+        "sxMetadata": {
+            "usdcAddress": "0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B",
+            "wsxAddress": "0x3E96B0a25d51e3Cc89C557f152797c33B839968f",
+            "executorAddress": "0x52adf738AAD93c31f798a30b2C74D658e1E9a562",
+            "chainId": "4162",
+            "fillVerifyingContract": "0x845a2Da2D70fEDe8474b1C8518200798c60aC364",
+            "fillDomainVersion": "6.0",
+            "oddsLadderStepSize": "125",
+            "tokenTransferProxy": "0x38aef22152BC8965bf0af7Cf53586e4b0C4E9936"
+        },
+        "sxObv3Metadata": {
+            "chainId": 4162,
+            "domain": {
+                "name": "OBv3 Escrow",
+                "version": "1",
+                "chainId": 4162,
+                "verifyingContract": "0xF946f2AE410bCeF6cFe53FB27D4F178A79B7863D"
+            },
+            "activeAsset": {
+                "symbol": "USDC",
+                "baseToken": "0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B",
+                "escrowAddress": "0xF946f2AE410bCeF6cFe53FB27D4F178A79B7863D",
+                "decimals": 6
+            },
+            "oddsLadderStepSize": 125,
+            "limits": {
+                "orderSizeMinimumBaseUnits": "1000000"
+            }
+        }
+    },
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "fetchTicker parses the best snapshot levels of both sides into bid and ask",
+                "input": [
+                    "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL"
+                ],
+                "httpResponse": {
+                    "status": "success",
+                    "data": {
+                        "marketHash": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                        "version": "00000060000000012",
+                        "outcomeOne": [
+                            {
+                                "percentageOdds": "50250000000000000000",
+                                "size": "5000000"
+                            }
+                        ],
+                        "outcomeTwo": [
+                            {
+                                "percentageOdds": "48000000000000000000",
+                                "size": "3000000"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "timestamp": 1786975070199,
+                    "datetime": "2026-08-17T13:57:50.199Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 0.5025,
+                    "bidVolume": null,
+                    "ask": 0.52,
+                    "askVolume": null,
+                    "open": null,
+                    "close": 0.5025,
+                    "last": 0.5025,
+                    "change": null,
+                    "percentage": null,
+                    "average": 0.51125,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "openInterest": null,
+                    "outcome": "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL",
+                    "outcomeId": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                    "label": "Cf Montreal",
+                    "market": "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB",
+                    "event": null,
+                    "info": {
+                        "marketHash": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                        "outcomeOne": {
+                            "percentageOdds": "50250000000000000000"
+                        },
+                        "outcomeTwo": {
+                            "percentageOdds": "48000000000000000000"
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook parses the aggregated snapshot into mirrored bid and ask levels",
+                "input": [
+                    "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL"
+                ],
+                "httpResponse": {
+                    "status": "success",
+                    "data": {
+                        "marketHash": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                        "version": "00000060000000012",
+                        "outcomeOne": [
+                            {
+                                "percentageOdds": "50250000000000000000",
+                                "size": "5000000"
+                            }
+                        ],
+                        "outcomeTwo": [
+                            {
+                                "percentageOdds": "48000000000000000000",
+                                "size": "3000000"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "outcome": "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL",
+                    "bids": [
+                        [
+                            0.5025,
+                            5
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            0.52,
+                            3.249999
+                        ]
+                    ],
+                    "timestamp": 1786975070200,
+                    "datetime": "2026-08-17T13:57:50.200Z",
+                    "nonce": null,
+                    "outcomeId": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                    "market": "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB"
+                }
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder parses one v3 order row",
+                "input": [
+                    "0x112a4f19f20395aefcdb5d26f3f8aab0d96b1aff7ce346c0bfb13d9490340cdf"
+                ],
+                "httpResponse": {
+                    "status": "success",
+                    "data": {
+                        "order": {
+                            "id": "0x112a4f19f20395aefcdb5d26f3f8aab0d96b1aff7ce346c0bfb13d9490340cdf",
+                            "marketHash": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                            "userAddress": "0xabababababababababababababababababababab",
+                            "wallet": "0x4361123dbdc1D812fdf7D27045aF358C9C8AA70A",
+                            "isBettingOutcomeOne": true,
+                            "percentageOdds": "40000000000000000000",
+                            "totalBetSize": "3000000",
+                            "remainingSize": "2000000",
+                            "expiry": null,
+                            "status": "ACTIVE",
+                            "inactiveReason": null,
+                            "eventId": "L12003787",
+                            "createdAt": "2026-07-31T18:45:42.636Z",
+                            "updatedAt": "2026-07-31T18:45:42.838Z"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "id": "0x112a4f19f20395aefcdb5d26f3f8aab0d96b1aff7ce346c0bfb13d9490340cdf",
+                    "clientOrderId": null,
+                    "timestamp": 1785523542636,
+                    "datetime": "2026-07-31T18:45:42.636Z",
+                    "lastTradeTimestamp": 1785523542838,
+                    "lastUpdateTimestamp": null,
+                    "status": "open",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "side": "buy",
+                    "price": 0.4,
+                    "average": null,
+                    "amount": 3,
+                    "filled": 1,
+                    "remaining": 2,
+                    "cost": 0.4,
+                    "fee": null,
+                    "reduceOnly": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "outcome": "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL",
+                    "outcomeId": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                    "label": "Cf Montreal",
+                    "market": "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB",
+                    "event": null,
+                    "info": {
+                        "id": "0x112a4f19f20395aefcdb5d26f3f8aab0d96b1aff7ce346c0bfb13d9490340cdf",
+                        "marketHash": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                        "userAddress": "0xabababababababababababababababababababab",
+                        "wallet": "0x4361123dbdc1D812fdf7D27045aF358C9C8AA70A",
+                        "isBettingOutcomeOne": true,
+                        "percentageOdds": "40000000000000000000",
+                        "totalBetSize": "3000000",
+                        "remainingSize": "2000000",
+                        "expiry": null,
+                        "status": "ACTIVE",
+                        "inactiveReason": null,
+                        "eventId": "L12003787",
+                        "createdAt": "2026-07-31T18:45:42.636Z",
+                        "updatedAt": "2026-07-31T18:45:42.838Z"
+                    }
+                }
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades parses v3 fill rows",
+                "input": [],
+                "httpResponse": {
+                    "status": "success",
+                    "data": {
+                        "fills": [
+                            {
+                                "id": "0xec8e:0x02d2:0x1fec",
+                                "matchId": "0xec8e",
+                                "orderId": "0x02d2",
+                                "tradeId": "0xac6b",
+                                "marketHash": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                                "isParlay": false,
+                                "userAddress": "0xabababababababababababababababababababab",
+                                "wallet": "0x4361123dbdc1D812fdf7D27045aF358C9C8AA70A",
+                                "fillAmount": "333334",
+                                "fillOdds": "40000000000000000000",
+                                "returnAmount": "833335",
+                                "isBettingOutcomeOne": false,
+                                "status": "LOCKED",
+                                "txHash": "0x6430",
+                                "ceRefundAmount": "0",
+                                "ceRefundFeeAmount": "0",
+                                "usedBetCredits": false,
+                                "createdAt": "2026-07-31T18:47:09.586Z",
+                                "updatedAt": "2026-07-31T18:47:12.837Z",
+                                "settlement": null
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "0xec8e:0x02d2:0x1fec",
+                        "order": "0x02d2",
+                        "timestamp": 1785523629586,
+                        "datetime": "2026-07-31T18:47:09.586Z",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 0.4,
+                        "amount": 0.333334,
+                        "cost": 0.333334,
+                        "fee": null,
+                        "realizedPnl": null,
+                        "outcome": "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:THE_FIELD",
+                        "outcomeId": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb-2",
+                        "label": "The Field",
+                        "market": "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB",
+                        "info": {
+                            "id": "0xec8e:0x02d2:0x1fec",
+                            "matchId": "0xec8e",
+                            "orderId": "0x02d2",
+                            "tradeId": "0xac6b",
+                            "marketHash": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                            "isParlay": false,
+                            "userAddress": "0xabababababababababababababababababababab",
+                            "wallet": "0x4361123dbdc1D812fdf7D27045aF358C9C8AA70A",
+                            "fillAmount": "333334",
+                            "fillOdds": "40000000000000000000",
+                            "returnAmount": "833335",
+                            "isBettingOutcomeOne": false,
+                            "status": "LOCKED",
+                            "txHash": "0x6430",
+                            "ceRefundAmount": "0",
+                            "ceRefundFeeAmount": "0",
+                            "usedBetCredits": false,
+                            "createdAt": "2026-07-31T18:47:09.586Z",
+                            "updatedAt": "2026-07-31T18:47:12.837Z",
+                            "settlement": null
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions parses per-market v3 aggregates",
+                "input": [],
+                "httpResponse": {
+                    "status": "success",
+                    "data": {
+                        "positions": [
+                            {
+                                "marketHash": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                                "totalStake": "300000000",
+                                "maxWin": "200000000",
+                                "maxLoss": "-100000000",
+                                "isOutcomeOneMaxWin": true,
+                                "odds": {
+                                    "outcomeOne": "40000000000000000000",
+                                    "outcomeTwo": "50000000000000000000"
+                                },
+                                "pnl": null,
+                                "tradeCount": 2,
+                                "betTime": "2026-03-13T21:14:02.118Z",
+                                "updatedAt": "2026-03-13T22:03:41.502Z"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "timestamp": 1773436442118,
+                        "datetime": "2026-03-13T21:14:02.118Z",
+                        "contracts": 300,
+                        "contractSize": null,
+                        "side": "long",
+                        "notional": null,
+                        "unrealizedPnl": null,
+                        "realizedPnl": null,
+                        "collateral": null,
+                        "entryPrice": 0.4,
+                        "markPrice": null,
+                        "lastPrice": null,
+                        "percentage": null,
+                        "resolved": null,
+                        "won": null,
+                        "settleFraction": null,
+                        "payout": null,
+                        "outcome": "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL",
+                        "outcomeId": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                        "label": "Cf Montreal",
+                        "market": "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB",
+                        "event": null,
+                        "info": {
+                            "marketHash": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                            "totalStake": "300000000",
+                            "maxWin": "200000000",
+                            "maxLoss": "-100000000",
+                            "isOutcomeOneMaxWin": true,
+                            "odds": {
+                                "outcomeOne": "40000000000000000000",
+                                "outcomeTwo": "50000000000000000000"
+                            },
+                            "pnl": null,
+                            "tradeCount": 2,
+                            "betTime": "2026-03-13T21:14:02.118Z",
+                            "updatedAt": "2026-03-13T22:03:41.502Z"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchSettlements": [
+            {
+                "description": "fetchSettlements parses settled v3 bets",
+                "input": [],
+                "httpResponse": {
+                    "status": "success",
+                    "data": {
+                        "trades": [
+                            {
+                                "tradeId": "0xac6b",
+                                "userAddress": "0xabababababababababababababababababababab",
+                                "wallet": "0x4361",
+                                "marketHash": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                                "isBettingOutcomeOne": false,
+                                "isParlay": false,
+                                "totalStake": "1000000",
+                                "totalReturn": "2500000",
+                                "weightedAverageOdds": "40000000000000000000",
+                                "ceRefundAmount": "0",
+                                "ceRefundFeeAmount": "0",
+                                "usedBetCredits": false,
+                                "fillCount": 2,
+                                "status": "SETTLED",
+                                "betTime": "2026-07-31T18:47:09.577Z",
+                                "gameTime": "2040-01-01T00:00:00.000Z",
+                                "createdAt": "2026-07-31T18:47:09.575Z",
+                                "updatedAt": "2026-08-01T00:10:00.000Z",
+                                "settlement": {
+                                    "outcome": 2,
+                                    "settleReturnAmount": "2500000",
+                                    "settleFeeAmount": "0",
+                                    "settleCeRefundAmount": "0",
+                                    "settleDate": "2026-08-01T00:10:00.000Z"
+                                }
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "tradeId": "0xac6b",
+                            "userAddress": "0xabababababababababababababababababababab",
+                            "wallet": "0x4361",
+                            "marketHash": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                            "isBettingOutcomeOne": false,
+                            "isParlay": false,
+                            "totalStake": "1000000",
+                            "totalReturn": "2500000",
+                            "weightedAverageOdds": "40000000000000000000",
+                            "ceRefundAmount": "0",
+                            "ceRefundFeeAmount": "0",
+                            "usedBetCredits": false,
+                            "fillCount": 2,
+                            "status": "SETTLED",
+                            "betTime": "2026-07-31T18:47:09.577Z",
+                            "gameTime": "2040-01-01T00:00:00.000Z",
+                            "createdAt": "2026-07-31T18:47:09.575Z",
+                            "updatedAt": "2026-08-01T00:10:00.000Z",
+                            "settlement": {
+                                "outcome": 2,
+                                "settleReturnAmount": "2500000",
+                                "settleFeeAmount": "0",
+                                "settleCeRefundAmount": "0",
+                                "settleDate": "2026-08-01T00:10:00.000Z"
+                            }
+                        },
+                        "id": "0xac6b",
+                        "timestamp": 1785543000000,
+                        "datetime": "2026-08-01T00:10:00.000Z",
+                        "outcome": "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:THE_FIELD",
+                        "outcomeId": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb-2",
+                        "market": "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB",
+                        "event": null,
+                        "result": "The Field",
+                        "won": true,
+                        "amount": 1,
+                        "price": 1,
+                        "cost": 1,
+                        "payout": 2.5,
+                        "pnl": 1.5
+                    }
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder reports the venue-confirmed cancellation",
+                "input": [
+                    "0x112a4f19f20395aefcdb5d26f3f8aab0d96b1aff7ce346c0bfb13d9490340cdf"
+                ],
+                "httpResponse": {
+                    "status": "success",
+                    "data": {
+                        "cancelled": [
+                            {
+                                "orderId": "0x112a4f19f20395aefcdb5d26f3f8aab0d96b1aff7ce346c0bfb13d9490340cdf",
+                                "commandId": "abc-1"
+                            }
+                        ],
+                        "notCancelled": [],
+                        "unconfirmed": []
+                    }
+                },
+                "parsedResponse": {
+                    "id": "0x112a4f19f20395aefcdb5d26f3f8aab0d96b1aff7ce346c0bfb13d9490340cdf",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "canceled",
+                    "type": null,
+                    "timeInForce": null,
+                    "side": null,
+                    "price": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "fee": null,
+                    "reduceOnly": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "outcome": null,
+                    "outcomeId": null,
+                    "label": null,
+                    "market": null,
+                    "event": null,
+                    "info": {
+                        "status": "success",
+                        "data": {
+                            "cancelled": [
+                                {
+                                    "orderId": "0x112a4f19f20395aefcdb5d26f3f8aab0d96b1aff7ce346c0bfb13d9490340cdf",
+                                    "commandId": "abc-1"
+                                }
+                            ],
+                            "notCancelled": [],
+                            "unconfirmed": []
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
