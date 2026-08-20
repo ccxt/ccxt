@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import bitrueRest from '../bitrue.js';
-import { NotSupported } from '../base/errors.js';
+import { AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade, List, Endpoint } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -855,22 +855,43 @@ export default class bitrue extends bitrueRest {
     async authenticate (params = {}) {
         const listenKey = this.safeValue (this.options, 'listenKey');
         if (listenKey === undefined) {
-            const response = await this.openV1PrivatePostPoseidonApiV1ListenKey (params);
-            //
-            //     {
-            //         "msg": "succ",
-            //         "code": 200,
-            //         "data": {
-            //             "listenKey": "7d1ec51340f499d85bb33b00a96ef680bda28869d5c3374a444c5ca4847d1bf0"
-            //         }
-            //     }
-            //
-            const data = this.safeValue (response, 'data', {});
-            const key = this.safeString (data, 'listenKey');
-            this.options['listenKey'] = key;
-            this.options['listenKeyUrl'] = this.urls['api']['ws']['private'] + '/stream?listenKey=' + key;
-            const refreshTimeout = this.safeInteger (this.options, 'listenKeyRefreshRate', 1800000);
-            this.delay (refreshTimeout, this.keepAliveListenKey);
+            // single-flight leader election, see #29393: authenticate()
+            // returns the private url, so racing cold fetches used to hand
+            // each caller a DIFFERENT url and their watchers connected to
+            // split streams with different keys
+            const isLeader = await this.singleFlightAcquire ('authenticate');
+            if (!isLeader) {
+                // the leader settled: every caller gets the same url
+                return this.options['listenKeyUrl'];
+            }
+            try {
+                const response = await this.openV1PrivatePostPoseidonApiV1ListenKey (params);
+                //
+                //     {
+                //         "msg": "succ",
+                //         "code": 200,
+                //         "data": {
+                //             "listenKey": "7d1ec51340f499d85bb33b00a96ef680bda28869d5c3374a444c5ca4847d1bf0"
+                //         }
+                //     }
+                //
+                const data = this.safeValue (response, 'data', {});
+                const key = this.safeString (data, 'listenKey');
+                if (key === undefined) {
+                    // reject before any write: a hollow 200 previously
+                    // poisoned listenKeyUrl with '?listenKey=undefined' and
+                    // handed the caller that garbage url
+                    throw new AuthenticationError (this.id + ' authenticate() received an empty listenKey');
+                }
+                this.options['listenKey'] = key;
+                this.options['listenKeyUrl'] = this.urls['api']['ws']['private'] + '/stream?listenKey=' + key;
+                const refreshTimeout = this.safeInteger (this.options, 'listenKeyRefreshRate', 1800000);
+                this.delay (refreshTimeout, this.keepAliveListenKey);
+                this.singleFlightResolve ('authenticate', key);
+            } catch (e) {
+                this.singleFlightReject ('authenticate', e);
+                throw e;
+            }
         }
         return this.options['listenKeyUrl'];
     }

@@ -201,11 +201,75 @@ async function testBingxAuthenticateSingleFlight () {
     assert (failing.options['listenKey'] === 'BINGX-KEY-RETRY', 'a retry after a rejected flight must re-lead and cache');
 }
 
+async function testBitrueAuthenticateSingleFlight () {
+    // bitrue: key-presence guard (no staleness window) and authenticate ()
+    // RETURNS the private url each caller connects to - racing cold fetches
+    // used to hand every caller a different url (split streams), and a
+    // hollow 200 poisoned listenKeyUrl with '?listenKey=undefined'. pin:
+    // concurrent callers get ONE fetch and the SAME url; a hollow 200
+    // rejects both callers typed with key AND url unset, then re-leads
+    const state = { 'fetches': 0 };
+    const exchange = new ccxt.pro.bitrue ({
+        'apiKey': 'test-api-key',
+        'secret': 'test-secret',
+    });
+    (exchange as any).openV1PrivatePostPoseidonApiV1ListenKey = async () => {
+        state.fetches = state.fetches + 1;
+        await sleep (50); // the race window
+        return { 'msg': 'succ', 'code': 200, 'data': { 'listenKey': 'BITRUE-KEY-' + state.fetches.toString () } };
+    };
+    (exchange as any).delay = () => {};
+    const urls = await Promise.all ([
+        exchange.authenticate (),
+        exchange.authenticate (),
+        exchange.authenticate (),
+    ]);
+    assert (state.fetches === 1, 'concurrent bitrue authenticates must elect exactly one leader (got ' + state.fetches.toString () + ' fetches)');
+    assert (urls[0].indexOf ('BITRUE-KEY-1') >= 0, 'the returned url must carry the leader listenKey');
+    assert ((urls[0] === urls[1]) && (urls[1] === urls[2]), 'every concurrent caller must receive the SAME private url');
+    let flightCount = Object.keys (exchange.authenticationFlights).length;
+    assert (flightCount === 0, 'settled flights must be cleared');
+    // warm call: no refetch, same url again
+    const warmUrl = await exchange.authenticate ();
+    assert (state.fetches === 1 && warmUrl === urls[0], 'a warm authenticate must not fetch and must return the same url');
+    // hollow 200: fresh instance, both callers reject typed, key AND url unset
+    const failing = new ccxt.pro.bitrue ({
+        'apiKey': 'test-api-key',
+        'secret': 'test-secret',
+    });
+    const failState = { 'fetches': 0 };
+    (failing as any).openV1PrivatePostPoseidonApiV1ListenKey = async () => {
+        failState.fetches = failState.fetches + 1;
+        await sleep (10);
+        return { 'msg': 'succ', 'code': 200, 'data': {} }; // hollow: no listenKey
+    };
+    (failing as any).delay = () => {};
+    const outcomes = await Promise.allSettled ([
+        failing.authenticate (),
+        failing.authenticate (),
+    ]);
+    assert (outcomes[0].status === 'rejected' && outcomes[1].status === 'rejected', 'both the leader and the waiter must throw on an empty listenKey');
+    assert ((outcomes[0] as any).reason instanceof AuthenticationError, 'the bitrue leader must reject with AuthenticationError');
+    assert ((outcomes[1] as any).reason instanceof AuthenticationError, 'the bitrue waiter must observe the same AuthenticationError');
+    assert (failing.safeString (failing.options, 'listenKey') === undefined, 'an empty listenKey must never be cached');
+    assert (failing.safeString (failing.options, 'listenKeyUrl') === undefined, 'a hollow 200 must not poison listenKeyUrl');
+    flightCount = Object.keys (failing.authenticationFlights).length;
+    assert (flightCount === 0, 'a rejected flight must be cleared');
+    // recovery: a good response re-leads and returns a real url
+    (failing as any).openV1PrivatePostPoseidonApiV1ListenKey = async () => {
+        failState.fetches = failState.fetches + 1;
+        return { 'msg': 'succ', 'code': 200, 'data': { 'listenKey': 'BITRUE-KEY-RETRY' } };
+    };
+    const retryUrl = await failing.authenticate ();
+    assert (retryUrl.indexOf ('BITRUE-KEY-RETRY') >= 0, 'a retry after a rejected flight must re-lead and return the fresh url');
+}
+
 async function testWsSingleFlightWiring () {
     await testAsterAuthenticateSingleFlight ();
     await testAsterAuthenticateEmptyKeyRejection ();
     await testBinanceAuthenticateEmptyKeyRejection ();
     await testBingxAuthenticateSingleFlight ();
+    await testBitrueAuthenticateSingleFlight ();
 }
 
 export default testWsSingleFlightWiring;
