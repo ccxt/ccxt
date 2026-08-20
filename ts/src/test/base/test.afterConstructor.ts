@@ -86,6 +86,31 @@ function helperTestInitMarket () {
     assert ((exchange2.markets !== undefined) && (exchange2.markets['BTC/USD'] !== undefined));
 }
 
+function helperTestKrakenFuturesOrderActionErrors () {
+    const exchange = new ccxt.krakenfutures ();
+    let thrown = undefined;
+    try {
+        exchange.verifyOrderActionSuccess ('selfFill', 'createOrder');
+    } catch (e) {
+        thrown = e;
+    }
+    assert (thrown instanceof ccxt.OperationRejected);
+    thrown = undefined;
+    try {
+        exchange.verifyOrderActionSuccess ('tooManySmallOrders', 'createOrder');
+    } catch (e) {
+        thrown = e;
+    }
+    assert (thrown instanceof ccxt.InvalidOrder);
+    thrown = undefined;
+    try {
+        exchange.verifyOrderActionSuccess ('wouldNotReducePosition', 'createOrder');
+    } catch (e) {
+        thrown = e;
+    }
+    assert (thrown instanceof ccxt.InvalidOrder);
+}
+
 function helperTestProperties () {
     const exchange = new ccxt.Exchange ({});
 
@@ -310,6 +335,7 @@ function testAfterConstructor () {
     helperTestInitThrottler ();
     helperTestInitSandbox ();
     helperTestInitMarket ();
+    helperTestKrakenFuturesOrderActionErrors ();
     helperTestProperties ();
 }
 
