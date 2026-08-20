@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import bingxRest from '../bingx.js';
-import { BadRequest, NetworkError, NotSupported } from '../base/errors.js';
+import { AuthenticationError, BadRequest, NetworkError, NotSupported } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
@@ -1444,10 +1444,30 @@ export default class bingx extends bingxRest {
         const lastAuthenticatedTime = this.safeInteger(this.options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger(this.options, 'listenKeyRefreshRate', 3600000); // 1 hour
         if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
-            const response = await this.userAuthPrivatePostUserDataStream();
-            this.options['listenKey'] = this.safeString(response, 'listenKey');
-            this.options['lastAuthenticatedTime'] = time;
-            this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
+            // single-flight leader election, see #29393: racing fetches mint
+            // different keys and the key rides the private url, so losers
+            // connect their watchers to an orphaned stream
+            const isLeader = await this.singleFlightAcquire('authenticate');
+            if (!isLeader) {
+                return; // the leader settled: the listenKey is in the bucket
+            }
+            try {
+                const response = await this.userAuthPrivatePostUserDataStream();
+                const listenKey = this.safeString(response, 'listenKey');
+                if (listenKey === undefined) {
+                    // reject instead of caching an empty credential, so
+                    // waiters retry rather than proceed unauthenticated
+                    throw new AuthenticationError(this.id + ' authenticate() received an empty listenKey');
+                }
+                this.options['listenKey'] = listenKey;
+                this.options['lastAuthenticatedTime'] = time;
+                this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
+                this.singleFlightResolve('authenticate', listenKey);
+            }
+            catch (e) {
+                this.singleFlightReject('authenticate', e);
+                throw e;
+            }
         }
     }
     async pong(client, message) {
