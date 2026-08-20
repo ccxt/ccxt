@@ -2448,6 +2448,16 @@ export default class woo extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        if (symbols !== undefined) {
+            // the type gate throws NotSupported rather than letting marketSymbols raise
+            // BadRequest, so callers (and the live test harness) can tell "wrong market
+            // type" apart from a malformed request, marketSymbols still enforces that the
+            // rest of the list matches
+            const firstMarket = this.market (symbols[0]);
+            if (!firstMarket['swap']) {
+                throw new NotSupported (this.id + ' fetchTickers() supports swap markets only');
+            }
+        }
         symbols = this.marketSymbols (symbols, 'swap', true, true);
         if (symbols === undefined) {
             let marketType: Str = undefined;
