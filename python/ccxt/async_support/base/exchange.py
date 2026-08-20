@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.73'
+__version__ = '4.5.74'
 
 # -----------------------------------------------------------------------------
 
@@ -77,6 +77,7 @@ class BaseExchange(SyncExchange):
         self.own_session = 'session' not in config
         self.cafile = config.get('cafile', certifi.where())
         self.throttler = None
+        self.authentication_flights = {}
         super(BaseExchange, self).__init__(config)
         self.markets_loading = None
         self.reloading_markets = False
@@ -140,6 +141,12 @@ class BaseExchange(SyncExchange):
     async def close(self, clean_instance_data=False):
         # set before the first await, a lazy open() during close() would leak a session
         self.closed_by_user = True
+        # settle any in-flight auth flights so their waiters do not hang
+        # across a close - same idea as Client.reset
+        flight_hashes = list(self.authentication_flights.keys())
+        for flight_hash in flight_hashes:
+            flight = self.authentication_flights.pop(flight_hash)
+            flight.reject(ExchangeClosedByUser(str(self.id) + ' close() was called'))
         # ##### language-specific cleanup of WS & REST resources #####
         # [WS]
         await self.close_ws_clients()
@@ -453,6 +460,47 @@ class BaseExchange(SyncExchange):
 
     def counted_order_book(self, snapshot={}, depth=None):
         return CountedOrderBook(snapshot, depth)
+
+    async def single_flight_acquire(self, flight_hash):
+        # leader election for check-then-fetch authentication flows such as
+        # listenKey and token fetches - https://github.com/ccxt/ccxt/issues/29393
+        # returns True when the caller is elected leader and must perform the
+        # fetch itself, then settle the flight with single_flight_resolve on
+        # success or single_flight_reject on failure
+        # returns False when another flight is already in progress - in that
+        # case the call awaits the in-progress flight and the caller must
+        # re-read the cached credential after it returns
+        # a rejected flight throws into all waiters so nothing deadlocks
+        if flight_hash in self.authentication_flights:
+            await self.authentication_flights[flight_hash]
+            return False
+        flight = Future()
+        # an alone leader may reject before any waiter awaits the flight -
+        # retrieve the exception in a done callback so asyncio never logs
+        # an unretrieved-exception warning for a waiterless rejection
+        flight.add_done_callback(lambda f: f.exception() if not f.cancelled() else None)
+        self.authentication_flights[flight_hash] = flight
+        return True
+
+    async def single_flight_wait(self, flight_hash):
+        # awaits an in-progress flight without electing a leader
+        # returns immediately when no flight is in progress
+        if flight_hash in self.authentication_flights:
+            await self.authentication_flights[flight_hash]
+
+    def single_flight_resolve(self, flight_hash, result=None):
+        # settles a flight successfully and wakes all waiters
+        if flight_hash in self.authentication_flights:
+            future = self.authentication_flights[flight_hash]
+            del self.authentication_flights[flight_hash]
+            future.resolve(result)
+
+    def single_flight_reject(self, flight_hash, error):
+        # settles a flight with an error - all waiters throw
+        if flight_hash in self.authentication_flights:
+            future = self.authentication_flights[flight_hash]
+            del self.authentication_flights[flight_hash]
+            future.reject(error)
 
     def client(self, url):
         self.open()  # ensure self.asyncio_loop is set

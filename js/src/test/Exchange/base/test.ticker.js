@@ -193,24 +193,35 @@ function testTicker(exchange, skippedProperties, method, entry, symbol) {
     }
     const percentage = exchange.safeString(entry, 'percentage');
     const change = exchange.safeString(entry, 'change');
+    // option markets are exempt from the UPPER percentage/change caps only:
+    // expiry-day convexity makes any finite cap wrong - a formerly-OTM
+    // contract moving into the money legitimately gains 1000x+ (observed: a
+    // paradex call at +109055% on its expiry date, mark price equal to
+    // intrinsic). the floors stay: a long option cannot lose more than its
+    // premium, so percentage >= -100 and change >= -open hold for options too
+    const isOptionMarket = exchange.safeBool(market, 'option', false);
     if (!('maxIncrease' in skippedProperties) && !isUnrecognizedSymbol) {
         //
         // percentage
         //
         const maxIncrease = '1000'; // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
         if (percentage !== undefined) {
-            // - should be above -100 and below MAX
+            // - should be above -100 and (for non-options) below MAX
             assert(Precise.stringGe(percentage, '-100'), 'percentage should be above -100% ' + logText);
-            assert(Precise.stringLe(percentage, Precise.stringMul('+100', maxIncrease)), 'percentage should be below ' + maxIncrease + '00% ' + logText);
+            if (!isOptionMarket) {
+                assert(Precise.stringLe(percentage, Precise.stringMul('+100', maxIncrease)), 'percentage should be below ' + maxIncrease + '00% ' + logText);
+            }
         }
         //
         // change
         //
         const approxValue = exchange.safeStringN(entry, ['open', 'close', 'average', 'bid', 'ask', 'vwap', 'previousClose']);
         if (change !== undefined) {
-            // - should be between -price & +price*100
+            // - should be above -price and (for non-options) below +price*maxIncrease
             assert(Precise.stringGe(change, Precise.stringNeg(approxValue)), 'change should be above -price ' + logText);
-            assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), 'change should be below ' + maxIncrease + 'x price ' + logText);
+            if (!isOptionMarket) {
+                assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), 'change should be below ' + maxIncrease + 'x price ' + logText);
+            }
         }
     }
     //

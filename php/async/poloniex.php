@@ -317,8 +317,9 @@ class poloniex extends Exchange {
                 'networks' => array(
                     'BEP20' => 'BSC',
                     'ERC20' => 'ETH',
-                    'TRC20' => 'TRON',
-                    'TRX' => 'TRON',
+                    // v2 withdraw accepts only the blockchain id => 'TRX' passes validation, 'TRON' is rejected with 830111 (live-verified)
+                    'TRC20' => 'TRX',
+                    'TRX' => 'TRX',
                 ),
                 'networksById' => array(
                     'TRX' => 'TRC20',
@@ -538,10 +539,10 @@ class poloniex extends Exchange {
                     '21356' => '\\ccxt\\BadRequest', // Order size would cause too much price movement. Reduce order size.
                     '21721' => '\\ccxt\\InsufficientFunds',
                     '24101' => '\\ccxt\\BadSymbol', // Invalid symbol
-                    '24102' => '\\ccxt\\InvalidOrder', // Invalid K-line type
-                    '24103' => '\\ccxt\\InvalidOrder', // Invalid endTime
-                    '24104' => '\\ccxt\\InvalidOrder', // Invalid amount
-                    '24105' => '\\ccxt\\InvalidOrder', // Invalid startTime
+                    '24102' => '\\ccxt\\BadRequest', // Invalid K-line type
+                    '24103' => '\\ccxt\\BadRequest', // Invalid endTime
+                    '24104' => '\\ccxt\\BadRequest', // Invalid limit
+                    '24105' => '\\ccxt\\BadRequest', // Invalid startTime
                     '25020' => '\\ccxt\\InvalidOrder', // No active kill switch
                     // Smartorders
                     '25000' => '\\ccxt\\InvalidOrder', // Invalid userId
@@ -564,6 +565,46 @@ class poloniex extends Exchange {
                     '25017' => '\\ccxt\\ExchangeError', // No orders were canceled
                     '25018' => '\\ccxt\\BadRequest', // Invalid accountType
                     '25019' => '\\ccxt\\BadSymbol', // Invalid symbol
+                    // Wallets v2 (undocumented codes, live-verified via validation probes)
+                    '820181' => '\\ccxt\\BadRequest', // array("code":820181,"message":"amount must be greater than the transaction fee.")
+                    '820201' => '\\ccxt\\BadRequest', // array("code":820201,"message":"blockchain param check error") — network param missing
+                    '830111' => '\\ccxt\\BadRequest', // array("code":830111,"message":"Currency or Network does not exist")
+                    // Futures v3 (https://api-docs.poloniex.com/v3/futures/error)
+                    '250' => '\\ccxt\\DuplicateOrderId', // array("code":250,"msg":"Client order id already exists") — live-verified on v3/trade/order
+                    '400' => '\\ccxt\\BadRequest', // ILLEGAL_PARAM
+                    '403' => '\\ccxt\\PermissionDenied', // ACCESS_DENY
+                    '404' => '\\ccxt\\BadRequest', // NOT_FOUND
+                    '429' => '\\ccxt\\RateLimitExceeded', // TOO_MANY_REQUEST
+                    '503' => '\\ccxt\\ExchangeNotAvailable', // DEGRADE_ERROR
+                    '1000' => '\\ccxt\\AuthenticationError', // USER_NOT_EXITS
+                    '1001' => '\\ccxt\\ExchangeError', // SYSTEM_CONFIG_ERROR
+                    '1002' => '\\ccxt\\OnMaintenance', // SYSTEM_MAINTENANCE
+                    '1003' => '\\ccxt\\AccountSuspended', // USER_IS_FROZEN
+                    '10000' => '\\ccxt\\MarketClosed', // SYMBOL_NOT_IN_TRADING_STATUS
+                    '10001' => '\\ccxt\\BadSymbol', // SYMBOL_NOT_EXISTS
+                    '10002' => '\\ccxt\\InvalidOrder', // PRICE_LIMIT
+                    '10003' => '\\ccxt\\InvalidOrder', // NO_BID
+                    '10004' => '\\ccxt\\InvalidOrder', // NO_ASK
+                    '10005' => '\\ccxt\\MarketClosed', // SYMBOL_STATUS_PAUSED
+                    '10006' => '\\ccxt\\OperationRejected', // SYMBOL_STATUS_CANCEL_ONLY
+                    '10007' => '\\ccxt\\OperationRejected', // SYMBOL_STATUS_NOT_ALLOWED
+                    '10008' => '\\ccxt\\AccountSuspended', // USER_STATUS_ABNORMAL
+                    '10009' => '\\ccxt\\OperationRejected', // ALREADY_EXISTS_GRID_STRATEGY
+                    '10010' => '\\ccxt\\InvalidOrder', // PRICE_HIGHER_THAN_BANKRUPT_PRICE
+                    '10011' => '\\ccxt\\InvalidOrder', // PRICE_LOWER_THAN_BANKRUPT_PRICE
+                    '10012' => '\\ccxt\\InvalidOrder', // PRICE_HIGHER_THAN_LIQUIDATION_PRICE
+                    '10013' => '\\ccxt\\InvalidOrder', // PRICE_LOWER_THAN_LIQUIDATION_PRICE
+                    '10014' => '\\ccxt\\BadRequest', // PRICE_LIMIT_PARAM
+                    '10015' => '\\ccxt\\OperationRejected', // SYMBOL_STATUS_CLOSE_POSITION_ONLY
+                    '10016' => '\\ccxt\\BadRequest', // BATCH_PLACE_ORDER_SIZE_OVER_LIMIT
+                    '10017' => '\\ccxt\\BadRequest', // BATCH_CANCEL_ORDER_SIZE_OVER_LIMIT
+                    '10018' => '\\ccxt\\OperationRejected', // NO_POSITION_TO_CLOSE_ORDER
+                    '10019' => '\\ccxt\\OperationRejected', // ACCOUNT_STATE_OPEN_LIMIT
+                    '11003' => '\\ccxt\\BadRequest', // UNKNOWN_SOURCE
+                    '11004' => '\\ccxt\\OperationRejected', // ORDER_NOT_CANCELABLE
+                    '11008' => '\\ccxt\\OrderNotFound', // ORDER_NOT_EXISTS
+                    '12004' => '\\ccxt\\PermissionDenied', // NOT_KYC_VERIFIED
+                    '21001' => '\\ccxt\\OperationRejected', // POSITION_NOT_EXIST
                 ),
                 'broad' => array(
                 ),
@@ -2073,6 +2114,7 @@ class poloniex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
          * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {string} [$params->clientOrderId] a unique identifier for the order
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         Async\await($this->load_markets());
@@ -2175,10 +2217,12 @@ class poloniex extends Exchange {
             $priceKey = $market['spot'] ? 'price' : 'px';
             $request[$priceKey] = $this->price_to_precision($symbol, $price);
         }
-        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clOrdId');
         if ($clientOrderId !== null) {
-            $request['clientOrderId'] = $clientOrderId;
-            $params = $this->omit($params, 'clientOrderId');
+            // the futures v3 api silently ignores the spot key and generates its own id
+            $clientOrderIdKey = $market['spot'] ? 'clientOrderId' : 'clOrdId';
+            $request[$clientOrderIdKey] = $clientOrderId;
+            $params = $this->omit($params, array( 'clientOrderId', 'clOrdId' ));
         }
         // remember the timestamp before issuing the $request
         return array( $request, $params );
@@ -2203,6 +2247,7 @@ class poloniex extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
+         * @param {string} [$params->clientOrderId] a unique identifier for the order
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         Async\await($this->load_markets());
@@ -3845,10 +3890,9 @@ class poloniex extends Exchange {
         //
         $responseCode = $this->safe_string($response, 'code');
         if (($responseCode !== null) && ($responseCode !== '200')) {
-            $codeInner = $response['code'];
-            $message = $this->safe_string($response, 'message');
+            $message = $this->safe_string_2($response, 'message', 'msg');
             $feedback = $this->id . ' ' . $body;
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeInner, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $responseCode, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }

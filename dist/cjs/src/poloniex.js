@@ -312,8 +312,9 @@ class poloniex extends poloniex$1["default"] {
                 'networks': {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
-                    'TRC20': 'TRON',
-                    'TRX': 'TRON',
+                    // v2 withdraw accepts only the blockchain id: 'TRX' passes validation, 'TRON' is rejected with 830111 (live-verified)
+                    'TRC20': 'TRX',
+                    'TRX': 'TRX',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
@@ -533,10 +534,10 @@ class poloniex extends poloniex$1["default"] {
                     '21356': errors.BadRequest, // Order size would cause too much price movement. Reduce order size.
                     '21721': errors.InsufficientFunds,
                     '24101': errors.BadSymbol, // Invalid symbol
-                    '24102': errors.InvalidOrder, // Invalid K-line type
-                    '24103': errors.InvalidOrder, // Invalid endTime
-                    '24104': errors.InvalidOrder, // Invalid amount
-                    '24105': errors.InvalidOrder, // Invalid startTime
+                    '24102': errors.BadRequest, // Invalid K-line type
+                    '24103': errors.BadRequest, // Invalid endTime
+                    '24104': errors.BadRequest, // Invalid limit
+                    '24105': errors.BadRequest, // Invalid startTime
                     '25020': errors.InvalidOrder, // No active kill switch
                     // Smartorders
                     '25000': errors.InvalidOrder, // Invalid userId
@@ -559,6 +560,46 @@ class poloniex extends poloniex$1["default"] {
                     '25017': errors.ExchangeError, // No orders were canceled
                     '25018': errors.BadRequest, // Invalid accountType
                     '25019': errors.BadSymbol, // Invalid symbol
+                    // Wallets v2 (undocumented codes, live-verified via validation probes)
+                    '820181': errors.BadRequest, // {"code":820181,"message":"amount must be greater than the transaction fee."}
+                    '820201': errors.BadRequest, // {"code":820201,"message":"blockchain param check error"} — network param missing
+                    '830111': errors.BadRequest, // {"code":830111,"message":"Currency or Network does not exist"}
+                    // Futures v3 (https://api-docs.poloniex.com/v3/futures/error)
+                    '250': errors.DuplicateOrderId, // {"code":250,"msg":"Client order id already exists"} — live-verified on v3/trade/order
+                    '400': errors.BadRequest, // ILLEGAL_PARAM
+                    '403': errors.PermissionDenied, // ACCESS_DENY
+                    '404': errors.BadRequest, // NOT_FOUND
+                    '429': errors.RateLimitExceeded, // TOO_MANY_REQUEST
+                    '503': errors.ExchangeNotAvailable, // DEGRADE_ERROR
+                    '1000': errors.AuthenticationError, // USER_NOT_EXITS
+                    '1001': errors.ExchangeError, // SYSTEM_CONFIG_ERROR
+                    '1002': errors.OnMaintenance, // SYSTEM_MAINTENANCE
+                    '1003': errors.AccountSuspended, // USER_IS_FROZEN
+                    '10000': errors.MarketClosed, // SYMBOL_NOT_IN_TRADING_STATUS
+                    '10001': errors.BadSymbol, // SYMBOL_NOT_EXISTS
+                    '10002': errors.InvalidOrder, // PRICE_LIMIT
+                    '10003': errors.InvalidOrder, // NO_BID
+                    '10004': errors.InvalidOrder, // NO_ASK
+                    '10005': errors.MarketClosed, // SYMBOL_STATUS_PAUSED
+                    '10006': errors.OperationRejected, // SYMBOL_STATUS_CANCEL_ONLY
+                    '10007': errors.OperationRejected, // SYMBOL_STATUS_NOT_ALLOWED
+                    '10008': errors.AccountSuspended, // USER_STATUS_ABNORMAL
+                    '10009': errors.OperationRejected, // ALREADY_EXISTS_GRID_STRATEGY
+                    '10010': errors.InvalidOrder, // PRICE_HIGHER_THAN_BANKRUPT_PRICE
+                    '10011': errors.InvalidOrder, // PRICE_LOWER_THAN_BANKRUPT_PRICE
+                    '10012': errors.InvalidOrder, // PRICE_HIGHER_THAN_LIQUIDATION_PRICE
+                    '10013': errors.InvalidOrder, // PRICE_LOWER_THAN_LIQUIDATION_PRICE
+                    '10014': errors.BadRequest, // PRICE_LIMIT_PARAM
+                    '10015': errors.OperationRejected, // SYMBOL_STATUS_CLOSE_POSITION_ONLY
+                    '10016': errors.BadRequest, // BATCH_PLACE_ORDER_SIZE_OVER_LIMIT
+                    '10017': errors.BadRequest, // BATCH_CANCEL_ORDER_SIZE_OVER_LIMIT
+                    '10018': errors.OperationRejected, // NO_POSITION_TO_CLOSE_ORDER
+                    '10019': errors.OperationRejected, // ACCOUNT_STATE_OPEN_LIMIT
+                    '11003': errors.BadRequest, // UNKNOWN_SOURCE
+                    '11004': errors.OperationRejected, // ORDER_NOT_CANCELABLE
+                    '11008': errors.OrderNotFound, // ORDER_NOT_EXISTS
+                    '12004': errors.PermissionDenied, // NOT_KYC_VERIFIED
+                    '21001': errors.OperationRejected, // POSITION_NOT_EXIST
                 },
                 'broad': {},
             },
@@ -1990,6 +2031,7 @@ class poloniex extends poloniex$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -2100,10 +2142,12 @@ class poloniex extends poloniex$1["default"] {
             const priceKey = market['spot'] ? 'price' : 'px';
             request[priceKey] = this.priceToPrecision(symbol, price);
         }
-        const clientOrderId = this.safeString(params, 'clientOrderId');
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'clOrdId');
         if (clientOrderId !== undefined) {
-            request['clientOrderId'] = clientOrderId;
-            params = this.omit(params, 'clientOrderId');
+            // the futures v3 api silently ignores the spot key and generates its own id
+            const clientOrderIdKey = market['spot'] ? 'clientOrderId' : 'clOrdId';
+            request[clientOrderIdKey] = clientOrderId;
+            params = this.omit(params, ['clientOrderId', 'clOrdId']);
         }
         // remember the timestamp before issuing the request
         return [request, params];
@@ -2122,6 +2166,7 @@ class poloniex extends poloniex$1["default"] {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -3639,10 +3684,9 @@ class poloniex extends poloniex$1["default"] {
         //
         const responseCode = this.safeString(response, 'code');
         if ((responseCode !== undefined) && (responseCode !== '200')) {
-            const codeInner = response['code'];
-            const message = this.safeString(response, 'message');
+            const message = this.safeString2(response, 'message', 'msg');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions['exact'], codeInner, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], responseCode, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }

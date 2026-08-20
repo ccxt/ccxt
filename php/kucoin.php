@@ -2873,7 +2873,9 @@ class kucoin extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => $this->safe_string($ticker, 'priceChg'),
-            'percentage' => $this->safe_string($ticker, 'priceChgPct'),
+            // priceChgPct is a ratio => the sample above reports 0.0447 beside a priceChg
+            // of 2878.7 on a price near 64000, which is a move of 4.47 per cent
+            'percentage' => Precise::string_mul($this->safe_string($ticker, 'priceChgPct'), '100'),
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'volumeOf24h'),
             'quoteVolume' => $this->safe_string($ticker, 'turnoverOf24h'),

@@ -29,7 +29,7 @@ class bitmex(ccxt.async_support.bitmex):
                 'watchOrderBook': True,
                 'watchOrderBookForSymbols': True,
                 'watchOrders': True,
-                'watchPostions': True,
+                'watchPositions': True,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,

@@ -108,8 +108,7 @@ class toobit(Exchange, ImplicitAPI):
                     'https://api-docs.toobit.com/',
                 ],
                 'referral': {
-                    'url': 'https://www.toobit.com/en-US/r?i=IFFPy0',
-                    'discount': 0.1,
+                    'url': 'https://www.toobit.com/en-US/r?i=dvCpJj',
                 },
                 'fees': 'https://www.toobit.com/fee',
             },
@@ -1760,9 +1759,9 @@ class toobit(Exchange, ImplicitAPI):
         reduceOnly = None
         reduceOnly, params = self.handle_param_bool(params, 'reduceOnly')
         if side == 'buy':
-            side = 'SELL_CLOSE' if reduceOnly else 'BUY_OPEN'
+            side = 'BUY_CLOSE' if reduceOnly else 'BUY_OPEN'
         elif side == 'sell':
-            side = 'BUY_CLOSE' if reduceOnly else 'SELL_OPEN'
+            side = 'SELL_CLOSE' if reduceOnly else 'SELL_OPEN'
         request['side'] = side
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
@@ -1877,6 +1876,16 @@ class toobit(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         rawType = self.safe_string(order, 'type')
         rawSideLower = self.safe_string_lower(order, 'side')
+        reduceOnly = None
+        if rawSideLower is not None:
+            # contract orders arrive, SELL_CLOSE and the like -
+            # the suffix is the only signal that carries reduceOnly, so read
+            # it before discarding it(spot sides have no suffix: None)
+            sideParts = rawSideLower.split('_')
+            sideSuffix = self.safe_string(sideParts, 1)
+            if sideSuffix is not None:
+                reduceOnly = (sideSuffix == 'close')
+            rawSideLower = self.safe_string(sideParts, 0)
         triggerPrice = self.omit_zero(self.safe_string(order, 'stopPrice'))
         if triggerPrice == '0.0':
             triggerPrice = None
@@ -1904,7 +1913,7 @@ class toobit(Exchange, ImplicitAPI):
             'trades': None,
             'fee': None,
             'marginMode': None,
-            'reduceOnly': None,
+            'reduceOnly': reduceOnly,
             'leverage': None,
             'hedged': None,
         }, market)

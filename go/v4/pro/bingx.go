@@ -1689,7 +1689,7 @@ func (this *BingxCore) HandlePositions(client any, message any) {
 		ccxt.AppendToArray(&newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
-	var messageHashes any = this.FindMessageHashes(client.(*ccxt.Client), "swap:positions::")
+	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "swap:positions::")
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var parts any = ccxt.Split(messageHash, "::")
@@ -1812,12 +1812,48 @@ func (this *BingxCore) Authenticate(optionalArgs ...any) <-chan any {
 		var lastAuthenticatedTime any = this.SafeInteger(this.Options, "lastAuthenticatedTime", 0)
 		var listenKeyRefreshRate any = this.SafeInteger(this.Options, "listenKeyRefreshRate", 3600000) // 1 hour
 		if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.Subtract(time, lastAuthenticatedTime), listenKeyRefreshRate)) {
+			// single-flight leader election, see #29393: racing fetches mint
+			// different keys and the key rides the private url, so losers
+			// connect their watchers to an orphaned stream
 
-			response := (<-this.UserAuthPrivatePostUserDataStream())
-			ccxt.PanicOnError(response)
-			ccxt.AddElementToObject(this.Options, "listenKey", this.SafeString(response, "listenKey"))
-			ccxt.AddElementToObject(this.Options, "lastAuthenticatedTime", time)
-			this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, params)
+			isLeader := (<-this.SingleFlightAcquire("authenticate"))
+			ccxt.PanicOnError(isLeader)
+			if !ccxt.IsTrue(isLeader) {
+
+				return nil
+			}
+
+			{
+				func(this *BingxCore) (ret_ any) {
+					defer func() {
+						if e := recover(); e != nil {
+							if e == "break" {
+								return
+							}
+							ret_ = func(this *BingxCore) any {
+								// catch block:
+								this.SingleFlightReject("authenticate", e)
+								panic(e)
+
+							}(this)
+						}
+					}()
+					// try block:
+
+					response := (<-this.UserAuthPrivatePostUserDataStream())
+					ccxt.PanicOnError(response)
+					var listenKey any = this.SafeString(response, "listenKey")
+					if ccxt.IsTrue(ccxt.IsEqual(listenKey, nil)) {
+						panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " authenticate() received an empty listenKey")))
+					}
+					ccxt.AddElementToObject(this.Options, "listenKey", listenKey)
+					ccxt.AddElementToObject(this.Options, "lastAuthenticatedTime", time)
+					this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, params)
+					this.SingleFlightResolve("authenticate", listenKey)
+					return nil
+				}(this)
+
+			}
 		}
 		return nil
 	}()
@@ -1847,17 +1883,17 @@ func (this *BingxCore) Pong(client any, message any) <-chan any {
 				// try block:
 				if ccxt.IsTrue(ccxt.IsEqual(message, "Ping")) {
 
-					retRes147516 := (<-client.(ccxt.ClientInterface).Send("Pong"))
-					ccxt.PanicOnError(retRes147516)
+					retRes149416 := (<-client.(ccxt.ClientInterface).Send("Pong"))
+					ccxt.PanicOnError(retRes149416)
 				} else {
 					var ping any = this.SafeString(message, "ping")
 					var time any = this.SafeString(message, "time")
 
-					retRes147916 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
+					retRes149816 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
 						"pong": ping,
 						"time": time,
 					}))
-					ccxt.PanicOnError(retRes147916)
+					ccxt.PanicOnError(retRes149816)
 				}
 				return nil
 			}(this)
@@ -2084,7 +2120,9 @@ func (this *BingxCore) HandleBalance(client any, message any) {
 	var a any = this.SafeDict(message, "a", map[string]any{})
 	var data any = this.SafeList(a, "B", []any{})
 	var timestamp any = this.SafeInteger2(message, "T", "E")
-	var typeVar any = ccxt.Ternary(ccxt.IsTrue((ccxt.InOp(a, "P"))), "swap", "spot")
+	var spotUrl any = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
+	var isSpot any = ccxt.IsTrue((!ccxt.IsEqual(spotUrl, nil))) && ccxt.IsTrue((ccxt.IsEqual(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), spotUrl), 0)))
+	var typeVar any = ccxt.Ternary(ccxt.IsTrue(isSpot), "spot", "swap")
 	if !ccxt.IsTrue((ccxt.InOp(this.Balance, typeVar))) {
 		ccxt.AddElementToObject(this.Balance, typeVar, map[string]any{})
 	}
@@ -2188,7 +2226,7 @@ func (this *BingxCore) HandleUnSubscription(client any, subscription any) {
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var unsubHash any = ccxt.GetValue(messageHashes, i)
 		var subHash any = ccxt.GetValue(subMessageHashes, i)
-		this.CleanUnsubscription(client.(*ccxt.Client), subHash, unsubHash)
+		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 	}
 	this.CleanCache(subscription)
 }

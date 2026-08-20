@@ -3,7 +3,7 @@
 
 import asterRest from '../aster.js';
 import { Precise } from '../base/Precise.js';
-import { ArgumentsRequired } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import type{ Balances, Str, Strings, Tickers, Dict, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position, Market, FeeString, List } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
@@ -1278,16 +1278,39 @@ export default class aster extends asterRest {
         const listenKeyRefreshRateOptions = this.safeDict (this.options, 'listenKeyRefreshRate', {});
         const listenKeyRefreshRate = this.safeInteger (listenKeyRefreshRateOptions, type, 3600000); // 1 hour
         if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
-            let response: Dict = {};
-            if (type === 'spot') {
-                response = await this.sapiPrivatePostV3ListenKey (params);
-            } else {
-                response = await this.fapiPrivatePostV3ListenKey (params);
+            // single-flight leader election on the exchange-level flight map:
+            // concurrent watch calls on a cold instance each passed the
+            // staleness check and fetched their own listenKey (last write
+            // wins, earlier keys orphan) - now one leader fetches per type
+            // and waiters wake when the flight settles, see #29393
+            const flightHash = 'authenticate:' + type;
+            const isLeader = await this.singleFlightAcquire (flightHash);
+            if (!isLeader) {
+                // the leader settled the flight: the listenKey is in the bucket
+                return;
             }
-            this.options['listenKey'][type] = this.safeString (response, 'listenKey');
-            this.options['lastAuthenticatedTime'][type] = time;
-            params = this.extend ({ 'type': type }, params);
-            this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+            try {
+                let response: Dict = {};
+                if (type === 'spot') {
+                    response = await this.sapiPrivatePostV3ListenKey (params);
+                } else {
+                    response = await this.fapiPrivatePostV3ListenKey (params);
+                }
+                const listenKey = this.safeString (response, 'listenKey');
+                if (listenKey === undefined) {
+                    // reject instead of caching an empty credential, so
+                    // waiters retry rather than proceed unauthenticated
+                    throw new AuthenticationError (this.id + ' authenticate() received an empty listenKey');
+                }
+                this.options['listenKey'][type] = listenKey;
+                this.options['lastAuthenticatedTime'][type] = time;
+                params = this.extend ({ 'type': type }, params);
+                this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+                this.singleFlightResolve (flightHash, listenKey);
+            } catch (e) {
+                this.singleFlightReject (flightHash, e);
+                throw e;
+            }
         }
     }
 
