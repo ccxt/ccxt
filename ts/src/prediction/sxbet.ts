@@ -5,7 +5,7 @@ import { ecdsa } from '../base/functions/crypto.js';
 import { ROUND, DECIMAL_PLACES, TICK_SIZE } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
-import { ArgumentsRequired, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OperationRejected, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OperationRejected, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from '../base/errors.js';
 import type { Balances, Dict, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -141,7 +141,7 @@ export default class sxbet extends Exchange {
             'requiredCredentials': {
                 // apiKey is the optional X-Api-Key header (higher REST rate limits, required for
                 // websocket); trading needs walletAddress (order 'maker' field) and privateKey
-                'apiKey': false,
+                'apiKey': true,
                 'secret': false,
                 'walletAddress': true,
                 'privateKey': true,
@@ -167,6 +167,9 @@ export default class sxbet extends Exchange {
                     'ORDERS_MUST_HAVE_IDENTICAL_MARKET': BadRequest,
                     'BAD_BASE_TOKEN': BadRequest,   // all orders must share one base token
                     'INSUFFICIENT_KYC': PermissionDenied,
+                    'INVALID_USER': AuthenticationError,   // live-verified v3: the x-sx-api-key does not belong to a registered user on the target network
+                    'BAD_AUTH': AuthenticationError,   // live-verified v3: missing or malformed x-sx-api-key
+                    'ERC20_PERMIT_BAD_SPENDER': BadRequest,   // live-verified v3: transfer-to-proxy permit signed for the wrong executor
                     'AFTER_ORDER_EXPIRY': OrderNotFillable,   // a targeted order expired before the fill
                     'BASE_TOKENS_NOT_SAME': BadRequest,
                     'MARKETS_NOT_SAME': BadRequest,
@@ -1117,9 +1120,6 @@ export default class sxbet extends Exchange {
      */
     override async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
         this.checkRequiredCredentials ();
-        if (id === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an id argument');
-        }
         const request: Dict = { 'orders': [ { 'orderId': id } ] };
         const response = await this.sxbetPrivateDeleteOrdersV3 (this.extend (request, params));
         const orders = this.parseSxbetCancelResponse (response);
@@ -1138,9 +1138,6 @@ export default class sxbet extends Exchange {
      */
     override async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
         this.checkRequiredCredentials ();
-        if (ids === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a non-empty ids argument');
-        }
         const idsLength = ids.length;
         if (idsLength === 0) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a non-empty ids argument');
@@ -1653,7 +1650,7 @@ export default class sxbet extends Exchange {
             const raw = rawPositions[i];
             const marketHash = this.safeString (raw, 'marketHash', '');
             if (outcomesLength > 0) {
-                if (this.safeValue (wantedMarkets, marketHash) === undefined) {
+                if (this.safeBool (wantedMarkets, marketHash) === undefined) {
                     continue;
                 }
             }
@@ -2268,7 +2265,7 @@ export default class sxbet extends Exchange {
         if (marketHash === undefined) {
             return refreshed;
         }
-        const versionsAll = this.safeValue (this.options, 'wsBookVersions');
+        const versionsAll = this.safeDict (this.options, 'wsBookVersions');
         if (versionsAll === undefined) {
             this.options['wsBookVersions'] = this.createSafeDictionary ();
         }
