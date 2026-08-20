@@ -3742,9 +3742,14 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                         response = (this.publicPostUserDataStream(parameters)).join();
                     }
                     Object listenKey = this.safeString(response, "listenKey");
+                    if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
+                    {
+                        throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
+                    }
+                    final Object finalListenKey = listenKey;
                     final Object finalTime = time;
                     Helpers.addElementToObject(this.options, type, this.extend(options, new java.util.HashMap<String, Object>() {{
-        put( "listenKey", listenKey );
+        put( "listenKey", finalListenKey );
         put( "lastAuthenticatedTime", finalTime );
     }}));
                     // hoisted out of the delay call: the transpilers garble an inline
