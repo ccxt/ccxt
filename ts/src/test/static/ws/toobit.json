@@ -1,0 +1,97 @@
+{
+    "exchange": "toobit",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchPositions": [
+            {
+                "description": "positions for one symbol, which registers a filtered message hash",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "url": "wss://stream.toobit.com/api/v1/ws/listenKeyForTests",
+                "options": {
+                    "ws": {
+                        "listenKey": "listenKeyForTests",
+                        "lastAuthenticatedTime": 9999999999999
+                    }
+                },
+                "messages": [
+                    [
+                        {
+                            "e": "outboundContractPositionInfo",
+                            "E": "1758316454554",
+                            "A": "1783404067076253954",
+                            "s": "BTC-SWAP-USDT",
+                            "S": "LONG",
+                            "p": "0",
+                            "P": "0",
+                            "a": "0",
+                            "f": "0.1228",
+                            "m": "0",
+                            "r": "0",
+                            "up": "0",
+                            "pr": "0",
+                            "pv": "0",
+                            "v": "3.0",
+                            "mt": "CROSS",
+                            "mm": "0",
+                            "mp": "0.265410000000000000"
+                        }
+                    ]
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "e": "outboundContractPositionInfo",
+                                "E": "1758316454554",
+                                "A": "1783404067076253954",
+                                "s": "BTC-SWAP-USDT",
+                                "S": "LONG",
+                                "p": "0",
+                                "P": "0",
+                                "a": "0",
+                                "f": "0.1228",
+                                "m": "0",
+                                "r": "0",
+                                "up": "0",
+                                "pr": "0",
+                                "pv": "0",
+                                "v": "3.0",
+                                "mt": "CROSS",
+                                "mm": "0",
+                                "mp": "0.265410000000000000"
+                            },
+                            "id": null,
+                            "symbol": "BTC/USDT:USDT",
+                            "notional": null,
+                            "marginMode": "cross",
+                            "liquidationPrice": "0.1228",
+                            "entryPrice": "0",
+                            "unrealizedPnl": "0",
+                            "realizedPnl": 0,
+                            "percentage": null,
+                            "contracts": null,
+                            "contractSize": 0.001,
+                            "markPrice": "0.265410000000000000",
+                            "side": "long",
+                            "hedged": null,
+                            "timestamp": 1758316454554,
+                            "datetime": "2025-09-19T21:14:14.554Z",
+                            "maintenanceMargin": "0",
+                            "maintenanceMarginPercentage": null,
+                            "collateral": null,
+                            "initialMargin": null,
+                            "initialMarginPercentage": null,
+                            "leverage": "3.0",
+                            "marginRatio": null
+                        }
+                    ]
+                ]
+            }
+        ]
+    }
+}
