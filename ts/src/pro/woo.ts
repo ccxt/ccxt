@@ -301,8 +301,11 @@ export default class woo extends wooRest {
                 return;
             }
             const orderbook = this.orderbooks[symbol];
-            const timestamp = this.safeInteger (orderbook, 'timestamp');
-            if (timestamp === undefined) {
+            // the nonce is only set once the rest snapshot has been applied, it is the
+            // portable "snapshot ready" marker - orderbook['timestamp'] is a typed field
+            // in the go/c# ports, so a fresh book reports 0 instead of undefined there
+            const nonce = this.safeInteger (orderbook, 'nonce');
+            if (nonce === undefined) {
                 orderbook.cache.push (message);
             } else {
                 try {
@@ -310,7 +313,7 @@ export default class woo extends wooRest {
                     if (ts === undefined) {
                         return;
                     }
-                    if (ts > timestamp) {
+                    if (ts > nonce) {
                         this.handleOrderBookMessage (client, message, orderbook);
                         client.resolve (orderbook, topic);
                     }
@@ -364,6 +367,7 @@ export default class woo extends wooRest {
             }
             const orderbook = this.safeValue (this.orderbooks, symbol);
             orderbook.reset (snapshot);
+            orderbook['nonce'] = this.safeInteger (snapshot, 'timestamp');
             const messages = orderbook.cache;
             for (let i = 0; i < messages.length; i++) {
                 const messageItem = messages[i];
@@ -372,7 +376,8 @@ export default class woo extends wooRest {
                 if (ts === undefined) {
                     continue;
                 }
-                if (ts <= orderbook['timestamp']) {
+                const currentNonce = this.safeInteger (orderbook, 'nonce');
+                if ((currentNonce !== undefined) && (ts <= currentNonce)) {
                     continue;
                 } else {
                     this.handleOrderBookMessage (client, messageItem, orderbook);
@@ -397,6 +402,7 @@ export default class woo extends wooRest {
         const timestamp = this.safeInteger (data, 'ts');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
+        orderbook['nonce'] = timestamp;
         return orderbook;
     }
 
