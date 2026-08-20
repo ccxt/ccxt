@@ -1661,22 +1661,61 @@ func (this *AsterCore) Authenticate(optionalArgs ...any) <-chan any {
 		var listenKeyRefreshRateOptions any = this.SafeDict(this.Options, "listenKeyRefreshRate", map[string]any{})
 		var listenKeyRefreshRate any = this.SafeInteger(listenKeyRefreshRateOptions, typeVar, 3600000) // 1 hour
 		if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.Subtract(time, lastAuthenticatedTime), listenKeyRefreshRate)) {
-			var response any = map[string]any{}
-			if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
+			// single-flight leader election on the exchange-level flight map:
+			// concurrent watch calls on a cold instance each passed the
+			// staleness check and fetched their own listenKey (last write
+			// wins, earlier keys orphan) - now one leader fetches per type
+			// and waiters wake when the flight settles, see #29393
+			var flightHash any = ccxt.Add("authenticate:", typeVar)
 
-				response = (<-this.SapiPrivatePostV3ListenKey(params))
-				ccxt.PanicOnError(response)
-			} else {
+			isLeader := (<-this.SingleFlightAcquire(flightHash))
+			ccxt.PanicOnError(isLeader)
+			if !ccxt.IsTrue(isLeader) {
 
-				response = (<-this.FapiPrivatePostV3ListenKey(params))
-				ccxt.PanicOnError(response)
+				return nil
 			}
-			ccxt.AddElementToObject(ccxt.GetValue(this.Options, "listenKey"), typeVar, this.SafeString(response, "listenKey"))
-			ccxt.AddElementToObject(ccxt.GetValue(this.Options, "lastAuthenticatedTime"), typeVar, time)
-			params = this.Extend(map[string]any{
-				"type": typeVar,
-			}, params)
-			this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, params)
+
+			{
+				func(this *AsterCore) (ret_ any) {
+					defer func() {
+						if e := recover(); e != nil {
+							if e == "break" {
+								return
+							}
+							ret_ = func(this *AsterCore) any {
+								// catch block:
+								this.SingleFlightReject(flightHash, e)
+								panic(e)
+
+							}(this)
+						}
+					}()
+					// try block:
+					var response any = map[string]any{}
+					if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
+
+						response = (<-this.SapiPrivatePostV3ListenKey(params))
+						ccxt.PanicOnError(response)
+					} else {
+
+						response = (<-this.FapiPrivatePostV3ListenKey(params))
+						ccxt.PanicOnError(response)
+					}
+					var listenKey any = this.SafeString(response, "listenKey")
+					if ccxt.IsTrue(ccxt.IsEqual(listenKey, nil)) {
+						panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " authenticate() received an empty listenKey")))
+					}
+					ccxt.AddElementToObject(ccxt.GetValue(this.Options, "listenKey"), typeVar, listenKey)
+					ccxt.AddElementToObject(ccxt.GetValue(this.Options, "lastAuthenticatedTime"), typeVar, time)
+					params = this.Extend(map[string]any{
+						"type": typeVar,
+					}, params)
+					this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, params)
+					this.SingleFlightResolve(flightHash, listenKey)
+					return nil
+				}(this)
+
+			}
 		}
 		return nil
 	}()
@@ -1724,12 +1763,12 @@ func (this *AsterCore) KeepAliveListenKey(optionalArgs ...any) <-chan any {
 				// try block:
 				if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
 
-					retRes130216 := (<-this.SapiPrivatePutV3ListenKey())
-					ccxt.PanicOnError(retRes130216) // extend the expiry
+					retRes132516 := (<-this.SapiPrivatePutV3ListenKey())
+					ccxt.PanicOnError(retRes132516) // extend the expiry
 				} else {
 
-					retRes130416 := (<-this.FapiPrivatePutV3ListenKey())
-					ccxt.PanicOnError(retRes130416) // extend the expiry
+					retRes132716 := (<-this.FapiPrivatePutV3ListenKey())
+					ccxt.PanicOnError(retRes132716) // extend the expiry
 				}
 				return nil
 			}(this)
@@ -1771,16 +1810,16 @@ func (this *AsterCore) WatchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes134312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes134312)
+			retRes136612 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes136612)
 		}
 		var typeVar any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar)
 		typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 		params = ccxt.GetValue(typeVarparamsVariable, 1)
 
-		retRes13478 := (<-this.Authenticate(typeVar, params))
-		ccxt.PanicOnError(retRes13478)
+		retRes13708 := (<-this.Authenticate(typeVar, params))
+		ccxt.PanicOnError(retRes13708)
 		var url any = this.GetPrivateUrl(typeVar)
 		var client any = this.Client(url)
 		this.SetBalanceCache(client, typeVar)
@@ -1789,15 +1828,15 @@ func (this *AsterCore) WatchBalance(optionalArgs ...any) <-chan any {
 		var awaitBalanceSnapshot any = this.SafeBool(options, "awaitBalanceSnapshot", true)
 		if ccxt.IsTrue(ccxt.IsTrue(fetchBalanceSnapshot) && ccxt.IsTrue(awaitBalanceSnapshot)) {
 
-			retRes135512 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
-			ccxt.PanicOnError(retRes135512)
+			retRes137812 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
+			ccxt.PanicOnError(retRes137812)
 		}
 		var messageHash any = ccxt.Add(typeVar, ":balance")
 		var message any = nil
 
-		retRes135915 := (<-this.Watch(url, messageHash, message, typeVar))
-		ccxt.PanicOnError(retRes135915)
-		ch <- retRes135915
+		retRes138215 := (<-this.Watch(url, messageHash, message, typeVar))
+		ccxt.PanicOnError(retRes138215)
+		ch <- retRes138215
 		return nil
 
 	}()
@@ -1949,13 +1988,13 @@ func (this *AsterCore) WatchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes148812 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes148812)
+			retRes151112 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes151112)
 		}
 		var typeVar any = "swap"
 
-		retRes14918 := (<-this.Authenticate(typeVar, params))
-		ccxt.PanicOnError(retRes14918)
+		retRes15148 := (<-this.Authenticate(typeVar, params))
+		ccxt.PanicOnError(retRes15148)
 		var url any = this.GetPrivateUrl(typeVar)
 		var client any = this.Client(url)
 		this.SetPositionsCache(client)
@@ -2183,8 +2222,8 @@ func (this *AsterCore) WatchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes168612 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes168612)
+			retRes170912 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes170912)
 		}
 		var market any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -2197,8 +2236,8 @@ func (this *AsterCore) WatchOrders(optionalArgs ...any) <-chan any {
 		typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 		params = ccxt.GetValue(typeVarparamsVariable, 1)
 
-		retRes16968 := (<-this.Authenticate(typeVar, params))
-		ccxt.PanicOnError(retRes16968)
+		retRes17198 := (<-this.Authenticate(typeVar, params))
+		ccxt.PanicOnError(retRes17198)
 		if ccxt.IsTrue(!ccxt.IsEqual(market, nil)) {
 			messageHash = ccxt.Add(messageHash, ccxt.Add("::", symbol))
 		}
@@ -2247,8 +2286,8 @@ func (this *AsterCore) WatchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes172512 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes172512)
+			retRes174812 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes174812)
 		}
 		var market any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -2261,8 +2300,8 @@ func (this *AsterCore) WatchMyTrades(optionalArgs ...any) <-chan any {
 		typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 		params = ccxt.GetValue(typeVarparamsVariable, 1)
 
-		retRes17358 := (<-this.Authenticate(typeVar, params))
-		ccxt.PanicOnError(retRes17358)
+		retRes17588 := (<-this.Authenticate(typeVar, params))
+		ccxt.PanicOnError(retRes17588)
 		if ccxt.IsTrue(!ccxt.IsEqual(market, nil)) {
 			messageHash = ccxt.Add(messageHash, ccxt.Add("::", symbol))
 		}
@@ -2327,8 +2366,8 @@ func (this *AsterCore) HandleMyTrade(client any, message any) {
 							}
 						}
 						if ccxt.IsTrue(insertNewFeeCurrency) {
-							retRes179332 := ccxt.GetValue(order, "fees")
-							ccxt.AppendToArray(&retRes179332, tradeFee)
+							retRes181632 := ccxt.GetValue(order, "fees")
+							ccxt.AppendToArray(&retRes181632, tradeFee)
 						}
 					} else if ccxt.IsTrue(!ccxt.IsEqual(fee, nil)) {
 						if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(fee, "currency"), ccxt.GetValue(tradeFee, "currency"))) {
