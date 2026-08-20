@@ -141,10 +141,71 @@ async function testBinanceAuthenticateEmptyKeyRejection () {
     assert (exchange.options['future']['listenKey'] === 'FUTURE-KEY-RETRY', 'a retry after a rejected flight must re-lead and cache');
 }
 
+async function testBingxAuthenticateSingleFlight () {
+    // bingx: single untyped bucket, one endpoint, the key rides the private
+    // url - racing fetches mint different keys and losers connect watchers
+    // to an orphaned stream. concurrent authenticates must elect one leader;
+    // a hollow 200 rejects both callers typed, writes nothing, and re-leads
+    const state = { 'fetches': 0 };
+    const exchange = new ccxt.pro.bingx ({
+        'apiKey': 'test-api-key',
+        'secret': 'test-secret',
+    });
+    (exchange as any).userAuthPrivatePostUserDataStream = async () => {
+        state.fetches = state.fetches + 1;
+        await sleep (50); // the race window
+        return { 'listenKey': 'BINGX-KEY-' + state.fetches.toString () };
+    };
+    (exchange as any).delay = () => {};
+    await Promise.all ([
+        exchange.authenticate (),
+        exchange.authenticate (),
+        exchange.authenticate (),
+    ]);
+    assert (state.fetches === 1, 'concurrent bingx authenticates must elect exactly one leader (got ' + state.fetches.toString () + ' fetches)');
+    assert (exchange.options['listenKey'] === 'BINGX-KEY-1', 'the leader listenKey must be cached');
+    let flightCount = Object.keys (exchange.authenticationFlights).length;
+    assert (flightCount === 0, 'settled flights must be cleared');
+    // warm call within the refresh window is a no-op
+    await exchange.authenticate ();
+    assert (state.fetches === 1, 'a warm authenticate within the refresh window must not fetch');
+    // hollow 200: fresh instance, both callers reject typed, cache untouched
+    const failState = { 'fetches': 0 };
+    const failing = new ccxt.pro.bingx ({
+        'apiKey': 'test-api-key',
+        'secret': 'test-secret',
+    });
+    (failing as any).userAuthPrivatePostUserDataStream = async () => {
+        failState.fetches = failState.fetches + 1;
+        await sleep (10);
+        return {}; // hollow response, no listenKey
+    };
+    (failing as any).delay = () => {};
+    const outcomes = await Promise.allSettled ([
+        failing.authenticate (),
+        failing.authenticate (),
+    ]);
+    assert (outcomes[0].status === 'rejected' && outcomes[1].status === 'rejected', 'both the leader and the waiter must throw on an empty listenKey');
+    assert ((outcomes[0] as any).reason instanceof AuthenticationError, 'the bingx leader must reject with AuthenticationError');
+    assert ((outcomes[1] as any).reason instanceof AuthenticationError, 'the bingx waiter must observe the same AuthenticationError');
+    assert (failing.safeString (failing.options, 'listenKey') === undefined, 'an empty listenKey must never be cached');
+    assert (failing.safeInteger (failing.options, 'lastAuthenticatedTime', 0) === 0, 'a failed flight must not stamp lastAuthenticatedTime');
+    flightCount = Object.keys (failing.authenticationFlights).length;
+    assert (flightCount === 0, 'a rejected flight must be cleared');
+    // recovery: a good response re-leads and caches
+    (failing as any).userAuthPrivatePostUserDataStream = async () => {
+        failState.fetches = failState.fetches + 1;
+        return { 'listenKey': 'BINGX-KEY-RETRY' };
+    };
+    await failing.authenticate ();
+    assert (failing.options['listenKey'] === 'BINGX-KEY-RETRY', 'a retry after a rejected flight must re-lead and cache');
+}
+
 async function testWsSingleFlightWiring () {
     await testAsterAuthenticateSingleFlight ();
     await testAsterAuthenticateEmptyKeyRejection ();
     await testBinanceAuthenticateEmptyKeyRejection ();
+    await testBingxAuthenticateSingleFlight ();
 }
 
 export default testWsSingleFlightWiring;
