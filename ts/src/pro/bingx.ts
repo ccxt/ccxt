@@ -1457,19 +1457,24 @@ export default class bingx extends bingxRest {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
             // different keys and the key rides the private url, so losers
-            // connect their watchers to an orphaned stream. the registration
-            // flag lives in client.subscriptions and the shared future is only
-            // minted by the first waiter, so an alone leader can reject
-            // without any unhandled rejection
-            const flightHash = 'authenticate';
+            // connect their watchers to an orphaned stream. client.futures is
+            // the registry: client.future () is the atomic check-and-insert
+            // and client.resolve () / client.reject () settle and remove the
+            // entry under the same lock in every port
+            const messageHash = 'authenticate';
             const client = this.client ('authenticationFlights');
-            if (flightHash in client.subscriptions) {
+            if (messageHash in client.futures) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey is then in the bucket
-                await client.future (flightHash);
+                await client.future (messageHash);
                 return;
             }
-            client.subscriptions[flightHash] = true;
+            // reusableFuture (), not future (): the two are identical in
+            // js/py/php/cs/java, but go's Client.Future () returns
+            // future.Await () - a <-chan any - while ReusableFuture ()
+            // returns the *Future itself. the trailing await transpiles to
+            // future.(*ccxt.Future).Await (), which panics on a channel
+            const future = client.reusableFuture (messageHash);
             try {
                 const response = await this.userAuthPrivatePostUserDataStream ();
                 const listenKey = this.safeString (response, 'listenKey');
@@ -1481,29 +1486,17 @@ export default class bingx extends bingxRest {
                 this.options['listenKey'] = listenKey;
                 this.options['lastAuthenticatedTime'] = time;
                 this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
-                // settle the flight: clear the registration flag and wake the
-                // waiters that minted the shared future
-                if (flightHash in client.subscriptions) {
-                    delete client.subscriptions[flightHash];
-                }
-                if (flightHash in client.futures) {
-                    const future = client.futures[flightHash];
-                    delete client.futures[flightHash];
-                    future.resolve (listenKey);
-                }
+                // settle the flight: client.resolve () removes the future from
+                // client.futures and wakes every waiter
+                client.resolve (listenKey, messageHash);
             } catch (e) {
                 // reject the flight - all waiters throw and the next caller
-                // re-leads instead of deadlocking on a dead flight
-                if (flightHash in client.subscriptions) {
-                    delete client.subscriptions[flightHash];
-                }
-                if (flightHash in client.futures) {
-                    const future = client.futures[flightHash];
-                    delete client.futures[flightHash];
-                    future.reject (e);
-                }
-                throw e;
+                // re-leads instead of deadlocking on a dead flight. no throw
+                // here: the await below rethrows to this caller AND attaches
+                // the handler that keeps an alone leader from crashing node
+                client.reject (e, messageHash);
             }
+            await future;
         }
     }
 
