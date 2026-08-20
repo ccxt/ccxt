@@ -1454,13 +1454,22 @@ export default class bingx extends bingxRest {
         const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3600000); // 1 hour
         if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
-            // single-flight leader election, see #29393: racing fetches mint
+            // single-flight leader election on a never-dialed client, see
+            // https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
             // different keys and the key rides the private url, so losers
-            // connect their watchers to an orphaned stream
-            const isLeader = await this.singleFlightAcquire ('authenticate');
-            if (!isLeader) {
-                return; // the leader settled: the listenKey is in the bucket
+            // connect their watchers to an orphaned stream. the registration
+            // flag lives in client.subscriptions and the shared future is only
+            // minted by the first waiter, so an alone leader can reject
+            // without any unhandled rejection
+            const flightHash = 'authenticate';
+            const client = this.client ('authenticationFlights');
+            if (flightHash in client.subscriptions) {
+                // a flight is already in progress - wake when the leader
+                // settles it: the listenKey is then in the bucket
+                await client.future (flightHash);
+                return;
             }
+            client.subscriptions[flightHash] = true;
             try {
                 const response = await this.userAuthPrivatePostUserDataStream ();
                 const listenKey = this.safeString (response, 'listenKey');
@@ -1472,83 +1481,29 @@ export default class bingx extends bingxRest {
                 this.options['listenKey'] = listenKey;
                 this.options['lastAuthenticatedTime'] = time;
                 this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
-                this.singleFlightResolve ('authenticate', listenKey);
+                // settle the flight: clear the registration flag and wake the
+                // waiters that minted the shared future
+                if (flightHash in client.subscriptions) {
+                    delete client.subscriptions[flightHash];
+                }
+                if (flightHash in client.futures) {
+                    const future = client.futures[flightHash];
+                    delete client.futures[flightHash];
+                    future.resolve (listenKey);
+                }
             } catch (e) {
-                this.singleFlightReject ('authenticate', e);
+                // reject the flight - all waiters throw and the next caller
+                // re-leads instead of deadlocking on a dead flight
+                if (flightHash in client.subscriptions) {
+                    delete client.subscriptions[flightHash];
+                }
+                if (flightHash in client.futures) {
+                    const future = client.futures[flightHash];
+                    delete client.futures[flightHash];
+                    future.reject (e);
+                }
                 throw e;
             }
-        }
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name bingx#singleFlightAcquire
-     * @description leader election for the check-then-fetch listenKey flow, see https://github.com/ccxt/ccxt/issues/29393 - the flight is registered on a never-dialed client because the user-data url embeds the listenKey, so no real client exists before the fetch. the registration flag lives in client.subscriptions and the shared future is only minted by the first waiter, so an alone leader can reject without any unhandled rejection
-     * @param {string} flightHash the flight identifier
-     * @returns {boolean} true when the caller is elected leader and must perform the fetch itself, false after awaiting an in-progress flight - the caller then re-reads the cached credential
-     */
-    async singleFlightAcquire (flightHash: string): Promise<boolean> {
-        const client = this.client ('authenticationFlights');
-        if (flightHash in client.subscriptions) {
-            await client.future (flightHash);
-            return false;
-        }
-        client.subscriptions[flightHash] = true;
-        return true;
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name bingx#singleFlightWait
-     * @description awaits an in-progress flight without electing a leader, returns immediately when no flight is in progress
-     * @param {string} flightHash the flight identifier
-     */
-    async singleFlightWait (flightHash: string) {
-        const client = this.client ('authenticationFlights');
-        if (flightHash in client.subscriptions) {
-            await client.future (flightHash);
-        }
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name bingx#singleFlightResolve
-     * @description settles a flight successfully and wakes all waiters
-     * @param {string} flightHash the flight identifier
-     * @param {any} [result] the value handed to the waiters
-     */
-    singleFlightResolve (flightHash: string, result: any = undefined) {
-        const client = this.client ('authenticationFlights');
-        if (flightHash in client.subscriptions) {
-            delete client.subscriptions[flightHash];
-        }
-        if (flightHash in client.futures) {
-            const future = client.futures[flightHash];
-            delete client.futures[flightHash];
-            future.resolve (result);
-        }
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name bingx#singleFlightReject
-     * @description settles a flight with an error - all waiters throw
-     * @param {string} flightHash the flight identifier
-     * @param {any} error the error handed to the waiters
-     */
-    singleFlightReject (flightHash: string, error: any) {
-        const client = this.client ('authenticationFlights');
-        if (flightHash in client.subscriptions) {
-            delete client.subscriptions[flightHash];
-        }
-        if (flightHash in client.futures) {
-            const future = client.futures[flightHash];
-            delete client.futures[flightHash];
-            future.reject (error);
         }
     }
 
