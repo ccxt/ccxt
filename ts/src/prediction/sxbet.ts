@@ -878,9 +878,12 @@ export default class sxbet extends Exchange {
         const obv3 = await this.loadSxObv3Metadata ();
         const activeAsset = this.safeDict (obv3, 'activeAsset', {});
         const chainId = this.safeInteger (obv3, 'chainId');
-        const usdcAddress = this.safeString (activeAsset, 'baseToken', '');
-        const escrowAddress = this.safeString (activeAsset, 'escrowAddress', '');
+        const usdcAddress = this.safeString (activeAsset, 'baseToken');
+        const escrowAddress = this.safeString (activeAsset, 'escrowAddress');
         const tokenAddress = this.safeString (params, 'tokenAddress', usdcAddress);
+        if (tokenAddress === undefined) {
+            throw new BadRequest (this.id + ' approve() could not resolve the base token address from /metadata/obv3');
+        }
         let spender = undefined;
         [ spender, params ] = this.handleOptionAndParams (params, 'approve', 'transferToProxySpender', escrowAddress);
         const chains = this.safeDict (this.options, 'chains', {});
@@ -969,7 +972,7 @@ export default class sxbet extends Exchange {
         const obv3 = await this.loadSxObv3Metadata ();
         const domain = this.safeDict (obv3, 'domain', {});
         const activeAsset = this.safeDict (obv3, 'activeAsset', {});
-        const baseToken = this.safeString (activeAsset, 'baseToken', '');
+        const baseToken = this.safeString (activeAsset, 'baseToken');
         const oddsLadderStepSize = this.numberToString (this.safeInteger (obv3, 'oddsLadderStepSize', 125));
         const roundedProbability = this.roundOddsToLadder (probability, oddsLadderStepSize);
         const percentageOdds = this.decimalToPrecision (Precise.stringMul (roundedProbability, '100000000000000000000'), ROUND, 0, DECIMAL_PLACES);
@@ -986,6 +989,14 @@ export default class sxbet extends Exchange {
         const defaultTif = (type === 'limit') ? 'GTC' : 'IOC';
         let timeInForce = undefined;
         [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce', defaultTif);
+        // a GTC 'market' order would silently rest and an IOC/FOK 'limit' would silently
+        // self-cancel - contradictory combinations are refused instead of degraded
+        if ((type === 'market') && (timeInForce === 'GTC')) {
+            throw new InvalidOrder (this.id + " createOrder() market orders cannot be GTC - use type 'limit' for a resting order");
+        }
+        if ((type === 'limit') && (timeInForce !== 'GTC')) {
+            throw new InvalidOrder (this.id + " createOrder() limit orders rest as GTC - use type 'market' for an immediate " + timeInForce + ' fill');
+        }
         const maker = this.walletAddress;
         const messageTypes: Dict = {
             'Order': [
@@ -1234,7 +1245,15 @@ export default class sxbet extends Exchange {
         const inactiveReason = this.safeString (order, 'inactiveReason');
         let status = 'open';
         if (orderStatus === 'INACTIVE') {
-            status = (inactiveReason === 'FILLED') ? 'closed' : 'canceled';
+            // documented inactiveReason enum: FILLED, USER_REQUESTED, EXPIRED, NO_LIQUIDITY,
+            // INSUFFICIENT_BALANCE, EVENT_LIFECYCLE, MARKET_HALTED, HEARTBEAT_TIMEOUT, SYSTEM
+            if (inactiveReason === 'FILLED') {
+                status = 'closed';
+            } else if (inactiveReason === 'EXPIRED') {
+                status = 'expired';
+            } else {
+                status = 'canceled';
+            }
         }
         const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
         return this.safePredictionOrder ({
@@ -2346,7 +2365,29 @@ export default class sxbet extends Exchange {
             this.options['wsWatchedTickers'] = this.createSafeDictionary ();
         }
         this.options['wsWatchedTickers'][sym as string] = marketHash;
-        return await this.subscribeSxbetChannel (messageHash, 'best_odds_v3:global');
+        const url = this.safeString (this.urls['api'] as Dict, 'ws');
+        await this.connectSxbetCentrifugo (url);
+        const client = this.client (url);
+        const channel = 'best_odds_v3:global';
+        let hydrated = false;
+        if (this.safeValue (this.tickers, sym) === undefined) {
+            // hydrate from the REST snapshot so the first call does not hang until the
+            // market's next top-of-book change - the channel is global, so the seed must fire
+            // for every newly watched market, not only on a fresh subscription
+            const snapshot = await this.fetchSxbetBookSnapshot (marketHash);
+            const raw = this.parseSxbetSnapshotBestOdds (snapshot);
+            const ticker = this.parsePredictionTicker (raw, outcomeObj as any);
+            this.tickers[sym as string] = ticker as any;
+            hydrated = true;
+        }
+        const requestId = this.requestId (url);
+        const subscribeMsg: Dict = { 'subscribe': { 'channel': channel }, 'id': requestId };
+        const future = this.watch (url, messageHash, subscribeMsg, channel);
+        if (hydrated) {
+            client.resolve (this.safeValue (this.tickers, sym), messageHash);
+        }
+        const tickerResult = await future;
+        return tickerResult as PredictionTicker;
     }
 
     handleTicker (client: any, rows: any[]) {
