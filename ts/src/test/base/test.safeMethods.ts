@@ -154,6 +154,12 @@ function testSafeString () {
     assert (exchange.safeStringUpperN (inputList, [ 3, 2, 0 ]) === 'HI');
     // With defaults
     assert (exchange.safeStringUpperN (inputDict, [ 'a', 'b', 'nonexistent' ], 'MiXed_Case') === 'MiXed_Case');
+
+    // safeStringStartsWith
+    assert (exchange.safeStringStartsWith (inputDict, 'str', 'he', 'X', 'she', 'Y') === 'X');
+    assert (exchange.safeStringStartsWith (inputDict, 'str', 'she', 'X', 'he', 'Y') === 'Y');
+    assert (exchange.safeStringStartsWith (inputDict, 'str', 'A', 'X', 'B', 'Y') === undefined);
+    assert (exchange.safeStringStartsWith (inputDict, 'xyz', 'A', 'X', 'B', 'Y') === undefined);
 }
 
 function testSafeValue () {

@@ -4081,6 +4081,32 @@ export class BaseExchange {
         return timestamp;
     }
 
+    safeStringStartsWith (obj: object, key: NullableIndexType, needle1: string, value1: Str, needle2: string, value2: Str, defaultValue: Str = undefined): Str {
+        const haystack = this.safeString (obj, key);
+        if (haystack === undefined) {
+            return defaultValue;
+        }
+        if (haystack.startsWith (needle1)) {
+            return value1;
+        } else if (haystack.startsWith (needle2)) {
+            return value2;
+        }
+        return defaultValue;
+    }
+
+    safeStringStartsWith2 (obj: object, key1: NullableIndexType, key2: NullableIndexType, needle1: string, value1: Str, needle2: string, value2: Str, defaultValue: Str = undefined): Str {
+        const haystack = this.safeString2 (obj, key1, key2);
+        if (haystack === undefined) {
+            return defaultValue;
+        }
+        if (haystack.startsWith (needle1)) {
+            return value1;
+        } else if (haystack.startsWith (needle2)) {
+            return value2;
+        }
+        return defaultValue;
+    }
+
     afterConstruct () {
         // networks
         this.createNetworksByIdObject ();
