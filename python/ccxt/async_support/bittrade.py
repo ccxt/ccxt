@@ -518,7 +518,11 @@ class bittrade(Exchange, ImplicitAPI):
         :returns dict[]: an array of objects representing market data
         """
         method = self.handle_option('fetchMarkets', 'method', 'publicGetCommonSymbols')
-        response = await getattr(self, method)(params)
+        response = None
+        if method == 'publicGetCommonSymbols':
+            response = await self.publicGetCommonSymbols(params)
+        else:
+            raise NotSupported(self.id + ' fetchMarkets() does not support the ' + method + ' method')
         #
         #    {
         #        "status": "ok",
@@ -1193,7 +1197,11 @@ class bittrade(Exchange, ImplicitAPI):
         request = {
             'id': self.accounts[0]['id'],
         }
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'privateGetAccountAccountsIdBalance':
+            response = await self.privateGetAccountAccountsIdBalance(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchBalance() does not support the ' + method + ' method')
         return self.parse_balance(response)
 
     async def fetch_orders_by_states(self, states: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -1207,7 +1215,11 @@ class bittrade(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         method = self.handle_option('fetchOrdersByStates', 'method', 'private_get_order_orders')
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if (method == 'private_get_order_history') or (method == 'privateGetOrderHistory'):
+            response = await self.privateGetOrderHistory(self.extend(request, params))
+        else:
+            response = await self.privateGetOrderOrders(self.extend(request, params))
         #
         #     {"status":   "ok",
         #         "data": [{                 id:  13997833016,
@@ -1265,7 +1277,9 @@ class bittrade(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         method = self.handle_option('fetchOpenOrders', 'method', 'fetch_open_orders_v1')
-        return await getattr(self, method)(symbol, since, limit, params)
+        if (method == 'fetch_open_orders_v2') or (method == 'fetchOpenOrdersV2'):
+            return await self.fetch_open_orders_v2(symbol, since, limit, params)
+        return await self.fetch_open_orders_v1(symbol, since, limit, params)
 
     async def fetch_open_orders_v1(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         if symbol is None:
@@ -1493,8 +1507,12 @@ class bittrade(Exchange, ImplicitAPI):
             request['amount'] = self.amount_to_precision(symbol, amount)
         if type == 'limit' or type == 'ioc' or type == 'limit-maker' or type == 'stop-limit' or type == 'stop-limit-fok':
             request['price'] = self.price_to_precision(symbol, price)
-        method = self.options['createOrderMethod']
-        response = await getattr(self, method)(self.extend(request, params))
+        method = self.handle_option('createOrder', 'method', 'privatePostOrderOrdersPlace')
+        response = None
+        if method == 'privatePostOrderOrdersPlace':
+            response = await self.privatePostOrderOrdersPlace(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' createOrder() does not support the ' + method + ' method')
         id = self.safe_string(response, 'data')
         return self.safe_order({
             'info': response,

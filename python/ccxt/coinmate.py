@@ -201,6 +201,9 @@ class coinmate(Exchange, ImplicitAPI):
                         'adaWithdrawal': {'cost': 1},
                         'adaDepositAddresses': {'cost': 1},
                         'unconfirmedAdaDeposits': {'cost': 1},
+                        'daiWithdrawal': {'cost': 1},
+                        'daiDepositAddresses': {'cost': 1},
+                        'unconfirmedDaiDeposits': {'cost': 1},
                         'solWithdrawal': {'cost': 1},
                         'solDepositAddresses': {'cost': 1},
                         'unconfirmedSolDeposits': {'cost': 1},
@@ -760,7 +763,28 @@ class coinmate(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['destinationTag'] = tag
-        response = getattr(self, method)(self.extend(request, params))
+        requestParams = self.extend(request, params)
+        response = None
+        if method == 'privatePostBitcoinWithdrawal':
+            response = self.privatePostBitcoinWithdrawal(requestParams)
+        elif method == 'privatePostLitecoinWithdrawal':
+            response = self.privatePostLitecoinWithdrawal(requestParams)
+        elif method == 'privatePostBitcoinCashWithdrawal':
+            response = self.privatePostBitcoinCashWithdrawal(requestParams)
+        elif method == 'privatePostEthereumWithdrawal':
+            response = self.privatePostEthereumWithdrawal(requestParams)
+        elif method == 'privatePostRippleWithdrawal':
+            response = self.privatePostRippleWithdrawal(requestParams)
+        elif method == 'privatePostDashWithdrawal':
+            response = self.privatePostDashWithdrawal(requestParams)
+        elif method == 'privatePostDaiWithdrawal':
+            response = self.privatePostDaiWithdrawal(requestParams)
+        elif method == 'privatePostAdaWithdrawal':
+            response = self.privatePostAdaWithdrawal(requestParams)
+        elif method == 'privatePostSolWithdrawal':
+            response = self.privatePostSolWithdrawal(requestParams)
+        else:
+            raise ExchangeError(self.id + ' withdraw() does not support the ' + method + ' method')
         #
         #     {
         #         "error": False,
@@ -1129,7 +1153,18 @@ class coinmate(Exchange, ImplicitAPI):
             request['amount'] = self.amount_to_precision(symbol, amount)  # amount in crypto
             request['price'] = self.price_to_precision(symbol, price)
             method += self.capitalize(type)
-        response = getattr(self, method)(self.extend(request, params))
+        requestParams = self.extend(request, params)
+        response = None
+        if method == 'privatePostBuyInstant':
+            response = self.privatePostBuyInstant(requestParams)
+        elif method == 'privatePostSellInstant':
+            response = self.privatePostSellInstant(requestParams)
+        elif method == 'privatePostBuyLimit':
+            response = self.privatePostBuyLimit(requestParams)
+        elif method == 'privatePostSellLimit':
+            response = self.privatePostSellLimit(requestParams)
+        else:
+            raise InvalidOrder(self.id + ' createOrder() does not support order type ' + type)
         id = self.safe_string(response, 'data')
         return self.safe_order({
             'info': response,

@@ -325,7 +325,11 @@ class coinspot(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         method = self.safe_string(self.options, 'fetchBalance', 'private_post_my_balances')
-        response = await getattr(self, method)(params)
+        response = None
+        if (method == 'private_post_ro_my_balances') or (method == 'privatePostRoMyBalances'):
+            response = await self.privatePostRoMyBalances(params)
+        else:
+            response = await self.privatePostMyBalances(params)
         #
         # read-write api keys
         #
