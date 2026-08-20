@@ -970,43 +970,84 @@ export default class lbank extends lbankRest {
     }
 
     async authenticate (params = {}) {
-        // when we implement more private streams, we need to refactor the authentication
-        // to be concurrent-safe and respect the same authentication token
+        // single-flight leader election, see
+        // https://github.com/ccxt/ccxt/issues/29393: both branches below check
+        // then await then write, so concurrent watchOrders/watchBalance calls
+        // on a cold instance each POST subscribe/get_key, and concurrent
+        // callers past the expiry each POST subscribe/refresh_key - every
+        // loser burns rate limit on a subscribeKey that is immediately
+        // overwritten. the registration flag is parked on this exchange's own
+        // ws client under a key that is not one of its messageHashes, and the
+        // shared future is only minted by the first waiter, so an alone leader
+        // can reject without any unhandled rejection
+        this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const now = this.milliseconds ();
         const messageHash = 'authenticated';
-        const authenticated = this.safeValue (client.subscriptions, messageHash);
-        if (authenticated === undefined) {
-            this.checkRequiredCredentials ();
-            const response = await this.spotPrivatePostSubscribeGetKey (params);
-            //
-            // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
-            //
-            const result = this.safeValue (response, 'result');
-            if (result !== true) {
-                throw new ExchangeError (this.id + ' failed to get subscribe key');
-            }
-            client.subscriptions['authenticated'] = {
-                'key': this.safeString (response, 'data'),
-                'expires': this.sum (now, 3300000), // SubscribeKey lasts one hour, refresh it every 55 minutes
-            };
-        } else {
-            const expires = this.safeInteger (authenticated, 'expires', 0);
-            if (expires < now) {
-                const request: Dict = {
-                    'subscribeKey': authenticated['key'],
-                };
-                const response = await this.spotPrivatePostSubscribeRefreshKey (this.extend (request, params));
+        const flightHash = 'authenticateFlight';
+        if (flightHash in client.subscriptions) {
+            // a flight is already in progress - wake when the leader settles
+            // it: the subscribeKey is then in the bucket
+            const future = client.future (flightHash);
+            await future;
+            return client.subscriptions['authenticated']['key'];
+        }
+        client.subscriptions[flightHash] = true;
+        try {
+            const authenticated = this.safeValue (client.subscriptions, messageHash);
+            if (authenticated === undefined) {
+                const response = await this.spotPrivatePostSubscribeGetKey (params);
                 //
-                //    {"result": "true"}
+                // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
                 //
-                const result = this.safeString (response, 'result');
-                if (result !== 'true') {
-                    throw new ExchangeError (this.id + ' failed to refresh the SubscribeKey');
+                const result = this.safeValue (response, 'result');
+                if (result !== true) {
+                    throw new ExchangeError (this.id + ' failed to get subscribe key');
                 }
-                client['subscriptions']['authenticated']['expires'] = this.sum (now, 3300000); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
+                client.subscriptions['authenticated'] = {
+                    'key': this.safeString (response, 'data'),
+                    'expires': this.sum (now, 3300000), // SubscribeKey lasts one hour, refresh it every 55 minutes
+                };
+            } else {
+                const expires = this.safeInteger (authenticated, 'expires', 0);
+                if (expires < now) {
+                    const request: Dict = {
+                        'subscribeKey': authenticated['key'],
+                    };
+                    const response = await this.spotPrivatePostSubscribeRefreshKey (this.extend (request, params));
+                    //
+                    //    {"result": "true"}
+                    //
+                    const result = this.safeString (response, 'result');
+                    if (result !== 'true') {
+                        throw new ExchangeError (this.id + ' failed to refresh the SubscribeKey');
+                    }
+                    client['subscriptions']['authenticated']['expires'] = this.sum (now, 3300000); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
+                }
             }
+            // settle the flight: clear the registration flag and wake the
+            // waiters that minted the shared future
+            if (flightHash in client.subscriptions) {
+                delete client.subscriptions[flightHash];
+            }
+            if (flightHash in client.futures) {
+                const future = client.futures[flightHash];
+                delete client.futures[flightHash];
+                future.resolve (client.subscriptions['authenticated']['key']);
+            }
+        } catch (e) {
+            // reject the flight - all waiters throw and the next caller
+            // re-leads instead of deadlocking on a dead flight
+            if (flightHash in client.subscriptions) {
+                delete client.subscriptions[flightHash];
+            }
+            if (flightHash in client.futures) {
+                const future = client.futures[flightHash];
+                delete client.futures[flightHash];
+                future.reject (e);
+            }
+            throw e;
         }
         return client.subscriptions['authenticated']['key'];
     }
