@@ -1965,9 +1965,17 @@ export default class toobit extends Exchange {
         market = this.safeMarket (marketId, market);
         const rawType = this.safeString (order, 'type');
         let rawSideLower = this.safeStringLower (order, 'side');
+        let reduceOnly: Bool = undefined;
         if (rawSideLower !== undefined) {
-            // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like
-            rawSideLower = this.safeString (rawSideLower.split ('_'), 0);
+            // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
+            // the suffix is the only signal that carries reduceOnly, so read
+            // it before discarding it (spot sides have no suffix: undefined)
+            const sideParts = rawSideLower.split ('_');
+            const sideSuffix = this.safeString (sideParts, 1);
+            if (sideSuffix !== undefined) {
+                reduceOnly = (sideSuffix === 'close');
+            }
+            rawSideLower = this.safeString (sideParts, 0);
         }
         let triggerPrice = this.omitZero (this.safeString (order, 'stopPrice'));
         if (triggerPrice === '0.0') {
@@ -1997,7 +2005,7 @@ export default class toobit extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'marginMode': undefined,
-            'reduceOnly': undefined,
+            'reduceOnly': reduceOnly,
             'leverage': undefined,
             'hedged': undefined,
         }, market);
