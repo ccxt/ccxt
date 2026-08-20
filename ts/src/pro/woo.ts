@@ -912,7 +912,7 @@ export default class woo extends wooRest {
         const cost = Precise.stringMul (price, amount);
         const side = this.safeStringLower (trade, 'sd');
         const timestamp = this.safeInteger (trade, 'ts');
-        const maker = this.safeBool (trade, 'mk');
+        const maker = this.safeBool2 (trade, 'mk', 'im'); // algo reports spell it 'im'
         let takerOrMaker: Str = undefined;
         if (maker !== undefined) {
             takerOrMaker = (maker) ? 'maker' : 'taker';
@@ -935,7 +935,7 @@ export default class woo extends wooRest {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'order': this.safeString (trade, 'oid'),
+            'order': this.safeString2 (trade, 'oid', 'aid'), // algo reports carry the algo order id
             'takerOrMaker': takerOrMaker,
             'type': type,
             'fee': fee,
