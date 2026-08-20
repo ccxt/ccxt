@@ -201,11 +201,86 @@ async function testBingxAuthenticateSingleFlight () {
     assert (failing.options['listenKey'] === 'BINGX-KEY-RETRY', 'a retry after a rejected flight must re-lead and cache');
 }
 
+async function testXtGetListenKeySingleFlight () {
+    // xt: the token lives on client.subscriptions['token'] (per-connection
+    // state) with independent spot/contract buckets, and getListenKey ()
+    // RETURNS the credential callers embed in subscribe params - racing
+    // callers used to mint multiple tokens per type and each embedded its
+    // own. pin: one fetch per type, identical token to every caller of a
+    // type, per-type flight isolation; a hollow success rejects both
+    // callers typed with the bucket unset (subscribers would otherwise
+    // fire 'name@undefined' params), then re-leads
+    const state = { 'contractFetches': 0, 'spotFetches': 0 };
+    const exchange = new ccxt.pro.xt ({
+        'apiKey': 'test-api-key',
+        'secret': 'test-secret',
+    });
+    (exchange as any).privateLinearGetFutureUserV1UserListenKey = async () => {
+        state.contractFetches = state.contractFetches + 1;
+        await sleep (50); // the race window
+        return { 'returnCode': '0', 'msgInfo': 'success', 'error': null, 'result': 'XT-CONTRACT-KEY-' + state.contractFetches.toString () };
+    };
+    (exchange as any).privateSpotPostWsToken = async () => {
+        state.spotFetches = state.spotFetches + 1;
+        await sleep (50);
+        return { 'rc': 0, 'mc': 'SUCCESS', 'ma': [], 'result': { 'accessToken': 'XT-SPOT-TOKEN-' + state.spotFetches.toString (), 'refreshToken': 'unused' } };
+    };
+    const tokens = await Promise.all ([
+        exchange.getListenKey (true),
+        exchange.getListenKey (true),
+        exchange.getListenKey (true),
+        exchange.getListenKey (false),
+        exchange.getListenKey (false),
+        exchange.getListenKey (false),
+    ]);
+    assert (state.contractFetches === 1, 'concurrent contract getListenKey calls must elect exactly one leader (got ' + state.contractFetches.toString () + ' fetches)');
+    assert (state.spotFetches === 1, 'concurrent spot getListenKey calls must elect exactly one leader (got ' + state.spotFetches.toString () + ' fetches)');
+    assert ((tokens[0] === 'XT-CONTRACT-KEY-1') && (tokens[0] === tokens[1]) && (tokens[1] === tokens[2]), 'every contract caller must receive the SAME token');
+    assert ((tokens[3] === 'XT-SPOT-TOKEN-1') && (tokens[3] === tokens[4]) && (tokens[4] === tokens[5]), 'every spot caller must receive the SAME token');
+    let flightCount = Object.keys (exchange.authenticationFlights).length;
+    assert (flightCount === 0, 'settled flights must be cleared');
+    // warm calls: no refetch on either type
+    await exchange.getListenKey (true);
+    await exchange.getListenKey (false);
+    assert (state.contractFetches === 1 && state.spotFetches === 1, 'warm getListenKey calls must not fetch');
+    // hollow success: fresh instance, both callers reject typed, bucket unset
+    const failing = new ccxt.pro.xt ({
+        'apiKey': 'test-api-key',
+        'secret': 'test-secret',
+    });
+    const failState = { 'fetches': 0 };
+    (failing as any).privateLinearGetFutureUserV1UserListenKey = async () => {
+        failState.fetches = failState.fetches + 1;
+        await sleep (10);
+        return { 'returnCode': '0', 'msgInfo': 'success', 'error': null }; // hollow: no result
+    };
+    const outcomes = await Promise.allSettled ([
+        failing.getListenKey (true),
+        failing.getListenKey (true),
+    ]);
+    assert (outcomes[0].status === 'rejected' && outcomes[1].status === 'rejected', 'both the leader and the waiter must throw on an empty token');
+    assert ((outcomes[0] as any).reason instanceof AuthenticationError, 'the xt leader must reject with AuthenticationError');
+    assert ((outcomes[1] as any).reason instanceof AuthenticationError, 'the xt waiter must observe the same AuthenticationError');
+    const contractUrl = failing.urls['api']['ws']['contract'];
+    const failClient = failing.client (contractUrl);
+    assert (failing.safeString (failClient.subscriptions, 'token') === undefined, 'an empty token must never be cached on the client bucket');
+    flightCount = Object.keys (failing.authenticationFlights).length;
+    assert (flightCount === 0, 'a rejected flight must be cleared');
+    // recovery: a good response re-leads and caches
+    (failing as any).privateLinearGetFutureUserV1UserListenKey = async () => {
+        failState.fetches = failState.fetches + 1;
+        return { 'returnCode': '0', 'msgInfo': 'success', 'error': null, 'result': 'XT-CONTRACT-RETRY' };
+    };
+    const retryToken = await failing.getListenKey (true);
+    assert (retryToken === 'XT-CONTRACT-RETRY', 'a retry after a rejected flight must re-lead and cache');
+}
+
 async function testWsSingleFlightWiring () {
     await testAsterAuthenticateSingleFlight ();
     await testAsterAuthenticateEmptyKeyRejection ();
     await testBinanceAuthenticateEmptyKeyRejection ();
     await testBingxAuthenticateSingleFlight ();
+    await testXtGetListenKeySingleFlight ();
 }
 
 export default testWsSingleFlightWiring;
