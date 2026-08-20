@@ -100,9 +100,51 @@ async function testAsterAuthenticateEmptyKeyRejection () {
     assert (exchange.options['listenKey']['spot'] === 'SPOT-KEY-RETRY', 'a retry after a rejected flight must re-lead and cache');
 }
 
+async function testBinanceAuthenticateEmptyKeyRejection () {
+    // same hollow-200 class on binance's consolidated authenticate ():
+    // the leader must reject the flight before writing the per-type
+    // options bucket, both concurrent callers observe the typed error,
+    // and a good retry re-leads. uses the 'future' type: spot routes to
+    // the signature-subscribe path and margin to listenToken, so the
+    // listenKey branch under test is the futures one
+    const state = { 'fetches': 0 };
+    const exchange = new ccxt.pro.binance ({
+        'apiKey': 'test-api-key',
+        'secret': 'test-secret',
+    });
+    (exchange as any).fapiPrivatePostListenKey = async () => {
+        state.fetches = state.fetches + 1;
+        await sleep (10);
+        return {}; // hollow response, no listenKey
+    };
+    (exchange as any).delay = () => {};
+    const params = { 'type': 'future' };
+    const outcomes = await Promise.allSettled ([
+        exchange.authenticate (params),
+        exchange.authenticate (params),
+    ]);
+    assert (state.fetches === 1, 'concurrent binance authenticates must elect exactly one leader');
+    assert (outcomes[0].status === 'rejected' && outcomes[1].status === 'rejected', 'both the leader and the waiter must throw on an empty listenKey');
+    assert ((outcomes[0] as any).reason instanceof AuthenticationError, 'the binance leader must reject with AuthenticationError');
+    assert ((outcomes[1] as any).reason instanceof AuthenticationError, 'the binance waiter must observe the same AuthenticationError');
+    const bucket = exchange.safeValue (exchange.options, 'future', {});
+    assert (exchange.safeString (bucket, 'listenKey') === undefined, 'an empty listenKey must never be cached');
+    assert (exchange.safeInteger (bucket, 'lastAuthenticatedTime', 0) === 0, 'a failed flight must not stamp lastAuthenticatedTime');
+    const flightCount = Object.keys (exchange.authenticationFlights).length;
+    assert (flightCount === 0, 'a rejected flight must be cleared');
+    // recovery: a good response re-leads and caches
+    (exchange as any).fapiPrivatePostListenKey = async () => {
+        state.fetches = state.fetches + 1;
+        return { 'listenKey': 'FUTURE-KEY-RETRY' };
+    };
+    await exchange.authenticate (params);
+    assert (exchange.options['future']['listenKey'] === 'FUTURE-KEY-RETRY', 'a retry after a rejected flight must re-lead and cache');
+}
+
 async function testWsSingleFlightWiring () {
     await testAsterAuthenticateSingleFlight ();
     await testAsterAuthenticateEmptyKeyRejection ();
+    await testBinanceAuthenticateEmptyKeyRejection ();
 }
 
 export default testWsSingleFlightWiring;
