@@ -7,6 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.precise import Precise
 
@@ -1177,15 +1178,35 @@ class aster(ccxt.async_support.aster):
         listenKeyRefreshRateOptions = self.safe_dict(self.options, 'listenKeyRefreshRate', {})
         listenKeyRefreshRate = self.safe_integer(listenKeyRefreshRateOptions, type, 3600000)  # 1 hour
         if time - lastAuthenticatedTime > listenKeyRefreshRate:
-            response = {}
-            if type == 'spot':
-                response = await self.sapiPrivatePostV3ListenKey(params)
-            else:
-                response = await self.fapiPrivatePostV3ListenKey(params)
-            self.options['listenKey'][type] = self.safe_string(response, 'listenKey')
-            self.options['lastAuthenticatedTime'][type] = time
-            params = self.extend({'type': type}, params)
-            self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
+            # single-flight leader election on the exchange-level flight map:
+            # concurrent watch calls on a cold instance each passed the
+            # staleness check and fetched their own listenKey(last write
+            # wins, earlier keys orphan) - now one leader fetches per type
+            # and waiters wake when the flight settles, see  #29393
+            flightHash = 'authenticate:' + type
+            isLeader = await self.single_flight_acquire(flightHash)
+            if not isLeader:
+                # the leader settled the flight: the listenKey is in the bucket
+                return
+            try:
+                response = {}
+                if type == 'spot':
+                    response = await self.sapiPrivatePostV3ListenKey(params)
+                else:
+                    response = await self.fapiPrivatePostV3ListenKey(params)
+                listenKey = self.safe_string(response, 'listenKey')
+                if listenKey is None:
+                    # reject instead of caching an empty credential, so
+                    # waiters retry rather than proceed unauthenticated
+                    raise AuthenticationError(self.id + ' authenticate() received an empty listenKey')
+                self.options['listenKey'][type] = listenKey
+                self.options['lastAuthenticatedTime'][type] = time
+                params = self.extend({'type': type}, params)
+                self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
+                self.single_flight_resolve(flightHash, listenKey)
+            except Exception as e:
+                self.single_flight_reject(flightHash, e)
+                raise e
 
     async def keep_alive_listen_key(self, params={}):
         type = self.safe_string(params, 'type', 'spot')
