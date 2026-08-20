@@ -518,19 +518,21 @@ class mercado extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $method = 'publicGetCoinTrades';
         $request = array(
             'coin' => $market['base'],
         );
         if ($since !== null) {
-            $method .= 'From';
             $request['from'] = $this->parse_to_int($since / 1000);
         }
         $to = $this->safe_integer($params, 'to');
-        if ($to !== null) {
-            $method .= 'To';
+        $response = null;
+        if (($since !== null) && ($to !== null)) {
+            $response = Async\await($this->publicGetCoinTradesFromTo($this->extend($request, $params)));
+        } elseif ($since !== null) {
+            $response = Async\await($this->publicGetCoinTradesFrom($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->publicGetCoinTrades($this->extend($request, $params)));
         }
-        $response = Async\await($this->$method($this->extend($request, $params)));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -594,13 +596,16 @@ class mercado extends Exchange {
         $request = array(
             'coin_pair' => $market['id'],
         );
-        $method = $this->capitalize($side) . 'Order';
+        $response = null;
         if ($type === 'limit') {
-            $method = 'privatePostPlace' . $method;
             $request['limit_price'] = $this->price_to_precision($market['symbol'], $price);
             $request['quantity'] = $this->amount_to_precision($market['symbol'], $amount);
+            if ($side === 'buy') {
+                $response = Async\await($this->privatePostPlaceBuyOrder($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->privatePostPlaceSellOrder($this->extend($request, $params)));
+            }
         } else {
-            $method = 'privatePostPlaceMarket' . $method;
             if ($side === 'buy') {
                 if ($price === null) {
                     throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and amount');
@@ -609,11 +614,12 @@ class mercado extends Exchange {
                 $priceString = $this->number_to_string($price);
                 $cost = $this->parse_to_numeric(Precise::string_mul($amountString, $priceString));
                 $request['cost'] = $this->price_to_precision($market['symbol'], $cost);
+                $response = Async\await($this->privatePostPlaceMarketBuyOrder($this->extend($request, $params)));
             } else {
                 $request['quantity'] = $this->amount_to_precision($market['symbol'], $amount);
+                $response = Async\await($this->privatePostPlaceMarketSellOrder($this->extend($request, $params)));
             }
         }
-        $response = Async\await($this->$method($this->extend($request, $params)));
         // TODO => replace this with a call to parseOrder for unification
         return $this->safe_order(array(
             'info' => $response,

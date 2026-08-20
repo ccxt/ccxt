@@ -537,7 +537,12 @@ class bittrade extends Exchange {
          * @return {array[]} an array of objects representing $market data
          */
         $method = $this->handle_option('fetchMarkets', 'method', 'publicGetCommonSymbols');
-        $response = Async\await($this->$method($params));
+        $response = null;
+        if ($method === 'publicGetCommonSymbols') {
+            $response = Async\await($this->publicGetCommonSymbols($params));
+        } else {
+            throw new NotSupported($this->id . ' fetchMarkets() does not support the ' . $method . ' method');
+        }
         //
         //    {
         //        "status" => "ok",
@@ -1305,7 +1310,12 @@ class bittrade extends Exchange {
         $request = array(
             'id' => $this->accounts[0]['id'],
         );
-        $response = Async\await($this->$method($this->extend($request, $params)));
+        $response = null;
+        if ($method === 'privateGetAccountAccountsIdBalance') {
+            $response = Async\await($this->privateGetAccountAccountsIdBalance($this->extend($request, $params)));
+        } else {
+            throw new NotSupported($this->id . ' fetchBalance() does not support the ' . $method . ' method');
+        }
         return $this->parse_balance($response);
     }
 
@@ -1326,7 +1336,12 @@ class bittrade extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $method = $this->handle_option('fetchOrdersByStates', 'method', 'private_get_order_orders');
-        $response = Async\await($this->$method($this->extend($request, $params)));
+        $response = null;
+        if (($method === 'private_get_order_history') || ($method === 'privateGetOrderHistory')) {
+            $response = Async\await($this->privateGetOrderHistory($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->privateGetOrderOrders($this->extend($request, $params)));
+        }
         //
         //     { "status" =>   "ok",
         //         "data" => array( {                  id =>  13997833016,
@@ -1400,7 +1415,10 @@ class bittrade extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $method = $this->handle_option('fetchOpenOrders', 'method', 'fetch_open_orders_v1');
-        return Async\await($this->$method($symbol, $since, $limit, $params));
+        if (($method === 'fetch_open_orders_v2') || ($method === 'fetchOpenOrdersV2')) {
+            return Async\await($this->fetch_open_orders_v2($symbol, $since, $limit, $params));
+        }
+        return Async\await($this->fetch_open_orders_v1($symbol, $since, $limit, $params));
     }
 
     public function fetch_open_orders_v1(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -1673,8 +1691,13 @@ class bittrade extends Exchange {
         if ($type === 'limit' || $type === 'ioc' || $type === 'limit-maker' || $type === 'stop-limit' || $type === 'stop-limit-fok') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $method = $this->options['createOrderMethod'];
-        $response = Async\await($this->$method($this->extend($request, $params)));
+        $method = $this->handle_option('createOrder', 'method', 'privatePostOrderOrdersPlace');
+        $response = null;
+        if ($method === 'privatePostOrderOrdersPlace') {
+            $response = Async\await($this->privatePostOrderOrdersPlace($this->extend($request, $params)));
+        } else {
+            throw new NotSupported($this->id . ' createOrder() does not support the ' . $method . ' method');
+        }
         $id = $this->safe_string($response, 'data');
         return $this->safe_order(array(
             'info' => $response,
