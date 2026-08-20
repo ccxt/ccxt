@@ -68,6 +68,56 @@
                     "BTC/AUSD:AUSD"
                 ]
             }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetch current funding rates",
+                "method": "fetchFundingRates",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": [
+                    [
+                        "BTC/AUSD:AUSD"
+                    ]
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetch a current funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": [
+                    "BTC/AUSD:AUSD"
+                ]
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetch funding rate history for one market",
+                "method": "fetchFundingRateHistory",
+                "url": "https://app.perpl.xyz/api/v1/market-data/1/funding/1787035320000-1787037900000",
+                "input": [
+                    "BTC/AUSD:AUSD",
+                    1787035320000,
+                    2,
+                    {
+                        "until": 1787037900000
+                    }
+                ]
+            },
+            {
+                "description": "fetch funding rate history for all markets",
+                "method": "fetchFundingRateHistory",
+                "url": "https://app.perpl.xyz/api/v1/market-data/funding/1787035320000-1787037900000",
+                "input": [
+                    null,
+                    1787035320000,
+                    2,
+                    {
+                        "until": 1787037900000
+                    }
+                ]
+            }
         ]
     }
 }

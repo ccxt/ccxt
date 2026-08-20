@@ -3,7 +3,7 @@
 import Exchange from './abstract/perpl.js';
 import { BadRequest, BadSymbol, NotSupported, OperationRejected, PermissionDenied } from './base/errors.js';
 import Precise from './base/Precise.js';
-import type { Currencies, CurrencyInterface, Dict, Endpoint, Int, Market, NullableDict, OHLCV, Str, Strings, Ticker, Tickers } from './base/types.js';
+import type { Currencies, CurrencyInterface, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, Int, Market, NullableDict, OHLCV, Str, Strings, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -41,8 +41,9 @@ export default class perpl extends Exchange {
                 'fetchBalance': false,
                 'fetchCurrencies': true,
                 'fetchCurrenciesWs': false,
-                'fetchFundingRateHistory': false,
-                'fetchFundingRates': false,
+                'fetchFundingRate': true,
+                'fetchFundingRateHistory': true,
+                'fetchFundingRates': true,
                 'fetchL2OrderBook': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
@@ -247,11 +248,6 @@ export default class perpl extends Exchange {
         return result;
     }
 
-    /**
-     * @ignore
-     * @param {object} market raw market and its related protocol instance and collateral token
-     * @returns {object} a unified market structure
-     */
     override parseMarket (market: Dict): Market {
         //
         //     {
@@ -456,6 +452,253 @@ export default class perpl extends Exchange {
 
     /**
      * @method
+     * @name perpl#fetchFundingRate
+     * @description fetch the current funding rate for a symbol
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1pubcontext
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const rates = await this.fetchFundingRates ([ market['symbol'] ], params);
+        const rate = this.safeDict (rates, market['symbol']);
+        if (rate === undefined) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() funding rate not found for ' + symbol);
+        }
+        return rate as FundingRate;
+    }
+
+    /**
+     * @method
+     * @name perpl#fetchFundingRates
+     * @description fetch the current funding rates for multiple markets
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1pubcontext
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetV1PubContext (params);
+        //
+        //     {
+        //         "markets": [
+        //             {
+        //                 "id": 1,
+        //                 "funding_interval_sec": 2580,
+        //                 "state": {
+        //                     "at": { "b": 97001267, "t": 1787037820000 },
+        //                     "orl": 642508,
+        //                     "mrk": 642693
+        //                 },
+        //                 "funding": {
+        //                     "at": { "b": 97001410, "t": 1787037900000 },
+        //                     "feb": 97001410,
+        //                     "rate": 125,
+        //                     "idx": 642508,
+        //                     "ppl": 42,
+        //                     "sum": 123456,
+        //                     "div": 1000000
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const markets = this.safeList (response, 'markets', []);
+        return this.parseFundingRates (markets, symbols);
+    }
+
+    override parseFundingRate (info: any, market: Market = undefined): FundingRate {
+        //
+        //     {
+        //         "id": 1,
+        //         "funding_interval_sec": 2580,
+        //         "state": {
+        //             "at": { "b": 97001267, "t": 1787037820000 },
+        //             "orl": 642508,
+        //             "mrk": 642693
+        //         },
+        //         "funding": {
+        //             "at": { "b": 97001410, "t": 1787037900000 },
+        //             "feb": 97001410,
+        //             "rate": 125,
+        //             "idx": 642508,
+        //             "ppl": 42,
+        //             "sum": 123456,
+        //             "div": 1000000
+        //         }
+        //     }
+        //
+        const marketId = this.safeString (info, 'id');
+        market = this.safeMarket (marketId, market);
+        const state = this.safeDict (info, 'state', {});
+        const stateAt = this.safeDict (state, 'at', {});
+        const funding = this.safeDict (info, 'funding', {});
+        const fundingAt = this.safeDict (funding, 'at', {});
+        const timestamp = this.safeInteger (stateAt, 't');
+        const fundingTimestamp = this.safeInteger (fundingAt, 't');
+        const pricePrecision = this.numberToString (market['precision']['price']);
+        const intervalSeconds = this.safeString (info, 'funding_interval_sec');
+        const interval = (intervalSeconds === undefined) ? undefined : intervalSeconds + 's';
+        return {
+            'info': info,
+            'symbol': market['symbol'],
+            'markPrice': this.parseNumber (Precise.stringMul (this.safeString (state, 'mrk'), pricePrecision)),
+            'indexPrice': this.parseNumber (Precise.stringMul (this.safeString (state, 'orl'), pricePrecision)),
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fundingRate': this.parseNumber (Precise.stringMul (this.safeString (funding, 'rate'), '0.000001')),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': interval,
+        } as FundingRate;
+    }
+
+    /**
+     * @method
+     * @name perpl#fetchFundingRateHistory
+     * @description fetches historical funding rates for one market or all markets
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1market-datamarket_idfundingfrom-to // one market
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1market-datafundingfrom-to // all markets
+     * @param {string} [symbol] unified symbol of the market to fetch funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of funding rate structures to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+     * @returns {object[]} a list of [funding rate history structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
+        await this.loadMarkets ();
+        const originalSince = since;
+        let market: Market = undefined;
+        let fundingIntervalSeconds: Int = undefined;
+        let requestLimit = 128;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            const marketInfo = this.safeDict (market, 'info', {});
+            fundingIntervalSeconds = this.safeInteger (marketInfo, 'funding_interval_sec');
+            requestLimit = 1024;
+        } else {
+            const marketSymbols = this.symbols;
+            for (let i = 0; i < marketSymbols.length; i++) {
+                const currentMarket = this.market (marketSymbols[i]);
+                const marketInfo = this.safeDict (currentMarket, 'info', {});
+                const currentInterval = this.safeInteger (marketInfo, 'funding_interval_sec');
+                if ((currentInterval !== undefined) && ((fundingIntervalSeconds === undefined) || (currentInterval < fundingIntervalSeconds))) {
+                    fundingIntervalSeconds = currentInterval;
+                }
+            }
+        }
+        if (fundingIntervalSeconds === undefined) {
+            fundingIntervalSeconds = 3600;
+        }
+        if (limit !== undefined) {
+            requestLimit = Math.min (limit, requestLimit);
+        }
+        const duration = (fundingIntervalSeconds as number) * 1000 * (requestLimit - 1);
+        let until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        if (since === undefined) {
+            if (until === undefined) {
+                until = this.milliseconds ();
+            }
+            since = (until as number) - duration;
+        } else if (until === undefined) {
+            until = Math.min (this.milliseconds (), since + duration);
+        }
+        const request: Dict = {
+            'from': since,
+            'to': until,
+        };
+        let response: Dict;
+        if (market !== undefined) {
+            request['market_id'] = market['id'];
+            response = await this.publicGetV1MarketDataMarketIdFundingFromTo (this.extend (request, params));
+        } else {
+            response = await this.publicGetV1MarketDataFundingFromTo (this.extend (request, params));
+        }
+        //
+        //     // one market
+        //     {
+        //         "mt": 8,
+        //         "at": { "b": 97001410, "t": 1787037900000 },
+        //         "m": 1,
+        //         "d": [
+        //             { "at": { "b": 97001410, "t": 1787037900000 }, "feb": 97001410, "rate": 125, "idx": 642508, "ppl": 42, "sum": 123456, "div": 1000000 }
+        //         ]
+        //     }
+        //
+        //     // all markets
+        //     {
+        //         "mt": 8,
+        //         "at": { "b": 97001410, "t": 1787037900000 },
+        //         "d": {
+        //             "1": [
+        //                 { "at": { "b": 97001410, "t": 1787037900000 }, "feb": 97001410, "rate": 125, "idx": 642508, "ppl": 42, "sum": 123456, "div": 1000000 }
+        //             ]
+        //         }
+        //     }
+        //
+        const histories: FundingRateHistory[] = [];
+        if (market !== undefined) {
+            const fundingEvents = this.safeList (response, 'd', []);
+            for (let i = 0; i < fundingEvents.length; i++) {
+                histories.push (this.parseFundingRateHistory (fundingEvents[i], market));
+            }
+        } else {
+            const fundingByMarket = this.safeDict (response, 'd', {});
+            const marketIds = Object.keys (fundingByMarket);
+            for (let i = 0; i < marketIds.length; i++) {
+                const marketId = marketIds[i];
+                const currentMarket = this.safeMarket (marketId);
+                const fundingEvents = this.safeList (fundingByMarket, marketId, []);
+                for (let j = 0; j < fundingEvents.length; j++) {
+                    histories.push (this.parseFundingRateHistory (fundingEvents[j], currentMarket));
+                }
+            }
+        }
+        const sorted = this.sortBy (histories, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, originalSince, limit) as FundingRateHistory[];
+    }
+
+    override parseFundingRateHistory (info: any, market: Market = undefined): FundingRateHistory {
+        //
+        //     {
+        //         "at": { "b": 97001410, "t": 1787037900000 },
+        //         "feb": 97001410,
+        //         "rate": 125,
+        //         "idx": 642508,
+        //         "ppl": 42,
+        //         "sum": 123456,
+        //         "div": 1000000
+        //     }
+        //
+        market = this.safeMarket (undefined, market);
+        const at = this.safeDict (info, 'at', {});
+        const timestamp = this.safeInteger (at, 't');
+        return {
+            'info': info,
+            'symbol': market['symbol'],
+            'fundingRate': this.parseNumber (Precise.stringMul (this.safeString (info, 'rate'), '0.000001')),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        } as FundingRateHistory;
+    }
+
+    /**
+     * @method
      * @name perpl#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1market-datamarket_idcandlesresolutionfrom-to
@@ -509,12 +752,6 @@ export default class perpl extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, requestLimit);
     }
 
-    /**
-     * @ignore
-     * @param {object} ohlcv raw candle data
-     * @param {object} [market] unified market structure
-     * @returns {int[]} a unified OHLCV structure
-     */
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
@@ -613,12 +850,6 @@ export default class perpl extends Exchange {
         return ticker as Ticker;
     }
 
-    /**
-     * @ignore
-     * @param {object} ticker raw market state data
-     * @param {object} [market] unified market structure
-     * @returns {object} a unified ticker structure
-     */
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {

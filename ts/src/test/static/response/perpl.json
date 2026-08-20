@@ -432,6 +432,341 @@
                     }
                 }
             }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "current funding rates",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "BTC/AUSD:AUSD"
+                    ]
+                ],
+                "httpResponse": {
+                    "markets": [
+                        {
+                            "id": 1,
+                            "funding_interval_sec": 2580,
+                            "state": {
+                                "at": {
+                                    "b": 97001267,
+                                    "t": 1787037820000
+                                },
+                                "orl": 642508,
+                                "mrk": 642693
+                            },
+                            "funding": {
+                                "at": {
+                                    "b": 97001410,
+                                    "t": 1787037900000
+                                },
+                                "feb": 97001410,
+                                "rate": 125,
+                                "idx": 642508,
+                                "ppl": 42,
+                                "sum": 123456,
+                                "div": 1000000
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/AUSD:AUSD": {
+                        "info": {
+                            "id": 1,
+                            "funding_interval_sec": 2580,
+                            "state": {
+                                "at": {
+                                    "b": 97001267,
+                                    "t": 1787037820000
+                                },
+                                "orl": 642508,
+                                "mrk": 642693
+                            },
+                            "funding": {
+                                "at": {
+                                    "b": 97001410,
+                                    "t": 1787037900000
+                                },
+                                "feb": 97001410,
+                                "rate": 125,
+                                "idx": 642508,
+                                "ppl": 42,
+                                "sum": 123456,
+                                "div": 1000000
+                            }
+                        },
+                        "symbol": "BTC/AUSD:AUSD",
+                        "markPrice": 64269.3,
+                        "indexPrice": 64250.8,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": 1787037820000,
+                        "datetime": "2026-08-18T07:23:40.000Z",
+                        "fundingRate": 0.000125,
+                        "fundingTimestamp": 1787037900000,
+                        "fundingDatetime": "2026-08-18T07:25:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "2580s"
+                    }
+                }
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "current funding rate",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/AUSD:AUSD"
+                ],
+                "httpResponse": {
+                    "markets": [
+                        {
+                            "id": 1,
+                            "funding_interval_sec": 2580,
+                            "state": {
+                                "at": {
+                                    "b": 97001267,
+                                    "t": 1787037820000
+                                },
+                                "orl": 642508,
+                                "mrk": 642693
+                            },
+                            "funding": {
+                                "at": {
+                                    "b": 97001410,
+                                    "t": 1787037900000
+                                },
+                                "feb": 97001410,
+                                "rate": 125,
+                                "idx": 642508,
+                                "ppl": 42,
+                                "sum": 123456,
+                                "div": 1000000
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "id": 1,
+                        "funding_interval_sec": 2580,
+                        "state": {
+                            "at": {
+                                "b": 97001267,
+                                "t": 1787037820000
+                            },
+                            "orl": 642508,
+                            "mrk": 642693
+                        },
+                        "funding": {
+                            "at": {
+                                "b": 97001410,
+                                "t": 1787037900000
+                            },
+                            "feb": 97001410,
+                            "rate": 125,
+                            "idx": 642508,
+                            "ppl": 42,
+                            "sum": 123456,
+                            "div": 1000000
+                        }
+                    },
+                    "symbol": "BTC/AUSD:AUSD",
+                    "markPrice": 64269.3,
+                    "indexPrice": 64250.8,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1787037820000,
+                    "datetime": "2026-08-18T07:23:40.000Z",
+                    "fundingRate": 0.000125,
+                    "fundingTimestamp": 1787037900000,
+                    "fundingDatetime": "2026-08-18T07:25:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "2580s"
+                }
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "funding history for one market",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/AUSD:AUSD",
+                    1787035320000,
+                    2,
+                    {
+                        "until": 1787037900000
+                    }
+                ],
+                "httpResponse": {
+                    "mt": 8,
+                    "at": {
+                        "b": 97001410,
+                        "t": 1787037900000
+                    },
+                    "m": 1,
+                    "d": [
+                        {
+                            "at": {
+                                "b": 96992839,
+                                "t": 1787035320000
+                            },
+                            "feb": 96992839,
+                            "rate": -25,
+                            "idx": 641800,
+                            "ppl": -8,
+                            "sum": 123414,
+                            "div": 1000000
+                        },
+                        {
+                            "at": {
+                                "b": 97001410,
+                                "t": 1787037900000
+                            },
+                            "feb": 97001410,
+                            "rate": 125,
+                            "idx": 642508,
+                            "ppl": 42,
+                            "sum": 123456,
+                            "div": 1000000
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "at": {
+                                "b": 96992839,
+                                "t": 1787035320000
+                            },
+                            "feb": 96992839,
+                            "rate": -25,
+                            "idx": 641800,
+                            "ppl": -8,
+                            "sum": 123414,
+                            "div": 1000000
+                        },
+                        "symbol": "BTC/AUSD:AUSD",
+                        "fundingRate": -0.000025,
+                        "timestamp": 1787035320000,
+                        "datetime": "2026-08-18T06:42:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "at": {
+                                "b": 97001410,
+                                "t": 1787037900000
+                            },
+                            "feb": 97001410,
+                            "rate": 125,
+                            "idx": 642508,
+                            "ppl": 42,
+                            "sum": 123456,
+                            "div": 1000000
+                        },
+                        "symbol": "BTC/AUSD:AUSD",
+                        "fundingRate": 0.000125,
+                        "timestamp": 1787037900000,
+                        "datetime": "2026-08-18T07:25:00.000Z"
+                    }
+                ]
+            },
+            {
+                "description": "funding history for all markets",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    null,
+                    1787035320000,
+                    2,
+                    {
+                        "until": 1787037900000
+                    }
+                ],
+                "httpResponse": {
+                    "mt": 8,
+                    "at": {
+                        "b": 97001410,
+                        "t": 1787037900000
+                    },
+                    "d": {
+                        "1": [
+                            {
+                                "at": {
+                                    "b": 96992839,
+                                    "t": 1787035320000
+                                },
+                                "feb": 96992839,
+                                "rate": -25,
+                                "idx": 641800,
+                                "ppl": -8,
+                                "sum": 123414,
+                                "div": 1000000
+                            },
+                            {
+                                "at": {
+                                    "b": 97001410,
+                                    "t": 1787037900000
+                                },
+                                "feb": 97001410,
+                                "rate": 125,
+                                "idx": 642508,
+                                "ppl": 42,
+                                "sum": 123456,
+                                "div": 1000000
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "at": {
+                                "b": 96992839,
+                                "t": 1787035320000
+                            },
+                            "feb": 96992839,
+                            "rate": -25,
+                            "idx": 641800,
+                            "ppl": -8,
+                            "sum": 123414,
+                            "div": 1000000
+                        },
+                        "symbol": "BTC/AUSD:AUSD",
+                        "fundingRate": -0.000025,
+                        "timestamp": 1787035320000,
+                        "datetime": "2026-08-18T06:42:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "at": {
+                                "b": 97001410,
+                                "t": 1787037900000
+                            },
+                            "feb": 97001410,
+                            "rate": 125,
+                            "idx": 642508,
+                            "ppl": 42,
+                            "sum": 123456,
+                            "div": 1000000
+                        },
+                        "symbol": "BTC/AUSD:AUSD",
+                        "fundingRate": 0.000125,
+                        "timestamp": 1787037900000,
+                        "datetime": "2026-08-18T07:25:00.000Z"
+                    }
+                ]
+            }
         ]
     }
 }
