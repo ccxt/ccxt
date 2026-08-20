@@ -859,20 +859,21 @@ export default class bitrue extends bitrueRest {
             // https://github.com/ccxt/ccxt/issues/29393: the key rides the
             // stream url, so racing fetches mint several listenKeys and the
             // losers dial '/stream?listenKey=' + an orphaned key whose
-            // subscriptions never deliver. the registration flag lives in
-            // client.subscriptions and the shared future is only minted by
-            // the first waiter, so an alone leader can reject without any
-            // unhandled rejection
-            const flightHash = 'authenticate';
+            // subscriptions never deliver. the flight is registered in
+            // client.futures and settled through client.resolve/client.reject,
+            // so every mutation of that map happens under the ws client's own
+            // lock rather than through an unsynchronized map write
+            const messageHash = 'authenticateFlight';
             const client = this.client ('authenticationFlights');
-            if (flightHash in client.subscriptions) {
+            if (messageHash in client.futures) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey url is then in the options
-                const future = client.future (flightHash);
-                await future;
+                await client.future (messageHash);
                 return this.options['listenKeyUrl'];
             }
-            client.subscriptions[flightHash] = true;
+            // register before the first await, so a concurrent caller entering
+            // authenticate () while this one is inside the fetch sees the flight
+            const future = client.reusableFuture (messageHash);
             try {
                 const response = await this.openV1PrivatePostPoseidonApiV1ListenKey (params);
                 //
@@ -888,36 +889,28 @@ export default class bitrue extends bitrueRest {
                 const key = this.safeString (data, 'listenKey');
                 if (key === undefined) {
                     // reject instead of caching an empty credential, so
-                    // waiters retry rather than dial '?listenKey=undefined'
+                    // waiters retry rather than dial a hollow stream url
                     throw new AuthenticationError (this.id + ' authenticate() received an empty listenKey');
                 }
                 this.options['listenKey'] = key;
                 this.options['listenKeyUrl'] = this.urls['api']['ws']['private'] + '/stream?listenKey=' + key;
-                // settle the flight: clear the registration flag and wake the
-                // waiters that minted the shared future
-                if (flightHash in client.subscriptions) {
-                    delete client.subscriptions[flightHash];
-                }
-                if (flightHash in client.futures) {
-                    const future = client.futures[flightHash];
-                    delete client.futures[flightHash];
-                    future.resolve (key);
-                }
+                client.resolve (key, messageHash);
             } catch (e) {
                 // reject the flight - all waiters throw and the next caller
                 // re-leads instead of deadlocking on a dead flight
-                if (flightHash in client.subscriptions) {
-                    delete client.subscriptions[flightHash];
-                }
-                if (flightHash in client.futures) {
-                    const future = client.futures[flightHash];
-                    delete client.futures[flightHash];
-                    future.reject (e);
-                }
-                throw e;
+                client.reject (e, messageHash);
             }
+            // rethrows to the leader on failure and attaches the handler that
+            // keeps an alone leader's rejection from crashing the process
+            await future;
             // only the leader schedules the keepalive, so a burst of watchers
-            // no longer stacks one refresh timer per racing caller
+            // no longer stacks one refresh timer per racing caller. waiters
+            // early-return above, so this runs once per successful flight.
+            // it also has to stay the LAST statement of the block: master's
+            // build/csharpTranspiler.ts:154 rewrites this.delay with a greedy
+            // /this\.delay\(([^,]+),([^,]+),(.+)\)/ whose [^,] spans newlines,
+            // so any following statement carrying a comma gets swallowed into
+            // a bogus `new object[] {...}` argument
             const refreshTimeout = this.safeInteger (this.options, 'listenKeyRefreshRate', 1800000);
             this.delay (refreshTimeout, this.keepAliveListenKey);
         }

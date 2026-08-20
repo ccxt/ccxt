@@ -15,25 +15,37 @@ function sleep (ms: number) {
     return new Promise ((resolve) => setTimeout (resolve, ms));
 }
 
-function flightCount (exchange: any) {
-    // the flights live on a never-dialed client keyed 'authenticationFlights',
-    // registered in its subscriptions map - see the inlined single-flight
-    // block in authenticate () on bitrue
+function flightClient (exchange: any) {
+    // the flights live on a never-dialed client keyed 'authenticationFlights'
+    // - see the inlined single-flight block in authenticate () on bitrue
     const clients = exchange.clients;
     if (!('authenticationFlights' in clients)) {
-        return 0;
+        return undefined;
     }
-    return Object.keys (clients['authenticationFlights'].subscriptions).length;
+    return clients['authenticationFlights'];
 }
 
-function futureCount (exchange: any) {
-    // the shared future is minted lazily by the first waiter - a settled
-    // flight must leave none behind
-    const clients = exchange.clients;
-    if (!('authenticationFlights' in clients)) {
+function flightCount (exchange: any) {
+    // the flight is registered in client.futures, and client.resolve /
+    // client.reject delete it on settle - a settled flight must leave none
+    const client = flightClient (exchange);
+    if (client === undefined) {
         return 0;
     }
-    return Object.keys (clients['authenticationFlights'].futures).length;
+    return Object.keys (client.futures).length;
+}
+
+function residueCount (exchange: any) {
+    // client.resolve parks its value in pendingResults, and client.reject
+    // parks its error in rejections, whenever no future is registered at
+    // settle time. the leader always holds a live future here, so a settled
+    // flight must leave both maps empty: a parked rejection would poison the
+    // first waiter of the NEXT flight instead of letting it re-lead
+    const client = flightClient (exchange);
+    if (client === undefined) {
+        return 0;
+    }
+    return Object.keys (client.pendingResults).length + Object.keys (client.rejections).length;
 }
 
 function makeStubbedBitrue (state: { fetches: number }) {
@@ -72,8 +84,8 @@ async function testBitrueAuthenticateSingleFlight () {
     for (let i = 0; i < urls.length; i++) {
         assert (urls[i] === 'wss://wsapi.bitrue.com/stream?listenKey=BITRUE-KEY-1', 'every caller must return the single leader stream url, not an orphaned one (caller ' + i.toString () + ' got ' + urls[i] + ')');
     }
-    assert (flightCount (exchange) === 0, 'settled flights must be cleared');
-    assert (futureCount (exchange) === 0, 'settled flights must leave no future behind');
+    assert (flightCount (exchange) === 0, 'a settled flight must leave no future in client.futures');
+    assert (residueCount (exchange) === 0, 'a settled flight must leave no residue in client.pendingResults / client.rejections');
     // a warm call reuses the cached listenKey: no new fetch
     const warmUrl = await exchange.authenticate ();
     assert (state.fetches === 1, 'a warm authenticate must not fetch');
@@ -81,11 +93,11 @@ async function testBitrueAuthenticateSingleFlight () {
 }
 
 async function testBitrueAuthenticateSoloLeaderRejection () {
-    // an alone leader - the fetch fails before any waiter arrives, so no
-    // shared future was ever minted - must throw to its own caller, clear the
-    // slot, and NOT produce an unhandled promise rejection (which would kill
-    // the process on the tick below). regression guard for minting the future
-    // eagerly in the leader
+    // an alone leader - the fetch fails before any waiter arrives - must throw
+    // to its own caller, clear the slot, and NOT produce an unhandled promise
+    // rejection (which would kill the process on the tick below). the leader
+    // registers its own future before the fetch, so the trailing await future
+    // is what attaches the handler AND rethrows
     const state = { 'fetches': 0 };
     const exchange = makeStubbedBitrue (state);
     (exchange as any).openV1PrivatePostPoseidonApiV1ListenKey = async () => {
@@ -101,8 +113,8 @@ async function testBitrueAuthenticateSoloLeaderRejection () {
     assert (soloError instanceof AuthenticationError, 'a solo leader must throw its own error');
     // give the microtask queue a tick - an unhandled rejection fires here
     await sleep (20);
-    assert (flightCount (exchange) === 0, 'a solo rejected flight must be cleared');
-    assert (futureCount (exchange) === 0, 'a solo leader must never mint a future');
+    assert (flightCount (exchange) === 0, 'a solo rejected flight must leave no future in client.futures');
+    assert (residueCount (exchange) === 0, 'a solo rejected flight must leave no parked rejection behind');
     // the next caller becomes a fresh leader
     (exchange as any).openV1PrivatePostPoseidonApiV1ListenKey = async () => {
         state.fetches = state.fetches + 1;
@@ -111,6 +123,8 @@ async function testBitrueAuthenticateSoloLeaderRejection () {
     const url = await exchange.authenticate ();
     assert (exchange.options['listenKey'] === 'BITRUE-KEY-SOLO-RETRY', 'the caller after a solo rejection must re-lead');
     assert (url === 'wss://wsapi.bitrue.com/stream?listenKey=BITRUE-KEY-SOLO-RETRY', 'the re-leading caller must return the fresh url');
+    assert (flightCount (exchange) === 0, 'the re-led flight must settle clean');
+    assert (residueCount (exchange) === 0, 'the re-led flight must leave no residue');
 }
 
 async function testBitrueAuthenticateEmptyKeyRejection () {
@@ -130,7 +144,7 @@ async function testBitrueAuthenticateEmptyKeyRejection () {
         exchange.authenticate (),
         exchange.authenticate (),
     ]);
-    assert (state.fetches === 1, 'concurrent bitrue authenticates must elect exactly one leader even when it fails');
+    assert (state.fetches === 1, 'concurrent bitrue authenticates must elect exactly one leader even when it fails (got ' + state.fetches.toString () + ' fetches)');
     // allSettled keeps input order but leader election does not: assert BOTH
     // entries reject with the typed error, so a waiter that swallows the
     // flight rejection and returns an undefined url cannot pass silently
@@ -139,8 +153,8 @@ async function testBitrueAuthenticateEmptyKeyRejection () {
     assert ((outcomes[1] as any).reason instanceof AuthenticationError, 'the bitrue waiter must observe the same AuthenticationError');
     assert (exchange.safeString (exchange.options, 'listenKey') === undefined, 'an empty listenKey must never be cached');
     assert (exchange.safeString (exchange.options, 'listenKeyUrl') === undefined, 'a rejected flight must never cache a listenKeyUrl');
-    assert (flightCount (exchange) === 0, 'a rejected flight must be cleared');
-    assert (futureCount (exchange) === 0, 'a rejected flight must leave no future behind');
+    assert (flightCount (exchange) === 0, 'a rejected flight must leave no future in client.futures');
+    assert (residueCount (exchange) === 0, 'a rejected flight must leave no parked rejection behind');
     // recovery: a good response re-leads and caches
     (exchange as any).openV1PrivatePostPoseidonApiV1ListenKey = async () => {
         state.fetches = state.fetches + 1;
@@ -149,6 +163,8 @@ async function testBitrueAuthenticateEmptyKeyRejection () {
     const url = await exchange.authenticate ();
     assert (exchange.options['listenKey'] === 'BITRUE-KEY-RETRY', 'a retry after a rejected flight must re-lead and cache');
     assert (url === 'wss://wsapi.bitrue.com/stream?listenKey=BITRUE-KEY-RETRY', 'a retry after a rejected flight must return the fresh url');
+    assert (flightCount (exchange) === 0, 'the retried flight must settle clean');
+    assert (residueCount (exchange) === 0, 'the retried flight must leave no residue');
 }
 
 async function testBitrueSingleFlightWiring () {
