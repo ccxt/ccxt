@@ -1292,6 +1292,9 @@ export default class phemex extends Exchange {
     }
 
     toEn (n: any, scale: any) {
+        if ((n === undefined) || (scale === undefined)) {
+            return undefined;
+        }
         const stringN = this.numberToString (n);
         const precise = new Precise (stringN as string);
         precise.decimals = precise.decimals - scale;
