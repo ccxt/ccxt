@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import bitrueRest from '../bitrue.js';
-import { NotSupported } from '../base/errors.js';
+import { AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade, List, Endpoint } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -855,20 +855,69 @@ export default class bitrue extends bitrueRest {
     async authenticate (params = {}) {
         const listenKey = this.safeValue (this.options, 'listenKey');
         if (listenKey === undefined) {
-            const response = await this.openV1PrivatePostPoseidonApiV1ListenKey (params);
-            //
-            //     {
-            //         "msg": "succ",
-            //         "code": 200,
-            //         "data": {
-            //             "listenKey": "7d1ec51340f499d85bb33b00a96ef680bda28869d5c3374a444c5ca4847d1bf0"
-            //         }
-            //     }
-            //
-            const data = this.safeValue (response, 'data', {});
-            const key = this.safeString (data, 'listenKey');
-            this.options['listenKey'] = key;
-            this.options['listenKeyUrl'] = this.urls['api']['ws']['private'] + '/stream?listenKey=' + key;
+            // single-flight leader election on a never-dialed client, see
+            // https://github.com/ccxt/ccxt/issues/29393: the key rides the
+            // stream url, so racing fetches mint several listenKeys and the
+            // losers dial '/stream?listenKey=' + an orphaned key whose
+            // subscriptions never deliver. the registration flag lives in
+            // client.subscriptions and the shared future is only minted by
+            // the first waiter, so an alone leader can reject without any
+            // unhandled rejection
+            const flightHash = 'authenticate';
+            const client = this.client ('authenticationFlights');
+            if (flightHash in client.subscriptions) {
+                // a flight is already in progress - wake when the leader
+                // settles it: the listenKey url is then in the options
+                const future = client.future (flightHash);
+                await future;
+                return this.options['listenKeyUrl'];
+            }
+            client.subscriptions[flightHash] = true;
+            try {
+                const response = await this.openV1PrivatePostPoseidonApiV1ListenKey (params);
+                //
+                //     {
+                //         "msg": "succ",
+                //         "code": 200,
+                //         "data": {
+                //             "listenKey": "7d1ec51340f499d85bb33b00a96ef680bda28869d5c3374a444c5ca4847d1bf0"
+                //         }
+                //     }
+                //
+                const data = this.safeValue (response, 'data', {});
+                const key = this.safeString (data, 'listenKey');
+                if (key === undefined) {
+                    // reject instead of caching an empty credential, so
+                    // waiters retry rather than dial '?listenKey=undefined'
+                    throw new AuthenticationError (this.id + ' authenticate() received an empty listenKey');
+                }
+                this.options['listenKey'] = key;
+                this.options['listenKeyUrl'] = this.urls['api']['ws']['private'] + '/stream?listenKey=' + key;
+                // settle the flight: clear the registration flag and wake the
+                // waiters that minted the shared future
+                if (flightHash in client.subscriptions) {
+                    delete client.subscriptions[flightHash];
+                }
+                if (flightHash in client.futures) {
+                    const future = client.futures[flightHash];
+                    delete client.futures[flightHash];
+                    future.resolve (key);
+                }
+            } catch (e) {
+                // reject the flight - all waiters throw and the next caller
+                // re-leads instead of deadlocking on a dead flight
+                if (flightHash in client.subscriptions) {
+                    delete client.subscriptions[flightHash];
+                }
+                if (flightHash in client.futures) {
+                    const future = client.futures[flightHash];
+                    delete client.futures[flightHash];
+                    future.reject (e);
+                }
+                throw e;
+            }
+            // only the leader schedules the keepalive, so a burst of watchers
+            // no longer stacks one refresh timer per racing caller
             const refreshTimeout = this.safeInteger (this.options, 'listenKeyRefreshRate', 1800000);
             this.delay (refreshTimeout, this.keepAliveListenKey);
         }
