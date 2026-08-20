@@ -1572,21 +1572,46 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), listenKeyRefreshRate)))
             {
-                Object response = new java.util.HashMap<String, Object>() {{}};
-                if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
+                // single-flight leader election on the exchange-level flight map:
+                // concurrent watch calls on a cold instance each passed the
+                // staleness check and fetched their own listenKey (last write
+                // wins, earlier keys orphan) - now one leader fetches per type
+                // and waiters wake when the flight settles, see #29393
+                Object flightHash = Helpers.add("authenticate:", type);
+                Object isLeader = (this.singleFlightAcquire(flightHash)).join();
+                if (!Helpers.isTrue(isLeader))
                 {
-                    response = (this.sapiPrivatePostV3ListenKey(parameters)).join();
-                } else
-                {
-                    response = (this.fapiPrivatePostV3ListenKey(parameters)).join();
+                    // the leader settled the flight: the listenKey is in the bucket
+                    return null;
                 }
-                Helpers.addElementToObject(Helpers.GetValue(this.options, "listenKey"), type, this.safeString(response, "listenKey"));
-                Helpers.addElementToObject(Helpers.GetValue(this.options, "lastAuthenticatedTime"), type, time);
-                final Object finalType = type;
-                parameters = this.extend(new java.util.HashMap<String, Object>() {{
-                    put( "type", finalType );
-                }}, parameters);
-                this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
+                try
+                {
+                    Object response = new java.util.HashMap<String, Object>() {{}};
+                    if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
+                    {
+                        response = (this.sapiPrivatePostV3ListenKey(parameters)).join();
+                    } else
+                    {
+                        response = (this.fapiPrivatePostV3ListenKey(parameters)).join();
+                    }
+                    Object listenKey = this.safeString(response, "listenKey");
+                    if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
+                    {
+                        throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
+                    }
+                    Helpers.addElementToObject(Helpers.GetValue(this.options, "listenKey"), type, listenKey);
+                    Helpers.addElementToObject(Helpers.GetValue(this.options, "lastAuthenticatedTime"), type, time);
+                    final Object finalType = type;
+                    parameters = this.extend(new java.util.HashMap<String, Object>() {{
+                        put( "type", finalType );
+                    }}, parameters);
+                    this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
+                    this.singleFlightResolve(flightHash, listenKey);
+                } catch(Exception e)
+                {
+                    this.singleFlightReject(flightHash, e);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+                }
             }
             return null;
         });
