@@ -2466,7 +2466,10 @@ export default class woo extends Exchange {
         const result = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
-            const marketId = this.safeString (row, 'symbol', '');
+            const marketId = this.safeString (row, 'symbol');
+            if (marketId === undefined) {
+                continue;
+            }
             if ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id)) {
                 continue; // the endpoint can return newly listed contracts before they appear in the instruments
             }
