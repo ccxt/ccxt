@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import deepcoinRest from '../deepcoin.js';
-import { BadRequest, ExchangeError } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.js';
 import type { Dict, FeeString, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
@@ -167,31 +167,74 @@ export default class deepcoin extends deepcoinRest {
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const time = this.milliseconds ();
-        let listenKeyExpiryTimestamp = this.safeInteger (this.options, 'listenKeyExpiryTimestamp', time);
-        const expired = (time - listenKeyExpiryTimestamp) > 60000; // 1 minute before expiry
-        let listenKey = this.safeString (this.options, 'listenKey');
-        let response = undefined;
-        if (listenKey === undefined) {
-            response = await this.privateGetDeepcoinListenkeyAcquire (params);
-        } else if (expired) {
-            const method = this.safeString (this.options, 'method', 'privateGetDeepcoinListenkeyExtend');
-            const getNewKey = (method === 'privateGetDeepcoinListenkeyAcquire');
-            if (getNewKey) {
+        // single-flight leader election on a never-dialed client, see
+        // https://github.com/ccxt/ccxt/issues/29393: the key rides the private
+        // ws url query string, so racing acquires mint several keys, the last
+        // write wins the cache and every loser dials a stream keyed to an
+        // orphaned credential that never delivers.
+        // the whole check-then-fetch is the critical section here: the
+        // acquire-vs-extend branch reads the very key and expiry the leader
+        // rewrites. the flight IS the entry in client.futures - registered
+        // before the first fetch and settled through client.resolve /
+        // client.reject, so every mutation of that registry happens inside the
+        // client, which is what keeps the go port's map access under one lock
+        const messageHash = 'authenticate';
+        const client = this.client ('authenticationFlights');
+        if (messageHash in client.futures) {
+            // a flight is already in progress - wake when the leader
+            // settles it: the listenKey is then in the bucket
+            await client.future (messageHash);
+            return this.safeString (this.options, 'listenKey');
+        }
+        const future = client.reusableFuture (messageHash);
+        let listenKey: Str = undefined;
+        try {
+            let listenKeyExpiryTimestamp = this.safeInteger (this.options, 'listenKeyExpiryTimestamp', time);
+            const expired = (time - listenKeyExpiryTimestamp) > 60000; // 1 minute before expiry
+            listenKey = this.safeString (this.options, 'listenKey');
+            let response = undefined;
+            if (listenKey === undefined) {
                 response = await this.privateGetDeepcoinListenkeyAcquire (params);
-            } else {
-                const request: Dict = {
-                    'listenkey': listenKey,
-                };
-                response = await this.privateGetDeepcoinListenkeyExtend (this.extend (request, params));
+            } else if (expired) {
+                const method = this.safeString (this.options, 'method', 'privateGetDeepcoinListenkeyExtend');
+                const getNewKey = (method === 'privateGetDeepcoinListenkeyAcquire');
+                if (getNewKey) {
+                    response = await this.privateGetDeepcoinListenkeyAcquire (params);
+                } else {
+                    const request: Dict = {
+                        'listenkey': listenKey,
+                    };
+                    response = await this.privateGetDeepcoinListenkeyExtend (this.extend (request, params));
+                }
             }
+            if (response !== undefined) {
+                const data = this.safeDict (response, 'data', {});
+                listenKey = this.safeString (data, 'listenkey');
+                if (listenKey === undefined) {
+                    // reject the flight BEFORE any cache write: a hollow 200
+                    // would otherwise cache an empty credential together with a
+                    // fresh expiry, parking every caller on a query string with
+                    // no key and no retry until that expiry lapses - the catch
+                    // below rejects the flight instead, so the waiters throw
+                    // and the next caller re-leads
+                    throw new AuthenticationError (this.id + ' authenticate() received an empty listenKey');
+                }
+                listenKeyExpiryTimestamp = this.safeTimestamp (data, 'expire_time') as number;
+                this.options['listenKey'] = listenKey;
+                this.options['listenKeyExpiryTimestamp'] = listenKeyExpiryTimestamp;
+            }
+            // settle the flight: client.resolve wakes every waiter and drops
+            // the future from the registry under the client's own lock, so the
+            // next refresh cycle elects a fresh leader
+            client.resolve (listenKey, messageHash);
+        } catch (e) {
+            // reject the flight - all waiters throw and the next caller
+            // re-leads instead of deadlocking on a dead flight
+            client.reject (e, messageHash);
         }
-        if (response !== undefined) {
-            const data = this.safeDict (response, 'data', {});
-            listenKey = this.safeString (data, 'listenkey');
-            listenKeyExpiryTimestamp = this.safeTimestamp (data, 'expire_time') as number;
-            this.options['listenKey'] = listenKey;
-            this.options['listenKeyExpiryTimestamp'] = listenKeyExpiryTimestamp;
-        }
+        // rethrows the failure to the leader and attaches the handler that
+        // keeps an alone-leader rejection from killing the process
+        await future;
         return listenKey;
     }
 
