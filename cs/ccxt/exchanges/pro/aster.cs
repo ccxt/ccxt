@@ -1422,20 +1422,45 @@ public partial class aster : ccxt.aster
         object listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
         if (isTrue(isGreaterThan(subtract(time, lastAuthenticatedTime), listenKeyRefreshRate)))
         {
-            object response = new Dictionary<string, object>() {};
-            if (isTrue(isEqual(type, "spot")))
+            // single-flight leader election on the exchange-level flight map:
+            // concurrent watch calls on a cold instance each passed the
+            // staleness check and fetched their own listenKey (last write
+            // wins, earlier keys orphan) - now one leader fetches per type
+            // and waiters wake when the flight settles, see #29393
+            object flightHash = add("authenticate:", type);
+            object isLeader = await this.singleFlightAcquire(flightHash);
+            if (!isTrue(isLeader))
             {
-                response = await this.sapiPrivatePostV3ListenKey(parameters);
-            } else
-            {
-                response = await this.fapiPrivatePostV3ListenKey(parameters);
+                // the leader settled the flight: the listenKey is in the bucket
+                return;
             }
-            ((IDictionary<string,object>)getValue(this.options, "listenKey"))[(string)type] = this.safeString(response, "listenKey");
-            ((IDictionary<string,object>)getValue(this.options, "lastAuthenticatedTime"))[(string)type] = time;
-            parameters = this.extend(new Dictionary<string, object>() {
-                { "type", type },
-            }, parameters);
-            this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
+            try
+            {
+                object response = new Dictionary<string, object>() {};
+                if (isTrue(isEqual(type, "spot")))
+                {
+                    response = await this.sapiPrivatePostV3ListenKey(parameters);
+                } else
+                {
+                    response = await this.fapiPrivatePostV3ListenKey(parameters);
+                }
+                object listenKey = this.safeString(response, "listenKey");
+                if (isTrue(isEqual(listenKey, null)))
+                {
+                    throw new AuthenticationError ((string)add(this.id, " authenticate() received an empty listenKey")) ;
+                }
+                ((IDictionary<string,object>)getValue(this.options, "listenKey"))[(string)type] = listenKey;
+                ((IDictionary<string,object>)getValue(this.options, "lastAuthenticatedTime"))[(string)type] = time;
+                parameters = this.extend(new Dictionary<string, object>() {
+                    { "type", type },
+                }, parameters);
+                this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
+                this.singleFlightResolve(flightHash, listenKey);
+            } catch(Exception e)
+            {
+                this.singleFlightReject(flightHash, e);
+                throw e;
+            }
         }
     }
 

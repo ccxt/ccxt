@@ -2047,6 +2047,7 @@ class poloniex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
          * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {string} [$params->clientOrderId] a unique identifier for the order
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -2149,10 +2150,12 @@ class poloniex extends Exchange {
             $priceKey = $market['spot'] ? 'price' : 'px';
             $request[$priceKey] = $this->price_to_precision($symbol, $price);
         }
-        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clOrdId');
         if ($clientOrderId !== null) {
-            $request['clientOrderId'] = $clientOrderId;
-            $params = $this->omit($params, 'clientOrderId');
+            // the futures v3 api silently ignores the spot key and generates its own id
+            $clientOrderIdKey = $market['spot'] ? 'clientOrderId' : 'clOrdId';
+            $request[$clientOrderIdKey] = $clientOrderId;
+            $params = $this->omit($params, array( 'clientOrderId', 'clOrdId' ));
         }
         // remember the timestamp before issuing the $request
         return array( $request, $params );
@@ -2173,6 +2176,7 @@ class poloniex extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
+         * @param {string} [$params->clientOrderId] a unique identifier for the order
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();

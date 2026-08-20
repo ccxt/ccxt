@@ -998,14 +998,30 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             Object isCancel = this.safeValue(message, "is_cancel");
             if (Helpers.isTrue(isCancel))
             {
+                // Kraken documents is_cancel as "fully filled, cancelled, or
+                // rejected". Derive unified status from `reason` instead of
+                // mapping every removal to canceled. Preserve reason on info
+                // so consumers can tell a user cancel from liquidation, etc.
+                Object reason = this.safeString(message, "reason");
+                Object status = "canceled";
+                if (Helpers.isTrue(Helpers.isEqual(reason, "full_fill")))
+                {
+                    status = "closed";
+                }
                 // get order without symbol
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
                 {
                     Object currentOrder = Helpers.GetValue(orders, i);
                     if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(currentOrder, "id"), Helpers.GetValue(message, "order_id"))))
                     {
+                        final Object finalReason = reason;
+                        Object info = this.extend(this.safeDict(currentOrder, "info", new java.util.HashMap<String, Object>() {{}}), new java.util.HashMap<String, Object>() {{
+                            put( "reason", finalReason );
+                        }});
+                        final Object finalStatus = status;
                         Helpers.addElementToObject(orders, i, this.extend(currentOrder, new java.util.HashMap<String, Object>() {{
-    put( "status", "canceled" );
+    put( "status", finalStatus );
+    put( "info", info );
 }}));
                         client.resolve(orders, "orders");
                         client.resolve(orders, Helpers.add("orders:", Helpers.GetValue(currentOrder, "symbol")));

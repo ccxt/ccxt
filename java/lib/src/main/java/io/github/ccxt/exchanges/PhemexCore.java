@@ -3254,10 +3254,10 @@ public class PhemexCore extends PhemexApi
                 Helpers.addElementToObject(request, "posSide", posSide);
                 if (Helpers.isTrue(isStableSettled))
                 {
-                    Helpers.addElementToObject(request, "orderQtyRq", amount);
+                    Helpers.addElementToObject(request, "orderQtyRq", this.amountToPrecision(symbol, amount));
                 } else
                 {
-                    Helpers.addElementToObject(request, "orderQty", this.parseToInt(amount));
+                    Helpers.addElementToObject(request, "orderQty", this.parseToInt(this.amountToPrecision(symbol, amount)));
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
                 {

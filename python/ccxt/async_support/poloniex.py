@@ -2005,6 +2005,7 @@ class poloniex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param str [params.clientOrderId]: a unique identifier for the order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
@@ -2094,10 +2095,12 @@ class poloniex(Exchange, ImplicitAPI):
             request[amountKey] = self.amount_to_precision(symbol, amount)
             priceKey = 'price' if market['spot'] else 'px'
             request[priceKey] = self.price_to_precision(symbol, price)
-        clientOrderId = self.safe_string(params, 'clientOrderId')
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clOrdId')
         if clientOrderId is not None:
-            request['clientOrderId'] = clientOrderId
-            params = self.omit(params, 'clientOrderId')
+            # the futures v3 api silently ignores the spot key and generates its own id
+            clientOrderIdKey = 'clientOrderId' if market['spot'] else 'clOrdId'
+            request[clientOrderIdKey] = clientOrderId
+            params = self.omit(params, ['clientOrderId', 'clOrdId'])
         # remember the timestamp before issuing the request
         return [request, params]
 
@@ -2116,6 +2119,7 @@ class poloniex(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param str [params.clientOrderId]: a unique identifier for the order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()

@@ -2052,6 +2052,7 @@ export default class poloniex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -2155,10 +2156,12 @@ export default class poloniex extends Exchange {
             const priceKey = market['spot'] ? 'price' : 'px';
             request[priceKey] = this.priceToPrecision (symbol, price);
         }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdId');
         if (clientOrderId !== undefined) {
-            request['clientOrderId'] = clientOrderId;
-            params = this.omit (params, 'clientOrderId');
+            // the futures v3 api silently ignores the spot key and generates its own id
+            const clientOrderIdKey = market['spot'] ? 'clientOrderId' : 'clOrdId';
+            request[clientOrderIdKey] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId', 'clOrdId' ]);
         }
         // remember the timestamp before issuing the request
         return [ request, params ];
@@ -2178,6 +2181,7 @@ export default class poloniex extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {

@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
@@ -1375,16 +1376,39 @@ class aster extends \ccxt\async\aster {
         $listenKeyRefreshRateOptions = $this->safe_dict($this->options, 'listenKeyRefreshRate', array());
         $listenKeyRefreshRate = $this->safe_integer($listenKeyRefreshRateOptions, $type, 3600000); // 1 hour
         if ($time - $lastAuthenticatedTime > $listenKeyRefreshRate) {
-            $response = array();
-            if ($type === 'spot') {
-                $response = Async\await($this->sapiPrivatePostV3ListenKey($params));
-            } else {
-                $response = Async\await($this->fapiPrivatePostV3ListenKey($params));
+            // single-flight leader election on the exchange-level flight map:
+            // concurrent watch calls on a cold instance each passed the
+            // staleness check and fetched their own $listenKey (last write
+            // wins, earlier keys orphan) - now one leader fetches per $type
+            // and waiters wake when the flight settles, see #29393
+            $flightHash = 'authenticate:' . $type;
+            $isLeader = Async\await($this->single_flight_acquire($flightHash));
+            if (!$isLeader) {
+                // the leader settled the flight => the $listenKey is in the bucket
+                return;
             }
-            $this->options['listenKey'][$type] = $this->safe_string($response, 'listenKey');
-            $this->options['lastAuthenticatedTime'][$type] = $time;
-            $params = $this->extend(array( 'type' => $type ), $params);
-            $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
+            try {
+                $response = array();
+                if ($type === 'spot') {
+                    $response = Async\await($this->sapiPrivatePostV3ListenKey($params));
+                } else {
+                    $response = Async\await($this->fapiPrivatePostV3ListenKey($params));
+                }
+                $listenKey = $this->safe_string($response, 'listenKey');
+                if ($listenKey === null) {
+                    // reject instead of caching an empty credential, so
+                    // waiters retry rather than proceed unauthenticated
+                    throw new AuthenticationError($this->id . ' authenticate() received an empty listenKey');
+                }
+                $this->options['listenKey'][$type] = $listenKey;
+                $this->options['lastAuthenticatedTime'][$type] = $time;
+                $params = $this->extend(array( 'type' => $type ), $params);
+                $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
+                $this->single_flight_resolve($flightHash, $listenKey);
+            } catch (Exception $e) {
+                $this->single_flight_reject($flightHash, $e);
+                throw $e;
+            }
         }
     }
 

@@ -33,7 +33,7 @@ func (this *BitmexCore) Describe() any {
 			"watchOrderBook":                true,
 			"watchOrderBookForSymbols":      true,
 			"watchOrders":                   true,
-			"watchPostions":                 true,
+			"watchPositions":                true,
 			"watchTicker":                   true,
 			"watchTickers":                  true,
 			"watchTrades":                   true,

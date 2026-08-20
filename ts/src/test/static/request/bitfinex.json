@@ -43,7 +43,7 @@
                     "spot",
                     "swap"
                 ],
-                "output": "{\"amount\":\"5\",\"currency\":\"UST\",\"currency_to\":\"UST\",\"from\":\"exchange\",\"to\":\"margin\"}"
+                "output": { "amount": "5", "currency": "UST", "currency_to": "UST", "from": "exchange", "to": "margin" }
             },
             {
                 "description": "Transfer from margin to spot",
@@ -55,7 +55,7 @@
                     "margin",
                     "spot"
                 ],
-                "output": "{\"amount\":\"5\",\"currency\":\"UST\",\"currency_to\":\"UST\",\"from\":\"margin\",\"to\":\"exchange\"}"
+                "output": { "amount": "5", "currency": "UST", "currency_to": "UST", "from": "margin", "to": "exchange" }
             }
         ],
         "fetchOrderBook": [
@@ -226,7 +226,7 @@
                     1699457638000,
                     5
                 ],
-                "output": "{\"end\":1699458293212,\"start\":1699457638000,\"limit\":5}"
+                "output": { "end": 1699458293212, "start": 1699457638000, "limit": 5 }
             },
             {
                 "description": "Swap private trades",
@@ -237,7 +237,7 @@
                     1699457638000,
                     5
                 ],
-                "output": "{\"end\":1699458293539,\"start\":1699457638000,\"limit\":5}"
+                "output": { "end": 1699458293539, "start": 1699457638000, "limit": 5 }
             }
         ],
         "fetchOHLCV": [
@@ -287,7 +287,7 @@
                 "input": [
                     "LTC/USDT"
                 ],
-                "output": "{}"
+                "output": {}
             },
             {
                 "description": "Swap open orders",
@@ -296,7 +296,7 @@
                 "input": [
                     "LTC/USDT:USDT"
                 ],
-                "output": "{}"
+                "output": {}
             }
         ],
         "fetchClosedOrders": [
@@ -307,7 +307,7 @@
                 "input": [
                     "LTC/USDT"
                 ],
-                "output": "{}"
+                "output": {}
             },
             {
                 "description": "Swap closed orders",
@@ -316,7 +316,7 @@
                 "input": [
                     "LTC/USDT:USDT"
                 ],
-                "output": "{}"
+                "output": {}
             }
         ],
         "cancelAllOrders": [
@@ -327,7 +327,7 @@
                 "input": [
                     "LTC/USDT:USDT"
                 ],
-                "output": "{\"all\":1}"
+                "output": { "all": 1 }
             },
             {
                 "description": "Cancel spot orders",
@@ -336,7 +336,7 @@
                 "input": [
                     "LTC/USDT"
                 ],
-                "output": "{\"all\":1}"
+                "output": { "all": 1 }
             }
         ],
         "fetchBalance": [
@@ -349,7 +349,7 @@
                         "type": "spot"
                     }
                 ],
-                "output": "{}"
+                "output": {}
             },
             {
                 "description": "Fetch swap Balance",
@@ -360,7 +360,7 @@
                         "type": "swap"
                     }
                 ],
-                "output": "{}"
+                "output": {}
             }
         ],
         "createOrder": [
@@ -374,7 +374,7 @@
                     "buy",
                     0.0001
                 ],
-                "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"type\":\"EXCHANGE MARKET\"}"
+                "output": { "symbol": "tBTCUST", "amount": "0.0001", "type": "EXCHANGE MARKET" }
             },
             {
                 "description": "Spot market sell order",
@@ -386,7 +386,7 @@
                     "sell",
                     0.0001
                 ],
-                "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"-0.0001\",\"type\":\"EXCHANGE MARKET\"}"
+                "output": { "symbol": "tBTCUST", "amount": "-0.0001", "type": "EXCHANGE MARKET" }
             },
             {
                 "description": "Spot limit buy order",
@@ -399,7 +399,7 @@
                     0.0001,
                     40000
                 ],
-                "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"40000\",\"type\":\"EXCHANGE LIMIT\"}"
+                "output": { "symbol": "tBTCUST", "amount": "0.0001", "price": "40000", "type": "EXCHANGE LIMIT" }
             },
             {
                 "description": "Spot limit sell order",
@@ -412,7 +412,7 @@
                     0.0001,
                     40000
                 ],
-                "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"-0.0001\",\"price\":\"40000\",\"type\":\"EXCHANGE LIMIT\"}"
+                "output": { "symbol": "tBTCUST", "amount": "-0.0001", "price": "40000", "type": "EXCHANGE LIMIT" }
             },
             {
                 "description": "Swap limit buy",
@@ -425,7 +425,7 @@
                     0.1,
                     50
                 ],
-                "output": "{\"type\":\"LIMIT\",\"symbol\":\"tLTCF0:USTF0\",\"amount\":\"0.1\",\"price\":\"50\"}"
+                "output": { "type": "LIMIT", "symbol": "tLTCF0:USTF0", "amount": "0.1", "price": "50" }
             },
             {
                 "description": "Swap market buy order",
@@ -437,7 +437,7 @@
                     "buy",
                     0.0001
                 ],
-                "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"0.0001\"}"
+                "output": { "type": "MARKET", "symbol": "tBTCF0:USTF0", "amount": "0.0001" }
             },
             {
                 "description": "Swap market sell order with reduceOnly set to true",
@@ -453,7 +453,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"flags\":1024}"
+                "output": { "type": "MARKET", "symbol": "tBTCF0:USTF0", "amount": "-0.0001", "flags": 1024 }
             },
             {
                 "description": "Swap market buy order with reduceOnly set to true",
@@ -469,7 +469,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"0.0001\",\"flags\":1024}"
+                "output": { "type": "MARKET", "symbol": "tBTCF0:USTF0", "amount": "0.0001", "flags": 1024 }
             },
             {
                 "description": "Swap limit sell order",
@@ -482,7 +482,7 @@
                     0.0001,
                     49000
                 ],
-                "output": "{\"type\":\"LIMIT\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"price\":\"49000\"}"
+                "output": { "type": "LIMIT", "symbol": "tBTCF0:USTF0", "amount": "-0.0001", "price": "49000" }
             },
             {
                 "description": "Swap market sell order",
@@ -494,7 +494,7 @@
                     "sell",
                     0.0001
                 ],
-                "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\"}"
+                "output": { "type": "MARKET", "symbol": "tBTCF0:USTF0", "amount": "-0.0001" }
             },
             {
                 "description": "Swap create a trailing amount order",
@@ -510,7 +510,7 @@
                         "trailingAmount": "500"
                     }
                 ],
-                "output": "{\"type\":\"TRAILING STOP\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"price_trailing\":\"500\"}"
+                "output": { "type": "TRAILING STOP", "symbol": "tBTCF0:USTF0", "amount": "-0.0001", "price_trailing": "500" }
             },
             {
                 "description": "Swap trigger limit buy order",
@@ -526,7 +526,7 @@
                         "triggerPrice": "41000"
                     }
                 ],
-                "output": "{\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"0.0001\",\"price\":\"41000\",\"price_aux_limit\":\"40000\",\"type\":\"STOP LIMIT\"}"
+                "output": { "symbol": "tBTCF0:USTF0", "amount": "0.0001", "price": "41000", "price_aux_limit": "40000", "type": "STOP LIMIT" }
             },
             {
                 "description": "Swap trigger market buy order",
@@ -542,7 +542,7 @@
                         "triggerPrice": "47000"
                     }
                 ],
-                "output": "{\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"0.0001\",\"price\":\"47000\",\"type\":\"STOP\"}"
+                "output": { "symbol": "tBTCF0:USTF0", "amount": "0.0001", "price": "47000", "type": "STOP" }
             },
             {
                 "description": "Spot trigger limit buy order",
@@ -558,7 +558,7 @@
                         "triggerPrice": "41000"
                     }
                 ],
-                "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"41000\",\"price_aux_limit\":\"40000\",\"type\":\"EXCHANGE STOP LIMIT\"}"
+                "output": { "symbol": "tBTCUST", "amount": "0.0001", "price": "41000", "price_aux_limit": "40000", "type": "EXCHANGE STOP LIMIT" }
             },
             {
                 "description": "Spot trigger market buy order",
@@ -574,7 +574,7 @@
                         "triggerPrice": "41000"
                     }
                 ],
-                "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"41000\",\"type\":\"EXCHANGE STOP\"}"
+                "output": { "symbol": "tBTCUST", "amount": "0.0001", "price": "41000", "type": "EXCHANGE STOP" }
             },
             {
                 "description": "create order with clientOrderId",
@@ -590,7 +590,7 @@
                         "clientOrderId": 1003434
                     }
                 ],
-                "output": "{\"symbol\":\"tLTCUST\",\"amount\":\"0.1\",\"price\":\"50\",\"type\":\"EXCHANGE LIMIT\",\"cid\":1003434}"
+                "output": { "symbol": "tLTCUST", "amount": "0.1", "price": "50", "type": "EXCHANGE LIMIT", "cid": 1003434 }
             }
         ],
         "createReduceOnlyOrder": [
@@ -605,7 +605,7 @@
                     0.0001,
                     null
                 ],
-                "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"flags\":1024}"
+                "output": { "type": "MARKET", "symbol": "tBTCF0:USTF0", "amount": "-0.0001", "flags": 1024 }
             }
         ],
         "createTrailingAmountOrder": [
@@ -621,7 +621,7 @@
                     null,
                     500
                 ],
-                "output": "{\"type\":\"TRAILING STOP\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"price_trailing\":\"500\"}"
+                "output": { "type": "TRAILING STOP", "symbol": "tBTCF0:USTF0", "amount": "-0.0001", "price_trailing": "500" }
             }
         ],
         "createTriggerOrder": [
@@ -637,7 +637,7 @@
                     40000,
                     41000
                 ],
-                "output": "{\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"0.0001\",\"price\":\"41000\",\"price_aux_limit\":\"40000\",\"type\":\"STOP LIMIT\"}"
+                "output": { "symbol": "tBTCF0:USTF0", "amount": "0.0001", "price": "41000", "price_aux_limit": "40000", "type": "STOP LIMIT" }
             },
             {
                 "description": "Spot limit buy trigger order",
@@ -651,7 +651,7 @@
                     40000,
                     41000
                 ],
-                "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"41000\",\"price_aux_limit\":\"40000\",\"type\":\"EXCHANGE STOP LIMIT\"}"
+                "output": { "symbol": "tBTCUST", "amount": "0.0001", "price": "41000", "price_aux_limit": "40000", "type": "EXCHANGE STOP LIMIT" }
             }
         ],
         "fetchOpenInterests": [
@@ -705,7 +705,7 @@
                     "BTC/USDT:USDT",
                     0.5
                 ],
-                "output": "{\"symbol\":\"tBTCF0:USTF0\",\"collateral\":0.5}"
+                "output": { "symbol": "tBTCF0:USTF0", "collateral": 0.5 }
             }
         ],
         "cancelOrder": [
@@ -717,7 +717,7 @@
                     "139449164689",
                     "BTC/USDT:USDT"
                 ],
-                "output": "{\"id\":139449164689}"
+                "output": { "id": 139449164689 }
             }
         ],
         "cancelOrders": [
@@ -731,7 +731,7 @@
                         139533608984
                     ]
                 ],
-                "output": "{\"id\":[139535430656,139533608984]}"
+                "output": { "id": [ 139535430656, 139533608984 ] }
             }
         ],
         "createOrders": [
@@ -757,7 +757,7 @@
                         }
                     ]
                 ],
-                "output": "{\"ops\":[[\"on\",{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"35000\",\"type\":\"EXCHANGE LIMIT\"}],[\"on\",{\"symbol\":\"tLTCUST\",\"amount\":\"0.25\",\"price\":\"50\",\"type\":\"EXCHANGE LIMIT\"}]]}"
+                "output": { "ops": [ [ "on", { "symbol": "tBTCUST", "amount": "0.0001", "price": "35000", "type": "EXCHANGE LIMIT" } ], [ "on", { "symbol": "tLTCUST", "amount": "0.25", "price": "50", "type": "EXCHANGE LIMIT" } ] ] }
             }
         ],
         "fetchDepositAddress": [
@@ -768,7 +768,7 @@
                 "input": [
                     "BTC"
                 ],
-                "output": "{\"method\":\"bitcoin\",\"wallet\":\"exchange\",\"op_renew\":0}"
+                "output": { "method": "bitcoin", "wallet": "exchange", "op_renew": 0 }
             }
         ],
         "fetchDepositsWithdrawals": [
@@ -781,7 +781,7 @@
                     1670849733000,
                     2
                 ],
-                "output": "{\"start\":1670849733000,\"limit\":2}"
+                "output": { "start": 1670849733000, "limit": 2 }
             }
         ],
         "fetchPositions": [
@@ -794,7 +794,7 @@
                         "BTC/USDT:USDT"
                     ]
                 ],
-                "output": "{}"
+                "output": {}
             }
         ],
         "fetchLedger": [
@@ -807,7 +807,7 @@
                     1699460471000,
                     3
                 ],
-                "output": "{\"start\":1699460471000,\"limit\":3}"
+                "output": { "start": 1699460471000, "limit": 3 }
             }
         ],
         "fetchFundingRates": [
@@ -849,7 +849,7 @@
                 "input": [
                     139658969116
                 ],
-                "output": "{\"id\":[139658969116]}"
+                "output": { "id": [ 139658969116 ] }
             },
             {
                 "description": "Swap fetch an order using id and symbol arguments",
@@ -859,7 +859,7 @@
                     139663481232,
                     "LTC/USDT:USDT"
                 ],
-                "output": "{\"id\":[139663481232]}"
+                "output": { "id": [ 139663481232 ] }
             }
         ],
         "editOrder": [
@@ -875,7 +875,7 @@
                     0.0001,
                     35000
                 ],
-                "output": "{\"id\":139658969116,\"amount\":\"0.0001\",\"price\":\"35000\"}"
+                "output": { "id": 139658969116, "amount": "0.0001", "price": "35000" }
             },
             {
                 "description": "Swap edit an order",
@@ -889,7 +889,7 @@
                     0.27,
                     51
                 ],
-                "output": "{\"id\":139663481232,\"amount\":\"0.27\",\"price\":\"51\"}"
+                "output": { "id": 139663481232, "amount": "0.27", "price": "51" }
             }
         ],
         "fetchFundingRate": [

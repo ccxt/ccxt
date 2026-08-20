@@ -1653,10 +1653,31 @@ public partial class bingx : ccxt.bingx
         object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000); // 1 hour
         if (isTrue(isGreaterThan(subtract(time, lastAuthenticatedTime), listenKeyRefreshRate)))
         {
-            object response = await this.userAuthPrivatePostUserDataStream();
-            ((IDictionary<string,object>)this.options)["listenKey"] = this.safeString(response, "listenKey");
-            ((IDictionary<string,object>)this.options)["lastAuthenticatedTime"] = time;
-            this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
+            // single-flight leader election, see #29393: racing fetches mint
+            // different keys and the key rides the private url, so losers
+            // connect their watchers to an orphaned stream
+            object isLeader = await this.singleFlightAcquire("authenticate");
+            if (!isTrue(isLeader))
+            {
+                return;  // the leader settled: the listenKey is in the bucket
+            }
+            try
+            {
+                object response = await this.userAuthPrivatePostUserDataStream();
+                object listenKey = this.safeString(response, "listenKey");
+                if (isTrue(isEqual(listenKey, null)))
+                {
+                    throw new AuthenticationError ((string)add(this.id, " authenticate() received an empty listenKey")) ;
+                }
+                ((IDictionary<string,object>)this.options)["listenKey"] = listenKey;
+                ((IDictionary<string,object>)this.options)["lastAuthenticatedTime"] = time;
+                this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
+                this.singleFlightResolve("authenticate", listenKey);
+            } catch(Exception e)
+            {
+                this.singleFlightReject("authenticate", e);
+                throw e;
+            }
         }
     }
 

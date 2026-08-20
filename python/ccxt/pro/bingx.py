@@ -7,6 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
@@ -1339,10 +1340,26 @@ class bingx(ccxt.async_support.bingx):
         lastAuthenticatedTime = self.safe_integer(self.options, 'lastAuthenticatedTime', 0)
         listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 3600000)  # 1 hour
         if time - lastAuthenticatedTime > listenKeyRefreshRate:
-            response = await self.userAuthPrivatePostUserDataStream()
-            self.options['listenKey'] = self.safe_string(response, 'listenKey')
-            self.options['lastAuthenticatedTime'] = time
-            self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
+            # single-flight leader election, see  #29393: racing fetches mint
+            # different keys and the key rides the private url, so losers
+            # connect their watchers to an orphaned stream
+            isLeader = await self.single_flight_acquire('authenticate')
+            if not isLeader:
+                return  # the leader settled: the listenKey is in the bucket
+            try:
+                response = await self.userAuthPrivatePostUserDataStream()
+                listenKey = self.safe_string(response, 'listenKey')
+                if listenKey is None:
+                    # reject instead of caching an empty credential, so
+                    # waiters retry rather than proceed unauthenticated
+                    raise AuthenticationError(self.id + ' authenticate() received an empty listenKey')
+                self.options['listenKey'] = listenKey
+                self.options['lastAuthenticatedTime'] = time
+                self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
+                self.single_flight_resolve('authenticate', listenKey)
+            except Exception as e:
+                self.single_flight_reject('authenticate', e)
+                raise e
 
     async def pong(self, client: Client, message: object):
         #

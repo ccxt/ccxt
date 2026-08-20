@@ -1067,12 +1067,25 @@ func (this *KrakenfuturesCore) HandleOrder(client any, message any) any {
 	} else {
 		var isCancel any = this.SafeValue(message, "is_cancel")
 		if ccxt.IsTrue(isCancel) {
+			// Kraken documents is_cancel as "fully filled, cancelled, or
+			// rejected". Derive unified status from `reason` instead of
+			// mapping every removal to canceled. Preserve reason on info
+			// so consumers can tell a user cancel from liquidation, etc.
+			var reason any = this.SafeString(message, "reason")
+			var status any = "canceled"
+			if ccxt.IsTrue(ccxt.IsEqual(reason, "full_fill")) {
+				status = "closed"
+			}
 			// get order without symbol
 			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(orders)); i++ {
 				var currentOrder any = ccxt.GetValue(orders, i)
 				if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(currentOrder, "id"), ccxt.GetValue(message, "order_id"))) {
+					var info any = this.Extend(this.SafeDict(currentOrder, "info", map[string]any{}), map[string]any{
+						"reason": reason,
+					})
 					ccxt.AddElementToObject(orders, i, this.Extend(currentOrder, map[string]any{
-						"status": "canceled",
+						"status": status,
+						"info":   info,
 					}))
 					client.(ccxt.ClientInterface).Resolve(orders, "orders")
 					client.(ccxt.ClientInterface).Resolve(orders, ccxt.Add("orders:", ccxt.GetValue(currentOrder, "symbol")))
@@ -1821,8 +1834,8 @@ func (this *KrakenfuturesCore) WatchMultiHelper(unifiedName any, channelName any
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes156512 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes156512)
+			retRes157812 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes157812)
 		}
 		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 		// symbols are required
@@ -1847,9 +1860,9 @@ func (this *KrakenfuturesCore) WatchMultiHelper(unifiedName any, channelName any
 			}
 		}
 
-		retRes158915 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscriptionArgs))
-		ccxt.PanicOnError(retRes158915)
-		ch <- retRes158915
+		retRes160215 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscriptionArgs))
+		ccxt.PanicOnError(retRes160215)
+		ch <- retRes160215
 		return nil
 
 	}()
