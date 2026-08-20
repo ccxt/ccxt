@@ -2532,5 +2532,13 @@
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/31550755306/job/93972856257?pr=27862"
             }
         }
+    },
+    "gleec": {
+        "skipMethods": {
+            "loadMarkets": {
+                "markets": ["ICPUSDT_PERP"],
+                "currencyIdAndCode": "ICP currency code is not available in currencies"
+            }
+        }
     }
 }
