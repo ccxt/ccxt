@@ -552,6 +552,38 @@
                     0.001
                 ],
                 "output": "symbol=ETHUSDT&side=SELL&quantity=0.001&type=MARKET&recvWindow=5000&timestamp=1757586671089&signature=7ae3a5a3e77f4a441d4dc3f9272fcb5b88698b0d340123185b74bc97a44b6391"
+            },
+            {
+                "description": "createOrder perp buy limit reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.toobit.com/api/v1/futures/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    1234,
+                    {
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "symbol=ETH-SWAP-USDT&quantity=1&price=1234&side=BUY_CLOSE&type=LIMIT&newClientOrderId=2487475c-1f0b-4543-be20-643cfe28eae6&recvWindow=5000&timestamp=1757620003849&signature=8c9d2e52380e4b2a0955c0ecc1c2814d8d5d47c0551d859424a0b379a6dfebd5"
+            },
+            {
+                "description": "createOrder perp sell limit reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.toobit.com/api/v1/futures/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "sell",
+                    1,
+                    1234,
+                    {
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "symbol=ETH-SWAP-USDT&quantity=1&price=1234&side=SELL_CLOSE&type=LIMIT&newClientOrderId=2487475c-1f0b-4543-be20-643cfe28eae6&recvWindow=5000&timestamp=1757620003849&signature=8c9d2e52380e4b2a0955c0ecc1c2814d8d5d47c0551d859424a0b379a6dfebd5"
             }
         ],
         "fetchLeverage": [
