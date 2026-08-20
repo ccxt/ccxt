@@ -4,7 +4,7 @@ import xtRest from '../xt.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { Balances, Bool, Dict, FundingRate, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { NotSupported } from '../base/errors.js';
+import { AuthenticationError, NotSupported } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -82,33 +82,74 @@ export default class xt extends xtRest {
         const client = this.client (url);
         const token = this.safeString (client.subscriptions, 'token');
         if (token === undefined) {
-            if (isContract) {
-                const response = await this.privateLinearGetFutureUserV1UserListenKey ();
-                //
-                //    {
-                //        returnCode: '0',
-                //        msgInfo: 'success',
-                //        error: null,
-                //        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
-                //    }
-                //
-                client.subscriptions['token'] = this.safeString (response, 'result');
-            } else {
-                const response = await this.privateSpotPostWsToken ();
-                //
-                //    {
-                //        "rc": 0,
-                //        "mc": "SUCCESS",
-                //        "ma": [],
-                //        "result": {
-                //            "token": "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
-                //            "refreshToken": "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
-                //        }
-                //    }
-                //
-                const result = this.safeDict (response, 'result');
-                client.subscriptions['token'] = this.safeString (result, 'accessToken');
+            // single-flight leader election, see
+            // https://github.com/ccxt/ccxt/issues/29393: the cached token is
+            // read from client.subscriptions, then a REST call is awaited, then
+            // the result is written back - concurrent callers all pass the
+            // check and each mint their own token, last write wins, and the
+            // losers already carried an orphaned token into their subscription
+            // params (name + '@' + listenKey), so their private streams never
+            // deliver. the flight is registered in client.futures, which is the
+            // registry Exchange.watch () itself dedupes on, and settled through
+            // client.resolve / client.reject so every write to that map stays
+            // behind the same lock in the ported clients. spot and contract
+            // resolve to different urls, and the hash is scoped by tradeType on
+            // top of that, so the two token streams never share a flight
+            const messageHash = 'authenticate:' + tradeType;
+            if (messageHash in client.futures) {
+                // a flight is already in progress - wake when the leader
+                // settles it: the token is then in the bucket
+                await client.future (messageHash);
+                return client.subscriptions['token'];
             }
+            // register the flight BEFORE the first await, so concurrent
+            // callers see it and wait instead of minting their own token
+            const future = client.reusableFuture (messageHash);
+            try {
+                let listenKey: Str = undefined;
+                if (isContract) {
+                    const response = await this.privateLinearGetFutureUserV1UserListenKey ();
+                    //
+                    //    {
+                    //        returnCode: '0',
+                    //        msgInfo: 'success',
+                    //        error: null,
+                    //        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
+                    //    }
+                    //
+                    listenKey = this.safeString (response, 'result');
+                } else {
+                    const response = await this.privateSpotPostWsToken ();
+                    //
+                    //    {
+                    //        "rc": 0,
+                    //        "mc": "SUCCESS",
+                    //        "ma": [],
+                    //        "result": {
+                    //            "token": "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
+                    //            "refreshToken": "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
+                    //        }
+                    //    }
+                    //
+                    const result = this.safeDict (response, 'result');
+                    listenKey = this.safeString (result, 'accessToken');
+                }
+                if (listenKey === undefined) {
+                    // reject instead of caching an empty token, so waiters
+                    // retry rather than subscribing with the literal
+                    // string 'undefined' for the rest of the session
+                    throw new AuthenticationError (this.id + ' getListenKey() received an empty listen key');
+                }
+                client.subscriptions['token'] = listenKey;
+                client.resolve (listenKey, messageHash);
+            } catch (e) {
+                // hand the failure to every waiter - the next caller re-leads
+                // instead of deadlocking on a dead flight. no throw here: the
+                // await below rethrows to this caller and is also what keeps a
+                // waiterless rejection from crashing the process
+                client.reject (e, messageHash);
+            }
+            await future;
         }
         return client.subscriptions['token'];
     }
