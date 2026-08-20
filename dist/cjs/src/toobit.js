@@ -98,8 +98,7 @@ class toobit extends toobit$1["default"] {
                     'https://api-docs.toobit.com/',
                 ],
                 'referral': {
-                    'url': 'https://www.toobit.com/en-US/r?i=IFFPy0',
-                    'discount': 0.1,
+                    'url': 'https://www.toobit.com/en-US/r?i=dvCpJj',
                 },
                 'fees': 'https://www.toobit.com/fee',
             },
@@ -1820,10 +1819,10 @@ class toobit extends toobit$1["default"] {
         let reduceOnly = undefined;
         [reduceOnly, params] = this.handleParamBool(params, 'reduceOnly');
         if (side === 'buy') {
-            side = reduceOnly ? 'SELL_CLOSE' : 'BUY_OPEN';
+            side = reduceOnly ? 'BUY_CLOSE' : 'BUY_OPEN';
         }
         else if (side === 'sell') {
-            side = reduceOnly ? 'BUY_CLOSE' : 'SELL_OPEN';
+            side = reduceOnly ? 'SELL_CLOSE' : 'SELL_OPEN';
         }
         request['side'] = side;
         if (price !== undefined) {
@@ -1951,9 +1950,17 @@ class toobit extends toobit$1["default"] {
         market = this.safeMarket(marketId, market);
         const rawType = this.safeString(order, 'type');
         let rawSideLower = this.safeStringLower(order, 'side');
+        let reduceOnly = undefined;
         if (rawSideLower !== undefined) {
-            // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like
-            rawSideLower = this.safeString(rawSideLower.split('_'), 0);
+            // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
+            // the suffix is the only signal that carries reduceOnly, so read
+            // it before discarding it (spot sides have no suffix: undefined)
+            const sideParts = rawSideLower.split('_');
+            const sideSuffix = this.safeString(sideParts, 1);
+            if (sideSuffix !== undefined) {
+                reduceOnly = (sideSuffix === 'close');
+            }
+            rawSideLower = this.safeString(sideParts, 0);
         }
         let triggerPrice = this.omitZero(this.safeString(order, 'stopPrice'));
         if (triggerPrice === '0.0') {
@@ -1983,7 +1990,7 @@ class toobit extends toobit$1["default"] {
             'trades': undefined,
             'fee': undefined,
             'marginMode': undefined,
-            'reduceOnly': undefined,
+            'reduceOnly': reduceOnly,
             'leverage': undefined,
             'hedged': undefined,
         }, market);
