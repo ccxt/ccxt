@@ -8,6 +8,12 @@
 //   npm run cli.rs -- okx    fetchMarkets --verbose
 //   npm run cli.rs -- gate   fetchTrades BTC/USDT null 5
 //
+// `watch*` methods stream over WebSocket (via the `ccxt_pro` crate) and keep
+// printing each update until Ctrl-C. They need the `ws` feature — the
+// `npm run cli.rs` script already passes it:
+//   npm run cli.rs -- binance watchOrderBook BTC/USDT
+//   npm run cli.rs -- bybit   watchTrades    BTC/USDT
+//
 // Args: bare `null`/`true`/`false` and JSON `{...}`/`[...]` parse to
 //   Value::{Null,Bool,Map,Array}; everything else is a string.
 // Credentials: `keys.local.json` (fallback `keys.json`) at the repo root, then
@@ -16,7 +22,6 @@
 //        --httpProxy=URL --httpsProxy=URL --socksProxy=URL --proxy=URL
 use ccxt::value::HashMap;
 use ccxt::Value;
-use ccxt::{from_id, TypedExchange};
 use std::env;
 use std::panic;
 use futures::FutureExt;
@@ -64,6 +69,31 @@ fn pretty(v: &Value, indent: usize) -> String {
             format!("{{\n{}\n{pad}}}", items.join(",\n"))
         }
     }
+}
+
+// A WS order book is returned as an internal marker Dict — its bids/asks live
+// in a global side store keyed by `__side_id`, not inline — so printing it raw
+// exposes `{ __bookKind, __side_id, … }` instead of the levels. Resolve it into
+// the plain JS-like shape (`{ symbol, bids: [[p,a],…], asks: […], timestamp,
+// datetime, nonce }`) so `cli watchOrderBook` prints like ccxt-js. Non-book
+// values (trades, tickers, REST books) pass through unchanged.
+fn materialize_book(v: &Value) -> Value {
+    let fields = match ccxt::value::book_fields_as_value(v) {
+        Some(f) => f,
+        None => return v.clone(),
+    };
+    let d = match &fields { Value::Dict(d) => d, _ => return fields };
+    let mut out: HashMap<String, Value> = HashMap::new();
+    for (k, val) in d.iter() {
+        // drop the internal scaffolding keys (`__bookKind`, `_depth`, …)
+        if k.starts_with('_') { continue; }
+        // resolve a side marker (`bids`/`asks`) into `[[price, amount], …]`
+        match ccxt::value::side_entries_as_value(val) {
+            Some(entries) => { out.insert(k.clone(), entries); }
+            None => { out.insert(k.clone(), val.clone()); }
+        }
+    }
+    Value::Map(out)
 }
 
 // ── arg parsing ──────────────────────────────────────────────────────────────
@@ -148,6 +178,7 @@ fn usage() -> ! {
     eprintln!("  npm run cli.rs -- bybit fetchOHLCV BTC/USDT 1h null 10");
     eprintln!("  npm run cli.rs -- okx fetchMarkets --verbose");
     eprintln!("  npm run cli.rs -- binance fetchBalance --testnet");
+    eprintln!("  npm run cli.rs -- binance watchOrderBook BTC/USDT   (streams; Ctrl-C to stop)");
     eprintln!("flags: --verbose --testnet --demo --no-keys");
     eprintln!("       --httpProxy=URL --httpsProxy=URL --socksProxy=URL --proxy=URL");
     eprintln!("credentials: keys.local.json / keys.json or <ID>_<CRED> env vars");
@@ -196,8 +227,32 @@ async fn main() {
     println!();
 
     let m = m_snake.clone();
+    // `watch*` methods stream over WebSocket and live in the pro crate; every
+    // other method is a one-shot REST call on the typed `ccxt` crate.
+    if method.starts_with("watch") {
+        #[cfg(feature = "ws")]
+        {
+            run_ws(&id, &m, args, testnet, demo, config).await;
+        }
+        #[cfg(not(feature = "ws"))]
+        {
+            let _ = (testnet, demo, args, config);
+            eprintln!("\n{RED}error:{RESET} {method} is a WebSocket method — the pro venues \
+                       aren't compiled in.\nrebuild with the `ws` feature, e.g.\n  \
+                       cargo run --manifest-path examples/rust/Cargo.toml --features ws --bin cli -- {id} {method} …\n\
+                       (the `npm run cli.rs` script already passes --features ws)");
+            std::process::exit(1);
+        }
+    } else {
+        run_rest(&id, &m, args, testnet, demo, config).await;
+    }
+}
+
+// One-shot REST dispatch on the typed `ccxt` crate (the original CLI path).
+async fn run_rest(id: &str, m: &str, args: Vec<Value>, testnet: bool, demo: bool, config: HashMap<String, Value>) {
+    use ccxt::TypedExchange;
     let result = panic::AssertUnwindSafe(async move {
-        let mut ex: Box<dyn TypedExchange> = match from_id(&id, Some(Value::Map(config))) {
+        let mut ex: Box<dyn TypedExchange> = match ccxt::from_id(id, Some(Value::Map(config))) {
             Some(e) => e,
             None => panic!("{RED}exchange not transpiled yet: {id}{RESET}"),
         };
@@ -205,13 +260,13 @@ async fn main() {
         if testnet { let _ = ex.call_raw("set_sandbox_mode", vec![Value::Bool(true)]).await; }
         if demo { let _ = ex.call_raw("enable_demo_trading", vec![Value::Bool(true)]).await; }
         // Most unified methods need markets loaded first.
-        let skip_load = ["load_markets", "fetch_markets", "fetch_currencies", "fetch_time", "fetch_status", "describe"].contains(&m.as_str());
+        let skip_load = ["load_markets", "fetch_markets", "fetch_currencies", "fetch_time", "fetch_status", "describe"].contains(&m);
         if !skip_load { let _ = ex.load_markets(false).await; }
-        ex.call_raw(&m, args).await
+        ex.call_raw(m, args).await
     }).catch_unwind().await;
 
     match result {
-        Ok(Ok(v)) => println!("\n{GREEN}result:{RESET} {}", pretty(&v, 0)),
+        Ok(Ok(v)) => println!("\n{GREEN}result:{RESET} {}", pretty(&materialize_book(&v), 0)),
         Ok(Err(e)) => { eprintln!("\n{RED}error:{RESET} {e}"); std::process::exit(1); }
         Err(payload) => {
             let msg = payload.downcast_ref::<String>().map(|s| s.as_str())
@@ -220,5 +275,35 @@ async fn main() {
             eprintln!("\n{RED}error:{RESET} {msg}");
             std::process::exit(1);
         }
+    }
+}
+
+// Streaming dispatch for `watch*` methods on the pro (`ccxt_pro`) crate. Mirrors
+// `cli.ts`: after the first resolution it keeps re-invoking the same watch method
+// in a loop, printing each update until Ctrl-C (or the first error).
+#[cfg(feature = "ws")]
+async fn run_ws(id: &str, m: &str, args: Vec<Value>, testnet: bool, demo: bool, config: HashMap<String, Value>) {
+    use ccxt_pro::TypedExchange;
+    let mut ex: Box<dyn TypedExchange> = match ccxt_pro::from_id(id, Some(Value::Map(config))) {
+        Some(e) => e,
+        None => {
+            eprintln!("\n{RED}error:{RESET} no WebSocket (pro) venue for exchange: {id}");
+            std::process::exit(1);
+        }
+    };
+    if testnet { let _ = ex.call_raw("set_sandbox_mode", vec![Value::Bool(true)]).await; }
+    if demo { let _ = ex.call_raw("enable_demo_trading", vec![Value::Bool(true)]).await; }
+    let _ = ex.load_markets(false).await;
+    println!("{YELLOW}streaming {m} — press Ctrl-C to stop{RESET}");
+
+    let mut i: u64 = 0;
+    loop {
+        // The pro wrappers surface their panic-based errors as `Result`, so a
+        // plain match suffices — no per-iteration unwind guard needed.
+        match ex.call_raw(m, args.clone()).await {
+            Ok(v) => println!("\n{GREEN}[{i}]{RESET} {}", pretty(&materialize_book(&v), 0)),
+            Err(e) => { eprintln!("\n{RED}error:{RESET} {e}"); std::process::exit(1); }
+        }
+        i += 1;
     }
 }

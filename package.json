@@ -106,7 +106,7 @@
     "cli.php": "php ./examples/php/cli.php",
     "cli.cs": "dotnet run --project \"./cs/cli/cli.csproj\"",
     "cli.go": "go run -C go ./cli/main.go",
-    "cli.rs": "cargo run --quiet --manifest-path examples/rust/Cargo.toml --bin cli --",
+    "cli.rs": "cargo run --manifest-path examples/rust/Cargo.toml --features ws --bin cli --",
     "cli.java": "./build/utils/java-cli.sh",
     "ti-rs": "cargo run --quiet --manifest-path rust/tests/Cargo.toml --bin ti-rust --",
     "request-rs": "npm run ti-rs -- --requestTests",
