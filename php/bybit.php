@@ -106,7 +106,6 @@ class bybit extends Exchange {
                 'fetchOptionChain' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositionADLRank' => true,
@@ -5201,7 +5200,7 @@ class bybit extends Exchange {
         $request = array(
             'orderId' => $id,
         );
-        $result = $this->fetch_orders($symbol, null, null, $this->extend($request, $params));
+        $result = $this->fetch_orders_classic($symbol, null, null, $this->extend($request, $params));
         $length = count($result);
         if ($length === 0) {
             $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
@@ -5315,31 +5314,6 @@ class bybit extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
-        $res = $this->is_unified_enabled();
-        /**
-         * *classic accounts only/ spot not supported* fetches information on multiple orders made by the user *classic accounts only/ spot not supported*
-         * @see https://bybit-exchange.github.io/docs/v5/order/order-list
-         * @param {string} $symbol unified market $symbol of the market orders were made in
-         * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of order structures to retrieve
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->trigger] true if trigger order
-         * @param {boolean} [$params->stop] alias for trigger
-         * @param {string} [$params->type] market type, ['swap', 'option']
-         * @param {string} [$params->subType] market subType, ['linear', 'inverse']
-         * @param {string} [$params->orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
-         * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-         */
-        $enableUnifiedAccount = $this->safe_bool($res, 1);
-        if ($enableUnifiedAccount) {
-            throw new NotSupported($this->id . ' fetchOrders() is not supported after the 5/02 update for UTA accounts, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders');
-        }
-        return $this->fetch_orders_classic($symbol, $since, $limit, $params);
-    }
-
     public function fetch_orders_classic(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple orders made by the user *classic accounts only*
@@ -5363,9 +5337,9 @@ class bybit extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrdersClassic', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $params, 'nextPageCursor', 'cursor', null, 50);
+            return $this->fetch_paginated_call_cursor('fetchOrdersClassic', $symbol, $since, $limit, $params, 'nextPageCursor', 'cursor', null, 50);
         }
         $request = array();
         $market = null;
@@ -5374,9 +5348,9 @@ class bybit extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $type = null;
-        list($type, $params) = $this->get_bybit_type('fetchOrders', $market, $params);
+        list($type, $params) = $this->get_bybit_type('fetchOrdersClassic', $market, $params);
         if ($type === 'spot') {
-            throw new NotSupported($this->id . ' fetchOrders() is not supported for spot markets');
+            throw new NotSupported($this->id . ' fetchOrdersClassic() is not supported for spot markets');
         }
         $request['category'] = $type;
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
@@ -7472,10 +7446,11 @@ class bybit extends Exchange {
         /**
          * fetch the rate of interest to borrow a $currency for margin trading
          *
-         * @see https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota
+         * @see https://bybit-exchange.github.io/docs/v5/spot-margin-uta/vip-margin
          *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->vipLevel] the vip level to fetch the borrow rate for, defaults to 'No VIP'
          * @return {array} a ~@link https://docs.ccxt.com/?id=borrow-rate-structure borrow rate structure~
          */
         if ($this->markets === null) {
@@ -7483,37 +7458,58 @@ class bybit extends Exchange {
         }
         $currency = $this->currency($code);
         $request = array(
-            'coin' => $currency['id'],
+            'currency' => $currency['id'],
+            'vipLevel' => 'No VIP',
         );
-        $response = $this->privateGetV5SpotCrossMarginTradeLoanInfo($this->extend($request, $params));
+        $response = $this->publicGetV5SpotMarginTradeData($this->extend($request, $params));
         //
-        //    {
-        //         "retCode" => "0",
+        //     {
+        //         "retCode" => 0,
         //         "retMsg" => "success",
-        //         "result" => array(
-        //             "coin" => "USDT",
-        //             "interestRate" => "0.000107000000",
-        //             "loanAbleAmount" => "",
-        //             "maxLoanAmount" => "79999.999"
+        //         "result" => {
+        //             "vipCoinList" => array(
+        //                 {
+        //                     "list" => array(
+        //                         array(
+        //                             "borrowable" => true,
+        //                             "collateralRatio" => "0.98",
+        //                             "currency" => "BTC",
+        //                             "hourlyBorrowRate" => "0.0000005030430000",
+        //                             "liquidationOrder" => "3",
+        //                             "marginCollateral" => true,
+        //                             "maxBorrowingAmount" => "300"
+        //                         }
+        //                     ),
+        //                     "vipLevel" => "No VIP"
+        //                 }
+        //             )
         //         ),
-        //         "retExtInfo" => null,
-        //         "time" => "1666734490778"
+        //         "retExtInfo" => "array()",
+        //         "time" => 1786958191900
         //     }
         //
         $timestamp = $this->safe_integer($response, 'time');
         $data = $this->safe_dict($response, 'result', array());
-        $data['timestamp'] = $timestamp;
-        return $this->parse_borrow_rate($data, $currency);
+        $vipCoinList = $this->safe_list($data, 'vipCoinList', array());
+        $firstVip = $this->safe_dict($vipCoinList, 0, array());
+        $coins = $this->safe_list($firstVip, 'list', array());
+        $coin = $this->safe_dict($coins, 0, array());
+        $coin['timestamp'] = $timestamp;
+        return $this->parse_borrow_rate($coin, $currency);
     }
 
     public function parse_borrow_rate(mixed $info, ?array $currency = null) {
         //
+        // fetchCrossBorrowRate
         //     {
-        //         "coin" => "USDT",
-        //         "interestRate" => "0.000107000000",
-        //         "loanAbleAmount" => "",
-        //         "maxLoanAmount" => "79999.999",
-        //         "timestamp" => 1666734490778
+        //         "borrowable" => true,
+        //         "collateralRatio" => "0.98",
+        //         "currency" => "BTC",
+        //         "hourlyBorrowRate" => "0.0000005030430000",
+        //         "liquidationOrder" => "3",
+        //         "marginCollateral" => true,
+        //         "maxBorrowingAmount" => "300",
+        //         "timestamp" => 1786958191900
         //     }
         //
         // fetchBorrowRateHistory

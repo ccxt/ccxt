@@ -3371,7 +3371,7 @@ public partial class kucoin : Exchange
             { "last", last },
             { "previousClose", null },
             { "change", this.safeString(ticker, "priceChg") },
-            { "percentage", this.safeString(ticker, "priceChgPct") },
+            { "percentage", Precise.stringMul(this.safeString(ticker, "priceChgPct"), "100") },
             { "average", null },
             { "baseVolume", this.safeString(ticker, "volumeOf24h") },
             { "quoteVolume", this.safeString(ticker, "turnoverOf24h") },

@@ -38,6 +38,7 @@
 	- [btcbox](exchanges/btcbox.md)
 	- [btcmarkets](exchanges/btcmarkets.md)
 	- [btcturk](exchanges/btcturk.md)
+	- [btse](exchanges/btse.md)
 	- [bullish](exchanges/bullish.md)
 	- [bybit](exchanges/bybit.md)
 	- [bydfi](exchanges/bydfi.md)

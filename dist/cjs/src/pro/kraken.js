@@ -630,16 +630,16 @@ class kraken extends kraken$1["default"] {
         }
         const ohlcvsLength = data.length;
         for (let i = 0; i < ohlcvsLength; i++) {
-            const candle = data[ohlcvsLength - i - 1];
+            const candle = data[i];
             const datetime = this.safeString(candle, 'interval_begin');
             const timestamp = this.parse8601(datetime);
             const parsed = [
                 timestamp,
-                this.safeString(candle, 'open'),
-                this.safeString(candle, 'high'),
-                this.safeString(candle, 'low'),
-                this.safeString(candle, 'close'),
-                this.safeString(candle, 'volume'),
+                this.safeNumber(candle, 'open'),
+                this.safeNumber(candle, 'high'),
+                this.safeNumber(candle, 'low'),
+                this.safeNumber(candle, 'close'),
+                this.safeNumber(candle, 'volume'),
             ];
             stored.append(parsed);
         }

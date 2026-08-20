@@ -13,9 +13,12 @@ func TestWatchTicker(exchange ccxt.ICoreExchange, skippedProperties any, symbol 
 		var method any = "watchTicker"
 		var now any = exchange.Milliseconds()
 		var ends any = Add(now, 15000)
-		for IsLessThan(now, ends) {
+		var maxIdleTime any = 5000
+		var idle any = false
+		for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
 			var response any = nil
 			var success any = true
+			var startTime any = exchange.Milliseconds()
 
 			{
 				func() (ret_ any) {
@@ -29,8 +32,6 @@ func TestWatchTicker(exchange ccxt.ICoreExchange, skippedProperties any, symbol 
 								if !IsTrue(IsTemporaryFailure(e)) {
 									panic(e)
 								}
-								now = exchange.Milliseconds()
-								// continue;
 								success = false
 								return nil
 							}()
@@ -44,10 +45,13 @@ func TestWatchTicker(exchange ccxt.ICoreExchange, skippedProperties any, symbol 
 				}()
 
 			}
-			if IsTrue(IsEqual(success, true)) {
+			now = exchange.Milliseconds()
+			if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
 				Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " must return a dictionary. "), exchange.Json(response)))
-				now = exchange.Milliseconds()
 				TestTicker(exchange, skippedProperties, method, response, symbol)
+				if IsTrue(IsGreaterThan((Subtract(now, startTime)), maxIdleTime)) {
+					idle = true
+				}
 			}
 		}
 

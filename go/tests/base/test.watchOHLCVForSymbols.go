@@ -23,9 +23,12 @@ func TestWatchOHLCVForSymbols(exchange ccxt.ICoreExchange, skippedProperties any
 		var limit any = 10
 		var duration any = exchange.ParseTimeframe(chosenTimeframeKey)
 		var since any = Subtract(Subtract(exchange.Milliseconds(), Multiply(Multiply(duration, limit), 1000)), 1000)
-		for IsLessThan(now, ends) {
+		var maxIdleTime any = 5000
+		var idle any = false
+		for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
 			var response any = nil
 			var success any = true
+			var startTime any = exchange.Milliseconds()
 
 			{
 				func() (ret_ any) {
@@ -39,8 +42,6 @@ func TestWatchOHLCVForSymbols(exchange ccxt.ICoreExchange, skippedProperties any
 								if !IsTrue(IsTemporaryFailure(e)) {
 									panic(e)
 								}
-								now = exchange.Milliseconds()
-								// continue;
 								success = false
 								return nil
 							}()
@@ -57,10 +58,8 @@ func TestWatchOHLCVForSymbols(exchange ccxt.ICoreExchange, skippedProperties any
 				}()
 
 			}
-			if IsTrue(IsEqual(success, true)) {
-				if IsTrue(IsEqual(response, nil)) {
-					panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
-				}
+			now = exchange.Milliseconds()
+			if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
 				var AssertionMessage any = Add(Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " "), chosenTimeframeKey), " | "), exchange.Json(response))
 				Assert(exchange.IsDictionary(response), Add("Response must be a dictionary. ", AssertionMessage))
 				Assert(InOp(response, symbol), Add("Response should contain the symbol as key. ", AssertionMessage))
@@ -69,9 +68,11 @@ func TestWatchOHLCVForSymbols(exchange ccxt.ICoreExchange, skippedProperties any
 				Assert(InOp(symbolObj, chosenTimeframeKey), Add("Response.symbol should contain the timeframe key. ", AssertionMessage))
 				var ohlcvs any = GetValue(symbolObj, chosenTimeframeKey)
 				Assert(IsArray(ohlcvs), Add("Response.symbol.timeframe should be an array. ", AssertionMessage))
-				now = exchange.Milliseconds()
 				for i := 0; IsLessThan(i, GetArrayLength(ohlcvs)); i++ {
 					TestOHLCV(exchange, skippedProperties, method, GetValue(ohlcvs, i), symbol, now)
+				}
+				if IsTrue(IsGreaterThan((Subtract(now, startTime)), maxIdleTime)) {
+					idle = true
 				}
 			}
 		}

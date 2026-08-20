@@ -649,5 +649,392 @@ public partial class BaseTest
             Assert(isTrue(isEqual(getValue(getValue(cacheSymbolSide4, 2), "contracts"), 4)) && isTrue(isEqual(getValue(getValue(cacheSymbolSide4, 2), "symbol"), symbol2)));
             object arrayLength = getArrayLength(cacheSymbolSide4);
             Assert(isEqual(arrayLength, 3));
+            
+        // ----------------------------------------------------------------------------
+        
+            // test clear () really resets ArrayCacheBySymbolById - the hashmap used to keep
+            // claiming the cleared ids, so re-appending them merged into orphaned references
+            // and findIndex returned -1, making splice (-1, 1) drop an unrelated row
+            var cacheClearById = new ArrayCacheBySymbolById();
+            cacheClearById.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "id", "a" },
+                { "i", 1 },
+            });
+            cacheClearById.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "id", "b" },
+                { "i", 2 },
+            });
+            cacheClearById.clear();
+            Assert(isEqual(getArrayLength(cacheClearById), 0));
+            Assert(isEqual(cacheClearById.getLimit(null, 10), 0)); // no phantom updates
+            cacheClearById.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "id", "a" },
+                { "i", 3 },
+            });
+            cacheClearById.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "id", "b" },
+                { "i", 4 },
+            });
+            Assert(equals(cacheClearById, new List<object>() {new Dictionary<string, object>() {
+            { "symbol", "BTC/USDT" },
+            { "id", "a" },
+            { "i", 3 },
+        }, new Dictionary<string, object>() {
+            { "symbol", "BTC/USDT" },
+            { "id", "b" },
+            { "i", 4 },
+        }}));
+            
+        // ----------------------------------------------------------------------------
+        
+            // test clear () really resets ArrayCacheByTimestamp - a re-appended timestamp
+            // used to merge into a reference that was no longer in the array, so the candle
+            // was silently dropped and the cache stayed empty
+            var cacheClearTimestamp = new ArrayCacheByTimestamp();
+            cacheClearTimestamp.append(new List<object>() {100, 1, 2, 3});
+            cacheClearTimestamp.append(new List<object>() {200, 4, 5, 6});
+            cacheClearTimestamp.clear();
+            Assert(isEqual(getArrayLength(cacheClearTimestamp), 0));
+            Assert(isEqual(cacheClearTimestamp.getLimit(null, 10), 0)); // no phantom updates
+            cacheClearTimestamp.append(new List<object>() {100, 7, 8, 9});
+            Assert(equals(cacheClearTimestamp, new List<object>() {new List<object>() {100, 7, 8, 9}}));
+            
+        // ----------------------------------------------------------------------------
+        
+            // test clear () really resets ArrayCacheBySymbolBySide
+            var cacheClearBySide = new ArrayCacheBySymbolBySide();
+            cacheClearBySide.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "side", "long" },
+                { "contracts", 1 },
+            });
+            cacheClearBySide.append(new Dictionary<string, object>() {
+                { "symbol", "ETH/USDT" },
+                { "side", "long" },
+                { "contracts", 2 },
+            });
+            cacheClearBySide.clear();
+            object clearedBySideLength = getArrayLength(cacheClearBySide);
+            Assert(isEqual(clearedBySideLength, 0));
+            cacheClearBySide.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "side", "long" },
+                { "contracts", 3 },
+            });
+            cacheClearBySide.append(new Dictionary<string, object>() {
+                { "symbol", "ETH/USDT" },
+                { "side", "long" },
+                { "contracts", 4 },
+            });
+            object reappendedBySideLength = getArrayLength(cacheClearBySide);
+            Assert(isEqual(reappendedBySideLength, 2));
+            Assert(isEqual(getValue(getValue(cacheClearBySide, 0), "contracts"), 3));
+            Assert(isEqual(getValue(getValue(cacheClearBySide, 1), "contracts"), 4));
+            
+        // ----------------------------------------------------------------------------
+        
+            // test a falsy maxSize means unbounded, it must not swallow rows
+            var cacheUnbounded = new ArrayCache(0);
+            cacheUnbounded.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "data", 1 },
+            });
+            cacheUnbounded.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "data", 2 },
+            });
+            cacheUnbounded.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "data", 3 },
+            });
+            Assert(isEqual(getArrayLength(cacheUnbounded), 3));
+            
+        // ----------------------------------------------------------------------------
+        
+            // test a keyed update MERGES fields instead of replacing the row - a partial
+            // order delta must not drop the fields it does not mention
+            var cachePartial = new ArrayCacheBySymbolById();
+            cachePartial.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "id", "a1" },
+                { "status", "open" },
+                { "amount", 5 },
+                { "fee", 7 },
+            });
+            cachePartial.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "id", "a1" },
+                { "status", "closed" },
+            });
+            Assert(isEqual(getArrayLength(cachePartial), 1));
+            Assert(isEqual(getValue(getValue(cachePartial, 0), "status"), "closed"));
+            Assert(isEqual(getValue(getValue(cachePartial, 0), "amount"), 5));
+            Assert(isEqual(getValue(getValue(cachePartial, 0), "fee"), 7));
+            
+        // ----------------------------------------------------------------------------
+        
+            // test the symbol and the id are matched as two separate fields - concatenating
+            // them makes ('BTC/USDT1', '2') collide with ('BTC/USDT', '12')
+            var cacheColliding = new ArrayCacheBySymbolById();
+            cacheColliding.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT1" },
+                { "id", "2" },
+                { "i", 1 },
+            });
+            cacheColliding.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "id", "12" },
+                { "i", 2 },
+            });
+            Assert(isEqual(getArrayLength(cacheColliding), 2));
+            Assert(isEqual(getValue(getValue(cacheColliding, 0), "i"), 1));
+            Assert(isEqual(getValue(getValue(cacheColliding, 1), "i"), 2));
+            
+        // ----------------------------------------------------------------------------
+        
+            // test two symbols may share one order id - matching on the id alone splices
+            // out the wrong row, so Assert the positional contents and not just the count
+            var cacheSharedId = new ArrayCacheBySymbolById();
+            cacheSharedId.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "id", "shared" },
+                { "i", 1 },
+            });
+            cacheSharedId.append(new Dictionary<string, object>() {
+                { "symbol", "ETH/USDT" },
+                { "id", "shared" },
+                { "i", 2 },
+            });
+            cacheSharedId.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "id", "shared" },
+                { "i", 3 },
+            });
+            Assert(equals(cacheSharedId, new List<object>() {new Dictionary<string, object>() {
+            { "symbol", "ETH/USDT" },
+            { "id", "shared" },
+            { "i", 2 },
+        }, new Dictionary<string, object>() {
+            { "symbol", "BTC/USDT" },
+            { "id", "shared" },
+            { "i", 3 },
+        }}));
+            
+        // ----------------------------------------------------------------------------
+        
+            // test ArrayCacheByTimestamp eviction. Re-appending an evicted timestamp must
+            // create a fresh row at the end, which proves the hashmap entry went away with
+            // the evicted candle instead of leaking
+            var cacheTimestampLimited = new ArrayCacheByTimestamp(3);
+            for (object i = 1; isLessThan(i, 7); postFixIncrement(ref i))
+            {
+                cacheTimestampLimited.append(new List<object>() {multiply(i, 100), i, i, i});
+            }
+            Assert(equals(cacheTimestampLimited, new List<object>() {new List<object>() {400, 4, 4, 4}, new List<object>() {500, 5, 5, 5}, new List<object>() {600, 6, 6, 6}}));
+            cacheTimestampLimited.append(new List<object>() {100, 9, 9, 9});
+            Assert(equals(cacheTimestampLimited, new List<object>() {new List<object>() {500, 5, 5, 5}, new List<object>() {600, 6, 6, 6}, new List<object>() {100, 9, 9, 9}}));
+            
+        // ----------------------------------------------------------------------------
+        
+            // test a shorter OHLCV update does not leave a stale tail behind - merging
+            // [ 100, 9, 9 ] onto [ 100, 1, 2, 3, 4, 5 ] used to yield [ 100, 9, 9, 3, 4, 5 ]
+            var cacheShortOhlcv = new ArrayCacheByTimestamp();
+            cacheShortOhlcv.append(new List<object>() {100, 1, 2, 3, 4, 5});
+            cacheShortOhlcv.append(new List<object>() {100, 9, 9});
+            Assert(isEqual(getArrayLength(cacheShortOhlcv), 1));
+            Assert(equals(cacheShortOhlcv, new List<object>() {new List<object>() {100, 9, 9}}));
+            
+        // ----------------------------------------------------------------------------
+        
+            // test ArrayCacheByOutcomeById keys the first nesting level on the outcome and
+            // not on the symbol - prediction markets stream several outcomes of the same
+            // market, so a symbol-keyed lookup would merge two distinct outcomes that
+            // happen to share one order id into a single row
+            var cacheByOutcome = new ArrayCacheByOutcomeById();
+            cacheByOutcome.append(new Dictionary<string, object>() {
+                { "symbol", "TRUMP-2024" },
+                { "outcome", "yes" },
+                { "id", "o1" },
+                { "i", 1 },
+            });
+            cacheByOutcome.append(new Dictionary<string, object>() {
+                { "symbol", "TRUMP-2024" },
+                { "outcome", "no" },
+                { "id", "o1" },
+                { "i", 2 },
+            });
+            cacheByOutcome.append(new Dictionary<string, object>() {
+                { "symbol", "TRUMP-2024" },
+                { "outcome", "yes" },
+                { "id", "o1" },
+                { "i", 3 },
+            });
+            Assert(equals(cacheByOutcome, new List<object>() {new Dictionary<string, object>() {
+            { "symbol", "TRUMP-2024" },
+            { "outcome", "no" },
+            { "id", "o1" },
+            { "i", 2 },
+        }, new Dictionary<string, object>() {
+            { "symbol", "TRUMP-2024" },
+            { "outcome", "yes" },
+            { "id", "o1" },
+            { "i", 3 },
+        }}));
+            
+        // ----------------------------------------------------------------------------
+        
+            // test a numeric id is matched the same way a string one is - exchanges do send
+            // integer order ids, and the lookup must neither throw nor miss and append a
+            // duplicate row instead of merging the update in
+            var cacheNumericId = new ArrayCacheBySymbolById();
+            cacheNumericId.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "id", 1 },
+                { "status", "open" },
+                { "amount", 5 },
+            });
+            cacheNumericId.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "id", 1 },
+                { "status", "closed" },
+            });
+            Assert(isEqual(getArrayLength(cacheNumericId), 1));
+            Assert(isEqual(getValue(getValue(cacheNumericId, 0), "status"), "closed"));
+            Assert(isEqual(getValue(getValue(cacheNumericId, 0), "amount"), 5));
+            
+        // ----------------------------------------------------------------------------
+        
+            // test eviction removes the emptied outer bucket too - a stream of short-lived
+            // symbols used to leak one empty object per symbol into the hashmap forever,
+            // so the map grew without bound even though the array stayed at maxSize
+            var cacheEvictBuckets = new ArrayCacheBySymbolById(3);
+            for (object i = 0; isLessThan(i, 10); postFixIncrement(ref i))
+            {
+                cacheEvictBuckets.append(new Dictionary<string, object>() {
+                    { "symbol", add(add("S", ((object)i).ToString()), "/USDT") },
+                    { "id", "x" },
+                    { "i", i },
+                });
+            }
+            object evictedLength = getArrayLength(cacheEvictBuckets);
+            Assert(isEqual(evictedLength, 3));
+            object bucketKeys = new List<object>(((IDictionary<string,object>)cacheEvictBuckets.hashmap).Keys);
+            object bucketCount = getArrayLength(bucketKeys);
+            Assert(isEqual(bucketCount, 3)); // no empty leftover buckets
+            
+        // ----------------------------------------------------------------------------
+        
+            // test the symbol-scoped and the global getLimit scopes count independently -
+            // deriving the global count from the symbol-scoped seen set double-counts an
+            // id that updates again after a symbol poll
+            var cacheTwoScopes = new ArrayCacheBySymbolById();
+            cacheTwoScopes.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "id", "a" },
+                { "i", 1 },
+            });
+            cacheTwoScopes.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "id", "b" },
+                { "i", 2 },
+            });
+            object symbolScopeFirst = cacheTwoScopes.getLimit("BTC/USDT", 100);
+            Assert(isEqual(symbolScopeFirst, 2));
+            cacheTwoScopes.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "id", "a" },
+                { "i", 3 },
+            });
+            object globalScope = cacheTwoScopes.getLimit(null, 100);
+            Assert(isEqual(globalScope, 2)); // distinct ids a and b since no global poll happened - id a must not double-count
+            object symbolScopeSecond = cacheTwoScopes.getLimit("BTC/USDT", 100);
+            Assert(isEqual(symbolScopeSecond, 1)); // id a since the last symbol-scoped poll
+            // the inverse direction: a global poll (and the append that fires its
+            // deferred reset) must not erase the symbol scope's window
+            cacheTwoScopes.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "id", "d" },
+                { "i", 4 },
+            });
+            cacheTwoScopes.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "id", "e" },
+                { "i", 5 },
+            });
+            object globalScopeSecond = cacheTwoScopes.getLimit(null, 100);
+            Assert(isEqual(globalScopeSecond, 2)); // ids d and e since the first global poll - id a was consumed by it
+            cacheTwoScopes.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "id", "d" },
+                { "i", 6 },
+            });
+            object symbolScopeThird = cacheTwoScopes.getLimit("BTC/USDT", 100);
+            Assert(isEqual(symbolScopeThird, 2)); // ids d, e since the last symbol poll - the global poll in between must not reset this window
+            
+        // ----------------------------------------------------------------------------
+        
+            // the BySide twin of the two-scope case, covering both directions
+            var sideTwoScopes = new ArrayCacheBySymbolBySide();
+            sideTwoScopes.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT:USDT" },
+                { "side", "long" },
+                { "contracts", 1 },
+            });
+            sideTwoScopes.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT:USDT" },
+                { "side", "short" },
+                { "contracts", 1 },
+            });
+            object sideSymbolFirst = sideTwoScopes.getLimit("BTC/USDT:USDT", 100);
+            Assert(isEqual(sideSymbolFirst, 2));
+            sideTwoScopes.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT:USDT" },
+                { "side", "long" },
+                { "contracts", 2 },
+            });
+            object sideGlobal = sideTwoScopes.getLimit(null, 100);
+            Assert(isEqual(sideGlobal, 2)); // long and short distinct since no global poll - the re-updated long must not double-count
+            sideTwoScopes.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT:USDT" },
+                { "side", "short" },
+                { "contracts", 2 },
+            });
+            object sideSymbolSecond = sideTwoScopes.getLimit("BTC/USDT:USDT", 100);
+            Assert(isEqual(sideSymbolSecond, 2)); // long and short since the last symbol poll - the global poll must not reset this window
+            
+        // ----------------------------------------------------------------------------
+        
+            // eviction bounds the seen scopes: an id evicted by maxSize leaves both seen
+            // sets, so the counts mean distinct ids within the retained window - exactly
+            // what a consumer can slice - and single-scope pollers stay bounded
+            var cacheEvictSeen = new ArrayCacheBySymbolById(2);
+            cacheEvictSeen.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "id", "a" },
+                { "i", 1 },
+            });
+            cacheEvictSeen.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "id", "b" },
+                { "i", 2 },
+            });
+            cacheEvictSeen.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "id", "c" },
+                { "i", 3 },
+            }); // evicts id a
+            object evictSymbolCount = cacheEvictSeen.getLimit("BTC/USDT", 100);
+            Assert(isEqual(evictSymbolCount, 2)); // ids b and c - the evicted id a no longer counts
+            cacheEvictSeen.append(new Dictionary<string, object>() {
+                { "symbol", "BTC/USDT" },
+                { "id", "d" },
+                { "i", 4 },
+            }); // evicts id b
+            object evictGlobalCount = cacheEvictSeen.getLimit(null, 100);
+            Assert(isEqual(evictGlobalCount, 2)); // ids c and d - the counts track distinct ids within the retained window in both scopes
         }
 }

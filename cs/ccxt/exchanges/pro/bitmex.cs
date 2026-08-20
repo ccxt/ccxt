@@ -22,7 +22,7 @@ public partial class bitmex : ccxt.bitmex
                 { "watchOrderBook", true },
                 { "watchOrderBookForSymbols", true },
                 { "watchOrders", true },
-                { "watchPostions", true },
+                { "watchPositions", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchTrades", true },

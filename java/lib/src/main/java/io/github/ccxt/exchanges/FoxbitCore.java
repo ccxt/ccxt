@@ -44,7 +44,6 @@ public class FoxbitCore extends FoxbitApi
                 put( "createOrder", true );
                 put( "createOrders", true );
                 put( "editOrder", true );
-                put( "fecthOrderBook", true );
                 put( "fetchBalance", true );
                 put( "fetchCanceledOrders", true );
                 put( "fetchClosedOrders", true );

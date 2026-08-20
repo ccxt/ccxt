@@ -33,7 +33,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 put( "watchOrderBook", true );
                 put( "watchOrderBookForSymbols", true );
                 put( "watchOrders", true );
-                put( "watchPostions", true );
+                put( "watchPositions", true );
                 put( "watchTicker", true );
                 put( "watchTickers", true );
                 put( "watchTrades", true );

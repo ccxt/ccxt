@@ -1914,6 +1914,13 @@ public class HashkeyCore extends HashkeyApi
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object last = this.safeString(ticker, "c");
+        Object baseVolume = this.safeString(ticker, "v");
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "contract")) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "contractSize"), null)))))
+        {
+            // 'v' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.stringMul(baseVolume, this.numberToString(Helpers.GetValue(market, "contractSize")));
+        }
+        final Object finalBaseVolume = baseVolume;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -1932,7 +1939,7 @@ public class HashkeyCore extends HashkeyApi
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", HashkeyCore.this.safeString(ticker, "v") );
+            put( "baseVolume", finalBaseVolume );
             put( "quoteVolume", HashkeyCore.this.safeString(ticker, "qv") );
             put( "info", ticker );
         }}, market);

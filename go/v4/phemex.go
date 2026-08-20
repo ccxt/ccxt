@@ -3149,9 +3149,9 @@ func (this *PhemexCore) CreateOrder(symbol any, typeVar any, side any, amount an
 			posSide = this.Capitalize(posSide)
 			AddElementToObject(request, "posSide", posSide)
 			if IsTrue(isStableSettled) {
-				AddElementToObject(request, "orderQtyRq", amount)
+				AddElementToObject(request, "orderQtyRq", this.AmountToPrecision(symbol, amount))
 			} else {
-				AddElementToObject(request, "orderQty", this.ParseToInt(amount))
+				AddElementToObject(request, "orderQty", this.ParseToInt(this.AmountToPrecision(symbol, amount)))
 			}
 			if IsTrue(!IsEqual(triggerPrice, nil)) {
 				var triggerType any = this.SafeString(params, "triggerType", "ByMarkPrice")

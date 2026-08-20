@@ -5,6 +5,7 @@ namespace ccxt\pro;
 use ccxt\async\Throttler;
 use ccxt\BaseError;
 use ccxt\ExchangeError;
+use ccxt\ExchangeClosedByUser;
 use Exception;
 use React\Async;
 use React\EventLoop\Loop;
@@ -41,6 +42,56 @@ trait ClientTrait {
 
     public function counted_order_book($snapshot = array(), $depth = PHP_INT_MAX) {
         return new CountedOrderBook($snapshot, $depth);
+    }
+
+    public $authenticationFlights = array();
+
+    public function single_flight_acquire($flight_hash) {
+        // leader election for check-then-fetch authentication flows
+        // see https://github.com/ccxt/ccxt/issues/29393
+        // returns true when the caller is elected leader and must perform the fetch
+        // returns false after awaiting an in-progress flight
+        return Async\async(function () use ($flight_hash) {
+            if (array_key_exists($flight_hash, $this->authenticationFlights)) {
+                Async\await($this->authenticationFlights[$flight_hash]);
+                return false;
+            }
+            $flight = new Future();
+            # an alone leader may reject before any waiter awaits the flight -
+            # attach a silent rejection handler so React never reports an
+            # unhandled promise rejection for a waiterless reject
+            $flight->then(null, function ($error) {
+            });
+            $this->authenticationFlights[$flight_hash] = $flight;
+            return true;
+        })();
+    }
+
+    public function single_flight_wait($flight_hash) {
+        // awaits an in-progress flight without electing a leader
+        return Async\async(function () use ($flight_hash) {
+            if (array_key_exists($flight_hash, $this->authenticationFlights)) {
+                Async\await($this->authenticationFlights[$flight_hash]);
+            }
+        })();
+    }
+
+    public function single_flight_resolve($flight_hash, $result = null) {
+        // settles a flight successfully and wakes all waiters
+        if (array_key_exists($flight_hash, $this->authenticationFlights)) {
+            $future = $this->authenticationFlights[$flight_hash];
+            unset($this->authenticationFlights[$flight_hash]);
+            $future->resolve($result);
+        }
+    }
+
+    public function single_flight_reject($flight_hash, $error) {
+        // settles a flight with an error - all waiters throw
+        if (array_key_exists($flight_hash, $this->authenticationFlights)) {
+            $future = $this->authenticationFlights[$flight_hash];
+            unset($this->authenticationFlights[$flight_hash]);
+            $future->reject($error);
+        }
     }
 
     public function client($url) : Client {
@@ -222,6 +273,14 @@ trait ClientTrait {
     }
 
     public function close_ws_clients() {
+        # settle any in-flight auth flights so their waiters do not hang
+        # across a close - same idea as Client::reset
+        $flight_hashes = array_keys($this->authenticationFlights);
+        foreach ($flight_hashes as $flight_hash) {
+            $flight = $this->authenticationFlights[$flight_hash];
+            unset($this->authenticationFlights[$flight_hash]);
+            $flight->reject(new ExchangeClosedByUser($this->id . ' close() was called'));
+        }
         // make sure to close the exchange once you are finished using the websocket connections
         // so that the event loop can complete it's work and go to sleep
         foreach ($this->clients as $client) {

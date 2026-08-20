@@ -29,10 +29,13 @@ func TestWatchBidsAsksHelper(exchange ccxt.ICoreExchange, skippedProperties any,
 		var method any = "watchBidsAsks"
 		var now any = exchange.Milliseconds()
 		var ends any = Add(now, 15000)
-		for IsLessThan(now, ends) {
+		var maxIdleTime any = 5000
+		var idle any = false
+		for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
 			var success any = true
 			var shouldReturn any = false
 			var response any = map[string]any{}
+			var startTime any = exchange.Milliseconds()
 
 			{
 				func() (ret_ any) {
@@ -53,8 +56,6 @@ func TestWatchBidsAsksHelper(exchange ccxt.ICoreExchange, skippedProperties any,
 								} else if !IsTrue(IsTemporaryFailure(e)) {
 									panic(e)
 								}
-								now = exchange.Milliseconds()
-								// continue;
 								success = false
 								return nil
 							}()
@@ -68,6 +69,7 @@ func TestWatchBidsAsksHelper(exchange ccxt.ICoreExchange, skippedProperties any,
 				}()
 
 			}
+			now = exchange.Milliseconds()
 			if IsTrue(shouldReturn) {
 
 				ch <- false
@@ -85,8 +87,9 @@ func TestWatchBidsAsksHelper(exchange ccxt.ICoreExchange, skippedProperties any,
 					var ticker any = GetValue(values, i)
 					TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
 				}
-				now = exchange.Milliseconds()
-				now = exchange.Milliseconds()
+				if IsTrue(IsGreaterThan((Subtract(now, startTime)), maxIdleTime)) {
+					idle = true
+				}
 			}
 		}
 

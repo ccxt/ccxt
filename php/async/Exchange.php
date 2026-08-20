@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.73';
+$version = '4.5.74';
 
 class BaseExchange extends \ccxt\BaseExchange {
 
-    const VERSION = '4.5.73';
+    const VERSION = '4.5.74';
 
     public $browser;
     public $marketsLoading = null;
@@ -357,18 +357,11 @@ class BaseExchange extends \ccxt\BaseExchange {
         return call_user_func($this->throttler, $cost);
     }
 
-    // the ellipsis packing/unpacking requires PHP 5.6+ :(
-    function spawn($method, ...$args) {
-        return Async\async(function () use ($method, $args) {
-            return Async\await($method(...$args));
-        })();
-    }
-
-    function delay($timeout, $method, ...$args) {
-        Loop::addTimer($timeout / 1000, function () use ($method, $args) {
-            $this->spawn($method, ...$args);
-        });
-    }
+    // spawn() and delay() come from ClientTrait (used above): the trait
+    // versions bridge into a ccxt\pro\Future with a public reject(), matching
+    // the ts contract. the raw-promise duplicates that used to live here
+    // shadowed the trait (class-own beats trait in php) and made every
+    // transpiled future.reject() a fatal call to a private method.
 
     function is_binary_message($data): bool {
         if (!is_string($data)) {

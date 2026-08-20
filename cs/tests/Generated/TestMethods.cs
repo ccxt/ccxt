@@ -744,6 +744,119 @@ public partial class testMainClass
         return symbol;
     }
 
+    public virtual object getTickerVolume(BaseExchange exchange, object ticker)
+    {
+        // all candidates compared with this helper share the same quote currency,
+        // so `quoteVolume` is directly comparable between them. fall back to the
+        // base volume converted with the last price, then to the raw base volume,
+        // because not every exchange populates `quoteVolume`.
+        object quoteVolume = exchange.safeNumber(ticker, "quoteVolume");
+        if (isTrue(!isEqual(quoteVolume, null)))
+        {
+            return quoteVolume;
+        }
+        object baseVolume = exchange.safeNumber(ticker, "baseVolume");
+        if (isTrue(isEqual(baseVolume, null)))
+        {
+            return 0;
+        }
+        object last = exchange.safeNumber(ticker, "last");
+        if (isTrue(!isEqual(last, null)))
+        {
+            return multiply(baseVolume, last);
+        }
+        return baseVolume;
+    }
+
+    public async virtual Task<object> getMostActiveSymbols(BaseExchange exchange, object defaultSymbols)
+    {
+        // `watch*` methods only resolve when the exchange pushes an update, so a
+        // thinly traded market makes the ws tests hang until the harness timeout
+        // kills them. the 24h volume is our proxy for "how often does this book
+        // change", so rank the markets by it and watch the busiest ones instead.
+        // the ranking is restricted to markets sharing the type/quote/settle of
+        // the statically chosen symbol, which keeps the volumes comparable (quote
+        // volumes denominated in different quote currencies are not) and keeps a
+        // per-exchange `preferredSpotSymbol`/`preferredSwapSymbol` meaningful.
+        object defaultSymbol = getValue(defaultSymbols, 0);
+        object defaultMarket = exchange.safeDict(exchange.markets, defaultSymbol);
+        if (isTrue(isEqual(defaultMarket, null)))
+        {
+            return defaultSymbols;
+        }
+        // an explicit per-exchange pin is a deliberate maintainer choice (it usually
+        // works around a venue-specific quirk), so never rank around it
+        object isSpot = exchange.safeBool(defaultMarket, "spot", false);
+        object preferredKey = ((bool) isTrue((isSpot))) ? "preferredSpotSymbol" : "preferredSwapSymbol";
+        object preferredSymbol = exchange.safeString(this.skippedSettingsForExchange, preferredKey);
+        if (isTrue(!isEqual(preferredSymbol, null)))
+        {
+            return defaultSymbols;
+        }
+        if (!isTrue(exchange.safeBool(exchange.has, "fetchTickers", false)))
+        {
+            return defaultSymbols;
+        }
+        object tickers = null;
+        try
+        {
+            // dynamic dispatch: `fetchTickers` is not on the base exchange type in
+            // the statically typed ports (c#/go/java), same as the other call sites
+            tickers = await callExchangeMethodDynamically(exchange, "fetchTickers", new List<object>() {});
+        } catch(Exception e)
+        {
+            // choosing a symbol must never fail the run, keep the static choice
+            tickers = null;
+        }
+        if (isTrue(isEqual(tickers, null)))
+        {
+            return defaultSymbols;
+        }
+        object marketType = exchange.safeString(defaultMarket, "type");
+        object quote = exchange.safeString(defaultMarket, "quote");
+        object settle = exchange.safeString(defaultMarket, "settle");
+        object candidates = new List<object>() {};
+        object tickerSymbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(tickerSymbols)); postFixIncrement(ref i))
+        {
+            object tickerSymbol = getValue(tickerSymbols, i);
+            object market = exchange.safeDict(exchange.markets, tickerSymbol);
+            if (isTrue(!isEqual(market, null)))
+            {
+                // exchanges keep returning tickers for delisted markets, and those
+                // never push a websocket update at all, so skip inactive markets
+                object isActive = exchange.safeBool(market, "active", true);
+                object sameType = isEqual(exchange.safeString(market, "type"), marketType);
+                object sameQuote = isEqual(exchange.safeString(market, "quote"), quote);
+                object sameSettle = isEqual(exchange.safeString(market, "settle"), settle);
+                if (isTrue(isTrue(isTrue(isTrue(isActive) && isTrue(sameType)) && isTrue(sameQuote)) && isTrue(sameSettle)))
+                {
+                    object ticker = exchange.safeDict(tickers, tickerSymbol, new Dictionary<string, object>() {});
+                    object volume = this.getTickerVolume(exchange, ticker);
+                    if (isTrue(isGreaterThan(volume, 0)))
+                    {
+                        object entry = new Dictionary<string, object>() {};
+                        ((IDictionary<string,object>)entry)["symbol"] = tickerSymbol;
+                        ((IDictionary<string,object>)entry)["volume"] = volume;
+                        ((IList<object>)candidates).Add(entry);
+                    }
+                }
+            }
+        }
+        object ranked = exchange.sortBy(candidates, "volume", true);
+        object rankedLength = getArrayLength(ranked);
+        if (isTrue(isEqual(rankedLength, 0)))
+        {
+            return defaultSymbols;
+        }
+        object result = new List<object> {exchange.safeString(getValue(ranked, 0), "symbol")};
+        if (isTrue(isGreaterThan(rankedLength, 1)))
+        {
+            ((IList<object>)result).Add(exchange.safeString(getValue(ranked, 1), "symbol"));
+        }
+        return result;
+    }
+
     public async virtual Task<object> testExchange(BaseExchange exchange, object providedSymbol = null)
     {
         // prediction-market exchanges have no spot/swap markets and address methods by an
@@ -788,6 +901,20 @@ public partial class testMainClass
                 {
                     object secondarySymbol = ((string)primarySymbol).Replace((string)"BTC", (string)"ETH"); // this should work any exchange
                     swapSymbols = new List<object>() {primarySymbol, secondarySymbol};
+                }
+            }
+            // ws tests subscribe with `watch*`, which only resolves on an update,
+            // so re-target them at the most actively traded markets to avoid the
+            // harness timing out on a quiet book. rest tests keep the static choice.
+            if (isTrue(this.wsTests))
+            {
+                if (isTrue(!isEqual(spotSymbols, null)))
+                {
+                    spotSymbols = await this.getMostActiveSymbols(exchange, spotSymbols);
+                }
+                if (isTrue(!isEqual(swapSymbols, null)))
+                {
+                    swapSymbols = await this.getMostActiveSymbols(exchange, swapSymbols);
                 }
             }
         }

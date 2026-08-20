@@ -981,21 +981,28 @@ public partial class extended : ccxt.extended
             }
         } else if (isTrue(!isEqual(data, null)))
         {
+            // an account frame may carry several sections at once, so these are
+            // not mutually exclusive and must not fall through to the order book
+            object isAccountUpdate = false;
             if (isTrue(isTrue((isEqual(type, "ORDER"))) || isTrue((inOp(data, "orders")))))
             {
                 this.handleOrders(client as WebSocketClient, message);
+                isAccountUpdate = true;
             }
             if (isTrue(isTrue((isEqual(type, "TRADE"))) || isTrue((inOp(data, "trades")))))
             {
                 this.handleMyTrades(client as WebSocketClient, message);
+                isAccountUpdate = true;
             }
             if (isTrue(isTrue((isEqual(type, "POSITION"))) || isTrue((inOp(data, "positions")))))
             {
                 this.handlePositions(client as WebSocketClient, message);
+                isAccountUpdate = true;
             }
             if (isTrue(isTrue(isTrue((isEqual(type, "BALANCE"))) || isTrue((inOp(data, "balance")))) || isTrue((inOp(data, "spotBalances")))))
             {
                 this.handleBalance(client as WebSocketClient, message);
+                isAccountUpdate = true;
             }
             if (isTrue(isEqual(type, "MP")))
             {
@@ -1003,7 +1010,7 @@ public partial class extended : ccxt.extended
             } else if (isTrue(inOp(data, "f")))
             {
                 this.handleFundingRate(client as WebSocketClient, message);
-            } else
+            } else if (!isTrue(isAccountUpdate))
             {
                 this.handleOrderBook(client as WebSocketClient, message);
             }

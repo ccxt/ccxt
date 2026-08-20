@@ -58,10 +58,10 @@ const FIELD_OVERRIDES: { [key: string]: string } = {
     'FundingRate.fundingTimestamp': 'Int',
     'FundingRate.nextFundingTimestamp': 'Int',
     'FundingRate.previousFundingTimestamp': 'Int',
-    'OrderRequest.amount': 'Union[None, float]',
-    'OrderRequest.price': 'Union[None, float]',
-    'PredictionOrderRequest.amount': 'Union[None, float]',
-    'PredictionOrderRequest.price': 'Union[None, float]',
+    'OrderRequest.amount': 'float | None',
+    'OrderRequest.price': 'float | None',
+    'PredictionOrderRequest.amount': 'float | None',
+    'PredictionOrderRequest.price': 'float | None',
 };
 
 // In the prediction hierarchy the unified handle is the canonical identity — a plain
@@ -148,7 +148,7 @@ function mapType (tsType: string, ownerAndField: string, fieldName: string, opti
     if (raw === 'any') {
         // the decoded-exchange-JSON `info` field is conventionally a dict in the Python
         // port; any other `any` maps onto the plain `Any` alias
-        return fieldName === 'info' ? 'Dict[str, Any]' : 'Any';
+        return fieldName === 'info' ? 'dict[str, Any]' : 'Any';
     }
     if (raw.startsWith ('{')) {
         const named = INLINE_TYPE_NAMES[ownerAndField];
@@ -163,7 +163,7 @@ function mapType (tsType: string, ownerAndField: string, fieldName: string, opti
         const nullable = kept.length !== members.length;
         if (kept.length > 0 && kept.every (isStringLiteral)) {
             const literal = 'Literal[' + kept.join (', ') + ']';
-            return nullable ? 'Optional[' + literal + ']' : literal;
+            return nullable ? literal + ' | None' : literal;
         }
         // a literal union widened by a nullable alias (`'buy' | 'sell' | Str`) collapses
         // onto that alias — exactly what the alias is there for
@@ -171,16 +171,16 @@ function mapType (tsType: string, ownerAndField: string, fieldName: string, opti
         return mapType (widening[0], '', fieldName, optional || nullable);
     }
     if (raw.startsWith ('Dictionary<') && raw.endsWith ('>')) {
-        return 'Dict[str, ' + mapType (raw.slice (11, -1), '', fieldName, false) + ']';
+        return 'dict[str, ' + mapType (raw.slice (11, -1), '', fieldName, false) + ']';
     }
     if (raw.endsWith ('[]')) {
-        return 'List[' + mapType (raw.slice (0, -2), '', fieldName, false) + ']';
+        return 'list[' + mapType (raw.slice (0, -2), '', fieldName, false) + ']';
     }
     if (raw.startsWith ('[') && raw.endsWith (']')) {
         // a fixed-length TS tuple (`[Num, Num]`) has no Python analogue in this file and is
         // written as a homogeneous list
         const elements = raw.slice (1, -1).split (',').map ((m) => m.trim ());
-        return 'List[' + mapType (elements[0], '', fieldName, false) + ']';
+        return 'list[' + mapType (elements[0], '', fieldName, false) + ']';
     }
     const narrowed = NARROWED_ALIASES[raw];
     if (narrowed !== undefined) {
@@ -305,12 +305,12 @@ function emitInterface (type: IRType, existing: ExistingBlock, declaredAfter: (n
 function emitDictionary (type: IRType): string {
     const valueType = mapType (type.valueType as string, '', type.name, false);
     // the file keys its type aliases with `str` (the scalar key type), never the nullable `Str`
-    return type.name + ' = Dict[str, ' + valueType + ']';
+    return type.name + ' = dict[str, ' + valueType + ']';
 }
 
 function emitNullableAlias (type: IRType): string {
     const kept = stripNullish (type.unionMembers);
-    return type.name + ' = Optional[' + kept[0] + ']';
+    return type.name + ' = ' + kept[0] + ' | None';
 }
 
 export function emit (ir: TypesIR, repoRoot: string) {

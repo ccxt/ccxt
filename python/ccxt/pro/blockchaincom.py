@@ -5,9 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import NotSupported
@@ -15,7 +14,7 @@ from ccxt.base.errors import NotSupported
 
 class blockchaincom(ccxt.async_support.blockchaincom):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(blockchaincom, self).describe(), {
             'has': {
                 'ws': True,
@@ -77,7 +76,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash, request)
 
-    def handle_balance(self, client: Client, message: Any):
+    def handle_balance(self, client: Client, message: object):
         #
         #  subscribed
         #     {
@@ -125,7 +124,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         self.balance = self.safe_balance(result)
         client.resolve(self.balance, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market.
 
@@ -157,7 +156,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client: Client, message: Any):
+    def handle_ohlcv(self, client: Client, message: object):
         #
         #  subscribed
         #     {
@@ -224,7 +223,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         request = self.deep_extend(request, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_ticker(self, client: Client, message: Any):
+    def handle_ticker(self, client: Client, message: object):
         #
         #  subscribed
         #     {
@@ -269,7 +268,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         self.tickers[symbol] = ticker
         client.resolve(ticker, messageHash)
 
-    def parse_ws_updated_ticker(self, ticker: Any, lastTicker=None, market: Market = None):
+    def parse_ws_updated_ticker(self, ticker: object, lastTicker=None, market: Market = None):
         #
         #     {
         #         "seqnum": 2,
@@ -305,7 +304,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             'info': self.extend(self.safe_value(lastTicker, 'info', {}), ticker),
         }, market)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -332,7 +331,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         trades = await self.watch(url, messageHash, request, messageHash, request)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message: Any):
+    def handle_trades(self, client: Client, message: object):
         #
         #  subscribed
         #     {
@@ -371,7 +370,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_ws_trade(self, trade: Any, market: Market = None):
+    def parse_ws_trade(self, trade: object, market: Market = None):
         #
         #     {
         #         "seqnum": 1,
@@ -403,7 +402,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             'info': trade,
         }, market)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -433,7 +432,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client: Client, message: Any):
+    def handle_orders(self, client: Client, message: object):
         #
         #     {
         #         "seqnum": 1,
@@ -530,7 +529,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         self.orders = cachedOrders
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order: Any, market: Market = None):
+    def parse_ws_order(self, order: object, market: Market = None):
         #
         #     {
         #         "seqnum": 3,
@@ -598,7 +597,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             'average': self.safe_string(order, 'avgPx'),
         }, market)
 
-    def parse_ws_order_status(self, status: Any):
+    def parse_ws_order_status(self, status: object):
         statuses = {
             'pending': 'open',
             'open': 'open',
@@ -638,7 +637,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message: Any):
+    def handle_order_book(self, client: Client, message: object):
         #
         #  subscribe
         #     {
@@ -699,15 +698,15 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             raise NotSupported(self.id + ' watchOrderBook() does not support ' + event + ' yet')
         client.resolve(orderbook, messageHash)
 
-    def handle_delta(self, bookside: Any, delta: Any):
+    def handle_delta(self, bookside: object, delta: object):
         bookArray = self.parse_order_book_bid_ask(delta, 'px', 'qty', 'num')
         bookside.storeArray(bookArray)
 
-    def handle_deltas(self, bookside: Any, deltas: Any):
+    def handle_deltas(self, bookside: object, deltas: object):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_message(self, client: Client, message: Any):
+    def handle_message(self, client: Client, message: object):
         channel = self.safe_string(message, 'channel')
         handlers = {
             'ticker': self.handle_ticker,
@@ -725,7 +724,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             return
         raise NotSupported(self.id + ' received an unsupported message: ' + self.json(message))
 
-    def handle_authentication_message(self, client: Client, message: Any):
+    def handle_authentication_message(self, client: Client, message: object):
         #
         #     {
         #         "seqnum": 0,

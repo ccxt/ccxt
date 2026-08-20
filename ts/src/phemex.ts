@@ -2788,9 +2788,9 @@ export default class phemex extends Exchange {
             posSide = this.capitalize (posSide);
             request['posSide'] = posSide;
             if (isStableSettled) {
-                request['orderQtyRq'] = amount;
+                request['orderQtyRq'] = this.amountToPrecision (symbol, amount);
             } else {
-                request['orderQty'] = this.parseToInt (amount);
+                request['orderQty'] = this.parseToInt (this.amountToPrecision (symbol, amount));
             }
             if (triggerPrice !== undefined) {
                 const triggerType = this.safeString (params, 'triggerType', 'ByMarkPrice');

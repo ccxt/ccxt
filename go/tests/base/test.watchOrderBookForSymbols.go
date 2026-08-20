@@ -11,13 +11,17 @@ func TestWatchOrderBookForSymbols(exchange ccxt.ICoreExchange, skippedProperties
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		var method any = "watchOrderBookForSymbols"
+		// as in `watchOrderBook`, a pending subscription can not be cancelled, so the
+		// loop has to be bounded by the deadline alone. waiting for every requested
+		// symbol to be seen would hang forever whenever one of them stays idle.
+		var maxIdleTime any = 5000
 		var currentTime any = exchange.Milliseconds()
 		var deadline any = Add(currentTime, 15000)
-		var seenSymbols any = []any{}
-		// keep polling until the time window elapses and every requested symbol has been observed
-		for IsTrue(IsLessThan(currentTime, deadline)) || IsTrue(IsLessThan(GetArrayLength(seenSymbols), GetArrayLength(symbols))) {
+		var idle any = false
+		for IsTrue((IsLessThan(currentTime, deadline))) && !IsTrue(idle) {
 			var response any = nil
 			var succeeded any = true
+			var startTime any = exchange.Milliseconds()
 
 			{
 				func() (ret_ any) {
@@ -32,7 +36,6 @@ func TestWatchOrderBookForSymbols(exchange ccxt.ICoreExchange, skippedProperties
 								if IsTrue(!IsTrue(IsTemporaryFailure(e)) && !IsTrue((IsInstance(e, InvalidNonce)))) {
 									panic(e)
 								}
-								currentTime = exchange.Milliseconds()
 								succeeded = false
 								return nil
 							}()
@@ -46,12 +49,13 @@ func TestWatchOrderBookForSymbols(exchange ccxt.ICoreExchange, skippedProperties
 				}()
 
 			}
+			currentTime = exchange.Milliseconds()
 			if IsTrue(IsTrue((IsEqual(succeeded, true))) && IsTrue((!IsEqual(response, nil)))) {
 				TestOrderBook(exchange, skippedProperties, method, response, nil)
 				AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols)
-				var symbol any = GetValue(response, "symbol")
-				if IsTrue(IsTrue((!IsEqual(symbol, nil))) && !IsTrue(exchange.InArray(symbol, seenSymbols))) {
-					AppendToArray(&seenSymbols, symbol)
+				var elapsed any = Subtract(currentTime, startTime)
+				if IsTrue(IsGreaterThan(elapsed, maxIdleTime)) {
+					idle = true
 				}
 			}
 		}

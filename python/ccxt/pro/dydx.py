@@ -5,15 +5,14 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Int, Market, OrderBook, Trade
+from ccxt.base.types import Int, Market, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 
 
 class dydx(ccxt.async_support.dydx):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(dydx, self).describe(), {
             'has': {
                 'ws': True,
@@ -37,7 +36,7 @@ class dydx(ccxt.async_support.dydx):
             'exceptions': {},
         })
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -64,7 +63,7 @@ class dydx(ccxt.async_support.dydx):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+    async def un_watch_trades(self, symbol: str, params={}) -> object:
         """
         unsubscribes from the trades channel
 
@@ -86,7 +85,7 @@ class dydx(ccxt.async_support.dydx):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    def handle_trades(self, client: Any, message: Any):
+    def handle_trades(self, client: object, message: object):
         #
         # {
         #     "type": "subscribed",
@@ -126,7 +125,7 @@ class dydx(ccxt.async_support.dydx):
         messageHash = 'trade' + ':' + symbol
         client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade: Any, market: Market = None):
+    def parse_ws_trade(self, trade: object, market: Market = None):
         #
         # {
         #     "id": "02b6148d0000000200000003",
@@ -179,7 +178,7 @@ class dydx(ccxt.async_support.dydx):
         orderbook = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         return orderbook.limit()
 
-    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+    async def un_watch_order_book(self, symbol: str, params={}) -> object:
         """
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -201,7 +200,7 @@ class dydx(ccxt.async_support.dydx):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    def handle_order_book(self, client: Client, message: Any):
+    def handle_order_book(self, client: Client, message: object):
         #
         # {
         #     "type": "subscribed",
@@ -242,7 +241,7 @@ class dydx(ccxt.async_support.dydx):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    def handle_delta(self, bookside: Any, delta: Any):
+    def handle_delta(self, bookside: object, delta: object):
         if isinstance(delta, list):
             price = self.safe_float(delta, 0)
             amount = self.safe_float(delta, 1)
@@ -251,7 +250,7 @@ class dydx(ccxt.async_support.dydx):
             bidAsk = self.parse_order_book_bid_ask(delta, 'price', 'size')
             bookside.storeArray(bidAsk)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -280,7 +279,7 @@ class dydx(ccxt.async_support.dydx):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
+    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> object:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -305,7 +304,7 @@ class dydx(ccxt.async_support.dydx):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    def handle_ohlcv(self, client: Client, message: Any):
+    def handle_ohlcv(self, client: Client, message: object):
         #
         # {
         #     "type": "subscribed",
@@ -378,7 +377,7 @@ class dydx(ccxt.async_support.dydx):
         stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    def handle_error_message(self, client: Client, message: Any):
+    def handle_error_message(self, client: Client, message: object):
         #
         # {
         #     "type": "error",
@@ -394,7 +393,7 @@ class dydx(ccxt.async_support.dydx):
             client.reject(e)
         return True
 
-    def handle_message(self, client: Client, message: Any):
+    def handle_message(self, client: Client, message: object):
         type = self.safe_string(message, 'type')
         if type == 'error':
             self.handle_error_message(client, message)

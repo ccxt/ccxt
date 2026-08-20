@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\AuthenticationError;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\NetworkError;
@@ -1527,10 +1528,29 @@ class bingx extends \ccxt\async\bingx {
         $lastAuthenticatedTime = $this->safe_integer($this->options, 'lastAuthenticatedTime', 0);
         $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 3600000); // 1 hour
         if ($time - $lastAuthenticatedTime > $listenKeyRefreshRate) {
-            $response = Async\await($this->userAuthPrivatePostUserDataStream());
-            $this->options['listenKey'] = $this->safe_string($response, 'listenKey');
-            $this->options['lastAuthenticatedTime'] = $time;
-            $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
+            // single-flight leader election, see #29393 => racing fetches mint
+            // different keys and the key rides the private url, so losers
+            // connect their watchers to an orphaned stream
+            $isLeader = Async\await($this->single_flight_acquire('authenticate'));
+            if (!$isLeader) {
+                return; // the leader settled => the $listenKey is in the bucket
+            }
+            try {
+                $response = Async\await($this->userAuthPrivatePostUserDataStream());
+                $listenKey = $this->safe_string($response, 'listenKey');
+                if ($listenKey === null) {
+                    // reject instead of caching an empty credential, so
+                    // waiters retry rather than proceed unauthenticated
+                    throw new AuthenticationError($this->id . ' authenticate() received an empty listenKey');
+                }
+                $this->options['listenKey'] = $listenKey;
+                $this->options['lastAuthenticatedTime'] = $time;
+                $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
+                $this->single_flight_resolve('authenticate', $listenKey);
+            } catch (Exception $e) {
+                $this->single_flight_reject('authenticate', $e);
+                throw $e;
+            }
         }
     }
 
@@ -1784,7 +1804,9 @@ class bingx extends \ccxt\async\bingx {
         $a = $this->safe_dict($message, 'a', array());
         $data = $this->safe_list($a, 'B', array());
         $timestamp = $this->safe_integer_2($message, 'T', 'E');
-        $type = (is_array($a) && array_key_exists('P' ?? '', $a)) ? 'swap' : 'spot';
+        $spotUrl = $this->safe_string($this->urls['api']['ws'], 'spot');
+        $isSpot = ($spotUrl !== null) && (mb_strpos($client->url, $spotUrl) === 0);
+        $type = $isSpot ? 'spot' : 'swap';
         if (!(is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             $this->balance[$type] = array();
         }

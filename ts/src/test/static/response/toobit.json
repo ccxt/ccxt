@@ -3,6 +3,58 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchLeverage": [
+            {
+                "description": "fetchLeverage swap cross",
+                "method": "fetchLeverage",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "symbolId": "ETH-SWAP-USDT",
+                        "leverage": "50",
+                        "marginType": "CROSS"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "symbolId": "ETH-SWAP-USDT",
+                        "leverage": "50",
+                        "marginType": "CROSS"
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "marginMode": "cross",
+                    "longLeverage": 50,
+                    "shortLeverage": 50
+                }
+            },
+            {
+                "description": "fetchLeverage swap isolated",
+                "method": "fetchLeverage",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "symbolId": "BTC-SWAP-USDT",
+                        "leverage": "20",
+                        "marginType": "ISOLATED"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "symbolId": "BTC-SWAP-USDT",
+                        "leverage": "20",
+                        "marginType": "ISOLATED"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": "isolated",
+                    "longLeverage": 20,
+                    "shortLeverage": 20
+                }
+            }
+        ],
         "withdraw": [
             {
                 "description": "withdraw USDT on SOL",
@@ -386,7 +438,7 @@
                         "type": "limit",
                         "timeInForce": "GTC",
                         "postOnly": false,
-                        "side": "buy_open",
+                        "side": "buy",
                         "price": 4024.68,
                         "triggerPrice": null,
                         "cost": 0,
@@ -397,7 +449,7 @@
                         "trades": [],
                         "fee": null,
                         "marginMode": null,
-                        "reduceOnly": null,
+                        "reduceOnly": false,
                         "leverage": null,
                         "hedged": null,
                         "fees": [],
@@ -581,7 +633,7 @@
                     "type": "limit",
                     "timeInForce": "IOC",
                     "postOnly": false,
-                    "side": "sell_open",
+                    "side": "sell",
                     "price": 4401.19,
                     "triggerPrice": null,
                     "cost": 0,
@@ -592,7 +644,7 @@
                     "trades": [],
                     "fee": null,
                     "marginMode": null,
-                    "reduceOnly": null,
+                    "reduceOnly": false,
                     "leverage": null,
                     "hedged": null,
                     "fees": [],
@@ -668,7 +720,7 @@
                     "type": "limit",
                     "timeInForce": "IOC",
                     "postOnly": false,
-                    "side": "sell_open",
+                    "side": "sell",
                     "price": 4405.62,
                     "triggerPrice": null,
                     "cost": 0,
@@ -679,7 +731,7 @@
                     "trades": [],
                     "fee": null,
                     "marginMode": null,
-                    "reduceOnly": null,
+                    "reduceOnly": false,
                     "leverage": null,
                     "hedged": null,
                     "fees": [],
@@ -755,7 +807,7 @@
                     "type": "limit",
                     "timeInForce": "IOC",
                     "postOnly": false,
-                    "side": "buy_open",
+                    "side": "buy",
                     "price": 4435.59,
                     "triggerPrice": null,
                     "cost": 0,
@@ -766,7 +818,7 @@
                     "trades": [],
                     "fee": null,
                     "marginMode": null,
-                    "reduceOnly": null,
+                    "reduceOnly": false,
                     "leverage": null,
                     "hedged": null,
                     "fees": [],
@@ -919,7 +971,7 @@
                     "type": "limit",
                     "timeInForce": "GTC",
                     "postOnly": false,
-                    "side": "sell_open",
+                    "side": "sell",
                     "price": 7234,
                     "triggerPrice": null,
                     "cost": 0,
@@ -930,7 +982,7 @@
                     "trades": [],
                     "fee": null,
                     "marginMode": null,
-                    "reduceOnly": null,
+                    "reduceOnly": false,
                     "leverage": null,
                     "hedged": null,
                     "fees": [],
@@ -1082,7 +1134,7 @@
                     "type": "limit",
                     "timeInForce": "GTC",
                     "postOnly": false,
-                    "side": "buy_open",
+                    "side": "buy",
                     "price": 1234,
                     "triggerPrice": null,
                     "cost": 0,
@@ -1093,7 +1145,7 @@
                     "trades": [],
                     "fee": null,
                     "marginMode": null,
-                    "reduceOnly": null,
+                    "reduceOnly": false,
                     "leverage": null,
                     "hedged": null,
                     "fees": [],
@@ -1170,7 +1222,7 @@
                     "type": "limit",
                     "timeInForce": "GTC",
                     "postOnly": false,
-                    "side": "buy_open",
+                    "side": "buy",
                     "price": 1234,
                     "triggerPrice": null,
                     "cost": 0,
@@ -1181,7 +1233,7 @@
                     "trades": [],
                     "fee": null,
                     "marginMode": null,
-                    "reduceOnly": null,
+                    "reduceOnly": false,
                     "leverage": null,
                     "hedged": null,
                     "fees": [],
@@ -1889,7 +1941,7 @@
                     "type": "limit",
                     "timeInForce": "GTC",
                     "postOnly": false,
-                    "side": "sell_open",
+                    "side": "sell",
                     "price": 5000,
                     "triggerPrice": null,
                     "cost": 0,
@@ -1900,7 +1952,7 @@
                     "trades": [],
                     "fee": null,
                     "marginMode": null,
-                    "reduceOnly": null,
+                    "reduceOnly": false,
                     "leverage": null,
                     "hedged": null,
                     "fees": [],
@@ -2035,7 +2087,7 @@
                     "last": 111631.9,
                     "previousClose": null,
                     "change": -287.8,
-                    "percentage": -0.0026,
+                    "percentage": -0.26,
                     "average": 111775.8,
                     "baseVolume": 60468.626,
                     "quoteVolume": 6768507258.5314,
@@ -2096,7 +2148,7 @@
                     "last": 111693.18,
                     "previousClose": null,
                     "change": -277.8,
-                    "percentage": -0.0025,
+                    "percentage": -0.25,
                     "average": 111832.08,
                     "baseVolume": 4605.21304,
                     "quoteVolume": 515615120.33396643,
@@ -2736,7 +2788,7 @@
                         "last": 111654.9,
                         "previousClose": null,
                         "change": -264.8,
-                        "percentage": -0.0024,
+                        "percentage": -0.24,
                         "average": 111787.3,
                         "baseVolume": 60486.508,
                         "quoteVolume": 6770503735.4778,
@@ -2801,7 +2853,7 @@
                         "last": 111695.56,
                         "previousClose": null,
                         "change": -275.42,
-                        "percentage": -0.0025,
+                        "percentage": -0.25,
                         "average": 111833.27,
                         "baseVolume": 4605.54142,
                         "quoteVolume": 515651798.33699363,

@@ -1781,10 +1781,31 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000); // 1 hour
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), listenKeyRefreshRate)))
             {
-                Object response = (this.userAuthPrivatePostUserDataStream()).join();
-                Helpers.addElementToObject(this.options, "listenKey", this.safeString(response, "listenKey"));
-                Helpers.addElementToObject(this.options, "lastAuthenticatedTime", time);
-                this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
+                // single-flight leader election, see #29393: racing fetches mint
+                // different keys and the key rides the private url, so losers
+                // connect their watchers to an orphaned stream
+                Object isLeader = (this.singleFlightAcquire("authenticate")).join();
+                if (!Helpers.isTrue(isLeader))
+                {
+                    return null;  // the leader settled: the listenKey is in the bucket
+                }
+                try
+                {
+                    Object response = (this.userAuthPrivatePostUserDataStream()).join();
+                    Object listenKey = this.safeString(response, "listenKey");
+                    if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
+                    {
+                        throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
+                    }
+                    Helpers.addElementToObject(this.options, "listenKey", listenKey);
+                    Helpers.addElementToObject(this.options, "lastAuthenticatedTime", time);
+                    this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
+                    this.singleFlightResolve("authenticate", listenKey);
+                } catch(Exception e)
+                {
+                    this.singleFlightReject("authenticate", e);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+                }
             }
             return null;
         });
@@ -2044,7 +2065,9 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         Object a = this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeList(a, "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object timestamp = this.safeInteger2(message, "T", "E");
-        Object type = ((Helpers.isTrue((Helpers.inOp(a, "P"))))) ? "swap" : "spot";
+        Object spotUrl = this.safeString(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot");
+        Object isSpot = Helpers.isTrue((!Helpers.isEqual(spotUrl, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.getIndexOf(client.url, spotUrl), 0)));
+        Object type = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
         if (!Helpers.isTrue((Helpers.inOp(this.balance, type))))
         {
             Helpers.addElementToObject(this.balance, type, new java.util.HashMap<String, Object>() {{}});

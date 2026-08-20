@@ -1245,17 +1245,41 @@ class aster extends aster$1["default"] {
         const listenKeyRefreshRateOptions = this.safeDict(this.options, 'listenKeyRefreshRate', {});
         const listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
         if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
-            let response = {};
-            if (type === 'spot') {
-                response = await this.sapiPrivatePostV3ListenKey(params);
+            // single-flight leader election on the exchange-level flight map:
+            // concurrent watch calls on a cold instance each passed the
+            // staleness check and fetched their own listenKey (last write
+            // wins, earlier keys orphan) - now one leader fetches per type
+            // and waiters wake when the flight settles, see #29393
+            const flightHash = 'authenticate:' + type;
+            const isLeader = await this.singleFlightAcquire(flightHash);
+            if (!isLeader) {
+                // the leader settled the flight: the listenKey is in the bucket
+                return;
             }
-            else {
-                response = await this.fapiPrivatePostV3ListenKey(params);
+            try {
+                let response = {};
+                if (type === 'spot') {
+                    response = await this.sapiPrivatePostV3ListenKey(params);
+                }
+                else {
+                    response = await this.fapiPrivatePostV3ListenKey(params);
+                }
+                const listenKey = this.safeString(response, 'listenKey');
+                if (listenKey === undefined) {
+                    // reject instead of caching an empty credential, so
+                    // waiters retry rather than proceed unauthenticated
+                    throw new errors.AuthenticationError(this.id + ' authenticate() received an empty listenKey');
+                }
+                this.options['listenKey'][type] = listenKey;
+                this.options['lastAuthenticatedTime'][type] = time;
+                params = this.extend({ 'type': type }, params);
+                this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
+                this.singleFlightResolve(flightHash, listenKey);
             }
-            this.options['listenKey'][type] = this.safeString(response, 'listenKey');
-            this.options['lastAuthenticatedTime'][type] = time;
-            params = this.extend({ 'type': type }, params);
-            this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
+            catch (e) {
+                this.singleFlightReject(flightHash, e);
+                throw e;
+            }
         }
     }
     async keepAliveListenKey(params = {}) {

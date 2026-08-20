@@ -115,7 +115,6 @@ public class BybitCore extends BybitApi
                 put( "fetchOptionChain", true );
                 put( "fetchOrder", true );
                 put( "fetchOrderBook", true );
-                put( "fetchOrders", true );
                 put( "fetchOrderTrades", true );
                 put( "fetchPosition", true );
                 put( "fetchPositionADLRank", true );
@@ -6592,7 +6591,7 @@ public class BybitCore extends BybitApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
-            Object result = (this.fetchOrders(symbol, null, null, this.extend(request, parameters))).join();
+            Object result = (this.fetchOrdersClassic(symbol, null, null, this.extend(request, parameters))).join();
             Object length = Helpers.getArrayLength(result);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
             {
@@ -6732,44 +6731,6 @@ public class BybitCore extends BybitApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
-    {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object res = (this.isUnifiedEnabled()).join();
-            /**
-             * @method
-             * @name bybit#fetchOrders
-             * @description *classic accounts only/ spot not supported* fetches information on multiple orders made by the user *classic accounts only/ spot not supported*
-             * @see https://bybit-exchange.github.io/docs/v5/order/order-list
-             * @param {string} symbol unified market symbol of the market orders were made in
-             * @param {int} [since] the earliest time in ms to fetch orders for
-             * @param {int} [limit] the maximum number of order structures to retrieve
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [params.trigger] true if trigger order
-             * @param {boolean} [params.stop] alias for trigger
-             * @param {string} [params.type] market type, ['swap', 'option']
-             * @param {string} [params.subType] market subType, ['linear', 'inverse']
-             * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
-             * @param {int} [params.until] the latest time in ms to fetch entries for
-             * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-             * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-             */
-            Object enableUnifiedAccount = this.safeBool(res, 1);
-            if (Helpers.isTrue(enableUnifiedAccount))
-            {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchOrders() is not supported after the 5/02 update for UTA accounts, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders")) ;
-            }
-            return (this.fetchOrdersClassic(symbol, since, limit, parameters)).join();
-        });
-
-    }
-
     /**
      * @method
      * @name bybit#fetchOrdersClassic
@@ -6802,12 +6763,12 @@ public class BybitCore extends BybitApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
+            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrdersClassic", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 50)).join();
+                return (this.fetchPaginatedCallCursor("fetchOrdersClassic", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 50)).join();
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
@@ -6817,12 +6778,12 @@ public class BybitCore extends BybitApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object type = null;
-            var typeparametersVariable = this.getBybitType("fetchOrders", market, parameters);
+            var typeparametersVariable = this.getBybitType("fetchOrdersClassic", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchOrders() is not supported for spot markets")) ;
+                throw new NotSupported((String)Helpers.add(this.id, " fetchOrdersClassic() is not supported for spot markets")) ;
             }
             Helpers.addElementToObject(request, "category", type);
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
@@ -9330,9 +9291,10 @@ public class BybitCore extends BybitApi
      * @method
      * @name bybit#fetchCrossBorrowRate
      * @description fetch the rate of interest to borrow a currency for margin trading
-     * @see https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota
+     * @see https://bybit-exchange.github.io/docs/v5/spot-margin-uta/vip-margin
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.vipLevel] the vip level to fetch the borrow rate for, defaults to 'No VIP'
      * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchCrossBorrowRate(Object code, Object... optionalArgs)
@@ -9347,27 +9309,44 @@ public class BybitCore extends BybitApi
             }
             Object currency = this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "coin", Helpers.GetValue(currency, "id") );
+                put( "currency", Helpers.GetValue(currency, "id") );
+                put( "vipLevel", "No VIP" );
             }};
-            Object response = (this.privateGetV5SpotCrossMarginTradeLoanInfo(this.extend(request, parameters))).join();
+            Object response = (this.publicGetV5SpotMarginTradeData(this.extend(request, parameters))).join();
             //
-            //    {
-            //         "retCode": "0",
+            //     {
+            //         "retCode": 0,
             //         "retMsg": "success",
             //         "result": {
-            //             "coin": "USDT",
-            //             "interestRate": "0.000107000000",
-            //             "loanAbleAmount": "",
-            //             "maxLoanAmount": "79999.999"
+            //             "vipCoinList": [
+            //                 {
+            //                     "list": [
+            //                         {
+            //                             "borrowable": true,
+            //                             "collateralRatio": "0.98",
+            //                             "currency": "BTC",
+            //                             "hourlyBorrowRate": "0.0000005030430000",
+            //                             "liquidationOrder": "3",
+            //                             "marginCollateral": true,
+            //                             "maxBorrowingAmount": "300"
+            //                         }
+            //                     ],
+            //                     "vipLevel": "No VIP"
+            //                 }
+            //             ]
             //         },
-            //         "retExtInfo": null,
-            //         "time": "1666734490778"
+            //         "retExtInfo": "{}",
+            //         "time": 1786958191900
             //     }
             //
             Object timestamp = this.safeInteger(response, "time");
             Object data = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(data, "timestamp", timestamp);
-            return this.parseBorrowRate(data, currency);
+            Object vipCoinList = this.safeList(data, "vipCoinList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object firstVip = this.safeDict(vipCoinList, 0, new java.util.HashMap<String, Object>() {{}});
+            Object coins = this.safeList(firstVip, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object coin = this.safeDict(coins, 0, new java.util.HashMap<String, Object>() {{}});
+            Helpers.addElementToObject(coin, "timestamp", timestamp);
+            return this.parseBorrowRate(coin, currency);
         });
 
     }
@@ -9375,12 +9354,16 @@ public class BybitCore extends BybitApi
     public Object parseBorrowRate(Object info, Object... optionalArgs)
     {
         //
+        // fetchCrossBorrowRate
         //     {
-        //         "coin": "USDT",
-        //         "interestRate": "0.000107000000",
-        //         "loanAbleAmount": "",
-        //         "maxLoanAmount": "79999.999",
-        //         "timestamp": 1666734490778
+        //         "borrowable": true,
+        //         "collateralRatio": "0.98",
+        //         "currency": "BTC",
+        //         "hourlyBorrowRate": "0.0000005030430000",
+        //         "liquidationOrder": "3",
+        //         "marginCollateral": true,
+        //         "maxBorrowingAmount": "300",
+        //         "timestamp": 1786958191900
         //     }
         //
         // fetchBorrowRateHistory
