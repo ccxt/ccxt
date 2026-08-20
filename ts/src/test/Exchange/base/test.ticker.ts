@@ -187,7 +187,13 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     }
     const percentage = exchange.safeString (entry, 'percentage');
     const change = exchange.safeString (entry, 'change');
-    if (!('maxIncrease' in skippedProperties) && !isUnrecognizedSymbol) {
+    // option markets are exempt from the percentage/change bounds: expiry-day
+    // convexity makes any finite cap wrong - a formerly-OTM contract moving
+    // into the money legitimately gains 1000x+ (observed: a paradex call at
+    // +109055% on its expiry date, mark price equal to intrinsic), and dying
+    // options carry empty books and zero volume alongside such moves
+    const isOptionMarket = (market !== undefined) && (market['option'] === true);
+    if (!('maxIncrease' in skippedProperties) && !isUnrecognizedSymbol && !isOptionMarket) {
         //
         // percentage
         //
