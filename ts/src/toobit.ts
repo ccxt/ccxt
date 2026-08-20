@@ -97,8 +97,7 @@ export default class toobit extends Exchange {
                     'https://api-docs.toobit.com/',
                 ],
                 'referral': {
-                    'url': 'https://www.toobit.com/en-US/r?i=IFFPy0',
-                    'discount': 0.1,
+                    'url': 'https://www.toobit.com/en-US/r?i=dvCpJj',
                 },
                 'fees': 'https://www.toobit.com/fee',
             },
