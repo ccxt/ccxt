@@ -1176,32 +1176,35 @@ export default class toobit extends toobitRest {
     }
 
     async authenticate (params = {}) {
-        const client = this.client (this.getUserStreamUrl ());
+        // the listen key has to exist before the client does: getUserStreamUrl builds
+        // the url out of it, so fetching it afterwards registered the future on a
+        // client at `.../ws/undefined` that nothing ever subscribes to
         const messageHash = 'authenticated';
+        const time = this.milliseconds ();
+        const listenKeyRefreshRate = this.safeInteger (this.options['ws'], 'listenKeyRefreshRate', 1200000);
+        const delay = this.sum (listenKeyRefreshRate, 10000);
+        const lastAuthenticatedTime = this.safeInteger (this.options['ws'], 'lastAuthenticatedTime', 0);
+        const listenKey = this.safeString (this.options['ws'], 'listenKey');
+        if ((listenKey === undefined) || (time - lastAuthenticatedTime > delay)) {
+            this.checkRequiredCredentials ();
+            try {
+                const response = await this.privatePostApiV1UserDataStream (params);
+                this.options['ws']['listenKey'] = this.safeString (response, 'listenKey');
+                this.options['ws']['lastAuthenticatedTime'] = time;
+                this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+            } catch (e) {
+                // no client here: the url still reads an absent listen key, so
+                // taking one would register the rejection at `.../ws/undefined`,
+                // which nothing subscribes to
+                throw new AuthenticationError (this.id + ' ' + this.exceptionMessage (e));
+            }
+        }
+        const client = this.client (this.getUserStreamUrl ());
         const future = client.reusableFuture (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
-            this.checkRequiredCredentials ();
-            const time = this.milliseconds ();
-            const lastAuthenticatedTime = this.safeInteger (this.options['ws'], 'lastAuthenticatedTime', 0);
-            const listenKeyRefreshRate = this.safeInteger (this.options['ws'], 'listenKeyRefreshRate', 1200000);
-            const delay = this.sum (listenKeyRefreshRate, 10000);
-            if (time - lastAuthenticatedTime > delay) {
-                try {
-                    client.subscriptions[messageHash] = true;
-                    const response = await this.privatePostApiV1UserDataStream (params);
-                    this.options['ws']['listenKey'] = this.safeString (response, 'listenKey');
-                    this.options['ws']['lastAuthenticatedTime'] = time;
-                    future.resolve (true);
-                    this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
-                } catch (e) {
-                    const err = new AuthenticationError (this.id + ' ' + this.exceptionMessage (e));
-                    client.reject (err, messageHash);
-                    if (messageHash in client.subscriptions) {
-                        delete client.subscriptions[messageHash];
-                    }
-                }
-            }
+            client.subscriptions[messageHash] = true;
+            future.resolve (true);
         }
         return await future;
     }
