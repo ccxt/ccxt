@@ -519,7 +519,12 @@ export default class bittrade extends Exchange {
      */
     override async fetchMarkets (params = {}): Promise<Market[]> {
         const method = this.handleOption ('fetchMarkets', 'method', 'publicGetCommonSymbols');
-        const response = await this[method] (params);
+        let response = undefined;
+        if (method === 'publicGetCommonSymbols') {
+            response = await this.publicGetCommonSymbols (params);
+        } else {
+            throw new NotSupported (this.id + ' fetchMarkets() does not support the ' + method + ' method');
+        }
         //
         //    {
         //        "status": "ok",
@@ -1267,7 +1272,12 @@ export default class bittrade extends Exchange {
         const request: Dict = {
             'id': this.accounts[0]['id'],
         };
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (method === 'privateGetAccountAccountsIdBalance') {
+            response = await this.privateGetAccountAccountsIdBalance (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchBalance() does not support the ' + method + ' method');
+        }
         return this.parseBalance (response);
     }
 
@@ -1284,7 +1294,12 @@ export default class bittrade extends Exchange {
             request['symbol'] = market['id'];
         }
         const method = this.handleOption ('fetchOrdersByStates', 'method', 'private_get_order_orders');
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if ((method === 'private_get_order_history') || (method === 'privateGetOrderHistory')) {
+            response = await this.privateGetOrderHistory (this.extend (request, params));
+        } else {
+            response = await this.privateGetOrderOrders (this.extend (request, params));
+        }
         //
         //     { "status":   "ok",
         //         "data": [ {                  id:  13997833016,
@@ -1352,7 +1367,10 @@ export default class bittrade extends Exchange {
      */
     override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const method = this.handleOption ('fetchOpenOrders', 'method', 'fetch_open_orders_v1') as string;
-        return await this[method] (symbol, since, limit, params) as Order[];
+        if ((method === 'fetch_open_orders_v2') || (method === 'fetchOpenOrdersV2')) {
+            return await this.fetchOpenOrdersV2 (symbol, since, limit, params) as Order[];
+        }
+        return await this.fetchOpenOrdersV1 (symbol, since, limit, params) as Order[];
     }
 
     async fetchOpenOrdersV1 (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1611,8 +1629,13 @@ export default class bittrade extends Exchange {
         if (type === 'limit' || type === 'ioc' || type === 'limit-maker' || type === 'stop-limit' || type === 'stop-limit-fok') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const method = this.options['createOrderMethod'];
-        const response = await this[method] (this.extend (request, params));
+        const method = this.handleOption ('createOrder', 'method', 'privatePostOrderOrdersPlace');
+        let response = undefined;
+        if (method === 'privatePostOrderOrdersPlace') {
+            response = await this.privatePostOrderOrdersPlace (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' createOrder() does not support the ' + method + ' method');
+        }
         const id = this.safeString (response, 'data');
         return this.safeOrder ({
             'info': response,
