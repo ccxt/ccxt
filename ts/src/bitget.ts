@@ -325,8 +325,6 @@ export default class bitget extends Exchange {
                             'v3/stockplus/market/option-chain-info': { 'cost': 2 } as Endpoint<Dict>,
                             'v3/stockplus/market/option-expiry-date': { 'cost': 2 } as Endpoint<Dict>,
                             'v3/stockplus/market/option-volume': { 'cost': 2 } as Endpoint<Dict>,
-                            'v3/account/reality-orderbook': { 'cost': 2 } as Endpoint<Dict>,
-                            'v3/account/reality-fills': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -885,6 +883,8 @@ export default class bitget extends Exchange {
                             'v3/position/current-position': { 'cost': 1 } as Endpoint<Dict>,
                             'v3/position/history-position': { 'cost': 1 } as Endpoint<Dict>,
                             'v3/position/adlRank': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/account/reality-orderbook': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/reality-fills': { 'cost': 2 } as Endpoint<Dict>,
                             'v3/stockplus/asset/transfer-records': { 'cost': 2 } as Endpoint<Dict>,
                             'v3/stockplus/asset/account': { 'cost': 2 } as Endpoint<Dict>,
                             'v3/stockplus/asset/stock-position': { 'cost': 2 } as Endpoint<Dict>,
@@ -3292,7 +3292,10 @@ export default class bitget extends Exchange {
             if (limit !== undefined) {
                 throw new BadRequest (this.id + ' fetchOrderBook() does not support limit for tokenized stock markets');
             }
-            response = await this.publicUtaGetV3AccountRealityOrderbook (this.extend (request, params));
+            if (this.apiKey === undefined) {
+                throw new BadRequest (this.id + ' fetchOrderBook() requires a whitelisted API key for tokenized stock markets');
+            }
+            response = await this.privateUtaGetV3AccountRealityOrderbook (this.extend (request, params));
         } else if (uta) {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketOrderbook (this.extend (request, params));
@@ -4082,8 +4085,11 @@ export default class bitget extends Exchange {
             if (since !== undefined) {
                 throw new BadRequest (this.id + ' fetchTrades() does not support since for tokenized stock markets');
             }
+            if (this.apiKey === undefined) {
+                throw new BadRequest (this.id + ' fetchTrades() requires a whitelisted API key for tokenized stock markets');
+            }
             params = this.omit (params, [ 'until', 'idLessThan' ]);
-            response = await this.publicUtaGetV3AccountRealityFills (this.extend (request, params));
+            response = await this.privateUtaGetV3AccountRealityFills (this.extend (request, params));
         } else if (uta) {
             if (productType === 'SPOT') {
                 let marginMode: Str = undefined;
