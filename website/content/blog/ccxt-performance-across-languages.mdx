@@ -11,7 +11,8 @@ languages. The obvious question: **does the language you pick change performance
 slower than a Go one? Does Python use more memory? Is a compiled language always the fastest?
 
 The answer has three layers, and they don't agree with each other. So we measured all three,
-across all six languages — JavaScript (Node), Python, PHP, C#, Go, and Java:
+across all six languages — JavaScript (Node), Python, PHP, C#, Go, and Java — plus a first look
+at the in-progress Rust port:
 
 1. **REST latency** — is a `fetchOrderBook` call slower in one language than another?
 2. **The library's own speed, with the network removed** — how fast does each language actually
@@ -53,7 +54,7 @@ synthetic 1,000-level order book — `parseJson` + `parseOrderBook`, the CPU-bou
 response — in a tight offline loop, and measure how long one parse takes. This is your latency
 floor when the data is already in hand: backtesting on historical data, or replaying a deep book.
 
-![Parse latency with the network removed, all six languages](/images/benchmarks/load-parse-latency.png)
+![Parse latency with the network removed, all six languages plus the Rust preview](/images/benchmarks/load-parse-latency.png)
 
 Now the languages spread across **more than 6×**, and the order is not what "compiled vs
 interpreted" would predict:
@@ -63,6 +64,23 @@ interpreted" would predict:
 - **PHP (1.67 ms)** sits in the middle.
 - **Python (2.20 ms), Go (2.62 ms), and C# (2.77 ms) cluster at the bottom** — and yes, that puts
   the two *compiled* languages *below* interpreted Python.
+
+### Bonus: a first look at the Rust port
+
+CCXT is currently growing a seventh target. [PR #28627](https://github.com/ccxt/ccxt/pull/28627)
+adds a Rust implementation — still unmerged and moving fast, but far enough along that
+`parseJson` and `parseOrderBook` work, so we pointed the same benchmark at it.
+
+**Rust lands third at ~1.01 ms** — roughly 2.3× the parse time of JavaScript and Java, but 1.7×
+faster than PHP and about 2.6× faster than Go and C#. That last comparison is the interesting one:
+Rust and Go are both AOT-compiled with no tracing JIT, yet the Rust port is comfortably ahead.
+The difference is representation. Where the transpiled Go boxes every value into `interface{}`
+and routes each field access through a generic runtime helper, the Rust port's `Value` is a
+plain enum matched directly — same dynamic shape, far less indirection per level.
+
+Treat this number as provisional: it's an in-flight port, and the measurement carries two
+caveats spelled out in the methodology (a different machine, normalized via a same-machine
+JavaScript reference; and a crate trimmed to the coinbase exchange so it would compile).
 
 We also tried swapping Python's standard-library `json` for the fast Rust parser
 [`orjson`](https://github.com/ijl/orjson) — shown as its own row (`BENCH_ORJSON=1`). It shaves
@@ -105,25 +123,34 @@ the whole story.
 |---|---|---|---|
 | JavaScript | Node 22 | 0.44 ms | 2,293 /s |
 | Java | OpenJDK 21 | 0.44 ms | 2,280 /s |
+| Rust \* | rustc 1.94 | 1.01 ms | 988 /s |
 | PHP | 8.4 | 1.67 ms | 598 /s |
 | Python (orjson) | 3.11 | 2.13 ms | 469 /s |
 | Python | 3.11 | 2.20 ms | 454 /s |
 | Go | 1.25 | 2.62 ms | 381 /s |
 | C# | .NET 8 | 2.77 ms | 362 /s |
 
+\* *Rust is a preview from unmerged [PR #28627](https://github.com/ccxt/ccxt/pull/28627),
+measured on a different machine and normalized via a same-machine JavaScript reference run
+(raw: 800 /s; the reference machine benchmarked 23% slower). See the methodology.*
+
 ## 4. Memory
 
 Holding the parsed books plus the runtime baseline, peak resident memory splits by runtime, and
 the ranking flips again:
 
-![Peak memory under parsing load, all six languages](/images/benchmarks/load-memory.png)
+![Peak memory under parsing load, all six languages plus the Rust preview](/images/benchmarks/load-memory.png)
 
-**JavaScript is leanest (425 MB)**; Go, Python, and C# cluster around 675–690 MB; PHP's
-associative arrays push it to 966 MB; and **Java's JVM, which reserves a large heap up front, is
-heaviest at ~1.8 GB**. That last figure is baseline-driven — a production JVM with a capped
-`-Xmx` would be far lower — but it's the honest OS footprint out of the box, and the reason the
-fastest parser is also the hungriest. If you run hundreds of instances per host, Node and Go keep
-the smallest footprint.
+**JavaScript is leanest (425 MB)**, with the **Rust preview second at 525 MB**; Go, Python, and C#
+cluster around 675–690 MB; PHP's associative arrays push it to 966 MB; and **Java's JVM, which
+reserves a large heap up front, is heaviest at ~1.8 GB**. That last figure is baseline-driven — a
+production JVM with a capped `-Xmx` would be far lower — but it's the honest OS footprint out of
+the box, and the reason the fastest parser is also the hungriest. If you run hundreds of instances
+per host, Node and Go keep the smallest footprint.
+
+Unlike the latency figures, these memory numbers needed no cross-machine adjustment: the
+JavaScript reference run reproduced its original per-book (145 KB) and peak-RSS (425 MB) values
+within 1% on the second machine, so memory transfers directly.
 
 ## 5. WebSocket: maintaining a live order book
 
@@ -173,6 +200,9 @@ in PHP.
   — because the transpiled code is boxing-heavy and only a mature tracing JIT specializes it away.
 - **Memory favors Node and Go.** They keep the smallest footprints; the JVM is fastest but
   hungriest out of the box.
+- **The Rust port looks promising.** In its current unmerged state it parses ~2.6× faster than
+  Go or C# and holds the second-leanest memory footprint — evidence that the boxing tax above is
+  a property of how the code is generated, not of ahead-of-time compilation.
 - **For high-frequency WebSocket books, Python is remarkably cheap** (~0.6 ms of CPU per delta)
   and Go is the most expensive (~19 ms); PHP's real cost is the one-time snapshot build, not the
   deltas.
@@ -225,3 +255,18 @@ and hover any span for its exact share of the trace.
 - **Same CCXT version (4.5.65) everywhere**, generated from one TypeScript source. Runtimes:
   Node 22, Python 3.11, PHP 8.4, .NET 8, Go 1.25, OpenJDK 21. REST/WebSocket cover four languages;
   the offline load test covers all six.
+- **The Rust figure is a normalized preview, and here is exactly what that means.** It comes from
+  unmerged [PR #28627](https://github.com/ccxt/ccxt/pull/28627) and was measured after our
+  original machine was replaced mid-project, so it could not be run alongside the other six. Two
+  adjustments were needed, both disclosed rather than hidden:
+  (1) *Throughput is normalized.* We re-ran the **JavaScript** benchmark on the replacement
+  machine as a reference: it managed 1,858 ops/s versus 2,293 ops/s originally, i.e. the second
+  box is 23% slower. Rust measured 800 ops/s raw there, which rescales to ~988 ops/s (1.01 ms).
+  The raw and normalized values are both in `results.json`.
+  (2) *The crate was trimmed.* The full Rust crate would not compile in the available
+  15 GB / 4 cores (it OOM-killed at full parallelism and failed to link after 33 minutes
+  single-threaded), so we removed the 206 exchange modules the benchmark never calls and built
+  coinbase only. `parseJson` and `parseOrderBook` are untouched by that trim.
+  Memory needed **no** adjustment: the JavaScript reference reproduced its original per-book
+  (145 KB) and peak-RSS (425 MB) numbers within 1%, so memory comparisons transfer across the two
+  machines directly. Treat the Rust latency as a good estimate, not a measured peer of the others.

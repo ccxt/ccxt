@@ -432,5 +432,38 @@
     "perBookKb": 298.28,
     "keptLen": 2000,
     "reps": 3
+  },
+  "rust:load": {
+    "language": "Rust",
+    "runtime": "rustc 1.94.1",
+    "ccxt": "PR#28627 (carlosmiei/rust-impl-2)",
+    "mode": "load",
+    "levels": 1000,
+    "seconds": 8,
+    "reps": 3,
+    "ops": 6404,
+    "opsPerSec": 800.5,
+    "cpuUserSec": 7.43,
+    "cpuPerOpUs": 1163.3,
+    "peakRssMb": 525.0,
+    "retainBooks": 2000,
+    "perBookKb": 266.5,
+    "opsPerSecNormalized": 987.8,
+    "calibrationFactor": 1.2339,
+    "note": "Measured on a REPLACEMENT container (the original was reclaimed mid-project), so raw throughput is not directly comparable to the other languages. opsPerSecNormalized rescales via a same-machine JavaScript reference run (see js:load-calibration). Memory figures ARE directly comparable - the JS reference reproduced the original per-book and peak RSS within 1%. Built from a crate trimmed to the coinbase exchange only (206 unused exchange modules removed) because the full crate would not compile on the available 15GB/4-core box."
+  },
+  "js:load-calibration": {
+    "language": "JavaScript",
+    "runtime": "v22.22.2",
+    "ccxt": "4.5.65",
+    "mode": "load",
+    "levels": 1000,
+    "seconds": 8,
+    "reps": 3,
+    "opsPerSec": 1858.3,
+    "opsPerSecOriginalMachine": 2293.0,
+    "perBookKb": 144.78,
+    "peakRssMb": 425.9,
+    "note": "Reference run of the SAME JavaScript benchmark on the replacement container, used to normalize the Rust throughput. CPU is 23.4% slower here; memory matches the original run within 1%, confirming memory comparisons transfer across the two machines."
   }
 }
