@@ -1117,17 +1117,22 @@ export default class tokocrypto extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': this.getMarketIdByType (market),
             // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
             // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
             // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
             // 'limit': 500,     // default = 500, maximum = 1000
         };
-        if (market['quote'] !== 'USDT') {
+        // the venue routes market data by the symbol type reported by fetchMarkets,
+        // not by the quote currency: type 1 markets are served by the binance host
+        // with the underscore-less id, every other type by open/v1 with the raw id
+        const marketInfo = this.safeDict (market, 'info', {});
+        const symbolType = this.safeString (marketInfo, 'type');
+        if (symbolType !== '1') {
+            request['symbol'] = market['id'];
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            const responseInner = this.publicGetOpenV1MarketTrades (this.extend (request, params));
+            const responseInner = await this.publicGetOpenV1MarketTrades (this.extend (request, params));
             //
             //    {
             //       "code": 0,
@@ -1151,6 +1156,7 @@ export default class tokocrypto extends Exchange {
             const list = this.safeList (data, 'list', []);
             return this.parseTrades (list, market, since, limit);
         }
+        request['symbol'] = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', '');
         if (limit !== undefined) {
             request['limit'] = limit; // default = 500, maximum = 1000
         }

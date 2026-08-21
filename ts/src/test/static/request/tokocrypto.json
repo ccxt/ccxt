@@ -222,6 +222,26 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            },
+            {
+                "description": "public trades on a type-1 market quoted in IDR, routed to the binance host with the underscore-less id",
+                "method": "fetchTrades",
+                "url": "https://api.binance.com/api/v3/trades?symbol=BTCIDR&limit=2",
+                "input": [
+                    "BTC/IDR",
+                    null,
+                    2
+                ]
+            },
+            {
+                "description": "public trades on a type-3 market, routed to open/v1 with the raw id",
+                "method": "fetchTrades",
+                "url": "https://www.tokocrypto.com/open/v1/market/trades?symbol=ALCH_IDR&limit=2",
+                "input": [
+                    "ALCH/IDR",
+                    null,
+                    2
+                ]
             }
         ],
         "fetchTime": [

@@ -48,6 +48,55 @@
                         "fees": []
                     }
                 ]
+            },
+            {
+                "description": "public trades on a type-1 market quoted in IDR, served by the binance host",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/IDR",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "id": 899732,
+                        "price": "1362602579.00",
+                        "qty": "0.00119000",
+                        "quoteQty": "1621497.06",
+                        "time": 1787316719435,
+                        "isBuyerMaker": true,
+                        "isBestMatch": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": 899732,
+                            "price": "1362602579.00",
+                            "qty": "0.00119000",
+                            "quoteQty": "1621497.06",
+                            "time": 1787316719435,
+                            "isBuyerMaker": true,
+                            "isBestMatch": true
+                        },
+                        "timestamp": 1787316719435,
+                        "datetime": "2026-08-21T12:51:59.435Z",
+                        "symbol": "BTC/IDR",
+                        "id": "899732",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 1362602579,
+                        "amount": 0.00119,
+                        "cost": 1621497.06,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
             }
         ],
         "fetchOHLCV": [
