@@ -128,7 +128,7 @@ export default class upbit extends Exchange {
                         'candles/years': { 'cost': 2 } as Endpoint<List>,
                         'trades/ticks': { 'cost': 2 } as Endpoint<List>,
                         'ticker': { 'cost': 2 } as Endpoint<List>,
-                        'ticker/all': { 'cost': 2 } as Endpoint<Dict>,
+                        'ticker/all': { 'cost': 2 } as Endpoint<List>,
                         'orderbook': { 'cost': 2 } as Endpoint<List>,
                         'orderbook/instruments': { 'cost': 2 } as Endpoint<List>,
                     },
@@ -789,9 +789,12 @@ export default class upbit extends Exchange {
      * @name upbit#fetchTickers
      * @see https://docs.upbit.com/kr/reference/list-tickers
      * @see https://global-docs.upbit.com/reference/list-tickers
+     * @see https://docs.upbit.com/kr/reference/tickers_by_quote
+     * @see https://global-docs.upbit.com/reference/tickers_by_quote
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.quote_currencies] comma-separated quote currency ids to fetch all tickers for, defaults to every quote currency of the loaded markets, only used when symbols is undefined
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -799,14 +802,33 @@ export default class upbit extends Exchange {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols);
-        const ids = (symbols !== undefined) ? this.marketIds (symbols) : this.ids;
-        const promises: List = [];
-        const queries = this.idsQueryStrings (ids, 6400); // seems upbit server limitations
-        for (let i = 0; i < queries.length; i++) {
-            const idsQuery = queries[i];
-            promises.push (this.publicGetTicker ({ 'markets': idsQuery }));
+        let tickers: List = [];
+        if (symbols === undefined) {
+            // ticker/all returns every market of the requested quote currencies with a single request
+            const quoteIds: List = [];
+            const marketSymbols = this.symbols;
+            for (let i = 0; i < marketSymbols.length; i++) {
+                const market = this.market (marketSymbols[i]);
+                const quoteId = market['quoteId'];
+                if (!this.inArray (quoteId, quoteIds)) {
+                    quoteIds.push (quoteId);
+                }
+            }
+            const request: Dict = {
+                'quote_currencies': quoteIds.join (','),
+            };
+            tickers = await this.publicGetTickerAll (this.extend (request, params));
+        } else {
+            const ids = this.marketIds (symbols);
+            const promises: List = [];
+            const queries = this.idsQueryStrings (ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
+            for (let i = 0; i < queries.length; i++) {
+                const idsQuery = queries[i];
+                promises.push (this.publicGetTicker (this.extend ({ 'markets': idsQuery }, params)));
+            }
+            const responses = await Promise.all (promises);
+            tickers = this.arraysConcat (responses);
         }
-        const responses = await Promise.all (promises);
         //
         //     [ {                market: "BTC-ETH",
         //                    "trade_date": "20181122",
@@ -835,8 +857,7 @@ export default class upbit extends Exchange {
         //           "lowest_52_week_date": "2017-12-08",
         //                     "timestamp":  1542883543813  } ]
         //
-        const concated = this.arraysConcat (responses);
-        return this.parseTickers (concated, symbols);
+        return this.parseTickers (tickers, symbols);
     }
 
     idsQueryStrings (ids: Strings, maxQueryLength: number) {
