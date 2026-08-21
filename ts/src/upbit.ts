@@ -1871,7 +1871,7 @@ export default class upbit extends Exchange {
         //        new_order_identifier: '22'
         //      }
         const id = this.safeString (order, 'uuid');
-        let side = this.safeString (order, 'side');
+        let side = this.safeStringLower (order, 'side');
         if (side === 'bid') {
             side = 'buy';
         } else if (side === 'ask') {
