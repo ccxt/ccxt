@@ -814,8 +814,9 @@ export default class upbit extends Exchange {
                     quoteIds.push (quoteId);
                 }
             }
+            const sortedQuoteIds = this.sort (quoteIds); // market iteration order differs per language
             const request: Dict = {
-                'quote_currencies': quoteIds.join (','),
+                'quote_currencies': sortedQuoteIds.join (','),
             };
             tickers = await this.publicGetTickerAll (this.extend (request, params));
         } else {
