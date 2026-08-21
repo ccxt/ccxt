@@ -275,7 +275,6 @@ class bithumb extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
-                'ALT' => 'ArchLoot',
                 'FTC' => 'FTC2',
                 'SOC' => 'Soda Coin',
             ),
