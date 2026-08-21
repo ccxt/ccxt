@@ -323,7 +323,6 @@ func (this *BithumbCore) Describe() any {
 			},
 		},
 		"commonCurrencies": map[string]any{
-			"ALT": "ArchLoot",
 			"FTC": "FTC2",
 			"SOC": "Soda Coin",
 		},
@@ -490,8 +489,8 @@ func (this *BithumbCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes44712 := (<-this.LoadMarkets())
-			PanicOnError(retRes44712)
+			retRes44612 := (<-this.LoadMarkets())
+			PanicOnError(retRes44612)
 		}
 		var request any = map[string]any{
 			"currency": "ALL",
@@ -528,8 +527,8 @@ func (this *BithumbCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes46812 := (<-this.LoadMarkets())
-			PanicOnError(retRes46812)
+			retRes46712 := (<-this.LoadMarkets())
+			PanicOnError(retRes46712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -642,8 +641,8 @@ func (this *BithumbCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes56412 := (<-this.LoadMarkets())
-			PanicOnError(retRes56412)
+			retRes56312 := (<-this.LoadMarkets())
+			PanicOnError(retRes56312)
 		}
 		var result any = map[string]any{}
 		var quoteCurrencies any = this.SafeDict(this.Options, "quoteCurrencies", map[string]any{})
@@ -722,8 +721,8 @@ func (this *BithumbCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes62912 := (<-this.LoadMarkets())
-			PanicOnError(retRes62912)
+			retRes62812 := (<-this.LoadMarkets())
+			PanicOnError(retRes62812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -803,8 +802,8 @@ func (this *BithumbCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes69512 := (<-this.LoadMarkets())
-			PanicOnError(retRes69512)
+			retRes69412 := (<-this.LoadMarkets())
+			PanicOnError(retRes69412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -950,8 +949,8 @@ func (this *BithumbCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes82212 := (<-this.LoadMarkets())
-			PanicOnError(retRes82212)
+			retRes82112 := (<-this.LoadMarkets())
+			PanicOnError(retRes82112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1013,8 +1012,8 @@ func (this *BithumbCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes86812 := (<-this.LoadMarkets())
-			PanicOnError(retRes86812)
+			retRes86712 := (<-this.LoadMarkets())
+			PanicOnError(retRes86712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1080,8 +1079,8 @@ func (this *BithumbCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes91412 := (<-this.LoadMarkets())
-			PanicOnError(retRes91412)
+			retRes91312 := (<-this.LoadMarkets())
+			PanicOnError(retRes91312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1267,8 +1266,8 @@ func (this *BithumbCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes107812 := (<-this.LoadMarkets())
-			PanicOnError(retRes107812)
+			retRes107712 := (<-this.LoadMarkets())
+			PanicOnError(retRes107712)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(IsEqual(limit, nil)) {
@@ -1375,9 +1374,9 @@ func (this *BithumbCore) CancelUnifiedOrder(order any, optionalArgs ...any) <-ch
 			"side": GetValue(order, "side"),
 		}
 
-		retRes115715 := (<-this.CancelOrder(GetValue(order, "id"), GetValue(order, "symbol"), this.Extend(request, params)))
-		PanicOnError(retRes115715)
-		ch <- retRes115715
+		retRes115615 := (<-this.CancelOrder(GetValue(order, "id"), GetValue(order, "symbol"), this.Extend(request, params)))
+		PanicOnError(retRes115615)
+		ch <- retRes115615
 		return nil
 
 	}()
@@ -1411,8 +1410,8 @@ func (this *BithumbCore) Withdraw(code any, amount any, address any, optionalArg
 		this.CheckAddress(address)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes117612 := (<-this.LoadMarkets())
-			PanicOnError(retRes117612)
+			retRes117512 := (<-this.LoadMarkets())
+			PanicOnError(retRes117512)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
