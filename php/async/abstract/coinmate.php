@@ -352,6 +352,24 @@ abstract class coinmate extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_post_daiwithdrawal($params = array()) {
+        return $this->request('daiWithdrawal', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_daidepositaddresses($params = array()) {
+        return $this->request('daiDepositAddresses', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_unconfirmeddaideposits($params = array()) {
+        return $this->request('unconfirmedDaiDeposits', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_post_solwithdrawal($params = array()) {
         return $this->request('solWithdrawal', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -714,6 +732,24 @@ abstract class coinmate extends \ccxt\async\Exchange {
      */
     public function privatePostUnconfirmedAdaDeposits($params = array()) {
         return $this->request('unconfirmedAdaDeposits', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostDaiWithdrawal($params = array()) {
+        return $this->request('daiWithdrawal', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostDaiDepositAddresses($params = array()) {
+        return $this->request('daiDepositAddresses', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostUnconfirmedDaiDeposits($params = array()) {
+        return $this->request('unconfirmedDaiDeposits', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

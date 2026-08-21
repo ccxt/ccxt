@@ -1004,26 +1004,30 @@ public class BithumbCore extends BithumbApi
                 put( "payment_currency", Helpers.GetValue(market, "quote") );
                 put( "units", amount );
             }};
-            Object method = "privatePostTradePlace";
+            Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
             {
                 Helpers.addElementToObject(request, "price", price);
                 Helpers.addElementToObject(request, "type", ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "bid" : "ask");
+                response = (this.privatePostTradePlace(this.extend(request, parameters))).join();
+            } else if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
+            {
+                response = (this.privatePostTradeMarketBuy(this.extend(request, parameters))).join();
             } else
             {
-                method = Helpers.add("privatePostTradeMarket", this.capitalize(side));
+                response = (this.privatePostTradeMarketSell(this.extend(request, parameters))).join();
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
             Object id = this.safeString(response, "order_id");
             if (Helpers.isTrue(Helpers.isEqual(id, null)))
             {
                 throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() did not return an order id")) ;
             }
+            final Object finalResponse = response;
             final Object finalType = type;
             final Object finalSide = side;
             final Object finalId = id;
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
-                put( "info", response );
+                put( "info", finalResponse );
                 put( "symbol", symbol );
                 put( "type", finalType );
                 put( "side", finalSide );

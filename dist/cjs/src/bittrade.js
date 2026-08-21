@@ -513,7 +513,13 @@ class bittrade extends bittrade$1["default"] {
      */
     async fetchMarkets(params = {}) {
         const method = this.handleOption('fetchMarkets', 'method', 'publicGetCommonSymbols');
-        const response = await this[method](params);
+        let response = undefined;
+        if (method === 'publicGetCommonSymbols') {
+            response = await this.publicGetCommonSymbols(params);
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchMarkets() does not support the ' + method + ' method');
+        }
         //
         //    {
         //        "status": "ok",
@@ -1249,7 +1255,13 @@ class bittrade extends bittrade$1["default"] {
         const request = {
             'id': this.accounts[0]['id'],
         };
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'privateGetAccountAccountsIdBalance') {
+            response = await this.privateGetAccountAccountsIdBalance(this.extend(request, params));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchBalance() does not support the ' + method + ' method');
+        }
         return this.parseBalance(response);
     }
     async fetchOrdersByStates(states, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1265,7 +1277,13 @@ class bittrade extends bittrade$1["default"] {
             request['symbol'] = market['id'];
         }
         const method = this.handleOption('fetchOrdersByStates', 'method', 'private_get_order_orders');
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if ((method === 'private_get_order_history') || (method === 'privateGetOrderHistory')) {
+            response = await this.privateGetOrderHistory(this.extend(request, params));
+        }
+        else {
+            response = await this.privateGetOrderOrders(this.extend(request, params));
+        }
         //
         //     { "status":   "ok",
         //         "data": [ {                  id:  13997833016,
@@ -1330,7 +1348,10 @@ class bittrade extends bittrade$1["default"] {
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const method = this.handleOption('fetchOpenOrders', 'method', 'fetch_open_orders_v1');
-        return await this[method](symbol, since, limit, params);
+        if ((method === 'fetch_open_orders_v2') || (method === 'fetchOpenOrdersV2')) {
+            return await this.fetchOpenOrdersV2(symbol, since, limit, params);
+        }
+        return await this.fetchOpenOrdersV1(symbol, since, limit, params);
     }
     async fetchOpenOrdersV1(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
@@ -1587,8 +1608,14 @@ class bittrade extends bittrade$1["default"] {
         if (type === 'limit' || type === 'ioc' || type === 'limit-maker' || type === 'stop-limit' || type === 'stop-limit-fok') {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const method = this.options['createOrderMethod'];
-        const response = await this[method](this.extend(request, params));
+        const method = this.handleOption('createOrder', 'method', 'privatePostOrderOrdersPlace');
+        let response = undefined;
+        if (method === 'privatePostOrderOrdersPlace') {
+            response = await this.privatePostOrderOrdersPlace(this.extend(request, params));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' createOrder() does not support the ' + method + ' method');
+        }
         const id = this.safeString(response, 'data');
         return this.safeOrder({
             'info': response,

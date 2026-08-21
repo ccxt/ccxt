@@ -1001,7 +1001,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
             }
-            $messageHash = '::' . implode(',', $symbols);
+            $messageHash = 'positions::' . implode(',', $symbols);
         }
         $client = $this->client($url);
         $this->set_positions_cache($client, $symbols);

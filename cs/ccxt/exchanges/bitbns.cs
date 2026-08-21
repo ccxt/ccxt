@@ -783,13 +783,11 @@ public partial class bitbns : Exchange
             { "symbol", getValue(market, "uppercaseId") },
             { "quantity", this.amountToPrecision(symbol, amount) },
         };
-        object method = "v2PostOrders";
         if (isTrue(isEqual(type, "limit")))
         {
             ((IDictionary<string,object>)request)["rate"] = this.priceToPrecision(symbol, price);
         } else
         {
-            method = "v1PostPlaceMarketOrderQntySymbol";
             ((IDictionary<string,object>)request)["market"] = getValue(market, "quoteId");
         }
         if (isTrue(!isEqual(triggerPrice, null)))
@@ -804,7 +802,14 @@ public partial class bitbns : Exchange
         {
             ((IDictionary<string,object>)request)["trail_rate"] = this.priceToPrecision(symbol, trailRate);
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = null;
+        if (isTrue(isEqual(type, "limit")))
+        {
+            response = await this.v2PostOrders(this.extend(request, parameters));
+        } else
+        {
+            response = await this.v1PostPlaceMarketOrderQntySymbol(this.extend(request, parameters));
+        }
         //
         //     {
         //         "data":"Successfully placed bid to purchase currency",
