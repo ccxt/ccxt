@@ -825,6 +825,53 @@
                     "previousFundingDatetime": null,
                     "interval": null
                 }
+            },
+            {
+                "description": "fetch funding rate inverse",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1787342456049,
+                    "data": [
+                        {
+                            "symbol": "BTC-USD",
+                            "lastFundingRate": "0.0001",
+                            "markPrice": "76881.8",
+                            "indexPrice": "76922.2",
+                            "nextFundingTime": 1787356800000
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USD",
+                        "lastFundingRate": "0.0001",
+                        "markPrice": "76881.8",
+                        "indexPrice": "76922.2",
+                        "nextFundingTime": 1787356800000
+                    },
+                    "symbol": "BTC/USD:BTC",
+                    "markPrice": 76881.8,
+                    "indexPrice": 76922.2,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 0.0001,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1787356800000,
+                    "nextFundingDatetime": "2026-08-22T00:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": null
+                }
             }
         ],
         "fetchTransfers": [
